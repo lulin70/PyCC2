@@ -1,0 +1,246 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Battle Scenario Schema",
+  "description": "Schema for PyCC2 battle scenario definitions — a single engagement on one map within the four-layer campaign hierarchy",
+  "type": "object",
+  "required": [
+    "scenario_id",
+    "name",
+    "description",
+    "map_id",
+    "time_of_day",
+    "weather",
+    "day",
+    "sector",
+    "operation_id",
+    "forces",
+    "victory_locations",
+    "special_rules"
+  ],
+  "properties": {
+    "scenario_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Unique scenario identifier, must match filename without .json extension"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "description": "Human-readable scenario name"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Brief narrative description of the battle"
+    },
+    "map_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "References a map definition in data/maps/"
+    },
+    "time_of_day": {
+      "type": "string",
+      "enum": ["dawn", "day", "dusk", "night"],
+      "description": "Time of day affects visibility and combat mechanics"
+    },
+    "weather": {
+      "type": "string",
+      "enum": ["clear", "overcast", "rain", "fog"],
+      "description": "Weather affects movement, visibility, and air support availability"
+    },
+    "day": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9,
+      "description": "Day within the Market Garden operation (Sept 17-25, 1944)"
+    },
+    "sector": {
+      "type": "string",
+      "enum": ["arnhem", "nijmegen", "eindhoven"],
+      "description": "Campaign sector this battle belongs to"
+    },
+    "operation_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "References an operation within the four-layer campaign hierarchy"
+    },
+    "forces": {
+      "type": "object",
+      "required": ["allies", "axis"],
+      "properties": {
+        "allies": {
+          "$ref": "#/definitions/force_definition"
+        },
+        "axis": {
+          "$ref": "#/definitions/force_definition"
+        }
+      },
+      "additionalProperties": false
+    },
+    "victory_locations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "$ref": "#/definitions/victory_location"
+      },
+      "description": "Victory locations on the map; total values determine battle outcome scoring"
+    },
+    "special_rules": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "bridge_destructible",
+          "no_air_support",
+          "limited_air_support",
+          "defender_advantage",
+          "limited_reinforcements",
+          "supply_dwindling",
+          "amphibious_crossing_available",
+          "combined_arms_bonus",
+          "corridor_must_remain_open",
+          "xxx_corps_linkup",
+          "airdrop_deployment",
+          "initial_scatter",
+          "lz_must_hold_for_reinforcements",
+          "night_fighting",
+          "fortified_positions",
+          "fanatic_defenders"
+        ]
+      },
+      "description": "Special gameplay rules that modify standard battle mechanics"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "force_definition": {
+      "type": "object",
+      "required": ["faction", "deployment_zone", "units", "reinforcements", "max_infantry", "max_support"],
+      "properties": {
+        "faction": {
+          "type": "string",
+          "enum": ["BRITISH", "AMERICAN", "GERMAN"],
+          "description": "Faction providing the forces for this side"
+        },
+        "deployment_zone": {
+          "type": "object",
+          "required": ["x_min", "x_max", "y_min", "y_max"],
+          "properties": {
+            "x_min": {"type": "integer", "minimum": 0},
+            "x_max": {"type": "integer", "minimum": 0},
+            "y_min": {"type": "integer", "minimum": 0},
+            "y_max": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": false,
+          "description": "Rectangular deployment zone in tile coordinates; must fit within map bounds"
+        },
+        "units": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/unit_entry"
+          },
+          "description": "Units available at battle start"
+        },
+        "reinforcements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/reinforcement_entry"
+          },
+          "description": "Units arriving as reinforcements during the battle"
+        },
+        "max_infantry": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 15,
+          "description": "Maximum infantry units deployable (CC2 default: 9)"
+        },
+        "max_support": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Maximum support units deployable (CC2 default: 6)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "unit_entry": {
+      "type": "object",
+      "required": ["template_id", "count", "deployment_cost"],
+      "properties": {
+        "template_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "References a CC2UnitTemplate definition"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Number of this unit type available"
+        },
+        "deployment_cost": {
+          "type": "integer",
+          "minimum": 50,
+          "maximum": 500,
+          "description": "Requisition point cost per unit (CC2 operations mode)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "reinforcement_entry": {
+      "type": "object",
+      "required": ["template_id", "arrival_turn", "from_direction"],
+      "properties": {
+        "template_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "References a CC2UnitTemplate definition"
+        },
+        "arrival_turn": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 20,
+          "description": "Turn number when this reinforcement arrives"
+        },
+        "from_direction": {
+          "type": "string",
+          "enum": ["north", "south", "east", "west"],
+          "description": "Map edge direction the reinforcement enters from"
+        }
+      },
+      "additionalProperties": false
+    },
+    "victory_location": {
+      "type": "object",
+      "required": ["id", "position", "value", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^vl_[a-z][a-z0-9_]*$",
+          "description": "Unique victory location identifier, prefixed with vl_"
+        },
+        "position": {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 0},
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "[x, y] tile coordinates on the map"
+        },
+        "value": {
+          "type": "integer",
+          "enum": [10, 20, 30, 40],
+          "description": "Victory point value: 10=regular, 20=road/LZ, 30=road junction, 40=bridge/key building"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["bridge", "road_junction", "building", "landing_zone", "crossroads", "hill"],
+          "description": "Category of the victory location"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

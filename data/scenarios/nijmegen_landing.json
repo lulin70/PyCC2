@@ -1,0 +1,49 @@
+{
+  "scenario_id": "nijmegen_landing",
+  "name": "Nijmegen Landing - Day 1",
+  "description": "82nd Airborne Division lands at drop zones near Groesbeek, securing LZs against German reaction forces from the Reichswald",
+  "map_id": "nijmegen",
+  "time_of_day": "dawn",
+  "weather": "clear",
+  "day": 1,
+  "sector": "nijmegen",
+  "operation_id": "nijmegen_waal_crossing",
+  "forces": {
+    "allies": {
+      "faction": "AMERICAN",
+      "deployment_zone": {"x_min": 0, "x_max": 12, "y_min": 0, "y_max": 35},
+      "units": [
+        {"template_id": "us_para_rifle_squad_82nd", "count": 5, "deployment_cost": 100},
+        {"template_id": "us_para_mg_30cal", "count": 2, "deployment_cost": 150},
+        {"template_id": "us_para_at_bazooka", "count": 1, "deployment_cost": 200}
+      ],
+      "reinforcements": [
+        {"template_id": "us_para_rifle_squad_82nd", "arrival_turn": 3, "from_direction": "west"},
+        {"template_id": "us_para_mg_30cal", "arrival_turn": 5, "from_direction": "west"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    },
+    "axis": {
+      "faction": "GERMAN",
+      "deployment_zone": {"x_min": 28, "x_max": 40, "y_min": 0, "y_max": 35},
+      "units": [
+        {"template_id": "de_grenadier_squad", "count": 2, "deployment_cost": 100},
+        {"template_id": "de_mg42_squad", "count": 1, "deployment_cost": 150},
+        {"template_id": "de_flak_88", "count": 1, "deployment_cost": 300}
+      ],
+      "reinforcements": [
+        {"template_id": "de_grenadier_squad", "arrival_turn": 4, "from_direction": "east"},
+        {"template_id": "de_sp_recon", "arrival_turn": 6, "from_direction": "north"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    }
+  },
+  "victory_locations": [
+    {"id": "vl_lz_alpha", "position": [6, 8], "value": 20, "type": "landing_zone"},
+    {"id": "vl_lz_bravo", "position": [6, 14], "value": 20, "type": "landing_zone"},
+    {"id": "vl_groesbeek_village", "position": [10, 10], "value": 20, "type": "building"}
+  ],
+  "special_rules": ["airdrop_deployment", "initial_scatter", "lz_must_hold_for_reinforcements", "no_air_support"]
+}

@@ -1,0 +1,47 @@
+{
+  "scenario_id": "arnhem_bridge_day1",
+  "name": "Arnhem Bridge - Day 1",
+  "description": "1st Airborne Division attempts to secure the Arnhem road bridge",
+  "map_id": "arnhem",
+  "time_of_day": "dawn",
+  "weather": "clear",
+  "day": 1,
+  "sector": "arnhem",
+  "operation_id": "arnhem_bridge",
+  "forces": {
+    "allies": {
+      "faction": "BRITISH",
+      "deployment_zone": {"x_min": 0, "x_max": 15, "y_min": 0, "y_max": 42},
+      "units": [
+        {"template_id": "uk_para_rifle_squad", "count": 4, "deployment_cost": 100},
+        {"template_id": "uk_para_mg_bren", "count": 2, "deployment_cost": 150},
+        {"template_id": "uk_para_at_piat", "count": 1, "deployment_cost": 200}
+      ],
+      "reinforcements": [
+        {"template_id": "uk_para_rifle_squad", "arrival_turn": 5, "from_direction": "south"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    },
+    "axis": {
+      "faction": "GERMAN",
+      "deployment_zone": {"x_min": 35, "x_max": 50, "y_min": 0, "y_max": 42},
+      "units": [
+        {"template_id": "de_grenadier_squad", "count": 3, "deployment_cost": 100},
+        {"template_id": "de_mg42_squad", "count": 2, "deployment_cost": 150},
+        {"template_id": "de_pak40_at_gun", "count": 1, "deployment_cost": 280}
+      ],
+      "reinforcements": [
+        {"template_id": "de_panther", "arrival_turn": 8, "from_direction": "north"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    }
+  },
+  "victory_locations": [
+    {"id": "vl_bridge_n", "position": [25, 14], "value": 40, "type": "bridge"},
+    {"id": "vl_bridge_s", "position": [25, 28], "value": 30, "type": "bridge"},
+    {"id": "vl_north_bank", "position": [25, 10], "value": 20, "type": "road_junction"}
+  ],
+  "special_rules": ["bridge_destructible", "no_air_support"]
+}

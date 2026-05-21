@@ -1,0 +1,51 @@
+{
+  "scenario_id": "oosterbeek_perimeter",
+  "name": "Oosterbeek Perimeter",
+  "description": "1st Airborne Division holds a shrinking defensive perimeter around Oosterbeek as German forces close in from all sides",
+  "map_id": "oosterbeek_caldron",
+  "time_of_day": "dusk",
+  "weather": "overcast",
+  "day": 4,
+  "sector": "arnhem",
+  "operation_id": "oosterbeek_defense",
+  "forces": {
+    "allies": {
+      "faction": "BRITISH",
+      "deployment_zone": {"x_min": 12, "x_max": 28, "y_min": 10, "y_max": 25},
+      "units": [
+        {"template_id": "uk_para_rifle_squad", "count": 3, "deployment_cost": 100},
+        {"template_id": "uk_para_mg_bren", "count": 2, "deployment_cost": 150},
+        {"template_id": "uk_para_at_piat", "count": 2, "deployment_cost": 200},
+        {"template_id": "uk_para_sniper", "count": 1, "deployment_cost": 180}
+      ],
+      "reinforcements": [
+        {"template_id": "uk_para_reserve_squad", "arrival_turn": 6, "from_direction": "south"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    },
+    "axis": {
+      "faction": "GERMAN",
+      "deployment_zone": {"x_min": 0, "x_max": 40, "y_min": 0, "y_max": 35},
+      "units": [
+        {"template_id": "de_grenadier_squad", "count": 4, "deployment_cost": 100},
+        {"template_id": "de_mg42_squad", "count": 2, "deployment_cost": 150},
+        {"template_id": "de_pak40_at_gun", "count": 1, "deployment_cost": 280},
+        {"template_id": "de_sp_recon", "count": 1, "deployment_cost": 250}
+      ],
+      "reinforcements": [
+        {"template_id": "de_panther", "arrival_turn": 5, "from_direction": "north"},
+        {"template_id": "de_grenadier_squad", "arrival_turn": 7, "from_direction": "east"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    }
+  },
+  "victory_locations": [
+    {"id": "vl_hartenstein", "position": [20, 17], "value": 40, "type": "building"},
+    {"id": "vl_church", "position": [15, 12], "value": 30, "type": "building"},
+    {"id": "vl_river_crossing", "position": [20, 30], "value": 30, "type": "bridge"},
+    {"id": "vl_west_road", "position": [8, 17], "value": 20, "type": "road_junction"}
+  ],
+  "special_rules": ["defender_advantage", "limited_reinforcements", "supply_dwindling", "no_air_support"]
+}

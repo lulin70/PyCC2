@@ -1,0 +1,51 @@
+{
+  "scenario_id": "corridor_defense",
+  "name": "Corridor Defense - Day 6",
+  "description": "German forces attack the corridor near Schijndel, attempting to cut Hell's Highway and trap XXX Corps advance elements",
+  "map_id": "schijndel_road",
+  "time_of_day": "day",
+  "weather": "rain",
+  "day": 6,
+  "sector": "eindhoven",
+  "operation_id": "eindhoven_corridor_defense",
+  "forces": {
+    "allies": {
+      "faction": "BRITISH",
+      "deployment_zone": {"x_min": 5, "x_max": 20, "y_min": 5, "y_max": 30},
+      "units": [
+        {"template_id": "uk_xxx_cors_sherman", "count": 2, "deployment_cost": 350},
+        {"template_id": "uk_xxx_cors_rifle_squad", "count": 3, "deployment_cost": 100},
+        {"template_id": "uk_xxx_cors_mg", "count": 1, "deployment_cost": 150},
+        {"template_id": "us_para_rifle_squad_101st", "count": 2, "deployment_cost": 100}
+      ],
+      "reinforcements": [
+        {"template_id": "uk_xxx_cors_rifle_squad", "arrival_turn": 4, "from_direction": "south"},
+        {"template_id": "us_para_rifle_squad_101st", "arrival_turn": 5, "from_direction": "north"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    },
+    "axis": {
+      "faction": "GERMAN",
+      "deployment_zone": {"x_min": 28, "x_max": 42, "y_min": 0, "y_max": 35},
+      "units": [
+        {"template_id": "de_grenadier_squad", "count": 4, "deployment_cost": 100},
+        {"template_id": "de_mg42_squad", "count": 2, "deployment_cost": 150},
+        {"template_id": "de_pak40_at_gun", "count": 2, "deployment_cost": 280},
+        {"template_id": "de_panther", "count": 1, "deployment_cost": 400}
+      ],
+      "reinforcements": [
+        {"template_id": "de_stug_iii", "arrival_turn": 5, "from_direction": "east"},
+        {"template_id": "de_grenadier_squad", "arrival_turn": 4, "from_direction": "north"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    }
+  },
+  "victory_locations": [
+    {"id": "vl_schijndel_road", "position": [8, 10], "value": 30, "type": "road_junction"},
+    {"id": "vl_schijndel_village", "position": [14, 14], "value": 40, "type": "building"},
+    {"id": "vl_schijndel_crossroads", "position": [10, 20], "value": 30, "type": "road_junction"}
+  ],
+  "special_rules": ["corridor_must_remain_open", "defender_advantage", "limited_air_support", "fortified_positions"]
+}

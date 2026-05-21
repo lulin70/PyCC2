@@ -1,0 +1,56 @@
+[display]
+width = 1280
+height = 720
+fullscreen = false
+vsync = true
+fps_limit = 60
+background_color = [40, 44, 52]
+
+[game]
+ups = 30
+fps = 60
+tile_size = 32
+grid_width = 16
+grid_height = 16
+
+[camera]
+zoom_min = 0.5
+zoom_max = 3.0
+zoom_speed = 0.1
+scroll_speed = 5.0
+smoothness = 0.15
+
+[audio]
+master_volume = 0.7
+sfx_volume = 1.0
+music_volume = 0.6
+
+[debug]
+show_fps = true
+show_grid = false
+show_hitboxes = false
+show_ai_decisions = false
+log_level = "INFO"
+
+[pathfinding]
+max_search_time_ms = 50
+diagonal_movement = true
+allow_diagonal_corners = true
+
+[combat]
+base_hit_chance = 0.7
+critical_hit_multiplier = 2.0
+cover_bonus = 0.25
+suppression_effect = 0.3
+
+[morale]
+max_morale = 100
+min_morale = 0
+break_threshold = 20
+recovery_rate = 0.5
+panic_flee_speed = 1.5
+
+[save]
+auto_save_interval_minutes = 10
+max_save_slots = 10
+encrypt_saves = true

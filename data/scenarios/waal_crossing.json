@@ -1,0 +1,51 @@
+{
+  "scenario_id": "waal_crossing",
+  "name": "Waal River Crossing - Day 3",
+  "description": "82nd Airborne launches the famous assault boat crossing of the Waal River under heavy German fire, supported by Guards Armoured smoke screens",
+  "map_id": "grave",
+  "time_of_day": "day",
+  "weather": "clear",
+  "day": 3,
+  "sector": "nijmegen",
+  "operation_id": "nijmegen_waal_crossing",
+  "forces": {
+    "allies": {
+      "faction": "AMERICAN",
+      "deployment_zone": {"x_min": 0, "x_max": 15, "y_min": 20, "y_max": 42},
+      "units": [
+        {"template_id": "us_para_rifle_squad_82nd", "count": 5, "deployment_cost": 100},
+        {"template_id": "us_para_mg_30cal", "count": 2, "deployment_cost": 150},
+        {"template_id": "us_para_at_bazooka", "count": 2, "deployment_cost": 200},
+        {"template_id": "uk_guards_sherman", "count": 1, "deployment_cost": 350}
+      ],
+      "reinforcements": [
+        {"template_id": "us_para_rifle_squad_82nd", "arrival_turn": 3, "from_direction": "south"},
+        {"template_id": "uk_guards_sherman", "arrival_turn": 5, "from_direction": "south"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    },
+    "axis": {
+      "faction": "GERMAN",
+      "deployment_zone": {"x_min": 10, "x_max": 40, "y_min": 0, "y_max": 18},
+      "units": [
+        {"template_id": "de_grenadier_squad", "count": 4, "deployment_cost": 100},
+        {"template_id": "de_mg42_squad", "count": 3, "deployment_cost": 150},
+        {"template_id": "de_pak40_at_gun", "count": 2, "deployment_cost": 280},
+        {"template_id": "de_stug_iii", "count": 1, "deployment_cost": 300}
+      ],
+      "reinforcements": [
+        {"template_id": "de_panther", "arrival_turn": 7, "from_direction": "north"},
+        {"template_id": "de_grenadier_squad", "arrival_turn": 5, "from_direction": "east"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    }
+  },
+  "victory_locations": [
+    {"id": "vl_north_bank", "position": [20, 6], "value": 40, "type": "landing_zone"},
+    {"id": "vl_south_bank", "position": [20, 36], "value": 20, "type": "road_junction"},
+    {"id": "vl_river_crossing", "position": [20, 21], "value": 30, "type": "bridge"}
+  ],
+  "special_rules": ["amphibious_crossing_available", "combined_arms_bonus", "defender_advantage", "limited_air_support"]
+}

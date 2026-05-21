@@ -1,0 +1,51 @@
+{
+  "scenario_id": "nijmegen_bridge_assault",
+  "name": "Nijmegen Bridge Assault - Day 4",
+  "description": "After the Waal crossing, 82nd Airborne and Guards Armoured launch a combined assault from both ends to capture the Nijmegen road bridge",
+  "map_id": "nijmegen",
+  "time_of_day": "dusk",
+  "weather": "clear",
+  "day": 4,
+  "sector": "nijmegen",
+  "operation_id": "nijmegen_waal_crossing",
+  "forces": {
+    "allies": {
+      "faction": "AMERICAN",
+      "deployment_zone": {"x_min": 0, "x_max": 15, "y_min": 0, "y_max": 35},
+      "units": [
+        {"template_id": "us_para_rifle_squad_82nd", "count": 4, "deployment_cost": 100},
+        {"template_id": "us_para_mg_30cal", "count": 2, "deployment_cost": 150},
+        {"template_id": "us_para_at_bazooka", "count": 2, "deployment_cost": 200},
+        {"template_id": "uk_guards_sherman", "count": 2, "deployment_cost": 350}
+      ],
+      "reinforcements": [
+        {"template_id": "us_para_rifle_squad_82nd", "arrival_turn": 4, "from_direction": "south"},
+        {"template_id": "uk_guards_sherman", "arrival_turn": 6, "from_direction": "south"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    },
+    "axis": {
+      "faction": "GERMAN",
+      "deployment_zone": {"x_min": 28, "x_max": 40, "y_min": 0, "y_max": 35},
+      "units": [
+        {"template_id": "de_grenadier_squad", "count": 4, "deployment_cost": 100},
+        {"template_id": "de_mg42_squad", "count": 2, "deployment_cost": 150},
+        {"template_id": "de_pak40_at_gun", "count": 2, "deployment_cost": 280},
+        {"template_id": "de_stug_iii", "count": 1, "deployment_cost": 300}
+      ],
+      "reinforcements": [
+        {"template_id": "de_panther", "arrival_turn": 6, "from_direction": "north"},
+        {"template_id": "de_mg42_squad", "arrival_turn": 5, "from_direction": "east"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    }
+  },
+  "victory_locations": [
+    {"id": "vl_bridge_north", "position": [20, 10], "value": 40, "type": "bridge"},
+    {"id": "vl_bridge_south", "position": [20, 25], "value": 40, "type": "bridge"},
+    {"id": "vl_bridge_approach", "position": [20, 17], "value": 30, "type": "road_junction"}
+  ],
+  "special_rules": ["bridge_destructible", "amphibious_crossing_available", "combined_arms_bonus", "fanatic_defenders"]
+}

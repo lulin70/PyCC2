@@ -1,0 +1,51 @@
+{
+  "scenario_id": "veghel_defense",
+  "name": "Veghel Defense - Day 4",
+  "description": "German forces launch a determined counterattack on Veghel, threatening to cut the Hell's Highway corridor and isolate XXX Corps",
+  "map_id": "veghel",
+  "time_of_day": "dawn",
+  "weather": "overcast",
+  "day": 4,
+  "sector": "eindhoven",
+  "operation_id": "eindhoven_corridor_defense",
+  "forces": {
+    "allies": {
+      "faction": "AMERICAN",
+      "deployment_zone": {"x_min": 5, "x_max": 20, "y_min": 5, "y_max": 30},
+      "units": [
+        {"template_id": "us_para_rifle_squad_101st", "count": 4, "deployment_cost": 100},
+        {"template_id": "us_para_mg_30cal", "count": 2, "deployment_cost": 150},
+        {"template_id": "us_para_at_bazooka", "count": 2, "deployment_cost": 200},
+        {"template_id": "us_para_mortar_60mm", "count": 1, "deployment_cost": 180}
+      ],
+      "reinforcements": [
+        {"template_id": "uk_xxx_cors_sherman", "arrival_turn": 5, "from_direction": "south"},
+        {"template_id": "us_para_rifle_squad_101st", "arrival_turn": 4, "from_direction": "south"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    },
+    "axis": {
+      "faction": "GERMAN",
+      "deployment_zone": {"x_min": 28, "x_max": 42, "y_min": 0, "y_max": 35},
+      "units": [
+        {"template_id": "de_grenadier_squad", "count": 4, "deployment_cost": 100},
+        {"template_id": "de_mg42_squad", "count": 2, "deployment_cost": 150},
+        {"template_id": "de_pak40_at_gun", "count": 1, "deployment_cost": 280},
+        {"template_id": "de_stug_iii", "count": 1, "deployment_cost": 300}
+      ],
+      "reinforcements": [
+        {"template_id": "de_panther", "arrival_turn": 6, "from_direction": "east"},
+        {"template_id": "de_grenadier_squad", "arrival_turn": 4, "from_direction": "north"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    }
+  },
+  "victory_locations": [
+    {"id": "vl_veghel_lz", "position": [8, 10], "value": 20, "type": "landing_zone"},
+    {"id": "vl_veghel_village", "position": [14, 12], "value": 40, "type": "building"},
+    {"id": "vl_veghel_crossroads", "position": [10, 20], "value": 30, "type": "road_junction"}
+  ],
+  "special_rules": ["corridor_must_remain_open", "defender_advantage", "limited_air_support"]
+}

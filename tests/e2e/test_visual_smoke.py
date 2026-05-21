@@ -1,0 +1,75 @@
+import os
+
+import pytest
+
+os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
+
+import numpy as np
+import pygame
+
+from pycc2.domain.components.health_component import HealthComponent
+from pycc2.domain.components.morale_component import MoraleComponent
+from pycc2.domain.components.position_component import PositionComponent
+from pycc2.domain.components.vision_component import VisionComponent
+from pycc2.domain.components.weapon_component import WeaponComponent
+from pycc2.domain.entities.game_map import GameMap
+from pycc2.domain.entities.unit import (
+    Faction,
+    Unit,
+    UnitType,
+)
+from pycc2.domain.value_objects.tile_coord import TileCoord
+from pycc2.domain.value_objects.vec2 import Vec2
+from pycc2.presentation.rendering.camera import Camera
+from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
+from pycc2.presentation.rendering.window_config import WindowManager
+
+
+def _make_unit(unit_id: str = "u1") -> Unit:
+    return Unit(
+        id=unit_id,
+        name="TestUnit",
+        faction=Faction.ALLIES,
+        unit_type=UnitType.INFANTRY_SQUAD,
+        health=HealthComponent(hp=100, max_hp=100),
+        morale=MoraleComponent(value=80),
+        weapon=WeaponComponent(primary_weapon_id="rifle", ammo_remaining=10, max_ammo=10),
+        position=PositionComponent(tile_coord=TileCoord(8, 8)),
+        vision=VisionComponent(range_tiles=5),
+    )
+
+
+@pytest.fixture(autouse=True)
+def setup_pygame():
+    pygame.init()
+    yield
+    pygame.quit()
+
+
+class TestVisualSmoke:
+    def test_full_render_pipeline_no_crash(self):
+        grid = np.zeros((16, 16), dtype=np.int8)
+        game_map = GameMap(
+            id="smoke_test",
+            name="Smoke Test Map",
+            width=16,
+            height=16,
+            tile_grid=grid,
+        )
+        units = [_make_unit("unit_001")]
+        wm = WindowManager()
+        screen = wm.initialize()
+        camera = Camera(position=Vec2(256.0, 256.0))
+        renderer = EnhancedRenderer()
+        renderer.initialize(screen)
+        renderer.render(
+            game_map,
+            units,
+            camera,
+            alpha=1.0,
+            selected_unit_ids={"unit_001"},
+            debug_mode=False,
+        )
+        wm.shutdown()
+        renderer.shutdown()
