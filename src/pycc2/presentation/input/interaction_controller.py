@@ -203,8 +203,35 @@ class InteractionController:
     ) -> set[str]:
         result = self.hit_test(screen_pos, units)
 
-        if self._mode in (InteractionMode.MOVE, InteractionMode.ATTACK):
+        # In MOVE or ATTACK mode, execute command on left click
+        if self._mode == InteractionMode.MOVE:
             self._mode = InteractionMode.SELECT
+            if result.world_position and self._on_move_command:
+                self._on_move_command(self._selected_ids, result.world_position)
+                self._event_bus.publish({
+                    "command": "move",
+                    "unit_ids": list(self._selected_ids),
+                    "target": (result.world_position.x, result.world_position.y),
+                })
+            return set(self._selected_ids)
+
+        if self._mode == InteractionMode.ATTACK:
+            self._mode = InteractionMode.SELECT
+            if result.is_unit_click and result.hit_unit:
+                target = result.hit_unit
+                selected_unit = next(
+                    (u for u in units if u.id == next(iter(self._selected_ids), None)),
+                    None,
+                )
+                if selected_unit and target.faction != selected_unit.faction:
+                    if self._on_attack_command:
+                        self._on_attack_command(self._selected_ids, target.id)
+                    self._event_bus.publish({
+                        "command": "attack",
+                        "unit_ids": list(self._selected_ids),
+                        "target_id": target.id,
+                    })
+            return set(self._selected_ids)
 
         shift_held = modifiers[1]
 
