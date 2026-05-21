@@ -86,7 +86,6 @@ class GameLoop:
     _pause_menu_mouse: tuple[int, int] = field(init=False, default=(0, 0))
     _pause_menu_result: str | None = field(init=False, default=None)
     time_control: TimeControlUI | None = field(init=False, default=None)
-    _offscreen_buffer: pygame.Surface | None = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         from pycc2.presentation.audio.sound_system import SoundSystem as SS
@@ -135,11 +134,6 @@ class GameLoop:
 
         if self.use_full_hud:
             self._init_hud_system()
-
-        import pygame as _pg
-        screen = self.window_manager.get_screen()
-        if screen:
-            self._offscreen_buffer = _pg.Surface(screen.get_size(), flags=_pg.SRCALPHA).convert()
 
     def _init_victory_system(self) -> None:
         import time as _time
@@ -259,6 +253,27 @@ class GameLoop:
         self._command_bar.register_callback("hold", on_hold)
         self._command_bar.register_callback("dig_in", on_dig_in)
         self._command_bar.register_callback("cancel", on_cancel)
+
+        # Register command execution callbacks to interaction_controller
+        if self.interaction_controller:
+            def execute_move(unit_ids: set[str], target):
+                logger.info(f"[COMMAND] Moving {len(unit_ids)} unit(s) to ({target.x}, {target.y})")
+                self.event_bus.publish(PlayerCommand(
+                    command="move",
+                    unit_ids=list(unit_ids),
+                    target=(target.x, target.y),
+                ))
+
+            def execute_attack(unit_ids: set[str], target_id: str):
+                logger.info(f"[COMMAND] Attacking target {target_id} with {len(unit_ids)} unit(s)")
+                self.event_bus.publish(PlayerCommand(
+                    command="attack",
+                    unit_ids=list(unit_ids),
+                    target_id=target_id,
+                ))
+
+            self.interaction_controller.register_on_move(execute_move)
+            self.interaction_controller.register_on_attack(execute_attack)
 
         self._minimap.set_map(self.state.game_map)
 
@@ -451,18 +466,13 @@ class GameLoop:
 
             screen = self.window_manager._screen
 
-            # Use offscreen buffer for tear-free rendering (WORKBUDDY fix)
-            render_target = self._offscreen_buffer if self._offscreen_buffer else screen
-            if self._offscreen_buffer:
-                self._offscreen_buffer.fill((0, 0, 0, 255))
-
-            if self.tutorial_overlay and self.tutorial_overlay.visible and render_target:
-                self.tutorial_overlay.render(render_target)
+            if self.tutorial_overlay and self.tutorial_overlay.visible and screen:
+                self.tutorial_overlay.render(screen)
 
             if self.settings_menu and self.settings_menu.visible:
-                if render_target:
-                    self.settings_menu.render(render_target)
-            elif self.deployment_phase_active and self.deployment_ui is not None and render_target:
+                if screen:
+                    self.settings_menu.render(screen)
+            elif self.deployment_phase_active and self.deployment_ui is not None and screen:
                 self._render_pipeline.render(
                     game_map=self.state.game_map,
                     units=self.state.units,
@@ -479,7 +489,7 @@ class GameLoop:
                 dc = self.display_config
                 tile_size = dc.base_tile_size if dc else 16
                 self.deployment_ui.render(
-                    render_target, font=None,
+                    screen, font=None,
                     map_offset_x=0, map_offset_y=0,
                     tile_size=tile_size,
                 )
@@ -505,16 +515,12 @@ class GameLoop:
                     battle_stats=self._battle_stats,
                 )
 
-            if self.hint_manager and render_target:
-                self.hint_manager.render(render_target)
+            if self.hint_manager and screen:
+                self.hint_manager.render(screen)
 
             # Draw pause menu overlay
-            if self._pause_menu_active and render_target:
-                self._render_pause_menu(render_target)
-
-            # Blit offscreen buffer to screen (single atomic operation for no tearing)
-            if self._offscreen_buffer and screen:
-                screen.blit(self._offscreen_buffer, (0, 0))
+            if self._pause_menu_active and screen:
+                self._render_pause_menu(screen)
 
             pygame.display.flip()
             self.window_manager.tick(TARGET_FPS)
@@ -614,8 +620,8 @@ class GameLoop:
 
         # Calculate requisition points from game settings
         requisition_points = 2000
-        max_infantry = 9
-        max_support = 6
+        max_infantry = 15   # Increased for better gameplay
+        max_support = 10    # Increased for better gameplay
         force_pool = None
 
         if game_settings is not None:
