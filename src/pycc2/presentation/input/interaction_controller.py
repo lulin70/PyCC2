@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
@@ -9,8 +9,10 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.value_objects.tile_coord import TileCoord
+    from pycc2.domain.value_objects.vec2 import Vec2
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.services.event_bus import EventBus
+    from pycc2.presentation.input.attack_line_system import AttackLineSystem
 
 
 class InteractionMode(Enum):
@@ -43,9 +45,13 @@ class InteractionController:
         self._selected_ids: set[str] = set()
         self._selection_start: tuple[float, float] | None = None
         self._on_unit_selected: Callable[[set[str]], None] | None = None
-        self._on_move_command: Callable[[set[str], TileCoord], None] | None = None
+        self._on_move_command: Callable[[set[str], "Vec2"], None] | None = None
         self._on_attack_command: Callable[[set[str], str], None] | None = None
         self._on_deselect: Callable[[], None] | None = None
+
+        # Attack line system (CC2-style)
+        from pycc2.presentation.input.attack_line_system import AttackLineSystem
+        self.attack_line: AttackLineSystem = AttackLineSystem()
 
     @property
     def mode(self) -> InteractionMode:
@@ -214,21 +220,54 @@ class InteractionController:
             return set(self._selected_ids)
 
         if self._mode == InteractionMode.ATTACK:
-            self._mode = InteractionMode.SELECT
-            if result.is_unit_click and result.hit_unit:
-                target = result.hit_unit
-                selected_unit = next(
-                    (u for u in units if u.id == next(iter(self._selected_ids), None)),
-                    None,
-                )
-                if selected_unit and target.faction != selected_unit.faction:
-                    if self._on_attack_command:
-                        self._on_attack_command(self._selected_ids, target.id)
-                    self._event_bus.publish({
-                        "command": "attack",
-                        "unit_ids": list(self._selected_ids),
-                        "target_id": target.id,
-                    })
+            # CC2-style: Click confirms attack target
+            if self.attack_line.state.active:
+                # Confirm the current attack target
+                if self.attack_line.state.target:
+                    target = self.attack_line.state.target
+                    selected_unit = next(
+                        (u for u in units if u.id == next(iter(self._selected_ids), None)),
+                        None,
+                    )
+
+                    # Evaluate final status
+                    if selected_unit:
+                        target.status = self.attack_line.evaluate_attack(
+                            attacker=selected_unit,
+                            target=target,
+                            game_map=self._game_map,
+                        )
+
+                    # Lock in the attack
+                    self.attack_line.confirm_attack(target)
+
+                    logger.info(
+                        f"[ATTACK] Confirmed: {len(self._selected_ids)} units -> "
+                        f"{'unit '+target.unit_id if target.unit_id else 'ground'} "
+                        f"({target.position.x:.0f},{target.position.y:.0f}) "
+                        f"status={target.status.name}"
+                    )
+
+                    # Execute attack command
+                    if target.status.name in ('CAN_ATTACK', 'TRACKING_UNIT'):
+                        if target.unit_id and self._on_attack_command:
+                            self._on_attack_command(self._selected_ids, target.unit_id)
+                        elif not target.unit_id:
+                            # Ground target attack
+                            if self._on_move_command:  # Reuse for ground attack
+                                self._on_move_command(self._selected_ids, target.position)
+
+                        self._event_bus.publish({
+                            "command": "attack",
+                            "unit_ids": list(self._selected_ids),
+                            "target_id": target.unit_id,
+                            "target_pos": (target.position.x, target.position.y),
+                            "is_ground_target": target.is_ground_target,
+                        })
+                    else:
+                        logger.warning(f"[ATTACK] Cannot attack - {target.status.name}")
+
+                self._mode = InteractionMode.SELECT
             return set(self._selected_ids)
 
         shift_held = modifiers[1]
@@ -250,6 +289,49 @@ class InteractionController:
             self._on_unit_selected(self._selected_ids)
 
         return set(self._selected_ids)
+        )
+
+    def handle_mouse_move(
+        self,
+        screen_pos: tuple[float, float],
+        units: list[Unit],
+    ) -> None:
+        """Handle mouse movement for attack line preview."""
+        if self._mode != InteractionMode.ATTACK:
+            return
+
+        if not self.attack_line.state.active or not self._camera:
+            return
+
+        # Convert to world coordinates
+        world_vec = self._camera.screen_to_world(screen_pos)
+
+        # Get attacker faction
+        attacker_faction = "allied"  # Default
+        selected_id = next(iter(self._selected_ids), None)
+        if selected_id:
+            for u in units:
+                if u.id == selected_id:
+                    attacker_faction = u.faction
+                    break
+
+        # Update attack line target
+        target = self.attack_line.update_mouse_position(
+            screen_pos=screen_pos,
+            world_pos=world_vec,
+            units=units,
+            attacker_faction=attacker_faction,
+        )
+
+        # Evaluate attack status (range, LOS)
+        if selected_id:
+            attacker = next((u for u in units if u.id == selected_id), None)
+            if attacker:
+                target.status = self.attack_line.evaluate_attack(
+                    attacker=attacker,
+                    target=target,
+                    game_map=self._game_map,
+                )
 
     def handle_right_click(self, screen_pos: tuple[float, float], units: list[Unit]) -> None:
         if not self._selected_ids:

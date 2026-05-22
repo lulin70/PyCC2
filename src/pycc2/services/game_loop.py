@@ -160,6 +160,10 @@ class GameLoop:
 
         self.event_bus.subscribe(UnitAttacked, self._on_unit_attacked_for_stats)
 
+        # Pass attack_line_system to renderer for drawing
+        if self.interaction_controller:
+            self.renderer._attack_line_system = self.interaction_controller.attack_line
+
     def _get_time_speed(self) -> float:
         if self.time_control is not None:
             return self.time_control.speed_multiplier
@@ -218,8 +222,21 @@ class GameLoop:
                 self.sound_system.play_ui_command()
             if self.interaction_controller:
                 from pycc2.presentation.input.interaction_controller import InteractionMode
+                from pycc2.domain.value_objects.vec2 import Vec2
 
                 self.interaction_controller.set_mode(InteractionMode.ATTACK)
+
+                # Begin attack line from selected unit(s)
+                if self.state.selected_unit_ids:
+                    selected_id = next(iter(self.state.selected_unit_ids), None)
+                    selected_unit = next((u for u in self.state.units if u.id == selected_id), None)
+                    if selected_unit:
+                        source_pos = selected_unit.position.pixel_position
+                        self.interaction_controller.attack_line.begin_attack(
+                            unit_id=selected_id,
+                            source_pos=source_pos,
+                        )
+                        logger.info(f"[ATTACK LINE] Started from {selected_unit.display_name} at ({source_pos.x:.0f},{source_pos.y:.0f})")
 
         def on_hold():
             if self.sound_system:
@@ -566,6 +583,10 @@ class GameLoop:
                 arrived = unit.update_movement(dt)
                 if arrived:
                     logger.debug(f"[MOVEMENT] {unit.display_name} arrived at destination")
+
+        # Update attack line tracking (unit targets follow movement)
+        if self.interaction_controller:
+            self.interaction_controller.attack_line.update_tracking(self.state.units)
 
         self._combat_director.update(
             units=self.state.units,

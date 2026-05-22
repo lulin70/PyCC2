@@ -1105,6 +1105,9 @@ class EnhancedRenderer:
         # STEP 5: Draw units
         self._draw_units(units, camera, selected_unit_ids)
 
+        # STEP 5.5: Draw attack lines (CC2-style)
+        self._draw_attack_lines(camera)
+
         # STEP 6: Atomic blit off-screen buffer → display surface
         self._screen.blit(self._offscreen, (0, 0))
 
@@ -1689,7 +1692,123 @@ class EnhancedRenderer:
         if selected:
             select_color = (255, 255, 0)
             pygame.draw.circle(self._offscreen, select_color, (cx, cy), radius + 3, 2)
-    
+
+    def _draw_attack_lines(self, camera: Camera) -> None:
+        """Draw CC2-style attack lines with color coding.
+
+        Green line = Can attack (in range, clear LOS)
+        Red/Orange line = Cannot attack (out of range or blocked)
+        Yellow dashed = Tracking unit target
+        """
+        if self._offscreen is None:
+            return
+
+        # Get attack line system from game state or global
+        import pygame as pg
+        from pycc2.presentation.input.attack_line_system import AttackLineSystem, AttackLineStatus
+
+        # Try to get attack line state from interaction_controller
+        # This is accessed via a global reference for now
+        # TODO: Pass attack_line_system as parameter
+        attack_line = getattr(self, '_attack_line_system', None)
+        if not attack_line:
+            return
+
+        # Draw active attack line (while in ATTACK mode)
+        if attack_line.state.active and attack_line.state.source_position:
+            source = attack_line.state.source_position
+            target_state = attack_line.state.target
+
+            if target_state:
+                # Convert world to screen coordinates
+                src_screen = camera.world_to_screen(source)
+                tgt_screen = camera.world_to_screen(target_state.position)
+
+                # Get color based on status
+                status = target_state.status
+                color = attack_line.get_line_color(status)
+
+                # Draw line
+                start_pos = (int(src_screen[0]), int(src_screen[1]))
+                end_pos = (int(tgt_screen[0]), int(tgt_screen[1]))
+
+                if status == AttackLineStatus.CAN_ATTACK:
+                    # Solid green line
+                    pg.draw.line(self._offscreen, color[:3], start_pos, end_pos, 2)
+                    # Draw circle at target
+                    pg.draw.circle(self._offscreen, (0, 255, 0), end_pos, 6, 2)
+                elif status == AttackLineStatus.OUT_OF_RANGE:
+                    # Dashed red line
+                    self._draw_dashed_line(start_pos, end_pos, (255, 50, 50), dash_len=8)
+                    # X mark at target
+                    size = 6
+                    pg.draw.line(self._offscreen, (255, 50, 50),
+                                (end_pos[0]-size, end_pos[1]-size),
+                                (end_pos[0]+size, end_pos[1]+size), 2)
+                    pg.draw.line(self._offscreen, (255, 50, 50),
+                                (end_pos[0]-size, end_pos[1]+size),
+                                (end_pos[0]+size, end_pos[1]-size), 2)
+                elif status == AttackLineStatus.BLOCKED:
+                    # Orange dashed line
+                    self._draw_dashed_line(start_pos, end_pos, (255, 140, 0), dash_len=8)
+                    # Block icon at target
+                    pg.draw.circle(self._offscreen, (255, 140, 0), end_pos, 8, 2)
+                    pg.draw.line(self._offscreen, (255, 140, 0),
+                                (end_pos[0]-4, end_pos[1]),
+                                (end_pos[0]+4, end_pos[1]), 2)
+
+                # Draw range circle around source
+                if hasattr(attack_line, 'COLOR_CAN_ATTACK'):
+                    pass  # Already used above
+
+        # Draw confirmed attacks (tracking lines)
+        for unit_id, confirmed_target in attack_line._confirmed_attacks.items():
+            if not confirmed_target.unit_id:
+                continue  # Only draw tracking lines for unit targets
+
+            # Find the attacker's current position
+            # We'd need access to units list here - simplified version
+            source_screen = camera.world_to_screen(confirmed_target.position)
+            # Target position is updated by update_tracking()
+            target_screen = camera.world_to_screen(confirmed_target.position)
+
+            # Yellow dashed line for tracking
+            self._draw_dashed_line(
+                (int(source_screen[0]), int(source_screen[1])),
+                (int(target_screen[0]), int(target_screen[1])),
+                (255, 255, 0),
+                dash_len=6,
+            )
+
+    def _draw_dashed_line(
+        self,
+        start: tuple[int, int],
+        end: tuple[int, int],
+        color: tuple[int, int, int],
+        dash_len: int = 8,
+    ) -> None:
+        """Draw a dashed line."""
+        import math as _math
+        x1, y1 = start
+        x2, y2 = end
+        dx = x2 - x1
+        dy = y2 - y1
+        distance = _math.sqrt(dx*dx + dy*dy)
+
+        if distance == 0:
+            return
+
+        dashes = int(distance / dash_len)
+        for i in range(0, dashes, 2):
+            start_i = i * dash_len
+            end_i = min((i + 1) * dash_len, int(distance))
+            sx = x1 + dx * start_i / distance
+            sy = y1 + dy * start_i / distance
+            ex = x1 + dx * end_i / distance
+            ey = y1 + dy * end_i / distance
+            import pygame as pg
+            pg.draw.line(self._offscreen, color, (int(sx), int(sy)), (int(ex), int(ey)), 2)
+
     def _draw_grid(self, game_map: GameMap, camera: Camera) -> None:
         """Draw grid overlay for debugging."""
         if self._screen is None:

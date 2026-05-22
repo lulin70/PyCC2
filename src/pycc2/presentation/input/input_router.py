@@ -89,6 +89,16 @@ class InputRouter:
                 if units:
                     self.interaction_controller.handle_right_click(input_event.position, units)
 
+            elif input_event.event_type == "mouse_move":
+                # Handle attack line preview (CC2-style)
+                if self.interaction_controller:
+                    units = getattr(self.game_state, 'units', [])
+                    if units and hasattr(self.interaction_controller, 'attack_line'):
+                        self.interaction_controller.handle_mouse_move(
+                            input_event.position,
+                            units,
+                        )
+
         if input_event.event_type in ("mouse_move", "mouse_click_left", "mouse_click_right"):
             dx, dy = self.input_handler.get_camera_movement()
             if (dx != 0 or dy != 0) and self.camera:
