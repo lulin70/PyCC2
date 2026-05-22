@@ -169,6 +169,24 @@ class GameLoop:
             return self.time_control.speed_multiplier
         return 1.0
 
+    def _center_camera_on_unit(self, unit_id: str) -> None:
+        """Center camera (and minimap view) on selected unit."""
+        unit = next((u for u in self.state.units if u.id == unit_id), None)
+        if unit and hasattr(unit, 'position') and unit.position is not None:
+            # Center camera on unit's position
+            pos = unit.position.pixel_position
+            from pycc2.domain.value_objects.vec2 import Vec2
+            viewport_w = self.state.camera.viewport_width
+            viewport_h = self.state.camera.viewport_height
+
+            # Set camera position to center on unit
+            self.state.camera.position = Vec2(
+                pos.x - viewport_w / 2,
+                pos.y - viewport_h / 2,
+            )
+
+            logger.debug(f"[CAMERA] Centered on {unit.display_name} at ({pos.x:.0f}, {pos.y:.0f})")
+
     def _init_hud_system(self) -> None:
         from pycc2.presentation.audio.sound_system import SoundType
         from pycc2.presentation.rendering.command_bar import CommandBar
@@ -183,6 +201,10 @@ class GameLoop:
         self._command_bar = CommandBar(display_config=dc)
         self._unit_panel = UnitPanel(display_config=dc)
         self._minimap = Minimap(display_config=dc, size=int(140 * dc.ui_scale))
+
+        # CC2-style bottom panel (replaces separate command_bar/unit_panel/minimap)
+        from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
+        self._cc2_panel: CC2BottomPanel | None = CC2BottomPanel()
 
         self.state.camera.viewport_width = dc.window_width
         self.state.camera.viewport_height = dc.window_height
@@ -202,6 +224,8 @@ class GameLoop:
             self._hud_manager.initialize()
             self._command_bar.initialize()
             self._unit_panel.initialize()
+            if self._cc2_panel:
+                self._cc2_panel.initialize()
 
         self._render_pipeline.hud_manager = self._hud_manager
         self._render_pipeline.command_bar = self._command_bar
@@ -270,6 +294,32 @@ class GameLoop:
         self._command_bar.register_callback("hold", on_hold)
         self._command_bar.register_callback("dig_in", on_dig_in)
         self._command_bar.register_callback("cancel", on_cancel)
+
+        # Setup CC2-style bottom panel callbacks
+        if self._cc2_panel:
+            # Unit selection from roster
+            def on_roster_select(unit_id: str):
+                if unit_id:
+                    self.state.selected_unit_ids = {unit_id}
+                    logger.info(f"[CC2 PANEL] Selected unit: {unit_id}")
+                    # Center camera on selected unit
+                    self._center_camera_on_unit(unit_id)
+
+            self._cc2_panel._on_unit_select = on_roster_select
+
+            # Command callbacks (reuse existing functions)
+            self._cc2_panel.register_callback("move", on_move)
+            self._cc2_panel.register_callback("attack", on_attack)
+            self._cc2_panel.register_callback("hold", on_hold)
+            self._cc2_panel.register_callback("dig_in", on_dig_in)
+            self._cc2_panel.register_callback("cancel", on_cancel)
+
+            # Zoom callback
+            def on_zoom_change(zoom_level: float):
+                self.state.camera.zoom = zoom_level
+                logger.info(f"[CC2 PANEL] Zoom changed to {zoom_level:.2f}x")
+
+            self._cc2_panel._on_zoom_change = on_zoom_change
 
         # Register command execution callbacks to interaction_controller
         if self.interaction_controller:
@@ -531,6 +581,23 @@ class GameLoop:
                     game_result=self._game_result,
                     battle_stats=self._battle_stats,
                 )
+
+                # Render CC2-style bottom panel (if enabled)
+                if self._cc2_panel and screen:
+                    # Update panel with current unit data
+                    friendly_units = [u for u in self.state.units if u.faction.name.lower() == 'allied']
+                    self._cc2_panel.set_friendly_units(friendly_units)
+
+                    selected_id = next(iter(self.state.selected_unit_ids), None) if self.state.selected_unit_ids else None
+                    self._cc2_panel.set_selected_unit(selected_id)
+
+                    # Render the complete CC2 panel
+                    self._cc2_panel.render(
+                        surface=screen,
+                        camera=self.state.camera,
+                        game_map=self.state.game_map,
+                        minimap=self._minimap,
+                    )
                 dc = self.display_config
                 tile_size = dc.base_tile_size if dc else 16
                 self.deployment_ui.render(

@@ -173,7 +173,32 @@ class Unit:
         dist = (dx*dx + dy*dy) ** 0.5
 
         # Move based on speed (tiles per tick)
-        speed = getattr(self, 'movement_speed', 3.0) * dt * 0.1  # Scale down for smooth movement
+        # Speed affected by: base speed, fatigue, morale, unit type
+        base_speed = getattr(self, 'movement_speed', 3.0)
+
+        # Apply modifiers
+        speed_modifier = 1.0
+
+        # Fatigue reduces speed (if fatigue system exists)
+        if hasattr(self, 'fatigue'):
+            fatigue_val = getattr(self.fatigue, 'current', 0) if self.fatigue else 0
+            # Fatigue 0-100: at 100, speed reduced by 50%
+            speed_modifier *= (1.0 - (fatigue_val / 200))
+
+        # Low morale slightly reduces speed
+        if hasattr(self, 'morale'):
+            morale_val = getattr(self.morale, 'current', 75) if self.morale else 75
+            # Morale < 30: panic, slower movement
+            if morale_val < 30:
+                speed_modifier *= 0.6
+            elif morale_val < 50:
+                speed_modifier *= 0.8
+
+        # Vehicles move faster than infantry on roads, slower in rough terrain
+        # (terrain modifier would be applied here if we had terrain data)
+
+        # Final speed calculation
+        speed = base_speed * speed_modifier * dt * 0.15  # Scaled for smooth visual movement
 
         if dist <= speed:
             # Close enough: snap to target
