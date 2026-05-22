@@ -1048,11 +1048,18 @@ class EnhancedRenderer:
         self._height_lit_cache: dict[tuple[int, int, int, int], pygame.Surface] = {}
         self._sprite_cache: dict[str, pygame.Surface] = {}
         self._frame_count = 0
+        self._sprite_renderer = None  # 延迟初始化，等待display ready
     
     def initialize(self, screen: pygame.Surface) -> None:
         """Initialize renderer with display surface."""
         self._screen = screen
         self._offscreen = pygame.Surface(screen.get_size()).convert()
+        
+        # 现在display已初始化，可以创建SpriteRenderer加载PNG
+        from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
+        self._sprite_renderer = SpriteRenderer()
+        self._sprite_renderer.initialize(screen)
+        print("[EnhancedRenderer] ✅ SpriteRenderer initialized with PNG support")
     
     def render(
         self,
@@ -1483,18 +1490,27 @@ class EnhancedRenderer:
                     self._offscreen.blit(sprite, rect)
     
     def _draw_units(self, units: list[Unit], camera: Camera, selected_unit_ids: set[str] | None = None) -> None:
-        """Draw units with MAXIMUM visibility - CRITICAL for gameplay.
-
-        Uses simple, reliable rendering that CANNOT fail.
-        Every unit MUST be visible regardless of data issues.
-        """
+        """Draw units using SpriteRenderer with PNG support, fallback to simple shapes."""
         if self._screen is None or self._offscreen is None:
             return
 
-        # DEBUG: Count units
         if len(units) == 0:
-            return  # No units to draw (shouldn't happen in battle)
+            return
 
+        # 如果SpriteRenderer已初始化，使用它（支持PNG精灵）
+        if self._sprite_renderer is not None:
+            # 临时设置SpriteRenderer的screen为offscreen buffer
+            original_screen = self._sprite_renderer._screen
+            self._sprite_renderer._screen = self._offscreen
+            
+            # 使用SpriteRenderer绘制单位（会加载PNG）
+            self._sprite_renderer._draw_units(units, camera, selected_unit_ids)
+            
+            # 恢复原始screen
+            self._sprite_renderer._screen = original_screen
+            return
+        
+        # Fallback: 如果SpriteRenderer未初始化，使用简单形状
         screen_w, screen_h = self._screen.get_size()
 
         # Draw each unit with EXTREME defensive coding

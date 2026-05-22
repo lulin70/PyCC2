@@ -15,8 +15,8 @@ from pycc2.presentation.rendering.visual_spec import VisualSpec
 
 DEFAULT_PANEL_WIDTH = 250
 DEFAULT_PANEL_HEIGHT = 220
-DEFAULT_POS_X = 10
-DEFAULT_POS_Y = 50
+DEFAULT_POS_X = 10  # Left side (will be adjusted dynamically)
+DEFAULT_POS_Y = 80  # Below header
 PADDING = 15
 TITLE_LINE_HEIGHT = 35
 LINE_HEIGHT = 18
@@ -75,7 +75,13 @@ class UnitPanel:
         if not self._font_title or not self._font_normal:
             return
 
-        panel_rect = Rect(self._position[0], self._position[1], self.width, self.height)
+        # Dynamic positioning: place on RIGHT side to avoid blocking units
+        screen_w = surface.get_width()
+        panel_x = screen_w - self.width - 10  # Right side with margin
+        panel_y = 80  # Below header
+        self._position = (panel_x, panel_y)
+
+        panel_rect = Rect(panel_x, panel_y, self.width, self.height)
         pygame.draw.rect(surface, self.spec.panel_background_color, panel_rect)
         pygame.draw.rect(surface, self.spec.panel_border_color, panel_rect, BORDER_WIDTH)
 

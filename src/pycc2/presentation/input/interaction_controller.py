@@ -206,13 +206,11 @@ class InteractionController:
         # In MOVE or ATTACK mode, execute command on left click
         if self._mode == InteractionMode.MOVE:
             self._mode = InteractionMode.SELECT
-            if result.world_position and self._on_move_command:
-                self._on_move_command(self._selected_ids, result.world_position)
-                self._event_bus.publish({
-                    "command": "move",
-                    "unit_ids": list(self._selected_ids),
-                    "target": (result.world_position.x, result.world_position.y),
-                })
+            if self._on_move_command and self._camera:
+                # Convert screen position to WORLD pixel coordinates (not tile!)
+                world_vec = self._camera.screen_to_world(screen_pos)
+                self._on_move_command(self._selected_ids, world_vec)
+                logger.info(f"[MOVE] Command: {len(self._selected_ids)} units -> ({world_vec.x:.0f}, {world_vec.y:.0f})")
             return set(self._selected_ids)
 
         if self._mode == InteractionMode.ATTACK:

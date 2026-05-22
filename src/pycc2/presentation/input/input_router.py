@@ -47,7 +47,7 @@ class InputRouter:
             if self.show_post_battle:
                 if input_event.key in (pygame.K_ESCAPE, pygame.K_r):
                     if self.game_state:
-                        self.show_post_battle = False
+                        # 按ESC或R键退出战斗结果画面，返回主菜单
                         self.game_state.running = False
                 return True
             if self.interaction_controller:

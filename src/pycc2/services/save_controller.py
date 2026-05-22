@@ -56,9 +56,10 @@ class SaveController:
             if restored:
                 if game_loop.sound_system:
                     game_loop.sound_system.play_ui_command()
+                logger.info("Game loaded successfully from slot %d", slot)
                 return True
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error("Failed to restore game state from slot %d: %s", slot, e, exc_info=True)
 
         if game_loop.sound_system:
             from pycc2.presentation.audio.sound_system import SoundType
@@ -106,9 +107,9 @@ class SaveController:
                         "x": unit.position.tile_coord.x,
                         "y": unit.position.tile_coord.y,
                     },
-                    "pixel_position": {
-                        "x": unit.position.pixel_position.x,
-                        "y": unit.position.pixel_position.y,
+                    "pixel_offset": {
+                        "x": unit.position.pixel_offset.x,
+                        "y": unit.position.pixel_offset.y,
                     },
                     "facing_rad": unit.position.facing_rad,
                 },
@@ -197,10 +198,7 @@ class SaveController:
                 po = pos_data.get("pixel_offset", {"x": 0.0, "y": 0.0})
                 position = PositionComponent(
                     tile_coord=TileCoord(tc["x"], tc["y"]),
-                    pixel_position=Vec2(
-                        tc["x"] * 48 + po.get("x", 0.0),
-                        tc["y"] * 48 + po.get("y", 0.0),
-                    ),
+                    pixel_offset=Vec2(po.get("x", 0.0), po.get("y", 0.0)),
                     facing_rad=pos_data.get("facing_rad", 0.0),
                 )
 

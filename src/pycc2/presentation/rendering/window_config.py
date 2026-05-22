@@ -30,6 +30,7 @@ class WindowManager:
     mode: WindowMode = WindowMode.WINDOWED
     _screen: pygame.Surface | None = None
     _clock: pygame.time.Clock | None = None
+    _shutdown_called: bool = False
 
     def initialize(self) -> pygame.Surface:
         self.display_info.dpi_scale = self.detect_dpi()
@@ -192,4 +193,8 @@ class WindowManager:
         return self._clock.tick(target_fps)
 
     def shutdown(self) -> None:
-        pygame.quit()
+        if self._shutdown_called:
+            return
+        self._shutdown_called = True
+        if pygame.get_init():
+            pygame.quit()

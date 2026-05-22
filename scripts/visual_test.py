@@ -262,9 +262,10 @@ def main():
     event_bus = EventBus()
     input_handler = PygameInputHandler(camera=camera, window_manager=wm)
 
+    import random
     pathfinder = PathFinder()
-    ballistic = BallisticEngine()
-    FogOfWar(width=24, height=24)
+    ballistic = BallisticEngine(rng=random.Random(42))
+    FogOfWar(map_width=24, map_height=24)
     PerceptionSystem()
 
     ally_units = [u for u in all_units if u.faction == Faction.ALLIES]

@@ -1,10 +1,10 @@
 {
   "meta": {
     "version": "0.4",
-    "saved_at": "2026-05-21T10:17:56.113412+00:00",
-    "tick": 4172,
+    "saved_at": "2026-05-22T05:29:04.236431+00:00",
+    "tick": 2985,
     "mission_id": "",
-    "allies_alive": 11,
+    "allies_alive": 14,
     "axis_alive": 7,
     "game_result": "",
     "playtime_seconds": 0.0,
@@ -12,28 +12,28 @@
   },
   "state": {
     "version": "0.4",
-    "tick": 4172,
+    "tick": 2985,
     "paused": false,
     "side_turn": "allies",
     "camera": {
       "position": {
         "x": 800.0,
-        "y": 500.0
+        "y": 524.8888888888888
       },
       "zoom": 0.9
     },
     "selected_unit_ids": [
-      "player_10"
+      "player_5"
     ],
     "units": [
       {
         "id": "player_0",
-        "name": "M4 Sherman",
+        "name": "MG Team (M1919A4)",
         "faction": "ALLIES",
-        "unit_type": "TANK",
+        "unit_type": "MACHINE_GUN_SQUAD",
         "health": {
-          "hp": 200,
-          "max_hp": 200,
+          "hp": 80,
+          "max_hp": 80,
           "state": "HEALTHY"
         },
         "morale": {
@@ -43,20 +43,20 @@
           "state": "NORMAL"
         },
         "weapon": {
-          "primary_weapon_id": "tank_cannon",
-          "ammo_remaining": 30,
-          "max_ammo": 30,
+          "primary_weapon_id": "mg",
+          "ammo_remaining": 250,
+          "max_ammo": 250,
           "reload_ticks_left": 0,
           "state": "READY"
         },
         "position": {
           "tile_coord": {
             "x": 15,
-            "y": 2
+            "y": 4
           },
           "pixel_offset": {
             "x": -240.0,
-            "y": -32.0
+            "y": -64.0
           },
           "facing_rad": 0.0
         },
@@ -69,88 +69,6 @@
       },
       {
         "id": "player_1",
-        "name": "M5 Stuart",
-        "faction": "ALLIES",
-        "unit_type": "TANK",
-        "health": {
-          "hp": 200,
-          "max_hp": 200,
-          "state": "HEALTHY"
-        },
-        "morale": {
-          "value": 75,
-          "panic_threshold": 30,
-          "suppression": 0,
-          "state": "NORMAL"
-        },
-        "weapon": {
-          "primary_weapon_id": "tank_cannon",
-          "ammo_remaining": 30,
-          "max_ammo": 30,
-          "reload_ticks_left": 0,
-          "state": "READY"
-        },
-        "position": {
-          "tile_coord": {
-            "x": 8,
-            "y": 11
-          },
-          "pixel_offset": {
-            "x": -128.0,
-            "y": -176.0
-          },
-          "facing_rad": 0.0
-        },
-        "vision": {
-          "range_tiles": 6,
-          "angle_rad": 3.141592653589793
-        },
-        "squad_id": null,
-        "is_alive": true
-      },
-      {
-        "id": "player_2",
-        "name": "Engineer Squad",
-        "faction": "ALLIES",
-        "unit_type": "INFANTRY_SQUAD",
-        "health": {
-          "hp": 100,
-          "max_hp": 100,
-          "state": "HEALTHY"
-        },
-        "morale": {
-          "value": 75,
-          "panic_threshold": 30,
-          "suppression": 0,
-          "state": "NORMAL"
-        },
-        "weapon": {
-          "primary_weapon_id": "rifle",
-          "ammo_remaining": 120,
-          "max_ammo": 120,
-          "reload_ticks_left": 0,
-          "state": "READY"
-        },
-        "position": {
-          "tile_coord": {
-            "x": 14,
-            "y": 10
-          },
-          "pixel_offset": {
-            "x": -224.0,
-            "y": -160.0
-          },
-          "facing_rad": 0.0
-        },
-        "vision": {
-          "range_tiles": 6,
-          "angle_rad": 3.141592653589793
-        },
-        "squad_id": null,
-        "is_alive": true
-      },
-      {
-        "id": "player_3",
         "name": "Sniper Team",
         "faction": "ALLIES",
         "unit_type": "SNIPER_TEAM",
@@ -174,12 +92,12 @@
         },
         "position": {
           "tile_coord": {
-            "x": 14,
-            "y": 9
+            "x": 15,
+            "y": 6
           },
           "pixel_offset": {
-            "x": -224.0,
-            "y": -144.0
+            "x": -240.0,
+            "y": -96.0
           },
           "facing_rad": 0.0
         },
@@ -191,10 +109,10 @@
         "is_alive": true
       },
       {
-        "id": "player_4",
-        "name": "Light Mortar (60mm)",
+        "id": "player_2",
+        "name": "Officer / Commander",
         "faction": "ALLIES",
-        "unit_type": "MORTAR_TEAM",
+        "unit_type": "COMMANDER",
         "health": {
           "hp": 80,
           "max_hp": 80,
@@ -207,20 +125,102 @@
           "state": "NORMAL"
         },
         "weapon": {
-          "primary_weapon_id": "mortar",
-          "ammo_remaining": 6,
-          "max_ammo": 6,
+          "primary_weapon_id": "pistol",
+          "ammo_remaining": 14,
+          "max_ammo": 14,
           "reload_ticks_left": 0,
           "state": "READY"
         },
         "position": {
           "tile_coord": {
-            "x": 14,
-            "y": 5
+            "x": 13,
+            "y": 4
           },
           "pixel_offset": {
-            "x": -224.0,
-            "y": -80.0
+            "x": -208.0,
+            "y": -64.0
+          },
+          "facing_rad": 0.0
+        },
+        "vision": {
+          "range_tiles": 6,
+          "angle_rad": 3.141592653589793
+        },
+        "squad_id": null,
+        "is_alive": true
+      },
+      {
+        "id": "player_3",
+        "name": "M4 Sherman",
+        "faction": "ALLIES",
+        "unit_type": "TANK",
+        "health": {
+          "hp": 200,
+          "max_hp": 200,
+          "state": "HEALTHY"
+        },
+        "morale": {
+          "value": 75,
+          "panic_threshold": 30,
+          "suppression": 0,
+          "state": "NORMAL"
+        },
+        "weapon": {
+          "primary_weapon_id": "tank_cannon",
+          "ammo_remaining": 30,
+          "max_ammo": 30,
+          "reload_ticks_left": 0,
+          "state": "READY"
+        },
+        "position": {
+          "tile_coord": {
+            "x": 11,
+            "y": 2
+          },
+          "pixel_offset": {
+            "x": -176.0,
+            "y": -32.0
+          },
+          "facing_rad": 0.0
+        },
+        "vision": {
+          "range_tiles": 6,
+          "angle_rad": 3.141592653589793
+        },
+        "squad_id": null,
+        "is_alive": true
+      },
+      {
+        "id": "player_4",
+        "name": "Scout Team",
+        "faction": "ALLIES",
+        "unit_type": "SNIPER_TEAM",
+        "health": {
+          "hp": 60,
+          "max_hp": 60,
+          "state": "HEALTHY"
+        },
+        "morale": {
+          "value": 75,
+          "panic_threshold": 30,
+          "suppression": 0,
+          "state": "NORMAL"
+        },
+        "weapon": {
+          "primary_weapon_id": "sniper_rifle",
+          "ammo_remaining": 15,
+          "max_ammo": 15,
+          "reload_ticks_left": 0,
+          "state": "READY"
+        },
+        "position": {
+          "tile_coord": {
+            "x": 12,
+            "y": 12
+          },
+          "pixel_offset": {
+            "x": -192.0,
+            "y": -192.0
           },
           "facing_rad": 0.0
         },
@@ -233,6 +233,47 @@
       },
       {
         "id": "player_5",
+        "name": "M5 Stuart",
+        "faction": "ALLIES",
+        "unit_type": "TANK",
+        "health": {
+          "hp": 200,
+          "max_hp": 200,
+          "state": "HEALTHY"
+        },
+        "morale": {
+          "value": 75,
+          "panic_threshold": 30,
+          "suppression": 0,
+          "state": "NORMAL"
+        },
+        "weapon": {
+          "primary_weapon_id": "tank_cannon",
+          "ammo_remaining": 30,
+          "max_ammo": 30,
+          "reload_ticks_left": 0,
+          "state": "READY"
+        },
+        "position": {
+          "tile_coord": {
+            "x": 0,
+            "y": 1
+          },
+          "pixel_offset": {
+            "x": 41.21881847036023,
+            "y": -13.024027203490093
+          },
+          "facing_rad": -0.8381849051153472
+        },
+        "vision": {
+          "range_tiles": 6,
+          "angle_rad": 3.141592653589793
+        },
+        "squad_id": null,
+        "is_alive": true
+      },
+      {
+        "id": "player_6",
         "name": "Heavy Mortar (81mm)",
         "faction": "ALLIES",
         "unit_type": "MORTAR_TEAM",
@@ -257,47 +298,6 @@
         "position": {
           "tile_coord": {
             "x": 12,
-            "y": 8
-          },
-          "pixel_offset": {
-            "x": -192.0,
-            "y": -128.0
-          },
-          "facing_rad": 0.0
-        },
-        "vision": {
-          "range_tiles": 6,
-          "angle_rad": 3.141592653589793
-        },
-        "squad_id": null,
-        "is_alive": true
-      },
-      {
-        "id": "player_6",
-        "name": "Officer / Commander",
-        "faction": "ALLIES",
-        "unit_type": "COMMANDER",
-        "health": {
-          "hp": 80,
-          "max_hp": 80,
-          "state": "HEALTHY"
-        },
-        "morale": {
-          "value": 75,
-          "panic_threshold": 30,
-          "suppression": 0,
-          "state": "NORMAL"
-        },
-        "weapon": {
-          "primary_weapon_id": "pistol",
-          "ammo_remaining": 14,
-          "max_ammo": 14,
-          "reload_ticks_left": 0,
-          "state": "READY"
-        },
-        "position": {
-          "tile_coord": {
-            "x": 12,
             "y": 6
           },
           "pixel_offset": {
@@ -315,9 +315,9 @@
       },
       {
         "id": "player_7",
-        "name": "MG Team (M1919A4)",
+        "name": "Light Mortar (60mm)",
         "faction": "ALLIES",
-        "unit_type": "MACHINE_GUN_SQUAD",
+        "unit_type": "MORTAR_TEAM",
         "health": {
           "hp": 80,
           "max_hp": 80,
@@ -330,20 +330,20 @@
           "state": "NORMAL"
         },
         "weapon": {
-          "primary_weapon_id": "mg",
-          "ammo_remaining": 250,
-          "max_ammo": 250,
+          "primary_weapon_id": "mortar",
+          "ammo_remaining": 6,
+          "max_ammo": 6,
           "reload_ticks_left": 0,
           "state": "READY"
         },
         "position": {
           "tile_coord": {
             "x": 14,
-            "y": 7
+            "y": 10
           },
           "pixel_offset": {
             "x": -224.0,
-            "y": -112.0
+            "y": -160.0
           },
           "facing_rad": 0.0
         },
@@ -356,6 +356,47 @@
       },
       {
         "id": "player_8",
+        "name": "Rifle Squad",
+        "faction": "ALLIES",
+        "unit_type": "INFANTRY_SQUAD",
+        "health": {
+          "hp": 100,
+          "max_hp": 100,
+          "state": "HEALTHY"
+        },
+        "morale": {
+          "value": 75,
+          "panic_threshold": 30,
+          "suppression": 0,
+          "state": "NORMAL"
+        },
+        "weapon": {
+          "primary_weapon_id": "rifle",
+          "ammo_remaining": 120,
+          "max_ammo": 120,
+          "reload_ticks_left": 0,
+          "state": "READY"
+        },
+        "position": {
+          "tile_coord": {
+            "x": 16,
+            "y": 1
+          },
+          "pixel_offset": {
+            "x": -256.0,
+            "y": -16.0
+          },
+          "facing_rad": 0.0
+        },
+        "vision": {
+          "range_tiles": 6,
+          "angle_rad": 3.141592653589793
+        },
+        "squad_id": null,
+        "is_alive": true
+      },
+      {
+        "id": "player_9",
         "name": "Assault Squad",
         "faction": "ALLIES",
         "unit_type": "INFANTRY_SQUAD",
@@ -379,12 +420,12 @@
         },
         "position": {
           "tile_coord": {
-            "x": 15,
-            "y": 4
+            "x": 12,
+            "y": 10
           },
           "pixel_offset": {
-            "x": -240.0,
-            "y": -64.0
+            "x": -192.0,
+            "y": -160.0
           },
           "facing_rad": 0.0
         },
@@ -396,13 +437,13 @@
         "is_alive": true
       },
       {
-        "id": "player_9",
-        "name": "Rifle Squad",
+        "id": "player_10",
+        "name": "AT Team (Bazooka)",
         "faction": "ALLIES",
-        "unit_type": "INFANTRY_SQUAD",
+        "unit_type": "AT_GUN_TEAM",
         "health": {
-          "hp": 100,
-          "max_hp": 100,
+          "hp": 80,
+          "max_hp": 80,
           "state": "HEALTHY"
         },
         "morale": {
@@ -412,9 +453,9 @@
           "state": "NORMAL"
         },
         "weapon": {
-          "primary_weapon_id": "rifle",
-          "ammo_remaining": 120,
-          "max_ammo": 120,
+          "primary_weapon_id": "at_gun",
+          "ammo_remaining": 8,
+          "max_ammo": 8,
           "reload_ticks_left": 0,
           "state": "READY"
         },
@@ -437,7 +478,48 @@
         "is_alive": true
       },
       {
-        "id": "player_10",
+        "id": "player_11",
+        "name": "Engineer Squad",
+        "faction": "ALLIES",
+        "unit_type": "INFANTRY_SQUAD",
+        "health": {
+          "hp": 100,
+          "max_hp": 100,
+          "state": "HEALTHY"
+        },
+        "morale": {
+          "value": 75,
+          "panic_threshold": 30,
+          "suppression": 0,
+          "state": "NORMAL"
+        },
+        "weapon": {
+          "primary_weapon_id": "rifle",
+          "ammo_remaining": 120,
+          "max_ammo": 120,
+          "reload_ticks_left": 0,
+          "state": "READY"
+        },
+        "position": {
+          "tile_coord": {
+            "x": 15,
+            "y": 2
+          },
+          "pixel_offset": {
+            "x": -240.0,
+            "y": -32.0
+          },
+          "facing_rad": 0.0
+        },
+        "vision": {
+          "range_tiles": 6,
+          "angle_rad": 3.141592653589793
+        },
+        "squad_id": null,
+        "is_alive": true
+      },
+      {
+        "id": "player_12",
         "name": "Rifle Squad",
         "faction": "ALLIES",
         "unit_type": "INFANTRY_SQUAD",
@@ -462,11 +544,11 @@
         "position": {
           "tile_coord": {
             "x": 16,
-            "y": 12
+            "y": 11
           },
           "pixel_offset": {
             "x": -256.0,
-            "y": -192.0
+            "y": -176.0
           },
           "facing_rad": 0.0
         },
@@ -478,7 +560,48 @@
         "is_alive": true
       },
       {
-        "id": "ai_11",
+        "id": "player_13",
+        "name": "Rifle Squad",
+        "faction": "ALLIES",
+        "unit_type": "INFANTRY_SQUAD",
+        "health": {
+          "hp": 100,
+          "max_hp": 100,
+          "state": "HEALTHY"
+        },
+        "morale": {
+          "value": 75,
+          "panic_threshold": 30,
+          "suppression": 0,
+          "state": "NORMAL"
+        },
+        "weapon": {
+          "primary_weapon_id": "rifle",
+          "ammo_remaining": 120,
+          "max_ammo": 120,
+          "reload_ticks_left": 0,
+          "state": "READY"
+        },
+        "position": {
+          "tile_coord": {
+            "x": 16,
+            "y": 9
+          },
+          "pixel_offset": {
+            "x": -256.0,
+            "y": -144.0
+          },
+          "facing_rad": 0.0
+        },
+        "vision": {
+          "range_tiles": 6,
+          "angle_rad": 3.141592653589793
+        },
+        "squad_id": null,
+        "is_alive": true
+      },
+      {
+        "id": "ai_14",
         "name": "Rifle Squad",
         "faction": "AXIS",
         "unit_type": "INFANTRY_SQUAD",
@@ -519,7 +642,7 @@
         "is_alive": true
       },
       {
-        "id": "ai_12",
+        "id": "ai_15",
         "name": "Rifle Squad",
         "faction": "AXIS",
         "unit_type": "INFANTRY_SQUAD",
@@ -560,7 +683,7 @@
         "is_alive": true
       },
       {
-        "id": "ai_13",
+        "id": "ai_16",
         "name": "Rifle Squad",
         "faction": "AXIS",
         "unit_type": "INFANTRY_SQUAD",
@@ -601,7 +724,7 @@
         "is_alive": true
       },
       {
-        "id": "ai_14",
+        "id": "ai_17",
         "name": "MG42 Team",
         "faction": "AXIS",
         "unit_type": "MACHINE_GUN_SQUAD",
@@ -642,7 +765,7 @@
         "is_alive": true
       },
       {
-        "id": "ai_15",
+        "id": "ai_18",
         "name": "AT Team (Panzerschreck)",
         "faction": "AXIS",
         "unit_type": "AT_GUN_TEAM",
@@ -683,7 +806,7 @@
         "is_alive": true
       },
       {
-        "id": "ai_16",
+        "id": "ai_19",
         "name": "Heavy Mortar (81mm)",
         "faction": "AXIS",
         "unit_type": "MORTAR_TEAM",
@@ -724,7 +847,7 @@
         "is_alive": true
       },
       {
-        "id": "ai_17",
+        "id": "ai_20",
         "name": "Officer / Commander",
         "faction": "AXIS",
         "unit_type": "COMMANDER",
@@ -768,8 +891,8 @@
     "battle_stats": {
       "allies_kills": 0,
       "axis_kills": 0,
-      "ticks_elapsed": 4171
+      "ticks_elapsed": 2984
     }
   },
-  "hmac": "4eda0d9af9bea6f8ad61fdd62790d07f4d004fc090c2ce421703485b09ce1054"
+  "hmac": "bdb074e9b81b35fed2ca463f7c0b781696b482e634a1ee41377b54017a112b5e"
 }

@@ -25,14 +25,15 @@ from pycc2.presentation.rendering.tile_cache import TileCache
 
 class SpriteRenderer:
     TILE_SIZE: int = 32
-    SPRITE_SIZE: int = 28
+    SPRITE_SIZE: int = 128  # 升级到128x128 (原版CC2尺寸)
 
     def __init__(self, display_config: DisplayConfig | None = None):
         from pycc2.presentation.rendering.display_config import DisplayConfig as DC
+        from pycc2.presentation.rendering.asset_loader import AssetLoader
 
         self._display_config: DisplayConfig = display_config or DC()
         self.TILE_SIZE: int = self._display_config.base_tile_size
-        self.SPRITE_SIZE: int = self._display_config.effective_sprite_size
+        self.SPRITE_SIZE: int = 128  # 固定使用高分辨率
         self._screen: Surface | None = None
         self._sprite_cache: dict[str, Surface] = {}
         self._terrain_cache: dict[int, Surface] = {}
@@ -46,12 +47,23 @@ class SpriteRenderer:
         self._screen_shake = ScreenShake()
         self._particle_emitter = ParticleEmitter()
         self._font_cache: dict[int, Font] = {}
+        self._asset_loader: AssetLoader = AssetLoader()  # 新增资产加载器
 
         self._generate_all_sprites()
         self._generate_terrain_tiles()
 
     def initialize(self, screen: Surface) -> None:
         self._screen = screen
+        
+        # 将AssetLoader加载的PNG精灵复制到_sprite_cache，覆盖程序化精灵
+        if hasattr(self._asset_loader, '_sprite_cache'):
+            png_count = 0
+            for key, sprite_surface in self._asset_loader._sprite_cache.items():
+                self._sprite_cache[key] = sprite_surface
+                png_count += 1
+            print(f"[SpriteRenderer] ✅ 已将 {png_count} 个PNG精灵加载到缓存")
+        else:
+            print("[SpriteRenderer] ⚠️  AssetLoader没有_sprite_cache属性，使用程序化精灵")
 
     def render(
         self,
@@ -112,8 +124,25 @@ class SpriteRenderer:
                     )
 
     def _create_unit_sprite(self, faction: str, unit_type: str, direction: int) -> Surface:
+        """创建单位精灵 - 优先从assets加载，fallback到程序化生成"""
         from pycc2.presentation.rendering.pixel_artist import create_unit_sprite
+        import logging
+        logger = logging.getLogger(__name__)
 
+        # 尝试从assets加载
+        loaded_sprite = self._asset_loader.load_unit_sprite(
+            faction=faction,
+            unit_type=unit_type,
+            direction=direction,
+            size=self.SPRITE_SIZE,
+        )
+        
+        if loaded_sprite is not None:
+            logger.info(f"[SPRITE] ✅ Loaded PNG: {faction}_{unit_type}_d{direction}")
+            return loaded_sprite
+        
+        # Fallback: 程序化生成（高分辨率）
+        logger.info(f"[SPRITE] ⚠️  Fallback to procedural: {faction}_{unit_type}_d{direction}")
         canvas = create_unit_sprite(
             faction=faction,
             unit_type=unit_type,
@@ -123,11 +152,19 @@ class SpriteRenderer:
         return canvas.to_surface()
 
     def _generate_terrain_tiles(self) -> None:
+        """生成地形tiles - 优先从assets加载"""
         from pycc2.presentation.rendering.pixel_artist import create_terrain_tile
 
         for tid in range(14):
-            canvas = create_terrain_tile(tid, size=self.TILE_SIZE)
-            self._terrain_cache[tid] = canvas.to_surface()
+            # 尝试从assets加载
+            loaded_tile = self._asset_loader.load_terrain_tile(tid, size=self.TILE_SIZE)
+            
+            if loaded_tile is not None:
+                self._terrain_cache[tid] = loaded_tile
+            else:
+                # Fallback: 程序化生成
+                canvas = create_terrain_tile(tid, size=self.TILE_SIZE)
+                self._terrain_cache[tid] = canvas.to_surface()
 
     # ====== 绘制方法 ======
 

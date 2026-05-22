@@ -257,7 +257,16 @@ class GameLoop:
         # Register command execution callbacks to interaction_controller
         if self.interaction_controller:
             def execute_move(unit_ids: set[str], target):
-                logger.info(f"[COMMAND] Moving {len(unit_ids)} unit(s) to ({target.x}, {target.y})")
+                logger.info(f"[COMMAND] Moving {len(unit_ids)} unit(s) to ({target.x:.0f}, {target.y:.0f})")
+                # Actually move the units!
+                for unit in self.state.units:
+                    if unit.id in unit_ids and unit.is_alive:
+                        from pycc2.domain.value_objects.vec2 import Vec2
+                        # Update position to target
+                        if hasattr(unit, 'position') and unit.position is not None:
+                            old_pos = unit.position.pixel_position
+                            unit.position.pixel_position = Vec2(target.x, target.y)
+                            logger.info(f"[MOVE] {unit.display_name}: ({old_pos.x:.0f},{old_pos.y:.0f}) -> ({target.x:.0f},{target.y:.0f})")
                 self.event_bus.publish(PlayerCommand(
                     command="move",
                     unit_ids=list(unit_ids),
@@ -304,6 +313,16 @@ class GameLoop:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_F10:
                     if self.settings_menu:
                         self.settings_menu.toggle()
+                    continue
+
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_F5:
+                    # Quick Save
+                    self.quick_save(0)
+                    continue
+
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_F9:
+                    # Quick Load
+                    self.quick_load(0)
                     continue
 
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_F1:
@@ -555,7 +574,8 @@ class GameLoop:
 
         if self._victory_evaluator and self._battle_stats:
             self._battle_stats.ticks_elapsed = self.state.tick
-            if self.state.tick % 30 == 0:
+            # 防止战斗刚开始就判定失败 - 至少等待5秒（300 ticks）
+            if self.state.tick % 30 == 0 and self.state.tick >= 300:
                 result, reason = self._victory_evaluator.evaluate(
                     self.state.units, self.state.tick, self._battle_stats
                 )
