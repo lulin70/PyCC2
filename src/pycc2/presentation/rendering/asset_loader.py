@@ -61,12 +61,39 @@ class AssetLoader:
     
     # 单位类型映射：游戏内部名称 -> 精灵文件名
     UNIT_TYPE_MAP = {
+        # Infantry types -> WW2 soldier sprite
         "INFANTRY_SQUAD": "rifleman",
+        "RIFLE_SQUAD": "rifleman",
         "MACHINE_GUN_SQUAD": "mg_team",
+        "MG_TEAM": "mg_team",
         "COMMANDER": "officer",
-        "TANK": "medium_tank",
-        "SNIPER_TEAM": "rifleman",  # 使用步兵精灵
+        "OFFICER": "officer",
+        # Support types
+        "AT_GUN_TEAM": "engineer",
+        "AT_TEAM": "engineer",
+        "MORTAR_TEAM": "engineer",
+        "SNIPER_TEAM": "rifleman",
         "MEDIC_TEAM": "engineer",
+        "ENGINEER_SQUAD": "engineer",
+        "ASSAULT_SQUAD": "rifleman",
+        "FLAMETHROWER_TEAM": "engineer",
+        "SCOUT_TEAM": "rifleman",
+        # Vehicle types
+        "TANK": "medium_tank",
+        "SHERMAN_TANK": "medium_tank",
+        "M4_SHERMAN": "medium_tank",
+        "M5_STUART": "light_tank",
+        "LIGHT_TANK": "light_tank",
+        "HEAVY_TANK": "heavy_tank",
+        "HALFTRACK": "halftrack",
+        "JEEP": "jeep",
+        # Generic fallbacks
+        "INFANTRY": "rifleman",
+        "SUPPORT": "engineer",
+        "RECON": "rifleman",
+        "ARMOR": "medium_tank",
+        "VEHICLE": "medium_tank",
+        "DEFAULT": "rifleman",  # Safe default
     }
     
     def load_unit_sprite(

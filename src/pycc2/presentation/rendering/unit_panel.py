@@ -69,19 +69,24 @@ class UnitPanel:
         self._position = (x, y)
 
     def render(self, surface: Surface) -> None:
-        """Render the unit panel if visible."""
+        """Render the unit panel if visible - CC2-style: bottom of screen."""
         if not self._visible or not self._selected_unit:
             return
         if not self._font_title or not self._font_normal:
             return
 
-        # Dynamic positioning: place on RIGHT side to avoid blocking units
-        screen_w = surface.get_width()
-        panel_x = screen_w - self.width - 10  # Right side with margin
-        panel_y = 80  # Below header
+        # CC2-style layout: panel at BOTTOM of screen (above command bar)
+        screen_w, screen_h = surface.get_size()
+        command_bar_height = 50  # Space for Move/Attack buttons
+        panel_x = 10  # Left side
+        panel_y = screen_h - self.height - command_bar_height - 10  # Above command bar
         self._position = (panel_x, panel_y)
 
-        panel_rect = Rect(panel_x, panel_y, self.width, self.height)
+        # Make panel smaller for CC2 compact look
+        compact_width = min(self.width, 220)
+        compact_height = min(self.height, 150)
+
+        panel_rect = Rect(panel_x, panel_y, compact_width, compact_height)
         pygame.draw.rect(surface, self.spec.panel_background_color, panel_rect)
         pygame.draw.rect(surface, self.spec.panel_border_color, panel_rect, BORDER_WIDTH)
 

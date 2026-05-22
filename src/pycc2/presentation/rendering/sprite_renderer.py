@@ -25,7 +25,7 @@ from pycc2.presentation.rendering.tile_cache import TileCache
 
 class SpriteRenderer:
     TILE_SIZE: int = 32
-    SPRITE_SIZE: int = 128  # 升级到128x128 (原版CC2尺寸)
+    SPRITE_SIZE: int = 24  # CC2-style: small but visible units (was 128, too large)
 
     def __init__(self, display_config: DisplayConfig | None = None):
         from pycc2.presentation.rendering.display_config import DisplayConfig as DC
@@ -33,7 +33,7 @@ class SpriteRenderer:
 
         self._display_config: DisplayConfig = display_config or DC()
         self.TILE_SIZE: int = self._display_config.base_tile_size
-        self.SPRITE_SIZE: int = 128  # 固定使用高分辨率
+        self.SPRITE_SIZE: int = 24  # CC2-style small units
         self._screen: Surface | None = None
         self._sprite_cache: dict[str, Surface] = {}
         self._terrain_cache: dict[int, Surface] = {}

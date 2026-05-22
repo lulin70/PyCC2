@@ -69,6 +69,7 @@ class Unit:
     armor_rear: float = 0.40
     armor_top: float = 0.50
     combat_state: CombatState | None = None
+    move_target: "TileCoord | None" = field(default=None, init=False)  # Movement destination
 
     def __post_init__(self) -> None:
         from pycc2.domain.state_machine import StateMachine
@@ -130,6 +131,69 @@ class Unit:
 
     def move_to_tile(self, tile: TileCoord) -> None:
         self.position.move_to_tile(tile)
+
+    def set_move_target(self, tile: "TileCoord") -> None:
+        """Set movement target (unit will move toward it each tick)."""
+        from pycc2.domain.value_objects.tile_coord import TileCoord
+        self.move_target = tile
+        if self.state_machine.current_state != UnitState.MOVING:
+            try:
+                self.state_machine.transition(UnitState.MOVING)
+            except Exception:
+                pass
+
+    def update_movement(self, dt: float = 1.0) -> bool:
+        """
+        Move unit toward target. Call once per game tick.
+        Returns True if unit reached target, False if still moving.
+        """
+        if self.move_target is None:
+            return True  # Not moving
+
+        if not self.is_alive:
+            self.move_target = None
+            return True
+
+        # Get current and target positions
+        current = self.position.tile_coord
+        target = self.move_target
+
+        # Check if already at target
+        if current.x == target.x and current.y == target.y:
+            self.move_target = None
+            try:
+                self.state_machine.transition(UnitState.IDLE)
+            except Exception:
+                pass
+            return True  # Arrived!
+
+        # Calculate direction
+        dx = target.x - current.x
+        dy = target.y - current.y
+        dist = (dx*dx + dy*dy) ** 0.5
+
+        # Move based on speed (tiles per tick)
+        speed = getattr(self, 'movement_speed', 3.0) * dt * 0.1  # Scale down for smooth movement
+
+        if dist <= speed:
+            # Close enough: snap to target
+            self.move_to_tile(target)
+            self.move_target = None
+            try:
+                self.state_machine.transition(UnitState.IDLE)
+            except Exception:
+                pass
+            return True
+        else:
+            # Move toward target
+            move_x = int(dx / dist * speed)
+            move_y = int(dy / dist * speed)
+            new_tile = type(target)(
+                x=current.x + move_x,
+                y=current.y + move_y
+            )
+            self.move_to_tile(new_tile)
+            return False  # Still moving
 
     def take_damage(self, amount: int) -> int:
         actual = self.health.take_damage(amount)

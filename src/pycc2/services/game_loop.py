@@ -257,16 +257,25 @@ class GameLoop:
         # Register command execution callbacks to interaction_controller
         if self.interaction_controller:
             def execute_move(unit_ids: set[str], target):
-                logger.info(f"[COMMAND] Moving {len(unit_ids)} unit(s) to ({target.x:.0f}, {target.y:.0f})")
-                # Actually move the units!
+                from pycc2.domain.value_objects.tile_coord import TileCoord
+
+                logger.info(f"[COMMAND] Move {len(unit_ids)} unit(s) to ({target.x:.0f}, {target.y:.0f})")
+
+                # Set move targets (units will move each tick via update_movement)
                 for unit in self.state.units:
                     if unit.id in unit_ids and unit.is_alive:
-                        from pycc2.domain.value_objects.vec2 import Vec2
-                        # Update position to target
-                        if hasattr(unit, 'position') and unit.position is not None:
-                            old_pos = unit.position.pixel_position
-                            unit.position.pixel_position = Vec2(target.x, target.y)
-                            logger.info(f"[MOVE] {unit.display_name}: ({old_pos.x:.0f},{old_pos.y:.0f}) -> ({target.x:.0f},{target.y:.0f})")
+                        tile_x = int(target.x // 32)
+                        tile_y = int(target.y // 32)
+                        tile = TileCoord(tile_x, tile_y)
+
+                        old_tile = unit.position.tile_coord
+                        unit.set_move_target(tile)  # Set target, don't teleport!
+
+                        logger.info(
+                            f"[MOVE TARGET] {unit.display_name}: "
+                            f"({old_tile.x},{old_tile.y}) -> ({tile_x},{tile_y})"
+                        )
+
                 self.event_bus.publish(PlayerCommand(
                     command="move",
                     unit_ids=list(unit_ids),
@@ -550,6 +559,13 @@ class GameLoop:
     def _update_logic(self, dt: float) -> None:
         if self.state.paused:
             return
+
+        # Update unit movements (smooth movement toward targets)
+        for unit in self.state.units:
+            if hasattr(unit, 'move_target') and unit.move_target is not None:
+                arrived = unit.update_movement(dt)
+                if arrived:
+                    logger.debug(f"[MOVEMENT] {unit.display_name} arrived at destination")
 
         self._combat_director.update(
             units=self.state.units,
