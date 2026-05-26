@@ -222,18 +222,38 @@ class VictoryConditionEvaluator:
                 )
 
         if self.time_limit_ticks > 0 and tick >= self.time_limit_ticks:
-            if len(allies_alive) > len(axis_alive):
+            # CC2-style: time expired, count VLs held by each side
+            allies_vls = 0
+            axis_vls = 0
+            for obj in self.objectives:
+                occ = self._objective_occupancy.get(obj.id)
+                if occ:
+                    faction, ticks = occ
+                    if faction == "allies" and ticks >= max(obj.required_ticks, 300):
+                        allies_vls += 1
+                    elif faction == "axis" and ticks >= max(obj.required_ticks, 300):
+                        axis_vls += 1
+
+            if allies_vls > axis_vls:
                 return (
                     GameResult.ALLIES_VICTORY,
-                    "Time expired - Allies hold advantage",
+                    f"Time expired — Allies hold {allies_vls} VL(s) vs Axis {axis_vls}",
                 )
-            elif len(axis_alive) > len(allies_alive):
+            elif axis_vls > allies_vls:
                 return (
                     GameResult.AXIS_VICTORY,
-                    "Time expired - Axis holds advantage",
+                    f"Time expired — Axis hold {axis_vls} VL(s) vs Allies {allies_vls}",
                 )
+            elif allies_vls > 0 or axis_vls > 0:
+                return (GameResult.DRAW, "Time expired — VLs tied")
             else:
-                return (GameResult.DRAW, "Time expired - Stalemate")
+                # No VLs captured, decide by unit count
+                if len(allies_alive) > len(axis_alive):
+                    return (GameResult.ALLIES_VICTORY, "Time expired — Allies hold advantage")
+                elif len(axis_alive) > len(allies_alive):
+                    return (GameResult.AXIS_VICTORY, "Time expired — Axis holds advantage")
+                else:
+                    return (GameResult.DRAW, "Time expired — Stalemate")
 
         return (GameResult.ONGOING, "")
 

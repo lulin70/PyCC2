@@ -159,7 +159,7 @@ class TestVictoryEvaluation:
         units = [ally_unit, enemy_unit]
 
         # Evaluate at tick 300 (first evaluation tick)
-        result = victory_manager.evaluate(units, tick=300)
+        result = victory_manager.evaluate(units, tick=600)
         assert result is not None
         game_result, reason = result
         assert game_result.name == "ALLIES_VICTORY"
@@ -172,7 +172,7 @@ class TestVictoryEvaluation:
         ally_unit.health.take_damage(ally_unit.health.hp)
         units = [ally_unit, enemy_unit]
 
-        result = victory_manager.evaluate(units, tick=300)
+        result = victory_manager.evaluate(units, tick=600)
         assert result is not None
         game_result, reason = result
         assert game_result.name == "AXIS_VICTORY"
@@ -182,7 +182,7 @@ class TestVictoryEvaluation:
         victory_manager.initialize(event_bus=event_bus)
         units = [ally_unit, enemy_unit]
 
-        result = victory_manager.evaluate(units, tick=300)
+        result = victory_manager.evaluate(units, tick=600)
         assert result is None
 
     def test_evaluate_commander_eliminated(self, victory_manager, event_bus, ally_commander, enemy_commander):
@@ -193,7 +193,7 @@ class TestVictoryEvaluation:
         enemy_commander.health.take_damage(enemy_commander.health.hp)
         units = [ally_commander, enemy_commander]
 
-        result = victory_manager.evaluate(units, tick=300)
+        result = victory_manager.evaluate(units, tick=600)
         assert result is not None
         game_result, reason = result
         assert game_result.name == "ALLIES_VICTORY"
@@ -207,7 +207,7 @@ class TestVictoryEvaluation:
         enemy_unit.morale.value = 0
         units = [ally_unit, enemy_unit]
 
-        result = victory_manager.evaluate(units, tick=300)
+        result = victory_manager.evaluate(units, tick=600)
         assert result is not None
         game_result, reason = result
         assert game_result.name == "ALLIES_VICTORY"
@@ -219,7 +219,7 @@ class TestVictoryEvaluation:
         enemy_unit.health.take_damage(enemy_unit.health.hp)
         units = [ally_unit, enemy_unit]
 
-        victory_manager.evaluate(units, tick=300)
+        victory_manager.evaluate(units, tick=600)
         assert victory_manager.show_post_battle is True
 
     def test_evaluate_not_on_every_tick(self, victory_manager, event_bus, ally_unit, enemy_unit):
@@ -230,7 +230,7 @@ class TestVictoryEvaluation:
         units = [ally_unit, enemy_unit]
 
         # Tick 301 is not a multiple of 30, so should not evaluate
-        result = victory_manager.evaluate(units, tick=301)
+        result = victory_manager.evaluate(units, tick=601)
         assert result is None
 
 
@@ -335,7 +335,7 @@ class TestVictoryManagerReset:
         victory_manager.initialize(event_bus=event_bus)
 
         enemy_unit.health.take_damage(enemy_unit.health.hp)
-        victory_manager.evaluate([ally_unit, enemy_unit], tick=300)
+        victory_manager.evaluate([ally_unit, enemy_unit], tick=600)
         assert victory_manager.game_result is not None
 
         victory_manager.reset()
@@ -346,7 +346,7 @@ class TestVictoryManagerReset:
         victory_manager.initialize(event_bus=event_bus)
 
         enemy_unit.health.take_damage(enemy_unit.health.hp)
-        victory_manager.evaluate([ally_unit, enemy_unit], tick=300)
+        victory_manager.evaluate([ally_unit, enemy_unit], tick=600)
         assert victory_manager.show_post_battle is True
 
         victory_manager.reset()
