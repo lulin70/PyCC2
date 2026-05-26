@@ -1,0 +1,8720 @@
+{
+  "id": "bridge_assault",
+  "name": "Bridge Assault - Pegasus Bridge",
+  "width": 32,
+  "height": 28,
+  "tiles": [
+    [
+      3,
+      2,
+      4,
+      2,
+      2,
+      2,
+      2,
+      3,
+      2,
+      3,
+      9,
+      3,
+      2,
+      1,
+      2,
+      3,
+      2,
+      1,
+      2,
+      1,
+      2,
+      9,
+      9,
+      2,
+      2,
+      2,
+      3,
+      4,
+      4,
+      9,
+      9,
+      9
+    ],
+    [
+      4,
+      3,
+      2,
+      5,
+      3,
+      1,
+      2,
+      2,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      9,
+      3,
+      9,
+      9,
+      2,
+      2,
+      9,
+      9,
+      9,
+      2,
+      1,
+      3,
+      3,
+      3,
+      5,
+      3,
+      4,
+      4
+    ],
+    [
+      2,
+      2,
+      9,
+      3,
+      2,
+      3,
+      3,
+      3,
+      3,
+      4,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      1,
+      3,
+      3,
+      3,
+      2,
+      1,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      9,
+      9,
+      9
+    ],
+    [
+      3,
+      4,
+      2,
+      4,
+      3,
+      9,
+      9,
+      9,
+      4,
+      4,
+      2,
+      2,
+      2,
+      2,
+      6,
+      6,
+      6,
+      6,
+      5,
+      8,
+      8,
+      5,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      2,
+      3,
+      3
+    ],
+    [
+      1,
+      3,
+      2,
+      2,
+      3,
+      9,
+      9,
+      9,
+      4,
+      4,
+      2,
+      2,
+      9,
+      9,
+      6,
+      6,
+      6,
+      6,
+      5,
+      8,
+      8,
+      5,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      9,
+      9,
+      9,
+      3
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      3,
+      1,
+      2,
+      7,
+      4,
+      4,
+      7,
+      2,
+      9,
+      6,
+      6,
+      6,
+      6,
+      6,
+      5,
+      5,
+      5,
+      5,
+      3,
+      7,
+      3,
+      3,
+      3,
+      3,
+      2,
+      3,
+      3,
+      9
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      2,
+      7,
+      2,
+      2,
+      7,
+      2,
+      9,
+      6,
+      6,
+      11,
+      11,
+      6,
+      6,
+      5,
+      5,
+      5,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      3,
+      3,
+      3
+    ],
+    [
+      2,
+      9,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2,
+      7,
+      7,
+      2,
+      2,
+      6,
+      6,
+      11,
+      11,
+      6,
+      6,
+      8,
+      5,
+      5,
+      3,
+      3,
+      9,
+      3,
+      3,
+      3,
+      2,
+      2,
+      9,
+      3
+    ],
+    [
+      2,
+      3,
+      3,
+      3,
+      9,
+      5,
+      5,
+      2,
+      2,
+      7,
+      2,
+      2,
+      2,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      8,
+      8,
+      5,
+      3,
+      3,
+      3,
+      3,
+      3,
+      4,
+      3,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      9,
+      2,
+      1,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      5,
+      5,
+      5,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      2,
+      3,
+      3
+    ],
+    [
+      2,
+      2,
+      3,
+      2,
+      3,
+      7,
+      7,
+      7,
+      2,
+      2,
+      2,
+      0,
+      0,
+      0,
+      6,
+      6,
+      6,
+      6,
+      0,
+      0,
+      5,
+      5,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      9
+    ],
+    [
+      3,
+      3,
+      3,
+      2,
+      3,
+      7,
+      7,
+      2,
+      2,
+      4,
+      2,
+      0,
+      0,
+      0,
+      0,
+      6,
+      6,
+      0,
+      0,
+      0,
+      0,
+      5,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      9,
+      3,
+      9
+    ],
+    [
+      3,
+      9,
+      2,
+      2,
+      3,
+      2,
+      2,
+      2,
+      4,
+      4,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      5,
+      0,
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      9,
+      5,
+      9
+    ],
+    [
+      3,
+      2,
+      2,
+      1,
+      2,
+      2,
+      2,
+      2,
+      4,
+      2,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      5,
+      0,
+      9,
+      2,
+      3,
+      3,
+      3,
+      3,
+      9,
+      3,
+      2,
+      9,
+      5
+    ],
+    [
+      2,
+      1,
+      1,
+      2,
+      1,
+      3,
+      2,
+      2,
+      4,
+      4,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      9,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      4,
+      9
+    ],
+    [
+      3,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      4,
+      4,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      9,
+      4,
+      9,
+      2
+    ],
+    [
+      9,
+      3,
+      2,
+      2,
+      1,
+      7,
+      7,
+      2,
+      2,
+      4,
+      2,
+      0,
+      0,
+      0,
+      0,
+      10,
+      10,
+      0,
+      0,
+      0,
+      0,
+      5,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      9,
+      3,
+      9
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      3,
+      7,
+      7,
+      7,
+      2,
+      9,
+      2,
+      0,
+      0,
+      0,
+      10,
+      10,
+      10,
+      10,
+      0,
+      0,
+      5,
+      5,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      9,
+      3,
+      3,
+      9
+    ],
+    [
+      2,
+      1,
+      2,
+      5,
+      5,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      0,
+      5,
+      5,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      3
+    ],
+    [
+      2,
+      2,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2,
+      2,
+      7,
+      2,
+      9,
+      9,
+      9,
+      10,
+      10,
+      10,
+      10,
+      2,
+      2,
+      8,
+      5,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      9,
+      3,
+      3,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      7,
+      7,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      2,
+      2,
+      2,
+      8,
+      5,
+      3,
+      3,
+      9,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      3,
+      2,
+      2,
+      2,
+      2,
+      7,
+      2,
+      2,
+      7,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      2,
+      2,
+      2,
+      5,
+      5,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      4
+    ],
+    [
+      3,
+      2,
+      2,
+      3,
+      3,
+      2,
+      2,
+      7,
+      4,
+      4,
+      7,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      5,
+      5,
+      3,
+      7,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      9,
+      3
+    ],
+    [
+      3,
+      3,
+      3,
+      2,
+      3,
+      2,
+      2,
+      2,
+      4,
+      4,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      2,
+      3
+    ],
+    [
+      2,
+      2,
+      2,
+      3,
+      9,
+      2,
+      2,
+      2,
+      4,
+      4,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      2,
+      3
+    ],
+    [
+      3,
+      3,
+      2,
+      2,
+      3,
+      2,
+      1,
+      2,
+      3,
+      4,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      9
+    ],
+    [
+      3,
+      9,
+      2,
+      2,
+      1,
+      3,
+      2,
+      3,
+      1,
+      2,
+      2,
+      9,
+      2,
+      2,
+      3,
+      2,
+      3,
+      2,
+      3,
+      2,
+      3,
+      3,
+      3,
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      9,
+      2,
+      3
+    ],
+    [
+      3,
+      5,
+      9,
+      9,
+      9,
+      2,
+      2,
+      2,
+      2,
+      2,
+      1,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      2,
+      2,
+      3,
+      3,
+      1,
+      3,
+      2,
+      4,
+      2,
+      3,
+      3,
+      2,
+      4,
+      3
+    ]
+  ],
+  "objectives": [
+    {
+      "id": "obj_capture_bridge",
+      "name": "Capture the Bridge",
+      "position": [
+        14,
+        12
+      ],
+      "radius": 3,
+      "required": true
+    },
+    {
+      "id": "obj_east_bunker",
+      "name": "Neutralize East Bunker",
+      "position": [
+        24,
+        11
+      ],
+      "radius": 3,
+      "required": false
+    }
+  ],
+  "spawn_points": [
+    {
+      "id": "spawn_allies",
+      "side": "allies",
+      "position": [
+        4,
+        14
+      ],
+      "units_max": 17
+    },
+    {
+      "id": "spawn_axis",
+      "side": "axis",
+      "position": [
+        25,
+        14
+      ],
+      "units_max": 13
+    }
+  ],
+  "_expanded": true,
+  "_original_size": [
+    20,
+    20
+  ],
+  "_expansion_version": "1.0",
+  "tiles_enhanced": [
+    [
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.15454086105701192,
+            "offset_y": -0.1196150704821472,
+            "scale": 1.114808002436264,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 5,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 1,
+        "height": 1,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.18606759559901487,
+            "offset_y": 0.3752814600845482,
+            "scale": 1.153820799034891,
+            "rotation": 270,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.09972194372756149,
+            "offset_y": 0.2630455820530012,
+            "scale": 1.1154919977904878,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.23935565260507152,
+            "offset_y": -0.3732697707718098,
+            "scale": 0.808031199332228,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.26391583747904745,
+            "offset_y": -0.09963369273600292,
+            "scale": 1.0927940341085267,
+            "rotation": 0,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.09091578062311506,
+            "offset_y": -0.013810570809217437,
+            "scale": 0.81239728162087,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3189937512213315,
+            "offset_y": -0.2355596186256503,
+            "scale": 0.8759937030353542,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.32326726287820673,
+            "offset_y": -0.08567822830814242,
+            "scale": 1.0198650534148648,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.396947542264426,
+            "offset_y": -0.32989731255442245,
+            "scale": 1.1295589228332645,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.2344376136610974,
+            "offset_y": 0.11055252725965647,
+            "scale": 1.1908230783997062,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.08202612119350167,
+            "offset_y": -0.008722550303474186,
+            "scale": 1.064416021898402,
+            "rotation": 0,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": -1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.3083941541996311,
+            "offset_y": -0.104478668054444,
+            "scale": 0.9783101083177832,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 2,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.2190061757738665,
+            "offset_y": -0.18515040538164032,
+            "scale": 0.8246557478640397,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.0555070232422622,
+            "offset_y": 0.2588281921119002,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.2465441259232104,
+            "offset_y": -0.06881067770299004,
+            "scale": 1.102582754462142,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.2547241718922989,
+            "offset_y": -0.06509434005243958,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3368359601807335,
+            "offset_y": 0.3222217610713233,
+            "scale": 1.085722279652144,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.04076821104956291,
+            "offset_y": 0.35924918642263404,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 2,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.35782313761289297,
+            "offset_y": -0.23931880903834266,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 2,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.15596621413768808,
+            "offset_y": -0.007194149686318152,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 2,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.06130008054752045,
+            "offset_y": 0.39062394906953257,
+            "scale": 0.9741572982130029,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.2531956123463305,
+            "offset_y": -0.08565189620843211,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.1816824073444243,
+            "offset_y": 0.24587493578798747,
+            "scale": 0.834810976350603,
+            "rotation": 270,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.04007932559797822,
+            "offset_y": 0.36240368918903687,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 1
+          },
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.015750542033655446,
+            "offset_y": 0.33372952862659844,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.2650254469682889,
+            "offset_y": -0.34467306244989904,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 1
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.28144020696524435,
+            "offset_y": 0.0703473066251104,
+            "scale": 1.1033509551430691,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 8,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 8,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.15773388599144722,
+            "offset_y": -0.19785465205512667,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3192076457396411,
+            "offset_y": -0.17112571676090207,
+            "scale": 1.0142533924583668,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.3925604915495744,
+            "offset_y": -0.016612240181898996,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.12383013657083974,
+            "offset_y": 0.05761859183884949,
+            "scale": 0.9892186463995745,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 1,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.0945955908814386,
+            "offset_y": 0.14465029057062417,
+            "scale": 0.9606879593097643,
+            "rotation": 270,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.11237640558699208,
+            "offset_y": 0.3164012122887193,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.36056721958071103,
+            "offset_y": -0.01982544707754269,
+            "scale": 0.9074337419779043,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 2,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 2,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 2,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 8,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 8,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.2349216479245123,
+            "offset_y": -0.15124056172164294,
+            "scale": 1.137138627444563,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.12608131566461256,
+            "offset_y": -0.11599294444120833,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 1
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.37937553968264837,
+            "offset_y": -0.045511509334856926,
+            "scale": 1.1303293327119002,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3285705197576542,
+            "offset_y": -0.04662672155266706,
+            "scale": 1.1653731221674961,
+            "rotation": 270,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 1,
+        "height": 1,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.13472263833453202,
+            "offset_y": 0.23698485154185023,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 1
+          },
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.29375117644018056,
+            "offset_y": 0.2568139139187683,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.005436220189244334,
+            "offset_y": -0.2914801431863522,
+            "scale": 1.1405181363948769,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 7,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.19748242210625266,
+            "offset_y": 0.04639473307441644,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.029549433157788407,
+            "offset_y": 0.14364439003819196,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.26634394646124104,
+            "offset_y": 0.26958134208695606,
+            "scale": 0.8997961045297117,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.16370715617602927,
+            "offset_y": -0.18081800122051286,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.01378313240677509,
+            "offset_y": -0.1636542235852753,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.20644952432831076,
+            "offset_y": -0.008970608746745712,
+            "scale": 0.9784413730430117,
+            "rotation": 270,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.2701230162053818,
+            "offset_y": -0.19307205826663304,
+            "scale": 1.1323480805422381,
+            "rotation": 0,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.18412057841822604,
+            "offset_y": -0.1213370781428198,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 1
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3602791657274521,
+            "offset_y": 0.2830570612684372,
+            "scale": 1.1119320540574718,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.14215619687277659,
+            "offset_y": -0.18473313658483434,
+            "scale": 0.9638028785982169,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 7,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.3219015750994329,
+            "offset_y": 0.1775951546237663,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 11,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.16862319180420193,
+            "offset_y": -0.38193190783751013,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 11,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.19239158775754528,
+            "offset_y": 0.012795121517498675,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.21451556207087175,
+            "offset_y": -0.07596205097579772,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 1
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.29414872737305436,
+            "offset_y": -0.2614394748142842,
+            "scale": 1.1203459233297817,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 2,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.35440397444641414,
+            "offset_y": 0.17019239048376344,
+            "scale": 1.0837472785792956,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.28126893847411394,
+            "offset_y": -0.03280158488751228,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.09128554989753584,
+            "offset_y": -0.24214045137420293,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 11,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 11,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 8,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.2353724165061425,
+            "offset_y": 0.20186039628839336,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3941219418554681,
+            "offset_y": 0.3995435038945403,
+            "scale": 1.1865941817858336,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.02951120845651528,
+            "offset_y": -0.10736557646998818,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 1
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3135163755313253,
+            "offset_y": -0.3489303568823121,
+            "scale": 1.1953443863287068,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 2,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.008412816955357727,
+            "offset_y": 0.3727331199592864,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 5,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.12166029005059648,
+            "offset_y": 0.27641424213564736,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.14945140410744168,
+            "offset_y": -0.20914181884896754,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 8,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 8,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.0654087150309931,
+            "offset_y": -0.28970616117235404,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.1688750204574334,
+            "offset_y": 0.3138990381447462,
+            "scale": 0.9195164447675945,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.2443438581068239,
+            "offset_y": 0.24189099556224924,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 7,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.12432045636995326,
+            "offset_y": 0.3979752796626367,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 2,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.15474634122348419,
+            "offset_y": 0.11620807606396033,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.37174479613886063,
+            "offset_y": 0.1664551675006969,
+            "scale": 1.0288169736147366,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 1,
+        "height": 1,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.22210944481898487,
+            "offset_y": 0.027708081235370496,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.27251095567712,
+            "offset_y": 0.30119582747368845,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.2503211360300779,
+            "offset_y": 0.2735881713092384,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.24389720669260068,
+            "offset_y": -0.09284465930563757,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.1930785195518337,
+            "offset_y": 0.24667509531397613,
+            "scale": 1.105167287327721,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.06749565178071049,
+            "offset_y": 0.2719134416809782,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.22219719078967934,
+            "offset_y": -0.2213376596915131,
+            "scale": 1.1485728928657926,
+            "rotation": 270,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.06845655616552299,
+            "offset_y": -0.028991497449792125,
+            "scale": 0.8471125884966152,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 2,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 1,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.22357639496272858,
+            "offset_y": -0.3738439305135434,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.24436495601846353,
+            "offset_y": -0.30414725024999534,
+            "scale": 1.0722791057278789,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.05252036894868761,
+            "offset_y": 0.21803811052989697,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.03448494567443605,
+            "offset_y": 0.3927148960045681,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.39182058230134664,
+            "offset_y": -0.3180668488980014,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.37421568364064495,
+            "offset_y": -0.1897478202070179,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 1
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.28339181632267507,
+            "offset_y": -0.2901077926615009,
+            "scale": 0.8801186363180574,
+            "rotation": 270,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.30609117880087117,
+            "offset_y": 0.2495111300763252,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.28861202725857915,
+            "offset_y": -0.23470427505058133,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 6,
+        "height": -1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.07748614870767917,
+            "offset_y": -0.26529810831753253,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.36191787635098005,
+            "offset_y": 0.011531990680028747,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.28991515466969286,
+            "offset_y": -0.2557145847145249,
+            "scale": 0.8323245867716695,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.22855283863303788,
+            "offset_y": 0.33501496946386033,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.35358912941984244,
+            "offset_y": -0.03835741714520535,
+            "scale": 0.8837529473340311,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.21085533368439946,
+            "offset_y": -0.32956692499276435,
+            "scale": 1.0457918954900247,
+            "rotation": 270,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.018079779247543726,
+            "offset_y": -0.396264689935891,
+            "scale": 1.0135130411369033,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.16911587907133518,
+            "offset_y": 0.2627854421589061,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.10592158596943102,
+            "offset_y": 0.10225025662317921,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.19984190629855203,
+            "offset_y": 0.15576289258203568,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.3980215318864122,
+            "offset_y": 0.21930823235015462,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.23654234131827623,
+            "offset_y": -0.08182730544906897,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 1
+          },
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.2054781903816978,
+            "offset_y": 0.02482702845678747,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": -1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.30158810820788007,
+            "offset_y": -0.15032619161051042,
+            "scale": 0.8410832893358186,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.2626748936390464,
+            "offset_y": -0.1297958758633701,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3634253186094627,
+            "offset_y": 0.3587707000424134,
+            "scale": 0.9823705247874018,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.2098032179380015,
+            "offset_y": -0.363245659473093,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          },
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.3963779278623427,
+            "offset_y": -0.12581372859395207,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.28612127994289105,
+            "offset_y": -0.046971240898858735,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.32551538895491006,
+            "offset_y": 0.2496066534721354,
+            "scale": 0.8076498932493278,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.32752577145047834,
+            "offset_y": 0.3057182112335991,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3824693823475073,
+            "offset_y": 0.0037068436681314543,
+            "scale": 0.8492647927003845,
+            "rotation": 0,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.19968857716071292,
+            "offset_y": -0.1025249858825874,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.15559260412461545,
+            "offset_y": 0.15955309721965882,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.018554633391268727,
+            "offset_y": -0.29384016636801075,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.1251406799727141,
+            "offset_y": -0.3035249710789031,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.09354405945938182,
+            "offset_y": 0.18461070541117686,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.1953686608597657,
+            "offset_y": 0.02778674735507236,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.29029656420516353,
+            "offset_y": 0.21876838692049938,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3842065867886839,
+            "offset_y": 0.15179979870194082,
+            "scale": 0.9667102260718176,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": -1,
+        "variation": 7,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.020482929337810263,
+            "offset_y": -0.27749832150045095,
+            "scale": 1.0780768116883637,
+            "rotation": 0,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.05063297157570562,
+            "offset_y": 0.08825539141905436,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.31921612225483087,
+            "offset_y": 0.01624738734946929,
+            "scale": 1.04911911072026,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.31606861047992246,
+            "offset_y": 0.17501297961293427,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.27890069532457523,
+            "offset_y": -0.07063208451225755,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.2879894867393635,
+            "offset_y": -0.30147422200695334,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.28813584895261307,
+            "offset_y": -0.17842587444412372,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.12672429606811508,
+            "offset_y": -0.15868053313824115,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.35634469518779766,
+            "offset_y": 0.31833004828559175,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.00033396698187393437,
+            "offset_y": 0.07514381451017849,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.08720144748538361,
+            "offset_y": 0.22236713327761837,
+            "scale": 1.1325995282028498,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.2944136954138384,
+            "offset_y": 0.28865120314939796,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          },
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.16371903919950964,
+            "offset_y": -0.3684754338971451,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3978096007540859,
+            "offset_y": 0.13730650597216387,
+            "scale": 1.1627520177079167,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.36356238715270917,
+            "offset_y": 0.21629363937969115,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          },
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.2236209780675491,
+            "offset_y": -0.33996142909786936,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.3681385104502482,
+            "offset_y": -0.3516249123294355,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.38183276233686314,
+            "offset_y": -0.18869998178316738,
+            "scale": 0.820032078325179,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.11182826875688978,
+            "offset_y": 0.14141322560731828,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.3122336092346256,
+            "offset_y": -0.3922621378183442,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.07817807148440004,
+            "offset_y": 0.11242983064988143,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.3367827504199464,
+            "offset_y": 0.3367398870181887,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.10743539788260537,
+            "offset_y": 0.26762117534780216,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.18396670194523312,
+            "offset_y": 0.277174492112621,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.08983743553657775,
+            "offset_y": -0.355977104250848,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.04982838657445221,
+            "offset_y": 0.09744562666600576,
+            "scale": 1.1513902149589894,
+            "rotation": 0,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.25370446375708583,
+            "offset_y": -0.07937798857539768,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.2902305620819354,
+            "offset_y": -0.3909195174942457,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.017403991222983084,
+            "offset_y": -0.06260814280005411,
+            "scale": 1.1544495546725677,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.2984555140151002,
+            "offset_y": 0.22489918394959008,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 4,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": -1,
+        "variation": 0,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.0565403445244993,
+            "offset_y": 0.019083369158935437,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.1811288896718406,
+            "offset_y": 0.38525533641855103,
+            "scale": 1.1377399389725786,
+            "rotation": 0,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.013860119567723372,
+            "offset_y": 0.0551547448539324,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.2900606196192749,
+            "offset_y": 0.3039601972015886,
+            "scale": 1.0909114538831846,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.11190088358259737,
+            "offset_y": -0.0003119953908933826,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.31767606798250436,
+            "offset_y": 0.059129844153645195,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.290342795922089,
+            "offset_y": -0.20435883971463725,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.3096500165009861,
+            "offset_y": -0.0709725890118606,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.2946658174868161,
+            "offset_y": 0.019854329630903667,
+            "scale": 1.0974495249290734,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.150593314770342,
+            "offset_y": 0.09459121284033134,
+            "scale": 0.9731391628435649,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.14103645468595294,
+            "offset_y": -0.09209870607462856,
+            "scale": 1.1356132084919148,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.36827371631553885,
+            "offset_y": -0.3717091408201172,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.06699472119894773,
+            "offset_y": 0.17623033714255765,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.13866057337487336,
+            "offset_y": -0.3578622807303409,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.027924657666491104,
+            "offset_y": -0.17415450350327807,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.3936246611540356,
+            "offset_y": -0.23946307723763535,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.27445810135860704,
+            "offset_y": 0.27907645982080065,
+            "scale": 1.1407484605784264,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.07335274798785296,
+            "offset_y": -0.005311459316092115,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          },
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.14349294757311454,
+            "offset_y": -0.1352841259828505,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.21200000000697028,
+            "offset_y": -0.0327243242014118,
+            "scale": 1.1205045150906887,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.3459180260302789,
+            "offset_y": -0.3808717952191965,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 0,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.04234550406896159,
+            "offset_y": -0.3050345183570937,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3713344540767014,
+            "offset_y": 0.03927903175455161,
+            "scale": 1.1303635033693777,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.12584308014079826,
+            "offset_y": 0.2792047902231375,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.20946592438330747,
+            "offset_y": -0.006376898520081942,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.3370195223776852,
+            "offset_y": 0.3178299775451674,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.3320780659868084,
+            "offset_y": -0.3235383957300916,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.3501737091840335,
+            "offset_y": 0.1299551425231592,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 10,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.3408335614253093,
+            "offset_y": -0.08563786327406409,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 8,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.21311101868934978,
+            "offset_y": 0.35484374882407566,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.035033661422996965,
+            "offset_y": -0.1273166396418663,
+            "scale": 1.1301243962474918,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.04034660180774263,
+            "offset_y": -0.14877336975030575,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.21393311989163144,
+            "offset_y": 0.07996092124661008,
+            "scale": 1.0866632272516703,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.029322723954868846,
+            "offset_y": 0.2819857485289189,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.20745596086329365,
+            "offset_y": -0.22260231374384798,
+            "scale": 0.9365428458307354,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.3633775121159726,
+            "offset_y": -0.26867570583568734,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.28525861697073973,
+            "offset_y": -0.2813409621047205,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.14174670159125746,
+            "offset_y": -0.1918665658230209,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.04476300923871063,
+            "offset_y": 0.04009671360166445,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.35066465240495015,
+            "offset_y": 0.2247679947767689,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 8,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.1042380388830596,
+            "offset_y": 0.11574801256680145,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.24326282627854712,
+            "offset_y": -0.30340335410704466,
+            "scale": 1.1408777487066284,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.24753698875434457,
+            "offset_y": -0.12965316112181108,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.3484223711624722,
+            "offset_y": 0.3219968655466252,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          },
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.039596322432828734,
+            "offset_y": 0.12676535600016214,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.26348494177393433,
+            "offset_y": -0.1347600869981786,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.18897114425046202,
+            "offset_y": 0.04258106312339471,
+            "scale": 0.9731241519415859,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.05910735984537824,
+            "offset_y": 0.25734832122582707,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.26175423053536867,
+            "offset_y": -0.22822711522397868,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 0,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.2610797838539204,
+            "offset_y": 0.25219532327879535,
+            "scale": 0.841421584449427,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.3722804450147953,
+            "offset_y": 0.09534123907671666,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 1
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.08719495484775441,
+            "offset_y": 0.15401242829784545,
+            "scale": 0.8992955156373855,
+            "rotation": 270,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.03772343513490661,
+            "offset_y": -0.29330253518712524,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.040550932163184394,
+            "offset_y": -0.3512167448537258,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.30772201297997204,
+            "offset_y": 0.020651246602223783,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.11271031212994798,
+            "offset_y": 0.03561424482724129,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.37914962578488853,
+            "offset_y": 0.07769308220756166,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.022652491751716852,
+            "offset_y": -0.11405368586276676,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.34840966197002865,
+            "offset_y": 0.10606662760581109,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 7,
+        "height": -1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.12549153710098737,
+            "offset_y": -0.18677839914745356,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          },
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.2938626171270878,
+            "offset_y": 0.16831715494445787,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.3861317086064261,
+            "offset_y": -0.08926198271033392,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          },
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.2086200198664534,
+            "offset_y": 0.04982416916114041,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.14559650536650287,
+            "offset_y": 0.1904840808965359,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.050885189426554955,
+            "offset_y": 0.0504871126912147,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.06209090466317668,
+            "offset_y": -0.38978358791631473,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3547161805635547,
+            "offset_y": -0.18641738444456452,
+            "scale": 1.1142128770379287,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.36962900703992024,
+            "offset_y": -0.3550656185589829,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.3503737408483336,
+            "offset_y": 0.2274859207578931,
+            "scale": 0.8816003613281069,
+            "rotation": 0,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.3343169487365172,
+            "offset_y": -0.23882849331828712,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          },
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.31801599492961874,
+            "offset_y": 0.2944282989235283,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.22744573829670933,
+            "offset_y": 0.23905740199165637,
+            "scale": 0.9150554618028881,
+            "rotation": 0,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.3653615760094614,
+            "offset_y": 0.38065817764490106,
+            "scale": 0.9250615923578537,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.28183038481110834,
+            "offset_y": 0.16375707338585932,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          },
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.23753022181652972,
+            "offset_y": 0.2950799690540128,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.16370325511423023,
+            "offset_y": 0.11810590844000046,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": -0.10112737593330146,
+            "offset_y": 0.3535385707744333,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 1
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.2580592812093895,
+            "offset_y": 0.1461270813612281,
+            "scale": 0.8747906326129296,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.290838664914008,
+            "offset_y": -0.2739968911865234,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.05719374847941261,
+            "offset_y": 0.04527889647626637,
+            "scale": 0.8520266120461489,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.3749943170665342,
+            "offset_y": 0.15484831863403437,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.1677514370530513,
+            "offset_y": -0.276155441761371,
+            "scale": 0.8614813534278519,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.25156338915438425,
+            "offset_y": -0.0972927134822415,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          },
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.10029333004718222,
+            "offset_y": 0.27451198495561013,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.14571279570224843,
+            "offset_y": -0.22403038765795405,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": -0.39856167466170733,
+            "offset_y": 0.16160675852714868,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.029628762027126943,
+            "offset_y": -0.3264435568487469,
+            "scale": 0.8884792324405811,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.1651405142638369,
+            "offset_y": 0.36024662108812144,
+            "scale": 1.0473122403934565,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.3368305731344635,
+            "offset_y": 0.3740253484927484,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 1
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.12319416734178523,
+            "offset_y": -0.20772169885339473,
+            "scale": 1.0569057423284682,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.14325039159433484,
+            "offset_y": 0.3327459442389403,
+            "scale": 1.1779950681727351,
+            "rotation": 270,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "SANDBAG_WALL",
+            "offset_x": 0.19627466248158598,
+            "offset_y": -0.20960325988048245,
+            "scale": 1.0,
+            "rotation": 90,
+            "variant": 0
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.17373680457648205,
+            "offset_y": 0.32906874130289443,
+            "scale": 1.1288436256959864,
+            "rotation": 180,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.16285282434057236,
+            "offset_y": 0.12122255678482285,
+            "scale": 0.9281251028594216,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "TRENCH_SECTION",
+            "offset_x": 0.13601965689124274,
+            "offset_y": 0.18342875770719957,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 1
+          },
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.3650209651787193,
+            "offset_y": 0.03037986477140081,
+            "scale": 0.8029322344867381,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.2188658130954213,
+            "offset_y": 0.29196068457010493,
+            "scale": 0.9696837807764562,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.162194293014033,
+            "offset_y": 0.3809791370712222,
+            "scale": 1.1100826961852244,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.17349462706873042,
+            "offset_y": -0.3696909482030815,
+            "scale": 0.8292992116638067,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.05996983541023326,
+            "offset_y": -0.21788349204667468,
+            "scale": 0.9034591835964703,
+            "rotation": 270,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.0535799722885833,
+            "offset_y": -0.386487225356687,
+            "scale": 1.069319492931085,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.06848641065071137,
+            "offset_y": 0.16070562510640163,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.15891943212410312,
+            "offset_y": -0.33079582284976583,
+            "scale": 1.0,
+            "rotation": 270,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 2,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.12857853192579238,
+            "offset_y": -0.020809858105638845,
+            "scale": 1.0133871055241397,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": 0.2795739504440097,
+            "offset_y": -0.164017224549447,
+            "scale": 1.0,
+            "rotation": 180,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": [
+          {
+            "type": "CAMOUFLAGE_NET",
+            "offset_x": -0.39107983378455535,
+            "offset_y": 0.29981354209822264,
+            "scale": 1.0,
+            "rotation": 0,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.08473463930397013,
+            "offset_y": 0.03802036015379062,
+            "scale": 0.8340507426997756,
+            "rotation": 90,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": 0.3245024242754668,
+            "offset_y": 0.2811670810732406,
+            "scale": 0.8569820468454193,
+            "rotation": 90,
+            "variant": 0
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": [
+          {
+            "type": "BUSH_DENSE",
+            "offset_x": -0.19780657771631358,
+            "offset_y": -0.30830196630145323,
+            "scale": 1.0683911645402313,
+            "rotation": 0,
+            "variant": 1
+          }
+        ]
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      }
+    ],
+    [
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 5,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 9,
+        "height": 1,
+        "variation": 2,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 5,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 7,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 1,
+        "height": 0,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 0,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 4,
+        "decorations": []
+      },
+      {
+        "base_terrain": 2,
+        "height": 0,
+        "variation": 6,
+        "decorations": []
+      },
+      {
+        "base_terrain": 4,
+        "height": 2,
+        "variation": 1,
+        "decorations": []
+      },
+      {
+        "base_terrain": 3,
+        "height": 1,
+        "variation": 3,
+        "decorations": []
+      }
+    ]
+  ],
+  "_format_version": "enhanced_v1",
+  "_detail_generated": true,
+  "_generation_seed": 42,
+  "_decoration_count": 258
+}

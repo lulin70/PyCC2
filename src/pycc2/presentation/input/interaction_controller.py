@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
+import pygame
+
 from pycc2.presentation.ui.cursor_manager import CursorManager, CursorType
 from pycc2.presentation.ui.radial_menu import RadialMenu, RadialCommand
 

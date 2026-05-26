@@ -1,0 +1,7736 @@
+{
+  "id": "arnhem_koepel",
+  "name": "Arnhem Koepel — 阿纳姆穹顶教堂",
+  "width": 36,
+  "height": 30,
+  "metadata": {
+    "name": "Arnhem Koepel",
+    "description": "The Koepel (dome church) was a major landmark and strongpoint in central Arnhem. German forces used its tower as an observation post to direct artillery fire on British positions.",
+    "sector": "Arnhem",
+    "historical_day": "1944-09-19",
+    "historical_battle": "Battle of Arnhem - Central Sector"
+  },
+  "tiles": [
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "hedge",
+        "elevation": 1,
+        "cover_modifier": 0.15,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "hedge",
+        "elevation": 1,
+        "cover_modifier": 0.15,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "forest",
+        "elevation": 2,
+        "cover_modifier": 0.2,
+        "movement_cost": 2.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "forest",
+        "elevation": 2,
+        "cover_modifier": 0.2,
+        "movement_cost": 2.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "hedge",
+        "elevation": 1,
+        "cover_modifier": 0.15,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "forest",
+        "elevation": 2,
+        "cover_modifier": 0.2,
+        "movement_cost": 2.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "forest",
+        "elevation": 2,
+        "cover_modifier": 0.2,
+        "movement_cost": 2.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "forest",
+        "elevation": 2,
+        "cover_modifier": 0.2,
+        "movement_cost": 2.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "forest",
+        "elevation": 2,
+        "cover_modifier": 0.2,
+        "movement_cost": 2.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "rubble",
+        "elevation": -1,
+        "cover_modifier": 0.3,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "rubble",
+        "elevation": -1,
+        "cover_modifier": 0.3,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "rubble",
+        "elevation": -1,
+        "cover_modifier": 0.3,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "rubble",
+        "elevation": -1,
+        "cover_modifier": 0.3,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "wall",
+        "elevation": 3,
+        "cover_modifier": 0.7,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "hedge",
+        "elevation": 1,
+        "cover_modifier": 0.15,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "hedge",
+        "elevation": 1,
+        "cover_modifier": 0.15,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "hedge",
+        "elevation": 1,
+        "cover_modifier": 0.15,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "hedge",
+        "elevation": 1,
+        "cover_modifier": 0.15,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "hedge",
+        "elevation": 1,
+        "cover_modifier": 0.15,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "hedge",
+        "elevation": 1,
+        "cover_modifier": 0.15,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "hedge",
+        "elevation": 1,
+        "cover_modifier": 0.15,
+        "movement_cost": 2.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 3,
+        "cover_modifier": 0.5,
+        "movement_cost": 1.5,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "building",
+        "elevation": 4,
+        "cover_modifier": 0.8,
+        "movement_cost": 99.0,
+        "is_passable": false
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ],
+    [
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "road",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 0.8,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "grass",
+        "elevation": 0,
+        "cover_modifier": 0.05,
+        "movement_cost": 1.2,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      },
+      {
+        "terrain_type": "open",
+        "elevation": 0,
+        "cover_modifier": 0.0,
+        "movement_cost": 1.0,
+        "is_passable": true
+      }
+    ]
+  ],
+  "victory_locations": [
+    {
+      "id": "vl_koepel_church",
+      "name": "Koepel Church",
+      "position": [
+        18,
+        14
+      ],
+      "value": 19,
+      "type": "regular"
+    },
+    {
+      "id": "vl_church_square",
+      "name": "Church Square",
+      "position": [
+        18,
+        9
+      ],
+      "value": 15,
+      "type": "regular"
+    },
+    {
+      "id": "vl_north_approach",
+      "name": "North Approach",
+      "position": [
+        18,
+        5
+      ],
+      "value": 10,
+      "type": "road"
+    }
+  ],
+  "deployment_zones": {
+    "allies": {
+      "x": 0,
+      "y": 8,
+      "width": 6,
+      "height": 14
+    },
+    "axis": {
+      "x": 30,
+      "y": 8,
+      "width": 6,
+      "height": 14
+    }
+  },
+  "objectives": [
+    {
+      "id": "obj_koepel",
+      "name": "Koepel Church",
+      "position": [
+        18,
+        14
+      ],
+      "radius": 4,
+      "required": true,
+      "owner": null
+    },
+    {
+      "id": "obj_square",
+      "name": "Church Square",
+      "position": [
+        18,
+        9
+      ],
+      "radius": 3,
+      "required": true,
+      "owner": null
+    },
+    {
+      "id": "obj_north",
+      "name": "North Approach",
+      "position": [
+        18,
+        5
+      ],
+      "radius": 3,
+      "required": false,
+      "owner": null
+    }
+  ],
+  "spawn_points": [
+    {
+      "id": "spawn_allies",
+      "side": "allies",
+      "position": [
+        2,
+        14
+      ],
+      "units_max": 22
+    },
+    {
+      "id": "spawn_axis",
+      "side": "axis",
+      "position": [
+        34,
+        14
+      ],
+      "units_max": 20
+    }
+  ]
+}

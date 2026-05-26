@@ -147,8 +147,6 @@ cython_debug/
 .LSOverride
 
 # PyCC2 specific
-data/maps/*.json
-!data/maps/_schema.json
 *.save
 logs/
 *.log
