@@ -242,7 +242,7 @@ class TestVictoryWhenAllEnemiesEliminated:
                 unit.take_damage(unit.health.max_hp + 100)
         result, reason = evaluator.evaluate(
             units=combat_game_loop.state.units,
-            tick=combat_game_loop.state.tick,
+            tick=600,
         )
         assert result == GameResult.ALLIES_VICTORY, "歼灭所有敌军后应触发盟军胜利条件"
         assert "destroyed" in reason.lower() or "eliminated" in reason.lower()

@@ -668,7 +668,7 @@ class TestBattleEndAndSettlement:
         # 敌方单位已死亡
         enemy = make_unit("enemy_1", faction=Faction.AXIS, hp=0, max_hp=100)
 
-        result, reason = evaluator.evaluate([ally, enemy], tick=300)
+        result, reason = evaluator.evaluate([ally, enemy], tick=600)
         assert result == GameResult.ALLIES_VICTORY
         assert "destroyed" in reason.lower() or "eliminated" in reason.lower()
 
@@ -695,7 +695,7 @@ class TestBattleEndAndSettlement:
         ally = make_unit("ally_1", faction=Faction.ALLIES, hp=0, max_hp=100)
         enemy = make_unit("enemy_1", faction=Faction.AXIS)
 
-        result, reason = evaluator.evaluate([ally, enemy], tick=300)
+        result, reason = evaluator.evaluate([ally, enemy], tick=600)
         assert result == GameResult.AXIS_VICTORY
 
     def test_morale_collapse_causes_defeat(self) -> None:

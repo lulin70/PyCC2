@@ -442,9 +442,9 @@ class TestCompleteBattleFlow:
         ally = _make_unit(uid="ally_vl", x=10, y=10)
         axis = _make_unit(uid="axis_far", faction=Faction.AXIS, x=1, y=1)
 
-        # 3. Simulate ticks — ally occupies VL
+        # 3. Simulate ticks — ally occupies VL (minimum 300 ticks for capture)
         result, reason = GameResult.ONGOING, ""
-        for tick in range(5):
+        for tick in range(310):
             result, reason = evaluator.evaluate([ally, axis], tick=tick)
             if result != GameResult.ONGOING:
                 break
@@ -474,10 +474,10 @@ class TestCompleteBattleFlow:
         result, reason = evaluator.evaluate([ally, axis], tick=100)
         assert result != GameResult.ONGOING
 
-        # 4. Kill all axis units -> allies win
+        # 4. Kill all axis units -> allies win (need tick >= 600)
         axis.take_damage(200)
         assert not axis.is_alive
-        result2, reason2 = evaluator.evaluate([ally, axis], tick=50)
+        result2, reason2 = evaluator.evaluate([ally, axis], tick=600)
         assert result2 == GameResult.ALLIES_VICTORY
 
     # ---- 11. Morale collapse victory condition ----

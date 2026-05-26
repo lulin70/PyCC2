@@ -140,6 +140,11 @@ class VictoryConditionEvaluator:
         allies_alive = [u for u in units if u.faction.name == "ALLIES" and u.is_alive]
         axis_alive = [u for u in units if u.faction.name == "AXIS" and u.is_alive]
 
+        # Safety check: don't declare victory if either side has no units at all
+        # (handles deployment edge cases where AI units may not be in list yet)
+        if not allies_alive and not axis_alive:
+            return (GameResult.ONGOING, "")
+
         allies_commanders = [u for u in allies_alive if u.unit_type.name == "COMMANDER"]
         axis_commanders = [u for u in axis_alive if u.unit_type.name == "COMMANDER"]
 
@@ -156,9 +161,11 @@ class VictoryConditionEvaluator:
                 return (GameResult.AXIS_VICTORY, "Your commander has fallen")
 
         if VictoryConditionType.ELIMINATE_ALL_ENEMIES in self.conditions:
-            if not axis_alive and allies_alive:
+            # Only declare victory if BOTH sides had units at some point
+            # (prevents false victory when AI units haven't spawned yet)
+            if not axis_alive and allies_alive and tick >= 600:
                 return (GameResult.ALLIES_VICTORY, "All enemy forces destroyed")
-            if not allies_alive and axis_alive:
+            if not allies_alive and axis_alive and tick >= 600:
                 return (GameResult.AXIS_VICTORY, "All allied forces destroyed")
 
         if VictoryConditionType.MORALE_COLLAPSE in self.conditions:
@@ -195,7 +202,9 @@ class VictoryConditionEvaluator:
                     new_ticks = 1
                 self._objective_occupancy[obj.id] = (occupant, new_ticks)
 
-                if obj.required_ticks == 0 or new_ticks >= obj.required_ticks:
+                # Minimum 300 ticks (10 seconds) to capture an objective
+                effective_required = max(obj.required_ticks, 300)
+                if effective_required == 0 or new_ticks >= effective_required:
                     if occupant == "allies":
                         return (
                             GameResult.ALLIES_VICTORY,

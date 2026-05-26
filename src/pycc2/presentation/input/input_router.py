@@ -49,7 +49,7 @@ class InputRouter:
                     if self.game_state:
                         # 按ESC或R键退出战斗结果画面，返回主菜单
                         self.game_state.running = False
-                return True
+                    return True
             if self.interaction_controller:
                 # CC2-style: Track Ctrl key press for LOS overlay
                 if input_event.key in (pygame.K_LCTRL, pygame.K_RCTRL):

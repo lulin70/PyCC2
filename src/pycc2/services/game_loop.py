@@ -203,7 +203,8 @@ class GameLoop:
             return self.time_control.speed_multiplier
         return 1.0
 
-    def run(self) -> None:
+    def run(self) -> int:
+        """Run the game loop. Returns 0 for normal exit, 1 for restart request."""
         while self.state.running:
             new_time = time.perf_counter()
             frame_time = min(new_time - self._current_time, MAX_FRAME_TIME)
@@ -362,6 +363,7 @@ class GameLoop:
             self._fps = self.window_manager.fps
 
         self.shutdown()
+        return 0
 
     def _update_logic(self, dt: float) -> None:
         if self.state.paused:

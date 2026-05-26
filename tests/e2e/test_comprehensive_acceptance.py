@@ -943,7 +943,7 @@ class TestStageHVictoryDefeatConditions:
         )
         ally = make_unit("v_ally", faction=Faction.ALLIES)
         enemy_dead = make_unit("v_enemy_dead", faction=Faction.AXIS, hp=0, max_hp=100)
-        result, reason = evaluator.evaluate([ally, enemy_dead], tick=300)
+        result, reason = evaluator.evaluate([ally, enemy_dead], tick=600)
         assert result == GameResult.ALLIES_VICTORY
 
     def test_h02_victory_when_enemy_commander_killed(self):
@@ -963,7 +963,7 @@ class TestStageHVictoryDefeatConditions:
         )
         ally_dead = make_unit("vd_ally_dead", faction=Faction.ALLIES, hp=0, max_hp=100)
         enemy = make_unit("vd_enemy", faction=Faction.AXIS)
-        result, reason = evaluator.evaluate([ally_dead, enemy], tick=300)
+        result, reason = evaluator.evaluate([ally_dead, enemy], tick=600)
         assert result == GameResult.AXIS_VICTORY
 
     def test_h04_defeat_when_morale_collapses(self):

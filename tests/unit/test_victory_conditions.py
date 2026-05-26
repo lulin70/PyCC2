@@ -200,7 +200,7 @@ class TestVictoryConditionEvaluator:
         allies_inf = _make_unit(id="ai", faction=Faction.ALLIES)
         axis_dead = _make_unit(id="xd", faction=Faction.AXIS, hp=0)
         units = [allies_cmd, allies_inf, axis_dead]
-        result, reason = ev.evaluate(units, tick=0)
+        result, reason = ev.evaluate(units, tick=600)
         assert result == GameResult.ALLIES_VICTORY
         assert "destroyed" in reason.lower()
 
@@ -210,7 +210,7 @@ class TestVictoryConditionEvaluator:
         axis_inf = _make_unit(id="xi", faction=Faction.AXIS)
         allies_dead = _make_unit(id="ad", faction=Faction.ALLIES, hp=0)
         units = [axis_cmd, axis_inf, allies_dead]
-        result, reason = ev.evaluate(units, tick=0)
+        result, reason = ev.evaluate(units, tick=600)
         assert result == GameResult.AXIS_VICTORY
         assert "destroyed" in reason.lower()
 
@@ -224,7 +224,7 @@ class TestVictoryConditionEvaluator:
         allies_dead = _make_unit(id="ad", faction=Faction.ALLIES, hp=0)
         axis_dead = _make_unit(id="xd", faction=Faction.AXIS, hp=0)
         units = [allies_dead, axis_dead]
-        result, _ = ev.evaluate(units, tick=0)
+        result, _ = ev.evaluate(units, tick=600)
         assert result == GameResult.ONGOING
 
     def test_no_one_dead_is_ongoing(self):
@@ -313,7 +313,10 @@ class TestVictoryConditionEvaluator:
         allies_at_obj = _make_unit(id="a1", faction=Faction.ALLIES, tile_x=5, tile_y=5)
         axis_far = _make_unit(id="x1", faction=Faction.AXIS, tile_x=0, tile_y=0)
         units = [allies_at_obj, axis_far]
-        result, reason = ev.evaluate(units, tick=0)
+        # Need 300 ticks of occupancy (max(required_ticks, 300))
+        for t in range(299):
+            ev.evaluate(units, tick=t)
+        result, reason = ev.evaluate(units, tick=299)
         assert result == GameResult.ALLIES_VICTORY
         assert "Bridge" in reason
 
@@ -326,7 +329,10 @@ class TestVictoryConditionEvaluator:
         axis_at_obj = _make_unit(id="x1", faction=Faction.AXIS, tile_x=3, tile_y=3)
         allies_far = _make_unit(id="a1", faction=Faction.ALLIES, tile_x=0, tile_y=0)
         units = [axis_at_obj, allies_far]
-        result, reason = ev.evaluate(units, tick=0)
+        # Need 300 ticks of occupancy (max(required_ticks, 300))
+        for t in range(299):
+            ev.evaluate(units, tick=t)
+        result, reason = ev.evaluate(units, tick=299)
         assert result == GameResult.AXIS_VICTORY
         assert "Hill" in reason
 
@@ -344,7 +350,10 @@ class TestVictoryConditionEvaluator:
         assert result == GameResult.ONGOING
         result, _ = ev.evaluate(units, tick=1)
         assert result == GameResult.ONGOING
-        result, reason = ev.evaluate(units, tick=2)
+        # effective_required = max(3, 300) = 300; need 300 ticks of occupancy
+        for t in range(2, 299):
+            ev.evaluate(units, tick=t)
+        result, reason = ev.evaluate(units, tick=299)
         assert result == GameResult.ALLIES_VICTORY
         assert "Town" in reason
 
@@ -382,12 +391,12 @@ class TestVictoryConditionEvaluator:
         allies_inf = _make_unit(id="ai", faction=Faction.ALLIES)
         axis_inf = _make_unit(id="xi", faction=Faction.AXIS)
         units = [allies_cmd, allies_inf, axis_inf]
-        result, reason = ev.evaluate(units, tick=0)
+        result, reason = ev.evaluate(units, tick=600)
         assert result == GameResult.ALLIES_VICTORY
         assert "commander" in reason.lower()
 
     def test_reset_clears_objective_occupancy(self):
-        obj = Objective(id="o1", name="Base", position=(5, 5), required_ticks=10)
+        obj = Objective(id="o1", name="Base", position=(5, 5), required_ticks=300)
         ev = self._make_evaluator(
             conditions=[VictoryConditionType.OCCUPY_OBJECTIVE],
             objectives=[obj],
@@ -407,7 +416,10 @@ class TestVictoryConditionEvaluator:
         allies_near = _make_unit(id="a1", faction=Faction.ALLIES, tile_x=6, tile_y=6)
         axis_far = _make_unit(id="x1", faction=Faction.AXIS, tile_x=0, tile_y=0)
         units = [allies_near, axis_far]
-        result, _ = ev.evaluate(units, tick=0)
+        # Need 300 ticks of occupancy (max(required_ticks, 300))
+        for t in range(299):
+            ev.evaluate(units, tick=t)
+        result, _ = ev.evaluate(units, tick=299)
         assert result == GameResult.ALLIES_VICTORY
 
     def test_objective_outside_radius_not_counted(self):
