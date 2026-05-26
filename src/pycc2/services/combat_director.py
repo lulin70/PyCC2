@@ -92,10 +92,142 @@ class CombatDirector:
                     if path:
                         self._move_orders[uid] = {"path": path[1:], "current_idx": 0}
 
-        elif cmd in ("stop", "defend", "take_cover"):
+        elif cmd == "take_cover":
             for uid in unit_ids:
                 if uid in self._move_orders:
                     del self._move_orders[uid]
+
+        elif cmd == "stop":
+            for uid in unit_ids:
+                if uid in self._move_orders:
+                    del self._move_orders[uid]
+                # Reset movement mode to normal
+                unit = next((u for u in units if u.id == uid), None)
+                if unit and hasattr(unit, 'set_movement_mode'):
+                    unit.set_movement_mode("normal")
+
+        elif cmd == "defend":
+            """Defend command: Reduces mobility, improves accuracy."""
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            for uid in unit_ids:
+                unit = next((u for u in units if u.id == uid), None)
+                if unit and hasattr(unit, 'set_movement_mode'):
+                    # Toggle defend mode (or set if not already defending)
+                    if unit.movement_mode != "defend":
+                        unit.set_movement_mode("defend", duration_ticks=-1)  # Indefinite
+                        # Stop any current movement
+                        if uid in self._move_orders:
+                            del self._move_orders[uid]
+                        logger.info(f"[COMMAND] {unit.name or uid} entering DEFEND mode (+25% accuracy, -50% speed)")
+                    else:
+                        # Cancel defend mode
+                        unit.set_movement_mode("normal")
+                        logger.info(f"[COMMAND] {unit.name or uid} exiting DEFEND mode")
+
+        elif cmd == "fast_move":
+            """Fast Move command: Moves faster but more visible to enemies."""
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            for uid in unit_ids:
+                unit = next((u for u in units if u.id == uid), None)
+                if unit and hasattr(unit, 'set_movement_mode'):
+                    # Toggle fast move mode
+                    if unit.movement_mode != "fast_move":
+                        unit.set_movement_mode("fast_move", duration_ticks=-1)
+                        logger.info(f"[COMMAND] {unit.name or uid} entering FAST MOVE mode (1.5x speed, +50% detection)")
+                    else:
+                        unit.set_movement_mode("normal")
+                        logger.info(f"[COMMAND] {unit.name or uid} exiting FAST MOVE mode")
+
+        elif cmd == "sneak":
+            """Sneak Move command: Moves slower but harder to detect."""
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            for uid in unit_ids:
+                unit = next((u for u in units if u.id == uid), None)
+                if unit and hasattr(unit, 'set_movement_mode') and getattr(unit, 'can_sneak', False):
+                    # Toggle sneak mode
+                    if unit.movement_mode != "sneak":
+                        unit.set_movement_mode("sneak", duration_ticks=-1)
+                        logger.info(f"[COMMAND] {unit.name or uid} entering SNEAK mode (0.6x speed, -50% detection)")
+                    else:
+                        unit.set_movement_mode("normal")
+                        logger.info(f"[COMMAND] {unit.name or uid} exiting SNEAK mode")
+                elif unit:
+                    logger.warning(f"[COMMAND] {unit.name or uid} cannot use SNEAK mode (unit type not supported)")
+
+        elif cmd == "hide":
+            """Hide command: Similar to defend but with concealment bonus."""
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            for uid in unit_ids:
+                unit = next((u for u in units if u.id == uid), None)
+                if unit and hasattr(unit, 'set_movement_mode') and getattr(unit, 'can_hide', False):
+                    if unit.movement_mode != "defend":
+                        unit.set_movement_mode("defend", duration_ticks=-1)
+                        # Apply concealment bonus if available
+                        if hasattr(unit, 'combat_state') and unit.combat_state:
+                            unit.combat_state.concealment.special_bonus += 0.2
+                        if uid in self._move_orders:
+                            del self._move_orders[uid]
+                        logger.info(f"[COMMAND] {unit.name or uid} HIDING (+concealment)")
+
+        elif cmd == "deploy_smoke":
+            """Deploy smoke grenade at unit position."""
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            for uid in unit_ids:
+                unit = next((u for u in units if u.id == uid), None)
+                
+                # Verify unit can use smoke
+                if not unit:
+                    continue
+                if not getattr(unit, 'can_use_smoke', False):
+                    logger.warning(f"[SMOKE] {unit.name or uid} cannot deploy smoke (no capability)")
+                    continue
+                
+                # Check ammo
+                if hasattr(unit, 'weapon') and unit.weapon:
+                    # Consume smoke ammo (if tracked separately)
+                    # For now, just verify unit has weapon system
+                    
+                    # Deploy smoke effect
+                    try:
+                        from pycc2.domain.systems.ammo_type_system import AmmoTypeSystem
+                        
+                        # Check if AmmoTypeSystem has smoke deployment
+                        if hasattr(AmmoTypeSystem, 'deploy_smoke'):
+                            success = AmmoTypeSystem.deploy_smoke(unit, self._game_map)
+                            if not success:
+                                logger.warning(f"[SMOKE] Failed to deploy smoke for {unit.name or uid}")
+                                continue
+                    except Exception as e:
+                        logger.warning(f"[SMOKE] Error deploying smoke: {e}")
+                        # Continue with visual effect even if system call fails
+                    
+                    # Trigger visual smoke screen effect
+                    self._pending_effects.append(
+                        {
+                            "type": "smoke",
+                            "position": unit.position.pixel_position,
+                            "radius": 144.0,
+                        }
+                    )
+                    
+                    # Apply smoke to concealment system if available
+                    if hasattr(unit, 'combat_state') and unit.combat_state:
+                        unit.combat_state.concealment.in_smoke = True
+                        # Smoke fades after some time (handled by combat_state turn processing)
+                    
+                    logger.info(f"[SMOKE] {unit.name or uid} deployed smoke grenade")
+                else:
+                    logger.warning(f"[SMOKE] {unit.name or uid} has no weapon system")
 
     def execute_attack(self, attacker, target) -> None:
         from pycc2.services.event_protocol import UnitAttacked
@@ -143,6 +275,7 @@ class CombatDirector:
                     "position": target.position.pixel_position,
                     "damage": result.damage_dealt,
                     "is_kill": result.is_killing_blow,
+                    "weapon_id": attacker.weapon.primary_weapon_id,
                 }
             )
             self._pending_effects.append(
@@ -205,7 +338,7 @@ class CombatDirector:
                 target_faction = "axis" if target.faction.name == "AXIS" else "allies"
                 battle_stats.record_unit_lost(target_faction)
 
-    def process_effects(self, renderer: object | None = None) -> None:
+    def process_effects(self, renderer: object | None = None, camera: object | None = None) -> None:
         if renderer is None or not hasattr(renderer, "spawn_hit_flash"):
             self._pending_effects.clear()
             return
@@ -217,6 +350,16 @@ class CombatDirector:
                 renderer.spawn_damage_number(
                     effect["position"], effect["damage"], effect.get("is_kill", False)
                 )
+                # 爆炸武器触发大爆炸 + 屏幕震动
+                weapon_id = effect.get("weapon_id", "")
+                if weapon_id and self._is_explosive_weapon(weapon_id):
+                    renderer.spawn_explosion(effect["position"], "large")
+                    if camera and hasattr(camera, "shake"):
+                        camera.shake(3.0, 0.15)
+                else:
+                    renderer.spawn_explosion(effect["position"], "small")
+                    if camera and hasattr(camera, "shake"):
+                        camera.shake(1.5, 0.1)
                 if self.sound_system:
                     self.sound_system.play_hit(is_critical=effect.get("is_kill", False))
             elif etype == "muzzle":
@@ -225,8 +368,16 @@ class CombatDirector:
                 renderer.spawn_death_effect(effect["unit_id"], effect["position"])
                 if self.sound_system:
                     self.sound_system.play_death()
+            elif etype == "smoke":
+                renderer.spawn_smoke_screen(effect["position"], radius=effect.get("radius", 64.0))
 
         self._pending_effects.clear()
+
+    @staticmethod
+    def _is_explosive_weapon(weapon_id: str) -> bool:
+        explosive_keywords = ("tank_cannon", "mortar", "at_gun", "bazooka", "piat", "panzerschreck", "panzerfaust")
+        wid_lower = weapon_id.lower()
+        return any(kw in wid_lower for kw in explosive_keywords)
 
     def process_deaths(self, units: list[Unit], battle_stats: object | None = None) -> None:
         dead_units = [u for u in units if not u.is_alive]
@@ -254,7 +405,8 @@ class CombatDirector:
             moved = speed_tiles_per_sec * 1.0 / 30.0
 
             target_tc = path[0]
-            ts = self.display_config.base_tile_size
+            # Use Vec2.TILE_SIZE (32) for consistent coordinate system
+            ts = Vec2.TILE_SIZE
             target_vec = Vec2(target_tc.x * ts + ts // 2, target_tc.y * ts + ts // 2)
             current_vec = unit.position.pixel_position
 

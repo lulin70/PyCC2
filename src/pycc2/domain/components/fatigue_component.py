@@ -34,6 +34,7 @@ FATIGUE_EFFECTS = {
 
 FATIGUE_RATES = {
     "moving": 0.002,
+    "fast_move": 0.006,
     "firing": 0.008,
     "combat_stress": 0.015,
     "resting": -0.005,

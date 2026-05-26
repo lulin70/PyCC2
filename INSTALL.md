@@ -1,6 +1,6 @@
 # Installation Guide — PyCC2
 
-Complete installation instructions for PyCC2 **v0.6-p4w2** on all supported platforms.
+Complete installation instructions for PyCC2 **v0.1.1** on all supported platforms.
 
 ### Version History
 
@@ -195,7 +195,7 @@ python scripts/visual_test.py
 ### Test Suite
 
 ```bash
-# Full test suite (should pass all 1377)
+# Full test suite (should pass all 2767)
 python -m pytest tests/ -q
 
 # Quick smoke test (just confirms import works)

@@ -3,7 +3,7 @@ PyCC2 - Python Company Command 2
 Tactical Infantry Combat Simulator
 """
 
-__version__ = "0.6.0"
+__version__ = "0.1.1"
 __author__ = "PyCC2 Team"
 __license__ = "MIT"
 

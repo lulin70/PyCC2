@@ -158,6 +158,63 @@ class AssetLoader:
         # 所有路径都不存在，返回None让调用者使用程序化生成
         print(f"[AssetLoader] ⚠️  未找到PNG: {faction}/{unit_type}/d{direction}")
         return None
+
+    def load_cc2_sprite(
+        self,
+        unit_type: str,
+        direction: int = 0,
+        faction: str = 'allies',
+    ) -> pygame.Surface | None:
+        """
+        加载单位精灵 - 优先使用CC2写实像素艺术生成器
+
+        Args:
+            unit_type: 单位类型名称（如 "INFANTRY_SQUAD"）
+            direction: 方向索引 0-7 (N, NE, E, SE, S, SW, W, NW)
+            faction: "allies" 或 "axis"
+
+        Returns:
+            pygame.Surface 或 None
+        """
+        cache_key = f"cc2_{faction}_{unit_type}_d{direction}"
+
+        if cache_key in self._sprite_cache:
+            return self._sprite_cache[cache_key]
+
+        try:
+            from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D, Direction, Faction
+
+            dir_enum = list(Direction)[direction] if direction < 8 else Direction.SOUTH
+            fac_enum = Faction(faction)
+
+            sprite = PixelArtist3D.create_infantry_sprite(
+                direction=dir_enum,
+                faction=fac_enum,
+                state='idle',
+                frame=0
+            )
+
+            self._sprite_cache[cache_key] = sprite
+            print(f"[AssetLoader] ✅ Generated CC2 sprite: {cache_key}")
+            return sprite
+
+        except Exception as e:
+            print(f"[AssetLoader] ❌ CC2 sprite generation failed: {e}, using fallback")
+            return self.load_fallback_sprite(unit_type)
+
+    def load_fallback_sprite(self, unit_type: str) -> pygame.Surface | None:
+        """Fallback精灵生成器（当CC2生成失败时使用）"""
+        import pygame
+
+        surface = pygame.Surface((24, 24), pygame.SRCALPHA)
+        surface.fill((0, 0, 0, 0))
+
+        color = (74, 144, 217) if 'allies' in unit_type.lower() else (217, 74, 74)
+        pygame.draw.circle(surface, color, (12, 12), 8)
+        pygame.draw.circle(surface, (255, 255, 255), (12, 12), 8, 1)
+
+        print(f"[AssetLoader] ⚠️  Using fallback circle sprite for: {unit_type}")
+        return surface
     
     def load_terrain_tile(self, tile_id: int, size: int = 32) -> Surface | None:
         """

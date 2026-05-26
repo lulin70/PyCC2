@@ -273,7 +273,7 @@ class TestVerticalSlice08_RunDuration:
         monkeypatch.setattr("pycc2.services.game_loop.time.perf_counter", mock_perf_counter)
         monkeypatch.setattr("pygame.event.get", lambda: [])
         monkeypatch.setattr("pygame.display.flip", lambda: None)
-        monkeypatch.setattr(full_system["game_loop"], "_render_hud", lambda: None)
+        monkeypatch.setattr(full_system["game_loop"]._hud_manager, "render", lambda *a, **kw: None)
         monkeypatch.setattr(full_system["renderer"], "render", lambda *args, **kwargs: None)
 
         try:

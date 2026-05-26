@@ -59,12 +59,10 @@ class MoraleCalculator:
         old_value = unit_morale.value
         new_value = max(0, min(100, old_value + delta))
         old_state_name = unit_morale.state.name
-        new_state_name = self.predict_state(
-            new_value, 0, unit_morale.panic_threshold, unit_morale.rout_threshold
-        )
+        new_state_name = self.predict_state(new_value, 0)
         state_changed = old_state_name != new_state_name
         contagion_targets: list[str] = []
-        if new_state_name == "PANICED" and state_changed:
+        if new_state_name in ("BROKEN", "ROUTING") and state_changed:
             contagion_targets = (context or {}).get("contagion_targets", [])
         return MoraleCalculationResult(
             morale_delta=delta,
@@ -89,13 +87,13 @@ class MoraleCalculator:
         for unit_id, mc in squad_units:
             if unit_id == panicked_unit_id:
                 continue
-            if mc.state.name in ("PANICED", "ROUTING"):
+            if mc.state.name in ("BROKEN", "ROUTING"):
                 continue
             result[unit_id] = -10
         return result
 
     def should_panic_contagion(self, unit: MoraleComponent) -> bool:
-        return unit.state.name == "PANICED"
+        return unit.state.name in ("BROKEN", "ROUTING")
 
     def notify_leader_killed(self, killed_unit: Unit, squad_units: list[Unit]) -> None:
         if self.degradation_manager is not None:
@@ -109,8 +107,11 @@ class MoraleCalculator:
         rout_thr: int = 10,
     ) -> str:
         new_val = max(0, min(100, current_value + delta))
-        if new_val < rout_thr:
-            return "ROUTING"
-        if new_val < panic_thr:
-            return "PANICED"
-        return "NORMAL"
+        if new_val > 70:
+            return "RALLIED"
+        elif new_val > 40:
+            return "WAVERING"
+        elif new_val > 20:
+            return "PINNED"
+        else:
+            return "BROKEN"

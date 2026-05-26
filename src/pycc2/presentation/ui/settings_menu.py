@@ -5,7 +5,7 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    pass
+    from pycc2.presentation.ui.keybind_manager import KeybindManager
 
 
 class SettingsTab(Enum):
@@ -31,9 +31,10 @@ class SettingsState:
 
 
 class SettingsMenu:
-    def __init__(self, display_config):
+    def __init__(self, display_config, keybind_manager: KeybindManager | None = None):
         self.state = SettingsState()
         self._display_config = display_config
+        self._keybind_manager = keybind_manager
         self._visible = False
         self._active_tab = SettingsTab.GENERAL
         self._tab_names = ["General", "Audio", "Controls", "Gameplay"]
@@ -57,7 +58,19 @@ class SettingsMenu:
         import pygame
 
         if event.type == pygame.KEYDOWN:
+            # If keybind manager is listening for a key, capture it
+            if (self._keybind_manager and self._keybind_manager.is_listening
+                    and self._active_tab == SettingsTab.CONTROLS):
+                if self._keybind_manager.handle_key(event.key):
+                    return "applied"
+                # ESC cancels listening (handled by handle_key returning False)
+                return None
+
             if event.key == pygame.K_ESCAPE:
+                # Cancel listening if active, otherwise close
+                if self._keybind_manager and self._keybind_manager.is_listening:
+                    self._keybind_manager.cancel_listening()
+                    return None
                 self.hide()
                 return "closed"
             if event.key == pygame.K_TAB:
@@ -65,6 +78,9 @@ class SettingsMenu:
                 idx = (tabs.index(self._active_tab) + 1) % len(tabs)
                 self._active_tab = tabs[idx]
                 self._selected_option_idx = 0
+                # Cancel listening when switching tabs
+                if self._keybind_manager and self._keybind_manager.is_listening:
+                    self._keybind_manager.cancel_listening()
                 return None
             if event.key in (pygame.K_UP, pygame.K_w):
                 self._adjust_selection(-1)
@@ -136,16 +152,32 @@ class SettingsMenu:
             screen.blit(name_surf, (px + 20, oy))
 
             val_str = self._format_value(opt_value, opt_type)
-            val_color = (80, 180, 255) if i == self._selected_option_idx else (140, 200, 140)
+            # Highlight the listening keybind
+            is_listening = (self._keybind_manager and self._keybind_manager.is_listening
+                            and opt_type == "keybind"
+                            and self._keybind_manager.listening_action)
+            if is_listening and val_str == "Press any key...":
+                val_color = (255, 200, 80)
+            elif opt_type == "keybind":
+                val_color = (80, 180, 255) if i == self._selected_option_idx else (140, 200, 140)
+            elif opt_type == "reset_keybinds":
+                val_color = (200, 120, 120)
+            else:
+                val_color = (80, 180, 255) if i == self._selected_option_idx else (140, 200, 140)
             val_surf = font_sm.render(val_str, True, val_color)
             screen.blit(val_surf, (px + pw - 20 - val_surf.get_width(), oy))
 
             self._option_rects.append((pygame.Rect(px + 15, oy, pw - 30, 28), opt_name))
 
             if i == 0:
-                hint = font_sm.render(
-                    "← → to change | Enter to toggle | ↑↓ to select", True, (120, 120, 130)
-                )
+                if self._active_tab == SettingsTab.CONTROLS and self._keybind_manager:
+                    hint = font_sm.render(
+                        "Enter/Click to rebind | ESC to cancel", True, (120, 120, 130)
+                    )
+                else:
+                    hint = font_sm.render(
+                        "← → to change | Enter to toggle | ↑↓ to select", True, (120, 120, 130)
+                    )
                 screen.blit(hint, (px + 20, oy + 18))
 
         footer_y = py + ph - 35
@@ -171,6 +203,19 @@ class SettingsMenu:
                     ("SFX Volume", f"{self.state.sfx_volume:.0%}", "slider"),
                 ]
             case SettingsTab.CONTROLS:
+                if self._keybind_manager:
+                    from pycc2.presentation.ui.keybind_manager import ACTION_LABELS
+                    bindings = self._keybind_manager.get_all_bindings()
+                    rows = []
+                    for action in ACTION_LABELS:
+                        label = ACTION_LABELS[action]
+                        key_code = bindings.get(action, 0)
+                        key_name = self._keybind_manager.key_name(key_code) if key_code else "???"
+                        if self._keybind_manager.is_listening and self._keybind_manager.listening_action == action:
+                            key_name = "Press any key..."
+                        rows.append((label, key_name, "keybind"))
+                    rows.append(("Reset to Default", "", "reset_keybinds"))
+                    return rows
                 return [
                     ("(Controls are hardcoded)", "See USER_MANUAL.md", "info"),
                     ("Move key", "WASD / Arrow keys", "info"),
@@ -216,6 +261,18 @@ class SettingsMenu:
                 self.state.particles = not self.state.particles
             elif name == "Damage Numbers":
                 self.state.damage_numbers = not self.state.damage_numbers
+        elif typ == "keybind":
+            # Start listening for a new key for this action
+            if self._keybind_manager:
+                from pycc2.presentation.ui.keybind_manager import ACTION_LABELS
+                # Find the action name from the label
+                for action, label in ACTION_LABELS.items():
+                    if label == name:
+                        self._keybind_manager.start_listening(action)
+                        break
+        elif typ == "reset_keybinds":
+            if self._keybind_manager:
+                self._keybind_manager.reset_to_default()
 
     def _toggle_option(self) -> None:
         self._toggle_option_at_index(self._selected_option_idx)

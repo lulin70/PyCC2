@@ -16,25 +16,25 @@ class TestMoraleComponentConstruction:
     def test_default_construction(self):
         mc = MoraleComponent(value=100)
         assert mc.value == 100
-        assert mc.state == MoraleState.NORMAL
+        assert mc.state == MoraleState.RALLIED
         assert mc.suppression == 0
 
-    def test_full_morale_is_normal(self):
+    def test_full_morale_is_rallied(self):
         mc = MoraleComponent(value=100)
-        assert mc.state == MoraleState.NORMAL
+        assert mc.state == MoraleState.RALLIED
         assert mc.is_combat_effective is True
 
-    def test_panic_threshold_boundary(self):
-        mc = MoraleComponent(value=29)
-        assert mc.state == MoraleState.PANICED
-        mc2 = MoraleComponent(value=30)
-        assert mc2.state == MoraleState.NORMAL
+    def test_pinned_threshold_boundary(self):
+        mc = MoraleComponent(value=21)
+        assert mc.state == MoraleState.PINNED
+        mc2 = MoraleComponent(value=41)
+        assert mc2.state == MoraleState.WAVERING
 
-    def test_rout_threshold_boundary(self):
-        mc = MoraleComponent(value=9)
-        assert mc.state == MoraleState.ROUTING
-        mc2 = MoraleComponent(value=10)
-        assert mc2.state == MoraleState.PANICED
+    def test_broken_threshold_boundary(self):
+        mc = MoraleComponent(value=20)
+        assert mc.state == MoraleState.BROKEN
+        mc2 = MoraleComponent(value=21)
+        assert mc2.state == MoraleState.PINNED
 
 
 class TestMoraleComponentApplyDelta:
@@ -42,13 +42,13 @@ class TestMoraleComponentApplyDelta:
         mc = MoraleComponent(value=50)
         mc.apply_delta(20)
         assert mc.value == 70
-        assert mc.state == MoraleState.NORMAL
+        assert mc.state == MoraleState.WAVERING
 
     def test_negative_delta(self):
         mc = MoraleComponent(value=80)
         mc.apply_delta(-30)
         assert mc.value == 50
-        assert mc.state == MoraleState.NORMAL
+        assert mc.state == MoraleState.WAVERING
 
     def test_clamp_upper_bound(self):
         mc = MoraleComponent(value=95)
@@ -59,7 +59,7 @@ class TestMoraleComponentApplyDelta:
         mc = MoraleComponent(value=10)
         mc.apply_delta(-20)
         assert mc.value == 0
-        assert mc.state == MoraleState.ROUTING
+        assert mc.state == MoraleState.BROKEN
 
     def test_zero_delta(self):
         mc = MoraleComponent(value=50)
@@ -70,13 +70,13 @@ class TestMoraleComponentApplyDelta:
         mc = MoraleComponent(value=40)
         mc.apply_delta(-15)
         assert mc.value == 25
-        assert mc.state == MoraleState.PANICED
+        assert mc.state == MoraleState.PINNED
 
-    def test_state_transition_to_rout(self):
-        mc = MoraleComponent(value=15)
+    def test_state_transition_to_broken(self):
+        mc = MoraleComponent(value=25)
         mc.apply_delta(-10)
-        assert mc.value == 5
-        assert mc.state == MoraleState.ROUTING
+        assert mc.value == 15
+        assert mc.state == MoraleState.BROKEN
 
 
 class TestMoraleComponentSuppression:
@@ -124,32 +124,36 @@ class TestMoraleComponentNaturalRecovery:
 
 
 class TestMoraleComponentAccuracyModifier:
-    def test_normal_accuracy(self):
+    def test_rallied_accuracy(self):
         mc = MoraleComponent(value=80)
-        assert mc.accuracy_modifier == 1.0
+        assert mc.accuracy_modifier == 1.05
 
-    def test_suppressed_accuracy(self):
+    def test_wavering_accuracy(self):
         mc = MoraleComponent(value=50)
-        mc.add_suppression(50)
-        assert mc.accuracy_modifier == 0.7
+        assert mc.accuracy_modifier == 0.95
 
-    def test_paniced_accuracy(self):
-        mc = MoraleComponent(value=20)
-        assert mc.accuracy_modifier == 0.4
+    def test_pinned_accuracy(self):
+        mc = MoraleComponent(value=25)
+        assert mc.accuracy_modifier == 0.60
+
+    def test_broken_accuracy(self):
+        mc = MoraleComponent(value=10)
+        assert mc.accuracy_modifier == 0.30
 
     def test_routing_accuracy(self):
         mc = MoraleComponent(value=5)
-        assert mc.accuracy_modifier == 0.1
+        mc.start_routing()
+        assert mc.accuracy_modifier == 0.10
 
 
 class TestMoraleComponentThresholds:
-    def test_custom_panic_threshold(self):
-        mc = MoraleComponent(value=25, panic_threshold=20)
-        assert mc.state == MoraleState.NORMAL
+    def test_wavering_at_boundary(self):
+        mc = MoraleComponent(value=41)
+        assert mc.state == MoraleState.WAVERING
 
-    def test_custom_rout_threshold(self):
-        mc = MoraleComponent(value=8, rout_threshold=5)
-        assert mc.state == MoraleState.PANICED
+    def test_broken_at_low_value(self):
+        mc = MoraleComponent(value=10)
+        assert mc.state == MoraleState.BROKEN
 
 
 class TestMoraleValueType:

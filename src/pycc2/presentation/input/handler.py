@@ -53,6 +53,21 @@ class PygameInputHandler:
             elif event.button == 5:
                 self.camera.adjust_zoom(0.8, anchor=event.pos)
                 return None
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:
+                return InputEvent(
+                    event_type="mouse_up_left",
+                    position=(float(event.pos[0]), float(event.pos[1])),
+                    button=event.button,
+                    modifiers=self._get_modifiers(),
+                )
+            elif event.button == 3:
+                return InputEvent(
+                    event_type="mouse_up_right",
+                    position=(float(event.pos[0]), float(event.pos[1])),
+                    button=event.button,
+                    modifiers=self._get_modifiers(),
+                )
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_F11:
                 self.window_manager.toggle_fullscreen()
@@ -69,6 +84,12 @@ class PygameInputHandler:
                     key=event.key,
                     modifiers=self._get_modifiers(),
                 )
+        elif event.type == pygame.KEYUP:
+            return InputEvent(
+                event_type="key_up",
+                key=event.key,
+                modifiers=self._get_modifiers(),
+            )
         elif event.type == pygame.QUIT:
             return InputEvent(event_type="quit")
         elif event.type == pygame.VIDEORESIZE:

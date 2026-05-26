@@ -51,7 +51,16 @@ class InputRouter:
                         self.game_state.running = False
                 return True
             if self.interaction_controller:
-                self.interaction_controller.handle_shortcut_key(input_event.key)
+                # CC2-style: Track Ctrl key press for LOS overlay
+                if input_event.key in (pygame.K_LCTRL, pygame.K_RCTRL):
+                    self.interaction_controller.set_ctrl_held(True)
+                else:
+                    self.interaction_controller.handle_shortcut_key(input_event.key)
+
+        elif input_event.event_type == "key_up":
+            # CC2-style: Track Ctrl key release for LOS overlay
+            if self.interaction_controller and input_event.key in (pygame.K_LCTRL, pygame.K_RCTRL):
+                self.interaction_controller.set_ctrl_held(False)
 
         if self.command_bar and input_event.event_type == "mouse_click_left":
             cmd_id = self.command_bar.handle_click(input_event.position)
@@ -87,7 +96,20 @@ class InputRouter:
                 logger.debug(f"[BATTLE RIGHT-CLICK] Right click at {input_event.position}, units count: {len(units)}")
 
                 if units:
-                    self.interaction_controller.handle_right_click(input_event.position, units)
+                    # CC2-style: Right-click DOWN on selected unit shows radial menu
+                    self.interaction_controller.handle_right_mouse_down(input_event.position, units)
+
+            elif input_event.event_type == "mouse_up_right":
+                # CC2-style: Right-click UP → execute command from radial menu
+                units = getattr(self.game_state, 'units', [])
+                shift_held = input_event.modifiers[1] if hasattr(input_event, 'modifiers') else False
+                if units:
+                    self.interaction_controller.handle_right_mouse_up(input_event.position, units)
+                    # If not dragging (simple right-click), also handle as right-click command
+                    if not self.interaction_controller._is_right_dragging:
+                        self.interaction_controller.handle_right_click(
+                            input_event.position, units, shift_held=shift_held
+                        )
 
             elif input_event.event_type == "mouse_move":
                 # Handle attack line preview (CC2-style)
@@ -98,6 +120,8 @@ class InputRouter:
                             input_event.position,
                             units,
                         )
+                    # CC2-style: Update radial menu hover during drag
+                    self.interaction_controller.handle_drag_motion(input_event.position)
 
         if input_event.event_type in ("mouse_move", "mouse_click_left", "mouse_click_right"):
             dx, dy = self.input_handler.get_camera_movement()

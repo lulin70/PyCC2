@@ -293,7 +293,7 @@ class NCORallyBehavior:
                 continue
             if unit.faction != nco.faction:
                 continue
-            if unit.morale.state not in (MoraleState.PANICED, MoraleState.ROUTING):
+            if unit.morale.state not in (MoraleState.BROKEN, MoraleState.ROUTING):
                 continue
             dist = nco_pos.chebyshev_distance(unit.position.tile_coord)
             if dist <= sense_range:
@@ -307,11 +307,11 @@ class NCORallyBehavior:
         target_pos = target.position.tile_coord
         if nco_pos.chebyshev_distance(target_pos) > RALLY_RANGE:
             return False
-        if target.morale.state not in (MoraleState.PANICED, MoraleState.ROUTING):
+        if target.morale.state not in (MoraleState.BROKEN, MoraleState.ROUTING):
             return False
 
         target.morale.value = RALLY_RESTORE_MORALE
-        target.morale.state = MoraleState.SUPPRESSED
+        target.morale.state = MoraleState.WAVERING
         target.morale.suppression = 1
 
         self._rally_cooldowns[nco.id] = RallyRecord(

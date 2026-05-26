@@ -82,6 +82,11 @@ def camera():
 
 @pytest.fixture
 def sprite_renderer():
+    import pygame
+    if not pygame.get_init():
+        pygame.init()
+    if not pygame.font.get_init():
+        pygame.font.init()
     return SpriteRenderer()
 
 

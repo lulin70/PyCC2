@@ -140,6 +140,7 @@ class EnhancedTile:
     # === CORE TERRAIN DATA ===
     base_terrain: int              # Legacy terrain type (0-11) for compatibility
     height: int = 0                # Elevation level (-3 to +3, relative to map baseline)
+    building_floors: int = 1       # Number of floors in building (affects LOS bonus)
     
     # === VISUAL VARIATION ===
     variation: int = 0             # Appearance variant (0-7) for same terrain type
@@ -284,6 +285,7 @@ class EnhancedTile:
         return {
             'base_terrain': self.base_terrain,
             'height': self.height,
+            'building_floors': self.building_floors,
             'variation': self.variation,
             'decorations': [
                 {
@@ -304,6 +306,7 @@ class EnhancedTile:
         tile = cls(
             base_terrain=data['base_terrain'],
             height=data.get('height', 0),
+            building_floors=data.get('building_floors', 1),
             variation=data.get('variation', 0),
         )
         

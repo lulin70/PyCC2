@@ -126,7 +126,7 @@ class TestFixYourTimestep:
         with patch("pycc2.services.game_loop.time.perf_counter") as mock_time:
             mock_time.side_effect = [0.0, 2.0]
             with patch.object(game_loop, "_update_logic") as mock_update:
-                with patch.object(game_loop, "_render_hud"):
+                with patch.object(game_loop._hud_manager, "render"):
                     with patch("pygame.display.flip"):
                         with patch("pygame.event.get", return_value=[]):
                             game_loop.state.running = True
@@ -142,7 +142,7 @@ class TestFixYourTimestep:
 class TestPauseResume:
     def test_paused_does_not_call_update_logic(self, game_loop):
         game_loop.state.paused = True
-        with patch.object(game_loop, "_render_hud"):
+        with patch.object(game_loop._hud_manager, "render"):
             game_loop._update_logic(LOGIC_DT)
         for unit in game_loop.state.units:
             if unit.weapon.state.name == "RELOADING":
@@ -252,7 +252,7 @@ class TestAIThrottle:
     def _run_logic_n(self, game_loop, n, mock_ai):
         with patch.object(game_loop._combat_director, "update"):
             with patch.object(game_loop._combat_director, "process_effects"):
-                game_loop._victory_evaluator = None
+                game_loop._victory_manager._victory_evaluator = None
                 for _ in range(n):
                     game_loop._update_logic(LOGIC_DT)
 
@@ -296,7 +296,7 @@ class TestAIThrottle:
         game_loop.ai_service = mock_ai
         with patch.object(game_loop._combat_director, "update") as mock_combat:
             with patch.object(game_loop._combat_director, "process_effects"):
-                game_loop._victory_evaluator = None
+                game_loop._victory_manager._victory_evaluator = None
                 for _ in range(5):
                     game_loop._update_logic(LOGIC_DT)
         assert mock_combat.call_count == 5
@@ -308,7 +308,7 @@ class TestAIThrottle:
         game_loop.ai_service = mock_ai
         with patch.object(game_loop._combat_director, "update"):
             with patch.object(game_loop._combat_director, "process_effects"):
-                game_loop._victory_evaluator = None
+                game_loop._victory_manager._victory_evaluator = None
                 game_loop._update_logic(LOGIC_DT)
                 assert game_loop._ai_tick_counter == 1
                 game_loop._update_logic(LOGIC_DT)

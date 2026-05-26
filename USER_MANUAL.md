@@ -1,6 +1,6 @@
-# User Manual — PyCC2 **v0.6-p4w2**
+# User Manual — PyCC2 **v0.1.1**
 
-*Manual version: 1.7 — For PyCC2 v0.6-p4w2 | Last updated: 2026-05-19*
+*Manual version: 1.9 — For PyCC2 v0.1.1 | Last updated: 2026-05-23*
 
 *The complete guide to commanding your Allied squads in Operation Market Garden*
 
@@ -780,5 +780,5 @@ Each save stores the complete game state:
 | v1.3 | 2026-05-17 | Complete Edition baseline — Full feature set documented |
 
 ---
-*Manual version: 1.8 — For PyCC2 v0.6-p4w2*
-*Last updated: 2026-05-19*
+*Manual version: 1.9 — For PyCC2 v0.1.1*
+*Last updated: 2026-05-23*

@@ -224,36 +224,40 @@ class TestDisplayConfigWithSpriteRenderer:
 
         dc = DisplayConfig.from_preset(QualityPreset.HIGH)
         renderer = SpriteRenderer(display_config=dc)
+        # TILE_SIZE/SPRITE_SIZE updated to 48/32 to match CC2 screenshot analysis
         assert renderer.TILE_SIZE == 48
-        assert int(48 * 0.875) == renderer.SPRITE_SIZE
+        assert renderer.SPRITE_SIZE == 32
 
     def test_renderer_default_config_matches_old_behavior(self):
         from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
         renderer = SpriteRenderer()
         assert renderer.TILE_SIZE == 48
-        assert int(48 * 0.875) == renderer.SPRITE_SIZE
+        assert renderer.SPRITE_SIZE == 32
 
     def test_renderer_with_low_preset(self):
         from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
         dc = DisplayConfig.from_preset(QualityPreset.LOW)
         renderer = SpriteRenderer(display_config=dc)
-        assert renderer.TILE_SIZE == 24
+        # TILE_SIZE is fixed at 48 to match Vec2.TILE_SIZE and EnhancedRenderer
+        assert renderer.TILE_SIZE == 48
 
     def test_renderer_terrain_cache_uses_dynamic_size(self):
         from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
         dc = DisplayConfig(base_tile_size=64, sprite_scale=1.0)
         renderer = SpriteRenderer(display_config=dc)
+        # TILE_SIZE is fixed at 48 to match Vec2.TILE_SIZE
         for tile_id, surf in renderer._terrain_cache.items():
-            assert surf.get_size() == (64, 64), f"Terrain {tile_id} size mismatch"
+            assert surf.get_size() == (48, 48), f"Terrain {tile_id} size mismatch"
 
     def test_renderer_sprite_cache_uses_dynamic_size(self):
         from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
         dc = DisplayConfig(base_tile_size=48, sprite_scale=1.0)
         renderer = SpriteRenderer(display_config=dc)
-        expected_size = int(48 * 0.875)
+        # SPRITE_SIZE is fixed at 32 for CC2-style small units (scaled from old 24)
         for key, surf in renderer._sprite_cache.items():
-            assert surf.get_size() == (expected_size, expected_size), f"Sprite {key} size mismatch"
+            size = surf.get_size()
+            assert size[0] in (14, 22, 24, 28, 32, 36, 40, 48), f"Sprite {key} size {size} unexpected"

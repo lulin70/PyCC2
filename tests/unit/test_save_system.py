@@ -156,7 +156,7 @@ class TestSecureSaveManager:
         manager.save_game(0, sample_state_dict)
         _, meta, _ = manager.load_game(0)
         assert meta is not None
-        assert meta.version == "0.4"
+        assert meta.version == "0.1.1"
         assert meta.saved_at != ""
         assert "T" in meta.saved_at or "t" in meta.saved_at.lower() or len(meta.saved_at) > 10
 
@@ -224,7 +224,7 @@ class TestSecureSaveManager:
 class TestSaveMetaData:
     def test_default_values(self):
         meta = SaveMetaData()
-        assert meta.version == "0.4"
+        assert meta.version == "0.1.1"
         assert meta.saved_at == ""
         assert meta.tick == 0
         assert meta.mission_id == ""
@@ -236,7 +236,7 @@ class TestSaveMetaData:
 
     def test_all_fields_serializable(self):
         meta = SaveMetaData(
-            version="0.4",
+            version="0.1.1",
             saved_at="2025-01-15T12:00:00+00:00",
             tick=9999,
             mission_id="mission_x",
@@ -297,10 +297,11 @@ class TestExportState:
 
         loop = MagicMock()
         loop.state = state
-        loop._battle_stats = MagicMock()
-        loop._battle_stats.allies_kills = 3
-        loop._battle_stats.axis_kills = 1
-        loop._battle_stats.ticks_elapsed = 5678
+        loop._victory_manager = MagicMock()
+        loop._victory_manager.battle_stats = MagicMock()
+        loop._victory_manager.battle_stats.allies_kills = 3
+        loop._victory_manager.battle_stats.axis_kills = 1
+        loop._victory_manager.battle_stats.ticks_elapsed = 5678
         return loop
 
     def test_export_produces_valid_dict(self, manager, mock_game_loop):
@@ -329,6 +330,6 @@ class TestExportState:
         assert exported["tick"] == 5678
 
     def test_export_handles_no_battle_stats(self, manager, mock_game_loop):
-        delattr(mock_game_loop, "_battle_stats")
+        mock_game_loop._victory_manager = None
         exported = manager.export_state_from_game_loop(mock_game_loop)
         assert exported["battle_stats"] == {}

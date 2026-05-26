@@ -32,11 +32,11 @@ class TestVec2Construction:
 
     def test_from_tile_factory(self):
         v = Vec2.from_tile(2, 3)
-        assert v.x == 64.0
-        assert v.y == 96.0
+        assert v.x == 96.0   # 2 * 48 (CC2 tile size)
+        assert v.y == 144.0  # 3 * 48
 
     def test_tile_size_constant(self):
-        assert Vec2.TILE_SIZE == 32.0
+        assert Vec2.TILE_SIZE == 48.0  # CC2 authentic: 48×48 pixel tiles
 
 
 class TestVec2Operators:
@@ -158,7 +158,7 @@ class TestVec2Methods:
         assert a.angle_to(b) == pytest.approx(math.pi / 2)
 
     def test_to_tile_coord(self):
-        v = Vec2(64.0, 96.0)
+        v = Vec2(96.0, 144.0)  # 2*48, 3*48 (CC2 tile size)
         tile = v.to_tile_coord()
         assert tile == (2, 3)
 

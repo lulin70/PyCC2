@@ -15,7 +15,7 @@ class Vec2:
     x: float = 0.0
     y: float = 0.0
 
-    TILE_SIZE: ClassVar[float] = 32.0
+    TILE_SIZE: ClassVar[float] = 48.0  # CC2 authentic: 48×48 pixel tiles
 
     @classmethod
     def zero(cls) -> Vec2:

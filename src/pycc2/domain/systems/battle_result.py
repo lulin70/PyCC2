@@ -164,3 +164,75 @@ class BattleResult:
             victory_points=data.get("victory_points", 0),
             unit_records=records,
         )
+
+
+class BattleEventTracker:
+    """Tracks key events during battle for narrative post-battle reports.
+
+    Records first kills, morale breaks, VL captures, last stands,
+    and heroic actions to generate a compelling narrative.
+    """
+
+    def __init__(self) -> None:
+        self._key_events: list[str] = []
+        self._allied_kia: list[str] = []
+        self._heroic_actions: list[str] = []
+        self._first_kill_recorded: bool = False
+        self._first_morale_break_recorded: bool = False
+
+    def record_first_kill(self, killer_name: str, victim_name: str, tick: int) -> None:
+        """Record the first kill of the battle."""
+        if not self._first_kill_recorded:
+            self._first_kill_recorded = True
+            time_sec = tick / 60
+            self._key_events.append(
+                f"[{time_sec:.0f}s] First blood: {killer_name} killed {victim_name}"
+            )
+
+    def record_kill(self, killer_name: str, victim_name: str, tick: int) -> None:
+        """Record any kill during battle."""
+        self.record_first_kill(killer_name, victim_name, tick)
+
+    def record_morale_break(self, unit_name: str, new_state: str, tick: int) -> None:
+        """Record a morale collapse event."""
+        time_sec = tick / 60
+        if not self._first_morale_break_recorded and new_state in ("broken", "routing"):
+            self._first_morale_break_recorded = True
+            self._key_events.append(
+                f"[{time_sec:.0f}s] {unit_name}'s morale collapsed — {new_state.upper()}!"
+            )
+        elif new_state == "routing":
+            self._key_events.append(
+                f"[{time_sec:.0f}s] {unit_name} is routing!"
+            )
+
+    def record_vl_capture(self, unit_name: str, vl_name: str, tick: int) -> None:
+        """Record a victory location capture."""
+        time_sec = tick / 60
+        self._key_events.append(
+            f"[{time_sec:.0f}s] {unit_name} captured {vl_name}"
+        )
+
+    def record_allied_kia(self, soldier_name: str) -> None:
+        """Record an allied soldier killed in action."""
+        self._allied_kia.append(soldier_name)
+
+    def record_heroic_action(self, description: str) -> None:
+        """Record a heroic/commendable action."""
+        self._heroic_actions.append(description)
+
+    def record_last_stand(self, unit_name: str, tick: int) -> None:
+        """Record a last stand event."""
+        time_sec = tick / 60
+        self._key_events.append(
+            f"[{time_sec:.0f}s] {unit_name} made a last stand!"
+        )
+        self._heroic_actions.append(f"{unit_name} held the line to the last man")
+
+    def get_narrative_data(self) -> dict:
+        """Return collected narrative data for the post-battle report."""
+        return {
+            "key_events": self._key_events,
+            "allied_kia": self._allied_kia,
+            "heroic_actions": self._heroic_actions,
+        }

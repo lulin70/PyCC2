@@ -6,7 +6,9 @@ This service does NOT contain business rules - it delegates to domain layer.
 """
 
 import logging
+import math
 from dataclasses import dataclass
+from enum import Enum, auto
 
 from pycc2.domain.combat.combat_result import CombatResult, ShotResult
 from pycc2.domain.entities.unit import Unit
@@ -15,10 +17,19 @@ from pycc2.domain.systems.combat_resolver import CombatResolver
 from pycc2.domain.systems.morale_sys import MoraleCalculator
 from pycc2.services.event_bus import EventBus
 from pycc2.services.event_protocol import (
-    ShotFiredEvent,
-    UnitDamagedEvent,
-    UnitEliminatedEvent,
+    WeaponFired,
+    UnitAttacked,
+    UnitKilled,
 )
+
+
+class AttackAngle(Enum):
+    """Attack angle relative to target's facing direction."""
+    FRONT = auto()      # 0° ±45°: Full armor
+    FLANK_LEFT = auto() # 45-135°: Side armor
+    FLANK_RIGHT = auto()
+    REAR = auto()       # 135-225°: Rear armor (weakest)
+    FRONT_FLANK = auto()  # Transition zones
 
 
 @dataclass
@@ -67,15 +78,33 @@ class CombatService:
         """
         self._logger.info(f"Attack: {attacker.name} -> {target.name} [{weapon_slot}]")
 
+        angle = self.calculate_attack_angle(attacker, target)
+        damage_multiplier = self.get_angle_damage_multiplier(angle)
+
         shot_result = self.ballistic_engine.calculate_shot(attacker, target, weapon_slot)
+
+        if shot_result.hit and damage_multiplier != 1.0:
+            adjusted_damage = shot_result.damage_dealt * damage_multiplier
+            shot_result = ShotResult(
+                hit=True,
+                damage_dealt=adjusted_damage,
+                is_critical=shot_result.is_critical,
+                attacker_id=shot_result.attacker_id,
+                target_id=shot_result.target_id,
+            )
+            self._logger.info(
+                f"Angle bonus applied: {angle.name} -> {damage_multiplier:.1f}x damage"
+            )
+
         self.event_bus.publish(
-            ShotFiredEvent(
-                shooter_id=attacker.unit_id,
+            "weapon_fired",
+            WeaponFired(
+                unit_id=attacker.unit_id,
+                weapon_id=weapon_slot,
                 target_id=target.unit_id,
                 hit=shot_result.hit,
-                damage=shot_result.damage_dealt if shot_result.hit else 0,
-                position=(target.position_component.x, target.position_component.y),
-            )
+                ammo_remaining=getattr(attacker, 'ammo', 0),
+            ),
         )
 
         if not shot_result.hit:
@@ -90,12 +119,13 @@ class CombatService:
 
         damage_result = self.combat_resolver.apply_damage(target, shot_result.damage_dealt)
         self.event_bus.publish(
-            UnitDamagedEvent(
-                unit_id=target.unit_id,
+            "unit_attacked",
+            UnitAttacked(
+                attacker_id=attacker.unit_id,
+                target_id=target.unit_id,
+                is_hit=True,
                 damage=damage_result.damage_applied,
-                remaining_hp=target.health_component.current_hp,
-                source_unit_id=attacker.unit_id,
-            )
+            ),
         )
 
         morale_impact = self.morale_calculator.calculate_combat_morale_change(
@@ -103,15 +133,20 @@ class CombatService:
             damage_taken=damage_result.damage_applied,
             ally_nearby=False,
         )
+        if angle == AttackAngle.REAR:
+            morale_impact *= 1.5
+            self._logger.info("Rear attack morale penalty increased")
         target.morale_component.apply_change(morale_impact)
 
         if not target.is_alive:
             self.event_bus.publish(
-                UnitEliminatedEvent(
+                "unit_killed",
+                UnitKilled(
                     unit_id=target.unit_id,
-                    faction=target.faction,
+                    killer_id=attacker.unit_id,
                     position=(target.position_component.x, target.position_component.y),
-                )
+                    faction=target.faction.name if hasattr(target.faction, 'name') else str(target.faction),
+                ),
             )
             self._logger.warning(f"Unit eliminated: {target.name}")
 
@@ -122,6 +157,7 @@ class CombatService:
             target_eliminated=not target.is_alive,
             shot_results=[shot_result],
             morale_change=morale_impact,
+            attack_angle=angle,
         )
 
     def execute_suppression_fire(
@@ -201,3 +237,68 @@ class CombatService:
         dx = unit_a.position_component.x - unit_b.position_component.x
         dy = unit_a.position_component.y - unit_b.position_component.y
         return (dx**2 + dy**2) ** 0.5
+
+    def calculate_attack_angle(self, attacker: Unit, target: Unit) -> AttackAngle:
+        """
+        Calculate attack angle relative to target's facing direction.
+
+        Uses positional difference to determine if attack is from
+        front, flank (left/right), or rear.
+
+        Args:
+            attacker: The attacking unit
+            target: The target unit
+
+        Returns:
+            AttackAngle enum value
+        """
+        dx = attacker.position_component.x - target.position_component.x
+        dy = attacker.position_component.y - target.position_component.y
+
+        attack_bearing = math.degrees(math.atan2(dy, dx))
+        relative_angle = (attack_bearing - target.facing + 360) % 360
+
+        if relative_angle <= 45 or relative_angle >= 315:
+            return AttackAngle.FRONT
+        elif 45 < relative_angle <= 135:
+            return AttackAngle.FLANK_LEFT
+        elif 135 < relative_angle <= 225:
+            return AttackAngle.REAR
+        else:
+            return AttackAngle.FLANK_RIGHT
+
+    def get_angle_damage_multiplier(self, angle: AttackAngle) -> float:
+        """
+        Get damage multiplier based on attack angle.
+
+        CC2-style armor penetration model:
+        - Front: 1.0x (full frontal armor)
+        - Flank: 1.5x (side armor is thinner)
+        - Rear: 2.0x (rear armor is weakest)
+
+        Args:
+            angle: AttackAngle from calculate_attack_angle()
+
+        Returns:
+            Damage multiplier (1.0 to 2.0)
+        """
+        multipliers = {
+            AttackAngle.FRONT: 1.0,
+            AttackAngle.FLANK_LEFT: 1.5,
+            AttackAngle.FLANK_RIGHT: 1.5,
+            AttackAngle.REAR: 2.0,
+            AttackAngle.FRONT_FLANK: 1.25,
+        }
+        return multipliers.get(angle, 1.0)
+
+    def get_angle_description(self, angle: AttackAngle) -> str:
+        """Get human-readable description of attack angle."""
+        descriptions = {
+            AttackAngle.FRONT: "Frontal",
+            AttackAngle.FLANK_LEFT: "Left Flank",
+            AttackAngle.FLANK_RIGHT: "Right Flank",
+            AttackAngle.REAR: "Rear",
+            AttackAngle.FRONT_FLANK: "Front-Frontal",
+        }
+        return descriptions.get(angle, "Unknown")
+

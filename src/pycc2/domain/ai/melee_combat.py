@@ -1,18 +1,29 @@
 """
-Melee Combat — CC2-Authentic Close-Quarters Desperation Behavior
+Melee Combat & Grenade System — CC2-Authentic Close-Quarters Combat
 
 When ammunition is depleted or units are ordered to charge, infantry
 engage in desperate close-quarters combat. This mirrors the brutal
 reality of WWII combat where bayonet charges and hand-to-hand fighting
 were rare but devastating last resorts.
 
+Enhanced with B5 Grenade System:
+- Grenade throwing for AOE damage at 2-3 tile range
+- Suppresses multiple targets in blast radius
+- Limited ammo (2 grenades per unit)
+
 Components:
   1. MeleeCombatSystem  — Manages melee attack resolution
-  2. MeleeCombatAI      — Evaluates when to initiate melee and issues orders
+  2. GrenadeSystem      — Manages grenade AOE attacks (NEW B5)
+  3. MeleeCombatAI      — Evaluates when to initiate melee/grenade and issues orders
 
 Melee triggers:
   - Unit is within 1 tile of enemy AND
   - (ammo_ratio < 0.05 OR ordered to charge)
+
+Grenade triggers (B5):
+  - Enemy within 2-3 tiles AND
+  - unit has grenades remaining AND
+  - multiple enemies in AOE radius (efficient use)
 
 Melee attack properties:
   - Base damage: 15 (bayonet), 10 (butt stroke), 8 (knife/fists)
@@ -24,10 +35,13 @@ Melee attack properties:
   - Both attacker and defender take damage (melee is risky)
   - Defender gets counter-attack at 50% damage
 
-MeleeCombatAI priority:
-  - Very low priority (last resort)
-  - Only when no other option
-  - Higher for units with bayonets (rifles) vs SMG (no bayonet)
+Grenade properties (B5):
+  - Throw range: 2-3 tiles
+  - AOE radius: 1.5 tiles (affects adjacent tiles)
+  - Center damage: 40 HP
+  - Edge damage: 20 HP (50% of center)
+  - Suppression: +30 to all units in radius
+  - Max grenades: 2 per unit
 """
 
 from __future__ import annotations
@@ -47,6 +61,227 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# GrenadeSystem (B5 - NEW)
+# ---------------------------------------------------------------------------
+
+class GrenadeSystem:
+    """
+    Manages grenade AOE attacks for infantry units.
+
+    CC2-Authentic Behavior:
+    - Grenades are thrown at 2-3 tile range
+    - Explosion affects all units in AOE radius
+    - Center targets take full damage, edge targets take 50%
+    - All affected units receive suppression
+    - Limited to 2 grenades per unit (resupply may replenish)
+    - Higher priority when multiple enemies clumped together
+
+    Usage:
+        system = GrenadeSystem()
+        if system.can_throw_grenade(unit, target_coord):
+            result = system.throw_grenade(unit, target_coord, all_units)
+            # Apply damage and suppression from result
+    """
+
+    @staticmethod
+    def get_grenade_count(unit: Unit) -> int:
+        """Get remaining grenade count for a unit."""
+        val = getattr(unit, '_grenade_count', None)
+        if val is None:
+            return GRENADE_MAX_COUNT
+        try:
+            return int(val)
+        except (TypeError, ValueError):
+            return GRENADE_MAX_COUNT
+
+    @staticmethod
+    def set_grenade_count(unit: Unit, count: int) -> None:
+        """Set grenade count (for resupply or initialization)."""
+        unit._grenade_count = max(0, min(GRENADE_MAX_COUNT, count))
+
+    @staticmethod
+    def can_throw_grenade(
+        unit: Unit,
+        target_coord: "TileCoord",
+        game_map: "GameMap" = None,
+    ) -> bool:
+        """Check if unit can throw a grenade to target location."""
+        if not unit.is_alive or not getattr(unit, 'can_act', True):
+            return False
+
+        if unit.unit_type not in _INFANTRY_TYPES:
+            return False
+
+        if GrenadeSystem.get_grenade_count(unit) <= 0:
+            return False
+
+        # Check range
+        import math
+        from pycc2.domain.value_objects.tile_coord import TileCoord as _TC
+        start_pos = _TC(
+            int(unit.position_component.x),
+            int(unit.position_component.y),
+        )
+        dx = abs(start_pos.x - target_coord.x)
+        dy = abs(start_pos.y - target_coord.y)
+        dist = math.sqrt(dx * dx + dy * dy)  # Euclidean distance
+
+        if dist < GRENADE_MIN_RANGE or dist > GRENADE_MAX_RANGE:
+            return False
+
+        # Optional: check LOS (grenades can arc over some obstacles)
+        if game_map is not None:
+            from pycc2.domain.value_objects.tile_coord import TileCoord
+            start = TileCoord(
+                int(unit.position_component.x),
+                int(unit.position_component.y),
+            )
+            # Basic LOS check (can be enhanced later)
+            # For now, allow throwing without perfect LOS
+
+        return True
+
+    @staticmethod
+    def throw_grenade(
+        unit: Unit,
+        target_coord: "TileCoord",
+        nearby_units: list[Unit],
+    ) -> GrenadeResult:
+        """
+        Throw a grenade at target coordinate.
+
+        Applies AOE damage to all units within blast radius.
+        Center of explosion (target_coord) takes full damage.
+        Units at edge take 50% damage.
+
+        Args:
+            unit: The throwing unit
+            target_coord: Where the grenade lands
+            nearby_units: All units near the explosion (friend + foe)
+
+        Returns:
+            GrenadeResult with damage details for each target
+        """
+        import random
+        import math
+        from pycc2.domain.value_objects.tile_coord import TileCoord
+
+        thrower_id = unit.id
+
+        # Consume grenade
+        current = GrenadeSystem.get_grenade_count(unit)
+        GrenadeSystem.set_grenade_count(unit, current - 1)
+
+        targets_hit: list[GrenadeTargetResult] = []
+        total_damage = 0
+        total_suppression = 0.0
+        kills = 0
+
+        for target in nearby_units:
+            if not target.is_alive or target.id == thrower_id:
+                continue
+
+            # Calculate distance from explosion center
+            target_pos = TileCoord(
+                int(target.position_component.x),
+                int(target.position_component.y),
+            )
+            distance = math.sqrt(
+                (target_pos.x - target_coord.x) ** 2 +
+                (target_pos.y - target_coord.y) ** 2
+            )
+
+            if distance > GRENADE_AOE_RADIUS:
+                continue
+
+            # Determine if center hit (within 0.5 tiles of center)
+            is_center_hit = distance <= 0.5
+
+            # Roll for hit (grenades are area effect, high hit chance)
+            hit = random.random() < GRENADE_HIT_CHANCE
+
+            damage = 0
+            suppression = 0.0
+            killed = False
+
+            if hit:
+                if is_center_hit:
+                    damage = GRENADE_CENTER_DAMAGE
+                else:
+                    damage = GRENADE_EDGE_DAMAGE
+
+                suppression = GRENADE_SUPPRESSION
+
+                # Apply damage
+                target.take_damage(damage)
+                killed = not target.is_alive
+
+                # Apply suppression
+                if hasattr(target, 'suppression_state'):
+                    target.suppression_state.apply_suppression(suppression)
+
+                total_damage += damage
+                total_suppression += suppression
+                if killed:
+                    kills += 1
+
+            target_result = GrenadeTargetResult(
+                target_id=target.id,
+                is_center_hit=is_center_hit,
+                hit=hit,
+                damage=damage,
+                suppression_applied=suppression,
+                killed=killed,
+            )
+            targets_hit.append(target_result)
+
+        result = GrenadeResult(
+            thrower_id=thrower_id,
+            target_coord=target_coord,
+            grenades_remaining=GrenadeSystem.get_grenade_count(unit),
+            targets_hit=targets_hit,
+            total_damage=total_damage,
+            total_suppression=total_suppression,
+            kills=kills,
+        )
+
+        logger.info(
+            f"Grenade: {thrower_id} threw grenade at "
+            f"({target_coord.x}, {target_coord.y}): "
+            f"{len(targets_hit)} targets hit, "
+            f"{total_damage} total dmg, {kills} kills"
+        )
+
+        return result
+
+    @staticmethod
+    def get_units_in_radius(
+        center: "TileCoord",
+        radius: float,
+        units: list[Unit],
+    ) -> list[Unit]:
+        """Get all units within given radius of center point."""
+        import math
+        from pycc2.domain.value_objects.tile_coord import TileCoord
+
+        result = []
+        for unit in units:
+            if not unit.is_alive:
+                continue
+            pos = TileCoord(
+                int(unit.position_component.x),
+                int(unit.position_component.y),
+            )
+            dist = math.sqrt(
+                (pos.x - center.x) ** 2 + (pos.y - center.y) ** 2
+            )
+            if dist <= radius:
+                result.append(unit)
+
+        return result
 
 
 # ---------------------------------------------------------------------------
@@ -83,6 +318,16 @@ COUNTER_ATTACK_RATIO: float = 0.5  # Defender counter-attacks at 50% damage
 AMMO_THRESHOLD: float = 0.05     # Below 5% ammo = melee possible
 MELEE_RANGE: int = 1             # Must be within 1 tile
 
+# --- B5 Grenade Constants (NEW) ---
+GRENADE_MAX_COUNT: int = 2       # Max grenades per unit
+GRENADE_MIN_RANGE: int = 2       # Min throw distance
+GRENADE_MAX_RANGE: int = 3       # Max throw distance
+GRENADE_AOE_RADIUS: float = 1.5  # AOE blast radius (tiles)
+GRENADE_CENTER_DAMAGE: int = 40   # Damage at explosion center
+GRENADE_EDGE_DAMAGE: int = 20    # Damage at edge of blast (50%)
+GRENADE_SUPPRESSION: float = 30.0  # Suppression applied to all in radius
+GRENADE_HIT_CHANCE: float = 0.85  # High hit chance (area effect)
+
 
 # ---------------------------------------------------------------------------
 # MeleeWeaponType
@@ -111,6 +356,31 @@ class MeleeResult:
     counter_damage: int
     attacker_killed: bool = False
     defender_killed: bool = False
+
+
+# --- B5 Grenade Data Classes (NEW) ---
+
+@dataclass(slots=True)
+class GrenadeTargetResult:
+    """Result of grenade damage on a single target."""
+    target_id: str
+    is_center_hit: bool      # True if at explosion center
+    hit: bool
+    damage: int
+    suppression_applied: float
+    killed: bool = False
+
+
+@dataclass(slots=True)
+class GrenadeResult:
+    """Result of a grenade throw with AOE effects."""
+    thrower_id: str
+    target_coord: "TileCoord"  # Where grenade landed
+    grenades_remaining: int
+    targets_hit: list[GrenadeTargetResult]
+    total_damage: int = 0
+    total_suppression: float = 0.0
+    kills: int = 0
 
 
 # ---------------------------------------------------------------------------

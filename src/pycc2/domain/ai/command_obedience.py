@@ -47,10 +47,11 @@ logger = logging.getLogger(__name__)
 
 # Obedience probability and delay by morale state
 OBEDIENCE_TABLE: dict[MoraleState, tuple[float, tuple[int, int]]] = {
-    MoraleState.NORMAL:     (1.00, (0, 0)),    # 100% obey, no delay
-    MoraleState.SUPPRESSED: (0.80, (1, 3)),    # 80% obey, 1-3 tick delay
-    MoraleState.PANICED:    (0.30, (5, 10)),   # 30% obey, 5-10 tick delay
-    MoraleState.ROUTING:    (0.05, (5, 10)),   # 5% obey, 5-10 tick delay
+    MoraleState.RALLIED:   (1.00, (0, 0)),    # 100% obey, no delay
+    MoraleState.WAVERING:  (0.80, (1, 3)),    # 80% obey, 1-3 tick delay
+    MoraleState.PINNED:    (0.50, (3, 6)),    # 50% obey, 3-6 tick delay
+    MoraleState.BROKEN:    (0.30, (5, 10)),   # 30% obey, 5-10 tick delay
+    MoraleState.ROUTING:   (0.05, (5, 10)),   # 5% obey, 5-10 tick delay
 }
 
 # Orders that routing units will still accept

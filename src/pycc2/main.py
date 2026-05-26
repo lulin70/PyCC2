@@ -71,6 +71,13 @@ def main() -> int:
             logger.info("Player quit from menu")
             return 0
 
+        # ---- Validate menu action ----
+        if menu_action not in ('start_campaign', 'start_skirmish') and not (menu_action and menu_action.startswith('load_game:')):
+            logger.warning(f"Unknown menu action: {menu_action}, treating as start_campaign")
+            menu_action = 'start_campaign'  # Default to campaign mode
+
+        logger.info(f"Menu action: {menu_action}")
+
         # ---- Handle Load Game action ----
         if menu_action and menu_action.startswith('load_game:'):
             slot_str = menu_action.split(':')[1]
@@ -130,6 +137,22 @@ def main() -> int:
                 event_bus=event_bus,
             )
 
+            # Create UI systems (PS-10, PS-11)
+            from pycc2.presentation.rendering.display_config import DisplayConfig as DC
+            from pycc2.presentation.ui.hint_manager import HintManager
+            from pycc2.presentation.ui.keybind_manager import KeybindManager
+            from pycc2.presentation.ui.settings_menu import SettingsMenu
+            from pycc2.presentation.ui.tutorial_system import TutorialOverlay
+
+            display_config = DC()
+            hint_manager = HintManager()
+            keybind_manager = KeybindManager()
+            settings_menu = SettingsMenu(display_config, keybind_manager=keybind_manager)
+            tutorial_overlay = TutorialOverlay(display_config)
+
+            interaction_controller.set_hint_manager(hint_manager)
+            interaction_controller.set_keybind_manager(keybind_manager)
+
             game_loop = GameLoop(
                 renderer=renderer,
                 window_manager=wm,
@@ -137,6 +160,9 @@ def main() -> int:
                 state=state,
                 input_handler=input_handler,
                 interaction_controller=interaction_controller,
+                hint_manager=hint_manager,
+                settings_menu=settings_menu,
+                tutorial_overlay=tutorial_overlay,
             )
 
             # Restore saved state
@@ -170,12 +196,47 @@ def main() -> int:
                 return 1
 
         logger.info(f"Loading map: {map_path.stem}")
-        game_map = GameMap.from_json(map_path)
+        
+        try:
+            game_map = GameMap.from_json(map_path)
+        except Exception as e:
+            logger.error(f"Failed to load map {map_path}: {e}")
+            return 1
+        
+        # Validate spawn points - add defaults if missing
+        if not game_map.spawn_points:
+            logger.warning("Map has no spawn_points, adding defaults")
+            from pycc2.domain.entities.game_map import SpawnPoint
+            from pycc2.domain.value_objects.tile_coord import TileCoord
+            
+            # Add default friendly and enemy spawn points
+            game_map.spawn_points = [
+                SpawnPoint(
+                    id="friendly_default",
+                    side="friendly",
+                    position=TileCoord(5, game_map.height // 2),
+                    units_max=9,
+                ),
+                SpawnPoint(
+                    id="enemy_default",
+                    side="enemy",
+                    position=TileCoord(game_map.width - 5, game_map.height // 2),
+                    units_max=9,
+                ),
+            ]
+            logger.info(f"Added {len(game_map.spawn_points)} default spawn points")
 
         # ---- Get game settings from menu ----
-        game_settings = menu.get_settings()
-        player_side = game_settings.player_side
-        faction = "allied" if player_side == "allied" else "axis"
+        try:
+            game_settings = menu.get_settings()
+            player_side = game_settings.player_side
+            faction = "allied" if player_side == "allied" else "axis"
+            logger.info(f"Settings loaded: {player_side} side")
+        except Exception as e:
+            logger.error(f"Failed to get game settings: {e}")
+            import traceback
+            traceback.print_exc()
+            return 1
 
         # Create camera centered on map
         center_x = game_map.width * 16.0
@@ -214,6 +275,23 @@ def main() -> int:
             event_bus=event_bus,
         )
 
+        # Create UI systems (PS-10, PS-11)
+        from pycc2.presentation.rendering.display_config import DisplayConfig as DC
+        from pycc2.presentation.ui.hint_manager import HintManager
+        from pycc2.presentation.ui.keybind_manager import KeybindManager
+        from pycc2.presentation.ui.settings_menu import SettingsMenu
+        from pycc2.presentation.ui.tutorial_system import TutorialOverlay
+
+        display_config = DC()
+        hint_manager = HintManager()
+        keybind_manager = KeybindManager()
+        settings_menu = SettingsMenu(display_config, keybind_manager=keybind_manager)
+        tutorial_overlay = TutorialOverlay(display_config)
+
+        # Wire hint_manager and keybind_manager into interaction_controller
+        interaction_controller.set_hint_manager(hint_manager)
+        interaction_controller.set_keybind_manager(keybind_manager)
+
         # Create game loop
         game_loop = GameLoop(
             renderer=renderer,
@@ -223,6 +301,9 @@ def main() -> int:
             input_handler=input_handler,
             ai_service=ai_service,
             interaction_controller=interaction_controller,
+            hint_manager=hint_manager,
+            settings_menu=settings_menu,
+            tutorial_overlay=tutorial_overlay,
         )
 
         # ---- Enter deployment phase ----
@@ -243,21 +324,35 @@ def main() -> int:
         }
 
         logger.info("Entering deployment phase — faction=%s", faction)
-        game_loop.start_deployment(
-            map_data=map_data,
-            faction=faction,
-            game_settings=game_settings,
-        )
+        try:
+            game_loop.start_deployment(
+                map_data=map_data,
+                faction=faction,
+                game_settings=game_settings,
+            )
+        except Exception as e:
+            logger.error(f"Failed to start deployment: {e}")
+            import traceback
+            traceback.print_exc()
+            return 1
 
         logger.info("Game initialized, entering main loop...")
-        exit_code = game_loop.run()
-        return exit_code
+        try:
+            exit_code = game_loop.run()
+            return exit_code
+        except Exception as e:
+            logger.error(f"Game loop crashed: {e}")
+            import traceback
+            traceback.print_exc()
+            return 1
 
     except KeyboardInterrupt:
         logger.info("Game interrupted by user")
         return 130
     except Exception as e:
         logger.critical(f"Fatal error: {e}", exc_info=True)
+        import traceback
+        traceback.print_exc()
         return 1
     finally:
         try:

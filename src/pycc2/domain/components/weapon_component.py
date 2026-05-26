@@ -31,6 +31,7 @@ class WeaponComponent:
     ammo_remaining: int
     max_ammo: int
     reload_ticks_left: int = 0
+    is_captured: bool = False
     state: WeaponState = field(init=False)
 
     def __post_init__(self) -> None:
@@ -50,6 +51,11 @@ class WeaponComponent:
     def is_reloading(self) -> bool:
         return self.state == WeaponState.RELOADING
 
+    @property
+    def accuracy_modifier(self) -> float:
+        """Accuracy multiplier: 0.8 for captured weapons (-20%), 1.0 otherwise."""
+        return 0.8 if self.is_captured else 1.0
+
     def fire(self) -> bool:
         if not self.can_fire:
             if self.ammo_remaining == 0 and self.state != WeaponState.OUT_OF_AMMO:
@@ -62,6 +68,8 @@ class WeaponComponent:
         return True
 
     def start_reload(self, reload_ticks: int) -> None:
+        if self.is_captured:
+            reload_ticks = int(reload_ticks * 1.5)  # +50% reload time for captured weapons
         self.reload_ticks_left = reload_ticks
         self.state = WeaponState.RELOADING
 

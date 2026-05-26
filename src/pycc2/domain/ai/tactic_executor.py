@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import random
 import time
 from collections.abc import Callable
 from typing import TYPE_CHECKING
@@ -71,6 +72,17 @@ class TacticExecutor:
         self._smoke_capabilities.pop(unit_id, None)
 
     def execute(self, intent: TacticIntent) -> bool:
+        # Check unit morale state before executing any command
+        unit = self._get_unit(intent.unit_id)
+        if unit is not None:
+            morale_check = self._check_morale_preconditions(unit, intent)
+            if not morale_check['can_execute']:
+                self._logger.debug(
+                    f"Command {intent.tactic_type.name} blocked for unit {unit.id}: "
+                    f"{morale_check['reason']}"
+                )
+                return False
+
         dispatch_table: dict[TacticType, Callable[[TacticIntent], bool]] = {
             TacticType.IDLE: self._execute_idle,
             TacticType.PATROL: self._execute_patrol,
@@ -112,6 +124,88 @@ class TacticExecutor:
 
     def _get_unit(self, unit_id: str) -> Unit | None:
         return self._unit_registry.get(unit_id)
+
+    def _check_morale_preconditions(self, unit: Unit, intent: TacticIntent) -> dict:
+        """
+        Check if unit's morale state allows executing the given command.
+
+        Implements CC2-authentic morale behavior:
+        - PINNED: Cannot move, can only fire if enemy in range
+        - BROKEN: 30% chance to refuse orders
+        - ROUTING: Cannot receive commands (fleeing)
+
+        Returns:
+            Dict with 'can_execute' (bool) and 'reason' (str)
+        """
+        # Import here to avoid circular imports
+        from pycc2.domain.systems.morale_system import MoraleSystem, MoraleState
+
+        result = {'can_execute': True, 'reason': ''}
+
+        # Check if unit has morale component
+        if not hasattr(unit, 'morale') or unit.morale is None:
+            return result
+
+        # Safely get morale value (handle both real components and mocks)
+        try:
+            morale_value = unit.morale.value
+            # Handle MagicMock or non-integer values gracefully
+            if not isinstance(morale_value, (int, float)):
+                return result  # Allow execution for mock/unusual values
+            current_state = MoraleSystem.get_state(int(morale_value))
+        except (AttributeError, TypeError, ValueError):
+            return result  # If we can't determine state, allow execution
+
+        # Commands that are allowed even when pinned (defensive actions)
+        defensive_commands = {
+            TacticType.ATTACK,
+            TacticType.SUPPRESS_FIRE,
+            TacticType.HOLD_POSITION,
+            TacticType.TAKE_COVER,
+            TacticType.IDLE,
+        }
+
+        # Commands that should be replaced with flee behavior
+        movement_commands = {
+            TacticType.MOVE_TO,
+            TacticType.PATROL,
+            TacticType.COORDINATED_ADVANCE,
+            TacticType.RETREAT,  # Note: retreat is different from routing
+        }
+
+        if current_state == MoraleState.ROUTING:
+            # Unit is actively fleeing - block all commands except idle
+            if intent.tactic_type != TacticType.IDLE:
+                result['can_execute'] = False
+                result['reason'] = 'Unit is routing and cannot receive commands'
+                return result
+
+        elif current_state == MoraleState.PINNED:
+            # Pinned units cannot move but can fire defensively
+            if intent.tactic_type in movement_commands:
+                result['can_execute'] = False
+                result['reason'] = 'Unit is pinned and cannot move'
+                return result
+
+            # Allow defensive actions with reduced effectiveness warning
+            if intent.tactic_type not in defensive_commands:
+                result['can_execute'] = False
+                result['reason'] = 'Unit is pinned - only defensive actions allowed'
+
+        elif current_state == MoraleState.BROKEN:
+            # Broken units have a chance to refuse orders (30% refusal rate)
+            if random.random() < 0.3:
+                result['can_execute'] = False
+                result['reason'] = 'Unit is broken and refused orders (morale check failed)'
+                return result
+
+            # Even if order is accepted, apply penalty (logged for awareness)
+            if intent.tactic_type not in defensive_commands:
+                self._logger.debug(
+                    f"Unit {unit.id} is broken but accepted order with reduced effectiveness"
+                )
+
+        return result
 
     def _execute_idle(self, intent: TacticIntent) -> bool:
         unit = self._get_unit(intent.unit_id)

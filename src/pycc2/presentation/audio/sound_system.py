@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING
@@ -8,7 +9,7 @@ import numpy as np
 from pygame import mixer
 
 if TYPE_CHECKING:
-    pass
+    from pycc2.domain.value_objects.vec2 import Vec2
 
 
 class SoundType(Enum):
@@ -154,26 +155,67 @@ class SoundSystem:
         self._config = config or SoundConfig()
         self._cache: dict[str, mixer.Sound] = {}
         self._initialized = False
+        self._available = False
         self._channel_count = 8
+        self._mixer_channels = 1  # 1=mono, 2=stereo
 
     def initialize(self) -> None:
         if self._initialized:
             return
         try:
             mixer.init(
-                frequency=ProceduralSoundGenerator.SAMPLE_RATE, size=-16, channels=1, buffer=512
+                frequency=ProceduralSoundGenerator.SAMPLE_RATE,
+                size=-16,
+                channels=2,
+                buffer=512,
             )
+            self._mixer_channels = 2
+            self._channel_count = 8
             self._initialized = True
-            self._pregenerate_common_sounds()
-        except Exception as e:
-            print(f"[Audio] Warning: Could not initialize audio: {e}")
-            self._config.enabled = False
+            self._available = True
+            print("[Audio] Initialized stereo mixer (2 channels)")
+        except Exception as stereo_err:
+            print(f"[Audio] Stereo init failed: {stereo_err}, trying mono fallback...")
+            try:
+                mixer.quit()
+                mixer.init(
+                    frequency=ProceduralSoundGenerator.SAMPLE_RATE,
+                    size=-16,
+                    channels=1,
+                    buffer=512,
+                )
+                self._mixer_channels = 1
+                self._channel_count = 4
+                self._initialized = True
+                self._available = True
+                print("[Audio] Fallback to mono mixer (1 channel)")
+            except Exception as mono_err:
+                print(f"[Audio] Mono init also failed: {mono_err}")
+                print("[Audio] Audio system disabled - game will run without sound")
+                self._available = False
+                self._config.enabled = False
+                return
+
+        if self._initialized:
+            try:
+                self._pregenerate_common_sounds()
+            except Exception as sound_err:
+                print(f"[Audio] Warning: Sound pregeneration failed: {sound_err}")
+                print("[Audio] Individual sounds will be generated on-demand")
 
     def shutdown(self) -> None:
         if self._initialized:
             mixer.quit()
             self._initialized = False
+            self._available = False
             self._cache.clear()
+
+    def _make_sound(self, raw: np.ndarray) -> mixer.Sound:
+        """Create a pygame Sound from a mono int16 array, converting to stereo if needed."""
+        if self._mixer_channels == 2 and raw.ndim == 1:
+            stereo = np.column_stack((raw, raw))
+            return mixer.Sound(array=stereo)
+        return mixer.Sound(array=raw)
 
     def _pregenerate_common_sounds(self) -> None:
         common = [
@@ -195,12 +237,12 @@ class SoundSystem:
         ]
         for sound_type, generator in common:
             raw = generator()
-            sound = mixer.Sound(array=raw)
+            sound = self._make_sound(raw)
             sound.set_volume(self._config.sfx_volume)
             self._cache[sound_type.name] = sound
 
     def play(self, sound_type: SoundType, volume: float | None = None) -> bool:
-        if not self._config.enabled or not self._initialized:
+        if not self._available or not self._config.enabled:
             return False
 
         name = sound_type.name
@@ -232,7 +274,7 @@ class SoundSystem:
             gen = generators.get(sound_type)
             if gen:
                 raw = gen()
-                sound = mixer.Sound(array=raw)
+                sound = self._make_sound(raw)
                 self._cache[name] = sound
 
         if sound is None:
@@ -248,16 +290,53 @@ class SoundSystem:
         ch.play(sound)
         return True
 
+    def play_sound_with_distance(
+        self,
+        sound_id: str,
+        source_position: Vec2,
+        camera_position: Vec2,
+        max_distance: float = 500.0,
+    ) -> None:
+        """Play a cached sound with volume attenuated by distance to camera."""
+        if not self._available or not self._config.enabled:
+            return
+
+        distance = source_position.distance_to(camera_position)
+        if distance >= max_distance:
+            return
+
+        volume = 1.0 - (distance / max_distance)
+
+        sound = self._cache.get(sound_id)
+        if sound is None:
+            return
+
+        final_vol = volume * self._config.sfx_volume * self._config.master_volume
+        sound.set_volume(max(0.0, min(1.0, final_vol)))
+
+        ch = mixer.find_channel(True)
+        if ch is None:
+            ch = mixer.Channel(0)
+        ch.play(sound)
+
     def play_ui_click(self) -> None:
+        if not self._available:
+            return
         self.play(SoundType.UI_CLICK)
 
     def play_ui_command(self) -> None:
+        if not self._available:
+            return
         self.play(SoundType.UI_COMMAND if hasattr(SoundType, 'UI_COMMAND') else SoundType.UI_CLICK)
 
     def play_ui_hover(self) -> None:
+        if not self._available:
+            return
         self.play(SoundType.UI_HOVER)
 
     def play_shot(self, weapon_type: str = "rifle") -> None:
+        if not self._available:
+            return
         if weapon_type == "mg":
             self.play(SoundType.MG_BURST)
         elif weapon_type == "pistol":
@@ -266,15 +345,23 @@ class SoundSystem:
             self.play(SoundType.RIFLE_SHOT)
 
     def play_hit(self, is_critical: bool = False) -> None:
+        if not self._available:
+            return
         self.play(SoundType.HIT_CRITICAL if is_critical else SoundType.HIT_CONFIRM)
 
     def play_explosion(self) -> None:
+        if not self._available:
+            return
         self.play(SoundType.EXPLOSION)
 
     def play_death(self) -> None:
+        if not self._available:
+            return
         self.play(SoundType.UNIT_DEATH)
 
     def play_footstep(self, terrain: str = "grass") -> None:
+        if not self._available:
+            return
         mapping = {
             "grass": SoundType.FOOTSTEP_GRASS,
             "road": SoundType.FOOTSTEP_ROAD,
@@ -283,6 +370,100 @@ class SoundSystem:
         st = mapping.get(terrain, SoundType.FOOTSTEP_GRASS)
         self.play(st)
 
+    def play_morale_change(self, old_state: str, new_state: str) -> None:
+        """Play sound effect for morale state changes."""
+        if not self._available:
+            return
+
+        # Map morale states to appropriate sound types
+        warning_states = {'pinned', 'suppressed', 'shaken'}
+        panic_states = {'broken', 'routing', 'fleeing'}
+
+        if new_state.lower() in panic_states:
+            self.play(SoundType.UNIT_PANIC)
+        elif new_state.lower() in warning_states:
+            self.play(SoundType.UNIT_SUPPRESSED)
+        elif old_state and new_state == 'normal' or new_state == 'steady':
+            self.play(SoundType.UI_SUCCESS)
+
+    def play_command_confirm(self, command_type: str = "move") -> None:
+        """Play command confirmation sound based on command type."""
+        if not self._available:
+            return
+        self.play(SoundType.UI_COMMAND)
+
+    def play_unit_select(self) -> None:
+        """Play unit selection sound."""
+        if not self._available:
+            return
+        self.play(SoundType.UI_SELECT)
+
+    def play_unit_died(self) -> None:
+        """Play unit death sound effect."""
+        if not self._available:
+            return
+        self.play(SoundType.UNIT_DEATH)
+
+    def play_victory(self) -> None:
+        """Play victory fanfare."""
+        if not self._available:
+            return
+        # Victory: ascending tone sequence
+        try:
+            n_samples = int(ProceduralSoundGenerator.SAMPLE_RATE * 0.8)
+            t = np.linspace(0, 0.8, n_samples, dtype=np.float32)
+            
+            # Ascending major chord arpeggio
+            freqs = [523.25, 659.25, 783.99, 1046.50]  # C5, E5, G5, C6
+            wave = np.zeros(n_samples, dtype=np.float32)
+            
+            for i, freq in enumerate(freqs):
+                start = int(i * n_samples / len(freqs))
+                end = min(start + int(n_samples / len(freqs)), n_samples)
+                segment = t[start:end] - t[start]
+                envelope = np.exp(-segment * 3)
+                wave[start:end] += np.sin(2 * np.pi * freq * segment) * envelope * 0.3
+            
+            wave = (wave / max(np.abs(wave).max(), 1) * 28000).astype(np.int16)
+            sound = self._make_sound(wave)
+            sound.set_volume(self._config.sfx_volume * self._config.master_volume)
+            ch = mixer.find_channel(True)
+            if ch:
+                ch.play(sound)
+        except Exception as e:
+            print(f"[Audio] Victory sound generation failed: {e}")
+            self.play(SoundType.UI_SUCCESS)
+
+    def play_defeat(self) -> None:
+        """Play defeat sound effect."""
+        if not self._available:
+            return
+        # Defeat: descending minor tone
+        try:
+            n_samples = int(ProceduralSoundGenerator.SAMPLE_RATE * 1.0)
+            t = np.linspace(0, 1.0, n_samples, dtype=np.float32)
+            
+            # Descending minor chord
+            freqs = [440.00, 349.23, 293.66, 220.00]  # A4, F4, D4, A3
+            wave = np.zeros(n_samples, dtype=np.float32)
+            
+            for i, freq in enumerate(freqs):
+                start = int(i * n_samples / len(freqs))
+                end = min(start + int(n_samples / len(freqs)), n_samples)
+                segment = t[start:end] - t[start]
+                envelope = np.exp(-segment * 2.5)
+                wave[start:end] += np.sin(2 * np.pi * freq * segment) * envelope * 0.25
+            
+            wave = (wave / max(np.abs(wave).max(), 1) * 25000).astype(np.int16)
+            sound = self._make_sound(wave)
+            sound.set_volume(self._config.sfx_volume * self._config.master_volume)
+            ch = mixer.find_channel(True)
+            if ch:
+                ch.play(sound)
+        except Exception as e:
+            print(f"[Audio] Defeat sound generation failed: {e}")
+            self.play(SoundType.UI_ERROR)
+
     @property
     def config(self) -> SoundConfig:
         return self._config
@@ -290,6 +471,10 @@ class SoundSystem:
     @property
     def initialized(self) -> bool:
         return self._initialized
+
+    @property
+    def available(self) -> bool:
+        return self._available
 
     def set_master_volume(self, vol: float) -> None:
         self._config.master_volume = max(0.0, min(1.0, vol))
@@ -308,9 +493,12 @@ class MusicPlayer:
         self._playing = False
 
     def play_ambient(self) -> None:
-        if not self._sys.config.enabled:
+        if not self._sys._available or not self._sys.config.enabled:
             return
 
     def stop(self) -> None:
-        mixer.music.stop()
+        if not self._sys._available:
+            return
+        with contextlib.suppress(Exception):
+            mixer.music.stop()
         self._playing = False

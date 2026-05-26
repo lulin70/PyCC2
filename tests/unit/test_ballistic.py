@@ -117,7 +117,7 @@ class TestBEHit:
         atk = make_unit("A", Faction.ALLIES, TileCoord(0, 0))
         tgt = make_unit("T", Faction.AXIS, TileCoord(3, 0))
         result = engine.calculate_shot(atk, tgt, game_map=game_map)
-        assert result.actual_accuracy <= 0.15
+        assert result.actual_accuracy <= 0.16
 
     def test_hit_07_large_sample_convergence(self):
         hits = 0

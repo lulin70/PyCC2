@@ -53,7 +53,7 @@ class GameCommand:
         import time
 
         if self.timestamp == 0.0:
-            object.__setattr__(self, timestamp=time.time())
+            object.__setattr__(self, "timestamp", time.time())
 
     @property
     def has_target_position(self) -> bool:

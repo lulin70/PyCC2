@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import time
 from typing import TYPE_CHECKING
 
 import pygame
@@ -24,17 +25,18 @@ from pycc2.presentation.rendering.tile_cache import TileCache
 
 
 class SpriteRenderer:
-    TILE_SIZE: int = 32
-    SPRITE_SIZE: int = 24  # CC2-style: small but visible units (was 128, too large)
+    TILE_SIZE: int = 48  # CC2 authentic: 48×48 pixel tiles
+    SPRITE_SIZE: int = 32  # CC2-style units (scaled up for 48px tiles)
 
     def __init__(self, display_config: DisplayConfig | None = None):
         from pycc2.presentation.rendering.display_config import DisplayConfig as DC
         from pycc2.presentation.rendering.asset_loader import AssetLoader
 
         self._display_config: DisplayConfig = display_config or DC()
-        self.TILE_SIZE: int = self._display_config.base_tile_size
-        self.SPRITE_SIZE: int = 24  # CC2-style small units
+        self.TILE_SIZE: int = 48  # CC2 authentic: matches EnhancedRenderer and Vec2.TILE_SIZE
+        self.SPRITE_SIZE: int = 32  # CC2-style units (scaled for 48px tiles)
         self._screen: Surface | None = None
+        self._target_surface: Surface | None = None  # 绘制目标（优先于_screen）
         self._sprite_cache: dict[str, Surface] = {}
         self._terrain_cache: dict[int, Surface] = {}
         self._tile_cache: TileCache = TileCache()
@@ -54,7 +56,7 @@ class SpriteRenderer:
 
     def initialize(self, screen: Surface) -> None:
         self._screen = screen
-        
+
         # 将AssetLoader加载的PNG精灵复制到_sprite_cache，覆盖程序化精灵
         if hasattr(self._asset_loader, '_sprite_cache'):
             png_count = 0
@@ -64,6 +66,11 @@ class SpriteRenderer:
             print(f"[SpriteRenderer] ✅ 已将 {png_count} 个PNG精灵加载到缓存")
         else:
             print("[SpriteRenderer] ⚠️  AssetLoader没有_sprite_cache属性，使用程序化精灵")
+
+    @property
+    def draw_surface(self) -> Surface | None:
+        """获取当前绘制目标surface（优先使用_target_surface）"""
+        return self._target_surface or self._screen
 
     def render(
         self,
@@ -75,7 +82,7 @@ class SpriteRenderer:
         debug_mode: bool = False,
     ) -> None:
         """主渲染方法"""
-        if self._screen is None:
+        if self.draw_surface is None:
             return
         self._animation_tick += 1
         self.update_animations()
@@ -83,16 +90,17 @@ class SpriteRenderer:
         # 背景
         bg_color = (52, 73, 94)
         if alpha < 1.0:
-            bg = Surface(self._screen.get_size())
+            bg = Surface(self.draw_surface.get_size())
             bg.fill(bg_color)
             bg.set_alpha(int(255 * alpha))
-            self._screen.blit(bg, (0, 0))
+            self.draw_surface.blit(bg, (0, 0))
         else:
-            self._screen.fill(bg_color)
+            self.draw_surface.fill(bg_color)
 
         self._draw_terrain(game_map, camera)
         if debug_mode:
             self._draw_debug_grid(game_map, camera)
+        self._draw_vl_flags(game_map, camera)
         self._draw_units(units, camera, selected_unit_ids)
         self._draw_effects(camera)
         self._draw_damage_numbers(camera)
@@ -101,15 +109,20 @@ class SpriteRenderer:
     # ====== 程序化精灵生成 ======
 
     def _generate_all_sprites(self) -> None:
-        """预生成所有单位类型的精灵（8方向 × 2阵营）"""
-        for faction in ["allies", "axis"]:
+        """预生成所有单位类型的精灵（8方向 × 3阵营）"""
+        for faction in ["allies", "axis", "polish"]:
             for unit_type_name in [
                 "INFANTRY_SQUAD",
                 "MACHINE_GUN_SQUAD",
                 "COMMANDER",
                 "TANK",
+                "HALFTRACK",
+                "JEEP",
+                "SCOUT_CAR",
                 "SNIPER_TEAM",
                 "MEDIC_TEAM",
+                "AT_GUN_TEAM",
+                "MORTAR_TEAM",
             ]:
                 for direction in range(8):  # N, NE, E, SE, S, SW, W, NW
                     key = f"{faction}_{unit_type_name}_d{direction}"
@@ -124,25 +137,85 @@ class SpriteRenderer:
                     )
 
     def _create_unit_sprite(self, faction: str, unit_type: str, direction: int) -> Surface:
-        """创建单位精灵 - 优先从assets加载，fallback到程序化生成"""
-        from pycc2.presentation.rendering.pixel_artist import create_unit_sprite
+        """创建单位精灵 - 优先使用CC2写实像素艺术生成器"""
         import logging
         logger = logging.getLogger(__name__)
 
-        # 尝试从assets加载
+        # 尝试从assets加载（原有逻辑）
         loaded_sprite = self._asset_loader.load_unit_sprite(
             faction=faction,
             unit_type=unit_type,
             direction=direction,
             size=self.SPRITE_SIZE,
         )
-        
+
         if loaded_sprite is not None:
             logger.info(f"[SPRITE] ✅ Loaded PNG: {faction}_{unit_type}_d{direction}")
             return loaded_sprite
-        
-        # Fallback: 程序化生成（高分辨率）
-        logger.info(f"[SPRITE] ⚠️  Fallback to procedural: {faction}_{unit_type}_d{direction}")
+
+        # 优先使用新的CC2写实像素艺术生成器
+        try:
+            from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D, Direction, Faction
+
+            dir_enum = list(Direction)[direction] if direction < 8 else Direction.SOUTH
+            # POLISH使用ALLIES的视觉风格（同属盟军）
+            fac_enum = Faction.ALLIES if faction == "polish" else Faction(faction)
+
+            # 根据单位类型选择正确的生成方法
+            if unit_type in ("TANK",):
+                cc2_sprite = PixelArtist3D.create_tank_sprite(
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    state='idle',
+                    frame=0
+                )
+            elif unit_type in ("HALFTRACK",):
+                cc2_sprite = PixelArtist3D.create_halftrack_sprite(
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    state='idle',
+                    frame=0
+                )
+            elif unit_type in ("JEEP", "SCOUT_CAR"):
+                cc2_sprite = PixelArtist3D.create_jeep_sprite(
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    state='idle',
+                    frame=0
+                )
+            elif unit_type in ("AT_GUN_TEAM",):
+                cc2_sprite = PixelArtist3D.create_at_gun_sprite(
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    state='idle',
+                    frame=0
+                )
+            elif unit_type in ("MORTAR_TEAM",):
+                cc2_sprite = PixelArtist3D.create_mortar_team_sprite(
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    state='idle',
+                    frame=0
+                )
+            else:
+                # 步兵类单位 (INFANTRY_SQUAD, MACHINE_GUN_SQUAD, COMMANDER, SNIPER_TEAM, MEDIC_TEAM)
+                cc2_sprite = PixelArtist3D.create_infantry_sprite(
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    state='idle',
+                    frame=0
+                )
+
+            logger.info(f"[SPRITE] ✅ Generated CC2 pixel art: {faction}_{unit_type}_d{direction}")
+            return cc2_sprite
+
+        except Exception as e:
+            logger.warning(f"[SPRITE] ❌ CC2 generation failed: {e}, using legacy fallback")
+
+        # Fallback: 使用旧的程序化生成器（高分辨率）
+        from pycc2.presentation.rendering.pixel_artist import create_unit_sprite
+
+        logger.info(f"[SPRITE] ⚠️  Fallback to legacy procedural: {faction}_{unit_type}_d{direction}")
         canvas = create_unit_sprite(
             faction=faction,
             unit_type=unit_type,
@@ -190,7 +263,168 @@ class SpriteRenderer:
                     wx = tx * self.TILE_SIZE
                     wy = ty * self.TILE_SIZE
                     sp = camera.world_to_screen(Vec2(wx, wy))
-                    self._screen.blit(cached_surface, (int(sp[0]), int(sp[1])))
+                    self.draw_surface.blit(cached_surface, (int(sp[0]), int(sp[1])))
+
+    def _draw_vl_flags(self, game_map: GameMap, camera: Camera) -> None:
+        """Draw Victory Location flags on the map.
+
+        Iterates over game_map.objectives (MapObjective list) and renders
+        a flag at each VL position.  Flags change colour based on ownership
+        and show a capture progress bar when contested.
+        """
+        if self.draw_surface is None:
+            return
+        from pycc2.domain.value_objects.vec2 import Vec2
+
+        objectives = getattr(game_map, 'objectives', [])
+        if not objectives:
+            return
+
+        screen_w = self.draw_surface.get_width()
+        screen_h = self.draw_surface.get_height()
+
+        # Collect off-screen VL positions for edge arrows
+        off_screen_vls: list[tuple[int, int, str]] = []
+
+        for obj in objectives:
+            # Convert tile coord → world pixel coord → screen coord
+            tile_x = obj.position.x * self.TILE_SIZE + self.TILE_SIZE // 2
+            tile_y = obj.position.y * self.TILE_SIZE + self.TILE_SIZE // 2
+            sp = camera.world_to_screen(Vec2(tile_x, tile_y))
+            sx, sy = int(sp[0]), int(sp[1])
+
+            owner = getattr(obj, 'owner', None) or 'neutral'
+            is_contested = False
+            capture_progress = 0.0
+
+            # Determine if VL is on screen (with margin)
+            margin = 60
+            on_screen = (-margin < sx < screen_w + margin and -margin < sy < screen_h + margin)
+
+            if on_screen:
+                self._draw_vl_flag(self.draw_surface, sx, sy, owner, is_contested, capture_progress)
+            else:
+                # Store world position for edge arrow rendering
+                off_screen_vls.append((tile_x, tile_y, owner))
+
+        # Draw edge arrows for off-screen VLs
+        if off_screen_vls:
+            self._draw_vl_edge_arrows(self.draw_surface, screen_w, screen_h, off_screen_vls, camera)
+
+    def _draw_vl_flag(
+        self,
+        surface: Surface,
+        x: int,
+        y: int,
+        owner: str,
+        is_contested: bool,
+        capture_progress: float,
+    ) -> None:
+        """Draw a single Victory Location flag on the map.
+
+        Args:
+            surface: Target surface
+            x, y: Screen coordinates of the VL center
+            owner: 'allies', 'axis', or 'neutral'
+            is_contested: Whether both sides are present
+            capture_progress: 0.0-1.0 capture progress
+        """
+        # Flag pole
+        pygame.draw.line(surface, (80, 80, 80), (x, y), (x, y - 20), 2)
+
+        # Flag colours based on owner
+        if owner == 'allies':
+            flag_color = (60, 100, 200)   # Blue
+        elif owner == 'axis':
+            flag_color = (200, 60, 60)    # Red
+        else:
+            flag_color = (200, 200, 200)  # White/neutral
+
+        # If contested, flash between colours
+        if is_contested:
+            if int(time.time() * 4) % 2 == 0:
+                flag_color = (200, 200, 100)  # Yellow flash
+
+        # Draw flag (small waving rectangle)
+        flag_points = [
+            (x + 1, y - 20),
+            (x + 14, y - 17),
+            (x + 13, y - 10),
+            (x + 1, y - 13),
+        ]
+        pygame.draw.polygon(surface, flag_color, flag_points)
+        pygame.draw.polygon(surface, (0, 0, 0), flag_points, 1)
+
+        # Capture progress bar (if capturing)
+        if 0 < capture_progress < 1.0:
+            bar_width = 16
+            bar_height = 3
+            bar_x = x - bar_width // 2
+            bar_y = y + 4
+            pygame.draw.rect(surface, (40, 40, 40), (bar_x, bar_y, bar_width, bar_height))
+            fill_width = int(bar_width * capture_progress)
+            pygame.draw.rect(surface, (100, 255, 100), (bar_x, bar_y, fill_width, bar_height))
+
+        # Pulsing glow for active capture
+        if 0 < capture_progress < 1.0:
+            alpha = int(128 + 127 * math.sin(time.time() * 6))
+            glow_surf = pygame.Surface((24, 24), pygame.SRCALPHA)
+            pygame.draw.circle(glow_surf, (255, 255, 100, alpha // 3), (12, 12), 12)
+            surface.blit(glow_surf, (x - 12, y - 22))
+
+    def _draw_vl_edge_arrows(
+        self,
+        surface: Surface,
+        screen_w: int,
+        screen_h: int,
+        vl_positions: list[tuple[int, int, str]],
+        camera: Camera,
+    ) -> None:
+        """Draw arrows at screen edges pointing toward off-screen VLs.
+
+        Args:
+            vl_positions: List of (world_x, world_y, owner) tuples in pixels.
+            camera: Camera object for coordinate conversion.
+        """
+        from pycc2.domain.value_objects.vec2 import Vec2
+
+        margin = 30  # pixels from edge
+
+        for wx, wy, owner in vl_positions:
+            # Convert to screen coords
+            sp = camera.world_to_screen(Vec2(wx, wy))
+            sx, sy = sp[0], sp[1]
+
+            # Clamp to screen edge
+            cx = max(margin, min(screen_w - margin, sx))
+            cy = max(margin, min(screen_h - margin, sy))
+
+            # Arrow colour based on owner
+            if owner == 'allies':
+                color = (60, 100, 200)
+            elif owner == 'axis':
+                color = (200, 60, 60)
+            else:
+                color = (200, 200, 200)
+
+            # Draw arrow pointing toward VL
+            angle = math.atan2(sy - cy, sx - cx)
+            arrow_size = 10
+            tip_x = cx + arrow_size * math.cos(angle)
+            tip_y = cy + arrow_size * math.sin(angle)
+            left_x = cx + arrow_size * math.cos(angle + 2.5)
+            left_y = cy + arrow_size * math.sin(angle + 2.5)
+            right_x = cx + arrow_size * math.cos(angle - 2.5)
+            right_y = cy + arrow_size * math.sin(angle - 2.5)
+
+            pygame.draw.polygon(
+                surface, color,
+                [
+                    (int(tip_x), int(tip_y)),
+                    (int(left_x), int(left_y)),
+                    (int(right_x), int(right_y)),
+                ],
+            )
 
     def _draw_units(
         self,
@@ -199,7 +433,20 @@ class SpriteRenderer:
         selected_ids: set[str] | None = None,
     ) -> None:
         """使用精灵绘制单位"""
-        sorted_units = sorted(units, key=lambda u: u.position.pixel_position.y)
+        from pycc2.presentation.rendering.camera import ProjectionMode
+
+        if camera.projection == ProjectionMode.ISOMETRIC:
+            # In isometric mode, sort by depth key for correct draw ordering
+            from pycc2.presentation.rendering.isometric_transform import depth_sort_key
+            sorted_units = sorted(
+                units,
+                key=lambda u: depth_sort_key(
+                    u.position.pixel_position.x,
+                    u.position.pixel_position.y,
+                ),
+            )
+        else:
+            sorted_units = sorted(units, key=lambda u: u.position.pixel_position.y)
 
         for unit in sorted_units:
             if not unit.is_alive:
@@ -220,15 +467,32 @@ class SpriteRenderer:
 
         faction = unit.faction.name.lower()
         utype = unit.unit_type.name
-        sprite_key = f"{faction}_{utype}_d{dir_idx}"
-
-        sprite = self._sprite_cache.get(sprite_key)
+        
+        # 尝试多种key格式以匹配缓存
+        base_key = f"{faction}_{utype}_d{dir_idx}"
+        sprite = (
+            self._sprite_cache.get(base_key) or
+            self._sprite_cache.get(f"{base_key}_{self.SPRITE_SIZE}") or  # PNG精灵带尺寸后缀
+            self._sprite_cache.get(f"{faction}_{utype}_d0") or
+            self._sprite_cache.get(f"{faction}_{utype}_d0_{self.SPRITE_SIZE}") or
+            None
+        )
+        
         if sprite is None:
-            sprite = self._sprite_cache.get(f"{faction}_{utype}_d0")
-        if sprite is None:
+            # 最终fallback：使用简单形状（但至少是方形表示不同单位类型）
             r = int(12 * camera.zoom)
-            color = (74, 144, 217) if faction == "allies" else (217, 74, 74)
-            draw.circle(self._screen, color, (int(sp[0]), int(sp[1])), r)
+            if 'TANK' in utype or 'VEHICLE' in utype:
+                draw.rect(self.draw_surface, (80, 80, 80), 
+                         (int(sp[0])-r, int(sp[1])-r, r*2, r*2))
+            elif 'SNIPER' in utype:
+                draw.polygon(self.draw_surface, (100, 200, 100), [
+                    (int(sp[0]), int(sp[1])-r),
+                    (int(sp[0])-r, int(sp[1])+r),
+                    (int(sp[0])+r, int(sp[1])+r)
+                ])
+            else:
+                color = (74, 144, 217) if faction == "allies" else (217, 74, 74)
+                draw.circle(self.draw_surface, color, (int(sp[0]), int(sp[1])), r)
             return
 
         zoom = camera.zoom
@@ -260,39 +524,74 @@ class SpriteRenderer:
             else:
                 draw_pos = (int(sp[0]) - offset, int(sp[1]) - offset)
 
-            self._screen.blit(scaled, draw_pos)
+            self.draw_surface.blit(scaled, draw_pos)
 
         if is_selected:
             self._draw_selection_ring(sp, int(16 * zoom))
 
+        self._draw_faction_flag(unit, sp, zoom)
+        self._draw_unit_label(unit, sp, zoom)
         self._draw_health_bar(unit, sp, zoom)
 
-        ms = unit.morale.state.value
-        if ms >= 2:
-            self._draw_morale_icon(sp, zoom, ms)
+        # Enhanced morale state visualization
+        self._draw_enhanced_morale_indicator(unit, sp, zoom)
+        
+        # Draw movement mode indicator (Defend, Fast Move, Sneak)
+        self._draw_movement_mode_indicator(unit, sp, zoom)
 
         if unit.id in self._flash_units:
             flash_surf = Surface((sz, sz), pygame.SRCALPHA)
             flash_surf.fill((255, 255, 255, 150))
-            self._screen.blit(flash_surf, (int(sp[0]) - offset, int(sp[1]) - offset))
+            self.draw_surface.blit(flash_surf, (int(sp[0]) - offset, int(sp[1]) - offset))
 
     def _facing_to_direction_index(self, rad: float) -> int:
-        """将弧度转为8方向索引"""
+        """将弧度转为8方向索引 (N=0, 顺时针: NE=1, E=2, SE=3, S=4, SW=5, W=6, NW=7)
+
+        facing_rad使用数学坐标系: 0=East, pi/2=North (Y翻转后)
+        Direction索引使用CC2屏幕坐标系: 0=North, 2=East
+        需要旋转-90度来对齐。
+        """
         deg = math.degrees(rad) % 360
         if deg < 0:
             deg += 360
-        # 每个方向45度，N=0(向上/-Y), 顺时针
-        idx = round(deg / 45) % 8
+        # 旋转-90度: math坐标系(E=0) → CC2坐标系(N=0)
+        idx = round((90 - deg) / 45) % 8
         return idx
 
     def _draw_selection_ring(self, center: tuple[float, float], radius: int) -> None:
-        """选中光环（改进版：半透明圆环而非虚线）"""
-        if self._screen is None:
+        """CC2原始风格：白色常亮圆环（非脉冲）"""
+        if self.draw_surface is None:
             return
-        color = (255, 255, 100) if self._animation_tick % 20 < 10 else (255, 220, 50)
-        surf = Surface((radius * 2 + 4, radius * 2 + 4), pygame.SRCALPHA)
-        draw.circle(surf, (*color, 100), (radius + 2, radius + 2), radius, 3)
-        self._screen.blit(surf, (int(center[0]) - radius - 2, int(center[1]) - radius - 2))
+        color = (255, 255, 255)
+        draw.circle(self.draw_surface, color, (int(center[0]), int(center[1])), radius + 3, 3)
+
+    def _draw_unit_label(self, unit: Unit, sp: tuple[float, float], zoom: float) -> None:
+        """CC2原始风格：黄色纯文字标签（无背景框）"""
+        if self.draw_surface is None:
+            return
+        label = unit.unit_type.name.replace("_", " ")
+        font_obj = self._get_font(11)
+        text_surf = font_obj.render(label, True, (255, 215, 0))
+        tx = int(sp[0]) - text_surf.get_width() // 2
+        ty = int(sp[1]) - int(22 * zoom)
+        self.draw_surface.blit(text_surf, (tx, ty))
+
+    def _draw_faction_flag(self, unit: Unit, sp: tuple[float, float], zoom: float) -> None:
+        """CC2原始风格：阵营旗帜指示器（小彩色矩形：绿色=盟军，红色=轴心国）"""
+        if self.draw_surface is None:
+            return
+        faction = unit.faction.name.lower()
+        flag_w = max(6, int(8 * zoom))
+        flag_h = max(4, int(5 * zoom))
+        fx = int(sp[0]) - flag_w // 2
+        fy = int(sp[1]) - int(36 * zoom)
+
+        if faction in ("allies", "us", "uk", "polish"):
+            flag_color = (80, 200, 80)   # Green for allies
+        else:
+            flag_color = (220, 60, 60)   # Red for axis
+
+        draw.rect(self.draw_surface, flag_color, (fx, fy, flag_w, flag_h))
 
     def _draw_health_bar(
         self,
@@ -300,7 +599,7 @@ class SpriteRenderer:
         sp: tuple[float, float],
         zoom: float,
     ) -> None:
-        if self._screen is None:
+        if self.draw_surface is None:
             return
         dc = self._display_config
         bar_w = max(24, int(24 * dc.ui_scale * zoom))
@@ -308,7 +607,7 @@ class SpriteRenderer:
         bx = int(sp[0]) - bar_w // 2
         by = int(sp[1]) - int(18 * dc.ui_scale * zoom)
 
-        draw.rect(self._screen, (40, 40, 40), (bx, by, bar_w, bar_h))
+        draw.rect(self.draw_surface, (40, 40, 40), (bx, by, bar_w, bar_h))
         hp_w = max(0, int(bar_w * unit.health.hp_ratio))
         if unit.health.hp_ratio > 0.5:
             hp_color = (80, 200, 80)
@@ -316,8 +615,8 @@ class SpriteRenderer:
             hp_color = (200, 200, 50)
         else:
             hp_color = (220, 60, 60)
-        draw.rect(self._screen, hp_color, (bx, by, hp_w, bar_h))
-        draw.rect(self._screen, (100, 100, 100), (bx, by, bar_w, bar_h), 1)
+        draw.rect(self.draw_surface, hp_color, (bx, by, hp_w, bar_h))
+        draw.rect(self.draw_surface, (100, 100, 100), (bx, by, bar_w, bar_h), 1)
 
     def _draw_morale_icon(
         self,
@@ -325,18 +624,18 @@ class SpriteRenderer:
         zoom: float,
         state_val: int,
     ) -> None:
-        """士气状态图标"""
-        if self._screen is None:
+        """士气状态图标（旧版兼容）"""
+        if self.draw_surface is None:
             return
         icon_size = max(6, int(8 * zoom))
         ix = int(sp[0]) + int(12 * zoom)
         iy = int(sp[1]) - int(14 * zoom)
 
         if state_val == 2:  # SUPPRESSED — 黄色!
-            draw.circle(self._screen, (255, 220, 50), (ix, iy), icon_size // 2)
+            draw.circle(self.draw_surface, (255, 220, 50), (ix, iy), icon_size // 2)
         elif state_val == 3:  # PANICED — 红色!
             draw.polygon(
-                self._screen,
+                self.draw_surface,
                 (255, 50, 50),
                 [
                     (ix, iy - icon_size // 2),
@@ -344,6 +643,303 @@ class SpriteRenderer:
                     (ix - icon_size // 2, iy + icon_size // 2),
                 ],
             )
+
+    def _draw_enhanced_morale_indicator(
+        self,
+        unit: Unit,
+        sp: tuple[float, float],
+        zoom: float,
+    ) -> None:
+        """
+        CC2-authentic enhanced morale state visualization.
+        
+        Shows different indicators based on MoraleSystem state:
+        - RALLYED (>70): Green checkmark or no indicator (normal)
+        - WAVERING (40-70): Yellow subtle pulse (slight concern)
+        - PINNED (20-40): Yellow "!" icon with pulsing ring (cannot move)
+        - BROKEN (<20): Red warning triangle above unit (may flee)
+        - ROUTING: Red directional arrow showing flee direction
+        """
+        if self.draw_surface is None:
+            return
+        
+        # Get morale state from unit
+        try:
+            from pycc2.domain.systems.morale_system import MoraleState, MoraleSystem
+            
+            if not hasattr(unit, 'morale_state'):
+                return
+            
+            morale_state = unit.morale_state
+            
+            # Position for indicator (above and to the right of unit)
+            base_x = int(sp[0]) + int(14 * zoom)
+            base_y = int(sp[1]) - int(16 * zoom)
+            
+            if morale_state == MoraleState.PINNED:
+                self._draw_pinned_indicator(base_x, base_y, zoom)
+            elif morale_state == MoraleState.BROKEN:
+                self._draw_broken_indicator(base_x, base_y, zoom)
+            elif morale_state == MoraleState.ROUTING:
+                self._draw_routing_indicator(unit, sp, zoom)
+            elif morale_state == MoraleState.WAVERING:
+                self._draw_wavering_indicator(base_x, base_y, zoom)
+            # RALLYED: No indicator needed (normal operation)
+            
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Failed to draw morale indicator: {e}")
+            # Fallback to old method if available
+            try:
+                if hasattr(unit, 'morale') and hasattr(unit.morale, 'state'):
+                    ms = unit.morale.state.value
+                    if ms >= 2:
+                        self._draw_morale_icon(sp, zoom, ms)
+            except Exception:
+                pass  # Silently fail in test/mock environments
+
+    def _draw_pinned_indicator(self, x: int, y: int, zoom: float) -> None:
+        """Draw yellow "!" icon with pulsing ring for pinned units."""
+        icon_size = max(8, int(10 * zoom))
+        
+        # Pulsing yellow ring effect
+        pulse = abs((self._animation_tick % 30) - 15) / 15.0  # 0.0 to 1.0
+        ring_alpha = int(150 + 105 * pulse)  # 150-255
+        ring_radius = int(icon_size + 4 * pulse * zoom)
+        
+        # Draw outer pulsing ring
+        ring_surf = Surface((ring_radius * 2 + 4, ring_radius * 2 + 4), pygame.SRCALPHA)
+        draw.circle(ring_surf, (255, 220, 50, ring_alpha), 
+                   (ring_radius + 2, ring_radius + 2), ring_radius, 2)
+        self.draw_surface.blit(ring_surf, (x - ring_radius - 2, y - ring_radius - 2))
+        
+        # Draw yellow "!" circle
+        draw.circle(self.draw_surface, (255, 220, 0), (x, y), icon_size // 2)
+        
+        # Draw "!" mark
+        font_obj = self._get_font(max(8, int(icon_size * 0.8)))
+        text_surf = font_obj.render("!", True, (0, 0, 0))
+        text_x = x - text_surf.get_width() // 2
+        text_y = y - text_surf.get_height() // 2
+        self.draw_surface.blit(text_surf, (text_x, text_y))
+
+    def _draw_broken_indicator(self, x: int, y: int, zoom: float) -> None:
+        """Draw red warning triangle for broken units."""
+        icon_size = max(10, int(12 * zoom))
+        
+        # Pulsing red glow
+        pulse = abs((self._animation_tick % 25) - 12) / 12.0
+        glow_alpha = int(100 + 100 * pulse)
+        
+        # Red triangle (warning symbol)
+        half_size = icon_size // 2
+        triangle_points = [
+            (x, y - half_size),           # Top point
+            (x - half_size, y + half_size // 2),  # Bottom left
+            (x + half_size, y + half_size // 2),  # Bottom right
+        ]
+        
+        # Glow effect
+        glow_surf = Surface((icon_size * 2 + 8, icon_size * 2 + 8), pygame.SRCALPHA)
+        glow_center = (icon_size + 4, icon_size + 4)
+        adjusted_points = [
+            (glow_center[0] + p[0] - x, glow_center[1] + p[1] - y) 
+            for p in triangle_points
+        ]
+        draw.polygon(glow_surf, (255, 50, 50, glow_alpha), adjusted_points)
+        self.draw_surface.blit(glow_surf, (x - icon_size - 4, y - icon_size - 4))
+        
+        # Main red triangle
+        draw.polygon(self.draw_surface, (220, 30, 30), triangle_points)
+        draw.polygon(self.draw_surface, (255, 80, 80), triangle_points, 2)  # Border
+
+    def _draw_routing_indicator(self, unit: Unit, sp: tuple[float, float], zoom: float) -> None:
+        """Draw fleeing indicator (red arrow) for routing units."""
+        from pycc2.domain.value_objects.vec2 import Vec2
+        
+        # Arrow position (above unit)
+        arrow_x = int(sp[0])
+        arrow_y = int(sp[1]) - int(24 * zoom)
+        arrow_length = max(12, int(18 * zoom))
+        arrow_width = max(6, int(8 * zoom))
+        
+        # Calculate flee direction (toward target or default right)
+        direction = 0.0  # Default: flee to the right (East)
+        if hasattr(unit, '_routing_target') and unit._routing_target.position is not None:
+            dx = unit._routing_target.position.x - unit.position.pixel_position.x
+            dy = unit._routing_target.position.y - unit.position.pixel_position.y
+            direction = math.atan2(dy, dx)
+        
+        # Arrow end point
+        end_x = arrow_x + int(math.cos(direction) * arrow_length)
+        end_y = arrow_y + int(math.sin(direction) * arrow_length)
+        
+        # Arrow head points
+        head_angle1 = direction + math.pi * 0.75
+        head_angle2 = direction - math.pi * 0.75
+        head_length = arrow_width * 1.5
+        
+        head1_x = end_x + int(math.cos(head_angle1) * head_length)
+        head1_y = end_y + int(math.sin(head_angle1) * head_length)
+        head2_x = end_x + int(math.cos(head_angle2) * head_length)
+        head2_y = end_y + int(math.sin(head_angle2) * head_length)
+        
+        # Pulsing alpha
+        pulse = abs((self._animation_tick % 20) - 10) / 10.0
+        alpha = int(180 + 75 * pulse)
+        
+        # Draw arrow on transparent surface
+        arrow_surf = Surface((arrow_length * 2 + 10, arrow_length * 2 + 10), pygame.SRCALPHA)
+        center = (arrow_length + 5, arrow_length + 5)
+        
+        # Offset all points to surface center
+        local_start = (center[0] + arrow_x - center[0], center[1] + arrow_y - center[1])
+        local_end = (center[0] + end_x - arrow_x, center[1] + end_y - arrow_y)
+        local_head1 = (center[0] + head1_x - arrow_x, center[1] + head1_y - arrow_y)
+        local_head2 = (center[0] + head2_x - arrow_x, center[1] + head2_y - arrow_y)
+        
+        # Draw arrow shaft
+        draw.line(arrow_surf, (255, 50, 50, alpha), 
+                 (arrow_length + 5, arrow_length + 5), local_end, 3)
+        
+        # Draw arrow head
+        draw.polygon(arrow_surf, (255, 50, 50, alpha),
+                    [local_end, local_head1, local_head2])
+        
+        self.draw_surface.blit(arrow_surf, (arrow_x - arrow_length - 5, arrow_y - arrow_length - 5))
+
+    def _draw_wavering_indicator(self, x: int, y: int, zoom: float) -> None:
+        """Draw subtle yellow pulse for wavering units."""
+        icon_size = max(6, int(7 * zoom))
+        
+        # Subtle pulse effect (slower than pinned)
+        pulse = abs((self._animation_tick % 45) - 22) / 22.0
+        alpha = int(80 + 60 * pulse)  # Subtle: 80-140
+        
+        # Small yellow dot with soft glow
+        surf = Surface((icon_size * 3, icon_size * 3), pygame.SRCALPHA)
+        center = (icon_size * 1.5, icon_size * 1.5)
+        
+        # Outer glow
+        draw.circle(surf, (255, 220, 50, alpha // 2), center, icon_size)
+        # Inner core
+        draw.circle(surf, (255, 220, 0, alpha), center, icon_size // 2)
+        
+        self.draw_surface.blit(surf, (x - icon_size * 1.5, y - icon_size * 1.5))
+
+    def _draw_movement_mode_indicator(
+        self,
+        unit: Unit,
+        sp: tuple[float, float],
+        zoom: float,
+    ) -> None:
+        """
+        Draw visual indicator for unit's current movement mode.
+        
+        Shows different icons based on active command mode:
+        - Defend: Shield icon or defensive posture outline
+        - Fast Move: Speed lines or motion blur effect
+        - Sneak: Stealth/ghost icon or transparency effect
+        - Normal: No indicator
+        """
+        if self.draw_surface is None:
+            return
+        
+        # Check for movement mode
+        if not hasattr(unit, 'movement_mode'):
+            return
+        
+        try:
+            mode = unit.movement_mode
+            if mode == "normal":
+                return  # No indicator needed
+            
+            # Position below and to the left of unit
+            x = int(sp[0]) - int(16 * zoom)
+            y = int(sp[1]) + int(8 * zoom)
+            icon_size = max(8, int(10 * zoom))
+            
+            if mode == "defend":
+                self._draw_defend_posture(x, y, icon_size)
+            elif mode == "fast_move":
+                self._draw_fast_move_indicator(sp, zoom)
+            elif mode == "sneak":
+                self._draw_sneak_indicator(x, y, icon_size)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).debug(f"Failed to draw movement mode indicator: {e}")
+            pass  # Silently fail in test/mock environments
+
+    def _draw_defend_posture(self, x: int, y: int, size: int) -> None:
+        """Draw shield icon for defending units."""
+        # Shield shape (hexagon-like)
+        shield_points = [
+            (x, y - size),                    # Top point
+            (x + size // 2, y - size // 2),   # Upper right
+            (x + size // 2, y + size // 3),   # Lower right
+            (x, y + size // 2),               # Bottom point
+            (x - size // 2, y + size // 3),   # Lower left
+            (x - size // 2, y - size // 2),   # Upper left
+        ]
+        
+        # Blue shield with white border
+        draw.polygon(self.draw_surface, (70, 130, 200), shield_points)
+        draw.polygon(self.draw_surface, (150, 200, 255), shield_points, 2)
+
+    def _draw_fast_move_indicator(
+        self,
+        sp: tuple[float, float],
+        zoom: float,
+    ) -> None:
+        """Draw motion lines/speed effect for fast-moving units."""
+        # Pulsing speed lines behind unit
+        pulse = abs((self._animation_tick % 15) - 7) / 7.0
+        alpha = int(100 + 100 * pulse)
+        
+        base_x = int(sp[0])
+        base_y = int(sp[1])
+        line_length = max(15, int(25 * zoom))
+        
+        # Draw 3 horizontal speed lines to the left (showing forward motion)
+        surf = Surface((line_length + 10, 30), pygame.SRCALPHA)
+        
+        for i in range(3):
+            offset_y = i * 10 - 10
+            line_alpha = int(alpha * (1.0 - abs(offset_y) / 15))
+            start_x = line_length + 5
+            end_x = int(start_x - line_length * (0.6 + 0.4 * pulse))
+            
+            draw.line(
+                surf,
+                (255, 200, 50, line_alpha),
+                (start_x, 15 + offset_y),
+                (end_x, 15 + offset_y),
+                2
+            )
+        
+        self.draw_surface.blit(surf, (base_x - line_length - 5, base_y - 15))
+
+    def _draw_sneak_indicator(self, x: int, y: int, size: int) -> None:
+        """Draw stealth/ghost icon for sneaking units."""
+        # Semi-transparent ghost figure or eye icon
+        pulse = abs((self._animation_tick % 40) - 20) / 20.0
+        alpha = int(120 + 80 * pulse)
+        
+        # Ghostly circle with semi-transparency
+        surf = Surface((size * 2, size * 2), pygame.SRCALPHA)
+        center = (size, size)
+        
+        # Outer glow (purple/stealth color)
+        draw.circle(surf, (150, 100, 200, alpha // 2), center, size)
+        # Inner core
+        draw.circle(surf, (180, 140, 220, alpha), center, size // 2)
+        # Eye slit (to suggest "shhh" stealth)
+        eye_y = center[1] - size // 4
+        draw.line(surf, (50, 30, 80, alpha),
+                 (center[0] - size // 3, eye_y),
+                 (center[0] + size // 3, eye_y), 2)
+        
+        self.draw_surface.blit(surf, (x - size, y - size))
 
     # ====== 战斗视觉反馈系统 ======
 
@@ -383,6 +979,25 @@ class SpriteRenderer:
             self._unit_animators[unit_id] = UnitAnimator()
         self._unit_animators[unit_id].set_animation(AnimationType.DEATH)
 
+    def spawn_explosion(self, position: Vec2, size: str = "medium") -> None:
+        if not hasattr(self, "_particle_emitter"):
+            return
+        configs = {
+            "small": {"core": 3, "smoke": 2, "debris": 3, "core_life": 10, "smoke_life": 18},
+            "medium": {"core": 6, "smoke": 4, "debris": 6, "core_life": 18, "smoke_life": 30},
+            "large": {"core": 10, "smoke": 6, "debris": 10, "core_life": 24, "smoke_life": 45},
+        }
+        cfg = configs.get(size, configs["medium"])
+        x, y = position.x, position.y
+        self._particle_emitter.emit_explosion_core(x, y, count=cfg["core"], life=cfg["core_life"])
+        self._particle_emitter.emit_explosion_smoke_cloud(x, y, count=cfg["smoke"], life=cfg["smoke_life"])
+        self._particle_emitter.emit_debris(x, y, count=cfg["debris"])
+        self._particle_emitter.emit_explosion_ring(x, y)
+
+    def spawn_smoke_screen(self, position: Vec2, radius: float = 64.0) -> None:
+        if hasattr(self, "_particle_emitter"):
+            self._particle_emitter.emit_smoke_screen(position.x, position.y, radius=radius)
+
     def _draw_death_animation(
         self,
         unit: Unit,
@@ -405,7 +1020,7 @@ class SpriteRenderer:
             fade_color = (150, 80, 80, alpha)
             surf.fill(fade_color)
             draw.circle(surf, (180, 60, 60, alpha), (size // 2, size // 2), size // 2)
-            self._screen.blit(surf, (int(sp[0]) - size // 2, int(sp[1]) - size // 2))
+            self.draw_surface.blit(surf, (int(sp[0]) - size // 2, int(sp[1]) - size // 2))
 
     def _draw_effects(self, camera: Camera) -> None:
         import pygame
@@ -430,24 +1045,40 @@ class SpriteRenderer:
                 if ring_sz > 0:
                     try:
                         gfxdraw.circle(
-                            self._screen, (*color[:3],), (int(sp[0]), int(sp[1])), ring_sz, 1
+                            self.draw_surface, (*color[:3],), (int(sp[0]), int(sp[1])), ring_sz, 1
                         )
                     except (TypeError, ValueError):
-                        draw.circle(self._screen, color[:3], (int(sp[0]), int(sp[1])), ring_sz, 1)
-            elif p.type in (ParticleEmitter.ParticleType.SMOKE,):
-                surf = pygame.Surface((sz * 2, sz * 2), pygame.SRCALPHA)
-                draw.circle(surf, color, (sz, sz), sz)
-                self._screen.blit(surf, (int(sp[0]) - sz, int(sp[1]) - sz))
+                        draw.circle(self.draw_surface, color[:3], (int(sp[0]), int(sp[1])), ring_sz, 1)
+            elif p.type in (ParticleEmitter.ParticleType.SMOKE, ParticleEmitter.ParticleType.SMOKE_SCREEN):
+                if p.type == ParticleEmitter.ParticleType.SMOKE_SCREEN:
+                    expand = 1.0 + p.progress * 1.5
+                    smoke_sz = int(sz * expand)
+                    smoke_alpha = int(alpha * (1.0 - p.progress * 0.7))
+                    if smoke_sz > 0 and smoke_alpha > 0:
+                        surf = pygame.Surface((smoke_sz * 2, smoke_sz * 2), pygame.SRCALPHA)
+                        draw.circle(surf, (*p.color, min(255, smoke_alpha)), (smoke_sz, smoke_sz), smoke_sz)
+                        self.draw_surface.blit(surf, (int(sp[0]) - smoke_sz, int(sp[1]) - smoke_sz))
+                else:
+                    surf = pygame.Surface((sz * 2, sz * 2), pygame.SRCALPHA)
+                    draw.circle(surf, color, (sz, sz), sz)
+                    self.draw_surface.blit(surf, (int(sp[0]) - sz, int(sp[1]) - sz))
+            elif p.type == ParticleEmitter.ParticleType.EXPLOSION_CORE:
+                core_sz = int(sz * (1.0 + p.progress * 2.0))
+                core_alpha = int(alpha * (1.0 - p.progress))
+                if core_sz > 0 and core_alpha > 0:
+                    surf = pygame.Surface((core_sz * 2, core_sz * 2), pygame.SRCALPHA)
+                    draw.circle(surf, (*p.color, min(255, core_alpha)), (core_sz, core_sz), core_sz)
+                    self.draw_surface.blit(surf, (int(sp[0]) - core_sz, int(sp[1]) - core_sz))
             elif p.type in (ParticleEmitter.ParticleType.DEBRIS,):
                 rect_surf = pygame.Surface((sz, sz), pygame.SRCALPHA)
                 rect_surf.fill(color)
                 rotated = pygame.transform.rotate(rect_surf, p.rotation)
-                self._screen.blit(
+                self.draw_surface.blit(
                     rotated,
                     (int(sp[0]) - rotated.get_width() // 2, int(sp[1]) - rotated.get_height() // 2),
                 )
             else:
-                draw.circle(self._screen, color, (int(sp[0]), int(sp[1])), sz)
+                draw.circle(self.draw_surface, color, (int(sp[0]), int(sp[1])), sz)
 
         for p in self._effect_particles:
             px, py = p["pos"]
@@ -458,10 +1089,10 @@ class SpriteRenderer:
                 color = (*p["color"], min(255, p["life"] * 30))
             else:
                 color = (*p["color"], min(255, p["life"] * 12))
-            draw.circle(self._screen, color, (int(sp[0]), int(sp[1])), max(1, int(sz)))
+            draw.circle(self.draw_surface, color, (int(sp[0]), int(sp[1])), max(1, int(sz)))
 
     def _draw_damage_numbers(self, camera: Camera) -> None:
-        if self._screen is None:
+        if self.draw_surface is None:
             return
         from pycc2.domain.value_objects.vec2 import Vec2
 
@@ -512,8 +1143,8 @@ class SpriteRenderer:
                 text_surf.set_alpha(alpha)
                 shadow_surf.set_alpha(alpha)
 
-            self._screen.blit(shadow_surf, (int(sp[0]) + 2, int(sp[1]) + 2))
-            self._screen.blit(text_surf, (int(sp[0]), int(sp[1])))
+            self.draw_surface.blit(shadow_surf, (int(sp[0]) + 2, int(sp[1]) + 2))
+            self.draw_surface.blit(text_surf, (int(sp[0]), int(sp[1])))
 
     def _update_effects(self) -> None:
         """更新所有特效状态"""

@@ -1,4 +1,4 @@
-# PyCC2 测试计划 v2.0 — AI深度提升+新游戏设置 (2233 tests)
+# PyCC2 测试计划 v0.1.1 — M1紧急修复 (2767 tests)
 
 ## 1. 测试金字塔
 
@@ -25,7 +25,7 @@ PyCC2 采用经典的测试金字塔策略，强调**底层单元测试为主，
 | **集成测试 (Integration)** | ~86 | 4% | < 3min | 核心开发 | 每次PR |
 | **端到端测试 (E2E)** | ~116 | 5% | < 10min | QA团队 | 每日构建 |
 
-**总计: 2233 个测试用例 (P0-P9 全量)**
+**总计: 2767 个测试用例 (P0-M1 全量)**
 
 ---
 
@@ -1322,7 +1322,7 @@ source = [
 | test_mission_4_night.py | unit | ~18 | Mission 4 Night Assault logic: night vision, stealth mechanics, flare effects, AI night behavior | P4.2-C |
 | test_mission_5_armor.py | unit | ~17 | Mission 5 Armored Column: anti-tank tactics, vehicle combat, defensive formations | P4.2-C |
 | test_new_maps.py | unit | ~12 | New map data validation: night_map, road_ambush, bridge_assault, defense_line schema & loading | P4.2-D |
-| **总计 (P0-P9)** | **-** | **2233** | **P0-P9 full suite** | **-** |
+| **总计 (P0-M1)** | **-** | **2767** | **P0-M1 full suite** | **-** |
 
 ### 8.1 P5 Phase Tests (Campaign Core)
 
@@ -1361,7 +1361,7 @@ source = [
 | test_mission_p7_integration.py | integration | ~20 | M6-M10完整流程测试 + 难度曲线验证 + 解锁进度 | P7.x |
 | **P7 合计** | **-** | **~189** | **Content Expansion 全套** | **-** |
 
-### 8.4 Test Growth Summary (v2.0)
+### 8.4 Test Growth Summary (v0.1.1)
 
 | 阶段 | 当前累计 | 新增 | 目标总数 | 增长率 |
 |------|----------|------|----------|--------|
@@ -1370,7 +1370,8 @@ source = [
 | P6 Complete | ~1822 | +205 | +13% | 战斗机制边缘用例 |
 | P7 Complete | ~2011 | +189 | +11% | 内容驱动，较少新代码路径 |
 | P8 Complete | ~1944 | +334 | +17% | 地图/战役/补给线/部署UI |
-| P9 Complete (**v2.0**) | **2233** | **+289** | **+15%** | P0 AI行为+游戏设置+战役完成 |
+| P9 Complete | ~2233 | +289 | +15% | P0 AI行为+游戏设置+战役完成 |
+| M1 Fix (**v0.1.1**) | **2767** | **+534** | **+24%** | M1紧急修复+回归测试 |
 
 ### 8.5 P0 AI Behavior Test Coverage
 
@@ -2012,6 +2013,7 @@ def deterministic_rng():
 | v1.7 | 2026-05-19 | PM+CC2 Analysis | CC2差距分析完成: 新增P4.3测试(~42夜战/装甲/视觉) + QG E2E(+61文档/质量/E2E), 测试总数1377, 新增Section 8.1/8.2/8.5 P4.3统计与P5预览, 新增Section 14 P5 Test Plan Preview(P5.1/P5.2/P5.3场景+覆盖矩阵+Gate Criteria) |
 | v1.8 | 2026-05-19 | P5/P6/P7 Complete | **P5 Campaign Core完成**: ~240 tests (CampaignState/BattleResult/UnitVeterancy/StrategicMap/OperationTimeline). **P6 Combat Depth完成**: ~205 tests (Swiss Cheese/Fatigue/AAR/TimeControl). **P7 Content Expansion完成**: ~189 tests (M6-M10新任务+MAP-06~10新地图+历史真实性). **测试总数1566** (+189 from P5/P6/P7). 新增Section 8.1-8.4 P5/P6/P7完整统计与Test Growth Summary |
 | v2.0 | 2026-05-20 | P8/P9 Complete | **P8 地图与战役补全完成**: ~334 tests (9+Arnhem战区新地图/四层战役/补给线/部署UI). **P9 AI深度提升+新游戏设置完成**: ~289 tests (P0 AI行为7项+游戏设置5预设+战役完成3/7/29). **测试总数2233** (+667 from P8/P9). 新增Section 8.5 P0 AI Behavior Test Coverage / Section 8.6 Game Settings Test Coverage / Section 8.7 Campaign Completion Test Coverage / E2E Scenario 4-6 (Campaign Flow/AI Behaviors/Game Settings). 测试金字塔更新(单元~2031/集成~86/E2E~116) |
+| v0.1.1 | 2026-05-23 | M1 Fix Update | **M1紧急修复进展**: P0-1(display_name)/P0-2(属性别名)/P0-3(AI导入)/P0-4(set_mode)已修复。测试总数2767(1 failed)。版本号统一为v0.1.1 |
 
 ## 附录 G: 相关文档
 

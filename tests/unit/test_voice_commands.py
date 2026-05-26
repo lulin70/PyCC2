@@ -27,6 +27,7 @@ class TestVoiceCommandEnum:
             "MOVE_OUT", "FIRE", "TAKE_COVER", "RETREAT",
             "ENEMY_SPOTTED", "FLANK_LEFT", "FLANK_RIGHT",
             "SUPPRESS", "HOLD_POSITION", "DEMOLISH",
+            "WAVERING", "PINNED", "BROKEN", "ROUTING",
         }
         actual = {cmd.name for cmd in VoiceCommand}
         assert actual == expected

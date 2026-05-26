@@ -1,6 +1,6 @@
-# インストールガイド — PyCC2 **v0.6-p4w2**
+# インストールガイド — PyCC2 **v0.1.1**
 
-PyCC2 v0.6-p4w2の全サポートプラットフォームにおける完全なインストール手順。
+PyCC2 v0.1.1の全サポートプラットフォームにおける完全なインストール手順。
 
 ### バージョン履歴
 
@@ -127,7 +127,7 @@ pip install -e .
 ```bash
 python -c "import pycc2; print('PyCC2 imported successfully')"
 python -m pytest tests/ -q --tb=no
-# 期待値: 1377 passed in ~30 seconds
+# 期待値: 2767 passed in ~30 seconds
 ```
 
 ---

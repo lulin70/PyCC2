@@ -30,6 +30,12 @@ class VoiceCommand(Enum):
     HOLD_POSITION = "Hold position!"
     DEMOLISH = "Blow the bridge!"
 
+    # Morale collapse voice commands
+    WAVERING = "We're taking heavy fire!"
+    PINNED = "We can't move!"
+    BROKEN = "Fall back! Fall back!"
+    ROUTING = "Run! Every man for himself!"
+
 
 # German equivalents for Axis faction
 _GERMAN_COMMANDS: dict[VoiceCommand, str] = {
@@ -43,6 +49,10 @@ _GERMAN_COMMANDS: dict[VoiceCommand, str] = {
     VoiceCommand.SUPPRESS: "Niederhalten!",
     VoiceCommand.HOLD_POSITION: "Halten Sie!",
     VoiceCommand.DEMOLISH: "Sprengen!",
+    VoiceCommand.WAVERING: "Wir werden beschossen!",
+    VoiceCommand.PINNED: "Wir können nicht vorwärts!",
+    VoiceCommand.BROKEN: "Zurück! Zurück!",
+    VoiceCommand.ROUTING: "Rennen! Jeder für sich!",
 }
 
 # Approximate formant frequencies (Hz) for vowel-like synthesis
@@ -94,6 +104,9 @@ class VoiceCommandGenerator:
         text = cls._get_command_text(command, faction)
         duration = cls._compute_duration(text)
         wave = cls._synthesize_voice(text, duration)
+        # Morale collapse commands sound more urgent
+        if command in (VoiceCommand.BROKEN, VoiceCommand.ROUTING):
+            wave = cls._add_urgency(wave)
         scaled = cls._apply_volume(wave, volume)
         return scaled
 
@@ -197,6 +210,29 @@ class VoiceCommandGenerator:
         volume = max(0.0, min(1.0, volume))
         return (raw.astype(np.float64) * volume).astype(np.int16)
 
+    @classmethod
+    def _add_urgency(cls, wave: np.ndarray) -> np.ndarray:
+        """Add urgency to a voice waveform for morale collapse.
+
+        Increases pitch slightly and adds distortion to convey panic.
+        """
+        n = len(wave)
+        if n == 0:
+            return wave
+        # Pitch shift up by ~20% (resample at lower rate then truncate)
+        shift = 1.2
+        indices = np.arange(n) / shift
+        indices = indices[indices < n].astype(int)
+        shifted = wave[indices]
+        # Pad back to original length
+        if len(shifted) < n:
+            shifted = np.pad(shifted, (0, n - len(shifted)))
+        else:
+            shifted = shifted[:n]
+        # Add slight distortion (clipping)
+        shifted = np.clip(shifted.astype(np.float64) * 1.3, -32767, 32767).astype(np.int16)
+        return shifted
+
 
 def play_command(command: VoiceCommand, faction: Faction, volume: float = 0.5) -> None:
     """Generate and play a voice command via pygame.mixer if available."""
@@ -211,3 +247,30 @@ def play_command(command: VoiceCommand, faction: Faction, volume: float = 0.5) -
         sound.play()
     except Exception:
         pass  # pygame unavailable – sound was generated but not played
+
+
+# Morale state to VoiceCommand mapping
+_MORALE_VOICE_MAP: dict[str, VoiceCommand] = {
+    "wavering": VoiceCommand.WAVERING,
+    "pinned": VoiceCommand.PINNED,
+    "broken": VoiceCommand.BROKEN,
+    "routing": VoiceCommand.ROUTING,
+}
+
+
+def play_morale_collapse(morale_state: str, faction: Faction, volume: float = 0.6) -> None:
+    """Play a morale collapse voice cry when unit morale drops.
+
+    Parameters
+    ----------
+    morale_state:
+        One of "wavering", "pinned", "broken", "routing".
+    faction:
+        The faction of the unit (determines language).
+    volume:
+        Output volume (slightly louder than normal commands).
+    """
+    command = _MORALE_VOICE_MAP.get(morale_state.lower())
+    if command is None:
+        return
+    play_command(command, faction, volume)

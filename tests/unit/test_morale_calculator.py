@@ -97,65 +97,65 @@ class TestMoraleEventWeights:
 
 
 class TestStateTransitions:
-    def test_state_01_normal_minus15_stays_normal(self, calc: MoraleCalculator):
+    def test_state_01_rallied_minus15_crosses_to_wavering(self, calc: MoraleCalculator):
         mc = MoraleComponent(value=80)
         result = calc.calculate_event_effect(mc, MoraleEvent.ALLY_KILLED)
-        assert result.state_changed is False
-        assert mc.state == MoraleState.NORMAL
+        assert result.state_changed is True
+        assert result.new_state == "WAVERING"
 
-    def test_state_02_crosses_panic_threshold(self, calc: MoraleCalculator):
-        mc = MoraleComponent(value=35)
+    def test_state_02_crosses_pinned_threshold(self, calc: MoraleCalculator):
+        mc = MoraleComponent(value=50)
         result = calc.calculate_event_effect(mc, MoraleEvent.ALLY_KILLED)
         assert result.state_changed is True
-        assert result.new_state == "PANICED"
-        assert result.old_state == "NORMAL"
+        assert result.new_state == "PINNED"
+        assert result.old_state == "WAVERING"
 
-    def test_state_03_crosses_rout_threshold(self, calc: MoraleCalculator):
-        mc = MoraleComponent(value=15)
-        result = calc.calculate_event_effect(mc, MoraleEvent.PANIC_CONTAGION)
+    def test_state_03_crosses_broken_threshold(self, calc: MoraleCalculator):
+        mc = MoraleComponent(value=30)
+        result = calc.calculate_event_effect(mc, MoraleEvent.LEADER_KILLED)
         assert result.state_changed is True
-        assert result.new_state == "ROUTING"
-        assert result.old_state == "PANICED"
+        assert result.new_state == "BROKEN"
+        assert result.old_state == "PINNED"
 
-    def test_state_04_already_panicked_stays_panicked(self, calc: MoraleCalculator):
-        mc = MoraleComponent(value=25)
+    def test_state_04_already_broken_stays_broken(self, calc: MoraleCalculator):
+        mc = MoraleComponent(value=10)
         result = calc.calculate_event_effect(mc, MoraleEvent.PANIC_CONTAGION)
         assert result.state_changed is False
 
-    def test_state_05_routing_is_terminal(self, calc: MoraleCalculator):
+    def test_state_05_broken_is_terminal(self, calc: MoraleCalculator):
         mc = MoraleComponent(value=5)
         result = calc.calculate_event_effect(mc, MoraleEvent.PANIC_CONTAGION)
         new_val = max(0, 5 + result.morale_delta)
         predicted = MoraleCalculator.predict_state(new_val, -10)
-        assert predicted == "ROUTING"
+        assert predicted == "BROKEN"
 
-    def test_state_06_positive_recovery_from_paniced(self, calc: MoraleCalculator):
-        mc = MoraleComponent(value=25)
+    def test_state_06_positive_recovery_from_broken(self, calc: MoraleCalculator):
+        mc = MoraleComponent(value=15)
         result = calc.calculate_event_effect(mc, MoraleEvent.COMMANDER_NEARBY)
         assert result.state_changed is True
-        assert result.new_state == "NORMAL"
-        assert result.old_state == "PANICED"
+        assert result.new_state == "PINNED"
+        assert result.old_state == "BROKEN"
 
     def test_state_07_state_changed_flag(self, calc: MoraleCalculator):
         mc_high = MoraleComponent(value=80)
-        mc_low = MoraleComponent(value=20)
+        mc_low = MoraleComponent(value=30)
         r1 = calc.calculate_event_effect(mc_high, MoraleEvent.RALLY)
         r2 = calc.calculate_event_effect(mc_low, MoraleEvent.ALLY_KILLED)
         assert r1.state_changed is False
         assert r2.state_changed is True
 
     def test_state_08_old_new_state_recorded(self, calc: MoraleCalculator):
-        mc = MoraleComponent(value=34)
+        mc = MoraleComponent(value=50)
         result = calc.calculate_event_effect(mc, MoraleEvent.LEADER_KILLED)
-        assert result.old_state == "NORMAL"
-        assert result.new_state == "ROUTING"
+        assert result.old_state == "WAVERING"
+        assert result.new_state == "PINNED"
 
-    def test_state_09_custom_thresholds(self):
-        mc = MoraleComponent(value=51, panic_threshold=50, rout_threshold=20)
+    def test_state_09_broken_at_low_value(self):
+        mc = MoraleComponent(value=10)
         calc = MoraleCalculator()
         result = calc.calculate_event_effect(mc, MoraleEvent.NEAR_EXPLOSION)
-        assert result.state_changed is True
-        assert result.new_state == "PANICED"
+        assert result.state_changed is False
+        assert result.new_state is None
 
     def test_state_10_clamp_boundaries(self, calc: MoraleCalculator):
         mc_low = MoraleComponent(value=5)
@@ -164,8 +164,8 @@ class TestStateTransitions:
         calc.calculate_event_effect(mc_high, MoraleEvent.COMMANDER_NEARBY)
         predicted_low = MoraleCalculator.predict_state(5, -25)
         predicted_high = MoraleCalculator.predict_state(98, 10)
-        assert predicted_low in ("ROUTING", "PANICED")
-        assert predicted_high == "NORMAL"
+        assert predicted_low == "BROKEN"
+        assert predicted_high == "RALLIED"
 
 
 class TestPanicContagion:
@@ -223,27 +223,27 @@ class TestNaturalRecovery:
 
 
 class TestShouldPanicContagion:
-    def test_should_contagion_true_when_paniced(self, calc: MoraleCalculator):
-        mc = MoraleComponent(value=20)
+    def test_should_contagion_true_when_broken(self, calc: MoraleCalculator):
+        mc = MoraleComponent(value=10)
         assert calc.should_panic_contagion(mc) is True
 
-    def test_should_contagion_false_when_normal(self, calc: MoraleCalculator):
+    def test_should_contagion_false_when_rallied(self, calc: MoraleCalculator):
         mc = MoraleComponent(value=80)
         assert calc.should_panic_contagion(mc) is False
 
 
 class TestPredictState:
-    def test_predict_normal(self):
-        assert MoraleCalculator.predict_state(80, 0) == "NORMAL"
+    def test_predict_rallied(self):
+        assert MoraleCalculator.predict_state(80, 0) == "RALLIED"
 
-    def test_predict_paniced(self):
-        assert MoraleCalculator.predict_state(20, 0) == "PANICED"
+    def test_predict_broken(self):
+        assert MoraleCalculator.predict_state(10, 0) == "BROKEN"
 
-    def test_predict_routing(self):
-        assert MoraleCalculator.predict_state(5, 0) == "ROUTING"
+    def test_predict_pinned(self):
+        assert MoraleCalculator.predict_state(25, 0) == "PINNED"
 
     def test_predict_with_delta(self):
-        assert MoraleCalculator.predict_state(40, -15) == "PANICED"
+        assert MoraleCalculator.predict_state(50, -15) == "PINNED"
 
-    def test_predict_custom_thresholds(self):
-        assert MoraleCalculator.predict_state(45, 0, panic_thr=50, rout_thr=20) == "PANICED"
+    def test_predict_wavering(self):
+        assert MoraleCalculator.predict_state(45, 0) == "WAVERING"

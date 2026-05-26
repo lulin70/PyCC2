@@ -181,7 +181,7 @@ class SaveController:
                     value=morale_data.get("value", 85),
                     panic_threshold=morale_data.get("panic_threshold", 20),
                     suppression=morale_data.get("suppression", 0),
-                    state=MoraleState[morale_data.get("state", "NORMAL")],
+                    state=MoraleState[morale_data.get("state", "RALLIED")],
                 )
 
                 weapon_data = ud.get("weapon", {})

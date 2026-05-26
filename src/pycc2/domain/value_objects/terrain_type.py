@@ -4,7 +4,21 @@ TerrainType IntEnum - 14 Terrain Types with Properties
 
 from __future__ import annotations
 
-from enum import IntEnum
+from enum import IntEnum, auto
+
+
+class CoverType(IntEnum):
+    """Cover classification for combat resolution.
+
+    - NONE: Open ground - no protection
+    - SOFT: Hedges, bushes, grass - reduces accuracy but doesn't block
+    - HARD: Buildings, walls, bunkers - can completely block shots
+    - HYBRID: Building interior - hard walls + soft windows
+    """
+    NONE = 0
+    SOFT = 1
+    HARD = 2
+    HYBRID = 3
 
 
 class TerrainType(IntEnum):
@@ -182,6 +196,27 @@ class TerrainType(IntEnum):
             TerrainType.SWAMP: "Swamp",
         }
         return _names[self]
+
+    @property
+    def cover_type(self) -> CoverType:
+        """Classify terrain cover as NONE, SOFT, HARD, or HYBRID."""
+        _cover_types: dict[TerrainType, CoverType] = {
+            TerrainType.OPEN: CoverType.NONE,
+            TerrainType.ROAD: CoverType.NONE,
+            TerrainType.GRASS: CoverType.SOFT,
+            TerrainType.WOODS: CoverType.SOFT,
+            TerrainType.BUILDING_ENTERABLE: CoverType.HYBRID,
+            TerrainType.BUILDING_SOLID: CoverType.HARD,
+            TerrainType.WATER: CoverType.NONE,
+            TerrainType.HEDGE: CoverType.SOFT,
+            TerrainType.WALL: CoverType.HARD,
+            TerrainType.ROUGH: CoverType.SOFT,
+            TerrainType.SHALLOW: CoverType.NONE,
+            TerrainType.BRIDGE: CoverType.NONE,
+            TerrainType.CRATER: CoverType.SOFT,
+            TerrainType.SWAMP: CoverType.SOFT,
+        }
+        return _cover_types[self]
 
 
 def get_movement_cost(terrain: TerrainType) -> float:

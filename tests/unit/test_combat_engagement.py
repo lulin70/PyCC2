@@ -24,7 +24,7 @@ def _make_unit(
     ammo: int = 30,
     max_ammo: int = 30,
     reload_ticks: int = 0,
-    morale_state: MoraleState = MoraleState.NORMAL,
+    morale_state: MoraleState = MoraleState.RALLIED,
     pos: TileCoord | None = None,
 ) -> Unit:
     wc = WeaponComponent(
@@ -33,12 +33,12 @@ def _make_unit(
         max_ammo=max_ammo,
         reload_ticks_left=reload_ticks,
     )
-    if morale_state != MoraleState.NORMAL:
+    if morale_state != MoraleState.RALLIED:
         mc = MoraleComponent(value=morale_val)
         mc.state = morale_state
-        if morale_state == MoraleState.SUPPRESSED:
+        if morale_state == MoraleState.WAVERING:
             mc.suppression = 10
-        elif morale_state in (MoraleState.PANICED, MoraleState.ROUTING):
+        elif morale_state in (MoraleState.BROKEN, MoraleState.ROUTING):
             mc.value = morale_val
     else:
         mc = MoraleComponent(value=morale_val)
@@ -115,13 +115,13 @@ class TestEvaluateEngagement_CeaseFire:
 
 class TestEvaluateEngagement_Morale:
     def test_suppressed_takes_cover(self, engagement: CombatEngagement):
-        unit = _make_unit(morale_state=MoraleState.SUPPRESSED)
+        unit = _make_unit(morale_state=MoraleState.WAVERING)
         target = _make_unit(unit_id="e1", pos=TileCoord(6, 6))
         result = engagement.evaluate_engagement(unit, target, distance=5.0)
         assert result.decision == EngagementDecision.TAKE_COVER
 
     def test_paniced_retreats(self, engagement: CombatEngagement):
-        unit = _make_unit(morale_val=15, morale_state=MoraleState.PANICED)
+        unit = _make_unit(morale_val=15, morale_state=MoraleState.BROKEN)
         target = _make_unit(unit_id="e1", pos=TileCoord(6, 6))
         result = engagement.evaluate_engagement(unit, target, distance=5.0)
         assert result.decision == EngagementDecision.RETREAT

@@ -240,11 +240,35 @@ class BallisticEngine:
         return max(0.05, 1.0 - (distance_tiles / effective_range) * 0.6)
 
     def _calc_cover_modifier(self, target: Unit, game_map: GameMap | None) -> float:
+        """Calculate hit chance modifier based on target's cover type.
+
+        Hard cover (buildings, walls): chance to completely block the shot.
+        Soft cover (hedges, woods, grass): reduces accuracy by concealment.
+        Hybrid (enterable buildings): hard walls + soft windows.
+        """
         if game_map is None:
             return 1.0
         terrain = game_map.get_terrain(target.position.tile_coord)
-        cover = float(terrain.cover_bonus)
-        return max(0.1, 1.0 - cover)
+        from pycc2.domain.value_objects.terrain_type import CoverType
+
+        cover_type = terrain.cover_type
+
+        if cover_type == CoverType.HARD:
+            # Hard cover: chance to completely block the shot
+            block_chance = terrain.cover_bonus  # e.g., 0.50 for buildings, 0.70 for walls
+            return 1.0 - block_chance
+        elif cover_type == CoverType.SOFT:
+            # Soft cover: reduces accuracy by concealment
+            return 1.0 - terrain.concealment_modifier * 0.5
+        elif cover_type == CoverType.HYBRID:
+            # Enterable building: hard walls block, but windows provide firing arcs
+            # Reduced block compared to solid buildings
+            block_chance = terrain.cover_bonus * 0.6
+            concealment = terrain.concealment_modifier * 0.3
+            return 1.0 - block_chance - concealment
+        else:
+            # No cover
+            return 1.0
 
     def _calc_armor_factor(
         self,

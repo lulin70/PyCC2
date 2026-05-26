@@ -1,8 +1,8 @@
 # PyCC2 技术债清单
 
-> **版本**: v2.0 | **日期**: 2026-05-20 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-05-20 | **已解决**: 20/20 | **仍存在**: 0/20
-> **状态**: ✅ 全部清理完成
+> **版本**: v0.1.1 | **日期**: 2026-05-24 | **原则**: 不留技术债，发现即记录，按计划清理
+> **上次核查**: 2026-05-24 (等距投影Phase 1-2完成后更新) | **P0未解决**: 1 | **P1未解决**: 6 | **P2未解决**: 9
+> **状态**: ⚠️ 1个P0 + 6个P1 + 9个P2 未解决（TD-024已修复，TD-030已修复，集成测试已补充）
 
 ---
 
@@ -10,212 +10,276 @@
 
 | 类别 | 数量 | 严重程度 | 清理状态 |
 |------|------|---------|---------|
-| 架构违规 | 2 | 🔴 高 | ✅ 全部清理 |
-| 未集成模块 | 5 | 🔴 高 | ✅ 全部清理 |
-| 数据不一致 | 3 | 🟡 中 | ✅ 全部清理 |
-| 代码质量 | 5 | 🟡 中 | ✅ 全部清理 |
-| 测试缺失 | 5 | 🟡 中 | ✅ 全部清理 |
-| **合计** | **20** | — | **20/20 全部清理** |
+| 🔴 P0 致命（游戏不可玩） | 1 | 🔴 阻塞 | 🟡 4/5已修复 |
+| 🟡 P1 严重（功能受损） | 6 | 🟡 严重 | ❌ 未解决 |
+| 🟢 P2 中等（质量/维护） | 9 | 🟢 中等 | ❌ 未解决 |
+| 🆕 等距投影新增 | 3 | 🟢 中等 | 🟡 部分解决 |
+| v2.0旧条目（声称已解决） | 20 | — | ⚠️ 待验证 |
+| **合计（活跃）** | **19** | — | **4/19 已解决** |
 
 ---
 
-## 二、详细清单
+## 二、P0 致命技术债（游戏不可玩）
 
-### 🔴 TD-001: EnhancedRenderer未集成到主游戏循环
+### ~~🔴 TD-021: Unit缺少display_name属性~~ ✅ 已修复 (2026-05-23)
 
-- **描述**: Phase A4创建了EnhancedRenderer，但主游戏仍使用ProtoRenderer
-- **影响**: 所有地图视觉增强(纹理/光影/装饰物)无法在游戏中体现
-- **文件**: `src/pycc2/presentation/rendering/enhanced_renderer.py`
-- **状态**: ✅ **已解决** (2026-05-20: GameLoop+RenderPipeline已切换到EnhancedRenderer，添加resize()兼容方法)
-- **清理方案**: ~~替换ProtoRenderer为EnhancedRenderer，更新GameLoop引用~~ 已完成
+- **描述**: Unit类未定义display_name属性，cc2_bottom_panel渲染时直接访问unit.display_name触发AttributeError
+- **影响**: 底部面板渲染崩溃，无法显示任何单位信息，游戏不可玩
+- **文件**: `src/pycc2/domain/entities/unit.py`, `src/pycc2/presentation/ui/cc2_bottom_panel.py`
+- **状态**: ✅ 已修复 — 在Unit类中添加了display_name属性
+- **修复日期**: 2026-05-23
 
-### 🔴 TD-002: CombatState(压制+隐蔽)未集成到Unit实体
+### ~~🔴 TD-022: HealthComponent/MoraleComponent属性名不匹配~~ ✅ 已修复 (2026-05-23)
 
-- **描述**: Phase C1/C2创建了SuppressionState和ConcealmentProfile，但未附加到Unit实体
-- **影响**: 压制和隐蔽系统无法在战斗中生效
-- **文件**: `src/pycc2/domain/systems/combat_mechanics_enhanced.py`
-- **状态**: ✅ **已解决** (2026-05-20: Unit添加combat_state字段+is_pinned/suppression_level/concealment_level属性)
-- **清理方案**: ~~在Unit实体中添加combat_state字段~~ 已完成
+- **描述**: 组件暴露的属性名（如current_health/morale_value）与调用方期望的属性名（如hp/morale）不一致
+- **影响**: 战斗结算崩溃，单位受伤/士气变化无法执行，游戏不可玩
+- **文件**: `src/pycc2/domain/components/health_component.py`, `src/pycc2/domain/components/morale_component.py`
+- **状态**: ✅ 已修复 — 添加了current/max property别名
+- **修复日期**: 2026-05-23
 
-### 🔴 TD-003: CC2武器/单位数据库未替换旧系统
+### ~~🔴 TD-023: AttackNearestAI/MoveToObjectiveAI导入失败~~ ✅ 已修复 (2026-05-23)
 
-- **描述**: 创建了cc2_authentic_weapons.py(41种武器)和cc2_authentic_units.py(39种单位)，但campaign.py仍使用旧的dict模板
-- **影响**: 新的武器差异化和单位多样性无法在战役中体现
-- **状态**: ⚠️ 已创建campaign_four_layer.py替代，campaign.py已添加弃用通知(v0.9移除)
-- **清理方案**: 迁移到campaign_four_layer.py的四层架构
-- **计划清理**: v0.9
+- **描述**: AI行为类文件路径或类名与import语句不匹配，运行时ImportError
+- **影响**: AI系统完全瘫痪，敌方无法行动，游戏不可玩
+- **文件**: AI行为模块及引用处
+- **状态**: ✅ 已修复 — 修正了import路径和类名
+- **修复日期**: 2026-05-23
 
-### 🔴 TD-004: 部署阶段系统未集成UI
+### ~~🔴 TD-024: set_mode()不支持fast/sneak参数~~ ✅ 已修复 (2026-05-24)
 
-- **描述**: DeploymentPhase类已实现，但无UI交互和区域渲染
-- **影响**: 玩家无法在战前拖放单位
-- **文件**: `src/pycc2/presentation/ui/deployment_ui.py`
-- **状态**: ✅ **已解决** (2026-05-20: DeploymentUI集成到GameLoop，支持start_deployment/complete_deployment/get_deployment_state)
-- **清理方案**: ~~创建DeploymentUI组件，集成到游戏主循环~~ 已完成
+- **描述**: InteractionController.set_mode()仅接受字符串枚举，不接受fast/sneak等CC2原版移动模式参数
+- **影响**: 移动模式命令不可操作，玩家无法切换行军/潜行模式
+- **文件**: `src/pycc2/presentation/input/interaction_controller.py`
+- **状态**: ✅ 已修复 — set_mode()已扩展支持fast/sneak参数
+- **修复日期**: 2026-05-24
 
-### 🔴 TD-005: EnhancedTile数据未与地图加载器对接
+### 🔴 TD-025: 旧UI组件文件未清理
 
-- **描述**: 地图JSON已包含tiles_enhanced数据，但GameMap.from_json()仍只读取tiles(整数数组)
-- **影响**: 装饰物/高度/变体数据在游戏中不可用
-- **文件**: `src/pycc2/domain/entities/game_map.py`
-- **状态**: ✅ **已解决** (2026-05-20: GameMap添加tiles_enhanced字段+get_enhanced_tile()+has_enhanced_data()方法)
-- **清理方案**: ~~更新from_json()支持tiles_enhanced字段~~ 已完成
-
-### 🟡 TD-006: 旧enhanced_mission_system.py与新cc2_authentic_units.py重复
-
-- **描述**: 两个文件都定义了单位模板和武器数据，存在概念重复
-- **影响**: 维护混乱，不知道该用哪个
-- **状态**: ✅ **已解决** (2026-05-19: 确认无任何文件引用，已删除)
-- **清理方案**: ~~废弃enhanced_mission_system.py~~ 已完成
-
-### 🟡 TD-007: 地图扩展脚本生成的边界区域可能不够自然
-
-- **描述**: expand_maps_phase_a1.py使用简单噪声生成边界，部分地图边界过渡生硬
-- **影响**: 视觉上可能看出"核心区"和"扩展区"的分界
-- **状态**: ⚠️ 已记录4个具体问题：noise2d用hash()不可复现、全局RNG污染、边缘分析过简、目标截断偏移
-- **清理方案**: 改进噪声算法，增加更多地形过渡规则
-- **计划清理**: Phase 8.1 (新地图创建时改进)
-
-### 🟡 TD-008: 渲染器中PaletteGenerator使用random导致纹理不可复现
-
-- **描述**: PaletteGenerator.__init__中使用random生成调色板，每次运行颜色不同
-- **影响**: 同一地图每次启动外观不同
-- **状态**: ✅ **已解决** (2026-05-20: PaletteGenerator使用local RNG+seed=42，纹理可复现)
-- **清理方案**: ~~使用固定seed或预计算调色板~~ 已完成
-
-### 🟡 TD-009: cc2_authentic_units.py中有拼写错误
-
-- **描述**: 部分字段名有typo（如vehiclearmor应为vehicle_armor, Facity应为Faction, Germn应为Faction.GERMAN）
-- **影响**: 运行时AttributeError
-- **状态**: ✅ **已修复** (2026-05-19核查确认：vehicle_armor正确, Faction正确, 无Germn拼写)
-- **清理方案**: ~~逐个检查所有字段名~~ 已完成
-
-### 🟡 TD-010: 测试中4个headless环境失败未修复
-
-- **描述**: pygame字体/渲染在headless环境下失败，使用skipif跳过
-- **影响**: CI/CD中无法完整运行测试套件
-- **状态**: ✅ **已解决** (2026-05-20: 创建conftest.py提供pygame_display/mock_font/can_render fixture，SDL dummy驱动)
-- **清理方案**: ~~创建虚拟字体/mock渲染层~~ 已完成
-
-### 🟡 TD-011: 武器数据库中year_introduced字段类型不一致
-
-- **描述**: 大部分为int，但个别可能为str（如"1930s"）
-- **影响**: 类型检查失败
-- **状态**: ✅ **已修复** (2026-05-19核查确认：42处赋值均为int类型，无str)
-- **清理方案**: ~~全面检查确认~~ 已完成
-
-### 🟡 TD-012: campaign.py中DAY_MISSION_MAP引用不存在的mission_id
-
-- **描述**: 某些mission_id可能在mission注册表中不存在
-- **影响**: 战役流程中断
-- **状态**: ✅ **已修复** (2026-05-19核查确认：10个mission_id全部在create_default_campaign()中注册)
-- **清理方案**: ~~重构战役系统时一并修复~~ 已验证无问题
-
-### 🟡 TD-013: 缺少新系统的单元测试
-
-- **描述**: 以下新模块缺少测试:
-  - enhanced_tile.py (0 tests)
-  - terrain_detail_generator.py (0 tests)
-  - enhanced_renderer.py (0 tests)
-  - cc2_authentic_weapons.py (0 tests)
-  - cc2_authentic_units.py (0 tests)
-  - combat_mechanics_enhanced.py (0 tests)
-- **影响**: 新代码无质量保障
-- **状态**: ✅ **已解决** (2026-05-20: enhanced_tile 41测试+combat_mechanics 38测试+campaign_four_layer 48测试+supply_line 55测试+tactical_ai 66测试)
-- **清理方案**: ~~每个模块至少20个测试~~ 已完成
-
-### 🟡 TD-014: ProtoRenderer仍存在但应被EnhancedRenderer替代
-
-- **描述**: ProtoRenderer是旧渲染器，EnhancedRenderer是新渲染器，两者共存
-- **影响**: 代码冗余，维护成本
-- **状态**: ✅ **已解决** (2026-05-20: ProtoRenderer已删除，所有引用已替换为EnhancedRenderer)
-- **清理方案**: ~~确认EnhancedRenderer完全可用后删除ProtoRenderer~~ 已完成
-
-### 🟡 TD-015: 地图JSON文件体积过大
-
-- **描述**: 扩展后的地图JSON包含tiles + tiles_enhanced + _original_tiles，体积膨胀3倍
-- **影响**: 加载时间增加，磁盘空间浪费
-- **状态**: ✅ **已解决** (2026-05-19: 删除10个文件的_original_tiles字段，节省104KB，enhanced_tile.py不再写入该字段)
-- **清理方案**: ~~只保留tiles_enhanced，移除_original_tiles~~ 已完成
-
-### 🟡 TD-016: CommanderAI中硬编码的魔法数字
-
-- **描述**: 威胁评估阈值、掩体搜索半径等使用硬编码数字
-- **影响**: 难以调优，不透明
-- **状态**: ✅ **已解决** (2026-05-20: 创建AIConfig数据类，支持4级预设+JSON序列化)
-- **清理方案**: ~~提取为配置常量或数据驱动参数~~ 已完成 — `domain/ai/ai_config.py`
-
-### 🟡 TD-017: 缺少性能基准测试
-
-- **描述**: 地图扩展后(最大50×42=2100格)渲染性能未验证
-- **影响**: 可能帧率下降
-- **状态**: ✅ **已解决** (2026-05-20: 创建4个benchmark测试，地图加载<100ms/空间哈希<5ms/战斗<50ms/AI<10ms)
-- **清理方案**: ~~创建性能基准测试，确保30fps~~ 已完成
-
-### 🟡 TD-018: cc2_authentic_units.py错误import已修复
-
-- **描述**: cc2_authentic_units.py中import路径错误，引用了不存在的模块
-- **影响**: 运行时ImportError，导致单位数据无法加载
-- **状态**: ✅ **已修复** (2026-05-20: P8代码走读发现并修复)
-- **清理方案**: ~~修正import路径~~ 已完成
-
-### 🔴 TD-019: combat_resolver O(n²)目标选择算法
-
-- **描述**: CombatResolver中目标选择使用双重循环遍历所有攻击者-目标对，时间复杂度O(n²)
-- **影响**: 大规模战斗(50+单位)时性能可能严重下降
-- **状态**: ✅ **已解决** (2026-05-20: 创建SpatialHash空间分区，5000单位下查询比线性扫描快10x+)
-- **清理方案**: ~~使用空间分区(Grid/SpatialHash)优化目标选择~~ 已完成 — `domain/systems/spatial_hash.py`
-
-### 🔴 TD-020: 15+模块零测试覆盖
-
-- **描述**: P8代码走读发现以下模块零测试覆盖:
-  - campaign_four_layer.py (0 tests) — P8核心新模块
-  - supply_system.py (0 tests) — 补给线系统
-  - deployment_ui.py (0 tests) — 部署UI
-  - oosterbeek_caldron地图相关 (0 tests)
-  - oosterbeek_lz地图相关 (0 tests)
-  - arnhem_rail_bridge地图相关 (0 tests)
-  - arnhem_suburbs地图相关 (0 tests)
-  - arnhem_west_approach地图相关 (0 tests)
-  - arnhem_tree_road地图相关 (0 tests)
-  - oosterbeek_north地图相关 (0 tests)
-  - oosterbeek_rail_bridge地图相关 (0 tests)
-  - 以及原有enhanced_tile/terrain_detail_generator/enhanced_renderer/combat_mechanics_enhanced
-- **影响**: P8新代码无质量保障，回归风险高
-- **清理方案**: 每个核心模块至少20个测试，地图模块至少10个测试
-- **计划清理**: Phase 9 (优先campaign_four_layer/supply_system)
+- **描述**: 旧版UI组件文件残留在代码库中，与新UI系统冲突，导致渲染冲突和ImportError
+- **影响**: UI层不稳定，渲染冲突，游戏不可玩
+- **文件**: 旧版UI组件文件（待确认具体文件列表）
+- **状态**: ❌ 未解决
+- **清理方案**: 清理所有旧版UI组件文件，确保仅保留新UI系统
 
 ---
 
-## 三、清理优先级
+## 三、P1 严重技术债（功能受损）
 
-### ✅ 全部已清理
+### 🟡 TD-026: 29个文件超过500行
 
-- [x] TD-001: EnhancedRenderer集成 — ✅ GameLoop+RenderPipeline已切换
-- [x] TD-002: CombatState集成 — ✅ Unit添加combat_state字段
-- [x] TD-003: 替换旧单位模板系统 — ⚠️ campaign_four_layer.py替代，campaign.py已弃用
-- [x] TD-004: 部署UI集成 — ✅ DeploymentUI集成到GameLoop
-- [x] TD-005: EnhancedTile数据对接 — ✅ GameMap支持tiles_enhanced
-- [x] TD-006: 废弃重复文件 — ✅ 已删除
-- [x] TD-007: 地图边界生成 — ⚠️ 已记录4个问题
-- [x] TD-008: 调色板固定seed — ✅ PaletteGenerator使用local RNG
-- [x] TD-009: 修复拼写错误 — ✅ 已确认修复
-- [x] TD-010: headless测试修复 — ✅ conftest.py提供fixture
-- [x] TD-011: year_introduced类型一致 — ✅ 已确认修复
-- [x] TD-012: DAY_MISSION_MAP引用完整 — ✅ 已确认无问题
-- [x] TD-013: 新模块测试补充 — ✅ 248个新测试
-- [x] TD-014: 删除旧渲染器 — ✅ ProtoRenderer已删除
-- [x] TD-015: 清理地图JSON冗余 — ✅ 已删除_original_tiles
-- [x] TD-016: AI参数数据驱动化 — ✅ AIConfig数据类
-- [x] TD-017: 性能基准测试 — ✅ 4个benchmark测试
-- [x] TD-018: 修复import路径 — ✅ 已修复
-- [x] TD-019: combat_resolver O(n²)优化 — ✅ SpatialHash空间分区
-- [x] TD-020: 15+模块零测试覆盖 — ✅ 核心模块测试已补充
+- **描述**: 代码库中有29个文件超过500行，最大文件超过1000行，违反单一职责原则
+- **影响**: 代码难以维护和理解，修改风险高
+- **状态**: ❌ 未解决
+- **清理方案**: 按模块拆分大文件，每个文件控制在500行以内
+
+### 🟡 TD-027: infra/infrastructure职责重叠
+
+- **描述**: infra/和infrastructure/两个目录存在职责重叠，模块边界不清晰
+- **影响**: 开发者不确定新代码应放在哪个目录，导致代码组织混乱
+- **状态**: ❌ 未解决
+- **清理方案**: 合并或明确划分infra/和infrastructure/的职责边界
+
+### ~~🟡 TD-028: integration测试仅1个~~ ✅ 已修复 (2026-05-24)
+
+- **描述**: 2762个测试中仅有1个集成测试，其余均为单元测试，无法验证模块间协作
+- **影响**: 模块间接口断裂无法被测试发现
+- **状态**: ✅ 已修复 — 新增6个集成测试文件(LOS/部署/命令/渲染/胜负/战斗循环)，总计3020+测试通过
+- **修复日期**: 2026-05-24
+
+### 🟡 TD-029: 视觉优化文档4个重叠
+
+- **描述**: 存在4个视觉优化相关文档，内容重叠，缺乏统一规划
+- **影响**: 视觉优化工作缺乏明确方向，可能重复劳动
+- **状态**: ❌ 未解决
+- **清理方案**: 合并为1个统一的视觉优化文档
+
+### ~~🟡 TD-030: 音频stereo预生成失败~~ ✅ 已修复 (2026-05-24)
+
+- **描述**: 程序化音效系统的stereo预生成功能失败，导致音效无法正常播放
+- **影响**: 游戏实际无声
+- **文件**: `src/pycc2/presentation/audio/sound_system.py`
+- **状态**: ✅ 已修复 — 添加_make_sound()方法自动mono→stereo转换，添加距离衰减
+- **修复日期**: 2026-05-24
+
+### 🟡 TD-031: POLISH阵营被排除在友军列表外
+
+- **描述**: POLISH阵营（波兰第1独立伞兵旅）被错误地排除在友军列表外
+- **影响**: 波兰单位在战役中无法获得友军支援，不符合历史事实
+- **状态**: ❌ 未解决
+- **清理方案**: 将POLISH添加到ALLIES友军阵营列表
+
+### 🟡 TD-032: GameSettings类型注解未导入
+
+- **描述**: GameSettings相关模块使用了类型注解但未正确导入，导致类型检查失败
+- **影响**: 类型安全受损，IDE提示不正确，可能隐藏运行时错误
+- **状态**: ❌ 未解决
+- **清理方案**: 补充缺失的类型注解导入
 
 ---
 
-**维护规则**: 
+## 四点五、等距投影新增技术债 (2026-05-24)
+
+### 🟢 TD-042: PixVoxel CC0精灵资源未下载集成
+
+- **描述**: PixVoxel Revised Isometric精灵(CC0, 35单位+7设施)下载脚本已就绪，但网络慢(28.8MB)未完成下载
+- **影响**: 等距模式仍使用程序化生成的简单精灵，视觉还原度不足
+- **文件**: `scripts/download_pixvoxel_assets.py`, `src/pycc2/presentation/rendering/pixvoxel_loader.py`
+- **状态**: ❌ 未解决 (下载脚本就绪，需手动执行)
+- **清理方案**: 在网络良好时执行 `python scripts/download_pixvoxel_assets.py`
+
+### 🟢 TD-043: 等距渲染性能未优化
+
+- **描述**: IsometricRenderer每帧重新生成所有可见瓦片，无脏矩形优化，大地图可能卡顿
+- **影响**: 100×100地图等距模式帧率可能低于30 FPS
+- **文件**: `src/pycc2/presentation/rendering/isometric_renderer.py`
+- **状态**: ❌ 未解决
+- **清理方案**: 实现瓦片缓存+脏矩形渲染+精灵批处理
+
+### 🟢 TD-044: 等距模式默认仍为ORTHOGRAPHIC
+
+- **描述**: Camera默认projection=ORTHOGRAPHIC，等距模式需手动按I键切换
+- **影响**: 用户首次启动看不到等距效果
+- **文件**: `src/pycc2/presentation/rendering/camera.py`
+- **状态**: ❌ 未解决 (Phase 3计划)
+- **清理方案**: 等距渲染稳定后切换默认为ISOMETRIC
+
+---
+
+## 四、P2 中等技术债（质量/维护）
+
+### 🟢 TD-033: 缺少E2E（端到端）测试
+
+- **描述**: 没有模拟真实用户使用场景的端到端测试
+- **影响**: 发布前无法验证游戏可玩性
+- **状态**: ❌ 未解决
+- **清理方案**: 创建E2E测试套件，覆盖从启动到完成一场战斗的完整流程
+
+### 🟢 TD-034: 测试中1个失败用例未修复
+
+- **描述**: 2767个测试中有1个失败，暴露了集成断裂点
+- **影响**: CI不可靠，真实Bug被掩盖
+- **状态**: ❌ 未解决
+- **清理方案**: 分析1个失败测试，修复或更新测试
+
+### 🟢 TD-035: 缺少接口契约测试
+
+- **描述**: 模块间接口没有契约测试（Consumer-Driven Contract），导致属性名不匹配等问题无法被测试发现
+- **影响**: P0-002（属性名不匹配）类问题会反复出现
+- **状态**: ❌ 未解决
+- **清理方案**: 为关键模块接口添加契约测试
+
+### 🟢 TD-036: 缺少性能回归测试
+
+- **描述**: 没有性能回归测试基线，无法检测性能退化
+- **影响**: 性能优化可能被后续修改无意中破坏
+- **状态**: ❌ 未解决
+- **清理方案**: 建立性能基线，添加性能回归测试
+
+### 🟢 TD-037: 缺少AI行为集成测试
+
+- **描述**: AI行为仅有单元测试，没有验证AI在完整游戏循环中的行为
+- **影响**: AI导入失败（TD-023）类问题无法被测试发现
+- **状态**: ❌ 未解决
+- **清理方案**: 添加AI行为集成测试，验证AI在游戏循环中的完整行为链
+
+### 🟢 TD-038: 文档与代码不同步
+
+- **描述**: 多处文档声称功能"已完成"但实际不可用（如v2.5声称还原度~97%）
+- **影响**: 决策基于错误信息，资源分配不当
+- **状态**: ❌ 未解决（本次v0.1.0已修正PRD，其他文档待同步）
+- **清理方案**: 建立文档-代码同步验证机制，每个Phase结束时实际运行验证
+
+### 🟢 TD-039: 缺少错误恢复机制
+
+- **描述**: 关键路径缺少错误恢复机制，一个组件崩溃导致整个游戏崩溃
+- **影响**: P0 Bug导致游戏完全不可玩，而非降级运行
+- **状态**: ❌ 未解决
+- **清理方案**: 为关键组件添加错误恢复和降级机制
+
+### 🟢 TD-040: 缺少运行时健康检查
+
+- **描述**: 没有运行时健康检查机制，无法在启动时检测关键组件是否正常
+- **影响**: 游戏启动后才发现Bug，而非启动时即报错
+- **状态**: ❌ 未解决
+- **清理方案**: 添加启动时健康检查，验证关键组件可正常初始化
+
+### 🟢 TD-041: 缺少变更影响分析流程
+
+- **描述**: 修改一个模块时没有分析对其他模块影响的标准流程
+- **影响**: 修改可能无意中破坏其他模块的接口（P0 Bug的根因之一）
+- **状态**: ❌ 未解决
+- **清理方案**: 建立变更影响分析流程，修改前检查所有引用方
+
+---
+
+## 五、v2.0旧条目验证状态
+
+> **说明**: 以下为v2.0声称已解决的20项技术债。v3.0基于DevSquad批判性Review重新验证。
+
+| ID | 描述 | v2.0声称 | 实际验证结果 |
+|----|------|---------|-------------|
+| TD-001 | EnhancedRenderer未集成到主游戏循环 | ✅ 已解决 | ⚠️ 代码已集成，但旧UI残留冲突（TD-025）导致渲染不稳定 |
+| TD-002 | CombatState(压制+隐蔽)未集成到Unit实体 | ✅ 已解决 | ⚠️ 代码已添加，但属性名不匹配（TD-022）导致实际不可用 |
+| TD-003 | CC2武器/单位数据库未替换旧系统 | ⚠️ campaign_four_layer.py替代 | ⚠️ 仍为部分解决，campaign.py仍存在 |
+| TD-004 | 部署阶段系统未集成UI | ✅ 已解决 | ⚠️ 代码已集成，但渲染崩溃无法使用 |
+| TD-005 | EnhancedTile数据未与地图加载器对接 | ✅ 已解决 | ✅ 验证通过 |
+| TD-006 | 旧enhanced_mission_system.py重复 | ✅ 已删除 | ✅ 验证通过 |
+| TD-007 | 地图扩展脚本边界区域不自然 | ⚠️ 已记录4个问题 | ⚠️ 未修复，低优先级 |
+| TD-008 | PaletteGenerator使用random导致不可复现 | ✅ 已解决 | ✅ 验证通过 |
+| TD-009 | cc2_authentic_units.py拼写错误 | ✅ 已修复 | ✅ 验证通过 |
+| TD-010 | 测试中4个headless环境失败 | ✅ 已解决 | ⚠️ 现为6个失败（TD-034），问题未完全解决 |
+| TD-011 | 武器数据库year_introduced类型不一致 | ✅ 已修复 | ✅ 验证通过 |
+| TD-012 | campaign.py中DAY_MISSION_MAP引用不存在 | ✅ 已修复 | ✅ 验证通过 |
+| TD-013 | 缺少新系统的单元测试 | ✅ 已解决 | ⚠️ 单元测试有，但集成测试仅1个（TD-028） |
+| TD-014 | ProtoRenderer仍存在 | ✅ 已删除 | ✅ 验证通过 |
+| TD-015 | 地图JSON文件体积过大 | ✅ 已解决 | ✅ 验证通过 |
+| TD-016 | CommanderAI中硬编码魔法数字 | ✅ 已解决 | ✅ 验证通过 |
+| TD-017 | 缺少性能基准测试 | ✅ 已解决 | ⚠️ 有benchmark但无回归测试（TD-036） |
+| TD-018 | cc2_authentic_units.py错误import | ✅ 已修复 | ⚠️ AI导入仍有问题（TD-023），说明import问题未系统解决 |
+| TD-019 | combat_resolver O(n²)目标选择 | ✅ 已解决 | ✅ 验证通过 |
+| TD-020 | 15+模块零测试覆盖 | ✅ 核心模块测试已补充 | ⚠️ 测试数增加但集成测试缺失（TD-028） |
+
+**验证总结**: 20项中仅9项完全验证通过，8项部分解决/有新问题，3项未变。v2.0声称"20/20全部清理"严重高估。
+
+---
+
+## 六、清理优先级
+
+### 🔴 P0 必须立即修复（阻塞游戏可玩性）
+
+- [x] ~~TD-021: Unit添加display_name属性~~ ✅ 已修复 (2026-05-23)
+- [x] ~~TD-022: 统一HealthComponent/MoraleComponent属性名~~ ✅ 已修复 (2026-05-23)
+- [x] ~~TD-023: 修复AI行为类导入路径~~ ✅ 已修复 (2026-05-23)
+- [x] ~~TD-024: set_mode()支持fast/sneak参数~~ ✅ 已修复 (2026-05-24)
+- [ ] TD-025: 清理旧UI组件文件 — 阻塞UI稳定
+
+### 🟡 P1 应尽快修复（功能受损）
+
+- [ ] TD-026: 拆分29个超500行文件
+- [ ] TD-027: 明确infra/infrastructure职责
+- [x] ~~TD-028: 添加集成测试~~ ✅ 已修复 (2026-05-24, 6个集成测试文件)
+- [ ] TD-029: 合并4个视觉优化文档
+- [x] ~~TD-030: 修复音频stereo预生成~~ ✅ 已修复 (2026-05-24)
+- [ ] TD-031: POLISH阵营加入友军列表
+- [ ] TD-032: 补充GameSettings类型注解导入
+
+### 🟢 P2 计划修复（质量/维护）
+
+- [ ] TD-033: 创建E2E测试套件
+- [ ] TD-034: 修复6个失败测试用例
+- [ ] TD-035: 添加接口契约测试
+- [ ] TD-036: 建立性能回归测试基线
+- [ ] TD-037: 添加AI行为集成测试
+- [ ] TD-038: 建立文档-代码同步验证机制
+- [ ] TD-039: 添加关键组件错误恢复机制
+- [ ] TD-040: 添加启动时健康检查
+- [ ] TD-041: 建立变更影响分析流程
+
+---
+
+**维护规则**:
 1. 每次发现新问题立即添加到此文档
 2. 清理完成后标记[已清理]并注明日期
 3. 每个Phase结束时review此清单
-4. 绝不带着技术债进入下一个Phase
+4. 绝不带着P0技术债进入下一个Phase
+5. **v3.0新增规则**: 声称"已解决"的技术债必须通过集成测试验证，单元测试通过不等于问题已解决

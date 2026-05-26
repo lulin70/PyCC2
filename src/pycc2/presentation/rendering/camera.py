@@ -1,10 +1,27 @@
 from __future__ import annotations
 
+import enum
+import random
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pycc2.domain.value_objects.vec2 import Vec2
+
+
+class ProjectionMode(enum.Enum):
+    """Camera projection mode.
+
+    **IMPORTANT**: CC2 uses Orthographic Top-Down projection, NOT Isometric.
+    Analysis of original CC2 screenshots confirms this. ORTHOGRAPHIC is the
+    CC2-correct default and primary rendering path.
+
+    ISOMETRIC is preserved as an optional experimental feature for modding/future use,
+    but it does NOT match the original CC2 visual style.
+    """
+
+    ORTHOGRAPHIC = "orthographic"
+    ISOMETRIC = "isometric"
 
 
 @dataclass(slots=True)
@@ -13,20 +30,87 @@ class Camera:
     zoom: float = 1.0
     viewport_width: int = 1280
     viewport_height: int = 720
+    projection: ProjectionMode = ProjectionMode.ORTHOGRAPHIC
+    _shake_intensity: float = 0.0
+    _shake_duration: float = 0.0
+    _shake_timer: float = 0.0
 
     MIN_ZOOM: float = 0.25
     MAX_ZOOM: float = 4.0
 
+    # Isometric constants (must match isometric_transform.py)
+    _ISO_TILE_W: int = 64
+    _ISO_TILE_H: int = 32
+    _ISO_HEIGHT_SCALE: int = 16
+
     def world_to_screen(self, world_pos: Vec2) -> tuple[float, float]:
+        if self.projection == ProjectionMode.ISOMETRIC:
+            return self._world_to_screen_isometric(world_pos)
+        return self._world_to_screen_orthographic(world_pos)
+
+    def _world_to_screen_orthographic(self, world_pos: Vec2) -> tuple[float, float]:
         screen_x = (world_pos.x - self.position.x) * self.zoom + self.viewport_width / 2
         screen_y = (world_pos.y - self.position.y) * self.zoom + self.viewport_height / 2
+        if self._shake_timer > 0:
+            progress = self._shake_timer / self._shake_duration if self._shake_duration > 0 else 0
+            eased = progress * progress
+            current_intensity = self._shake_intensity * eased
+            screen_x += (random.random() - 0.5) * 2 * current_intensity
+            screen_y += (random.random() - 0.5) * 2 * current_intensity
         return (screen_x, screen_y)
+
+    def _world_to_screen_isometric(self, world_pos: Vec2) -> tuple[float, float]:
+        # Convert world tile coords to isometric screen coords
+        iso_x = (world_pos.x - world_pos.y) * self._ISO_TILE_W / 2
+        iso_y = (world_pos.x + world_pos.y) * self._ISO_TILE_H / 2
+        # Apply camera offset and zoom
+        screen_x = (iso_x - self.position.x) * self.zoom + self.viewport_width / 2
+        screen_y = (iso_y - self.position.y) * self.zoom + self.viewport_height / 2
+        if self._shake_timer > 0:
+            progress = self._shake_timer / self._shake_duration if self._shake_duration > 0 else 0
+            eased = progress * progress
+            current_intensity = self._shake_intensity * eased
+            screen_x += (random.random() - 0.5) * 2 * current_intensity
+            screen_y += (random.random() - 0.5) * 2 * current_intensity
+        return (screen_x, screen_y)
+
+    def shake(self, intensity: float = 3.0, duration: float = 0.15) -> None:
+        self._shake_intensity = intensity
+        self._shake_duration = duration
+        self._shake_timer = duration
+
+    def update_shake(self, dt: float) -> None:
+        if self._shake_timer > 0:
+            self._shake_timer -= dt
+            if self._shake_timer <= 0:
+                self._shake_timer = 0.0
+                self._shake_intensity = 0.0
 
     def screen_to_world(self, screen_pos: tuple[float, float]) -> Vec2:
         from pycc2.domain.value_objects.vec2 import Vec2
 
+        if self.projection == ProjectionMode.ISOMETRIC:
+            return self._screen_to_world_isometric(screen_pos)
+        return self._screen_to_world_orthographic(screen_pos)
+
+    def _screen_to_world_orthographic(self, screen_pos: tuple[float, float]) -> Vec2:
+        from pycc2.domain.value_objects.vec2 import Vec2
+
         world_x = (screen_pos[0] - self.viewport_width / 2) / self.zoom + self.position.x
         world_y = (screen_pos[1] - self.viewport_height / 2) / self.zoom + self.position.y
+        return Vec2(world_x, world_y)
+
+    def _screen_to_world_isometric(self, screen_pos: tuple[float, float]) -> Vec2:
+        from pycc2.domain.value_objects.vec2 import Vec2
+
+        # Reverse the isometric transform
+        iso_x = (screen_pos[0] - self.viewport_width / 2) / self.zoom + self.position.x
+        iso_y = (screen_pos[1] - self.viewport_height / 2) / self.zoom + self.position.y
+        # Inverse isometric: iso_x = (wx - wy) * TILE_W/2, iso_y = (wx + wy) * TILE_H/2
+        half_w = self._ISO_TILE_W / 2
+        half_h = self._ISO_TILE_H / 2
+        world_x = (iso_x / half_w + iso_y / half_h) / 2
+        world_y = (iso_y / half_h - iso_x / half_w) / 2
         return Vec2(world_x, world_y)
 
     @property

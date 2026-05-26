@@ -93,12 +93,12 @@ class CombatEngagement:
                 reason="Target nearly neutralized (cease fire)",
             )
 
-        if unit.morale.state.name == "SUPPRESSED":
+        if unit.morale.state.name == "WAVERING":
             return EngagementResult(
                 decision=EngagementDecision.TAKE_COVER,
-                reason="Unit suppressed, seeking cover",
+                reason="Unit wavering, seeking cover",
             )
-        if unit.morale.state.name in ("PANICED", "ROUTING"):
+        if unit.morale.state.name in ("PINNED", "BROKEN", "ROUTING"):
             return EngagementResult(
                 decision=EngagementDecision.RETREAT,
                 reason=f"Unit {unit.morale.state.name.lower()}, breaking contact",

@@ -1,122 +1,156 @@
 """
-Tests for Squad Entity
+Tests for Squad Entity - CC2 Multi-Member Squad System
 """
 
 from __future__ import annotations
 
 from pycc2.domain.entities.squad import (
-    FormationType,
     Squad,
+    SquadMember,
+    SquadType,
+    MemberState,
 )
-from pycc2.domain.entities.unit import Faction
 
 
 def _make_squad(
-    id: str = "s1",
+    squad_id: str = "s1",
     name: str = "Alpha Squad",
-    side: Faction = Faction.ALLIES,
-    unit_ids: list[str] | None = None,
-    commander_unit_id: str | None = None,
+    squad_type: SquadType = SquadType.RIFLE_SQUAD,
+    faction: str = "allies",
 ) -> Squad:
     return Squad(
-        id=id,
+        squad_id=squad_id,
+        squad_type=squad_type,
+        faction=faction,
         name=name,
-        side=side,
-        unit_ids=unit_ids if unit_ids is not None else [],
-        commander_unit_id=commander_unit_id,
     )
 
 
 class TestSquadConstruction:
     def test_basic_construction(self):
         s = _make_squad()
-        assert s.id == "s1"
+        assert s.squad_id == "s1"
         assert s.name == "Alpha Squad"
-        assert s.side == Faction.ALLIES
+        assert s.faction == "allies"
 
-    def test_default_formation_is_line(self):
+    def test_rifle_squad_has_members(self):
+        s = _make_squad(squad_type=SquadType.RIFLE_SQUAD)
+        assert s.size > 0
+        assert s.alive_count > 0
+
+    def test_squad_type_determines_size(self):
+        rifle = _make_squad(squad_type=SquadType.RIFLE_SQUAD)
+        sniper = _make_squad(squad_type=SquadType.SNIPER_TEAM)
+        assert rifle.size > sniper.size
+
+    def test_all_members_start_healthy(self):
         s = _make_squad()
-        assert s.formation_type == FormationType.LINE
+        assert s.healthy_count == s.size
+        assert s.wounded_count == 0
+        assert s.dead_count == 0
 
-    def test_commander_default_none_when_empty(self):
+
+class TestSquadCasualties:
+    def test_apply_casualties_wounds_members(self):
         s = _make_squad()
-        assert s.commander_unit_id is None
+        initial_healthy = s.healthy_count
+        s.apply_casualties(2)
+        assert s.healthy_count < initial_healthy
 
-    def test_with_initial_units(self):
-        s = _make_squad(unit_ids=["u1", "u2"])
-        assert s.unit_count == 2
-
-
-class TestAddUnit:
-    def test_add_unit_increases_count(self):
+    def test_squad_combat_effectiveness_decreases(self):
         s = _make_squad()
-        s.add_unit("u1")
-        assert s.unit_count == 1
+        initial_eff = s.combat_effectiveness
+        s.apply_casualties(3)
+        assert s.combat_effectiveness < initial_eff
 
-    def test_add_first_unit_becomes_commander(self):
+    def test_destroyed_squad(self):
+        s = _make_squad(squad_type=SquadType.SNIPER_TEAM)
+        s.apply_casualties(10)  # Overkill
+        assert s.alive_count == 0 or s.combat_effectiveness < 0.1
+
+
+class TestSquadSuppression:
+    def test_apply_suppression_pins_members(self):
         s = _make_squad()
-        s.add_unit("u1")
-        assert s.commander_unit_id == "u1"
+        pinned = s.apply_suppression(0.8)  # High suppression
+        # Some members should get pinned (probabilistic, so just check method runs)
+        assert isinstance(pinned, int)
 
-    def test_duplicate_unit_not_added(self):
+    def test_recover_pinned(self):
         s = _make_squad()
-        s.add_unit("u1")
-        s.add_unit("u1")
-        assert s.unit_count == 1
+        s.apply_suppression(1.0)
+        recovered = s.recover_pinned()
+        assert isinstance(recovered, int)
 
 
-class TestRemoveUnit:
-    def test_remove_unit_decreases_count(self):
-        s = _make_squad(unit_ids=["u1", "u2"])
-        s.remove_unit("u1")
-        assert s.unit_count == 1
-        assert "u1" not in s.unit_ids
-
-    def test_remove_commander_reassigns(self):
-        s = _make_squad(unit_ids=["u1", "u2"], commander_unit_id="u1")
-        s.remove_unit("u1")
-        assert s.commander_unit_id == "u2"
-
-    def test_remove_last_unit_clears_commander(self):
-        s = _make_squad(unit_ids=["u1"], commander_unit_id="u1")
-        s.remove_unit("u1")
-        assert s.commander_unit_id is None
-
-
-class TestSetCommander:
-    def test_set_commander_updates(self):
-        s = _make_squad(unit_ids=["u1", "u2"])
-        s.set_commander("u2")
-        assert s.commander_unit_id == "u2"
-
-    def test_set_commander_nonexistent_ignored(self):
-        s = _make_squad(unit_ids=["u1"])
-        original = s.commander_unit_id
-        s.set_commander("u99")
-        assert s.commander_unit_id == original
-
-
-class TestUnitCount:
-    def test_empty_squad_zero(self):
+class TestSquadExperience:
+    def test_award_experience(self):
         s = _make_squad()
-        assert s.unit_count == 0
+        initial_xp = sum(m.experience for m in s.members)
+        s.award_experience(10)
+        new_xp = sum(m.experience for m in s.members if m.is_combat_effective)
+        assert new_xp >= initial_xp
 
-    def test_with_units(self):
-        s = _make_squad(unit_ids=["u1", "u2", "u3"])
-        assert s.unit_count == 3
-
-
-class TestIsAlive:
-    def test_alive_with_units(self):
-        s = _make_squad(unit_ids=["u1"])
-        assert s.is_alive is True
-
-    def test_not_alive_when_empty(self):
+    def test_experience_grade(self):
         s = _make_squad()
-        assert s.is_alive is False
+        grade = s.get_experience_grade()
+        assert grade in ("G1", "G2", "G3", "G4", "G5")
 
 
-class TestAverageMorale:
-    def test_returns_placeholder(self):
+class TestSquadReinforcement:
+    def test_reinforce_adds_members(self):
+        s = _make_squad(squad_type=SquadType.SNIPER_TEAM)
+        initial_size = s.size
+        s.reinforce(3)
+        assert s.size == initial_size + 3
+
+    def test_reinforce_new_members_healthy(self):
         s = _make_squad()
-        assert s.average_morale == 50.0
+        s.reinforce(2)
+        # New members should be healthy
+        new_members = s.members[-2:]
+        for m in new_members:
+            assert m.state == MemberState.HEALTHY
+
+
+class TestSquadStatus:
+    def test_status_string_format(self):
+        s = _make_squad()
+        status = s.get_status_string()
+        assert "OK" in status
+
+    def test_morale_state_good(self):
+        s = _make_squad()
+        assert s.morale_state == "good"
+
+    def test_morale_state_after_casualties(self):
+        s = _make_squad(squad_type=SquadType.SNIPER_TEAM)
+        s.apply_casualties(10)
+        if s.alive_count == 0:
+            assert s.morale_state == "destroyed"
+
+
+class TestSquadSerialization:
+    def test_to_dict_and_back(self):
+        s = _make_squad()
+        d = s.to_dict()
+        s2 = Squad.from_dict(d)
+        assert s2.squad_id == s.squad_id
+        assert s2.squad_type == s.squad_type
+        assert s2.size == s.size
+        assert s2.name == s.name
+
+    def test_squad_member_state(self):
+        m = SquadMember(member_id="m1", state=MemberState.HEALTHY, hp=100)
+        assert m.is_combat_effective
+        assert m.effectiveness_multiplier == 1.0
+
+    def test_wounded_member(self):
+        m = SquadMember(member_id="m1", state=MemberState.WOUNDED, hp=30)
+        assert m.is_combat_effective
+        assert m.effectiveness_multiplier == 0.5
+
+    def test_dead_member(self):
+        m = SquadMember(member_id="m1", state=MemberState.DEAD, hp=0)
+        assert not m.is_combat_effective
+        assert m.effectiveness_multiplier == 0.0

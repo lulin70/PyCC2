@@ -545,12 +545,12 @@ class TestNCORally:
             y=6,
         )
         # Force panic state
-        panicked.morale.state = MoraleState.PANICED
+        panicked.morale.state = MoraleState.BROKEN
 
         result = rally.rally_unit(nco, panicked)
         assert result is True
         assert panicked.morale.value == RALLY_RESTORE_MORALE
-        assert panicked.morale.state == MoraleState.SUPPRESSED
+        assert panicked.morale.state == MoraleState.WAVERING
 
     def test_nco_rally_cooldown(self) -> None:
         """NCO cannot rally again for 60 ticks after rallying."""
@@ -570,7 +570,7 @@ class TestNCORally:
             x=5,
             y=6,
         )
-        panicked.morale.state = MoraleState.PANICED
+        panicked.morale.state = MoraleState.BROKEN
 
         # First rally succeeds
         assert rally.rally_unit(nco, panicked) is True
@@ -584,7 +584,7 @@ class TestNCORally:
             x=5,
             y=6,
         )
-        panicked2.morale.state = MoraleState.PANICED
+        panicked2.morale.state = MoraleState.BROKEN
         assert rally.can_rally(nco) is False
 
         # Tick through cooldown

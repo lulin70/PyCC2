@@ -52,7 +52,7 @@ class UnitAnimator:
         AnimationType.WALK: {"duration": 20, "loop": True},
         AnimationType.SHOOT: {"duration": 12, "loop": False},
         AnimationType.RELOAD: {"duration": 45, "loop": False},
-        AnimationType.DEATH: {"duration": 45, "loop": False},
+        AnimationType.DEATH: {"duration": 18, "loop": False},
         AnimationType.HIT_REACT: {"duration": 8, "loop": False},
     }
 
@@ -93,11 +93,12 @@ class UnitAnimator:
                     self.state.scale_y = 1.0 + 0.08 * (1 - recovery)
 
             case AnimationType.DEATH:
-                self.state.rotation = progress * 30
-                self.state.scale_y = 1.0 - progress * 0.3
-                self.state.offset_y = progress * 8.0
-                self.state.alpha = int(255 * (1 - progress * 0.8))
-                self.state.color_mod = (150, 80, 80)
+                self.state.rotation = progress * 15
+                self.state.scale_y = 1.0 - progress * 0.2
+                self.state.scale_x = 1.0 - progress * 0.1
+                self.state.offset_y = progress * 4.0
+                self.state.alpha = int(255 * (1.0 - progress))
+                self.state.color_mod = (192, 32, 32)
 
             case AnimationType.HIT_REACT:
                 if progress < 0.5:
@@ -131,10 +132,10 @@ class ScreenShake:
         self._offset_x: float = 0.0
         self._offset_y: float = 0.0
         self._intensity: float = 0.0
-        self._decay: float = 0.85
+        self._decay: float = 0.88
         self._ticks_remaining: int = 0
 
-    def trigger(self, intensity: float = 5.0, duration_ticks: int = 15) -> None:
+    def trigger(self, intensity: float = 3.0, duration_ticks: int = 5) -> None:
         self._intensity = min(intensity, 20.0)
         self._ticks_remaining = duration_ticks
 
@@ -170,6 +171,8 @@ class ParticleEmitter:
         BLOOD_SPLATTER = auto()
         DIRT_KICKUP = auto()
         MUZZLE_FLASH_BURST = auto()
+        EXPLOSION_CORE = auto()
+        SMOKE_SCREEN = auto()
 
     PRESETS = {
         "rifle_fire": {
@@ -193,8 +196,8 @@ class ParticleEmitter:
             "gravity": 0.2, "fade": True,
         },
         "muzzle_flash": {
-            "count": 5, "speed": (1, 3), "life": (3, 5),
-            "size": (6, 12), "color": (255, 255, 200), "spread": 20,
+            "count": 3, "speed": (8, 20), "life": (1, 2),
+            "size": (4, 6), "color": (255, 255, 128), "spread": 10,
             "gravity": 0, "fade": True, "additive": True,
         },
     }
@@ -215,6 +218,8 @@ class ParticleEmitter:
         friction: float = 0.98
         rotation: float = 0.0
         rot_speed: float = 0.0
+        size_x: float | None = None
+        size_y: float | None = None
 
         @property
         def progress(self) -> float:
@@ -239,28 +244,28 @@ class ParticleEmitter:
         else:
             self.particles.append(self.Particle(**kwargs))
 
-    def emit_muzzle_flash(self, x: float, y: float, direction: float, count: int = 8) -> None:
-        for _ in range(count):
-            spread = random.uniform(-0.4, 0.4)
+    def emit_muzzle_flash(self, x: float, y: float, direction: float, count: int = 3) -> None:
+        for i in range(count):
+            spread = random.uniform(-0.15, 0.15)
             angle = direction + spread
-            speed = random.uniform(40, 100)
+            speed = random.uniform(8, 20)
+            flash_colors = [(255, 255, 128), (255, 240, 80), (255, 200, 50)]
+            color = flash_colors[min(i, len(flash_colors) - 1)]
             self._add_particle(
                 type=self.ParticleType.MUZZLE_FLASH,
                 x=x,
                 y=y,
                 vx=math.cos(angle) * speed,
                 vy=math.sin(angle) * speed,
-                life=random.randint(6, 10),
-                max_life=10,
-                size=random.uniform(2, 5),
-                color=(
-                    255,
-                    random.randint(200, 255),
-                    random.randint(50, 150),
-                ),
+                life=random.randint(1, 2),
+                max_life=2,
+                size_x=6.0 + random.uniform(-1, 1),
+                size_y=4.0 + random.uniform(-0.5, 0.5),
+                size=5.0,
+                color=color,
                 alpha_start=255,
-                gravity=-0.2,
-                friction=0.9,
+                gravity=0,
+                friction=0.85,
             )
 
     def emit_blood(self, x: float, y: float, count: int = 10) -> None:
@@ -327,24 +332,25 @@ class ParticleEmitter:
                 rot_speed=random.uniform(-8, 8),
             )
 
-    def emit_sparks(self, x: float, y: float, direction: float, count: int = 5) -> None:
+    def emit_sparks(self, x: float, y: float, direction: float, count: int = 4) -> None:
         base_angle = direction + math.pi + random.uniform(-0.5, 0.5)
-        for _ in range(count):
+        spark_colors = [(255, 255, 200), (255, 255, 255), (255, 240, 100), (255, 220, 50)]
+        for i in range(count):
             angle = base_angle + random.uniform(-0.8, 0.8)
-            speed = random.uniform(30, 90)
+            speed = random.uniform(2, 3)
             self._add_particle(
                 type=self.ParticleType.SPARK,
                 x=x,
                 y=y,
                 vx=math.cos(angle) * speed,
                 vy=math.sin(angle) * speed,
-                life=random.randint(8, 15),
-                max_life=15,
-                size=random.uniform(1, 3),
-                color=random.choice([(255, 200, 50), (255, 150, 30), (255, 255, 150)]),
+                life=random.randint(3, 5),
+                max_life=5,
+                size=random.uniform(2, 3),
+                color=spark_colors[min(i, len(spark_colors) - 1)],
                 alpha_start=255,
-                gravity=0.4,
-                friction=0.93,
+                gravity=0.15,
+                friction=0.92,
             )
 
     def emit_explosion_ring(self, x: float, y: float) -> None:
@@ -363,6 +369,97 @@ class ParticleEmitter:
                 alpha_start=200,
                 gravity=0.0,
                 friction=0.88,
+            )
+
+    def emit_explosion_core(self, x: float, y: float, count: int = 12, life: int = 12) -> None:
+        for i in range(count):
+            angle = random.uniform(0, 2 * math.pi)
+            progress = i / max(count - 1, 1)
+            speed = random.uniform(8, 25)
+            core_colors = [(255, 208, 0), (255, 96, 0), (255, 32, 0)]
+            color_idx = min(int(progress * len(core_colors)), len(core_colors) - 1)
+            size = 8 + progress * 17
+            self._add_particle(
+                type=self.ParticleType.EXPLOSION_CORE,
+                x=x + random.uniform(-3, 3),
+                y=y + random.uniform(-3, 3),
+                vx=math.cos(angle) * speed,
+                vy=math.sin(angle) * speed,
+                life=random.randint(int(life * 0.7), life),
+                max_life=life,
+                size=size + random.uniform(-2, 2),
+                color=core_colors[color_idx],
+                alpha_start=255,
+                gravity=-0.08,
+                friction=0.94,
+            )
+
+    def emit_explosion_smoke_cloud(self, x: float, y: float, count: int = 8, life: int = 40) -> None:
+        for _ in range(count):
+            self._add_particle(
+                type=self.ParticleType.SMOKE,
+                x=x + random.uniform(-10, 10),
+                y=y + random.uniform(-6, 6),
+                vx=random.uniform(-4, 4),
+                vy=random.uniform(-20, -8),
+                life=random.randint(int(life * 0.7), life),
+                max_life=life,
+                size=random.uniform(8, 20),
+                color=random.choice([(80, 80, 80), (100, 100, 100), (70, 70, 70), (60, 65, 60)]),
+                alpha_start=180,
+                gravity=-0.12,
+                friction=0.97,
+            )
+
+    def emit_smoke_screen(self, x: float, y: float, radius: float = 144.0) -> None:
+        count = 18
+        for i in range(count):
+            jagged_factor = random.uniform(0.6, 1.4)
+            angle = (i / count) * 2 * math.pi + random.uniform(-0.3, 0.3)
+            offset_dist = radius * 0.35 * jagged_factor
+            offset_x = math.cos(angle) * offset_dist
+            offset_y = math.sin(angle) * offset_dist * 0.7
+            self._add_particle(
+                type=self.ParticleType.SMOKE_SCREEN,
+                x=x + offset_x,
+                y=y + offset_y,
+                vx=random.uniform(-1.5, 1.5),
+                vy=random.uniform(-3, -0.5),
+                life=450,
+                max_life=450,
+                size=radius * (0.35 + random.uniform(-0.05, 0.05)) * jagged_factor,
+                color=(192, 200, 192),
+                alpha_start=random.randint(170, 200),
+                gravity=-0.01,
+                friction=0.995,
+            )
+
+    def emit_death_puff(self, x: float, y: float, is_vehicle: bool = False) -> None:
+        if is_vehicle:
+            puff_count = 16
+            max_size = 30
+            puff_life = 25
+        else:
+            puff_count = 6
+            max_size = 15
+            puff_life = 12
+        for i in range(puff_count):
+            angle = random.uniform(0, 2 * math.pi)
+            progress = i / max(puff_count - 1, 1)
+            size = 5 + progress * (max_size - 5)
+            self._add_particle(
+                type=self.ParticleType.SMOKE,
+                x=x + random.uniform(-4, 4),
+                y=y + random.uniform(-3, 3),
+                vx=math.cos(angle) * random.uniform(3, 8 if is_vehicle else 4),
+                vy=math.sin(angle) * random.uniform(2, 6 if is_vehicle else 3) - (2 if is_vehicle else 1),
+                life=random.randint(int(puff_life * 0.7), puff_life),
+                max_life=puff_life,
+                size=size,
+                color=(192, 32, 32),
+                alpha_start=220,
+                gravity=-0.05 if is_vehicle else 0.02,
+                friction=0.95,
             )
 
     def update(self) -> None:

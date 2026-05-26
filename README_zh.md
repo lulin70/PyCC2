@@ -45,7 +45,7 @@ PyCC2 是对经典二战战术游戏 **Close Combat 2: A Bridge Too Far** 的 Py
 | **测试框架** | pytest + 覆盖率报告 |
 | **质量保障** | ruff lint/format + mypy 类型检查 + pre-commit 钩子 |
 
-**当前版本**: `v0.6-p4w2`（文档 v1.7）
+**当前版本**: `v0.1.1`
 
 ### 版本历史
 

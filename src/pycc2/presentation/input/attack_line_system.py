@@ -19,6 +19,11 @@ class AttackLineStatus(Enum):
     BLOCKED = auto()          # Red: blocked by terrain/obstacle
     NO_TARGET = auto()        # No valid target selected
     TRACKING_UNIT = auto()    # Tracking a moving unit target
+    # CC2 4-color hit probability system
+    HIT_HIGH = auto()         # Green (60-100%): High hit chance
+    HIT_MODERATE = auto()     # Yellow (30-59%): Moderate hit chance
+    HIT_LOW = auto()          # Red (10-29%): Low hit chance
+    HIT_IMPOSSIBLE = auto()   # Black (0-9%): Cannot hit
 
 
 @dataclass(slots=True)
@@ -60,6 +65,11 @@ class AttackLineSystem:
     COLOR_OUT_OF_RANGE: tuple[int, int, int, int] = (255, 50, 50, 200)   # Red
     COLOR_BLOCKED: tuple[int, int, int, int] = (255, 100, 0, 200)       # Orange
     COLOR_TRACKING: tuple[int, int, int, int] = (255, 255, 0, 200)      # Yellow
+    # CC2 4-color hit probability colors
+    COLOR_HIT_HIGH: tuple[int, int, int, int] = (0, 255, 0, 200)       # Green (60-100%)
+    COLOR_HIT_MODERATE: tuple[int, int, int, int] = (255, 255, 0, 200) # Yellow (30-59%)
+    COLOR_HIT_LOW: tuple[int, int, int, int] = (255, 50, 50, 200)     # Red (10-29%)
+    COLOR_HIT_IMPOSSIBLE: tuple[int, int, int, int] = (0, 0, 0, 200)  # Black (0-9%)
     LINE_WIDTH: int = 2
     DASH_LENGTH: int = 8  # For dashed effect
 
@@ -163,26 +173,144 @@ class AttackLineSystem:
         attacker: Unit,
         target: AttackTarget,
         game_map=None,
+        los_system=None,
     ) -> AttackLineStatus:
         """
-        Evaluate if attack is possible.
-        Returns the status (CAN_ATTACK, OUT_OF_RANGE, BLOCKED).
+        Evaluate if attack is possible and return CC2 4-color hit probability status.
+
+        Factors in: distance, cover/concealment, attacker accuracy (fatigue, veterancy, mode), weather.
         """
         if not attacker.weapon:
             return AttackLineStatus.NO_TARGET
 
-        # Check range
-        weapon_range = getattr(attacker.weapon, 'max_range', 300)  # Default 300px (~10 tiles)
+        weapon_range = getattr(attacker.weapon, 'max_range', 300)
         target.weapon_range = weapon_range
 
         if target.distance > weapon_range:
             return AttackLineStatus.OUT_OF_RANGE
 
-        # TODO: Implement LOS check using game_map terrain
-        # For now, assume clear LOS if in range
-        # This would check for buildings, hills blocking view
+        if los_system and game_map:
+            try:
+                from pycc2.domain.value_objects.tile_coord import TileCoord
+                from_coord = TileCoord(
+                    int(attacker.position.tile_coord.x),
+                    int(attacker.position.tile_coord.y),
+                )
+                to_coord = TileCoord(
+                    int(target.position.x // 32),
+                    int(target.position.y // 32),
+                )
+                can_see, los_result = los_system.check_los(from_coord, to_coord)
 
-        return AttackLineStatus.CAN_ATTACK
+                if not can_see:
+                    return AttackLineStatus.BLOCKED
+            except Exception as e:
+                print(f"[AttackLine] LOS check failed: {e}, assuming clear")
+
+        # Calculate hit probability for 4-color system
+        hit_prob = self.calculate_hit_probability(attacker, target, game_map)
+        return self._hit_probability_to_status(hit_prob)
+
+    @staticmethod
+    def calculate_hit_probability(
+        attacker: Unit,
+        target: AttackTarget,
+        game_map=None,
+    ) -> float:
+        """
+        Calculate hit probability (0.0 - 1.0) factoring in:
+        - Distance ratio (closer = higher)
+        - Cover/concealment of target
+        - Attacker's accuracy modifier (fatigue, veterancy, mode)
+        - Weather effects
+        """
+        # Base probability from distance ratio
+        weapon_range = getattr(attacker.weapon, 'max_range', 300)
+        if weapon_range <= 0:
+            return 0.0
+        distance_ratio = min(target.distance / weapon_range, 1.0)
+        # Optimal range is 0-30%, linear degradation after that
+        if distance_ratio <= 0.3:
+            base_prob = 0.9
+        else:
+            base_prob = 0.9 - 0.7 * ((distance_ratio - 0.3) / 0.7)
+        base_prob = max(base_prob, 0.05)
+
+        # Cover/concealment penalty for target
+        cover_penalty = 0.0
+        if game_map is not None:
+            try:
+                tx = int(target.position.x // 32)
+                ty = int(target.position.y // 32)
+                tile = game_map.get_tile(tx, ty) if hasattr(game_map, 'get_tile') else None
+                if tile is not None:
+                    cover_level = getattr(tile, 'cover_level', 0)
+                    concealment = getattr(tile, 'concealment', 0)
+                    cover_penalty = (cover_level * 0.15 + concealment * 0.10)
+            except Exception:
+                pass
+
+        # Attacker accuracy modifier (fatigue, veterancy, mode)
+        accuracy_mod = 1.0
+        # Fatigue penalty
+        fatigue_attr = getattr(attacker, 'fatigue', 0)
+        fatigue_val = fatigue_attr.value if hasattr(fatigue_attr, 'value') else fatigue_attr
+        if isinstance(fatigue_val, (int, float)):
+            if fatigue_val > 70:
+                accuracy_mod *= 0.7
+            elif fatigue_val > 40:
+                accuracy_mod *= 0.85
+        # Veterancy bonus
+        experience_level = getattr(attacker, 'experience_level', 0)
+        if experience_level >= 3:  # Elite
+            accuracy_mod *= 1.2
+        elif experience_level >= 2:  # Veteran
+            accuracy_mod *= 1.1
+        # Mode penalty (moving/sneaking reduces accuracy)
+        if hasattr(attacker, 'move_mode'):
+            mode = attacker.move_mode
+            if mode == 'fast':
+                accuracy_mod *= 0.5
+            elif mode == 'sneak':
+                accuracy_mod *= 0.8
+        # Morale accuracy modifier
+        if hasattr(attacker, 'morale') and attacker.morale is not None:
+            from pycc2.domain.systems.morale_system import MoraleSystem, MoraleState
+            morale_state = MoraleSystem.get_state(attacker.morale.value)
+            accuracy_mod *= MoraleSystem.get_accuracy_modifier(morale_state)
+
+        # Weather penalty
+        weather_penalty = 0.0
+        if game_map is not None:
+            weather = getattr(game_map, 'weather', None)
+            if weather is not None:
+                weather_str = str(weather).lower()
+                if 'rain' in weather_str:
+                    weather_penalty = 0.10
+                elif 'fog' in weather_str:
+                    weather_penalty = 0.20
+                elif 'snow' in weather_str:
+                    weather_penalty = 0.15
+
+        # Captured weapon penalty
+        if hasattr(attacker.weapon, 'is_captured') and attacker.weapon.is_captured:
+            accuracy_mod *= 0.8
+
+        hit_prob = base_prob - cover_penalty - weather_penalty
+        hit_prob *= accuracy_mod
+        return max(0.0, min(hit_prob, 1.0))
+
+    @staticmethod
+    def _hit_probability_to_status(hit_prob: float) -> AttackLineStatus:
+        """Map hit probability to CC2 4-color status."""
+        if hit_prob >= 0.60:
+            return AttackLineStatus.HIT_HIGH
+        elif hit_prob >= 0.30:
+            return AttackLineStatus.HIT_MODERATE
+        elif hit_prob >= 0.10:
+            return AttackLineStatus.HIT_LOW
+        else:
+            return AttackLineStatus.HIT_IMPOSSIBLE
 
     def get_line_color(self, status: AttackLineStatus) -> tuple[int, int, int, int]:
         """Get color based on attack status."""
@@ -190,8 +318,13 @@ class AttackLineSystem:
             AttackLineStatus.CAN_ATTACK: self.COLOR_CAN_ATTACK,
             AttackLineStatus.OUT_OF_RANGE: self.COLOR_OUT_OF_RANGE,
             AttackLineStatus.BLOCKED: self.COLOR_BLOCKED,
-            AttackLineStatus.TRACKING: self.COLOR_TRACKING,
+            AttackLineStatus.TRACKING_UNIT: self.COLOR_TRACKING,
             AttackLineStatus.NO_TARGET: (128, 128, 128, 100),
+            # CC2 4-color hit probability
+            AttackLineStatus.HIT_HIGH: self.COLOR_HIT_HIGH,
+            AttackLineStatus.HIT_MODERATE: self.COLOR_HIT_MODERATE,
+            AttackLineStatus.HIT_LOW: self.COLOR_HIT_LOW,
+            AttackLineStatus.HIT_IMPOSSIBLE: self.COLOR_HIT_IMPOSSIBLE,
         }
         return colors.get(status, self.COLOR_OUT_OF_RANGE)
 

@@ -54,6 +54,8 @@ class GameMap:
     objectives: list[MapObjective] = field(default_factory=list)
     spawn_points: list[SpawnPoint] = field(default_factory=list)
     tiles_enhanced: dict | None = None
+    height_grid: np.ndarray | None = None  # Building height (0-3 floors)
+    elevation_grid: np.ndarray | None = None  # Terrain elevation (0-5 levels)
 
     def __post_init__(self) -> None:
         if not isinstance(self.tile_grid, np.ndarray):
@@ -61,6 +63,12 @@ class GameMap:
         assert self.tile_grid.shape == (self.height, self.width), (
             f"tile_grid shape {self.tile_grid.shape} != ({self.height}, {self.width})"
         )
+
+        if self.height_grid is None:
+            self.height_grid = np.zeros((self.height, self.width), dtype=np.int8)
+
+        if self.elevation_grid is None:
+            self.elevation_grid = np.zeros((self.height, self.width), dtype=np.int8)
 
     @classmethod
     def from_json(cls, filepath: str | Path) -> GameMap:
@@ -105,6 +113,19 @@ class GameMap:
             for sp in data.get("spawn_points", [])
         ]
 
+        # Extract height and elevation grids from rich tile format if available
+        height_grid = None
+        elevation_grid = None
+        if isinstance(first_tile, dict):
+            height_grid = np.array(
+                [[t.get("height", 0) for t in row] for row in raw_tiles],
+                dtype=np.int8,
+            )
+            elevation_grid = np.array(
+                [[t.get("elevation", 0) for t in row] for row in raw_tiles],
+                dtype=np.int8,
+            )
+
         return cls(
             id=data.get("id", Path(filepath).stem),
             name=data.get("name", "Untitled"),
@@ -114,6 +135,8 @@ class GameMap:
             objectives=objectives,
             spawn_points=spawn_points,
             tiles_enhanced=data.get("tiles_enhanced"),
+            height_grid=height_grid,
+            elevation_grid=elevation_grid,
         )
 
     def get_terrain(self, coord: TileCoord) -> TerrainType:
@@ -182,3 +205,114 @@ class GameMap:
     def has_enhanced_data(self) -> bool:
         """Return True if tiles_enhanced data is present."""
         return self.tiles_enhanced is not None
+
+    # ========================================================================
+    # M-1: Multi-level Building System (Height)
+    # ========================================================================
+
+    def get_building_height(self, coord: TileCoord) -> int:
+        """
+        Get building height at coordinate (0-3 floors).
+
+        0 = Ground level (no building)
+        1 = 1st floor
+        2 = 2nd floor
+        3 = Roof/3rd floor
+        """
+        if self.height_grid is None:
+            return 0
+        if not self.is_within_bounds(coord):
+            return 0
+        return int(self.height_grid[coord.y, coord.x])
+
+    def set_building_height(self, coord: TileCoord, height: int) -> None:
+        """
+        Set building height at coordinate.
+
+        Args:
+            coord: Tile coordinate
+            height: Building height (0-3)
+        """
+        if self.height_grid is None or not self.is_within_bounds(coord):
+            return
+        self.height_grid[coord.y, coord.x] = max(0, min(3, height))
+
+    def get_total_height(self, coord: TileCoord) -> float:
+        """
+        Get total effective height = elevation + building_height.
+
+        Used for LOS calculations.
+        """
+        return self.get_elevation(coord) + self.get_building_height(coord)
+
+    # ========================================================================
+    # M-2: Hill/Terrain Elevation System
+    # ========================================================================
+
+    def get_elevation(self, coord: TileCoord) -> float:
+        """
+        Get terrain elevation at coordinate (0-5 levels).
+
+        0 = Flat ground
+        1 = Gentle slope
+        2 = Moderate hill
+        3 = Steep hill
+        4 = High ground
+        5 = Mountain/cliff
+        """
+        if self.elevation_grid is None:
+            return 0.0
+        if not self.is_within_bounds(coord):
+            return 0.0
+        return float(self.elevation_grid[coord.y, coord.x])
+
+    def set_elevation(self, coord: TileCoord, elevation: float) -> None:
+        """
+        Set terrain elevation at coordinate.
+
+        Args:
+            coord: Tile coordinate
+            elevation: Elevation value (0.0-5.0)
+        """
+        if self.elevation_grid is None or not self.is_within_bounds(coord):
+            return
+        self.elevation_grid[coord.y, coord.x] = max(0.0, min(5.0, elevation))
+
+    def get_slope_cost(self, from_coord: TileCoord, to_coord: TileCoord) -> float:
+        """
+        Calculate movement cost modifier based on slope.
+
+        Returns:
+            Multiplier for movement cost:
+            - 1.0: Flat or downhill
+            - 1.0-2.0: Uphill (steeper = slower)
+        """
+        from_elev = self.get_elevation(from_coord)
+        to_elev = self.get_elevation(to_coord)
+        elev_diff = to_elev - from_elev
+
+        if elev_diff <= 0:
+            return 1.0  # Flat or downhill: normal speed
+
+        slope_multiplier = 1.0 + (elev_diff * 0.25)
+        return min(slope_multiplier, 2.5)  # Cap at 2.5x slowdown
+
+    def get_los_height_advantage(
+        self,
+        from_coord: TileCoord,
+        to_coord: TileCoord,
+    ) -> float:
+        """
+        Calculate LOS range advantage from elevation difference.
+
+        Higher ground can see further over obstacles.
+
+        Returns:
+            Bonus to LOS range in tiles (can be negative if lower)
+        """
+        from_height = self.get_total_height(from_coord)
+        to_height = self.get_total_height(to_coord)
+        height_diff = from_height - to_height
+
+        return height_diff * 2.0  # Each level of advantage = +2 tiles range
+

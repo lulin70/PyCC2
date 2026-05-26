@@ -21,7 +21,7 @@ class SaveSlotStatus(Enum):
 
 @dataclass(slots=True)
 class SaveMetaData:
-    version: str = "0.4"
+    version: str = "0.1.1"
     saved_at: str = ""
     tick: int = 0
     mission_id: str = ""
@@ -42,7 +42,7 @@ class SaveFile:
 class SecureSaveManager:
     SAVE_DIR_NAME = "saves"
     MAX_SLOTS = 8
-    CURRENT_VERSION = "0.4"
+    CURRENT_VERSION = "0.1.1"
 
     def __init__(self, base_dir: Path | str | None = None):
         if isinstance(base_dir, str):
@@ -280,11 +280,13 @@ class SecureSaveManager:
         }
 
     def _extract_battle_stats(self, game_loop) -> dict:
-        if hasattr(game_loop, "_battle_stats") and game_loop._battle_stats:
-            bs = game_loop._battle_stats
+        battle_stats = None
+        if hasattr(game_loop, "_victory_manager") and game_loop._victory_manager is not None:
+            battle_stats = game_loop._victory_manager.battle_stats
+        if battle_stats is not None:
             return {
-                "allies_kills": bs.allies_kills,
-                "axis_kills": bs.axis_kills,
-                "ticks_elapsed": bs.ticks_elapsed,
+                "allies_kills": battle_stats.allies_kills,
+                "axis_kills": battle_stats.axis_kills,
+                "ticks_elapsed": battle_stats.ticks_elapsed,
             }
         return {}

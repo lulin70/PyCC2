@@ -143,15 +143,15 @@ class DeploymentState:
 # ========================================================================
 
 _ZONE_COLORS: dict[ZoneType, tuple[int, int, int, int]] = {
-    ZoneType.FRIENDLY: (0, 180, 0, 50),
-    ZoneType.NO_MANS_LAND: (140, 140, 140, 40),
-    ZoneType.ENEMY_CONTROLLED: (200, 40, 40, 50),
+    ZoneType.FRIENDLY: (0, 0, 0, 0),            # No shading (normal map appearance)
+    ZoneType.NO_MANS_LAND: (120, 120, 120, 60),  # Light grey semi-transparent
+    ZoneType.ENEMY_CONTROLLED: (60, 60, 60, 100), # Dark grey semi-transparent
 }
 
 _ZONE_BORDER_COLORS: dict[ZoneType, tuple[int, int, int]] = {
-    ZoneType.FRIENDLY: (0, 220, 0),
+    ZoneType.FRIENDLY: (0, 180, 0),             # Subtle green border for deployable area
     ZoneType.NO_MANS_LAND: (160, 160, 160),
-    ZoneType.ENEMY_CONTROLLED: (220, 60, 60),
+    ZoneType.ENEMY_CONTROLLED: (160, 60, 60),
 }
 
 _VALID_PLACEMENT_COLOR = (0, 255, 100, 70)
@@ -241,6 +241,10 @@ class DeploymentUI:
         self._drag_current_pos: tuple[int, int] | None = None
         self._ghost_surface: Any = None  # Pre-rendered ghost sprite
         self._is_dragging: bool = False
+
+        # === Pre-battle orders (GAP-8) ===
+        self._pending_orders: dict[str, tuple[int, int]] = {}  # unit_template_id -> (target_x, target_y)
+        self._selected_placed_unit: DeploymentUnit | None = None  # For setting orders
 
     # ------------------------------------------------------------------
     # Public API
@@ -472,9 +476,20 @@ class DeploymentUI:
         map_offset_y: int = 0,
         tile_size: int = 16,
     ) -> str | None:
-        """Handle a right-click to remove a placed unit from the map.
+        """Handle a right-click during deployment.
 
-        Returns ``"remove_unit:<x>,<y>"`` or None.
+        Behaviour (GAP-8):
+          - If a placed unit is selected, right-click on the map sets a
+            pending move order for that unit.
+          - If no placed unit is selected, right-click on a placed unit
+            selects it for ordering.
+          - Right-click on roster deselects.
+
+        Returns an action string or None:
+          - ``"set_order:<unit_id>,<tx>,<ty>"`` – pending move order set
+          - ``"select_placed_unit:<x>,<y>"`` – placed unit selected for ordering
+          - ``"remove_unit:<x>,<y>"`` – placed unit removed (no unit selected)
+          - ``None`` – click did nothing
         """
         if self._state.phase not in (DeploymentPhase.DEPLOYING, DeploymentPhase.READY):
             return None
@@ -482,9 +497,10 @@ class DeploymentUI:
         # Right-click on roster → deselect
         if screen_x < self._roster_width:
             self._selected_unit_index = None
+            self._selected_placed_unit = None
             return None
 
-        # Right-click on map → remove unit
+        # Right-click on map
         map_pos = self.screen_to_map(
             screen_x, screen_y, map_offset_x, map_offset_y, tile_size
         )
@@ -492,6 +508,26 @@ class DeploymentUI:
             return None
 
         map_x, map_y = map_pos
+
+        # If a placed unit is selected, set a pending move order
+        if self._selected_placed_unit is not None and self._selected_placed_unit.is_placed:
+            # Set the pending order
+            self.set_pending_order(self._selected_placed_unit.unit_template_id, map_x, map_y)
+            result = f"set_order:{self._selected_placed_unit.unit_template_id},{map_x},{map_y}"
+            return result
+
+        # Otherwise, try to select a placed unit at this position
+        for pu in self._state.placed_units:
+            if pu.position == (map_x, map_y):
+                self._selected_placed_unit = pu
+                # Also find and set the roster index for the detail panel
+                for i, au in enumerate(self._state.available_units):
+                    if au is pu:
+                        self._selected_unit_index = i
+                        break
+                return f"select_placed_unit:{map_x},{map_y}"
+
+        # No placed unit selected and no unit at click position → remove (legacy behavior)
         if self.remove_unit(map_x, map_y):
             return f"remove_unit:{map_x},{map_y}"
 
@@ -635,7 +671,32 @@ class DeploymentUI:
             "support_count": support_count,
             "requisition_spent": self._state.requisition_points_spent,
             "requisition_remaining": self.requisition_remaining,
+            "pending_orders": dict(self._pending_orders),  # GAP-8: include pre-battle orders
         }
+
+    # ------------------------------------------------------------------
+    # Pre-battle orders (GAP-8)
+    # ------------------------------------------------------------------
+
+    def set_pending_order(self, unit_template_id: str, target_x: int, target_y: int) -> None:
+        """Set a pending movement order for a deployed unit.
+
+        The unit will move toward (target_x, target_y) when battle begins.
+        """
+        self._pending_orders[unit_template_id] = (target_x, target_y)
+
+    def get_pending_order(self, unit_template_id: str) -> tuple[int, int] | None:
+        """Return the pending order target for a unit, or None."""
+        return self._pending_orders.get(unit_template_id)
+
+    def clear_pending_order(self, unit_template_id: str) -> None:
+        """Remove a pending order for a unit."""
+        self._pending_orders.pop(unit_template_id, None)
+
+    @property
+    def pending_orders(self) -> dict[str, tuple[int, int]]:
+        """Return a copy of all pending orders."""
+        return dict(self._pending_orders)
 
     # ------------------------------------------------------------------
     # Rendering
@@ -690,6 +751,9 @@ class DeploymentUI:
         # 3. Placed unit markers (using RENDERING offset)
         self._render_placed_units(screen, actual_map_offset_x, actual_map_offset_y, tile_size)
 
+        # 3.5. Pending order arrows (GAP-8)
+        self._render_pending_orders(screen, actual_map_offset_x, actual_map_offset_y, tile_size)
+
         # 4. Force pool panel (left side) - drawn at (0, 0)
         self._render_roster(screen)
 
@@ -705,6 +769,118 @@ class DeploymentUI:
 
         # 8. Drag-and-drop visual feedback (using CLICK DETECTION offset for proper alignment)
         self._render_drag_feedback(screen, click_map_offset_x, click_map_offset_y, tile_size)
+
+    def render_deployment_zones(
+        self,
+        surface: Any,
+        camera: Any,
+        game_map: Any,
+        tile_size: int = 48,
+    ) -> None:
+        """Render deployment zone overlays on the map using camera/game_map objects.
+
+        This is an alternative rendering entry point that works with external
+        camera and game_map objects, suitable for integration with the main
+        game loop's render pipeline.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+            The screen surface to draw on.
+        camera : object
+            Camera with ``offset_x`` / ``offset_y`` attributes.
+        game_map : object
+            Map with ``width``, ``height`` attributes.
+        tile_size : int
+            Pixel size per tile (default 48).
+        """
+        if not _pygame_available or surface is None:
+            return
+
+        if self._state.phase not in (DeploymentPhase.DEPLOYING, DeploymentPhase.READY):
+            return
+
+        map_w = getattr(game_map, "width", self._map_width)
+        map_h = getattr(game_map, "height", self._map_height)
+
+        zone_overlay = pygame.Surface((map_w * tile_size, map_h * tile_size), pygame.SRCALPHA)
+
+        for y in range(map_h):
+            for x in range(map_w):
+                zone = self._get_zone_at(x, y)
+                if zone == ZoneType.ENEMY_CONTROLLED:
+                    pygame.draw.rect(zone_overlay, (60, 60, 60, 100), (x * tile_size, y * tile_size, tile_size, tile_size))
+                elif zone == ZoneType.NO_MANS_LAND:
+                    pygame.draw.rect(zone_overlay, (120, 120, 120, 60), (x * tile_size, y * tile_size, tile_size, tile_size))
+                # FRIENDLY zone = no overlay
+
+        cam_x = int(getattr(camera, "offset_x", 0))
+        cam_y = int(getattr(camera, "offset_y", 0))
+        surface.blit(zone_overlay, (-cam_x, -cam_y))
+
+    def handle_deployment_drag(
+        self,
+        event: Any,
+        camera: Any,
+        game_map: Any,
+        tile_size: int = 48,
+    ) -> None:
+        """Handle drag-drop deployment interaction using pygame events directly.
+
+        This is an alternative input entry point that works with raw pygame
+        events and external camera/game_map objects.
+
+        Parameters
+        ----------
+        event : pygame.event.Event
+            The pygame event to process.
+        camera : object
+            Camera with ``offset_x`` / ``offset_y`` attributes.
+        game_map : object
+            Map with ``width``, ``height`` attributes.
+        tile_size : int
+            Pixel size per tile (default 48).
+        """
+        if not _pygame_available:
+            return
+
+        if self._state.phase not in (DeploymentPhase.DEPLOYING, DeploymentPhase.READY):
+            return
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            # Check if clicking on force pool unit (left of roster)
+            if event.pos[0] < self._roster_width:
+                idx = self._roster_index_at(event.pos[0], event.pos[1])
+                if idx is not None and 0 <= idx < len(self._state.available_units):
+                    unit = self._state.available_units[idx]
+                    if not unit.is_placed:
+                        self._dragging_unit = unit
+                        self._dragging_unit_index = idx
+                        self._drag_start_pos = event.pos
+                        self._drag_current_pos = event.pos
+                        self._is_dragging = True
+                        self._selected_unit_index = idx
+                        try:
+                            self._ghost_surface = self._create_ghost_surface(unit)
+                        except Exception:
+                            self._ghost_surface = None
+
+        elif event.type == pygame.MOUSEMOTION and self._is_dragging:
+            self._drag_current_pos = event.pos
+
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            if self._is_dragging and self._dragging_unit is not None:
+                cam_x = int(getattr(camera, "offset_x", 0))
+                cam_y = int(getattr(camera, "offset_y", 0))
+                tile_x = int((event.pos[0] + cam_x) / tile_size)
+                tile_y = int((event.pos[1] + cam_y) / tile_size)
+
+                if self._dragging_unit_index is not None:
+                    terrain = self._get_terrain_at(tile_x, tile_y)
+                    if self.can_place_at(self._dragging_unit, tile_x, tile_y, terrain):
+                        self.place_unit(self._dragging_unit_index, tile_x, tile_y)
+
+                self._clear_drag_state()
 
     # ------------------------------------------------------------------
     # Internal – zone overlays
@@ -731,12 +907,15 @@ class DeploymentUI:
                     zone = self._zone_map[y][x]
                     color = _ZONE_COLORS[zone]
                     rect = pygame.Rect(x * ts, y * ts, ts, ts)
-                    pygame.draw.rect(overlay, color, rect)
 
-                    # Draw thin zone border for friendly and enemy
-                    if zone in (ZoneType.FRIENDLY, ZoneType.ENEMY_CONTROLLED):
-                        border_color = _ZONE_BORDER_COLORS[zone]
-                        pygame.draw.rect(overlay, (*border_color, 80), rect, 1)
+                    # Only draw fill if alpha > 0 (FRIENDLY zone has alpha=0, skip fill)
+                    if color[3] > 0:
+                        pygame.draw.rect(overlay, color, rect)
+
+                    # Draw zone border for all zone types
+                    border_color = _ZONE_BORDER_COLORS[zone]
+                    border_alpha = 80 if zone != ZoneType.FRIENDLY else 40  # Subtler for friendly
+                    pygame.draw.rect(overlay, (*border_color, border_alpha), rect, 1)
 
             self._overlay_cache = overlay
             self._overlay_tile_size = ts
@@ -874,6 +1053,121 @@ class DeploymentUI:
                 bg_rect = pygame.Rect(label_x - 2, label_y - 1, label.get_width() + 4, label.get_height() + 2)
                 pygame.draw.rect(screen, (0, 0, 0, 180), bg_rect, border_radius=2)
                 screen.blit(label, (label_x, label_y))
+
+    # ------------------------------------------------------------------
+    # Internal – pending order arrows (GAP-8)
+    # ------------------------------------------------------------------
+
+    def _render_pending_orders(
+        self,
+        screen: Any,
+        ox: int,
+        oy: int,
+        ts: int,
+    ) -> None:
+        """Render arrows from placed units to their pending move targets."""
+        if not self._pending_orders:
+            return
+
+        for pu in self._state.placed_units:
+            if pu.position is None:
+                continue
+            order = self._pending_orders.get(pu.unit_template_id)
+            if order is None:
+                continue
+
+            src_x, src_y = pu.position
+            dst_x, dst_y = order
+
+            # Source center
+            sx = ox + src_x * ts + ts // 2
+            sy = oy + src_y * ts + ts // 2
+            # Destination center
+            dx = ox + dst_x * ts + ts // 2
+            dy = oy + dst_y * ts + ts // 2
+
+            # Draw dashed line from source to destination
+            line_color = (255, 200, 50, 180)  # Yellow-gold for orders
+            self._draw_dashed_line(screen, line_color, (sx, sy), (dx, dy), dash_length=6, gap_length=4)
+
+            # Draw target marker (X mark)
+            mark_size = max(ts // 4, 4)
+            pygame.draw.line(screen, (255, 200, 50), (dx - mark_size, dy - mark_size), (dx + mark_size, dy + mark_size), 2)
+            pygame.draw.line(screen, (255, 200, 50), (dx + mark_size, dy - mark_size), (dx - mark_size, dy + mark_size), 2)
+
+            # Draw small circle at target
+            pygame.draw.circle(screen, (255, 200, 50), (dx, dy), mark_size + 2, 1)
+
+            # Arrowhead at destination
+            self._draw_arrowhead(screen, (255, 200, 50), (sx, sy), (dx, dy), size=8)
+
+    @staticmethod
+    def _draw_dashed_line(
+        surface: Any,
+        color: tuple[int, int, int, int],
+        start: tuple[int, int],
+        end: tuple[int, int],
+        dash_length: int = 6,
+        gap_length: int = 4,
+    ) -> None:
+        """Draw a dashed line between two points."""
+        dx = end[0] - start[0]
+        dy = end[1] - start[1]
+        dist = (dx * dx + dy * dy) ** 0.5
+        if dist < 1:
+            return
+
+        # Normalize direction
+        nx, ny = dx / dist, dy / dist
+        drawn = 0.0
+        drawing = True
+
+        while drawn < dist:
+            seg_len = dash_length if drawing else gap_length
+            seg_len = min(seg_len, dist - drawn)
+
+            if drawing:
+                sx = start[0] + nx * drawn
+                sy = start[1] + ny * drawn
+                ex = start[0] + nx * (drawn + seg_len)
+                ey = start[1] + ny * (drawn + seg_len)
+                pygame.draw.line(surface, color[:3], (int(sx), int(sy)), (int(ex), int(ey)), 2)
+
+            drawn += seg_len
+            drawing = not drawing
+
+    @staticmethod
+    def _draw_arrowhead(
+        surface: Any,
+        color: tuple[int, int, int],
+        start: tuple[int, int],
+        end: tuple[int, int],
+        size: int = 8,
+    ) -> None:
+        """Draw an arrowhead at the end point pointing from start to end."""
+        import math as _math
+
+        dx = end[0] - start[0]
+        dy = end[1] - start[1]
+        dist = (dx * dx + dy * dy) ** 0.5
+        if dist < 1:
+            return
+
+        # Angle of the line
+        angle = _math.atan2(dy, dx)
+
+        # Arrowhead points
+        p1 = (end[0], end[1])
+        p2 = (
+            int(end[0] - size * _math.cos(angle - _math.pi / 6)),
+            int(end[1] - size * _math.sin(angle - _math.pi / 6)),
+        )
+        p3 = (
+            int(end[0] - size * _math.cos(angle + _math.pi / 6)),
+            int(end[1] - size * _math.sin(angle + _math.pi / 6)),
+        )
+
+        pygame.draw.polygon(surface, color, [p1, p2, p3])
 
     # ------------------------------------------------------------------
     # Internal – force pool panel (LEFT side)
@@ -1271,6 +1565,14 @@ class DeploymentUI:
         if not (0 <= x < self._map_width and 0 <= y < self._map_height):
             return False
         return self._zone_map[y][x] == ZoneType.FRIENDLY
+
+    def _get_zone_at(self, x: int, y: int) -> ZoneType:
+        """Return the ZoneType at the given tile coordinates."""
+        if self._zone_map is None:
+            return ZoneType.NO_MANS_LAND
+        if not (0 <= x < self._map_width and 0 <= y < self._map_height):
+            return ZoneType.NO_MANS_LAND
+        return self._zone_map[y][x]
 
     def _get_terrain_at(self, x: int, y: int) -> int:
         if self._tile_grid is None:

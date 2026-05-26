@@ -8,14 +8,17 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
+from pycc2.domain.components.fatigue_component import FatigueComponent
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent
 from pycc2.domain.components.position_component import PositionComponent
+from pycc2.domain.components.veterancy_component import VeterancyComponent
 from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
 if TYPE_CHECKING:
+    from pycc2.domain.entities.squad import Squad
     from pycc2.domain.state_machine import StateMachine
     from pycc2.domain.systems.combat_mechanics_enhanced import (
         CombatState,
@@ -23,6 +26,7 @@ if TYPE_CHECKING:
         SuppressionEffect,
         SuppressionState,
     )
+    from pycc2.domain.systems.vehicle_crew_system import VehicleCrew
 
 
 class Faction(Enum):
@@ -63,6 +67,10 @@ class Unit:
     position: PositionComponent
     vision: VisionComponent
     squad_id: str | None = None
+    fatigue: FatigueComponent | None = None
+    veterancy: VeterancyComponent | None = None
+    crew: VehicleCrew | None = None  # Only for vehicle units
+    squad_ref: Squad | None = None  # Direct reference replaces squad_id
     state_machine: StateMachine = field(init=False)
     armor_front: float = 1.0
     armor_side: float = 0.65
@@ -70,6 +78,214 @@ class Unit:
     armor_top: float = 0.50
     combat_state: CombatState | None = None
     move_target: "TileCoord | None" = field(default=None, init=False)  # Movement destination
+    facing: float = 0.0  # Facing direction in degrees (0=East, 90=South, 180=West, 270=North)
+    
+    # Movement mode system (for Fast Move, Sneak, Defend commands)
+    _movement_mode: str = field(init=False, default="normal")  # normal, fast_move, sneak, defend
+    _movement_mode_ticks_remaining: int = field(init=False, default=0)  # Duration in ticks
+    _sneak_speed_multiplier: float = 0.6
+    _fast_speed_multiplier: float = 1.5
+    _defend_accuracy_bonus: float = 0.25  # +25% accuracy when defending
+    _defend_mobility_penalty: float = 0.5   # 50% slower when defending
+
+    # Command queue (Shift+right-click queued commands)
+    _command_queue: list[dict] = field(default_factory=list)
+
+    # Popup tracking (used by game_loop._process_combat_popups)
+    _prev_morale_state: object = field(init=False, default=None)
+    _kia_popup_shown: bool = field(init=False, default=False)
+    _ammo_popup_shown: bool = field(init=False, default=False)
+    
+    @property
+    def movement_mode(self) -> str:
+        """Current movement mode."""
+        return self._movement_mode
+    
+    @property
+    def is_fast_moving(self) -> bool:
+        """Check if unit is in fast move mode."""
+        return self._movement_mode == "fast_move"
+    
+    @property
+    def is_sneaking(self) -> bool:
+        """Check if unit is in sneak mode."""
+        return self._movement_mode == "sneak"
+    
+    @property
+    def is_defending(self) -> bool:
+        """Check if unit is in defend mode."""
+        return self._movement_mode == "defend"
+    
+    @property
+    def can_use_smoke(self) -> bool:
+        """Check if unit can deploy smoke (has smoke grenades)."""
+        if not hasattr(self, 'weapon') or self.weapon is None:
+            return False
+        # Most infantry and support units have smoke capability
+        return self.unit_type in (
+            UnitType.INFANTRY_SQUAD,
+            UnitType.MACHINE_GUN_SQUAD,
+            UnitType.COMMANDER,
+            UnitType.SNIPER_TEAM,
+        )
+    
+    @property
+    def can_sneak(self) -> bool:
+        """Check if unit can use sneak mode."""
+        # Infantry and recon units can sneak
+        return self.unit_type in (
+            UnitType.INFANTRY_SQUAD,
+            UnitType.SNIPER_TEAM,
+            UnitType.COMMANDER,
+            UnitType.MEDIC_TEAM,
+        )
+    
+    @property
+    def can_hide(self) -> bool:
+        """Check if unit can hide (take cover)."""
+        # All infantry-sized units can hide
+        return not getattr(self, 'is_vehicle', False)
+    
+    def set_movement_mode(self, mode: str, duration_ticks: int = -1) -> None:
+        """
+        Set movement mode for the unit.
+        
+        Args:
+            mode: One of "normal", "fast_move", "sneak", "defend"
+            duration_ticks: Duration in game ticks (-1 = indefinite until cancelled)
+        """
+        valid_modes = {"normal", "fast_move", "sneak", "defend"}
+        if mode not in valid_modes:
+            raise ValueError(f"Invalid movement mode: {mode}. Must be one of {valid_modes}")
+        
+        old_mode = self._movement_mode
+        self._movement_mode = mode
+        
+        if duration_ticks > 0:
+            self._movement_mode_ticks_remaining = duration_ticks
+        elif duration_ticks == -1:
+            self._movement_mode_ticks_remaining = -1  # Indefinite
+        else:
+            self._movement_mode_ticks_remaining = 0  # Immediate reset
+        
+        import logging
+        logger = logging.getLogger(__name__)
+        if old_mode != mode:
+            logger.info(
+                f"[COMMAND] {self.name or self.id} mode change: {old_mode} -> {mode}"
+            )
+    
+    def get_speed_multiplier(self) -> float:
+        """
+        Get current speed multiplier based on movement mode.
+
+        Returns:
+            Speed multiplier (1.0 = normal, <1.0 = slower, >1.0 = faster)
+        """
+        if self._movement_mode == "fast_move":
+            base = self._fast_speed_multiplier
+        elif self._movement_mode == "sneak":
+            base = self._sneak_speed_multiplier
+        elif self._movement_mode == "defend":
+            base = self._defend_mobility_penalty
+        else:
+            base = 1.0
+        # Apply fatigue penalty
+        if self.fatigue is not None:
+            base *= self.fatigue.movement_modifier
+        # Apply crew efficiency for vehicles
+        if self.crew is not None:
+            base *= self.crew.vehicle_efficiency
+        return base
+    
+    def get_accuracy_modifier(self) -> float:
+        """
+        Get accuracy modifier based on movement mode.
+
+        Returns:
+            Accuracy multiplier (1.0 = normal, >1.0 = bonus)
+        """
+        base = 1.0
+        if self._movement_mode == "defend":
+            base = 1.0 + self._defend_accuracy_bonus
+        elif self._movement_mode == "fast_move":
+            base = 0.85
+        elif self._movement_mode == "sneak":
+            base = 0.95
+        # Apply fatigue penalty
+        if self.fatigue is not None:
+            base *= self.fatigue.accuracy_modifier
+        # Apply veterancy bonus
+        if self.veterancy is not None:
+            base *= self.veterancy.accuracy_bonus
+        # Apply crew efficiency for vehicles
+        if self.crew is not None:
+            base *= self.crew.vehicle_efficiency
+        return base
+    
+    def get_detection_modifier(self) -> float:
+        """
+        Get detection chance modifier based on movement mode.
+
+        Returns:
+            Detection multiplier (>1.0 = easier to detect, <1.0 = harder to detect)
+        """
+        if self._movement_mode == "fast_move":
+            base = 1.5  # Much easier to detect when sprinting
+        elif self._movement_mode == "sneak":
+            base = 0.5  # Harder to detect when sneaking
+        elif self._movement_mode == "defend":
+            base = 0.8  # Slightly harder (stationary)
+        else:
+            base = 1.0
+        # Veterans are harder to spot (better fieldcraft)
+        if self.veterancy is not None and self.veterancy.rank.value >= 3:  # VETERAN+
+            base *= 0.9
+        return base
+    
+    def update_movement_mode(self) -> None:
+        """Update movement mode timer (call once per tick)."""
+        if self._movement_mode_ticks_remaining > 0:
+            self._movement_mode_ticks_remaining -= 1
+            if self._movement_mode_ticks_remaining == 0:
+                # Reset to normal when duration expires
+                self._movement_mode = "normal"
+
+    def queue_command(self, command_type: str, target_x: float = 0, target_y: float = 0, **kwargs) -> None:
+        """Add a command to the execution queue (Shift+right-click)."""
+        self._command_queue.append({
+            'type': command_type,
+            'target_x': target_x,
+            'target_y': target_y,
+            **kwargs
+        })
+
+    def get_next_queued_command(self) -> dict | None:
+        """Get and remove the next command from the queue."""
+        if self._command_queue:
+            return self._command_queue.pop(0)
+        return None
+
+    @property
+    def has_queued_commands(self) -> bool:
+        return len(self._command_queue) > 0
+
+    def clear_command_queue(self) -> None:
+        self._command_queue.clear()
+
+    def _execute_queued_command(self, cmd: dict) -> None:
+        """Execute the next queued command after current one completes."""
+        cmd_type = cmd.get('type', 'move')
+        if cmd_type == 'move':
+            tx = cmd.get('target_x', 0)
+            ty = cmd.get('target_y', 0)
+            from pycc2.domain.value_objects.tile_coord import TileCoord
+            self.set_move_target(TileCoord(int(tx), int(ty)))
+        elif cmd_type == 'attack':
+            try:
+                self.state_machine.transition(UnitState.ATTACKING)
+            except Exception:
+                pass
 
     def __post_init__(self) -> None:
         from pycc2.domain.state_machine import StateMachine
@@ -95,6 +311,37 @@ class Unit:
             from pycc2.domain.systems.combat_mechanics_enhanced import CombatState
             self.combat_state = CombatState()
 
+        # Auto-create component instances
+        if self.fatigue is None:
+            self.fatigue = FatigueComponent()
+        if self.veterancy is None:
+            self.veterancy = VeterancyComponent()
+        # Crew only for vehicles
+        if self.crew is None and self.unit_type == UnitType.TANK:
+            from pycc2.domain.systems.vehicle_crew_system import VehicleCrew
+            self.crew = VehicleCrew(self.id)
+
+    @property
+    def squad_size(self) -> int:
+        """Get squad size from linked squad."""
+        if self.squad_ref is not None:
+            return self.squad_ref.size
+        return 1
+
+    @property
+    def squad_casualties(self) -> int:
+        """Get squad casualties from linked squad."""
+        if self.squad_ref is not None:
+            return self.squad_ref.dead_count
+        return 0
+
+    @property
+    def squad_status_string(self) -> str:
+        """Get squad status string for UI."""
+        if self.squad_ref is not None:
+            return self.squad_ref.get_status_string()
+        return ""
+
     @property
     def is_alive(self) -> bool:
         return self.health.is_alive
@@ -117,6 +364,47 @@ class Unit:
         return self.combat_state.is_pinned if self.combat_state is not None else False
 
     @property
+    def is_broken(self) -> bool:
+        """Check if unit is in broken state (morale < 20)."""
+        if hasattr(self, 'morale') and self.morale is not None:
+            return self.morale.value < 20
+        return False
+
+    @property
+    def morale_state(self):
+        """Get current morale state from MoraleSystem."""
+        from pycc2.domain.systems.morale_system import MoraleSystem
+        if hasattr(self, 'morale') and self.morale is not None:
+            return MoraleSystem.get_state(self.morale.value)
+        from pycc2.domain.systems.morale_system import MoraleState
+        return MoraleState.RALLYED
+
+    def can_move(self) -> bool:
+        """Check if unit can move based on morale and suppression."""
+        from pycc2.domain.systems.morale_system import MoraleSystem
+        
+        # Check alive status first
+        if not self.is_alive:
+            return False
+        
+        # Check combat state machine
+        if self.state_machine.current in (UnitState.DEAD, UnitState.SURRENDERED):
+            return False
+        
+        # Use MoraleSystem for detailed check
+        if hasattr(self, 'morale') and self.morale is not None:
+            return MoraleSystem.can_move(self)
+        
+        return True
+
+    def can_accept_orders(self) -> bool:
+        """Check if unit will accept orders."""
+        from pycc2.domain.systems.morale_system import MoraleSystem
+        if hasattr(self, 'morale') and self.morale is not None:
+            return MoraleSystem.can_accept_orders(self)
+        return True
+
+    @property
     def suppression_level(self) -> SuppressionEffect:
         if self.combat_state is not None:
             return self.combat_state.suppression.get_current_effect()
@@ -136,7 +424,7 @@ class Unit:
         """Set movement target (unit will move toward it each tick)."""
         from pycc2.domain.value_objects.tile_coord import TileCoord
         self.move_target = tile
-        if self.state_machine.current_state != UnitState.MOVING:
+        if self.state_machine.current != UnitState.MOVING:
             try:
                 self.state_machine.transition(UnitState.MOVING)
             except Exception:
@@ -178,7 +466,11 @@ class Unit:
 
         # Apply modifiers
         speed_modifier = 1.0
-
+        
+        # Apply movement mode speed multiplier (Fast Move, Sneak, Defend)
+        if hasattr(self, 'get_speed_multiplier'):
+            speed_modifier *= self.get_speed_multiplier()
+        
         # Fatigue reduces speed (if fatigue system exists)
         if hasattr(self, 'fatigue'):
             fatigue_val = getattr(self.fatigue, 'current', 0) if self.fatigue else 0
@@ -204,10 +496,15 @@ class Unit:
             # Close enough: snap to target
             self.move_to_tile(target)
             self.move_target = None
-            try:
-                self.state_machine.transition(UnitState.IDLE)
-            except Exception:
-                pass
+            # Check for queued commands before transitioning to IDLE
+            next_cmd = self.get_next_queued_command()
+            if next_cmd is not None:
+                self._execute_queued_command(next_cmd)
+            else:
+                try:
+                    self.state_machine.transition(UnitState.IDLE)
+                except Exception:
+                    pass
             return True
         else:
             # Move toward target
