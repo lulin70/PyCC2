@@ -475,16 +475,17 @@ class DeploymentManager:
             return
 
         try:
-            from pycc2.domain.ai.behavior_tree import Selector, Sequence
-            from pycc2.domain.ai.tactical_ai import FlankingAI, SuppressionAI
+            from pycc2.domain.ai.unit_bt_factory import UnitBTFactory
+            from pycc2.domain.entities.unit import UnitType
 
             for u in units:
                 if u.faction == ai_faction:
-                    # Create a simple behavior tree for each AI unit
-                    bt = Selector([
-                        Sequence([FlankingAI()]),
-                        Sequence([SuppressionAI()]),
-                    ])
+                    if u.unit_type == UnitType.MACHINE_GUN_SQUAD:
+                        bt = UnitBTFactory.create_mg_squad_bt(unit_id=u.id)
+                    elif u.unit_type == UnitType.COMMANDER:
+                        bt = UnitBTFactory.create_commander_bt(unit_id=u.id)
+                    else:
+                        bt = UnitBTFactory.create_infantry_bt(unit_id=u.id)
                     ai_service.register_ai_unit(u, bt)
         except ImportError as e:
             logger.warning(f"Could not initialize AI behavior tree: {e}")

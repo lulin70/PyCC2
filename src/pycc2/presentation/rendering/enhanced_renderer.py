@@ -2163,6 +2163,9 @@ class EnhancedRenderer:
         # STEP 4: Draw decorations (minimal)
         self._draw_decorations(game_map, camera)
 
+        # STEP 4.4: Draw building roofs (CC2 top-down view — covers side-view terrain texture)
+        self._draw_building_roofs(game_map, camera)
+
         # STEP 4.5: Draw building interiors (auto-switch when units are inside)
         self._draw_building_interiors(game_map, units, camera)
 
@@ -2406,6 +2409,74 @@ class EnhancedRenderer:
         # Draw terrain borders ONLY in debug mode (Issue 4: remove harsh grid lines in normal mode)
         if debug_mode:
             self._draw_terrain_borders(game_map, camera, start_x, end_x, start_y, end_y)
+
+    def _draw_building_roofs(
+        self, game_map: GameMap, camera: Camera,
+    ) -> None:
+        """Draw CC2-style top-down building roofs over all building tiles.
+
+        This covers the side-view terrain texture with the correct CC2
+        orthographic roof view (colored rectangle + pseudo-3D shadow strips).
+        When units are inside, _draw_building_interiors will override with
+        the interior view in the next step.
+        """
+        if self._offscreen is None:
+            return
+
+        from pycc2.presentation.rendering.cc2_building_renderer import (
+            render_cc2_building,
+            floors_to_building_type,
+            DamageLevel,
+        )
+
+        bounds = camera.view_bounds
+        start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
+        end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
+        start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
+        end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
+
+        for ty in range(start_y, end_y):
+            for tx in range(start_x, end_x):
+                terrain_val = self._get_terrain_at(game_map, tx, ty)
+                if terrain_val != 4:  # Only BUILDING_ENTERABLE
+                    continue
+
+                # Determine building type from floor count
+                enhanced = game_map.get_enhanced_tile(tx, ty) if hasattr(game_map, 'get_enhanced_tile') else None
+                floors = 1
+                if enhanced and isinstance(enhanced, dict):
+                    floors = int(enhanced.get("building_floors", 1))
+                elif enhanced and hasattr(enhanced, 'building_floors'):
+                    floors = int(getattr(enhanced, 'building_floors', 1))
+
+                building_type = floors_to_building_type(floors)
+
+                # Render roof (default mode = roof, not interior)
+                roof_surface = render_cc2_building(
+                    building_type=building_type,
+                    damage=DamageLevel.INTACT,
+                    tile_size=self.TILE_SIZE,
+                    interior_mode=False,
+                )
+
+                # Scale if zoomed
+                tile_screen_size = int(self.TILE_SIZE * camera.zoom)
+                if tile_screen_size != self.TILE_SIZE:
+                    tw, th = roof_surface.get_size()
+                    target_w = int(tw * camera.zoom)
+                    target_h = int(th * camera.zoom)
+                    if target_w > 0 and target_h > 0:
+                        roof_surface = pygame.transform.scale(
+                            roof_surface, (target_w, target_h),
+                        )
+
+                # Blit roof at screen position
+                from pycc2.domain.value_objects.vec2 import Vec2
+                world_x = tx * self.TILE_SIZE
+                world_y = ty * self.TILE_SIZE
+                screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
+
+                self._offscreen.blit(roof_surface, (int(screen_pos[0]), int(screen_pos[1])))
 
     def _draw_building_interiors(
         self, game_map: GameMap, units: list[Unit], camera: Camera,
