@@ -5,7 +5,7 @@
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-3305%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/Tests-3325%20passed-brightgreen.svg" alt="Tests" />
 <img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC90%25-brightgreen.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Alpha-yellow.svg" alt="Status" />
 </p>
@@ -25,9 +25,9 @@
 - **PS-01→PS-12 feature milestones completed**: Full combat loop, AI tactics, sprite rendering, audio, deployment, and more
 - **63 maps** covering all Market Garden operations (was 1)
 - **~90% CC2 fidelity** across all dimensions (was ~45%)
-- **3305 tests passing** including integration and E2E (was 2767 backend-only)
+- **3325 tests passing** including integration and E2E (was 2767 backend-only)
 - **AI opponent functional**: Flanking, suppression, victory point, attack, and move behaviors all working
-- **Full command system**: All 6 CC2 commands operational (Move, Attack, Defend, Smoke, Fast, Sneak)
+- **Full command system**: All 7 CC2 commands operational (Move, Move Fast, Sneak, Fire, Smoke, Defend, Hide)
 - **Sprite rendering**: Infantry and vehicle sprites render correctly with 8-directional facing
 - **Audio system**: Weapon sounds, ambient effects, and music playback working
 - **Deployment phase**: CC2-style drag-and-drop deployment from force pool
@@ -48,7 +48,7 @@ This is an honest assessment of the project's current state. The core gameplay l
 | **Deployment Phase** | ✅ Working | CC2-style drag-and-drop from force pool |
 | **Combat Interface** | ✅ Working | Bottom panel, unit info, command buttons, timer |
 | **Unit Selection** | ✅ Working | Click to select, info panel shows health/morale/ammo |
-| **Command System** | ✅ Working | All 6 CC2 commands: Move, Attack, Defend, Smoke, Fast, Sneak |
+| **Command System** | ✅ Working | All 7 CC2 commands: Move, Move Fast, Sneak, Fire, Smoke, Defend, Hide |
 | **AI Opponent** | ✅ Working | Flanking, suppression, VP capture, attack/move behaviors |
 | **Sprite Rendering** | ✅ Working | Infantry 8-direction sprites, vehicle sprites |
 | **Audio** | ✅ Working | Weapon sounds, ambient, music playback |
@@ -58,7 +58,7 @@ This is an honest assessment of the project's current state. The core gameplay l
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| **Command Queue** | ⚠️ Partial | Sequential commands work, queue UI not yet implemented |
+| **Command Queue** | ⚠️ Partial | Shift+right-click queue works, visual queue display not yet implemented |
 | **Vehicle Damage Visuals** | ⚠️ Partial | Damage states tracked, visual feedback incomplete |
 | **Save/Load** | ⚠️ Partial | Save system exists, full integration pending |
 | **Smoke Visuals** | ⚠️ Partial | Smoke mechanics work, particle effects need improvement |
@@ -75,7 +75,7 @@ This is an honest assessment of the project's current state. The core gameplay l
 | AI Tactics | Mature behavior trees | Flanking, suppression, VP, attack, move | ✅ Functional |
 | Visual Quality | CC2 pixel art | Sprites, terrain textures, buildings | 🟡 ~85% |
 | Combat Mechanics | Suppression + morale | Swiss Cheese model, 6 suppression levels | ✅ Complete |
-| Command System | 6 commands | All 6 commands operational | ✅ Complete |
+| Command System | 7 commands | All 7 commands operational | ✅ Complete |
 | Audio | Full soundscape | Weapon sounds, ambient, music | 🟡 ~80% |
 
 ---
@@ -84,7 +84,7 @@ This is an honest assessment of the project's current state. The core gameplay l
 
 ### P1 — Polish (Degrades Experience)
 
-1. **Command queue UI** — Sequential commands execute correctly but the visual queue display is not yet implemented.
+1. **Command queue UI** — Shift+right-click queue works correctly but the visual queue display (showing queued waypoints) is not yet implemented.
 
 2. **Vehicle damage visuals** — Damage states are tracked internally but visual feedback (smoke, fire, immobilized appearance) is incomplete.
 
@@ -123,7 +123,7 @@ Built in **Python** with **Pygame 2**, this project aims to recreate CC2's authe
 ### Installation
 
 ```bash
-git clone https://github.com/user/pycc2.git
+git clone https://github.com/lulin70/PyCC2.git
 cd PyCC2
 python -m venv .venv
 source .venv/bin/activate   # macOS/Linux
@@ -141,11 +141,13 @@ python -m pycc2.main
 | Action | Input |
 |--------|-------|
 | Select Unit | Left-click |
-| Command Unit | Right-click (after selection) |
+| Issue Command | Right-click drag (radial menu) or hotkey (Z/X/C/V/S/D/H) |
 | Multi-select | Shift + Left-click |
-| Pan Camera | Arrow keys / Middle mouse drag |
+| Queue Commands | Shift + Right-click |
+| Pan Camera | Arrow keys / WASD / Edge scroll |
 | Zoom | Mouse wheel |
-| Pause | ESC / Space |
+| Pause | ESC (menu) / Space (time control) |
+| LOS Check | Hold Ctrl |
 
 ---
 
@@ -163,12 +165,12 @@ PyCC2/
 │   ├── presentation/       # Rendering, Input, UI, Audio
 │   └── infrastructure/     # Save system, Config
 ├── data/maps/              # 63 map JSON files
-├── tests/                  # 3305 tests (unit + integration + E2E)
+├── tests/                  # 3325 tests (unit + integration + E2E)
 └── docs/                   # Documentation
 ```
 
 **Design Principles**:
-- Domain layer has **zero framework imports**
+- Domain layer is mostly framework-free (minor exceptions for numpy/pygame in legacy code)
 - Event-driven via EventBus
 - Fixed timestep: Logic @30 UPS, Render @60 FPS
 
@@ -214,7 +216,7 @@ pytest tests/integration/ -q   # Integration tests
 pytest tests/e2e/ -q           # End-to-end tests
 ```
 
-The 3305 tests cover backend domain logic, UI integration, and end-to-end gameplay scenarios.
+The 3325 tests cover backend domain logic, UI integration, and end-to-end gameplay scenarios.
 
 ---
 
@@ -268,7 +270,7 @@ This is an early-stage project with many known issues. Contributions welcome:
 3. **Assets** — Sprites, sounds, maps always needed
 4. **Documentation** — Improvements to docs/user guide
 
-See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
+Contributions welcome — open an issue or pull request on GitHub.
 
 ---
 
@@ -279,7 +281,7 @@ See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
 | [User Guide](docs/USER_GUIDE.md) | Player instructions (Chinese) |
 | [Design Doc](docs/DESIGN.md) | Architecture decisions |
 | [PRD](docs/PRD.md) | Product requirements |
-| [Gap Analysis](docs/GAP_ANALYSIS.md) | CC2 fidelity comparison (honest assessment) |
+| [Gap Analysis](docs/CC2_GAP_ANALYSIS_AND_PLAN.md) | CC2 fidelity comparison (honest assessment) |
 
 ---
 
@@ -300,4 +302,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-*Last updated: 2026-05-26 | Version: v0.2.0 | CC2 Fidelity: ~90%*
+*Last updated: 2026-05-26 | Version: v0.2.0 | CC2 Fidelity: ~90% | 3325 tests passing*

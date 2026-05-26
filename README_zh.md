@@ -1,6 +1,6 @@
 # 🎮 PyCC2 — 近距离作战2：遥远的桥梁 (Python重制版)
 
-**版本**: v1.8 | **测试**: ✅ **1566 通过** | **任务**: **10** | **地图**: **10**
+**版本**: v0.2.0 | **测试**: ✅ **3325 通过** | **任务**: **10** | **地图**: **10**
 
 **v0.6-p4w2 | 文档 v1.8 | 2026-05-19**
 
@@ -8,7 +8,7 @@
 
 [![CI](https://github.com/user/pycc2/actions/workflows/ci.yml/badge.svg)](https://github.com/user/pycc2/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Tests: 1566 passed](https://img.shields.io/badge/Tests-1566%20passed-brightgreen.svg)](tests/)
+[![Tests: 3325 passed](https://img.shields.io/badge/Tests-3325%20passed-brightgreen.svg)](tests/)
 [![Coverage: 92.4%](https://img.shields.io/badge/Coverage-92.4%25-green.svg)](tests/)
 [![Missions: 10](https://img.shields.io/badge/Missions-10-blueviolet.svg)](docs/)
 [![Maps: 10](https://img.shields.io/badge/Maps-10-informational.svg)](data/)
@@ -51,7 +51,7 @@ PyCC2 是对经典二战战术游戏 **Close Combat 2: A Bridge Too Far** 的 Py
 
 | 版本 | 日期 | 说明 |
 |------|------|------|
-| v0.6-p4w2 | 2026-05-19 | **文档 v1.8**: P5/P6/P7完成 — 战役核心(~60%),战斗深度(~85%),内容扩展(M6-M10), CC2还原度~71%, 1566测试通过, 10个任务, 10张地图 |
+| v0.6-p4w2 | 2026-05-19 | **文档 v1.8**: P5/P6/P7完成 — 战役核心(~60%),战斗深度(~85%),内容扩展(M6-M10), CC2还原度~71%, 3325测试通过, 10个任务, 10张地图 |
 | v0.6-p4w2 | 2026-05-19 | **文档 v1.7**: CC2差距分析(战役~5%,战斗~65%), 路线图修订为P5 Campaign Core, 夜战机制, 反坦克装甲, 天气渲染, 三语文档(中/英/日), 1377测试通过 |
 | v0.6-p4w2 | 2026-05-19 | **P4 Week 2**: 战役扩展至5个任务(M1-M5), 教程系统, 性能优化, 1270测试通过 |
 | v0.5-p4w1 | 2026-05-18 | **P4 Week 1**: GameLoop分解(4组件), 设置菜单(4标签页), 安全加固, 1163测试 |
@@ -72,7 +72,7 @@ PyCC2 是对经典二战战术游戏 **Close Combat 2: A Bridge Too Far** 的 Py
 | 战役模式 | ✅ 已完成 | **10个任务**的完整战役系统 (M1-M10) |
 | 教程系统 | ✅ 已完成 | 交互式新手引导 |
 | 性能优化 | ✅ 已完成 | GameLoop分解 + 设置菜单 |
-| 测试套件 | ✅ 通过 | **1566 个测试全部通过** |
+| 测试套件 | ✅ 通过 | **3325 个测试全部通过** |
 
 ## 快速开始
 
@@ -87,7 +87,7 @@ python --version  # >= 3.11
 
 ```bash
 # 克隆项目
-git clone https://github.com/user/pycc2.git
+git clone https://github.com/lulin70/PyCC2.git
 cd pycc2
 
 # 创建虚拟环境
@@ -111,15 +111,14 @@ python -m pycc2.main
 
 | 按键/操作 | 功能 |
 |-----------|------|
-| `鼠标左键` | 选择单位 / 移动到目标位置 |
-| `鼠标右键` | 下达攻击/交互命令 |
+| `鼠标左键` | 选择单位 |
+| `鼠标右键拖拽` | 命令径向菜单 / 快捷键 (Z/X/C/V/S/D/H) |
+| `Shift+左键` | 多选单位 |
+| `Shift+右键` | 队列命令 |
+| `W/A/S/D` 或 方向键 / 边缘滚动 | 平移摄像机 |
 | `鼠标滚轮` | 缩放视角 |
-| `W/A/S/D` 或 方向键 | 平移摄像机 |
-| `Space` | 暂停/继续游戏 |
-| `Tab` | 切换单位选择 |
-| `M` | 打开/关闭小地图 |
-| `F1-F4` | 快捷编队选择 |
-| `Esc` | 取消当前命令 |
+| `ESC`（菜单）/ `Space`（时间控制） | 暂停 |
+| `Ctrl`（按住） | 视线检查 |
 
 ## 项目架构
 
@@ -131,7 +130,7 @@ PyCC2/
 │   │   ├── input/       #   输入处理、快捷键、反馈
 │   │   └── audio/       #   音效系统
 │   ├── services/        # Layer 2: 应用服务层 — 业务编排
-│   ├── domain/          # Layer 3: 领域层 — 核心业务逻辑（零外部依赖）
+│   ├── domain/          # Layer 3: 领域层 — 核心业务逻辑（基本无框架依赖）
 │   │   ├── entities/    #   游戏实体：Squad, Unit, GameMap, Projectile
 │   │   ├── components/  #   ECS 组件：Health, Morale, Position, Weapon, Vision
 │   │   ├── systems/     #   核心系统：弹道、战斗解析、士气、路径规划
@@ -149,7 +148,7 @@ PyCC2/
 
 ### 架构原则
 
-1. **领域层零依赖**：`domain/` 不引入任何框架或第三方库，确保核心逻辑纯净可测
+1. **领域层基本无框架依赖**：`domain/` 大部分为纯 Python（少量遗留代码有 numpy/pygame 引用），核心逻辑可测
 2. **依赖倒置**：通过 Protocol/ABC 定义仓储接口，具体实现在基础设施层注入
 3. **单一职责**：每个模块只做一件事，边界清晰
 4. **可测试性**：所有核心逻辑可通过纯单元测试验证，无需 mock 图形层
@@ -199,17 +198,11 @@ pytest tests/ -v -k "behavior or ai"
 | [SECURITY.md](docs/SECURITY.md) | 安全设计文档 | — |
 | [TEST_PLAN.md](docs/TEST_PLAN.md) | 测试计划 | — |
 | [VISUAL_SPEC.md](docs/VISUAL_SPEC.md) | 视觉规格说明 | — |
+| [CC2_GAP_ANALYSIS_AND_PLAN.md](docs/CC2_GAP_ANALYSIS_AND_PLAN.md) | CC2还原度差距分析 | — |
 
 ## 贡献指南
 
-欢迎提交 Issue 和 Pull Request！请遵循以下流程：
-
-1. Fork 本仓库并创建特性分支（`git checkout -b feature/amazing-feature`）
-2. 提交更改（`git commit -m 'Add some amazing feature'`）
-3. 推送到分支（`git push origin feature/amazing-feature`）
-4. 开启 Pull Request
-
-代码提交前请确保通过所有 pre-commit 检查。
+欢迎贡献！请在 GitHub 上提交 Issue 或 Pull Request。
 
 ## 路线图
 
@@ -237,3 +230,7 @@ pytest tests/ -v -k "behavior or ai"
 - Close Combat 系列的原作者团队（Atomic Games）
 - Python 社区提供的卓越工具链（Pygame、NumPy、Pydantic……）
 - 所有为本项目贡献代码、建议与反馈的开发者
+
+---
+
+*最后更新: 2026-05-26 | 版本: v0.2.0 | 3325 tests passing*
