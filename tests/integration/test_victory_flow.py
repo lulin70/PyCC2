@@ -185,8 +185,8 @@ class TestVictoryEvaluation:
         result = victory_manager.evaluate(units, tick=600)
         assert result is None
 
-    def test_evaluate_commander_eliminated(self, victory_manager, event_bus, ally_commander, enemy_commander):
-        """When enemy commander is eliminated, allies should win."""
+    def test_evaluate_all_enemies_eliminated(self, victory_manager, event_bus, ally_commander, enemy_commander):
+        """When all enemy units are eliminated, allies should win."""
         victory_manager.initialize(event_bus=event_bus)
 
         # Kill the enemy commander using take_damage
@@ -197,7 +197,7 @@ class TestVictoryEvaluation:
         assert result is not None
         game_result, reason = result
         assert game_result.name == "ALLIES_VICTORY"
-        assert "commander" in reason.lower()
+        assert "destroyed" in reason.lower()
 
     def test_evaluate_morale_collapse(self, victory_manager, event_bus, ally_unit, enemy_unit):
         """When enemy morale collapses, allies should win."""

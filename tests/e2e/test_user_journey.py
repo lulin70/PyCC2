@@ -672,19 +672,19 @@ class TestBattleEndAndSettlement:
         assert result == GameResult.ALLIES_VICTORY
         assert "destroyed" in reason.lower() or "eliminated" in reason.lower()
 
-    def test_victory_when_commander_killed(self) -> None:
-        """指挥官被杀判定胜负。"""
+    def test_victory_when_all_enemies_dead(self) -> None:
+        """敌方全灭判定胜利。"""
         evaluator = VictoryConditionEvaluator(
-            conditions=[VictoryConditionType.ELIMINATE_ENEMY_COMMANDER],
+            conditions=[VictoryConditionType.ELIMINATE_ALL_ENEMIES],
         )
         ally_cmd = make_unit("ally_cmd", faction=Faction.ALLIES, unit_type=UnitType.COMMANDER)
         ally_inf = make_unit("ally_inf", faction=Faction.ALLIES)
-        # 敌方指挥官已死
+        # 敌方全灭
         enemy_cmd = make_unit("enemy_cmd", faction=Faction.AXIS, unit_type=UnitType.COMMANDER, hp=0, max_hp=100)
 
-        result, reason = evaluator.evaluate([ally_cmd, ally_inf, enemy_cmd], tick=300)
+        result, reason = evaluator.evaluate([ally_cmd, ally_inf, enemy_cmd], tick=600)
         assert result == GameResult.ALLIES_VICTORY
-        assert "commander" in reason.lower()
+        assert "destroyed" in reason.lower()
 
     def test_defeat_when_all_allies_dead(self) -> None:
         """友方全灭判定失败。"""
@@ -698,11 +698,11 @@ class TestBattleEndAndSettlement:
         result, reason = evaluator.evaluate([ally, enemy], tick=600)
         assert result == GameResult.AXIS_VICTORY
 
-    def test_morale_collapse_causes_defeat(self) -> None:
+    def test_force_morale_collapse_causes_defeat(self) -> None:
         """士气崩溃判定失败。"""
         evaluator = VictoryConditionEvaluator(
-            conditions=[VictoryConditionType.MORALE_COLLAPSE],
-            morale_threshold=10,
+            conditions=[VictoryConditionType.FORCE_MORALE_COLLAPSE],
+            force_morale_threshold=10,
         )
         # 友方士气极低
         ally = make_unit("ally_1", faction=Faction.ALLIES, morale=5)
@@ -814,11 +814,10 @@ class TestFullJourney:
         # === 步骤5: 胜利判定 ===
         evaluator = VictoryConditionEvaluator(
             conditions=[
-                VictoryConditionType.ELIMINATE_ENEMY_COMMANDER,
                 VictoryConditionType.ELIMINATE_ALL_ENEMIES,
             ],
         )
-        result, reason = evaluator.evaluate(units, tick=300)
+        result, reason = evaluator.evaluate(units, tick=600)
         assert result == GameResult.ALLIES_VICTORY
 
         # === 步骤6: 战斗统计 ===
@@ -858,10 +857,10 @@ class TestFullJourney:
         evaluator = VictoryConditionEvaluator(
             conditions=[
                 VictoryConditionType.ELIMINATE_ALL_ENEMIES,
-                VictoryConditionType.MORALE_COLLAPSE,
+                VictoryConditionType.FORCE_MORALE_COLLAPSE,
             ],
         )
-        result, reason = evaluator.evaluate(units, tick=300)
+        result, reason = evaluator.evaluate(units, tick=600)
         assert result == GameResult.AXIS_VICTORY
 
         # === 步骤5: 战斗统计 ===

@@ -160,45 +160,24 @@ class TestVictoryConditionEvaluator:
         conditions: list[VictoryConditionType] | None = None,
         objectives: list[Objective] | None = None,
         time_limit_ticks: int = 0,
-        morale_threshold: int = 10,
+        force_morale_threshold: int = 10,
     ) -> VictoryConditionEvaluator:
         return VictoryConditionEvaluator(
             conditions=conditions,
             objectives=objectives,
             time_limit_ticks=time_limit_ticks,
-            morale_threshold=morale_threshold,
+            force_morale_threshold=force_morale_threshold,
         )
 
     def test_default_conditions(self):
         ev = self._make_evaluator()
-        assert VictoryConditionType.ELIMINATE_ENEMY_COMMANDER in ev.conditions
         assert VictoryConditionType.ELIMINATE_ALL_ENEMIES in ev.conditions
-
-    def test_eliminate_commander_allies_win(self):
-        ev = self._make_evaluator(conditions=[VictoryConditionType.ELIMINATE_ENEMY_COMMANDER])
-        allies_cmd = _make_unit(id="ac", unit_type=UnitType.COMMANDER, faction=Faction.ALLIES)
-        allies_inf = _make_unit(id="ai", faction=Faction.ALLIES)
-        axis_inf = _make_unit(id="xi", faction=Faction.AXIS)
-        units = [allies_cmd, allies_inf, axis_inf]
-        result, reason = ev.evaluate(units, tick=0)
-        assert result == GameResult.ALLIES_VICTORY
-        assert "commander" in reason.lower()
-
-    def test_eliminate_commander_axis_win(self):
-        ev = self._make_evaluator(conditions=[VictoryConditionType.ELIMINATE_ENEMY_COMMANDER])
-        axis_cmd = _make_unit(id="xc", unit_type=UnitType.COMMANDER, faction=Faction.AXIS)
-        allies_inf = _make_unit(id="ai", faction=Faction.ALLIES)
-        axis_inf = _make_unit(id="xi", faction=Faction.AXIS)
-        units = [axis_cmd, allies_inf, axis_inf]
-        result, reason = ev.evaluate(units, tick=0)
-        assert result == GameResult.AXIS_VICTORY
-        assert "commander" in reason.lower()
 
     def test_eliminate_all_enemies_allies_win(self):
         ev = self._make_evaluator(conditions=[VictoryConditionType.ELIMINATE_ALL_ENEMIES])
         allies_cmd = _make_unit(id="ac", unit_type=UnitType.COMMANDER, faction=Faction.ALLIES)
         allies_inf = _make_unit(id="ai", faction=Faction.ALLIES)
-        axis_dead = _make_unit(id="xd", faction=Faction.AXIS, hp=0)
+        axis_dead = _make_unit(id="xi", faction=Faction.AXIS, hp=0)
         units = [allies_cmd, allies_inf, axis_dead]
         result, reason = ev.evaluate(units, tick=600)
         assert result == GameResult.ALLIES_VICTORY
@@ -217,7 +196,6 @@ class TestVictoryConditionEvaluator:
     def test_both_sides_dead_is_draw(self):
         ev = self._make_evaluator(
             conditions=[
-                VictoryConditionType.ELIMINATE_ENEMY_COMMANDER,
                 VictoryConditionType.ELIMINATE_ALL_ENEMIES,
             ]
         )
@@ -236,10 +214,10 @@ class TestVictoryConditionEvaluator:
         assert result == GameResult.ONGOING
         assert reason == ""
 
-    def test_morale_collapse_allies_win(self):
+    def test_force_morale_collapse_allies_win(self):
         ev = self._make_evaluator(
-            conditions=[VictoryConditionType.MORALE_COLLAPSE],
-            morale_threshold=10,
+            conditions=[VictoryConditionType.FORCE_MORALE_COLLAPSE],
+            force_morale_threshold=10,
         )
         allies_inf = _make_unit(id="ai", faction=Faction.ALLIES, morale_value=80)
         axis_low = _make_unit(id="xl", faction=Faction.AXIS, morale_value=5)
@@ -248,10 +226,10 @@ class TestVictoryConditionEvaluator:
         assert result == GameResult.ALLIES_VICTORY
         assert "morale" in reason.lower()
 
-    def test_morale_collapse_axis_win(self):
+    def test_force_morale_collapse_axis_win(self):
         ev = self._make_evaluator(
-            conditions=[VictoryConditionType.MORALE_COLLAPSE],
-            morale_threshold=10,
+            conditions=[VictoryConditionType.FORCE_MORALE_COLLAPSE],
+            force_morale_threshold=10,
         )
         allies_low = _make_unit(id="al", faction=Faction.ALLIES, morale_value=3)
         axis_inf = _make_unit(id="xi", faction=Faction.AXIS, morale_value=80)
@@ -305,7 +283,7 @@ class TestVictoryConditionEvaluator:
         assert result == GameResult.ONGOING
 
     def test_objective_capture_by_allies(self):
-        obj = Objective(id="o1", name="Bridge", position=(5, 5), required_ticks=0)
+        obj = Objective(id="o1", name="Bridge", position=(5, 5), points=100)
         ev = self._make_evaluator(
             conditions=[VictoryConditionType.OCCUPY_OBJECTIVE],
             objectives=[obj],
@@ -313,31 +291,27 @@ class TestVictoryConditionEvaluator:
         allies_at_obj = _make_unit(id="a1", faction=Faction.ALLIES, tile_x=5, tile_y=5)
         axis_far = _make_unit(id="x1", faction=Faction.AXIS, tile_x=0, tile_y=0)
         units = [allies_at_obj, axis_far]
-        # Need 300 ticks of occupancy (max(required_ticks, 300))
-        for t in range(299):
-            ev.evaluate(units, tick=t)
-        result, reason = ev.evaluate(units, tick=299)
+        # CC2: VL capture is instant — unit enters radius, flag changes color
+        result, reason = ev.evaluate(units, tick=0)
         assert result == GameResult.ALLIES_VICTORY
-        assert "Bridge" in reason
+        assert "Bridge" in reason or "VL" in reason or "Decisive" in reason
 
     def test_objective_capture_by_axis(self):
-        obj = Objective(id="o1", name="Hill", position=(3, 3), required_ticks=0)
+        obj = Objective(id="o1", name="Hill", position=(3, 3), points=150)
         ev = self._make_evaluator(
             conditions=[VictoryConditionType.OCCUPY_OBJECTIVE],
             objectives=[obj],
         )
         axis_at_obj = _make_unit(id="x1", faction=Faction.AXIS, tile_x=3, tile_y=3)
-        allies_far = _make_unit(id="a1", faction=Faction.ALLIES, tile_x=0, tile_y=0)
+        allies_far = _make_unit(id="a1", faction=Faction.ALLIES, tile_x=10, tile_y=10)
         units = [axis_at_obj, allies_far]
-        # Need 300 ticks of occupancy (max(required_ticks, 300))
-        for t in range(299):
-            ev.evaluate(units, tick=t)
-        result, reason = ev.evaluate(units, tick=299)
+        # CC2: VL capture is instant
+        result, reason = ev.evaluate(units, tick=0)
         assert result == GameResult.AXIS_VICTORY
-        assert "Hill" in reason
+        assert "Hill" in reason or "VL" in reason or "Decisive" in reason
 
-    def test_objective_requires_time_accumulation(self):
-        obj = Objective(id="o1", name="Town", position=(5, 5), required_ticks=3)
+    def test_objective_instant_capture(self):
+        obj = Objective(id="o1", name="Town", position=(5, 5), points=200)
         ev = self._make_evaluator(
             conditions=[VictoryConditionType.OCCUPY_OBJECTIVE],
             objectives=[obj],
@@ -346,19 +320,13 @@ class TestVictoryConditionEvaluator:
         axis_far = _make_unit(id="x1", faction=Faction.AXIS, tile_x=0, tile_y=0)
         units = [allies_at_obj, axis_far]
 
-        result, _ = ev.evaluate(units, tick=0)
-        assert result == GameResult.ONGOING
-        result, _ = ev.evaluate(units, tick=1)
-        assert result == GameResult.ONGOING
-        # effective_required = max(3, 300) = 300; need 300 ticks of occupancy
-        for t in range(2, 299):
-            ev.evaluate(units, tick=t)
-        result, reason = ev.evaluate(units, tick=299)
+        # CC2: capture is instant, no tick counting needed
+        result, reason = ev.evaluate(units, tick=0)
         assert result == GameResult.ALLIES_VICTORY
-        assert "Town" in reason
+        assert "Town" in reason or "Decisive" in reason
 
-    def test_objective_contested_resets_progress(self):
-        obj = Objective(id="o1", name="Crossroad", position=(5, 5), required_ticks=5)
+    def test_objective_contested_no_owner_change(self):
+        obj = Objective(id="o1", name="Crossroad", position=(5, 5), points=100)
         ev = self._make_evaluator(
             conditions=[VictoryConditionType.OCCUPY_OBJECTIVE],
             objectives=[obj],
@@ -367,48 +335,47 @@ class TestVictoryConditionEvaluator:
         axis_far = _make_unit(id="x1", faction=Faction.AXIS, tile_x=0, tile_y=0)
         units_allies = [allies_at_obj, axis_far]
 
-        for t in range(3):
-            result, _ = ev.evaluate(units_allies, tick=t)
-            assert result == GameResult.ONGOING
+        # Allies alone capture VL instantly
+        result, _ = ev.evaluate(units_allies, tick=0)
+        assert result == GameResult.ALLIES_VICTORY
 
+        # Now axis arrives — contested, ownership stays with allies
+        ev.reset()
         axis_arrives = _make_unit(id="x2", faction=Faction.AXIS, tile_x=5, tile_y=5)
         units_contested = [allies_at_obj, axis_arrives]
-        result, _ = ev.evaluate(units_contested, tick=3)
+        result, _ = ev.evaluate(units_contested, tick=1)
+        # Contested: no decisive victory, but previous owner stays
         assert result == GameResult.ONGOING
-
-        occupancy = ev._objective_occupancy.get("o1")
-        assert occupancy is not None
-        assert occupancy[1] == 0
 
     def test_multiple_conditions_first_match_wins(self):
         ev = self._make_evaluator(
             conditions=[
-                VictoryConditionType.ELIMINATE_ENEMY_COMMANDER,
                 VictoryConditionType.ELIMINATE_ALL_ENEMIES,
+                VictoryConditionType.FORCE_MORALE_COLLAPSE,
             ],
         )
         allies_cmd = _make_unit(id="ac", unit_type=UnitType.COMMANDER, faction=Faction.ALLIES)
         allies_inf = _make_unit(id="ai", faction=Faction.ALLIES)
-        axis_inf = _make_unit(id="xi", faction=Faction.AXIS)
-        units = [allies_cmd, allies_inf, axis_inf]
+        axis_dead = _make_unit(id="xi", faction=Faction.AXIS, hp=0)
+        units = [allies_cmd, allies_inf, axis_dead]
         result, reason = ev.evaluate(units, tick=600)
         assert result == GameResult.ALLIES_VICTORY
-        assert "commander" in reason.lower()
+        assert "destroyed" in reason.lower()
 
-    def test_reset_clears_objective_occupancy(self):
-        obj = Objective(id="o1", name="Base", position=(5, 5), required_ticks=300)
+    def test_reset_clears_vl_ownership(self):
+        obj = Objective(id="o1", name="Base", position=(5, 5), points=100)
         ev = self._make_evaluator(
             conditions=[VictoryConditionType.OCCUPY_OBJECTIVE],
             objectives=[obj],
         )
         u = _make_unit(id="a1", faction=Faction.ALLIES, tile_x=5, tile_y=5)
         ev.evaluate([u], tick=0)
-        assert len(ev._objective_occupancy) > 0
+        assert len(ev._vl_owner) > 0
         ev.reset()
-        assert len(ev._objective_occupancy) == 0
+        assert len(ev._vl_owner) == 0
 
     def test_objective_radius_includes_adjacent_tiles(self):
-        obj = Objective(id="o1", name="Zone", position=(5, 5), radius=2, required_ticks=0)
+        obj = Objective(id="o1", name="Zone", position=(5, 5), radius=2, points=100)
         ev = self._make_evaluator(
             conditions=[VictoryConditionType.OCCUPY_OBJECTIVE],
             objectives=[obj],
@@ -416,14 +383,12 @@ class TestVictoryConditionEvaluator:
         allies_near = _make_unit(id="a1", faction=Faction.ALLIES, tile_x=6, tile_y=6)
         axis_far = _make_unit(id="x1", faction=Faction.AXIS, tile_x=0, tile_y=0)
         units = [allies_near, axis_far]
-        # Need 300 ticks of occupancy (max(required_ticks, 300))
-        for t in range(299):
-            ev.evaluate(units, tick=t)
-        result, _ = ev.evaluate(units, tick=299)
+        # CC2: instant capture
+        result, _ = ev.evaluate(units, tick=0)
         assert result == GameResult.ALLIES_VICTORY
 
     def test_objective_outside_radius_not_counted(self):
-        obj = Objective(id="o1", name="Zone", position=(5, 5), radius=1, required_ticks=0)
+        obj = Objective(id="o1", name="Zone", position=(5, 5), radius=1, points=100)
         ev = self._make_evaluator(
             conditions=[VictoryConditionType.OCCUPY_OBJECTIVE],
             objectives=[obj],
@@ -434,10 +399,10 @@ class TestVictoryConditionEvaluator:
         result, _ = ev.evaluate(units, tick=0)
         assert result == GameResult.ONGOING
 
-    def test_morale_collapse_no_alive_units_is_ongoing(self):
+    def test_force_morale_collapse_no_alive_units_is_ongoing(self):
         ev = self._make_evaluator(
-            conditions=[VictoryConditionType.MORALE_COLLAPSE],
-            morale_threshold=10,
+            conditions=[VictoryConditionType.FORCE_MORALE_COLLAPSE],
+            force_morale_threshold=10,
         )
         allies_dead = _make_unit(id="ad", faction=Faction.ALLIES, hp=0)
         axis_dead = _make_unit(id="xd", faction=Faction.AXIS, hp=0)

@@ -431,7 +431,7 @@ class TestCompleteBattleFlow:
             name="Bridge",
             position=(10, 10),
             radius=2,
-            required_ticks=3,
+            points=100,
         )
         evaluator = VictoryConditionEvaluator(
             conditions=[VictoryConditionType.OCCUPY_OBJECTIVE],
@@ -442,16 +442,12 @@ class TestCompleteBattleFlow:
         ally = _make_unit(uid="ally_vl", x=10, y=10)
         axis = _make_unit(uid="axis_far", faction=Faction.AXIS, x=1, y=1)
 
-        # 3. Simulate ticks — ally occupies VL (minimum 300 ticks for capture)
-        result, reason = GameResult.ONGOING, ""
-        for tick in range(310):
-            result, reason = evaluator.evaluate([ally, axis], tick=tick)
-            if result != GameResult.ONGOING:
-                break
+        # 3. CC2: VL capture is instant — ally enters radius, flag changes color
+        result, reason = evaluator.evaluate([ally, axis], tick=0)
 
-        # 4. Verify VL capture results in victory
+        # 4. Verify VL capture results in decisive victory
         assert result == GameResult.ALLIES_VICTORY
-        assert "Bridge" in reason or "captured" in reason.lower()
+        assert "Bridge" in reason or "Decisive" in reason or "VL" in reason
 
     # ---- 10. End battle via button ----
 
@@ -482,14 +478,14 @@ class TestCompleteBattleFlow:
 
     # ---- 11. Morale collapse victory condition ----
 
-    def test_morale_collapse_victory(self):
-        """Test that morale collapse triggers a victory condition."""
+    def test_force_morale_collapse_victory(self):
+        """Test that force morale collapse triggers a victory condition."""
         ally = _make_unit(uid="ally_mc", x=5, y=5, morale=80)
         axis = _make_unit(uid="axis_mc", faction=Faction.AXIS, x=15, y=15, morale=5)
 
         evaluator = VictoryConditionEvaluator(
-            conditions=[VictoryConditionType.MORALE_COLLAPSE],
-            morale_threshold=10,
+            conditions=[VictoryConditionType.FORCE_MORALE_COLLAPSE],
+            force_morale_threshold=10,
         )
 
         result, reason = evaluator.evaluate([ally, axis], tick=1)

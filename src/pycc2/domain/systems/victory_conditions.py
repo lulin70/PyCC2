@@ -9,11 +9,10 @@ if TYPE_CHECKING:
 
 
 class VictoryConditionType(Enum):
-    ELIMINATE_ENEMY_COMMANDER = auto()
     ELIMINATE_ALL_ENEMIES = auto()
     OCCUPY_OBJECTIVE = auto()
     TIME_LIMIT = auto()
-    MORALE_COLLAPSE = auto()
+    FORCE_MORALE_COLLAPSE = auto()
 
 
 class GameResult(Enum):
@@ -26,12 +25,18 @@ class GameResult(Enum):
 
 @dataclass(slots=True)
 class Objective:
+    """A Victory Location (VL) on the map.
+
+    In CC2, VLs have different point values. A unit entering the VL radius
+    instantly captures it — no hold-time required. The enemy must push
+    the unit out to recapture.
+    """
     id: str
     name: str
     position: tuple[int, int]
-    radius: int = 1
-    required_ticks: int = 0
-    owner: str | None = None
+    radius: int = 3
+    points: int = 100  # CC2: VLs have different point values
+    owner: str | None = None  # "allies" / "axis" / None (uncontested)
 
 
 @dataclass
@@ -115,21 +120,32 @@ class BattleStats:
 
 
 class VictoryConditionEvaluator:
+    """CC2-authentic victory condition evaluator.
+
+    CC2 victory rules:
+    1. Capture ALL VLs → Decisive Victory (immediate)
+    2. One side eliminated → other side wins
+    3. Force Morale collapses → other side wins
+    4. Time expires → score VLs by point values, majority wins
+    5. VL capture is INSTANT — unit enters radius, flag changes color.
+       No hold-time required. Enemy must push you out to recapture.
+    """
+
     def __init__(
         self,
         conditions: list[VictoryConditionType] | None = None,
         objectives: list[Objective] | None = None,
         time_limit_ticks: int = 0,
-        morale_threshold: int = 10,
+        force_morale_threshold: int = 0,
     ):
         self.conditions = conditions or [
-            VictoryConditionType.ELIMINATE_ENEMY_COMMANDER,
             VictoryConditionType.ELIMINATE_ALL_ENEMIES,
         ]
         self.objectives = objectives or []
         self.time_limit_ticks = time_limit_ticks
-        self.morale_threshold = morale_threshold
-        self._objective_occupancy: dict[str, tuple[str, int]] = {}
+        self.force_morale_threshold = force_morale_threshold
+        # Track current owner of each VL (instant capture, no ticks)
+        self._vl_owner: dict[str, str | None] = {}
 
     def evaluate(
         self,
@@ -140,111 +156,78 @@ class VictoryConditionEvaluator:
         allies_alive = [u for u in units if u.faction.name == "ALLIES" and u.is_alive]
         axis_alive = [u for u in units if u.faction.name == "AXIS" and u.is_alive]
 
-        # Safety check: don't declare victory if either side has no units at all
-        # (handles deployment edge cases where AI units may not be in list yet)
+        # Safety: don't declare victory if neither side has units
         if not allies_alive and not axis_alive:
             return (GameResult.ONGOING, "")
 
-        allies_commanders = [u for u in allies_alive if u.unit_type.name == "COMMANDER"]
-        axis_commanders = [u for u in axis_alive if u.unit_type.name == "COMMANDER"]
+        # --- CC2 Rule 1: Update VL ownership (instant capture) ---
+        if VictoryConditionType.OCCUPY_OBJECTIVE in self.conditions:
+            self._update_vl_ownership(allies_alive, axis_alive)
 
-        reasons = []
+            # Check for decisive victory: one side holds ALL VLs
+            allies_held = sum(1 for o in self._vl_owner.values() if o == "allies")
+            axis_held = sum(1 for o in self._vl_owner.values() if o == "axis")
+            total_vls = len(self.objectives)
 
-        if VictoryConditionType.ELIMINATE_ENEMY_COMMANDER in self.conditions:
-            if not axis_commanders and any(
-                u.unit_type.name == "COMMANDER" for u in units if u.faction.name == "ALLIES"
-            ):
-                return (GameResult.ALLIES_VICTORY, "Enemy commander eliminated")
-            if not allies_commanders and any(
-                u.unit_type.name == "COMMANDER" for u in units if u.faction.name == "AXIS"
-            ):
-                return (GameResult.AXIS_VICTORY, "Your commander has fallen")
+            if total_vls > 0 and allies_held == total_vls:
+                return (GameResult.ALLIES_VICTORY, "Decisive Victory — All VLs captured")
+            if total_vls > 0 and axis_held == total_vls:
+                return (GameResult.AXIS_VICTORY, "Decisive Victory — All VLs captured")
 
+        # --- CC2 Rule 2: One side eliminated ---
         if VictoryConditionType.ELIMINATE_ALL_ENEMIES in self.conditions:
-            # Only declare victory if BOTH sides had units at some point
-            # (prevents false victory when AI units haven't spawned yet)
             if not axis_alive and allies_alive and tick >= 600:
                 return (GameResult.ALLIES_VICTORY, "All enemy forces destroyed")
             if not allies_alive and axis_alive and tick >= 600:
                 return (GameResult.AXIS_VICTORY, "All allied forces destroyed")
 
-        if VictoryConditionType.MORALE_COLLAPSE in self.conditions:
-            avg_allies_morale = sum(u.morale.value for u in allies_alive) / max(
-                len(allies_alive), 1
-            )
-            avg_axis_morale = sum(u.morale.value for u in axis_alive) / max(len(axis_alive), 1)
-            if avg_axis_morale <= self.morale_threshold and allies_alive:
+        # --- CC2 Rule 3: Force Morale collapse ---
+        if VictoryConditionType.FORCE_MORALE_COLLAPSE in self.conditions:
+            # CC2 uses army-wide Force Morale, not per-unit morale.
+            # Approximate: if average morale of all living units is at threshold,
+            # the force is broken.
+            if allies_alive:
+                avg_allies_morale = sum(u.morale.value for u in allies_alive) / len(allies_alive)
+            else:
+                avg_allies_morale = 0
+            if axis_alive:
+                avg_axis_morale = sum(u.morale.value for u in axis_alive) / len(axis_alive)
+            else:
+                avg_axis_morale = 0
+
+            if avg_axis_morale <= self.force_morale_threshold and allies_alive:
                 return (
                     GameResult.ALLIES_VICTORY,
-                    f"Enemy morale collapsed ({avg_axis_morale:.0f})",
+                    f"Enemy force morale collapsed ({avg_axis_morale:.0f})",
                 )
-            if avg_allies_morale <= self.morale_threshold and axis_alive:
+            if avg_allies_morale <= self.force_morale_threshold and axis_alive:
                 return (
                     GameResult.AXIS_VICTORY,
-                    f"Allied morale collapsed ({avg_allies_morale:.0f})",
+                    f"Allied force morale collapsed ({avg_allies_morale:.0f})",
                 )
 
-        for obj in self.objectives:
-            allies_near = sum(1 for u in allies_alive if self._is_in_radius(u, obj))
-            axis_near = sum(1 for u in axis_alive if self._is_in_radius(u, obj))
-
-            occupant = None
-            if allies_near > axis_near and allies_near > 0:
-                occupant = "allies"
-            elif axis_near > allies_near and axis_near > 0:
-                occupant = "axis"
-
-            if occupant:
-                prev_faction, prev_ticks = self._objective_occupancy.get(obj.id, (occupant, 0))
-                if prev_faction == occupant:
-                    new_ticks = prev_ticks + 1
-                else:
-                    new_ticks = 1
-                self._objective_occupancy[obj.id] = (occupant, new_ticks)
-
-                # Minimum 300 ticks (10 seconds) to capture an objective
-                effective_required = max(obj.required_ticks, 300)
-                if effective_required == 0 or new_ticks >= effective_required:
-                    if occupant == "allies":
-                        return (
-                            GameResult.ALLIES_VICTORY,
-                            f"Objective '{obj.name}' captured",
-                        )
-                    else:
-                        return (
-                            GameResult.AXIS_VICTORY,
-                            f"Objective '{obj.name}' lost",
-                        )
-            elif obj.id in self._objective_occupancy:
-                self._objective_occupancy[obj.id] = (
-                    self._objective_occupancy[obj.id][0],
-                    0,
-                )
-
+        # --- CC2 Rule 4: Time limit — score VLs by point values ---
         if self.time_limit_ticks > 0 and tick >= self.time_limit_ticks:
-            # CC2-style: time expired, count VLs held by each side
-            allies_vls = 0
-            axis_vls = 0
+            allies_score = 0
+            axis_score = 0
             for obj in self.objectives:
-                occ = self._objective_occupancy.get(obj.id)
-                if occ:
-                    faction, ticks = occ
-                    if faction == "allies" and ticks >= max(obj.required_ticks, 300):
-                        allies_vls += 1
-                    elif faction == "axis" and ticks >= max(obj.required_ticks, 300):
-                        axis_vls += 1
+                owner = self._vl_owner.get(obj.id)
+                if owner == "allies":
+                    allies_score += obj.points
+                elif owner == "axis":
+                    axis_score += obj.points
 
-            if allies_vls > axis_vls:
+            if allies_score > axis_score:
                 return (
                     GameResult.ALLIES_VICTORY,
-                    f"Time expired — Allies hold {allies_vls} VL(s) vs Axis {axis_vls}",
+                    f"Time expired — Allies {allies_score} pts vs Axis {axis_score} pts",
                 )
-            elif axis_vls > allies_vls:
+            elif axis_score > allies_score:
                 return (
                     GameResult.AXIS_VICTORY,
-                    f"Time expired — Axis hold {axis_vls} VL(s) vs Allies {allies_vls}",
+                    f"Time expired — Axis {axis_score} pts vs Allies {allies_score} pts",
                 )
-            elif allies_vls > 0 or axis_vls > 0:
+            elif allies_score > 0 or axis_score > 0:
                 return (GameResult.DRAW, "Time expired — VLs tied")
             else:
                 # No VLs captured, decide by unit count
@@ -257,10 +240,33 @@ class VictoryConditionEvaluator:
 
         return (GameResult.ONGOING, "")
 
+    def _update_vl_ownership(self, allies_alive: list, axis_alive: list) -> None:
+        """Update VL ownership — CC2 instant capture model.
+
+        Unit enters VL radius → flag changes color immediately.
+        If both sides have units in radius, ownership doesn't change (contested).
+        If no units in radius, ownership stays with last holder.
+        """
+        for obj in self.objectives:
+            allies_near = sum(1 for u in allies_alive if self._is_in_radius(u, obj))
+            axis_near = sum(1 for u in axis_alive if self._is_in_radius(u, obj))
+
+            if allies_near > 0 and axis_near == 0:
+                # Allies alone in VL → instant capture
+                self._vl_owner[obj.id] = "allies"
+                obj.owner = "allies"
+            elif axis_near > 0 and allies_near == 0:
+                # Axis alone in VL → instant capture
+                self._vl_owner[obj.id] = "axis"
+                obj.owner = "axis"
+            # If both sides present (contested) or neither present, ownership unchanged
+
     def _is_in_radius(self, unit: Unit, objective: Objective) -> bool:
         dx = abs(unit.position.tile_coord.x - objective.position[0])
         dy = abs(unit.position.tile_coord.y - objective.position[1])
         return max(dx, dy) <= objective.radius
 
     def reset(self) -> None:
-        self._objective_occupancy.clear()
+        self._vl_owner.clear()
+        for obj in self.objectives:
+            obj.owner = None

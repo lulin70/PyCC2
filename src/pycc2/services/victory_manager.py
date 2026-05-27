@@ -40,13 +40,12 @@ class VictoryManager:
         self._victory_evaluator = VictoryConditionEvaluator(
             conditions=[
                 VictoryConditionType.OCCUPY_OBJECTIVE,
-                VictoryConditionType.ELIMINATE_ENEMY_COMMANDER,
                 VictoryConditionType.ELIMINATE_ALL_ENEMIES,
-                VictoryConditionType.MORALE_COLLAPSE,
+                VictoryConditionType.FORCE_MORALE_COLLAPSE,
             ],
             objectives=self._build_objectives_from_map(),
             time_limit_ticks=36000,  # 20 minutes at 30 UPS
-            morale_threshold=10,
+            force_morale_threshold=10,
         )
         self._game_result = None
 
@@ -72,7 +71,7 @@ class VictoryManager:
                             name=getattr(obj, 'name', f'Victory Location'),
                             position=(x, y),
                             radius=getattr(obj, 'radius', 3),
-                            required_ticks=getattr(obj, 'required_ticks', 300),
+                            points=getattr(obj, 'points', 100),
                         ))
         # Fallback: if no map objectives, create a center objective
         if not objectives:
@@ -81,7 +80,7 @@ class VictoryManager:
                 name="Center Victory Location",
                 position=(15, 15),
                 radius=3,
-                required_ticks=300,
+                points=100,
             ))
         return objectives
 
