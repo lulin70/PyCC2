@@ -991,38 +991,30 @@ class SpriteRenderer:
         """
         Draw visual indicator for unit's current movement mode.
         
-        Shows different icons based on active command mode:
-        - Defend: Shield icon or defensive posture outline
-        - Fast Move: Speed lines or motion blur effect
-        - Sneak: Stealth/ghost icon or transparency effect
-        - Normal: No indicator
+        CC2 behavior: sneak/defend/hide show PRONE SPRITE as the only indicator.
+        No extra icons needed — the elongated body posture speaks for itself.
+        Only fast_move gets an additional speed indicator.
         """
         if self.draw_surface is None:
             return
         
-        # Check for movement mode
         if not hasattr(unit, 'movement_mode'):
             return
         
         try:
             mode = unit.movement_mode
             if mode == "normal":
-                return  # No indicator needed
+                return
             
-            # Position below and to the left of unit
-            x = int(sp[0]) - int(16 * zoom)
-            y = int(sp[1]) + int(8 * zoom)
-            icon_size = max(8, int(10 * zoom))
+            prone_states = {'sneak', 'hide', 'defend'}
+            if mode in prone_states:
+                return  # Prone sprite IS the indicator — no extra icon needed
             
-            if mode == "defend":
-                self._draw_defend_posture(x, y, icon_size)
-            elif mode == "fast_move":
+            if mode == "fast_move":
                 self._draw_fast_move_indicator(sp, zoom)
-            elif mode == "sneak":
-                self._draw_sneak_indicator(x, y, icon_size)
         except Exception as e:
             logger.debug(f"Failed to draw movement mode indicator: {e}")
-            pass  # Silently fail in test/mock environments
+            pass
 
     def _draw_defend_posture(self, x: int, y: int, size: int) -> None:
         """Draw shield icon for defending units."""
