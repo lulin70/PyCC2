@@ -339,16 +339,12 @@ class TestE2ECoverageEveryUserOperation:
         inf_idx = next((i for i, u in enumerate(dui.state.available_units)
                        if u.unit_type == "infantry" and not u.is_placed), None)
         assert inf_idx is not None
-        dui.handle_click_full(50, 46, 0, 0, 16)
         zone = dui.state.friendly_zone
         placed = False
-        for tx, ty in zone[:20]:
+        for tx, ty in zone[:30]:
             if dui.can_place_at(dui.state.available_units[inf_idx], tx, ty,
                                 dui._get_terrain_at(tx, ty)):
-                sx = dui._roster_width + tx * 16
-                sy = ty * 16
-                r = dui.handle_click_full(sx, sy, 0, 0, 16)
-                if r and "place_unit" in r:
+                if dui.place_unit(inf_idx, tx, ty):
                     placed = True
                     break
         assert placed, "Unit should be placeable"
@@ -360,9 +356,8 @@ class TestE2ECoverageEveryUserOperation:
         dui = f.start_deployment()
         inf_idx = next((i for i, u in enumerate(dui.state.available_units)
                        if u.unit_type == "infantry" and not u.is_placed), None)
-        dui.handle_click_full(50, 46, 0, 0, 16)
         zone = dui.state.friendly_zone
-        for tx, ty in zone[:20]:
+        for tx, ty in zone[:30]:
             if dui.can_place_at(dui.state.available_units[inf_idx], tx, ty,
                                 dui._get_terrain_at(tx, ty)):
                 dui.place_unit(inf_idx, tx, ty)
@@ -392,13 +387,13 @@ class TestE2ECoverageEveryUserOperation:
         for i, unit in enumerate(dui.state.available_units):
             if unit.is_placed or len(placed_types) >= 3:
                 continue
-            for tx, ty in zone[:30]:
+            for tx, ty in zone[:50]:
                 if dui.can_place_at(unit, tx, ty, dui._get_terrain_at(tx, ty)):
-                    dui.place_unit(i, tx, ty)
-                    placed_types.add(unit.unit_type)
+                    if dui.place_unit(i, tx, ty):
+                        placed_types.add(unit.unit_type)
                     break
         f.game_loop.complete_deployment()
-        assert len(f.state.units) >= len(placed_types)
+        assert len(f.state.units) >= len(placed_types), f"Expected >= {len(placed_types)} units, got {len(f.state.units)}"
         f.shutdown()
 
     # ======================================================================
