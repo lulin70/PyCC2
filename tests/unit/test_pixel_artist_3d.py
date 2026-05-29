@@ -464,10 +464,11 @@ class TestEnvironmentSprites:
         import pygame
 
         for variant in range(3):
+            # Fix 0.5: 树木默认尺寸从24×24改为28×28 (medium)
             sprite = artist.create_tree_sprite(variant=variant)
             assert sprite is not None
             assert isinstance(sprite, pygame.Surface)
-            assert sprite.get_size() == (24, 24)
+            assert sprite.get_size() == (28, 28), f"Expected medium tree size (28,28), got {sprite.get_size()}"
 
     def test_create_building_house(self, artist, pygame_display):
         """Test house building sprite"""

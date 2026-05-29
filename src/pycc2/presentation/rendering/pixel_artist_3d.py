@@ -1798,83 +1798,128 @@ class PixelArtist3D:
         return surface
 
     @staticmethod
-    def create_tree_sprite(variant: int = 0):
+    def create_tree_sprite(variant: int = 0, size: str = "medium"):
         """
-        创建树木精灵 (24×24 px, 纯正交俯视)
+        创建树木精灵 (CC2风格多色调树冠 + 不规则边缘)
 
-        俯视视角特征:
-        - 树冠: 大圆形(16-24px直径)带叶纹理 — 主视觉元素
-        - 树干: 中心小点(2-3px)比树冠略暗 — 几乎不可见
-        - 阴影: 东南偏移小椭圆(2-4px), 半透明深绿
-        - 叶纹理: 树冠上随机2-3种绿色点
+        Phase 1 Fix 0.3 + Fix 0.5 升级版:
+        - 多色调树冠: 4种绿色层次（基础+高光+阴影+强调）
+        - 不规则边缘: 扰动半径±2px每30度（非完美圆形）
+        - 光源模拟: 左上角高光，右下角阴影
+        - 尺寸变化: small(20×20)/medium(28×28)/large(36×36)
 
         Args:
             variant: 变体编号 (0-2)
+            size: 树木尺寸 ("small", "medium", "large")
 
         Returns:
-            24×24 pygame.Surface (带alpha通道)
+            pygame.Surface (带alpha通道，尺寸根据size参数变化)
         """
         import pygame
 
-        surface = pygame.Surface((24, 24), pygame.SRCALPHA)
+        # *** 尺寸配置 ***
+        size_config = {
+            "small": {"canvas": 20, "radius": 10},
+            "medium": {"canvas": 28, "radius": 14},
+            "large": {"canvas": 36, "radius": 18},
+        }
+        config = size_config.get(size, size_config["medium"])
+        canvas_size = config["canvas"]
+        canopy_radius = config["radius"]
+
+        surface = pygame.Surface((canvas_size, canvas_size), pygame.SRCALPHA)
         surface.fill((0, 0, 0, 0))
 
-        canopy_colors = [
-            (34, 72, 30),
-            (40, 82, 35),
-            (30, 68, 28),
-        ]
-        canopy_color = canopy_colors[variant % 3]
+        cx, cy = canvas_size // 2, canvas_size // 2 - 1
 
-        cx, cy = 12, 11
-
-        shadow_surface = pygame.Surface((24, 24), pygame.SRCALPHA)
+        # *** 阴影层 (东南偏移) ***
+        shadow_surface = pygame.Surface((canvas_size, canvas_size), pygame.SRCALPHA)
         shadow_offset_x, shadow_offset_y = 3, 3
+        shadow_w = canopy_radius * 2 - 4
+        shadow_h = canopy_radius * 1.5 - 2
         pygame.draw.ellipse(
             shadow_surface, (0, 0, 0, 50),
-            (cx - 8 + shadow_offset_x, cy - 6 + shadow_offset_y, 16, 12),
+            (cx - shadow_w // 2 + shadow_offset_x,
+             cy - shadow_h // 2 + shadow_offset_y,
+             shadow_w, shadow_h),
         )
         surface.blit(shadow_surface, (0, 0))
 
-        trunk_color = (
-            max(0, canopy_color[0] - 10),
-            max(0, canopy_color[1] - 15),
-            max(0, canopy_color[2] - 8),
-        )
-        pygame.draw.circle(surface, trunk_color, (cx, cy), 2)
+        # *** 多色调调色板 (Fix 0.3) ***
+        base_canopy = (34, 68, 28)           # 基础深绿色
+        accent_light = (45, 90, 38)          # 强调绿色1（较亮）
+        highlight = (55, 110, 48)             # 高光色（最亮）
+        shadow_green = (22, 50, 18)          # 阴影色（最暗）
+        trunk_color = (60, 40, 20)           # 暗棕色树干
 
-        canopy_radius = 10
-        pygame.draw.circle(surface, canopy_color, (cx, cy), canopy_radius)
+        # *** 1. 绘制基础树冠 (不规则圆) ***
+        # 使用扰动半径创建不规则边缘（每30度±2px）
+        import math
+        points = []
+        num_points = 36  # 每10度一个点
+        rng_edge = __import__('random').Random(variant * 73 + 11)
 
-        rng = __import__('random').Random(variant * 37 + 7)
-        leaf_shades = [
-            canopy_color,
-            (min(255, canopy_color[0] + 15), min(255, canopy_color[1] + 18), min(255, canopy_color[2] + 10)),
-            (max(0, canopy_color[0] - 12), max(0, canopy_color[1] - 15), max(0, canopy_color[2] - 8)),
-        ]
-        leaf_dot_count = 40
-        for _ in range(leaf_dot_count):
-            angle = rng.uniform(0, 2 * math.pi)
-            dist = rng.uniform(0, canopy_radius - 2)
-            lx = int(cx + math.cos(angle) * dist)
-            ly = int(cy + math.sin(angle) * dist)
-            leaf_color = leaf_shades[rng.randint(0, len(leaf_shades) - 1)]
-            if 0 <= lx < 24 and 0 <= ly < 24:
-                surface.set_at((lx, ly), leaf_color)
+        for i in range(num_points):
+            angle = 2 * math.pi * i / num_points
+            # 半径扰动: ±2px随机偏移
+            radius_perturb = canopy_radius + rng_edge.randint(-2, 2)
+            px = cx + int(math.cos(angle) * radius_perturb)
+            py = cy + int(math.sin(angle) * radius_perturb)
+            points.append((px, py))
 
-        edge_color = (
-            max(0, canopy_color[0] - 8),
-            max(0, canopy_color[1] - 10),
-            max(0, canopy_color[2] - 6),
-        )
-        pygame.draw.circle(surface, edge_color, (cx, cy), canopy_radius, 1)
+        if len(points) >= 3:
+            pygame.draw.polygon(surface, base_canopy, points)
 
-        highlight_color = (
-            min(255, canopy_color[0] + 25),
-            min(255, canopy_color[1] + 30),
-            min(255, canopy_color[2] + 15),
-        )
-        pygame.draw.circle(surface, highlight_color, (cx - 3, cy - 3), 3)
+        # *** 2. 填充内部基础色 ***
+        pygame.draw.circle(surface, base_canopy, (cx, cy), canopy_radius - 1)
+
+        # *** 3. 强调绿色1 (散布15-20个中等亮度点) ***
+        rng_accent1 = __import__('random').Random(variant * 41 + 3)
+        accent1_count = rng_accent1.randint(15, 20)
+        for _ in range(accent1_count):
+            angle = rng_accent1.uniform(0, 2 * math.pi)
+            dist = rng_accent1.uniform(0, canopy_radius - 3)
+            ax = int(cx + math.cos(angle) * dist)
+            ay = int(cy + math.sin(angle) * dist)
+            if 0 <= ax < canvas_size and 0 <= ay < canvas_size:
+                surface.set_at((ax, ay), accent_light)
+
+        # *** 4. 高光点 (左上角5-8个点 - 光源模拟) ***
+        rng_highlight = __import__('random').Random(variant * 59 + 7)
+        highlight_count = rng_highlight.randint(5, 8)
+        for _ in range(highlight_count):
+            # 偏向左上象限 (-135° 到 -45°)
+            angle = rng_highlight.uniform(-3 * math.pi / 4, -math.pi / 4)
+            dist = rng_highlight.uniform(canopy_radius * 0.2, canopy_radius * 0.6)
+            hx = int(cx + math.cos(angle) * dist)
+            hy = int(cy + math.sin(angle) * dist)
+            if 0 <= hx < canvas_size and 0 <= hy < canvas_size:
+                surface.set_at((hx, hy), highlight)
+
+        # *** 5. 阴影点 (右下角8-10个点 - 背光面) ***
+        rng_shadow = __import__('random').Random(variant * 83 + 13)
+        shadow_count = rng_shadow.randint(8, 10)
+        for _ in range(shadow_count):
+            # 偏向右下象限 (45° 到 135°)
+            angle = rng_shadow.uniform(math.pi / 4, 3 * math.pi / 4)
+            dist = rng_shadow.uniform(canopy_radius * 0.3, canopy_radius * 0.7)
+            sx = int(cx + math.cos(angle) * dist)
+            sy = int(cy + math.sin(angle) * dist)
+            if 0 <= sx < canvas_size and 0 <= sy < canvas_size:
+                surface.set_at((sx, sy), shadow_green)
+
+        # *** 6. 树干 (中心2px暗棕色点) ***
+        trunk_y = cy + canopy_radius // 3
+        if 0 <= trunk_y < canvas_size:
+            pygame.draw.circle(surface, trunk_color, (cx, trunk_y), 2)
+
+        # *** 7. 边缘描深 (不规则轮廓线) ***
+        edge_color = (28, 58, 24)
+        if len(points) >= 3:
+            for i in range(len(points)):
+                p1 = points[i]
+                p2 = points[(i + 1) % len(points)]
+                pygame.draw.line(surface, edge_color, p1, p2, 1)
 
         return surface
 

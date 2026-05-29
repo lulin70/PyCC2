@@ -164,8 +164,9 @@ def render_cc2_building(
         roof_color = tuple(max(0, c - 70) for c in roof_color)
 
     # === OBLIQUE PROJECTION: Roof + South Wall + East Wall ===
-    wall_height = 5  # 4-6px range, use 5 as middle value
-    wall_width = 5   # 4-6px range
+    # CC2修正: 墙面几乎不可见，仅1-2px暗色边缘提示（非5px墙面！）
+    wall_height = 2  # 从5减至2 - 微妙阴影提示
+    wall_width = 2   # 从5减至2 - 微妙阴影提示
     wall_color = tuple(int(c * WALL_FACE_MULTIPLIER) for c in roof_color)
 
     # 1. Roof plane (main rectangle)
@@ -212,10 +213,23 @@ def render_cc2_building(
                 break
 
     # 5. Building number (yellow text at center)
+    # Fix 1.5: 数字表示楼层数，大小随值缩放（更高的楼=稍大的字）
     if show_number and number:
-        font_size = min(w - wall_width, h - wall_height) // 2
-        font = pygame.font.SysFont("arial", font_size, bold=True)
-        text = font.render(number, True, (255, 215, 0))
+        base_font_size = min(w - wall_width, h - wall_height) // 2
+
+        try:
+            floor_value = int(number)
+            if floor_value >= 3:
+                font_size = base_font_size + 2  # 3层及以上: +2px
+            elif floor_value == 2:
+                font_size = base_font_size + 1  # 2层: +1px
+            else:
+                font_size = base_font_size      # 1层: 标准大小
+        except (ValueError, TypeError):
+            font_size = base_font_size          # 非数字: 使用默认大小
+
+        font = pygame.font.SysFont("arial", max(12, font_size), bold=True)
+        text = font.render(str(number), True, (255, 215, 0))
         text_rect = text.get_rect(center=((w - wall_width) // 2, (h - wall_height) // 2))
         surface.blit(text, text_rect)
 
@@ -314,8 +328,9 @@ def _render_normandy_farmhouse(
         red_tile_roof = tuple(max(0, c - 65) for c in red_tile_roof)
         red_tile_dark = tuple(max(0, c - 75) for c in red_tile_dark)
 
-    wall_height = 5
-    wall_width = 5
+    # CC2修正: 墙面几乎不可见，仅1-2px暗色边缘提示
+    wall_height = 2  # 从5减至2 - 微妙阴影提示
+    wall_width = 2   # 从5减至2 - 微妙阴影提示
     wall_color = tuple(int(c * WALL_FACE_MULTIPLIER) for c in red_tile_roof)
     cx, cy = (w - wall_width) // 2, (h - wall_height) // 2
 

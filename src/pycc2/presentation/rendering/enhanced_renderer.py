@@ -43,6 +43,9 @@ from pycc2.presentation.rendering.autotile_system import (
     AutotileCache,
 )
 
+# Import shadow system for SE-direction shadows
+from pycc2.presentation.rendering.shadow_system import ShadowRenderer
+
 
 # ============================================================
 # CC2 Authentic Terrain Palette (from screenshot analysis)
@@ -2116,6 +2119,7 @@ class EnhancedRenderer:
         self._frame_count = 0
         self._sprite_renderer = None  # 延迟初始化，等待display ready
         self._isometric_renderer = None  # Isometric renderer (lazy init)
+        self._shadow_renderer = ShadowRenderer()  # SE-direction shadow system
     
     def initialize(self, screen: pygame.Surface) -> None:
         """Initialize renderer with display surface."""
@@ -2191,8 +2195,14 @@ class EnhancedRenderer:
         # STEP 4: Draw decorations (minimal)
         self._draw_decorations(game_map, camera)
 
+        # STEP 4.1: Draw tree shadows (AFTER terrain, BEFORE trees)
+        self._render_tree_shadows(game_map, camera)
+
         # STEP 4.4: Draw building roofs (CC2 top-down view — covers side-view terrain texture)
         self._draw_building_roofs(game_map, camera)
+
+        # STEP 4.45: Draw building shadows (BEFORE buildings, ABOVE terrain)
+        self._render_building_shadows(game_map, camera)
 
         # STEP 4.5: Draw building interiors (auto-switch when units are inside)
         self._draw_building_interiors(game_map, units, camera)
@@ -2208,6 +2218,9 @@ class EnhancedRenderer:
 
         # STEP 5: Draw units
         self._draw_units(units, camera, selected_unit_ids)
+
+        # STEP 5.1: Draw unit and vehicle shadows (AFTER units rendered)
+        self._render_unit_shadows(units, camera)
 
         # STEP 5.5: Draw attack lines (CC2-style)
         self._draw_attack_lines(camera)
@@ -3478,6 +3491,157 @@ class EnhancedRenderer:
         if selected:
             select_color = (255, 255, 0)
             pygame.draw.circle(self._offscreen, select_color, (cx, cy), radius + 3, 2)
+
+    def _render_building_shadows(self, game_map: GameMap, camera: Camera) -> None:
+        """Render SE-direction shadows for all buildings."""
+        if self._offscreen is None or self._shadow_renderer is None:
+            return
+
+        try:
+            # Iterate through map tiles to find buildings
+            for y in range(game_map.height):
+                for x in range(game_map.width):
+                    tile = game_map.get_tile(x, y)
+                    if tile is None:
+                        continue
+
+                    # Check if tile has building
+                    has_building = (
+                        hasattr(tile, 'building') and tile.building is not None
+                    ) or (
+                        hasattr(tile, 'terrain_type') and 
+                        str(tile.terrain_type).lower() in ['building', 'house', 'barn', 'church']
+                    )
+
+                    if has_building:
+                        # Convert tile position to screen coordinates
+                        world_pos = (x * self.TILE_SIZE, y * self.TILE_SIZE)
+                        screen_pos = camera.world_to_screen(world_pos)
+                        sx, sy = int(screen_pos[0]), int(screen_pos[1])
+
+                        # Render building shadow (offset southeast)
+                        self._shadow_renderer.render_building_shadow(
+                            self._offscreen,
+                            sx, sy,
+                            self.TILE_SIZE,  # Building width ≈ tile size
+                            self.TILE_SIZE // 2  # Approximate building height
+                        )
+        except Exception as e:
+            logger.warning(f"Failed to render building shadows: {e}")
+
+    def _render_tree_shadows(self, game_map: GameMap, camera: Camera) -> None:
+        """Render SE-direction shadows for trees/vegetation."""
+        if self._offscreen is None or self._shadow_renderer is None:
+            return
+
+        try:
+            # Iterate through map tiles to find trees
+            for y in range(game_map.height):
+                for x in range(game_map.width):
+                    tile = game_map.get_tile(x, y)
+                    if tile is None:
+                        continue
+
+                    # Check if tile has tree/vegetation
+                    terrain_str = str(getattr(tile, 'terrain_type', '')).lower()
+                    is_tree = any(t in terrain_str for t in ['tree', 'forest', 'woods', 'hedgerow', 'orchard'])
+
+                    if is_tree:
+                        # Convert tile position to screen coordinates
+                        world_pos = (x * self.TILE_SIZE, y * self.TILE_SIZE)
+                        screen_pos = camera.world_to_screen(world_pos)
+                        sx, sy = int(screen_pos[0]), int(screen_pos[1])
+
+                        # Determine tree size based on terrain type
+                        tree_size = "medium"
+                        if 'forest' in terrain_str or 'woods' in terrain_str:
+                            tree_size = "large"
+                        elif 'orchard' in terrain_str:
+                            tree_size = "small"
+
+                        # Render tree shadow
+                        self._shadow_renderer.render_tree_shadow(
+                            self._offscreen,
+                            sx, sy,
+                            tree_size
+                        )
+        except Exception as e:
+            logger.warning(f"Failed to render tree shadows: {e}")
+
+    def _render_unit_shadows(self, units: list[Unit], camera: Camera) -> None:
+        """Render SE-direction shadows for all units and vehicles."""
+        if self._offscreen is None or self._shadow_renderer is None:
+            return
+
+        if len(units) == 0:
+            return
+
+        try:
+            for unit in units:
+                # Get unit position with defensive coding
+                cx, cy = None, None
+                unit_w, unit_h = 16, 16  # Default unit size
+
+                # Try to get pixel position
+                if hasattr(unit, 'position') and unit.position is not None:
+                    if hasattr(unit.position, 'pixel_position'):
+                        try:
+                            pos = camera.world_to_screen(unit.position.pixel_position)
+                            cx, cy = int(pos[0]), int(pos[1])
+                        except Exception:
+                            pass
+
+                    # Fallback to tile position
+                    if (cx is None or cy is None) and hasattr(unit.position, 'tile_x'):
+                        try:
+                            tile_x = getattr(unit.position, 'tile_x', None)
+                            tile_y = getattr(unit.position, 'tile_y', None)
+                            if tile_x is not None and tile_y is not None:
+                                from pycc2.domain.value_objects.vec2 import Vec2
+                                world_pos = Vec2(tile_x * 16, tile_y * 16)
+                                pos = camera.world_to_screen(world_pos)
+                                cx, cy = int(pos[0]), int(pos[1])
+                        except Exception:
+                            pass
+
+                if cx is None or cy is None:
+                    continue
+
+                # Determine unit type and size
+                unit_type = getattr(unit, 'unit_type', 'infantry')
+                unit_type_str = str(unit_type).lower()
+
+                # Check if unit is hidden/sneaking
+                is_hidden = getattr(unit, 'is_hidden', False) or \
+                           getattr(unit, 'is_sneaking', False)
+
+                # Detect vehicle vs infantry by type name or size
+                is_vehicle = any(v in unit_type_str for v in 
+                               ['tank', 'vehicle', 'halftrack', 'jeep', 'truck'])
+
+                if is_vehicle:
+                    # Get vehicle dimensions
+                    unit_w = getattr(unit, 'width', 24) or 24
+                    unit_h = getattr(unit, 'height', 16) or 16
+                    
+                    # Render vehicle shadow
+                    self._shadow_renderer.render_vehicle_shadow(
+                        self._offscreen,
+                        cx, cy,
+                        unit_w, unit_h,
+                        is_hidden=is_hidden
+                    )
+                else:
+                    # Render infantry shadow
+                    self._shadow_renderer.render_unit_shadow(
+                        self._offscreen,
+                        cx, cy,
+                        unit_type=unit_type_str,
+                        is_hidden=is_hidden
+                    )
+
+        except Exception as e:
+            logger.warning(f"Failed to render unit shadows: {e}")
 
     def _draw_attack_lines(self, camera: Camera) -> None:
         """Draw CC2-style attack lines with color coding.
