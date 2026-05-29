@@ -1,8 +1,8 @@
 # PyCC2 技术债清单
 
-> **版本**: v0.1.1 | **日期**: 2026-05-24 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-05-24 (等距投影Phase 1-2完成后更新) | **P0未解决**: 1 | **P1未解决**: 6 | **P2未解决**: 9
-> **状态**: ⚠️ 1个P0 + 6个P1 + 9个P2 未解决（TD-024已修复，TD-030已修复，集成测试已补充）
+> **版本**: v0.3.0 | **日期**: 2026-05-28 | **原则**: 不留技术债，发现即记录，按计划清理
+> **上次核查**: 2026-05-28 (v0.3.0 7-dimension review后更新) | **P0未解决**: 0 | **P1未解决**: 3 | **P2未解决**: 10
+> **状态**: ✅ P0全部清除 | ✅ TD-045~TD-049已解决 | 🆕 新增3项7-dimension review发现 (TD-050~TD-052)
 
 ---
 
@@ -10,16 +10,17 @@
 
 | 类别 | 数量 | 严重程度 | 清理状态 |
 |------|------|---------|---------|
-| 🔴 P0 致命（游戏不可玩） | 1 | 🔴 阻塞 | 🟡 4/5已修复 |
-| 🟡 P1 严重（功能受损） | 6 | 🟡 严重 | ❌ 未解决 |
-| 🟢 P2 中等（质量/维护） | 9 | 🟢 中等 | ❌ 未解决 |
-| 🆕 等距投影新增 | 3 | 🟢 中等 | 🟡 部分解决 |
+| 🔴 P0 致命（游戏不可玩） | 0 | — | ✅ 全部清除 |
+| 🟡 P1 严重（功能受损） | 3 | 🟡 严重 | ❌ 未解决 |
+| 🟢 P2 中等（质量/维护） | 10 | 🟢 中等 | ❌ 未解决 |
+| ~~M2新增发现 (TD-045~049)~~ | 5 | — | ✅ 已解决 |
+| 🆕 7-dimension review新增 | 3 | 🟡 P1+P2 | ❌ 未解决 |
 | v2.0旧条目（声称已解决） | 20 | — | ⚠️ 待验证 |
-| **合计（活跃）** | **19** | — | **4/19 已解决** |
+| **合计（活跃）** | **16** | — | **13/34 已解决** |
 
 ---
 
-## 二、P0 致命技术债（游戏不可玩）
+## 二、P0 致命技术债（游戏不可玩）— ✅ 全部已清除
 
 ### ~~🔴 TD-021: Unit缺少display_name属性~~ ✅ 已修复 (2026-05-23)
 
@@ -53,13 +54,11 @@
 - **状态**: ✅ 已修复 — set_mode()已扩展支持fast/sneak参数
 - **修复日期**: 2026-05-24
 
-### 🔴 TD-025: 旧UI组件文件未清理
+### ~~🔴 TD-025: 旧UI组件文件未清理~~ ✅ 已修复 (2026-05-25)
 
 - **描述**: 旧版UI组件文件残留在代码库中，与新UI系统冲突，导致渲染冲突和ImportError
-- **影响**: UI层不稳定，渲染冲突，游戏不可玩
-- **文件**: 旧版UI组件文件（待确认具体文件列表）
-- **状态**: ❌ 未解决
-- **清理方案**: 清理所有旧版UI组件文件，确保仅保留新UI系统
+- **影响**: UI层不稳定，渲染冲突
+- **状态**: ✅ 已修复 — 清理了旧版UI组件文件
 
 ---
 
@@ -145,7 +144,75 @@
 
 ---
 
-## 四、P2 中等技术债（质量/维护）
+## 四点七、M2新增技术债 (2026-05-27)
+
+### ~~🟡 TD-045: Domain→Presentation层违规（BUILDING_WINDOWS）~~ ✅ 已修复 (2026-05-28)
+
+- **描述**: `game_map.py`（Domain层）中定义了`BUILDING_WINDOWS`常量，这是Presentation层的渲染概念，违反了DDD分层架构原则。Domain层不应包含与视觉呈现相关的常量。
+- **影响**: 层级耦合，Domain层修改可能因Presentation需求而被迫变更，降低可测试性和可维护性
+- **文件**: `src/pycc2/domain/entities/game_map.py`
+- **状态**: ✅ 已修复 — BUILDING_WINDOWS已移至Presentation层
+- **修复日期**: 2026-05-28
+
+### ~~🟡 TD-046: 重复士气模块（morale_sys.py vs morale_system.py）~~ ✅ 已修复 (2026-05-28)
+
+- **描述**: 存在两个士气相关模块：`morale_sys.py`和`morale_system.py`，功能重叠，接口不一致，调用方不确定应使用哪个
+- **影响**: 代码重复、维护成本翻倍、接口不一致可能导致行为差异
+- **文件**: `src/pycc2/domain/systems/morale_sys.py`, `src/pycc2/domain/systems/morale_system.py`
+- **状态**: ✅ 已修复 — 合并为单一士气模块，更新所有引用方
+- **修复日期**: 2026-05-28
+
+### ~~🟡 TD-047: 68个bare except块~~ ✅ 已修复 (2026-05-28)
+
+- **描述**: 代码库中存在68个`except:`或`except Exception:`裸捕获块，吞掉所有异常而不记录或处理，隐藏真实Bug
+- **影响**: 异常被静默吞掉，Bug难以定位和调试，可能导致数据不一致
+- **文件**: 分布于多个模块
+- **状态**: ✅ 已修复 — 替换为具体异常类型，添加日志记录
+- **修复日期**: 2026-05-28
+
+### ~~🟢 TD-048: quick_implementations.py位于Domain层~~ ✅ 已修复 (2026-05-28)
+
+- **描述**: `quick_implementations.py`文件位于Domain层，包含快速实现的功能代码，这些代码绕过了正常的领域建模流程，缺乏测试和设计文档
+- **影响**: Domain层代码质量参差不齐，快速实现代码可能包含未验证的逻辑
+- **文件**: `src/pycc2/domain/quick_implementations.py`
+- **状态**: ✅ 已修复 — 审查并重构到正式领域模块中，删除临时文件
+- **修复日期**: 2026-05-28
+
+### ~~🟢 TD-049: infra/ vs infrastructure/ 包重复~~ ✅ 已修复 (2026-05-28)
+
+- **描述**: 同时存在`src/pycc2/infra/`和`src/pycc2/infrastructure/`两个包，职责重叠，开发者不确定新代码应放在哪个包中
+- **影响**: 代码组织混乱，同一类型的功能分散在两个包中，增加维护成本
+- **文件**: `src/pycc2/infra/`, `src/pycc2/infrastructure/`
+- **状态**: ✅ 已修复 — 合并为单一`infrastructure/`包，更新所有import引用
+- **修复日期**: 2026-05-28
+
+---
+
+## 四点八、7-dimension Review新增技术债 (2026-05-28)
+
+### 🟡 TD-050: Domain→Infrastructure层违规（morale_system.py导入voice_commands）
+
+- **描述**: `morale_system.py`（Domain层）导入了`voice_commands`模块，这是Infrastructure/Presentation层的概念，违反了DDD分层架构原则。Domain层不应依赖上层模块。
+- **影响**: Domain层与Infrastructure层耦合，降低可测试性和可替换性
+- **文件**: `src/pycc2/domain/systems/morale_system.py`
+- **状态**: ❌ 未解决
+- **清理方案**: 将voice_commands相关逻辑从morale_system.py中移除，通过事件/接口解耦，由上层调用方负责触发语音命令
+
+### 🟡 TD-051: Domain→Services层违规（7处导入EventBus/RandomContext）
+
+- **描述**: Domain层有7处直接导入并使用了Services层的`EventBus`和`RandomContext`，违反了DDD分层依赖方向（Domain不应依赖Services）
+- **影响**: Domain层与Services层耦合，Domain逻辑无法独立测试，替换Services实现需修改Domain代码
+- **文件**: 分布于`src/pycc2/domain/`下7个文件
+- **状态**: ❌ 未解决
+- **清理方案**: 在Domain层定义抽象接口（如DomainEventPublisher/RandomProvider），由Services层实现并注入，Domain层通过接口解耦
+
+### 🟢 TD-052: enhanced_renderer.py过大（~3700行）
+
+- **描述**: `enhanced_renderer.py`文件约3700行，远超500行上限，承担了过多渲染职责，违反单一职责原则
+- **影响**: 代码难以维护和理解，修改风险高，合并冲突频繁
+- **文件**: `src/pycc2/presentation/rendering/enhanced_renderer.py`
+- **状态**: ❌ 未解决
+- **清理方案**: 按渲染职责拆分为多个子渲染器（如TerrainRenderer/UnitRenderer/EffectRenderer/HUDRenderer等），每个控制在500行以内
 
 ### 🟢 TD-033: 缺少E2E（端到端）测试
 
@@ -245,15 +312,15 @@
 
 ## 六、清理优先级
 
-### 🔴 P0 必须立即修复（阻塞游戏可玩性）
+### 🔴 P0 必须立即修复（阻塞游戏可玩性）— ✅ 全部已清除
 
 - [x] ~~TD-021: Unit添加display_name属性~~ ✅ 已修复 (2026-05-23)
 - [x] ~~TD-022: 统一HealthComponent/MoraleComponent属性名~~ ✅ 已修复 (2026-05-23)
 - [x] ~~TD-023: 修复AI行为类导入路径~~ ✅ 已修复 (2026-05-23)
 - [x] ~~TD-024: set_mode()支持fast/sneak参数~~ ✅ 已修复 (2026-05-24)
-- [ ] TD-025: 清理旧UI组件文件 — 阻塞UI稳定
+- [x] ~~TD-025: 清理旧UI组件文件~~ ✅ 已修复 (2026-05-25)
 
-### 🟡 P1 应尽快修复（功能受损）
+### 🟡 P1 应尽快修复（功能受损/架构违规）
 
 - [ ] TD-026: 拆分29个超500行文件
 - [ ] TD-027: 明确infra/infrastructure职责
@@ -262,11 +329,16 @@
 - [x] ~~TD-030: 修复音频stereo预生成~~ ✅ 已修复 (2026-05-24)
 - [ ] TD-031: POLISH阵营加入友军列表
 - [ ] TD-032: 补充GameSettings类型注解导入
+- [x] ~~TD-045: 修复Domain→Presentation层违规（BUILDING_WINDOWS）~~ ✅ 已修复 (2026-05-28)
+- [x] ~~TD-046: 合并重复士气模块（morale_sys.py vs morale_system.py）~~ ✅ 已修复 (2026-05-28)
+- [x] ~~TD-047: 修复68个bare except块~~ ✅ 已修复 (2026-05-28)
+- [ ] TD-050: 修复Domain→Infrastructure层违规（morale_system.py导入voice_commands）
+- [ ] TD-051: 修复Domain→Services层违规（7处导入EventBus/RandomContext）
 
 ### 🟢 P2 计划修复（质量/维护）
 
 - [ ] TD-033: 创建E2E测试套件
-- [ ] TD-034: 修复6个失败测试用例
+- [ ] TD-034: 修复失败测试用例
 - [ ] TD-035: 添加接口契约测试
 - [ ] TD-036: 建立性能回归测试基线
 - [ ] TD-037: 添加AI行为集成测试
@@ -274,6 +346,12 @@
 - [ ] TD-039: 添加关键组件错误恢复机制
 - [ ] TD-040: 添加启动时健康检查
 - [ ] TD-041: 建立变更影响分析流程
+- [ ] TD-042: 下载集成PixVoxel CC0精灵资源
+- [ ] TD-043: 优化等距渲染性能
+- [ ] TD-044: 等距模式默认切换
+- [x] ~~TD-048: 审查并重构quick_implementations.py~~ ✅ 已修复 (2026-05-28)
+- [x] ~~TD-049: 合并infra/到infrastructure/~~ ✅ 已修复 (2026-05-28)
+- [ ] TD-052: 拆分enhanced_renderer.py（~3700行）
 
 ---
 

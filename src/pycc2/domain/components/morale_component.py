@@ -65,10 +65,12 @@ class MoraleComponent:
         if self.suppression == 0:
             self._update_state()
 
-    def natural_recovery(self) -> None:
+    def natural_recovery(self, veterancy_morale_resist: float = 1.0) -> None:
+        """Recover morale over time. Veteran units recover faster."""
         if not self.is_combat_effective:
             return
-        self._recovery_fractional += 0.5
+        recovery_rate = 0.5 * veterancy_morale_resist
+        self._recovery_fractional += recovery_rate
         if self._recovery_fractional >= 1.0:
             self.apply_delta(1)
             self._recovery_fractional -= 1.0

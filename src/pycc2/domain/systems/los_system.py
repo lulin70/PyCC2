@@ -397,7 +397,7 @@ class Lossystem:
         Returns:
             True if the firing angle passes through a window.
         """
-        from pycc2.presentation.rendering.cc2_building_renderer import (
+        from pycc2.domain.value_objects.building_data import (
             BUILDING_WINDOWS,
             CC2BuildingType,
         )

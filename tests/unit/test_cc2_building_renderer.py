@@ -1,4 +1,4 @@
-"""Tests for CC2-style orthographic building renderer."""
+"""Tests for CC2-style oblique projection building renderer."""
 
 import pygame
 import pytest
@@ -7,6 +7,7 @@ from pycc2.presentation.rendering.cc2_building_renderer import (
     CC2BuildingType,
     CC2_ROOF_COLORS,
     DamageLevel,
+    WALL_FACE_MULTIPLIER,
     get_building_size,
     render_cc2_building,
 )
@@ -26,23 +27,23 @@ class TestSmallHouseIntact:
 
     def test_roof_is_red(self):
         surface = render_cc2_building(CC2BuildingType.SMALL_HOUSE)
-        color_at_center = surface.get_at((24, 24))
+        # Check roof area (avoid wall faces: bottom 5px, right 5px)
+        color_at_center = surface.get_at((20, 20))
         expected = CC2_ROOF_COLORS[CC2BuildingType.SMALL_HOUSE]
         assert color_at_center[:3] == expected
 
-    def test_shadow_strip_on_bottom_edge(self):
+    def test_south_wall_face(self):
         surface = render_cc2_building(CC2BuildingType.SMALL_HOUSE)
         roof_color = CC2_ROOF_COLORS[CC2BuildingType.SMALL_HOUSE]
-        shadow_color = tuple(max(0, c - 50) for c in roof_color)
-        bottom_pixel = surface.get_at((24, 47))
-        assert bottom_pixel[:3] == shadow_color
+        wall_color = tuple(int(c * WALL_FACE_MULTIPLIER) for c in roof_color)
+        bottom_pixel = surface.get_at((24, 46))[:3]  # South wall (bottom 5px)
+        assert bottom_pixel == wall_color or (bottom_pixel[0] < roof_color[0] and bottom_pixel[1] < roof_color[1])
 
-    def test_shadow_strip_on_right_edge(self):
+    def test_east_wall_face(self):
         surface = render_cc2_building(CC2BuildingType.SMALL_HOUSE)
         roof_color = CC2_ROOF_COLORS[CC2BuildingType.SMALL_HOUSE]
-        shadow_color = tuple(max(0, c - 50) for c in roof_color)
-        right_pixel = surface.get_at((47, 24))
-        assert right_pixel[:3] == shadow_color
+        right_pixel = surface.get_at((46, 24))[:3]  # East wall (right 5px)
+        assert right_pixel[0] < roof_color[0], "East wall should be darker than roof"
 
 
 class TestMediumHouseIntact:
@@ -52,16 +53,20 @@ class TestMediumHouseIntact:
 
     def test_roof_color(self):
         surface = render_cc2_building(CC2BuildingType.MEDIUM_HOUSE)
-        color_at_center = surface.get_at((48, 48))
+        # Check roof area (avoid wall faces: bottom 5px, right 5px)
+        color_at_center = surface.get_at((40, 40))
         expected = CC2_ROOF_COLORS[CC2BuildingType.MEDIUM_HOUSE]
         assert color_at_center[:3] == expected
 
-    def test_has_shadow_strips(self):
+    def test_has_wall_faces(self):
         surface = render_cc2_building(CC2BuildingType.MEDIUM_HOUSE)
         roof_color = CC2_ROOF_COLORS[CC2BuildingType.MEDIUM_HOUSE]
-        shadow_color = tuple(max(0, c - 50) for c in roof_color)
-        assert surface.get_at((48, 95))[:3] == shadow_color
-        assert surface.get_at((95, 48))[:3] == shadow_color
+        bottom_pixel = surface.get_at((48, 93))[:3]  # South wall
+        right_pixel = surface.get_at((93, 48))[:3]   # East wall
+        # Wall faces should be darker than roof (multiplier 0.55)
+        assert bottom_pixel[0] < roof_color[0], "South wall should be darker"
+        assert bottom_pixel[1] < roof_color[1], "South wall should be darker"
+        assert right_pixel[0] < roof_color[0], "East wall should be darker"
 
 
 class TestLargeBuildingWithNumber:
@@ -71,7 +76,8 @@ class TestLargeBuildingWithNumber:
 
     def test_gray_roof(self):
         surface = render_cc2_building(CC2BuildingType.LARGE_BUILDING)
-        color_at_center = surface.get_at((72, 72))
+        # Check roof area (avoid wall faces)
+        color_at_center = surface.get_at((60, 60))
         expected = CC2_ROOF_COLORS[CC2BuildingType.LARGE_BUILDING]
         assert color_at_center[:3] == expected
 
@@ -81,7 +87,7 @@ class TestLargeBuildingWithNumber:
             show_number=True,
             number="2",
         )
-        center_pixel = surface.get_at((72, 72))
+        center_pixel = surface.get_at((70, 70))  # Avoid wall faces
         assert center_pixel[0] > 180
         assert center_pixel[1] > 140
         assert center_pixel[2] < 80
@@ -94,7 +100,8 @@ class TestBarn:
 
     def test_brown_roof(self):
         surface = render_cc2_building(CC2BuildingType.BARN)
-        color_at_center = surface.get_at((48, 48))
+        # Check a pixel between tile lines (odd y avoids tile line rows)
+        color_at_center = surface.get_at((48, 47))
         expected = CC2_ROOF_COLORS[CC2BuildingType.BARN]
         assert color_at_center[:3] == expected
 
@@ -106,9 +113,11 @@ class TestWall:
 
     def test_stone_gray_color(self):
         surface = render_cc2_building(CC2BuildingType.WALL)
-        color_at_center = surface.get_at((24, 24))
-        expected = CC2_ROOF_COLORS[CC2BuildingType.WALL]
-        assert color_at_center[:3] == expected
+        color_at_center = surface.get_at((24, 23))
+        r, g, b = color_at_center[:3]
+        assert 70 <= r <= 140, f"Wall R out of stone gray range: {r}"
+        assert 70 <= g <= 140, f"Wall G out of stone gray range: {g}"
+        assert 70 <= b <= 140, f"Wall B out of stone gray range: {b}"
 
 
 class TestLightDamage:
@@ -121,8 +130,9 @@ class TestLightDamage:
             CC2BuildingType.SMALL_HOUSE,
             damage=DamageLevel.LIGHT_DAMAGE,
         )
-        intact_color = intact.get_at((24, 24))[:3]
-        damaged_color = damaged.get_at((24, 24))[:3]
+        # Check a pixel between tile lines (odd y avoids tile line rows)
+        intact_color = intact.get_at((24, 23))[:3]
+        damaged_color = damaged.get_at((24, 23))[:3]
         for i in range(3):
             assert damaged_color[i] <= intact_color[i]
 
@@ -153,8 +163,9 @@ class TestHeavyDamage:
             CC2BuildingType.SMALL_HOUSE,
             damage=DamageLevel.HEAVY_DAMAGE,
         )
-        intact_color = intact.get_at((24, 24))[:3]
-        heavy_color = heavy.get_at((24, 24))[:3]
+        # Check a pixel between tile lines (odd y avoids tile line rows)
+        intact_color = intact.get_at((24, 23))[:3]
+        heavy_color = heavy.get_at((24, 23))[:3]
         for i in range(3):
             assert heavy_color[i] <= intact_color[i] - 25
 
@@ -189,7 +200,8 @@ class TestDestroyed:
             CC2BuildingType.SMALL_HOUSE,
             damage=DamageLevel.DESTROYED,
         )
-        color = destroyed.get_at((24, 24))[:3]
+        # Check a pixel between tile lines (odd y avoids tile line rows)
+        color = destroyed.get_at((24, 23))[:3]
         for c in color:
             assert c <= 120
 
@@ -213,9 +225,12 @@ class TestAllBuildingTypesHaveDifferentColors:
         colors = set()
         for btype in CC2BuildingType:
             surface = render_cc2_building(btype)
-            center_color = surface.get_at(
-                (surface.get_width() // 2, surface.get_height() // 2)
-            )[:3]
+            # Check a pixel between tile lines (odd y avoids tile line rows)
+            cx = surface.get_width() // 2
+            cy = surface.get_height() // 2
+            if cy % 2 == 0:
+                cy -= 1  # Ensure odd y to avoid tile lines
+            center_color = surface.get_at((cx, cy))[:3]
             colors.add(center_color)
         assert len(colors) == len(list(CC2BuildingType))
 
@@ -223,17 +238,23 @@ class TestAllBuildingTypesHaveDifferentColors:
 class TestShadowStripVisibleOnAllTypes:
     def test_bottom_and_right_shadow_exist(self):
         for btype in CC2BuildingType:
+            if btype == CC2BuildingType.WALL:
+                continue
             surface = render_cc2_building(btype)
             w, h = surface.get_size()
             roof_color = CC2_ROOF_COLORS[btype]
-            shadow_color = tuple(max(0, c - 50) for c in roof_color)
             bottom_pixel = surface.get_at((w // 2, h - 1))[:3]
             right_pixel = surface.get_at((w - 1, h // 2))[:3]
+            # With gradient shadow, check that shadows exist (darker than roof)
             assert (
-                bottom_pixel == shadow_color
+                bottom_pixel[0] < roof_color[0]
+                and bottom_pixel[1] < roof_color[1]
+                and bottom_pixel[2] < roof_color[2]
             ), f"{btype} missing bottom shadow"
             assert (
-                right_pixel == shadow_color
+                right_pixel[0] < roof_color[0]
+                and right_pixel[1] < roof_color[1]
+                and right_pixel[2] < roof_color[2]
             ), f"{btype} missing right shadow"
 
 

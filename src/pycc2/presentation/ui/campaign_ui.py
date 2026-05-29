@@ -11,8 +11,11 @@ Full campaign screen flow:
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Callable
+
+logger = logging.getLogger(__name__)
 
 import pygame
 from pygame import Rect, Surface, draw
@@ -41,8 +44,10 @@ class CampaignOperation:
     operation_id: str
     name: str
     day: int
+    total_days: int = 9  # Market Garden was a 9-day operation (Sept 17-26, 1944)
     description: str = ""
     historical_briefing: str = ""
+    sector: str = ""  # 'arnhem', 'nijmegen', 'eindhoven'
     battles: list[CampaignBattle] = field(default_factory=list)
 
 
@@ -107,6 +112,11 @@ class CampaignUI:
         self._proceed_button_rect: Rect | None = None
         self._deploy_button_rect: Rect | None = None
         self._continue_button_rect: Rect | None = None
+        self._new_campaign_button_rect: Rect | None = None
+        self._main_menu_button_rect: Rect | None = None
+
+        # Campaign end summary data
+        self._campaign_summary: dict | None = None
 
         # Callbacks
         self._on_start_battle: Callable[[str], None] | None = None
@@ -124,7 +134,8 @@ class CampaignUI:
             self._font_title = pygame.font.SysFont("consolas", 28, bold=True)
             self._font_normal = pygame.font.SysFont("consolas", 18)
             self._font_small = pygame.font.SysFont("consolas", 14)
-        except Exception:
+        except Exception as e:
+            logging.debug(f"Campaign UI font fallback: {e}")
             self._font_title = pygame.font.Font(None, 36)
             self._font_normal = pygame.font.Font(None, 24)
             self._font_small = pygame.font.Font(None, 18)
@@ -152,7 +163,14 @@ class CampaignUI:
     def show_operation_briefing(self, operation: CampaignOperation) -> None:
         """Show historical briefing for the selected operation."""
         self._current_operation = operation
+        self._selected_battle_id = None
+        self._scroll_offset = 0
         self._state = "briefing"
+        # Auto-select first unlocked battle
+        for b in operation.battles:
+            if not b.locked:
+                self._selected_battle_id = b.battle_id
+                break
 
     def show_battle_preview(self, battle: CampaignBattle) -> None:
         """Show battle preview with map and objectives."""
@@ -163,6 +181,20 @@ class CampaignUI:
         """Show post-battle results."""
         self._battle_result = result
         self._state = "report"
+
+    def show_campaign_end(self, summary: dict) -> None:
+        """Show campaign end screen with historical outcome.
+
+        Args:
+            summary: Dict from FourLayerCampaignManager.get_campaign_summary()
+              - result: 'ALLIES_VICTORY' / 'AXIS_VICTORY' / 'DRAW'
+              - day_ended: int (1-9)
+              - allied_casualties: {'kia': int, 'wia': int}
+              - axis_casualties: {'kia': int, 'wia': int}
+              - bridge_status: {bridge_name: 'captured_allied'|'captured_axis'|'contested'}
+        """
+        self._campaign_summary = summary
+        self._state = "campaign_end"
 
     def set_callbacks(
         self,
@@ -208,6 +240,8 @@ class CampaignUI:
             return self._handle_click_preview(x, y)
         elif self._state == "report":
             return self._handle_click_report(x, y)
+        elif self._state == "campaign_end":
+            return self._handle_click_campaign_end(x, y)
 
         return None
 
@@ -236,10 +270,22 @@ class CampaignUI:
 
     def _handle_click_briefing(self, x: int, y: int) -> str | None:
         """Handle clicks in briefing state."""
-        if self._proceed_button_rect and self._proceed_button_rect.collidepoint(x, y):
-            if self._current_operation:
-                self.set_operation(self._current_operation)
-                return f"battle_select:{self._current_operation.operation_id}"
+        # Battle selection in briefing
+        for battle_id, rect in self._battle_rects.items():
+            if rect.collidepoint(x, y):
+                self._selected_battle_id = battle_id
+                return f"select_battle:{battle_id}"
+
+        # Start Battle button
+        if self._start_button_rect and self._start_button_rect.collidepoint(x, y):
+            if self._selected_battle_id and self._current_operation:
+                battle = next(
+                    (b for b in self._current_operation.battles if b.battle_id == self._selected_battle_id),
+                    None,
+                )
+                if battle:
+                    self.show_battle_preview(battle)
+                    return f"preview:{self._selected_battle_id}"
 
         if self._back_button_rect and self._back_button_rect.collidepoint(x, y):
             self._state = "operation_select"
@@ -305,6 +351,18 @@ class CampaignUI:
 
         return None
 
+    def _handle_click_campaign_end(self, x: int, y: int) -> str | None:
+        """Handle clicks in campaign_end state."""
+        if self._new_campaign_button_rect and self._new_campaign_button_rect.collidepoint(x, y):
+            return "new_campaign"
+
+        if self._main_menu_button_rect and self._main_menu_button_rect.collidepoint(x, y):
+            if self._on_back:
+                self._on_back()
+            return "main_menu"
+
+        return None
+
     def handle_mouse_move(self, screen_pos: tuple[int, int]) -> None:
         """Track hover state for visual feedback."""
         if not self._visible:
@@ -334,13 +392,17 @@ class CampaignUI:
             self._hovered_button = "deploy"
         elif self._continue_button_rect and self._continue_button_rect.collidepoint(x, y):
             self._hovered_button = "continue"
+        elif self._new_campaign_button_rect and self._new_campaign_button_rect.collidepoint(x, y):
+            self._hovered_button = "new_campaign"
+        elif self._main_menu_button_rect and self._main_menu_button_rect.collidepoint(x, y):
+            self._hovered_button = "main_menu"
 
     def handle_scroll(self, dy: int) -> None:
         """Handle mouse scroll for lists."""
         if self._state == "operation_select":
             max_scroll = max(0, len(self._operations) - 6)
             self._scroll_offset = max(0, min(max_scroll, self._scroll_offset - dy))
-        elif self._state in ("battle_select",) and self._current_operation:
+        elif self._state in ("battle_select", "briefing") and self._current_operation:
             max_scroll = max(0, len(self._current_operation.battles) - 6)
             self._scroll_offset = max(0, min(max_scroll, self._scroll_offset - dy))
 
@@ -363,6 +425,8 @@ class CampaignUI:
             self._render_preview(surface)
         elif self._state == "report":
             self._render_report(surface)
+        elif self._state == "campaign_end":
+            self._render_campaign_end(surface)
 
     def _render_operation_select(self, surface: Surface) -> None:
         """Render operation selection screen."""
@@ -414,7 +478,7 @@ class CampaignUI:
                 draw.rect(surface, self.HIGHLIGHT_COLOR, Rect(item_rect.left, item_rect.top, 2, item_rect.height))
 
             # Day badge
-            day_surf = self._font_small.render(f"Day {op.day}", True, (180, 180, 170))
+            day_surf = self._font_small.render(f"Day {op.day}/{op.total_days}", True, (180, 180, 170))
             surface.blit(day_surf, (item_rect.left + 6, item_rect.top + 4))
 
             # Operation name
@@ -439,56 +503,152 @@ class CampaignUI:
         self._draw_button(surface, self._back_button_rect, "Back", self._hovered_button == "back", self.TEXT_COLOR)
 
     def _render_briefing(self, surface: Surface) -> None:
-        """Render operation briefing screen."""
+        """Render operation briefing screen with day header, strategic map, and battle selection."""
         sw, sh = surface.get_size()
         surface.fill(self.BG_COLOR)
+        self._battle_rects = {}
 
         if not self._current_operation:
             return
 
         op = self._current_operation
 
-        # Header
+        # Header: Operation name + "Day X of 9"
         header_y = self.MARGIN
         title_surf = self._font_title.render(op.name, True, self.HIGHLIGHT_COLOR)
         surface.blit(title_surf, (self.MARGIN, header_y))
 
-        day_surf = self._font_normal.render(f"Day {op.day}", True, self.TEXT_COLOR)
+        day_text = f"Day {op.day} of {op.total_days}"
+        day_surf = self._font_normal.render(day_text, True, self.HIGHLIGHT_COLOR)
         surface.blit(day_surf, (sw - self.MARGIN - day_surf.get_width(), header_y + 6))
 
         sep_y = header_y + title_surf.get_height() + 8
         draw.line(surface, self.BORDER_COLOR, (self.MARGIN, sep_y), (sw - self.MARGIN, sep_y), 1)
 
-        # Briefing panel
-        panel_y = sep_y + 10
-        panel_h = sh - panel_y - self.BUTTON_HEIGHT - self.MARGIN * 2 - 10
-        panel_x = self.MARGIN
-        panel_w = sw - self.MARGIN * 2
+        # Layout: Left panel (briefing + strategic map), Right panel (battle selection)
+        left_w = min(400, sw // 2)
+        right_w = sw - left_w - self.MARGIN * 3
+        content_y = sep_y + 10
+        content_h = sh - content_y - self.BUTTON_HEIGHT - self.MARGIN * 2 - 10
 
-        draw.rect(surface, self.PANEL_COLOR, Rect(panel_x, panel_y, panel_w, panel_h))
-        draw.rect(surface, self.BORDER_COLOR, Rect(panel_x, panel_y, panel_w, panel_h), 1)
+        # --- Left panel: Briefing text + Strategic map ---
+        left_x = self.MARGIN
+        draw.rect(surface, self.PANEL_COLOR, Rect(left_x, content_y, left_w, content_h))
+        draw.rect(surface, self.BORDER_COLOR, Rect(left_x, content_y, left_w, content_h), 1)
 
         # Briefing title
         briefing_title = self._font_normal.render("HISTORICAL BRIEFING", True, self.HIGHLIGHT_COLOR)
-        surface.blit(briefing_title, (panel_x + 10, panel_y + 8))
-        draw.line(surface, self.BORDER_COLOR, (panel_x, panel_y + 30), (panel_x + panel_w, panel_y + 30), 1)
+        surface.blit(briefing_title, (left_x + 10, content_y + 8))
+        draw.line(surface, self.BORDER_COLOR, (left_x, content_y + 30), (left_x + left_w, content_y + 30), 1)
 
         # Briefing text (word-wrapped)
         text = op.historical_briefing or op.description or "No briefing available."
-        dy = panel_y + 38
-        for line in self._wrap_text(text, self._font_normal, panel_w - 30):
-            if dy + 20 > panel_y + panel_h:
+        dy = content_y + 38
+        briefing_lines = self._wrap_text(text, self._font_normal, left_w - 30)
+        max_briefing_lines = min(len(briefing_lines), 8)
+        for line in briefing_lines[:max_briefing_lines]:
+            if dy + 20 > content_y + content_h // 2:
                 break
             ls = self._font_normal.render(line, True, (200, 200, 190))
-            surface.blit(ls, (panel_x + 10, dy))
+            surface.blit(ls, (left_x + 10, dy))
             dy += 22
 
-        # Buttons
+        # Strategic map section
+        map_section_y = content_y + content_h // 2 + 5
+        map_label = self._font_normal.render("STRATEGIC MAP", True, self.HIGHLIGHT_COLOR)
+        surface.blit(map_label, (left_x + 10, map_section_y))
+        draw.line(surface, self.BORDER_COLOR, (left_x, map_section_y + 22), (left_x + left_w, map_section_y + 22), 1)
+
+        map_y = map_section_y + 26
+        map_size = min(left_w - 20, content_y + content_h - map_y - 10)
+        if map_size > 50:
+            map_x = left_x + 10
+            self._draw_strategic_map(surface, map_x, map_y, map_size, op.sector, op.day)
+
+        # --- Right panel: Operation description + Battle selection ---
+        right_x = left_x + left_w + self.MARGIN
+        draw.rect(surface, self.PANEL_COLOR, Rect(right_x, content_y, right_w, content_h))
+        draw.rect(surface, self.BORDER_COLOR, Rect(right_x, content_y, right_w, content_h), 1)
+
+        # Operation description
+        desc_title = self._font_normal.render("OPERATION DETAILS", True, self.HIGHLIGHT_COLOR)
+        surface.blit(desc_title, (right_x + 10, content_y + 8))
+        draw.line(surface, self.BORDER_COLOR, (right_x, content_y + 30), (right_x + right_w, content_y + 30), 1)
+
+        if op.description:
+            dy = content_y + 36
+            for line in self._wrap_text(op.description, self._font_small, right_w - 30):
+                if dy + 16 > content_y + 80:
+                    break
+                ls = self._font_small.render(line, True, (180, 180, 170))
+                surface.blit(ls, (right_x + 10, dy))
+                dy += 16
+
+        # Battle selection
+        battle_title_y = content_y + 85
+        battle_title = self._font_normal.render("BATTLES THIS DAY", True, self.HIGHLIGHT_COLOR)
+        surface.blit(battle_title, (right_x + 10, battle_title_y))
+        draw.line(surface, self.BORDER_COLOR, (right_x, battle_title_y + 22), (right_x + right_w, battle_title_y + 22), 1)
+
+        item_y = battle_title_y + 28
+        for battle in op.battles:
+            if item_y + self.BATTLE_ITEM_HEIGHT > content_y + content_h:
+                break
+
+            item_rect = Rect(right_x + 6, item_y, right_w - 12, self.BATTLE_ITEM_HEIGHT - 4)
+            self._battle_rects[battle.battle_id] = item_rect
+
+            is_selected = battle.battle_id == self._selected_battle_id
+            is_hovered = battle.battle_id == self._hovered_battle_id
+
+            if battle.locked:
+                bg = (40, 42, 45)
+            elif is_selected:
+                bg = self.SELECTED_BG
+            elif is_hovered:
+                bg = (55, 62, 50)
+            else:
+                bg = (45, 50, 42)
+
+            draw.rect(surface, bg, item_rect, border_radius=3)
+            if is_selected:
+                draw.rect(surface, self.HIGHLIGHT_COLOR, Rect(item_rect.left, item_rect.top, 2, item_rect.height))
+
+            if battle.completed:
+                icon = self._font_small.render("[OK]", True, self.COMPLETED_COLOR)
+            elif battle.locked:
+                icon = self._font_small.render("[--]", True, self.LOCKED_COLOR)
+            else:
+                icon = self._font_small.render("[>]", True, self.HIGHLIGHT_COLOR)
+            surface.blit(icon, (item_rect.left + 6, item_rect.top + 4))
+
+            name_color = self.LOCKED_COLOR if battle.locked else self.TEXT_COLOR
+            name_surf = self._font_normal.render(battle.name, True, name_color)
+            surface.blit(name_surf, (item_rect.left + 40, item_rect.top + 4))
+
+            item_y += self.BATTLE_ITEM_HEIGHT
+
+        # Selected battle description
+        sel_battle = None
+        if self._selected_battle_id:
+            sel_battle = next(
+                (b for b in op.battles if b.battle_id == self._selected_battle_id), None
+            )
+        if sel_battle and sel_battle.description:
+            desc_y = item_y + 8
+            for line in self._wrap_text(sel_battle.description, self._font_small, right_w - 30):
+                if desc_y + 16 > content_y + content_h:
+                    break
+                ls = self._font_small.render(line, True, (180, 180, 170))
+                surface.blit(ls, (right_x + 10, desc_y))
+                desc_y += 16
+
+        # Buttons: Start Battle + Back
         btn_y = sh - self.BUTTON_HEIGHT - self.MARGIN
-        self._proceed_button_rect = Rect(sw - self.MARGIN - self.BUTTON_WIDTH * 2 - 10, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
+        self._start_button_rect = Rect(sw - self.MARGIN - self.BUTTON_WIDTH * 2 - 10, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
         self._back_button_rect = Rect(sw - self.MARGIN - self.BUTTON_WIDTH, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
 
-        self._draw_button(surface, self._proceed_button_rect, "Proceed", self._hovered_button == "proceed")
+        self._draw_button(surface, self._start_button_rect, "Start Battle", self._hovered_button == "start")
         self._draw_button(surface, self._back_button_rect, "Back", self._hovered_button == "back", self.TEXT_COLOR)
 
     def _render_battle_select(self, surface: Surface) -> None:
@@ -509,7 +669,7 @@ class CampaignUI:
         title_surf = self._font_title.render(op.name, True, self.HIGHLIGHT_COLOR)
         surface.blit(title_surf, (self.MARGIN, header_y))
 
-        day_surf = self._font_normal.render(f"Day {op.day}", True, self.TEXT_COLOR)
+        day_surf = self._font_normal.render(f"Day {op.day} of {op.total_days}", True, self.TEXT_COLOR)
         surface.blit(day_surf, (sw - self.MARGIN - day_surf.get_width(), header_y + 6))
 
         sep_y = header_y + title_surf.get_height() + 8
@@ -906,6 +1066,194 @@ class CampaignUI:
 
         return lines
 
+    def _render_campaign_end(self, surface: Surface) -> None:
+        """Render the campaign end screen with historical outcome, casualties, and bridge status."""
+        sw, sh = surface.get_size()
+        surface.fill(self.BG_COLOR)
+
+        summary = self._campaign_summary or {}
+        result = summary.get("result", "DRAW")
+        day_ended = summary.get("day_ended", 9)
+        allied_cas = summary.get("allied_casualties", {"kia": 0, "wia": 0})
+        axis_cas = summary.get("axis_casualties", {"kia": 0, "wia": 0})
+        bridge_status = summary.get("bridge_status", {})
+
+        # --- Title banner ---
+        if result == "ALLIES_VICTORY":
+            banner_color = self.VICTORY_COLOR
+            result_text = "VICTORY"
+            subtitle = "XXX Corps reached Arnhem!"
+            historical = (
+                "The Allied airborne assault succeeded. British 1st Airborne held the "
+                "bridge at Arnhem long enough for XXX Corps to relieve them. The road to "
+                "the Ruhr lies open."
+            )
+        elif result == "AXIS_VICTORY":
+            banner_color = self.DEFEAT_COLOR
+            result_text = "DEFEAT"
+            subtitle = "The Bridge at Arnhem holds"
+            historical = (
+                "The German defenses proved too strong. The British 1st Airborne was "
+                "destroyed at Arnhem, and XXX Corps could not break through in time. "
+                "Market Garden has failed."
+            )
+        else:
+            banner_color = self.HIGHLIGHT_COLOR
+            result_text = "DRAW"
+            subtitle = "Neither side achieved decisive victory"
+            historical = (
+                "The operation ended inconclusively. Some objectives were taken, but "
+                "the key bridge at Arnhem remains contested. Both sides suffered "
+                "heavily."
+            )
+
+        # Full-screen overlay with semi-transparent background
+        overlay = Surface((sw, sh), pygame.SRCALPHA)
+        overlay.fill((20, 24, 30, 230))
+        surface.blit(overlay, (0, 0))
+
+        # Title
+        header_y = self.MARGIN + 10
+        title_surf = self._font_title.render("OPERATION MARKET GARDEN", True, self.HIGHLIGHT_COLOR)
+        surface.blit(title_surf, (sw // 2 - title_surf.get_width() // 2, header_y))
+
+        # Result banner
+        banner_y = header_y + title_surf.get_height() + 12
+        result_surf = self._font_title.render(result_text, True, banner_color)
+        surface.blit(result_surf, (sw // 2 - result_surf.get_width() // 2, banner_y))
+
+        # Subtitle
+        sub_y = banner_y + result_surf.get_height() + 8
+        sub_surf = self._font_normal.render(subtitle, True, self.TEXT_COLOR)
+        surface.blit(sub_surf, (sw // 2 - sub_surf.get_width() // 2, sub_y))
+
+        # Separator
+        sep_y = sub_y + sub_surf.get_height() + 10
+        draw.line(surface, self.BORDER_COLOR, (self.MARGIN, sep_y), (sw - self.MARGIN, sep_y), 1)
+
+        # --- Left panel: Historical text + Bridge status ---
+        left_w = (sw - self.MARGIN * 3) // 2
+        left_x = self.MARGIN
+        content_y = sep_y + 10
+        content_h = sh - content_y - self.BUTTON_HEIGHT - self.MARGIN * 2 - 10
+
+        draw.rect(surface, self.PANEL_COLOR, Rect(left_x, content_y, left_w, content_h))
+        draw.rect(surface, self.BORDER_COLOR, Rect(left_x, content_y, left_w, content_h), 1)
+
+        # Historical text
+        hist_title = self._font_normal.render("HISTORICAL OUTCOME", True, self.HIGHLIGHT_COLOR)
+        surface.blit(hist_title, (left_x + 10, content_y + 8))
+        draw.line(surface, self.BORDER_COLOR, (left_x, content_y + 28), (left_x + left_w, content_y + 28), 1)
+
+        dy = content_y + 34
+        for line in self._wrap_text(historical, self._font_normal, left_w - 30):
+            if dy + 20 > content_y + content_h // 2:
+                break
+            ls = self._font_normal.render(line, True, (200, 200, 190))
+            surface.blit(ls, (left_x + 10, dy))
+            dy += 22
+
+        # Day ended
+        dy += 8
+        day_surf = self._font_normal.render(f"Day {day_ended} of 9", True, self.HIGHLIGHT_COLOR)
+        surface.blit(day_surf, (left_x + 10, dy))
+
+        # Bridge status section
+        bridge_section_y = content_y + content_h // 2 + 5
+        bridge_title = self._font_normal.render("BRIDGE STATUS", True, self.HIGHLIGHT_COLOR)
+        surface.blit(bridge_title, (left_x + 10, bridge_section_y))
+        draw.line(surface, self.BORDER_COLOR, (left_x, bridge_section_y + 22), (left_x + left_w, bridge_section_y + 22), 1)
+
+        dy = bridge_section_y + 28
+        if bridge_status:
+            for bridge_name, status in bridge_status.items():
+                if dy + 18 > content_y + content_h:
+                    break
+                if status == "captured_allied":
+                    status_color = self.COMPLETED_COLOR
+                    status_label = "Captured (Allied)"
+                elif status == "captured_axis":
+                    status_color = self.DEFEAT_COLOR
+                    status_label = "Held (Axis)"
+                else:
+                    status_color = self.HIGHLIGHT_COLOR
+                    status_label = "Contested"
+                name_surf = self._font_small.render(bridge_name, True, self.TEXT_COLOR)
+                surface.blit(name_surf, (left_x + 10, dy))
+                status_surf = self._font_small.render(status_label, True, status_color)
+                surface.blit(status_surf, (left_x + left_w - status_surf.get_width() - 10, dy))
+                dy += 18
+        else:
+            no_data = self._font_small.render("No bridge data available", True, (128, 128, 128))
+            surface.blit(no_data, (left_x + 10, dy))
+
+        # --- Right panel: Casualties table ---
+        right_x = self.MARGIN * 2 + left_w
+        right_w = sw - right_x - self.MARGIN
+        draw.rect(surface, self.PANEL_COLOR, Rect(right_x, content_y, right_w, content_h))
+        draw.rect(surface, self.BORDER_COLOR, Rect(right_x, content_y, right_w, content_h), 1)
+
+        cas_title = self._font_normal.render("TOTAL CASUALTIES", True, self.HIGHLIGHT_COLOR)
+        surface.blit(cas_title, (right_x + 10, content_y + 8))
+        draw.line(surface, self.BORDER_COLOR, (right_x, content_y + 28), (right_x + right_w, content_y + 28), 1)
+
+        # Table header
+        dy = content_y + 36
+        col_x_side = right_x + 10
+        col_x_kia = right_x + right_w // 3
+        col_x_wia = right_x + 2 * right_w // 3
+
+        hdr_surf = self._font_normal.render("Side", True, self.HIGHLIGHT_COLOR)
+        surface.blit(hdr_surf, (col_x_side, dy))
+        kia_hdr = self._font_normal.render("KIA", True, self.HIGHLIGHT_COLOR)
+        surface.blit(kia_hdr, (col_x_kia, dy))
+        wia_hdr = self._font_normal.render("WIA", True, self.HIGHLIGHT_COLOR)
+        surface.blit(wia_hdr, (col_x_wia, dy))
+
+        dy += 26
+        draw.line(surface, self.BORDER_COLOR, (right_x + 5, dy - 4), (right_x + right_w - 5, dy - 4), 1)
+
+        # Allied row
+        allied_label = self._font_normal.render("Allies", True, self.COMPLETED_COLOR)
+        surface.blit(allied_label, (col_x_side, dy))
+        allied_kia = self._font_normal.render(str(allied_cas.get("kia", 0)), True, self.DEFEAT_COLOR)
+        surface.blit(allied_kia, (col_x_kia, dy))
+        allied_wia = self._font_normal.render(str(allied_cas.get("wia", 0)), True, self.HIGHLIGHT_COLOR)
+        surface.blit(allied_wia, (col_x_wia, dy))
+
+        dy += 28
+
+        # Axis row
+        axis_label = self._font_normal.render("Axis", True, self.DEFEAT_COLOR)
+        surface.blit(axis_label, (col_x_side, dy))
+        axis_kia = self._font_normal.render(str(axis_cas.get("kia", 0)), True, self.DEFEAT_COLOR)
+        surface.blit(axis_kia, (col_x_kia, dy))
+        axis_wia = self._font_normal.render(str(axis_cas.get("wia", 0)), True, self.HIGHLIGHT_COLOR)
+        surface.blit(axis_wia, (col_x_wia, dy))
+
+        # MIA note
+        dy += 40
+        mia_note = self._font_small.render("MIA: Included in KIA for campaign accounting", True, (128, 128, 128))
+        surface.blit(mia_note, (right_x + 10, dy))
+
+        # --- Buttons ---
+        btn_y = sh - self.BUTTON_HEIGHT - self.MARGIN
+        self._new_campaign_button_rect = Rect(
+            sw // 2 - self.BUTTON_WIDTH - 10, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT
+        )
+        self._main_menu_button_rect = Rect(
+            sw // 2 + 10, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT
+        )
+
+        self._draw_button(
+            surface, self._new_campaign_button_rect, "New Campaign",
+            self._hovered_button == "new_campaign",
+        )
+        self._draw_button(
+            surface, self._main_menu_button_rect, "Main Menu",
+            self._hovered_button == "main_menu", self.TEXT_COLOR,
+        )
+
     # ------------------------------------------------------------------
     # Helper methods
     # ------------------------------------------------------------------
@@ -940,6 +1288,53 @@ class CampaignUI:
         if current:
             lines.append(current)
         return lines
+
+    def _draw_strategic_map(self, surface: Surface, x: int, y: int, size: int, sector: str, current_day: int) -> None:
+        """Draw a strategic map showing the three Market Garden sectors with current position."""
+        # Map background
+        draw.rect(surface, self.MINIMAP_BG, Rect(x, y, size, size))
+        draw.rect(surface, self.BORDER_COLOR, Rect(x, y, size, size), 1)
+
+        # Sector layout: three vertical strips (Eindhoven bottom, Nijmegen middle, Arnhem top)
+        sector_h = size // 3
+        sector_colors = {
+            "arnhem": (50, 70, 50),
+            "nijmegen": (50, 65, 55),
+            "eindhoven": (55, 60, 50),
+        }
+        sector_labels = {
+            "arnhem": "ARNHEM",
+            "nijmegen": "NIJMEGEN",
+            "eindhoven": "EINDHOVEN",
+        }
+        sector_order = ["arnhem", "nijmegen", "eindhoven"]
+
+        for i, sec_id in enumerate(sector_order):
+            sy = y + i * sector_h
+            bg = sector_colors.get(sec_id, (50, 60, 50))
+            draw.rect(surface, bg, Rect(x + 1, sy + 1, size - 2, sector_h - 2))
+
+            # Highlight current sector
+            if sec_id == sector:
+                draw.rect(surface, self.HIGHLIGHT_COLOR, Rect(x + 1, sy + 1, size - 2, sector_h - 2), 2)
+
+            # Sector label
+            label = self._font_small.render(sector_labels.get(sec_id, sec_id.upper()), True, (200, 200, 190))
+            surface.blit(label, (x + 5, sy + 4))
+
+        # Draw "Hell's Highway" road line connecting sectors
+        road_x = x + size // 2
+        draw.line(surface, (128, 128, 128), (road_x, y + sector_h), (road_x, y + 2 * sector_h), 2)
+        draw.line(surface, (128, 128, 128), (road_x, y + 2 * sector_h), (road_x, y + 3 * sector_h), 2)
+
+        # Day progress indicator
+        day_pct = min(current_day / 9.0, 1.0)
+        progress_w = int((size - 4) * day_pct)
+        draw.rect(surface, (60, 60, 60), Rect(x + 2, y + size - 8, size - 4, 6))
+        draw.rect(surface, self.COMPLETED_COLOR, Rect(x + 2, y + size - 8, progress_w, 6))
+
+        day_label = self._font_small.render(f"D{current_day}", True, self.HIGHLIGHT_COLOR)
+        surface.blit(day_label, (x + size - 25, y + size - 22))
 
     def _draw_mini_map(self, surface: Surface, x: int, y: int, size: int, map_file: str) -> None:
         """Draw a simple terrain preview for the given map file."""
@@ -982,8 +1377,8 @@ class CampaignUI:
                                 rh = int((r + 1) * tile_h) - int(r * tile_h)
                                 draw.rect(surface, color, Rect(rx, ry, rw, rh))
                         return
-        except Exception:
-            pass
+        except Exception as e:
+            logging.debug(f"Campaign map rendering failed: {e}")
 
         # Fallback: placeholder grid
         grid_size = 10

@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import logging
 import math
 import time
 from typing import TYPE_CHECKING
 
 import pygame
 from pygame import Surface, draw, font, transform
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
@@ -136,10 +139,8 @@ class SpriteRenderer:
                         faction, unit_type_name, 0
                     )
 
-    def _create_unit_sprite(self, faction: str, unit_type: str, direction: int) -> Surface:
+    def _create_unit_sprite(self, faction: str, unit_type: str, direction: int, turret_direction: int | None = None, state: str = 'idle') -> Surface:
         """创建单位精灵 - 优先使用CC2写实像素艺术生成器"""
-        import logging
-        logger = logging.getLogger(__name__)
 
         # 尝试从assets加载（原有逻辑）
         loaded_sprite = self._asset_loader.load_unit_sprite(
@@ -163,9 +164,14 @@ class SpriteRenderer:
 
             # 根据单位类型选择正确的生成方法
             if unit_type in ("TANK",):
+                # 炮塔方向：如果指定了则使用，否则与车体同向
+                turret_enum = None
+                if turret_direction is not None:
+                    turret_enum = list(Direction)[turret_direction % 8]
                 cc2_sprite = PixelArtist3D.create_tank_sprite(
                     direction=dir_enum,
                     faction=fac_enum,
+                    turret_direction=turret_enum,
                     state='idle',
                     frame=0
                 )
@@ -202,7 +208,7 @@ class SpriteRenderer:
                 cc2_sprite = PixelArtist3D.create_infantry_sprite(
                     direction=dir_enum,
                     faction=fac_enum,
-                    state='idle',
+                    state=state,
                     frame=0
                 )
 
@@ -221,6 +227,7 @@ class SpriteRenderer:
             unit_type=unit_type,
             direction=direction,
             size=self.SPRITE_SIZE,
+            state=state,
         )
         return canvas.to_surface()
 
@@ -228,7 +235,7 @@ class SpriteRenderer:
         """生成地形tiles - 优先从assets加载"""
         from pycc2.presentation.rendering.pixel_artist import create_terrain_tile
 
-        for tid in range(14):
+        for tid in range(22):
             # 尝试从assets加载
             loaded_tile = self._asset_loader.load_terrain_tile(tid, size=self.TILE_SIZE)
             
@@ -467,32 +474,74 @@ class SpriteRenderer:
 
         faction = unit.faction.name.lower()
         utype = unit.unit_type.name
-        
-        # 尝试多种key格式以匹配缓存
-        base_key = f"{faction}_{utype}_d{dir_idx}"
-        sprite = (
-            self._sprite_cache.get(base_key) or
-            self._sprite_cache.get(f"{base_key}_{self.SPRITE_SIZE}") or  # PNG精灵带尺寸后缀
-            self._sprite_cache.get(f"{faction}_{utype}_d0") or
-            self._sprite_cache.get(f"{faction}_{utype}_d0_{self.SPRITE_SIZE}") or
-            None
-        )
+
+        movement_mode = getattr(unit, 'movement_mode', 'normal')
+        sprite_state = 'idle'
+        if movement_mode in ('sneak', 'hide', 'defend'):
+            sprite_state = movement_mode
+
+        prone_states = {'sneak', 'hide', 'defend'}
+        is_prone = sprite_state in prone_states and 'TANK' not in utype
+
+        if is_prone:
+            sprite = self._create_unit_sprite(faction, utype, dir_idx, state=sprite_state)
+        else:
+            base_key = f"{faction}_{utype}_d{dir_idx}"
+            sprite = (
+                self._sprite_cache.get(base_key) or
+                self._sprite_cache.get(f"{base_key}_{self.SPRITE_SIZE}") or
+                self._sprite_cache.get(f"{faction}_{utype}_d0") or
+                self._sprite_cache.get(f"{faction}_{utype}_d0_{self.SPRITE_SIZE}") or
+                None
+            )
         
         if sprite is None:
             # 最终fallback：使用简单形状（但至少是方形表示不同单位类型）
             r = int(12 * camera.zoom)
+            # Building garrison: use semi-transparent rendering
+            in_building = unit.current_building_pos is not None
             if 'TANK' in utype or 'VEHICLE' in utype:
-                draw.rect(self.draw_surface, (80, 80, 80), 
-                         (int(sp[0])-r, int(sp[1])-r, r*2, r*2))
+                color = (80, 80, 80)
+                if in_building:
+                    s = Surface((r*2, r*2), pygame.SRCALPHA)
+                    s.fill((*color, 160))
+                    self.draw_surface.blit(s, (int(sp[0])-r, int(sp[1])-r))
+                else:
+                    draw.rect(self.draw_surface, color,
+                             (int(sp[0])-r, int(sp[1])-r, r*2, r*2))
             elif 'SNIPER' in utype:
-                draw.polygon(self.draw_surface, (100, 200, 100), [
+                color = (100, 200, 100)
+                points = [
                     (int(sp[0]), int(sp[1])-r),
                     (int(sp[0])-r, int(sp[1])+r),
                     (int(sp[0])+r, int(sp[1])+r)
-                ])
+                ]
+                if in_building:
+                    s = Surface((r*2+2, r*2+2), pygame.SRCALPHA)
+                    local_pts = [(p[0] - int(sp[0]) + r + 1, p[1] - int(sp[1]) + r + 1) for p in points]
+                    draw.polygon(s, (*color, 160), local_pts)
+                    self.draw_surface.blit(s, (int(sp[0])-r-1, int(sp[1])-r-1))
+                else:
+                    draw.polygon(self.draw_surface, color, points)
             else:
                 color = (74, 144, 217) if faction == "allies" else (217, 74, 74)
-                draw.circle(self.draw_surface, color, (int(sp[0]), int(sp[1])), r)
+                if in_building:
+                    s = Surface((r*2+2, r*2+2), pygame.SRCALPHA)
+                    draw.circle(s, (*color, 160), (r+1, r+1), r)
+                    self.draw_surface.blit(s, (int(sp[0])-r-1, int(sp[1])-r-1))
+                else:
+                    draw.circle(self.draw_surface, color, (int(sp[0]), int(sp[1])), r)
+            # Building garrison icon overlay: small house icon above unit
+            if in_building:
+                icon_size = max(6, int(8 * camera.zoom))
+                ix = int(sp[0]) - icon_size // 2
+                iy = int(sp[1]) - r - icon_size - 2
+                draw.rect(self.draw_surface, (160, 140, 120), (ix, iy + icon_size // 2, icon_size, icon_size // 2))
+                draw.polygon(self.draw_surface, (120, 90, 60), [
+                    (ix - 1, iy + icon_size // 2),
+                    (ix + icon_size // 2, iy),
+                    (ix + icon_size + 1, iy + icon_size // 2),
+                ])
             return
 
         zoom = camera.zoom
@@ -524,9 +573,28 @@ class SpriteRenderer:
             else:
                 draw_pos = (int(sp[0]) - offset, int(sp[1]) - offset)
 
+            # Building garrison: render unit semi-transparent when inside a building
+            if unit.current_building_pos is not None:
+                scaled.set_alpha(160)  # Semi-transparent to indicate inside building
+
+            # Wounded visual state: apply red cross/bandage or red tint overlay
+            hp_ratio = unit.health.hp_ratio
+            if hp_ratio < 0.5:
+                try:
+                    from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+                    scaled = PixelArtist3D.apply_wounded_overlay(scaled, hp_ratio)
+                except Exception as e:
+                    logging.debug(f"Wounded overlay failed: {e}")
+
             self.draw_surface.blit(scaled, draw_pos)
 
+            # 坦克炮塔独立旋转覆盖层
+            if 'TANK' in utype:
+                self._draw_turret_overlay(unit, sp, zoom, faction)
+
         if is_selected:
+            if sz > 0 and sprite is not None:
+                self._draw_selection_outline(scaled, draw_pos)
             self._draw_selection_ring(sp, int(16 * zoom))
 
         self._draw_faction_flag(unit, sp, zoom)
@@ -558,12 +626,100 @@ class SpriteRenderer:
         idx = round((90 - deg) / 45) % 8
         return idx
 
+    def _draw_turret_overlay(self, unit, sp, zoom, faction):
+        """绘制独立旋转的坦克炮塔覆盖层
+
+        使用 PixelArtist3D.create_turret_overlay() 生成基础炮塔(朝东)，
+        然后用 pygame.transform.rotate() 旋转到单位面朝角度，
+        实现炮塔平滑旋转而非8方向离散跳变。
+        """
+        try:
+            from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D, Direction, Faction, TankType
+
+            fac_enum = Faction.ALLIES if faction in ("allies", "polish") else Faction.AXIS
+            tank_type = TankType.SHERMAN_M4 if fac_enum == Faction.ALLIES else TankType.PANTHER_AUSFG
+
+            # 创建基础炮塔 (朝东=0°, 不旋转)
+            turret_base = PixelArtist3D.create_turret_overlay(
+                faction=fac_enum,
+                turret_direction=Direction.EAST,
+                tank_type=tank_type,
+            )
+
+            # 缩放到与身体精灵相同大小
+            sz = int(self.SPRITE_SIZE * zoom)
+            if sz <= 0:
+                return
+            turret_scaled = transform.scale(turret_base, (sz, sz))
+
+            # 计算旋转角度 (facing_rad → pygame逆时针角度)
+            facing_rad = unit.position.facing_rad
+            rotate_angle = math.degrees(facing_rad)
+
+            # 旋转炮塔
+            turret_rotated = pygame.transform.rotate(turret_scaled, rotate_angle)
+
+            # 居中覆盖在单位位置上
+            rot_rect = turret_rotated.get_rect(center=(int(sp[0]), int(sp[1])))
+            self.draw_surface.blit(turret_rotated, rot_rect)
+        except Exception as e:
+            logging.debug(f"Turret overlay failed: {e}")
+
     def _draw_selection_ring(self, center: tuple[float, float], radius: int) -> None:
-        """CC2原始风格：白色常亮圆环（非脉冲）"""
+        """CC2风格：选中单位成员轮廓 - 基于精灵轮廓的黄色描边"""
         if self.draw_surface is None:
             return
-        color = (255, 255, 255)
-        draw.circle(self.draw_surface, color, (int(center[0]), int(center[1])), radius + 3, 3)
+        color = (255, 255, 0)
+        draw.circle(self.draw_surface, color, (int(center[0]), int(center[1])), radius + 3, 2)
+
+    def _draw_selection_outline(self, sprite: Surface, draw_pos: tuple[int, int]) -> None:
+        """CC2风格：在精灵周围绘制基于轮廓的黄色描边
+
+        实现方法：
+        1. 创建精灵的放大副本（每边扩展1px）
+        2. 将放大副本填充为黄色
+        3. 在其上绘制原始精灵
+        4. 结果：精灵轮廓周围出现1px黄色描边
+        """
+        if self.draw_surface is None:
+            return
+
+        w, h = sprite.get_size()
+        outline_w = w + 2
+        outline_h = h + 2
+
+        outline_surface = Surface((outline_w, outline_h), pygame.SRCALPHA)
+
+        for dx in range(-1, 2):
+            for dy in range(-1, 2):
+                if dx == 0 and dy == 0:
+                    continue
+                outline_surface.blit(sprite, (1 + dx, 1 + dy))
+
+        mask_surface = Surface((outline_w, outline_h), pygame.SRCALPHA)
+        mask_surface.blit(sprite, (1, 1))
+
+        outline_only = Surface((outline_w, outline_h), pygame.SRCALPHA)
+        outline_only.fill((255, 255, 0, 200))
+
+        pixel_array = pygame.surfarray.pixels_alpha(outline_surface)
+        mask_array = pygame.surfarray.pixels_alpha(mask_surface)
+
+        import numpy as np
+        outline_alpha = pixel_array.copy()
+        mask_alpha = mask_array.copy()
+
+        result_alpha = np.where(
+            (outline_alpha > 0) & (mask_alpha == 0),
+            np.minimum(outline_alpha, 200),
+            0
+        ).astype(np.uint8)
+
+        pixel_array[:] = result_alpha
+        del pixel_array
+        del mask_array
+
+        self.draw_surface.blit(outline_only, (draw_pos[0] - 1, draw_pos[1] - 1))
 
     def _draw_unit_label(self, unit: Unit, sp: tuple[float, float], zoom: float) -> None:
         """CC2原始风格：黄色纯文字标签（无背景框）"""
@@ -687,16 +843,15 @@ class SpriteRenderer:
             # RALLYED: No indicator needed (normal operation)
             
         except Exception as e:
-            import logging
-            logging.getLogger(__name__).warning(f"Failed to draw morale indicator: {e}")
+            logger.warning(f"Failed to draw morale indicator: {e}")
             # Fallback to old method if available
             try:
                 if hasattr(unit, 'morale') and hasattr(unit.morale, 'state'):
                     ms = unit.morale.state.value
                     if ms >= 2:
                         self._draw_morale_icon(sp, zoom, ms)
-            except Exception:
-                pass  # Silently fail in test/mock environments
+            except Exception as e:
+                logging.debug(f"Morale icon draw failed: {e}")
 
     def _draw_pinned_indicator(self, x: int, y: int, zoom: float) -> None:
         """Draw yellow "!" icon with pulsing ring for pinned units."""
@@ -866,8 +1021,7 @@ class SpriteRenderer:
             elif mode == "sneak":
                 self._draw_sneak_indicator(x, y, icon_size)
         except Exception as e:
-            import logging
-            logging.getLogger(__name__).debug(f"Failed to draw movement mode indicator: {e}")
+            logger.debug(f"Failed to draw movement mode indicator: {e}")
             pass  # Silently fail in test/mock environments
 
     def _draw_defend_posture(self, x: int, y: int, size: int) -> None:
@@ -978,6 +1132,19 @@ class SpriteRenderer:
         if unit_id not in self._unit_animators:
             self._unit_animators[unit_id] = UnitAnimator()
         self._unit_animators[unit_id].set_animation(AnimationType.DEATH)
+        # Create death animation entry for 4-frame falling sequence (40 ticks total)
+        # Store facing direction so the unit falls in the direction it was facing
+        facing_rad = 0.0
+        try:
+            facing_rad = getattr(unit.position, 'facing_rad', 0.0) or 0.0
+        except Exception as e:
+            logging.debug(f"Facing direction read failed: {e}")
+        self._death_animations[unit_id] = {
+            "progress": 0,
+            "total_ticks": 40,
+            "start_pos": (position.x, position.y),
+            "facing_rad": facing_rad,
+        }
 
     def spawn_explosion(self, position: Vec2, size: str = "medium") -> None:
         if not hasattr(self, "_particle_emitter"):
@@ -1004,23 +1171,73 @@ class SpriteRenderer:
         camera: Camera,
         death: dict,
     ) -> None:
-        """绘制死亡收缩+淡出动画"""
+        """Top-down death animation: unit flattens and fades on the ground plane.
+
+        Frame 1 (0-5 ticks): Flash red
+        Frame 2 (5-15 ticks): Slightly flatten (scale Y to 0.8), start fading
+        Frame 3 (15-25 ticks): More flatten (scale Y to 0.5), fade to 50%
+        Frame 4 (25-40 ticks): Fully flattened (scale Y to 0.3), fade out
+        """
         from pycc2.domain.value_objects.vec2 import Vec2
 
-        progress = death["progress"] / death["total_ticks"]
+        progress = death["progress"]
         sx, sy = death["start_pos"]
         sp = camera.world_to_screen(Vec2(sx, sy))
 
-        scale = 1.0 - progress * 0.7  # 收缩到30%
-        alpha = int(255 * (1.0 - progress))
+        dir_idx = self._facing_to_direction_index(unit.position.facing_rad)
+        faction = unit.faction.name.lower()
+        utype = unit.unit_type.name
+        base_key = f"{faction}_{utype}_d{dir_idx}"
+        sprite = (
+            self._sprite_cache.get(base_key) or
+            self._sprite_cache.get(f"{base_key}_{self.SPRITE_SIZE}") or
+            self._sprite_cache.get(f"{faction}_{utype}_d0") or
+            self._sprite_cache.get(f"{faction}_{utype}_d0_{self.SPRITE_SIZE}") or
+            None
+        )
 
-        size = int(self.SPRITE_SIZE * camera.zoom * scale)
-        if size > 0 and alpha > 0:
-            surf = Surface((size, size), pygame.SRCALPHA)
-            fade_color = (150, 80, 80, alpha)
-            surf.fill(fade_color)
-            draw.circle(surf, (180, 60, 60, alpha), (size // 2, size // 2), size // 2)
-            self.draw_surface.blit(surf, (int(sp[0]) - size // 2, int(sp[1]) - size // 2))
+        zoom = camera.zoom
+        sz = int(self.SPRITE_SIZE * zoom)
+        if sz <= 0:
+            return
+
+        if sprite is not None:
+            scaled = transform.scale(sprite, (sz, sz))
+        else:
+            scaled = Surface((sz, sz), pygame.SRCALPHA)
+            color = (74, 144, 217) if faction == "allies" else (217, 74, 74)
+            draw.circle(scaled, color, (sz // 2, sz // 2), sz // 2)
+
+        offset = sz // 2
+
+        if progress < 5:
+            flash_surf = scaled.copy()
+            flash_surf.fill((200, 40, 40, 0), special_flags=pygame.BLEND_RGB_ADD)
+            self.draw_surface.blit(flash_surf, (int(sp[0]) - offset, int(sp[1]) - offset))
+        elif progress < 15:
+            flatten = 0.8
+            new_h = max(2, int(sz * flatten))
+            flattened = transform.scale(scaled, (sz, new_h))
+            alpha = int(255 * 0.9)
+            flattened.set_alpha(alpha)
+            self.draw_surface.blit(flattened, (int(sp[0]) - offset, int(sp[1]) - new_h // 2))
+        elif progress < 25:
+            flatten = 0.5
+            new_h = max(2, int(sz * flatten))
+            flattened = transform.scale(scaled, (sz, new_h))
+            fade_progress = (progress - 15) / 10.0
+            alpha = int(255 * (1.0 - fade_progress * 0.5))
+            flattened.set_alpha(alpha)
+            self.draw_surface.blit(flattened, (int(sp[0]) - offset, int(sp[1]) - new_h // 2))
+        else:
+            flatten = 0.3
+            new_h = max(2, int(sz * flatten))
+            flattened = transform.scale(scaled, (sz, new_h))
+            fade_progress = (progress - 25) / 15.0
+            alpha = int(128 * (1.0 - fade_progress))
+            if alpha > 0:
+                flattened.set_alpha(alpha)
+                self.draw_surface.blit(flattened, (int(sp[0]) - offset, int(sp[1]) - new_h // 2))
 
     def _draw_effects(self, camera: Camera) -> None:
         import pygame

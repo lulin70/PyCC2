@@ -47,5 +47,6 @@
     {"id": "vl_river_crossing", "position": [20, 30], "value": 30, "type": "bridge"},
     {"id": "vl_west_road", "position": [8, 17], "value": 20, "type": "road_junction"}
   ],
-  "special_rules": ["defender_advantage", "limited_reinforcements", "supply_dwindling", "no_air_support"]
+  "special_rules": ["defender_advantage", "limited_reinforcements", "supply_dwindling", "no_air_support"],
+  "attacker_faction": "axis"
 }

@@ -17,11 +17,14 @@ CC2 Visual Style Reference:
 
 from __future__ import annotations
 
+import logging
 import math
 import random
 from typing import TYPE_CHECKING, Any
 
 import pygame
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
@@ -131,11 +134,11 @@ class PaletteGenerator:
         return {
             # Terrain ID: [shadow, dark, mid-dark, mid, mid-light, light, highlight, bright]
             # Using CC2's actual muted, earthy color palette
-            0: self._make_palette((76, 112, 52),    # OPEN/GRASS - CC2: not bright green
+            0: self._make_palette((76, 124, 35),    # OPEN/GRASS - CC2 exact military green #4C7C23
                 hue_range=12, sat_range=0.08),
             1: self._make_palette((139, 119, 101),   # ROAD - CC2: dirt/gravel appearance
                 hue_range=8, sat_range=0.1),
-            2: self._make_palette((68, 105, 48),     # GRASS - darker variant
+            2: self._make_palette((58, 100, 24),     # GRASS - darker variant #3A6418
                 hue_range=15, sat_range=0.1),
             3: self._make_palette((45, 68, 33),      # WOODS - CC2: very dark green
                 hue_range=10, sat_range=0.06),
@@ -272,7 +275,7 @@ class ProceduralTextureGenerator:
     def _texture_open(
         surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
     ) -> None:
-        """OPEN (0): CC2 authentic grass with color variation and grass blade lines."""
+        """OPEN (0): CC2 authentic grass with visible grass blades and dirt spots."""
         rng = random.Random(var * 17)
         # CC2's main grass green
         base = CC2_TERRAIN_PALETTE['grass_base']
@@ -281,47 +284,40 @@ class ProceduralTextureGenerator:
         pixels = pygame.surfarray.pixels3d(surface)
         tile_sz = ProceduralTextureGenerator.TILE_SIZE
 
-        # Grass blade lines (small dark green strokes suggesting grass texture)
-        # CC2 spec: 15-25 per 48×48 tile, 2-4px short lines at random angles
+        # Grass blade lines — 2-3 pixel tall vertical lines (visible grass blades)
         grass_dark = CC2_TERRAIN_PALETTE['grass_dark']
-        num_blades = rng.randint(20, 35)  # Increased for 48×48 density
+        num_blades = rng.randint(30, 50)  # More blades for visible texture
         for _ in range(num_blades):
             x = rng.randint(0, tile_sz - 1)
-            y = rng.randint(0, tile_sz - 1)
-            # Draw short grass blade line (2-4 pixels)
-            length = rng.randint(2, 4)
-            angle = rng.uniform(-0.5, 0.5)  # Wider angle range for natural look
-            for i in range(length):
-                px = int(x + i * math.cos(angle))
-                py = int(y + i * math.sin(angle))
-                if 0 <= px < tile_sz and 0 <= py < tile_sz:
-                    shade_var = rng.randint(-8, 8)  # Slightly more variation
-                    pixels[px, py] = (
-                        max(0, min(255, grass_dark[0] + shade_var)),
-                        max(0, min(255, grass_dark[1] + shade_var)),
-                        max(0, min(255, grass_dark[2] + shade_var)),
-                    )
+            y_start = rng.randint(0, tile_sz - 4)
+            blade_len = rng.randint(2, 3)  # 2-3 pixel tall vertical grass blades
+            shade_var = rng.randint(-8, 8)
+            blade_color = (
+                max(0, min(255, grass_dark[0] + shade_var)),
+                max(0, min(255, grass_dark[1] + shade_var)),
+                max(0, min(255, grass_dark[2] + shade_var)),
+            )
+            for dy in range(blade_len):
+                py = y_start + dy
+                if 0 <= py < tile_sz:
+                    pixels[x, py] = blade_color
 
         # Light highlight patches (sunlight through canopy effect)
-        # CC2 spec: ~5-8 per tile, 6-10px diameter (radius 3-5)
         grass_light = CC2_TERRAIN_PALETTE['grass_light']
         num_patches = rng.randint(6, 10)
         for _ in range(num_patches):
             cx = rng.randint(5, tile_sz - 5)
             cy = rng.randint(5, tile_sz - 5)
-            radius = rng.randint(3, 5)  # Larger patches for 48×48
+            radius = rng.randint(3, 5)
             for dy in range(-radius, radius + 1):
                 for dx in range(-radius, radius + 1):
                     if dx*dx + dy*dy <= radius*radius:
                         px, py = cx + dx, cy + dy
                         if 0 <= px < tile_sz and 0 <= py < tile_sz:
-                            # Soft edge transition
                             dist_from_center = math.sqrt(dx*dx + dy*dy) / radius
                             if dist_from_center > 0.7:
-                                # Blend to base color at edges
                                 blend_factor = (dist_from_center - 0.7) / 0.3
                                 base_px = pixels[px, py]
-                                # Handle both numpy array and tuple access patterns
                                 try:
                                     r_base = int(base_px[0][0]) if hasattr(base_px[0], '__len__') else int(base_px[0])
                                     g_base = int(base_px[1][0]) if hasattr(base_px[1], '__len__') else int(base_px[1])
@@ -337,20 +333,22 @@ class ProceduralTextureGenerator:
                             else:
                                 pixels[px, py] = grass_light
 
-        # Occasional dry patches (natural ground variation)
-        # CC2 spec: 2-3 per tile, brownish color #8A7840
-        grass_dry = CC2_TERRAIN_PALETTE['grass_dry']
-        num_dry = rng.randint(2, 4)
-        for _ in range(num_dry):
-            cx = rng.randint(6, tile_sz - 6)
-            cy = rng.randint(6, tile_sz - 6)
-            radius = rng.randint(2, 4)  # Slightly larger dry patches
-            for dy in range(-radius, radius + 1):
-                for dx in range(-radius, radius + 1):
-                    if dx*dx + dy*dy <= radius*radius and rng.random() > 0.3:
-                        px, py = cx + dx, cy + dy
-                        if 0 <= px < tile_sz and 0 <= py < tile_sz:
-                            pixels[px, py] = grass_dry
+        # Occasional brown dirt patches (3x3 clusters)
+        dirt_color = CC2_TERRAIN_PALETTE.get('dirt_base', (139, 109, 59))
+        num_dirt = rng.randint(3, 6)
+        for _ in range(num_dirt):
+            cx = rng.randint(3, tile_sz - 4)
+            cy = rng.randint(3, tile_sz - 4)
+            for dy in range(3):
+                for dx in range(3):
+                    px, py = cx + dx, cy + dy
+                    if 0 <= px < tile_sz and 0 <= py < tile_sz and rng.random() > 0.2:
+                        dirt_var = rng.randint(-10, 10)
+                        pixels[px, py] = (
+                            max(0, min(255, dirt_color[0] + dirt_var)),
+                            max(0, min(255, dirt_color[1] + dirt_var)),
+                            max(0, min(255, dirt_color[2] + dirt_var)),
+                        )
 
         del pixels
 
@@ -443,16 +441,11 @@ class ProceduralTextureGenerator:
                    max(2, min(edge_widths.values())) <= py + dy < tile_sz - max(2, min(edge_widths.values())):
                     pixels[px + dx, py + dy] = tuple(max(0, min(255, c + pebble_var - 10)) for c in road_stone)
 
-        # *** Subtle tire track marks with AUTOTILE ALIGNMENT - 增强版 ***
-        # Use bitmask value as phase seed so tracks line up across connected tiles
-        # CC2 spec: 2-4 parallel darker lines running along the road direction
         track_color = CC2_TERRAIN_PALETTE['road_dark']
-        num_tracks = rng.randint(2, 4)  # Variable number of tracks
+        num_tracks = rng.randint(2, 4)
 
-        # Autotile alignment: use bitmask to offset track positions for continuity
-        track_phase_offset = (bitmask * 3) % (tile_sz // 3)  # Deterministic offset from connectivity
         track_positions = sorted([
-            (tile_sz // 5 + track_phase_offset + i * (tile_sz // 5)) % (tile_sz - 8)
+            tile_sz // 5 + i * (tile_sz // 5)
             for i in range(num_tracks)
         ])
 
@@ -472,16 +465,27 @@ class ProceduralTextureGenerator:
                         if rng.random() > 0.85 and 0 <= track_y - 1 < tile_sz:
                             pixels[x, track_y - 1] = tuple(max(0, c + 8) for c in track_color)
 
+        # *** Dark crack lines (1-pixel wide horizontal/diagonal lines) ***
+        crack_color = tuple(max(0, c - 30) for c in road_color)
+        num_cracks = rng.randint(3, 6)
+        for _ in range(num_cracks):
+            cx = rng.randint(4, tile_sz - 8)
+            cy = rng.randint(4, tile_sz - 4)
+            crack_len = rng.randint(5, 12)
+            crack_angle = rng.uniform(-0.4, 0.4)
+            for i in range(crack_len):
+                px = cx + i
+                py = cy + int(i * math.sin(crack_angle))
+                if 0 <= px < tile_sz and 0 <= py < tile_sz:
+                    pixels[px, py] = crack_color
+
         del pixels
 
     @staticmethod
     def _texture_grass(
         surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
     ) -> None:
-        """GRASS (2): Medium green with dense grass blade texture - WWII Normandy meadow style.
-
-        增强版纹理密度（目标: 接近CC2原版的多层次草叶效果）
-        """
+        """GRASS (2): Medium green with visible grass blades and dirt spots - WWII Normandy meadow style."""
         rng = random.Random(var * 31)
         base = (105, 165, 55)
         ProceduralTextureGenerator._fill_with_variation(surface, base, rng, 14)
@@ -489,13 +493,12 @@ class ProceduralTextureGenerator:
         pixels = pygame.surfarray.pixels3d(surface)
         tile_sz = ProceduralTextureGenerator.TILE_SIZE
 
-        # *** Grass blades - 高密度垂直草叶 (35-55 blades for 48×48) ***
-        num_blades = rng.randint(35, 55)  # 提升密度!
+        # *** Grass blades — 2-3 pixel tall vertical lines (visible grass blades) ***
+        num_blades = rng.randint(40, 60)
         for _ in range(num_blades):
             x = rng.randint(0, tile_sz - 1)
-            y_start = rng.randint(0, tile_sz - 10)
-            length = rng.randint(4, 8)  # 更长的草叶
-            # 多层颜色变化（更自然的绿色渐变）
+            y_start = rng.randint(0, tile_sz - 4)
+            blade_len = rng.randint(2, 3)  # 2-3 pixel tall vertical grass blades
             shade = rng.choice([
                 (90, 150, 45),   # 深绿
                 (120, 180, 65),  # 亮绿
@@ -503,23 +506,35 @@ class ProceduralTextureGenerator:
                 (110, 170, 55),  # 中绿
                 (100, 160, 50),  # 标准绿
             ])
-            for dy in range(length):
+            for dy in range(blade_len):
                 if 0 <= y_start + dy < tile_sz:
-                    # 草叶宽度变化（1-2px）增加真实感
-                    blade_width = 1 if rng.random() > 0.3 else 2
-                    for dx in range(blade_width):
-                        if 0 <= x + dx < tile_sz:
-                            pixels[x + dx, y_start + dy] = shade
+                    pixels[x, y_start + dy] = shade
 
-        # *** 更大的暗色斑块（土壤/阴影区域）***
-        num_patches = rng.randint(6, 11)  # 增加斑块数量
+        # *** Brown dirt patches (3x3 clusters) ***
+        dirt_color = CC2_TERRAIN_PALETTE.get('dirt_base', (139, 109, 59))
+        num_dirt = rng.randint(3, 6)
+        for _ in range(num_dirt):
+            cx = rng.randint(3, tile_sz - 4)
+            cy = rng.randint(3, tile_sz - 4)
+            for ddy in range(3):
+                for ddx in range(3):
+                    px, py = cx + ddx, cy + ddy
+                    if 0 <= px < tile_sz and 0 <= py < tile_sz and rng.random() > 0.2:
+                        dirt_var = rng.randint(-10, 10)
+                        pixels[px, py] = (
+                            max(0, min(255, dirt_color[0] + dirt_var)),
+                            max(0, min(255, dirt_color[1] + dirt_var)),
+                            max(0, min(255, dirt_color[2] + dirt_var)),
+                        )
+
+        # *** Darker shadow patches ***
+        num_patches = rng.randint(4, 8)
         for _ in range(num_patches):
             cx = rng.randint(tile_sz // 10, tile_sz - tile_sz // 10)
             cy = rng.randint(tile_sz // 10, tile_sz - tile_sz // 10)
-            patch_size_y = rng.randint(3, 6)
-            patch_size_x = rng.randint(3, 6)
-            for ddy in range(patch_size_y):
-                for ddx in range(patch_size_x):
+            patch_size = rng.randint(2, 4)
+            for ddy in range(patch_size):
+                for ddx in range(patch_size):
                     if 0 <= cx + ddx < tile_sz and 0 <= cy + ddy < tile_sz:
                         pixels[cx + ddx, cy + ddy] = (80, 130, 35)
         del pixels
@@ -603,12 +618,17 @@ class ProceduralTextureGenerator:
         # Roof line at top (darker brown, pitched roof appearance) - scaled for 48×48
         roof_color = (110, 75, 45)
         roof_height = tile_sz // 6  # Proportional roof height
+        roof_line_color = (92, 60, 35)  # Slightly darker for tile lines
         for x in range(tile_sz):
             for y in range(0, roof_height):
                 pixels[x, y] = roof_color
             # Roof edge highlight
             if roof_height < tile_sz:
                 pixels[x, roof_height] = (95, 62, 35)
+        # Horizontal tile lines on roof (2-pixel spacing)
+        for y in range(2, roof_height, 2):
+            for x in range(tile_sz):
+                pixels[x, y] = roof_line_color
 
         # Wall texture - subtle brick pattern hints - scaled for larger tile
         brick_color = (130, 108, 78)
@@ -704,11 +724,16 @@ class ProceduralTextureGenerator:
         # Roof line at top (dark gray) - scaled
         roof_color = (90, 85, 80)
         roof_height = max(2, tile_sz // 10)
+        roof_line_color = (72, 67, 62)  # Slightly darker for tile lines
         for x in range(tile_sz):
             for y in range(0, roof_height):
                 pixels[x, y] = roof_color
             if roof_height < tile_sz:
                 pixels[x, roof_height] = (75, 70, 65)
+        # Horizontal tile lines on roof (2-pixel spacing)
+        for y in range(2, roof_height, 2):
+            for x in range(tile_sz):
+                pixels[x, y] = roof_line_color
 
         # Stone block pattern - scaled for 48×48
         stone_dark = (120, 118, 115)
@@ -752,123 +777,125 @@ class ProceduralTextureGenerator:
         
         Autotile behavior:
         - Connected edges (bitmask set): pure water color to edge, no shore transition
-        - Non-connected edges: draw shore/bank transition (darker gradient 4-6px)
+        - Non-connected edges: draw shore/bank transition (darker gradient 4-6px) + foam line
         - Wave animation flows in consistent direction using position-based phase
         - Sparkle points distribute evenly across continuous water area
         """
-        from pycc2.presentation.rendering.autotile_system import get_edge_transition_width
+        from pycc2.presentation.rendering.autotile_system import (
+            DIR_NORTH, DIR_EAST, DIR_SOUTH, DIR_WEST,
+            get_edge_transition_width,
+        )
         
         rng = random.Random(var * 127)
-        # CC2's river blue
         base = CC2_TERRAIN_PALETTE['water_base']
         surface.fill(base)
         pixels = pygame.surfarray.pixels3d(surface)
         tile_sz = ProceduralTextureGenerator.TILE_SIZE
 
-        # Subtle depth variation (±10 brightness noise for organic feel)
+        water_light_row = tuple(min(255, c + 15) for c in base)
+        water_dark_row = tuple(max(0, c - 10) for c in base)
         for y in range(tile_sz):
+            wave_cycle = y % 4
+            row_color = water_light_row if wave_cycle < 2 else water_dark_row
             for x in range(tile_sz):
-                offset = rng.randint(-10, 10)  # Slightly more variation
-                r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
+                offset = rng.randint(-5, 5)
+                r, g, b = row_color
                 pixels[x, y] = (
                     max(0, min(255, r + offset)),
                     max(0, min(255, g + offset)),
                     max(0, min(255, b + offset))
                 )
 
-        # Wave animation hints with AUTOTILE CONTINUITY
-        # Use position-based phase so waves align across connected tiles
-        # CC2 spec: Short horizontal bright lines (water_light #508CC8), 4-8px long, 1px thick, ~8-15 per tile
         water_light = CC2_TERRAIN_PALETTE['water_light']
-        num_waves = rng.randint(12, 20)  # Increased for 48×48 density
-        
-        # Autotile phase alignment for waves
-        wave_phase_offset = bitmask * 7  # Deterministic phase from connectivity pattern
-        
+        num_waves = rng.randint(12, 20)
+
         for i in range(num_waves):
             wy = rng.randint(3, tile_sz - 3)
             wx_start = rng.randint(2, tile_sz - 6)
-            wave_len = rng.randint(4, 8)  # CC2 spec: 4-8px long waves
-            
+            wave_len = rng.randint(4, 8)
+
+            wave_amp = rng.randint(1, 2)
+            wave_freq = rng.uniform(0.3, 0.8)
+            wave_phase = rng.uniform(0, 2 * math.pi)
             for j in range(wave_len):
                 wx = wx_start + j
                 if 0 <= wx < tile_sz:
-                    # Slight vertical wiggle for natural wave appearance
-                    # Autotile: add phase offset based on bitmask for continuity
-                    wy_offset = int(math.sin((i * 0.7 + var * 0.5) + (wave_phase_offset * 0.1)) * 1.5)
+                    wy_offset = int(wave_amp * math.sin(wave_freq * wx + wave_phase))
                     if 0 <= wy + wy_offset < tile_sz:
                         pixels[wx, wy + wy_offset] = water_light
 
-        # Sparkle highlights (few bright dots reflecting sunlight)
-        # CC2 spec: Bright white pixels (#B8D8F8) simulating sun reflection
-        sparkle_color = (184, 216, 248)  # #B8D8F8
-        num_sparkles = rng.randint(5, 9)  # More sparkles for larger tile
-        for _ in range(num_sparkles):
-            sx = rng.randint(4, tile_sz - 4)
-            sy = rng.randint(4, tile_sz - 4)
-            pixels[sx, sy] = sparkle_color
-            # Occasional adjacent sparkle pixel for brighter effect
-            if rng.random() > 0.7:
-                dx, dy = rng.choice([(1, 0), (0, 1)])
-                if 0 <= sx + dx < tile_sz and 0 <= sy + dy < tile_sz:
-                    pixels[sx + dx, sy + dy] = (200, 225, 240)  # Slightly dimmer adjacent
+        glint_color = (220, 235, 250)
+        num_glints = rng.randint(8, 14)
+        for _ in range(num_glints):
+            gx = rng.randint(3, tile_sz - 3)
+            gy = rng.randint(3, tile_sz - 3)
+            pixels[gx, gy] = glint_color
 
-        # Shore/bank transitions ONLY on non-connected edges (autotile improvement)
-        # CC2 spec: Darker near banks (water_dark #204882), lighter in center
         water_dark = CC2_TERRAIN_PALETTE['water_dark']
-        
-        # Calculate which edges need shore transition
+        water_foam = CC2_TERRAIN_PALETTE['water_foam']
         edge_widths = get_edge_transition_width(tid, bitmask, tile_sz)
 
-        # Apply shore transition only where NOT connected to water neighbor
-        if any(width > 0 for width in edge_widths.values()):
-            for x in range(tile_sz):
+        if not (bitmask & DIR_NORTH) and edge_widths['north'] > 0:
+            ew = edge_widths['north']
+            for y in range(ew):
+                gradient = y / ew
+                darkness = int((1.0 - gradient) * 30)
+                for x in range(tile_sz):
+                    r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
+                    pixels[x, y] = (
+                        max(32, r - darkness),
+                        max(72, g - darkness),
+                        max(130, b - darkness)
+                    )
+            for x in range(0, tile_sz, 2):
+                pixels[x, 0] = water_foam
+
+        if not (bitmask & DIR_SOUTH) and edge_widths['south'] > 0:
+            ew = edge_widths['south']
+            for y in range(tile_sz - ew, tile_sz):
+                dist = tile_sz - 1 - y
+                gradient = dist / ew
+                darkness = int((1.0 - gradient) * 30)
+                for x in range(tile_sz):
+                    r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
+                    pixels[x, y] = (
+                        max(32, r - darkness),
+                        max(72, g - darkness),
+                        max(130, b - darkness)
+                    )
+            for x in range(0, tile_sz, 2):
+                pixels[x, tile_sz - 1] = water_foam
+
+        if not (bitmask & DIR_WEST) and edge_widths['west'] > 0:
+            ew = edge_widths['west']
+            for x in range(ew):
+                gradient = x / ew
+                darkness = int((1.0 - gradient) * 30)
                 for y in range(tile_sz):
-                    # Check distance from each edge
-                    dist_from_left = x
-                    dist_from_right = tile_sz - 1 - x
-                    dist_from_top = y
-                    dist_from_bottom = tile_sz - 1 - y
-                    
-                    # Find minimum distance to any non-connected edge
-                    min_dist_to_edge = tile_sz  # Start with large value
-                    
-                    if edge_widths['west'] > 0 and dist_from_left < edge_widths['west']:
-                        min_dist_to_edge = min(min_dist_to_edge, dist_from_left)
-                    
-                    if edge_widths['east'] > 0 and dist_from_right < edge_widths['east']:
-                        min_dist_to_edge = min(min_dist_to_edge, dist_from_right)
-                    
-                    if edge_widths['north'] > 0 and dist_from_top < edge_widths['north']:
-                        min_dist_to_edge = min(min_dist_to_edge, dist_from_top)
-                    
-                    if edge_widths['south'] > 0 and dist_from_bottom < edge_widths['south']:
-                        min_dist_to_edge = min(min_dist_to_edge, dist_from_bottom)
-                    
-                    # If close to a non-connected edge, apply darkening
-                    if min_dist_to_edge < tile_sz and rng.random() > 0.5:
-                        # Determine which edge is closest and use its width
-                        current_edge_width = 0
-                        if edge_widths['west'] > 0:
-                            current_edge_width = edge_widths['west']
-                        elif edge_widths['east'] > 0:
-                            current_edge_width = edge_widths['east']
-                        elif edge_widths['north'] > 0:
-                            current_edge_width = edge_widths['north']
-                        elif edge_widths['south'] > 0:
-                            current_edge_width = edge_widths['south']
-                        
-                        if current_edge_width > 0:
-                            gradient = min_dist_to_edge / current_edge_width
-                            darkness = int((1.0 - gradient) * 25)
-                            
-                            if darkness > 0:
-                                r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
-                                pixels[x, y] = (
-                                    max(32, r - darkness),  # Don't go darker than water_dark
-                                    max(72, g - darkness),
-                                    max(130, b - darkness)
-                                )
+                    r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
+                    pixels[x, y] = (
+                        max(32, r - darkness),
+                        max(72, g - darkness),
+                        max(130, b - darkness)
+                    )
+            for y in range(0, tile_sz, 2):
+                pixels[0, y] = water_foam
+
+        if not (bitmask & DIR_EAST) and edge_widths['east'] > 0:
+            ew = edge_widths['east']
+            for x in range(tile_sz - ew, tile_sz):
+                dist = tile_sz - 1 - x
+                gradient = dist / ew
+                darkness = int((1.0 - gradient) * 30)
+                for y in range(tile_sz):
+                    r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
+                    pixels[x, y] = (
+                        max(32, r - darkness),
+                        max(72, g - darkness),
+                        max(130, b - darkness)
+                    )
+            for y in range(0, tile_sz, 2):
+                pixels[tile_sz - 1, y] = water_foam
 
         del pixels
 
@@ -1399,8 +1426,8 @@ class ProceduralTextureGenerator:
                                 )
 
             del pixels
-        except Exception:
-            pass
+        except Exception as e:
+            logging.debug(f"Texture generation failed: {e}")
 
     @staticmethod
     def _texture_trench(
@@ -1983,7 +2010,8 @@ class TerrainTileCache:
                 self._apply_edge_smoothing(texture, terrain_type, autotile_mask)
 
             return texture
-        except Exception:
+        except Exception as e:
+            logging.debug(f"Tile texture creation failed: {e}")
             return None
 
     def _apply_edge_smoothing(
@@ -2083,6 +2111,7 @@ class EnhancedRenderer:
         self._building_clusters: list[list[tuple[int, int]]] | None = None  # Cached building clusters
         self._edge_smooth_cache: dict[tuple[int, int], pygame.Surface] = {}  # Cached edge smoothing surfaces
         self._edge_smooth_dirty: bool = True  # Flag to indicate cache needs rebuild
+        self._transition_cache: dict[tuple[int, int, int, int, str], tuple[pygame.Surface, pygame.Rect]] = {}  # Cached terrain transition strips
         self._last_map_hash: int = 0  # Track map changes for cache invalidation
         self._frame_count = 0
         self._sprite_renderer = None  # 延迟初始化，等待display ready
@@ -2152,8 +2181,7 @@ class EnhancedRenderer:
         try:
             self._draw_enhanced_terrain(game_map, camera, debug_mode)
         except Exception as e:
-            import logging
-            logging.getLogger("pycc2").warning(f"Enhanced terrain failed, falling back to simple: {e}")
+            logger.warning(f"Enhanced terrain failed, falling back to simple: {e}")
             self._draw_simple_terrain(game_map, camera)
 
         # STEP 3: Draw grid ONLY in debug mode
@@ -2174,6 +2202,9 @@ class EnhancedRenderer:
 
         # STEP 4.7: Draw Victory Location flags and edge arrows
         self._draw_vl_flags(game_map, camera)
+
+        # STEP 4.8: Environment lighting pass (after terrain/buildings, before units)
+        self._apply_environment_lighting(game_map, camera, units)
 
         # STEP 5: Draw units
         self._draw_units(units, camera, selected_unit_ids)
@@ -2224,9 +2255,9 @@ class EnhancedRenderer:
 
         # CC2 Classic Color Palette (verified accurate)
         TERRAIN_COLORS = {
-            0: (76, 112, 52),    # OPEN/GRASS - muted olive green
+            0: (76, 124, 35),    # OPEN/GRASS - CC2 exact military green #4C7C23
             1: (139, 119, 101),  # ROAD - dirt brown
-            2: (68, 105, 48),     # GRASS - darker green
+            2: (58, 100, 24),     # GRASS - darker green #3A6418
             3: (45, 68, 33),      # WOODS - very dark forest green
             4: (139, 115, 85),    # BUILDING_ENTERABLE - earthy brown
             5: (120, 118, 115),   # BUILDING_SOLID - gray stone
@@ -2405,6 +2436,10 @@ class EnhancedRenderer:
         # Only rebuilds cache when map changes, not every frame
         if not debug_mode and tile_screen_size >= 16:
             self._apply_terrain_edge_smoothing(game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size)
+
+        # Terrain transition blending between different terrain types
+        if not debug_mode and tile_screen_size >= 16:
+            self._render_terrain_transitions(game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size)
 
         # Draw terrain borders ONLY in debug mode (Issue 4: remove harsh grid lines in normal mode)
         if debug_mode:
@@ -2753,6 +2788,129 @@ class EnhancedRenderer:
             bitmask=bitmask
         )
 
+    TERRAIN_BASE_COLORS = {
+        0: (76, 112, 52),
+        1: (139, 119, 101),
+        2: (68, 105, 48),
+        3: (45, 68, 33),
+        4: (139, 115, 85),
+        5: (120, 118, 115),
+        6: (62, 87, 117),
+        7: (85, 70, 55),
+        8: (110, 108, 105),
+        9: (135, 115, 80),
+        10: (95, 145, 165),
+        11: (160, 140, 100),
+        12: (90, 85, 75),
+    }
+
+    def _render_terrain_transitions(
+        self, game_map: GameMap, camera: Camera,
+        start_x: int, end_x: int, start_y: int, end_y: int,
+        tile_screen_size: int
+    ) -> None:
+        """Render gradient transition strips between adjacent tiles of different terrain types.
+
+        For each tile, checks 4 neighbors (N/S/E/W). When a neighbor has a
+        different terrain type, draws a 4-6px gradient strip on the shared edge
+        that blends from the current tile's base color to the neighbor's base
+        color, creating smooth visual transitions (e.g. grass→road, grass→water).
+
+        Uses caching keyed by (tx, ty, current_terrain, neighbor_terrain, direction)
+        to avoid per-frame recalculation. Cache is invalidated when the map changes.
+        """
+        if self._screen is None or self._offscreen is None or tile_screen_size < 8:
+            return
+
+        from pycc2.domain.value_objects.vec2 import Vec2
+
+        try:
+            current_map_hash = hash((game_map.width, game_map.height, id(game_map)))
+            if current_map_hash != self._last_map_hash:
+                self._transition_cache.clear()
+        except Exception:
+            pass
+
+        strip_width = max(4, min(6, tile_screen_size // 10))
+
+        for ty in range(start_y, end_y):
+            for tx in range(start_x, end_x):
+                current = self._get_terrain_at(game_map, tx, ty)
+                if current < 0:
+                    continue
+
+                neighbors = [
+                    (tx, ty - 1, 'north'),
+                    (tx, ty + 1, 'south'),
+                    (tx + 1, ty, 'east'),
+                    (tx - 1, ty, 'west'),
+                ]
+
+                for nx, ny, direction in neighbors:
+                    if nx < 0 or ny < 0 or nx >= game_map.width or ny >= game_map.height:
+                        continue
+                    neighbor = self._get_terrain_at(game_map, nx, ny)
+                    if neighbor < 0 or neighbor == current:
+                        continue
+
+                    cache_key = (tx, ty, current, neighbor, direction)
+                    if cache_key in self._transition_cache:
+                        cached_surf, cached_rect = self._transition_cache[cache_key]
+                        self._offscreen.blit(cached_surf, cached_rect)
+                        continue
+
+                    color_from = self.TERRAIN_BASE_COLORS.get(current, (128, 128, 128))
+                    color_to = self.TERRAIN_BASE_COLORS.get(neighbor, (128, 128, 128))
+
+                    world_x = tx * self.TILE_SIZE
+                    world_y = ty * self.TILE_SIZE
+                    screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
+                    base_x = int(screen_pos[0])
+                    base_y = int(screen_pos[1])
+
+                    if direction == 'north':
+                        rect = pygame.Rect(base_x, base_y, tile_screen_size, strip_width)
+                    elif direction == 'south':
+                        rect = pygame.Rect(base_x, base_y + tile_screen_size - strip_width, tile_screen_size, strip_width)
+                    elif direction == 'east':
+                        rect = pygame.Rect(base_x + tile_screen_size - strip_width, base_y, strip_width, tile_screen_size)
+                    else:
+                        rect = pygame.Rect(base_x, base_y, strip_width, tile_screen_size)
+
+                    strip_surf = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+
+                    if direction in ('north', 'south'):
+                        for col in range(rect.width):
+                            t = col / max(1, rect.width - 1)
+                            r = int(color_from[0] * (1 - t) + color_to[0] * t)
+                            g = int(color_from[1] * (1 - t) + color_to[1] * t)
+                            b = int(color_from[2] * (1 - t) + color_to[2] * t)
+                            for row in range(rect.height):
+                                edge_t = row / max(1, rect.height - 1)
+                                if direction == 'north':
+                                    alpha = int(120 * (1 - edge_t))
+                                else:
+                                    alpha = int(120 * edge_t)
+                                alpha = max(0, min(255, alpha))
+                                strip_surf.set_at((col, row), (r, g, b, alpha))
+                    else:
+                        for row in range(rect.height):
+                            t = row / max(1, rect.height - 1)
+                            r = int(color_from[0] * (1 - t) + color_to[0] * t)
+                            g = int(color_from[1] * (1 - t) + color_to[1] * t)
+                            b = int(color_from[2] * (1 - t) + color_to[2] * t)
+                            for col in range(rect.width):
+                                edge_t = col / max(1, rect.width - 1)
+                                if direction == 'west':
+                                    alpha = int(120 * (1 - edge_t))
+                                else:
+                                    alpha = int(120 * edge_t)
+                                alpha = max(0, min(255, alpha))
+                                strip_surf.set_at((col, row), (r, g, b, alpha))
+
+                    self._transition_cache[cache_key] = (strip_surf, rect)
+                    self._offscreen.blit(strip_surf, rect)
+
     def _apply_terrain_edge_smoothing(
         self, game_map: GameMap, camera: Camera,
         start_x: int, end_x: int, start_y: int, end_y: int,
@@ -2781,8 +2939,8 @@ class EnhancedRenderer:
                 self._terrain_tile_cache.invalidate()  # Invalidate tile cache when map changes
                 self._last_map_hash = current_map_hash
                 self._edge_smooth_dirty = False
-        except Exception:
-            pass
+        except Exception as e:
+            logging.debug(f"Map hash/cache update failed: {e}")
 
         # Autotile terrains that handle their own edges (skip these)
         autotile_terrains = {5, 6, 7}
@@ -2835,7 +2993,8 @@ class EnhancedRenderer:
                             (color1[2] + color2[2]) // 2,
                             45,
                         )
-                    except Exception:
+                    except Exception as e:
+                        logging.debug(f"Edge color blending failed: {e}")
                         blend_color = (80, 80, 80, 45)
 
                     edge_width = max(2, min(3, tile_screen_size // 16))
@@ -2901,6 +3060,151 @@ class EnhancedRenderer:
                         (sx + tile_screen_size, sy + tile_screen_size), 1
                     )
     
+    def _apply_environment_lighting(self, game_map: GameMap, camera: Camera, units: list | None = None) -> None:
+        """Apply environment lighting effects to the offscreen buffer.
+
+        Adds:
+        - Subtle shadow offset on northeast side of buildings (sun from southwest)
+        - Slight warm tint to the overall scene
+        - Slightly darker edges (vignette effect)
+        - Unit shadow dots (small dark circles beneath each unit)
+        """
+        if self._offscreen is None:
+            return
+
+        screen_w, screen_h = self._offscreen.get_size()
+
+        # 1. Building shadows (northeast offset, sun from southwest)
+        self._draw_building_shadows(game_map, camera)
+
+        # 2. Unit shadow dots (sun from southwest → shadow offset to northeast)
+        if units:
+            self._draw_unit_shadows(units, camera)
+
+        # 3. Warm tint overlay (subtle orange-gold tint)
+        try:
+            warm_overlay = pygame.Surface((screen_w, screen_h), pygame.SRCALPHA)
+            warm_overlay.fill((255, 220, 160, 12))  # Very subtle warm tint
+            self._offscreen.blit(warm_overlay, (0, 0))
+        except Exception as e:
+            logging.debug(f"Warm tint overlay failed: {e}")
+
+        # 4. Vignette effect (darker edges)
+        try:
+            vignette = pygame.Surface((screen_w, screen_h), pygame.SRCALPHA)
+            # Draw semi-transparent dark borders that fade toward center
+            edge_width = max(30, screen_w // 8)
+            edge_height = max(30, screen_h // 8)
+            # Top edge
+            for i in range(edge_height):
+                alpha = int(40 * (1.0 - i / edge_height))
+                pygame.draw.line(vignette, (0, 0, 0, alpha), (0, i), (screen_w, i))
+            # Bottom edge
+            for i in range(edge_height):
+                alpha = int(40 * (1.0 - i / edge_height))
+                y = screen_h - 1 - i
+                pygame.draw.line(vignette, (0, 0, 0, alpha), (0, y), (screen_w, y))
+            # Left edge
+            for i in range(edge_width):
+                alpha = int(40 * (1.0 - i / edge_width))
+                pygame.draw.line(vignette, (0, 0, 0, alpha), (i, 0), (i, screen_h))
+            # Right edge
+            for i in range(edge_width):
+                alpha = int(40 * (1.0 - i / edge_width))
+                x = screen_w - 1 - i
+                pygame.draw.line(vignette, (0, 0, 0, alpha), (x, 0), (x, screen_h))
+            self._offscreen.blit(vignette, (0, 0))
+        except Exception as e:
+            logging.debug(f"Vignette effect failed: {e}")
+
+    def _draw_building_shadows(self, game_map: GameMap, camera: Camera) -> None:
+        """Draw shadow strips on the northeast side of buildings (sun from southwest)."""
+        if self._offscreen is None:
+            return
+
+        from pycc2.domain.value_objects.vec2 import Vec2
+
+        bounds = camera.view_bounds
+        start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
+        end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
+        start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
+        end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
+
+        shadow_offset = max(3, int(self.TILE_SIZE * camera.zoom * 0.12))
+        shadow_alpha = 35  # Semi-transparent dark overlay (alpha ~30-40)
+
+        for ty in range(start_y, end_y):
+            for tx in range(start_x, end_x):
+                try:
+                    etile = self._get_enhanced_tile(game_map, tx, ty)
+                    if etile is not None:
+                        terrain_val = etile.base_terrain
+                    else:
+                        terrain_val = int(game_map.tile_grid[ty, tx])
+
+                    # Only add shadows for building tiles (4, 5)
+                    if terrain_val not in (4, 5):
+                        continue
+
+                    world_x = tx * self.TILE_SIZE
+                    world_y = ty * self.TILE_SIZE
+                    sp = camera.world_to_screen(Vec2(world_x, world_y))
+                    sx, sy = int(sp[0]), int(sp[1])
+                    tile_screen_size = int(self.TILE_SIZE * camera.zoom)
+
+                    # Shadow on northeast side (offset left and up — sun from southwest)
+                    # Vertical shadow strip on the left side
+                    shadow_surf = pygame.Surface(
+                        (shadow_offset, tile_screen_size + shadow_offset),
+                        pygame.SRCALPHA,
+                    )
+                    shadow_surf.fill((0, 0, 0, shadow_alpha))
+                    self._offscreen.blit(
+                        shadow_surf,
+                        (sx - shadow_offset, sy - shadow_offset),
+                    )
+
+                    # Horizontal shadow strip on the top side
+                    shadow_surf2 = pygame.Surface(
+                        (tile_screen_size + shadow_offset, shadow_offset),
+                        pygame.SRCALPHA,
+                    )
+                    shadow_surf2.fill((0, 0, 0, shadow_alpha))
+                    self._offscreen.blit(
+                        shadow_surf2,
+                        (sx - shadow_offset, sy - shadow_offset),
+                    )
+                except Exception as e:
+                    logging.debug(f"Building shadow draw failed: {e}")
+                    continue
+
+    def _draw_unit_shadows(self, units: list, camera: Camera) -> None:
+        """Draw small shadow dots beneath each alive unit (sun from southwest → shadow to northeast)."""
+        if self._offscreen is None:
+            return
+
+        from pycc2.domain.value_objects.vec2 import Vec2
+
+        shadow_alpha = 35
+        # Shadow offset: northeast direction (negative x, negative y in screen coords)
+        offset_x = -max(2, int(4 * camera.zoom))
+        offset_y = -max(2, int(4 * camera.zoom))
+
+        for unit in units:
+            if not unit.is_alive:
+                continue
+            pos = unit.position.pixel_position
+            sp = camera.world_to_screen(pos)
+            sx, sy = int(sp[0]) + offset_x, int(sp[1]) + offset_y
+            radius = max(3, int(5 * camera.zoom))
+            shadow_surf = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+            pygame.draw.ellipse(
+                shadow_surf,
+                (0, 0, 0, shadow_alpha),
+                (0, radius // 2, radius * 2, radius),
+            )
+            self._offscreen.blit(shadow_surf, (sx - radius, sy - radius))
+
     def _apply_height_lighting(self, surface: pygame.Surface, height: int) -> pygame.Surface:
         """Apply lighting adjustments based on tile height (fast numpy version)."""
         if height == 0:
@@ -2917,8 +3221,8 @@ class EnhancedRenderer:
             np.clip(float_arr, 0, 255, out=float_arr)
             arr[:] = float_arr.astype(np.uint8)
             del arr
-        except Exception:
-            pass  # fallback: return unmodified
+        except Exception as e:
+            logging.debug(f"Brightness adjustment failed: {e}")
 
         return result
     
@@ -2993,8 +3297,6 @@ class EnhancedRenderer:
             self._sprite_renderer._target_surface = None
             return
         else:
-            import logging
-            logger = logging.getLogger("pycc2")
             logger.warning("[EnhancedRenderer] SpriteRenderer is None! Using fallback shapes (no PNG sprites)")
         
         # Fallback: 如果SpriteRenderer未初始化，使用简单形状
@@ -3012,8 +3314,8 @@ class EnhancedRenderer:
                         try:
                             pos = camera.world_to_screen(unit.position.pixel_position)
                             cx, cy = int(pos[0]), int(pos[1])
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            logging.debug(f"Unit pixel_position conversion failed: {e}")
 
                 # Strategy B: Use tile_position as fallback
                 if (cx is None or cy is None) and hasattr(unit, 'position') and unit.position is not None:
@@ -3026,8 +3328,8 @@ class EnhancedRenderer:
                                 world_pos = Vec2(tile_x * 16, tile_y * 16)
                                 pos = camera.world_to_screen(world_pos)
                                 cx, cy = int(pos[0]), int(pos[1])
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            logging.debug(f"Unit tile_position conversion failed: {e}")
 
                 # Strategy C: Last resort - use index-based positioning (grid layout)
                 if cx is None or cy is None:
@@ -3127,8 +3429,8 @@ class EnhancedRenderer:
 
                     # Blit text
                     self._offscreen.blit(label_surf, (label_x, label_y))
-                except Exception:
-                    pass  # Skip label if font fails
+                except Exception as e:
+                    logging.debug(f"Unit label rendering failed: {e}")
 
                 # STEP 6: Selection indicator (VERY OBVIOUS when selected)
                 is_selected = selected_unit_ids and unit.id in selected_unit_ids
@@ -3260,12 +3562,13 @@ class EnhancedRenderer:
             # Target position is updated by update_tracking()
             target_screen = camera.world_to_screen(confirmed_target.position)
 
-            # Yellow dashed line for tracking
-            self._draw_dashed_line(
+            # Red solid line for confirmed attacks (CC2 uses solid red)
+            pg.draw.line(
+                self._offscreen,
+                (255, 50, 50),
                 (int(source_screen[0]), int(source_screen[1])),
                 (int(target_screen[0]), int(target_screen[1])),
-                (255, 255, 0),
-                dash_len=6,
+                2,
             )
 
     def render_los_overlay(self, surface: pygame.Surface, unit, game_map, camera) -> None:

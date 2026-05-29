@@ -43,6 +43,7 @@ from pycc2.domain.value_objects.tile_coord import TileCoord
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
+    from pycc2.services.event_bus import EventBus
 
 logger = logging.getLogger(__name__)
 
@@ -267,12 +268,14 @@ class EngineerAssaultAI(TacticalAIBase):
         return expired
 
     def apply_demo_charge(
-        self, position: TileCoord, game_map: GameMap
+        self, position: TileCoord, game_map: GameMap,
+        event_bus: EventBus | None = None,
     ) -> list[TileCoord]:
         """Apply demo charge effects at a position.
 
         - Deals DEMO_CHARGE_DAMAGE in DEMO_CHARGE_RADIUS
         - Converts BUILDING_SOLID to OPEN terrain
+        - Converts BRIDGE to BRIDGE_DESTROYED (blocks vehicles, infantry wades)
         Returns list of affected tile positions.
         """
         affected: list[TileCoord] = []
@@ -284,15 +287,29 @@ class EngineerAssaultAI(TacticalAIBase):
                     continue
                 affected.append(tc)
 
-                # Destroy building walls
                 terrain = game_map.get_terrain(tc)
+
+                # Destroy building walls
                 if terrain == TerrainType.BUILDING_SOLID:
-                    # Convert to OPEN — this would be done via game_map
-                    # method in a full implementation
+                    game_map.modify_terrain(tc.x, tc.y, TerrainType.OPEN)
                     self._logger.info(
                         f"Demo charge destroyed building wall at "
                         f"({tc.x}, {tc.y})"
                     )
+
+                # Destroy bridge
+                elif terrain == TerrainType.BRIDGE:
+                    game_map.modify_terrain(tc.x, tc.y, TerrainType.BRIDGE_DESTROYED)
+                    self._logger.info(
+                        f"Demo charge destroyed bridge at "
+                        f"({tc.x}, {tc.y})"
+                    )
+                    if event_bus is not None:
+                        event_bus.publish({
+                            "event_type": "BridgeDestroyed",
+                            "position": (tc.x, tc.y),
+                            "message": "Bridge Destroyed",
+                        })
 
         return affected
 

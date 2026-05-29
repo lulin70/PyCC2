@@ -47,5 +47,6 @@
     {"id": "vl_bridge_south", "position": [20, 25], "value": 40, "type": "bridge"},
     {"id": "vl_bridge_approach", "position": [20, 17], "value": 30, "type": "road_junction"}
   ],
-  "special_rules": ["bridge_destructible", "amphibious_crossing_available", "combined_arms_bonus", "fanatic_defenders"]
+  "special_rules": ["bridge_destructible", "amphibious_crossing_available", "combined_arms_bonus", "fanatic_defenders"],
+  "attacker_faction": "allied"
 }

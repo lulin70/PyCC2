@@ -27,6 +27,7 @@ class CombatDirector:
     _game_map: GameMap | None = field(init=False, default=None)
     _pending_effects: list[dict] = field(init=False, default_factory=list)
     _move_orders: dict[str, dict] = field(init=False, default_factory=dict)
+    _camera_position: object | None = field(init=False, default=None)  # R10: Camera position for sound falloff
 
     def initialize(self) -> None:
         from pycc2.domain.systems.ballistic import BallisticEngine
@@ -254,7 +255,16 @@ class CombatDirector:
                     weapon_type = "mg"
                 elif "pistol" in (attacker.weapon.primary_weapon_id or "").lower():
                     weapon_type = "pistol"
-                self.sound_system.play_shot(weapon_type)
+                # R10: Battle sound distance falloff — use distance-based volume
+                source_pos = attacker.position.pixel_position
+                camera_pos = getattr(self, '_camera_position', None)
+                if camera_pos is not None and hasattr(self.sound_system, 'play_sound_with_distance'):
+                    sound_id = f"RIFLE_SHOT" if weapon_type == "rifle" else (
+                        "MG_BURST" if weapon_type == "mg" else "PISTOL_SHOT")
+                    self.sound_system.play_sound_with_distance(
+                        sound_id, source_pos, camera_pos, max_distance=500.0)
+                else:
+                    self.sound_system.play_shot(weapon_type)
 
         self.event_bus.publish(
             UnitAttacked(
@@ -418,6 +428,7 @@ class CombatDirector:
 
             if dist <= move_pixels:
                 unit.position.tile_coord = target_tc
+                unit.update_garrison_status(game_map)
                 path.pop(0)
                 if self.sound_system:
                     tc = unit.position.tile_coord
@@ -442,6 +453,7 @@ class CombatDirector:
                 tile_x = int(new_x // ts)
                 tile_y = int(new_y // ts)
                 unit.position.tile_coord = TileCoord(tile_x, tile_y)
+                unit.update_garrison_status(game_map)
                 unit.position.set_pixel_offset(Vec2(new_x - tile_x * ts, new_y - tile_y * ts))
                 unit.position.set_facing_toward(target_tc)
 

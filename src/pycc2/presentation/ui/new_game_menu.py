@@ -13,10 +13,13 @@ Screens:
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 import pygame
 
@@ -647,7 +650,8 @@ class NewGameMenu:
             from pycc2.infrastructure.save_system import SecureSaveManager
             manager = SecureSaveManager()
             self._save_slots = manager.list_all_slots()
-        except Exception:
+        except Exception as e:
+            logging.info(f"Save slot list refresh failed: {e}")
             self._save_slots = []
 
     def get_selected_load_slot(self) -> int:

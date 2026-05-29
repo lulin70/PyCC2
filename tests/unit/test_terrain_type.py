@@ -21,7 +21,7 @@ class TestTerrainTypeEnumValues:
         assert TerrainType.BRIDGE.value == 11
 
     def test_total_count(self):
-        assert len(TerrainType) == 14
+        assert len(TerrainType) == 22
 
 
 class TestTerrainTypeMovementCost:

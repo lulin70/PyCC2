@@ -1,5 +1,5 @@
 """
-TerrainType IntEnum - 14 Terrain Types with Properties
+TerrainType IntEnum - 22 Terrain Types with Properties
 """
 
 from __future__ import annotations
@@ -36,6 +36,14 @@ class TerrainType(IntEnum):
     BRIDGE = 11
     CRATER = 12
     SWAMP = 13
+    BRIDGE_DESTROYED = 14
+    FOXHOLE = 15
+    TRENCH = 16
+    MUD = 17
+    SAND = 18
+    SNOW = 19
+    WIRE = 20
+    BUNKER = 21
 
     @property
     def movement_cost(self) -> float:
@@ -54,6 +62,14 @@ class TerrainType(IntEnum):
             TerrainType.BRIDGE: 0.9,
             TerrainType.CRATER: 2.5,
             TerrainType.SWAMP: 4.0,
+            TerrainType.BRIDGE_DESTROYED: 5.0,
+            TerrainType.FOXHOLE: 1.3,
+            TerrainType.TRENCH: 1.5,
+            TerrainType.MUD: 2.5,
+            TerrainType.SAND: 1.8,
+            TerrainType.SNOW: 2.0,
+            TerrainType.WIRE: 3.0,
+            TerrainType.BUNKER: 1.5,
         }
         return _costs[self]
 
@@ -74,6 +90,14 @@ class TerrainType(IntEnum):
             TerrainType.BRIDGE: 0.0,
             TerrainType.CRATER: 0.25,
             TerrainType.SWAMP: 0.0,
+            TerrainType.BRIDGE_DESTROYED: 0.0,
+            TerrainType.FOXHOLE: 0.30,
+            TerrainType.TRENCH: 0.40,
+            TerrainType.MUD: 0.0,
+            TerrainType.SAND: 0.0,
+            TerrainType.SNOW: 0.05,
+            TerrainType.WIRE: 0.10,
+            TerrainType.BUNKER: 0.60,
         }
         return _covers[self]
 
@@ -94,6 +118,14 @@ class TerrainType(IntEnum):
             TerrainType.BRIDGE: 0.0,
             TerrainType.CRATER: 0.20,
             TerrainType.SWAMP: 0.30,
+            TerrainType.BRIDGE_DESTROYED: 0.10,
+            TerrainType.FOXHOLE: 0.25,
+            TerrainType.TRENCH: 0.35,
+            TerrainType.MUD: 0.10,
+            TerrainType.SAND: 0.0,
+            TerrainType.SNOW: 0.15,
+            TerrainType.WIRE: 0.05,
+            TerrainType.BUNKER: 0.80,
         }
         return _concealments[self]
 
@@ -114,6 +146,14 @@ class TerrainType(IntEnum):
             TerrainType.BRIDGE: False,
             TerrainType.CRATER: False,
             TerrainType.SWAMP: False,
+            TerrainType.BRIDGE_DESTROYED: True,
+            TerrainType.FOXHOLE: False,
+            TerrainType.TRENCH: False,
+            TerrainType.MUD: False,
+            TerrainType.SAND: False,
+            TerrainType.SNOW: False,
+            TerrainType.WIRE: False,
+            TerrainType.BUNKER: True,
         }
         return _blocks[self]
 
@@ -134,6 +174,14 @@ class TerrainType(IntEnum):
             TerrainType.BRIDGE: True,
             TerrainType.CRATER: True,
             TerrainType.SWAMP: True,
+            TerrainType.BRIDGE_DESTROYED: True,
+            TerrainType.FOXHOLE: True,
+            TerrainType.TRENCH: True,
+            TerrainType.MUD: True,
+            TerrainType.SAND: True,
+            TerrainType.SNOW: True,
+            TerrainType.WIRE: True,
+            TerrainType.BUNKER: True,
         }
         return _passable[self]
 
@@ -154,6 +202,14 @@ class TerrainType(IntEnum):
             TerrainType.BRIDGE: 1,
             TerrainType.CRATER: -1,
             TerrainType.SWAMP: 0,
+            TerrainType.BRIDGE_DESTROYED: 0,
+            TerrainType.FOXHOLE: -1,
+            TerrainType.TRENCH: -1,
+            TerrainType.MUD: 0,
+            TerrainType.SAND: 0,
+            TerrainType.SNOW: 0,
+            TerrainType.WIRE: 0,
+            TerrainType.BUNKER: 1,
         }
         return _heights[self]
 
@@ -174,6 +230,14 @@ class TerrainType(IntEnum):
             TerrainType.BRIDGE: (139, 119, 101),
             TerrainType.CRATER: (90, 75, 60),
             TerrainType.SWAMP: (60, 80, 50),
+            TerrainType.BRIDGE_DESTROYED: (80, 65, 50),
+            TerrainType.FOXHOLE: (120, 110, 80),
+            TerrainType.TRENCH: (100, 90, 65),
+            TerrainType.MUD: (90, 70, 45),
+            TerrainType.SAND: (180, 165, 120),
+            TerrainType.SNOW: (230, 235, 240),
+            TerrainType.WIRE: (76, 153, 0),
+            TerrainType.BUNKER: (120, 115, 105),
         }
         return _colors[self]
 
@@ -194,8 +258,49 @@ class TerrainType(IntEnum):
             TerrainType.BRIDGE: "Bridge",
             TerrainType.CRATER: "Crater",
             TerrainType.SWAMP: "Swamp",
+            TerrainType.BRIDGE_DESTROYED: "Bridge (Destroyed)",
+            TerrainType.FOXHOLE: "Foxhole",
+            TerrainType.TRENCH: "Trench",
+            TerrainType.MUD: "Mud",
+            TerrainType.SAND: "Sand",
+            TerrainType.SNOW: "Snow",
+            TerrainType.WIRE: "Wire",
+            TerrainType.BUNKER: "Bunker",
         }
         return _names[self]
+
+    @property
+    def is_passable_by_vehicle(self) -> bool:
+        """Whether vehicles can traverse this terrain.
+
+        BRIDGE_DESTROYED is passable by infantry (wading through rubble)
+        but impassable by vehicles.
+        """
+        _vehicle_passable: dict[TerrainType, bool] = {
+            TerrainType.OPEN: True,
+            TerrainType.ROAD: True,
+            TerrainType.GRASS: True,
+            TerrainType.WOODS: False,
+            TerrainType.BUILDING_ENTERABLE: False,
+            TerrainType.BUILDING_SOLID: False,
+            TerrainType.WATER: False,
+            TerrainType.HEDGE: False,
+            TerrainType.WALL: False,
+            TerrainType.ROUGH: True,
+            TerrainType.SHALLOW: False,
+            TerrainType.BRIDGE: True,
+            TerrainType.CRATER: False,
+            TerrainType.SWAMP: False,
+            TerrainType.BRIDGE_DESTROYED: False,
+            TerrainType.FOXHOLE: True,
+            TerrainType.TRENCH: True,
+            TerrainType.MUD: False,
+            TerrainType.SAND: True,
+            TerrainType.SNOW: True,
+            TerrainType.WIRE: False,
+            TerrainType.BUNKER: False,
+        }
+        return _vehicle_passable[self]
 
     @property
     def cover_type(self) -> CoverType:
@@ -215,6 +320,14 @@ class TerrainType(IntEnum):
             TerrainType.BRIDGE: CoverType.NONE,
             TerrainType.CRATER: CoverType.SOFT,
             TerrainType.SWAMP: CoverType.SOFT,
+            TerrainType.BRIDGE_DESTROYED: CoverType.NONE,
+            TerrainType.FOXHOLE: CoverType.SOFT,
+            TerrainType.TRENCH: CoverType.SOFT,
+            TerrainType.MUD: CoverType.NONE,
+            TerrainType.SAND: CoverType.NONE,
+            TerrainType.SNOW: CoverType.SOFT,
+            TerrainType.WIRE: CoverType.SOFT,
+            TerrainType.BUNKER: CoverType.HARD,
         }
         return _cover_types[self]
 

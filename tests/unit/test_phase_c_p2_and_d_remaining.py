@@ -5,25 +5,35 @@ import math
 import random
 from unittest.mock import MagicMock, patch
 
-from pycc2.domain.systems.quick_implementations import (
+from pycc2.infrastructure.audio.voice_command_system import (
     VoiceCommandSystem,
     VoiceCommandType,
+)
+from pycc2.infrastructure.rendering.minimap_icons import (
     MinimapIconSystem,
     UnitIconType,
+)
+from pycc2.domain.systems.terrain_systems import (
     DestructibleTerrain,
-    FriendlyFireSystem,
     RiverCrossingSystem,
     RoadSystem,
+)
+from pycc2.domain.systems.combat_systems import (
+    FriendlyFireSystem,
+    RicochetSystem,
+)
+from pycc2.infrastructure.audio.environmental_audio import (
     EnvironmentalAudioSystem,
     EnvironmentSoundType,
-    StereoSoundSystem,
+)
+from pycc2.infrastructure.audio.stereo_sound import StereoSoundSystem
+from pycc2.domain.systems.civilian_system import (
     CivilianSystem,
     Civilian,
     CivilianState,
-    RicochetSystem,
-    ConeVisionSystem,
-    TrenchDiggingAI,
 )
+from pycc2.domain.systems.vision_system import ConeVisionSystem
+from pycc2.domain.systems.trench_digging import TrenchDiggingAI
 
 
 class TestVoiceCommandSystem:

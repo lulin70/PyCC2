@@ -48,5 +48,6 @@
     {"id": "vl_waal_bank", "position": [20, 17], "value": 20, "type": "road_junction"},
     {"id": "vl_rail_station", "position": [30, 8], "value": 20, "type": "building"}
   ],
-  "special_rules": ["bridge_destructible", "amphibious_crossing_available", "combined_arms_bonus"]
+  "special_rules": ["bridge_destructible", "amphibious_crossing_available", "combined_arms_bonus"],
+  "attacker_faction": "allied"
 }

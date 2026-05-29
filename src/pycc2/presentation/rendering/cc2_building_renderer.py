@@ -1,25 +1,18 @@
-"""CC2-style orthographic building renderer.
+"""CC2-style oblique projection building renderer.
 
-Renders buildings in CC2's authentic top-down view with pseudo-3D shadow strips.
-This is the CORRECT building rendering style (NOT isometric).
+Renders buildings in CC2's authentic OBLIQUE projection view with:
+- Roof plane (top surface with texture)
+- South wall face (bottom edge, darker, 4-6px tall)
+- East wall face (right edge, darker, 4-6px wide)
+- Roof edge trim (orange-brown border)
+This matches CC2 screenshot analysis exactly.
 """
 
 import pygame
 import random
 from enum import Enum
 
-
-class CC2BuildingType(Enum):
-    """Building types matching CC2 - 包含诺曼底战役特有建筑风格."""
-    SMALL_HOUSE = "small_house"
-    MEDIUM_HOUSE = "medium_house"
-    LARGE_BUILDING = "large_building"
-    BARN = "barn"
-    CHURCH = "church"
-    WALL = "wall"
-    # 诺曼底战役特有建筑类型 - 基于历史建筑学研究
-    NORMANDY_FARMHOUSE = "normandy_farmhouse"   # 诺曼底农舍: 2x2, 陡峭红瓦屋顶, 石墙
-    NORMANDY_BARN = "normandy_barn"              # 诺曼底谷仓: 2x3, 大型, 棕色双开门
+from pycc2.domain.value_objects.building_data import BUILDING_WINDOWS, CC2BuildingType
 
 
 class DamageLevel(Enum):
@@ -30,81 +23,18 @@ class DamageLevel(Enum):
 
 
 CC2_ROOF_COLORS = {
-    CC2BuildingType.SMALL_HOUSE: (184, 48, 32),
-    CC2BuildingType.MEDIUM_HOUSE: (168, 44, 28),
-    CC2BuildingType.LARGE_BUILDING: (80, 88, 96),
+    CC2BuildingType.SMALL_HOUSE: (160, 45, 35),
+    CC2BuildingType.MEDIUM_HOUSE: (160, 45, 35),
+    CC2BuildingType.LARGE_BUILDING: (90, 95, 100),
     CC2BuildingType.BARN: (139, 96, 64),
     CC2BuildingType.CHURCH: (200, 200, 200),
     CC2BuildingType.WALL: (112, 112, 112),
-    # 诺曼底建筑屋顶颜色 - 基于历史照片和建筑学研究
-    CC2BuildingType.NORMANDY_FARMHOUSE: (160, 42, 28),   # 深红瓦片屋顶 (历史特征!)
-    CC2BuildingType.NORMANDY_BARN: (120, 75, 45),         # 棕色木质屋顶
+    CC2BuildingType.NORMANDY_FARMHOUSE: (160, 42, 28),
+    CC2BuildingType.NORMANDY_BARN: (120, 75, 45),
 }
 
-
-# Window positions for each building type (relative to tile, used for firing arc restrictions)
-# Each window has a 'wall' (cardinal direction it faces) and 'offset' (0.0-1.0 along that wall)
-BUILDING_WINDOWS: dict[CC2BuildingType, list[dict]] = {
-    CC2BuildingType.SMALL_HOUSE: [
-        {'wall': 'north', 'offset': 0.5},
-        {'wall': 'south', 'offset': 0.5},
-        {'wall': 'east', 'offset': 0.5},
-        {'wall': 'west', 'offset': 0.5},
-    ],
-    CC2BuildingType.MEDIUM_HOUSE: [
-        {'wall': 'north', 'offset': 0.3},
-        {'wall': 'north', 'offset': 0.7},
-        {'wall': 'south', 'offset': 0.3},
-        {'wall': 'south', 'offset': 0.7},
-        {'wall': 'east', 'offset': 0.5},
-        {'wall': 'west', 'offset': 0.5},
-    ],
-    CC2BuildingType.LARGE_BUILDING: [
-        {'wall': 'north', 'offset': 0.2},
-        {'wall': 'north', 'offset': 0.5},
-        {'wall': 'north', 'offset': 0.8},
-        {'wall': 'south', 'offset': 0.2},
-        {'wall': 'south', 'offset': 0.5},
-        {'wall': 'south', 'offset': 0.8},
-        {'wall': 'east', 'offset': 0.3},
-        {'wall': 'east', 'offset': 0.7},
-        {'wall': 'west', 'offset': 0.3},
-        {'wall': 'west', 'offset': 0.7},
-    ],
-    CC2BuildingType.BARN: [
-        {'wall': 'north', 'offset': 0.5},
-        {'wall': 'south', 'offset': 0.5},
-        {'wall': 'east', 'offset': 0.3},
-        {'wall': 'east', 'offset': 0.7},
-        {'wall': 'west', 'offset': 0.3},
-        {'wall': 'west', 'offset': 0.7},
-    ],
-    CC2BuildingType.CHURCH: [
-        {'wall': 'north', 'offset': 0.5},
-        {'wall': 'south', 'offset': 0.5},
-        {'wall': 'east', 'offset': 0.3},
-        {'wall': 'east', 'offset': 0.7},
-        {'wall': 'west', 'offset': 0.3},
-        {'wall': 'west', 'offset': 0.7},
-    ],
-    CC2BuildingType.WALL: [],
-    CC2BuildingType.NORMANDY_FARMHOUSE: [
-        {'wall': 'north', 'offset': 0.3},
-        {'wall': 'north', 'offset': 0.7},
-        {'wall': 'south', 'offset': 0.3},
-        {'wall': 'south', 'offset': 0.7},
-        {'wall': 'east', 'offset': 0.5},
-        {'wall': 'west', 'offset': 0.5},
-    ],
-    CC2BuildingType.NORMANDY_BARN: [
-        {'wall': 'north', 'offset': 0.5},
-        {'wall': 'south', 'offset': 0.5},
-        {'wall': 'east', 'offset': 0.3},
-        {'wall': 'east', 'offset': 0.7},
-        {'wall': 'west', 'offset': 0.3},
-        {'wall': 'west', 'offset': 0.7},
-    ],
-}
+ROOF_TRIM_COLOR = (176, 128, 80)  # #B08050 orange-brown
+WALL_FACE_MULTIPLIER = 0.55  # Wall is much darker than roof (not 0.7!)
 
 
 def get_building_size(building_type: CC2BuildingType) -> tuple[int, int]:
@@ -211,14 +141,20 @@ def render_cc2_building(
             occupant_positions or []
         )
 
-    # *** 屋顶模式 (标准外观) ***
+    # *** 屋顶模式 (标准外观) - OBLIQUE PROJECTION ***
     # 诺曼底建筑特殊渲染路径
     if building_type == CC2BuildingType.NORMANDY_FARMHOUSE:
         return _render_normandy_farmhouse(surface, w, h, tile_size, damage, show_number, number)
     elif building_type == CC2BuildingType.NORMANDY_BARN:
         return _render_normandy_barn(surface, w, h, tile_size, damage, show_number, number)
+    elif building_type == CC2BuildingType.CHURCH:
+        return _render_church(surface, w, h, tile_size, damage, show_number, number)
+    elif building_type == CC2BuildingType.WALL:
+        return _render_wall(surface, w, h, tile_size, damage)
+    elif building_type == CC2BuildingType.BARN:
+        return _render_barn(surface, w, h, tile_size, damage, show_number, number)
 
-    # 标准CC2建筑渲染（原有逻辑）
+    # 标准CC2建筑渲染（OBLIQUE PROJECTION!）
     roof_color = CC2_ROOF_COLORS[building_type]
     if damage == DamageLevel.LIGHT_DAMAGE:
         roof_color = tuple(max(0, c - 20) for c in roof_color)
@@ -226,19 +162,92 @@ def render_cc2_building(
         roof_color = tuple(max(0, c - 45) for c in roof_color)
     elif damage == DamageLevel.DESTROYED:
         roof_color = tuple(max(0, c - 70) for c in roof_color)
-    surface.fill(roof_color)
 
-    shadow_color = tuple(max(0, c - 50) for c in roof_color)
-    shadow_width = max(2, tile_size // 12)
-    pygame.draw.rect(surface, shadow_color, (0, h - shadow_width, w, shadow_width))
-    pygame.draw.rect(surface, shadow_color, (w - shadow_width, 0, shadow_width, h))
+    # === OBLIQUE PROJECTION: Roof + South Wall + East Wall ===
+    wall_height = 5  # 4-6px range, use 5 as middle value
+    wall_width = 5   # 4-6px range
+    wall_color = tuple(int(c * WALL_FACE_MULTIPLIER) for c in roof_color)
 
+    # 1. Roof plane (main rectangle)
+    roof_rect = (0, 0, w - wall_width, h - wall_height)
+    pygame.draw.rect(surface, roof_color, roof_rect)
+
+    # 2. Roof edge trim (orange-brown border, 1-2px)
+    pygame.draw.rect(surface, ROOF_TRIM_COLOR, roof_rect, 2)
+
+    # 3. Stipple texture on roof (~15% density)
+    stipple_rng = random.Random(hash(str(building_type) + "stipple"))
+    for _ in range((w * h) // 15):
+        sx = stipple_rng.randint(2, w - wall_width - 3)
+        sy = stipple_rng.randint(2, h - wall_height - 3)
+        brightness_var = stipple_rng.choice([-15, +10, -8])
+        stipple_color = tuple(max(0, min(255, c + brightness_var)) for c in roof_color)
+        surface.set_at((sx, sy), stipple_color)
+
+    # 4. Window dots (dark rectangles, 2-6 depending on size)
+    window_color = (40, 50, 65)
+    win_rng = random.Random(hash(str(building_type) + "roof_windows"))
+    if building_type in [CC2BuildingType.SMALL_HOUSE]:
+        num_windows = win_rng.randint(2, 3)
+    elif building_type in [CC2BuildingType.MEDIUM_HOUSE]:
+        num_windows = win_rng.randint(3, 5)
+    elif building_type in [CC2BuildingType.LARGE_BUILDING]:
+        num_windows = win_rng.randint(6, 8)
+    else:
+        num_windows = win_rng.randint(2, 4)
+
+    placed_windows = []
+    for _ in range(num_windows * 3):
+        wx = win_rng.randint(4, w - wall_width - 5)
+        wy = win_rng.randint(4, h - wall_height - 5)
+        too_close = False
+        for px, py in placed_windows:
+            if abs(wx - px) < 5 and abs(wy - py) < 5:
+                too_close = True
+                break
+        if not too_close:
+            pygame.draw.rect(surface, window_color, (wx, wy, 2, 2))
+            placed_windows.append((wx, wy))
+            if len(placed_windows) >= num_windows:
+                break
+
+    # 5. Building number (yellow text at center)
     if show_number and number:
-        font_size = min(w, h) // 2
+        font_size = min(w - wall_width, h - wall_height) // 2
         font = pygame.font.SysFont("arial", font_size, bold=True)
         text = font.render(number, True, (255, 215, 0))
-        text_rect = text.get_rect(center=(w // 2, h // 2))
+        text_rect = text.get_rect(center=((w - wall_width) // 2, (h - wall_height) // 2))
         surface.blit(text, text_rect)
+
+    # 6. Chimney (some building types)
+    chimney_rng = random.Random(hash(str(building_type) + "chimney"))
+    should_have_chimney = building_type in [
+        CC2BuildingType.SMALL_HOUSE,
+        CC2BuildingType.MEDIUM_HOUSE,
+        CC2BuildingType.NORMANDY_FARMHOUSE,
+    ]
+    if should_have_chimney and chimney_rng.random() > 0.3:
+        chimney_w = max(6, tile_size // 7)
+        chimney_h = max(8, tile_size // 5)
+        chimney_x = w - wall_width - chimney_w - 5
+        chimney_y = h // 4
+        chimney_stone = (100, 95, 88)
+        chimney_dark = (80, 75, 68)
+        pygame.draw.rect(surface, chimney_stone, (chimney_x, chimney_y, chimney_w, chimney_h))
+        pygame.draw.rect(surface, chimney_dark, (chimney_x + chimney_w - 1, chimney_y, 1, chimney_h))
+        pygame.draw.rect(surface, chimney_dark, (chimney_x, chimney_y + chimney_h - 1, chimney_w, 1))
+
+    # 7. South wall face (bottom strip, darker)
+    south_wall_rect = (0, h - wall_height, w, wall_height)
+    pygame.draw.rect(surface, wall_color, south_wall_rect)
+
+    # 8. East wall face (right strip, darker)
+    east_wall_rect = (w - wall_width, 0, wall_width, h)
+    pygame.draw.rect(surface, wall_color, east_wall_rect)
+
+    # 9. Corner pixel (darkest where walls meet)
+    corner_color = tuple(int(c * WALL_FACE_MULTIPLIER * 0.85) for c in roof_color)
+    surface.set_at((w - wall_width, h - wall_height), corner_color)
 
     if damage.value >= DamageLevel.LIGHT_DAMAGE.value:
         crack_color = (40, 36, 32)
@@ -250,6 +259,25 @@ def render_cc2_building(
             x2 = x1 + rng.randint(-15, 15)
             y2 = y1 + rng.randint(-15, 15)
             pygame.draw.line(surface, crack_color, (x1, y1), (x2, y2), 1)
+        if damage.value >= DamageLevel.HEAVY_DAMAGE.value:
+            for _ in range(damage.value):
+                hole_x = rng.randint(5, w - 10)
+                hole_y = rng.randint(5, h - 10)
+                hole_w = rng.randint(4, 8)
+                hole_h = rng.randint(4, 8)
+                pygame.draw.rect(surface, (0, 0, 0), (hole_x, hole_y, hole_w, hole_h))
+        if damage == DamageLevel.DESTROYED:
+            for _ in range(8):
+                edge = rng.randint(0, 3)
+                if edge == 0:
+                    rx, ry = rng.randint(0, w), rng.randint(0, 3)
+                elif edge == 1:
+                    rx, ry = rng.randint(0, w), rng.randint(h - 4, h)
+                elif edge == 2:
+                    rx, ry = rng.randint(0, 3), rng.randint(0, h)
+                else:
+                    rx, ry = rng.randint(w - 4, w), rng.randint(0, h)
+                pygame.draw.rect(surface, (50, 45, 40), (rx, ry, 2, 2))
 
     return surface
 
@@ -258,32 +286,24 @@ def _render_normandy_farmhouse(
     surface: pygame.Surface, w: int, h: int, tile_size: int,
     damage: DamageLevel, show_number: bool, number: str | None
 ) -> pygame.Surface:
-    """渲染诺曼底农舍 - CC2正交顶部俯视 (TOP-DOWN VIEW!)
+    """渲染诺曼底农舍 - CC2 OBLIQUE PROJECTION
 
-    *** 关键修正: 从伪3D侧视改为纯顶部俯视 ***
-    CC2使用Orthographic Top-Down投影，建筑显示为:
-    - 屋顶平面（矩形/多边形，不是三角形坡顶!）
-    - 烟囱（从上方看的矩形）
-    - 天窗/屋顶窗（如果可见）
-    - 不显示侧面墙体!
-
-    诺曼底农舍历史特征（俯视角度）:
-    - 屋顶形状: 矩形或L形（双坡屋顶从上方看呈矩形）
-    - 深红瓦片屋顶 (#A02A1C)
-    - 石砌烟囱（突出于屋顶平面）
-    - 可能的天窗（暗色矩形）
+    斜投影视角特征:
+    - 屋顶平面（矩形，深红瓦片）
+    - 南墙立面（底部5px暗色条）
+    - 东墙立面（右侧5px暗色条）
+    - 屋顶边缘装饰线（橙棕色）
+    - 烟囱、天窗等细节
     """
     import math
 
-    # 诺曼底农舍调色板 - 屋顶为主色调（俯视只看得到屋顶!）
-    red_tile_roof = (160, 42, 28)           # 深红瓦片屋顶 (主色)
-    red_tile_light = (185, 60, 45)          # 屋顶高光（瓦片反光）
-    red_tile_dark = (130, 32, 20)           # 屋顶暗部（瓦片间隙）
-    chimney_stone = (100, 95, 88)           # 石砌烟囱（俯视颜色偏暗）
-    chimney_dark = (80, 75, 68)             # 烟囱阴影
-    skylight_color = (50, 55, 65)           # 天窗（暗色玻璃）
+    red_tile_roof = (160, 42, 28)
+    red_tile_light = (185, 60, 45)
+    red_tile_dark = (130, 32, 20)
+    chimney_stone = (100, 95, 88)
+    chimney_dark = (80, 75, 68)
+    skylight_color = (50, 55, 65)
 
-    # 应用损毁效果（影响屋顶颜色）
     if damage == DamageLevel.LIGHT_DAMAGE:
         red_tile_roof = tuple(max(0, c - 18) for c in red_tile_roof)
         red_tile_dark = tuple(max(0, c - 25) for c in red_tile_dark)
@@ -294,107 +314,109 @@ def _render_normandy_farmhouse(
         red_tile_roof = tuple(max(0, c - 65) for c in red_tile_roof)
         red_tile_dark = tuple(max(0, c - 75) for c in red_tile_dark)
 
-    cx, cy = w // 2, h // 2
+    wall_height = 5
+    wall_width = 5
+    wall_color = tuple(int(c * WALL_FACE_MULTIPLIER) for c in red_tile_roof)
+    cx, cy = (w - wall_width) // 2, (h - wall_height) // 2
 
-    # *** 1. 主屋顶平面 (矩形 - TOP-DOWN VIEW!) ***
-    # 诺曼底农舍屋顶从上方看是矩形（略小于建筑 footprint）
-    roof_margin = tile_size // 8  # 屋檐伸出量
-    roof_rect = (
+    # 1. Roof plane
+    roof_rect = (0, 0, w - wall_width, h - wall_height)
+    roof_margin = tile_size // 8
+    inner_roof = (
         roof_margin,
         roof_margin,
-        w - 2 * roof_margin,
-        h - 2 * roof_margin
+        w - wall_width - 2 * roof_margin,
+        h - wall_height - 2 * roof_margin
     )
-    pygame.draw.rect(surface, red_tile_roof, roof_rect)
+    pygame.draw.rect(surface, red_tile_roof, inner_roof)
 
-    # *** 2. 屋顶纹理 (瓦片线条 - 俯视角度的瓦片排列!) ***
-    # 诺曼底屋顶通常有横向或斜向瓦片纹理
+    # 2. Roof edge trim
+    pygame.draw.rect(surface, ROOF_TRIM_COLOR, inner_roof, 2)
+
+    # 3. Roof texture (tile lines)
     tile_rng = random.Random(hash("normandy_rooftop_tiles"))
-    # 横向瓦片线（每隔4-6px一条）
-    for ty in range(roof_margin + 4, h - roof_margin - 2, tile_rng.randint(4, 6)):
+    for ty in range(inner_roof[1] + 4, inner_roof[1] + inner_roof[3] - 2, tile_rng.randint(4, 6)):
         pygame.draw.line(surface, red_tile_dark,
-                        (roof_margin + 2, ty),
-                        (w - roof_margin - 2, ty), 1)
-    # 偶尔的纵向瓦片缝（增加真实感）
+                        (inner_roof[0] + 2, ty),
+                        (inner_roof[0] + inner_roof[2] - 2, ty), 1)
     for _ in range(tile_rng.randint(2, 4)):
-        vx = tile_rng.randint(roof_margin + 6, w - roof_margin - 6)
+        vx = tile_rng.randint(inner_roof[0] + 6, inner_roof[0] + inner_roof[2] - 6)
         pygame.draw.line(surface, red_tile_light,
-                        (vx, roof_margin + 2),
-                        (vx, h - roof_margin - 2), 1)
+                        (vx, inner_roof[1] + 2),
+                        (vx, inner_roof[1] + inner_roof[3] - 2), 1)
 
-    # *** 3. 屋脊线 (屋顶中央的隆起线 - 俯视看像一条线!) ***
+    # 4. Ridge line
     ridge_y = cy
-    ridge_color = tuple(max(0, c - 25) for c in red_tile_roof)  # 比屋顶稍暗
+    ridge_color = tuple(max(0, c - 25) for c in red_tile_roof)
     pygame.draw.line(surface, ridge_color,
-                    (roof_margin + 4, ridge_y),
-                    (w - roof_margin - 4, ridge_y), 2)
+                    (inner_roof[0] + 4, ridge_y),
+                    (inner_roof[0] + inner_roof[2] - 4, ridge_y), 2)
 
-    # *** 4. 烟囱 (从上方看的矩形 - 突出于屋顶!) ***
+    # 5. Chimney
     chimney_w = max(8, tile_size // 5)
     chimney_h = max(12, tile_size // 4)
-    chimney_x = cx + w // 7   # 偏右位置（典型）
-    chimney_y = cy - h // 6  # 靠近屋脊
-
-    # 烟囱主体
+    chimney_x = cx + (w - wall_width) // 7
+    chimney_y = cy - h // 6
     pygame.draw.rect(surface, chimney_stone,
                      (chimney_x, chimney_y, chimney_w, chimney_h))
-    # 烟囱阴影（右侧和下侧）
     pygame.draw.rect(surface, chimney_dark,
                      (chimney_x + chimney_w - 1, chimney_y, 1, chimney_h))
     pygame.draw.rect(surface, chimney_dark,
                      (chimney_x, chimney_y + chimney_h - 1, chimney_w, 1))
-    # 烟囱顶部装饰（石砌边缘）
     pygame.draw.rect(surface, (115, 108, 100),
                      (chimney_x - 1, chimney_y - 1, chimney_w + 2, 3), 1)
 
-    # *** 5. 天窗 (可选 - 诺曼底老房子常有) ***
+    # 6. Skylight (optional)
     if random.Random(hash("skylight")).random() > 0.4:
         sky_w = max(10, tile_size // 4)
         sky_h = max(8, tile_size // 5)
-        sky_x = cx - w // 5
-        sky_y = cy + h // 8
+        sky_x = cx - (w - wall_width) // 5
+        sky_y = cy + (h - wall_height) // 8
         pygame.draw.rect(surface, skylight_color,
                          (sky_x, sky_y, sky_w, sky_h))
-        # 天窗边框
         pygame.draw.rect(surface, chimney_dark,
                          (sky_x, sky_y, sky_w, sky_h), 1)
 
-    # *** 6. 楼层数字 (如果启用) ***
+    # 7. Building number
     if show_number and number:
-        font_size = min(w, h) // 2
+        font_size = min(w - wall_width, h - wall_height) // 2
         font = pygame.font.SysFont("arial", font_size, bold=True)
-        text = font.render(number, True, (255, 215, 0))  # 金黄色数字
+        text = font.render(number, True, (255, 215, 0))
         text_rect = text.get_rect(center=(cx, cy))
         surface.blit(text, text_rect)
 
-    # *** 7. 损坏效果 (屋顶破洞/缺失瓦片!) ***
+    # 8. South wall face
+    south_wall_rect = (0, h - wall_height, w, wall_height)
+    pygame.draw.rect(surface, wall_color, south_wall_rect)
+
+    # 9. East wall face
+    east_wall_rect = (w - wall_width, 0, wall_width, h)
+    pygame.draw.rect(surface, wall_color, east_wall_rect)
+
+    # 10. Corner pixel
+    corner_color = tuple(int(c * WALL_FACE_MULTIPLIER * 0.85) for c in red_tile_roof)
+    surface.set_at((w - wall_width, h - wall_height), corner_color)
+
     if damage.value >= DamageLevel.LIGHT_DAMAGE.value:
         crack_color = (40, 36, 32)
         rng = random.Random(hash(str(damage) + "farmhouse"))
         num_cracks = damage.value * 3
         for _ in range(num_cracks):
-            x1 = rng.randint(roof_margin + 5, w - roof_margin - 5)
-            y1 = rng.randint(roof_margin + 5, h - roof_margin - 5)
+            x1 = rng.randint(inner_roof[0] + 5, inner_roof[0] + inner_roof[2] - 5)
+            y1 = rng.randint(inner_roof[1] + 5, inner_roof[1] + inner_roof[3] - 5)
             length = rng.randint(5, 15)
             angle = rng.uniform(0, 2 * math.pi)
             x2 = x1 + int(length * math.cos(angle))
             y2 = y1 + int(length * math.sin(angle))
             pygame.draw.line(surface, crack_color, (x1, y1), (x2, y2), 1)
-        # 重度损坏: 屋顶缺失区域（暗色斑块）
         if damage.value >= DamageLevel.HEAVY_DAMAGE.value:
             for _ in range(damage.value):
-                hole_x = rng.randint(roof_margin + 8, w - roof_margin - 16)
-                hole_y = rng.randint(roof_margin + 8, h - roof_margin - 16)
+                hole_x = rng.randint(inner_roof[0] + 8, inner_roof[0] + inner_roof[2] - 16)
+                hole_y = rng.randint(inner_roof[1] + 8, inner_roof[1] + inner_roof[3] - 16)
                 hole_w = rng.randint(8, 16)
                 hole_h = rng.randint(8, 16)
                 pygame.draw.rect(surface, (30, 28, 24),
                                (hole_x, hole_y, hole_w, hole_h))
-
-    # Shadow strips (consistent with standard building rendering)
-    shadow_color = tuple(max(0, c - 50) for c in red_tile_roof)
-    shadow_width = max(2, tile_size // 12)
-    pygame.draw.rect(surface, shadow_color, (0, h - shadow_width, w, shadow_width))
-    pygame.draw.rect(surface, shadow_color, (w - shadow_width, 0, shadow_width, h))
 
     return surface
 
@@ -532,11 +554,21 @@ def _render_normandy_barn(
                 pygame.draw.rect(surface, (25, 22, 18),
                                (hole_x, hole_y, hole_w, hole_h))
 
-    # Shadow strips (consistent with standard building rendering)
-    shadow_color = tuple(max(0, c - 50) for c in barn_wood_roof)
-    shadow_width = max(2, tile_size // 12)
-    pygame.draw.rect(surface, shadow_color, (0, h - shadow_width, w, shadow_width))
-    pygame.draw.rect(surface, shadow_color, (w - shadow_width, 0, shadow_width, h))
+    # Shadow strips (consistent with standard building rendering, with gradient)
+    shadow_base_color = tuple(int(c * 0.7) for c in barn_wood_roof)
+    shadow_width = 4
+
+    # South shadow (bottom, gradient: darker at outer edge)
+    for i in range(shadow_width):
+        gradient_factor = 1.0 - (i / shadow_width) * 0.4
+        shadow_color = tuple(int(c * gradient_factor) for c in shadow_base_color)
+        pygame.draw.line(surface, shadow_color, (0, h - shadow_width + i), (w, h - shadow_width + i), 1)
+
+    # East shadow (right side, gradient: darker at outer edge)
+    for i in range(shadow_width):
+        gradient_factor = 1.0 - (i / shadow_width) * 0.4
+        shadow_color = tuple(int(c * gradient_factor) for c in shadow_base_color)
+        pygame.draw.line(surface, shadow_color, (w - shadow_width + i, 0), (w - shadow_width + i, h), 1)
 
     return surface
 
@@ -707,5 +739,262 @@ def _render_building_interior(
                 # 破洞边缘
                 pygame.draw.rect(surface, (60, 55, 48),
                                (hx, hy, hw, hh), 2)
+
+    return surface
+
+
+def _render_church(
+    surface: pygame.Surface, w: int, h: int, tile_size: int,
+    damage: DamageLevel, show_number: bool, number: str | None
+) -> pygame.Surface:
+    """渲染教堂 - CC2正交顶部俯视 (TOP-DOWN VIEW!)
+
+    教堂特征（纯俯视角度）:
+    - 矩形主体屋顶（无尖塔/三角形！俯视看不到尖塔侧面）
+    - 屋顶中心小十字架符号 (2px)
+    - 彩色玻璃: 4个彩色圆点 (蓝/红) 靠近十字架
+    - 同标准建筑的阴影条
+    - 损坏: 裂缝/破洞
+    """
+    import math
+
+    church_roof = (200, 200, 200)
+    church_roof_dark = (160, 160, 160)
+    cross_color = (220, 200, 180)
+
+    if damage == DamageLevel.LIGHT_DAMAGE:
+        church_roof = tuple(max(0, c - 20) for c in church_roof)
+        church_roof_dark = tuple(max(0, c - 25) for c in church_roof_dark)
+    elif damage == DamageLevel.HEAVY_DAMAGE:
+        church_roof = tuple(max(0, c - 45) for c in church_roof)
+        church_roof_dark = tuple(max(0, c - 50) for c in church_roof_dark)
+    elif damage == DamageLevel.DESTROYED:
+        church_roof = tuple(max(0, c - 70) for c in church_roof)
+        church_roof_dark = tuple(max(0, c - 75) for c in church_roof_dark)
+
+    cx, cy = w // 2, h // 2
+
+    roof_margin = tile_size // 8
+    body_rect = (roof_margin, roof_margin, w - 2 * roof_margin, h - 2 * roof_margin)
+    pygame.draw.rect(surface, church_roof, body_rect)
+
+    tile_rng = random.Random(hash("church_roof_tiles"))
+    for ty in range(body_rect[1] + 4, body_rect[1] + body_rect[3] - 2, tile_rng.randint(4, 6)):
+        pygame.draw.line(surface, church_roof_dark,
+                        (body_rect[0] + 2, ty),
+                        (body_rect[0] + body_rect[2] - 2, ty), 1)
+
+    ridge_y = cy
+    ridge_color = tuple(max(0, c - 25) for c in church_roof)
+    pygame.draw.line(surface, ridge_color,
+                    (body_rect[0] + 4, ridge_y),
+                    (body_rect[0] + body_rect[2] - 4, ridge_y), 1)
+
+    pygame.draw.line(surface, cross_color, (cx, cy - 3), (cx, cy + 3), 2)
+    pygame.draw.line(surface, cross_color, (cx - 2, cy - 1), (cx + 2, cy - 1), 2)
+
+    dot_offset = max(6, tile_size // 5)
+    stained_glass = [
+        (cx - dot_offset, cy - dot_offset // 2, (60, 80, 160)),
+        (cx + dot_offset, cy - dot_offset // 2, (160, 60, 60)),
+        (cx - dot_offset, cy + dot_offset // 2, (160, 60, 60)),
+        (cx + dot_offset, cy + dot_offset // 2, (60, 80, 160)),
+    ]
+    for dx, dy, color in stained_glass:
+        pygame.draw.circle(surface, color, (dx, dy), 2)
+
+    if show_number and number:
+        font_size = min(w, h) // 2
+        font = pygame.font.SysFont("arial", font_size, bold=True)
+        text = font.render(number, True, (255, 215, 0))
+        text_rect = text.get_rect(center=(cx, cy + tile_size // 4))
+        surface.blit(text, text_rect)
+
+    if damage.value >= DamageLevel.LIGHT_DAMAGE.value:
+        crack_color = (40, 36, 32)
+        rng = random.Random(hash(str(damage) + "church"))
+        num_cracks = damage.value * 3
+        for _ in range(num_cracks):
+            x1 = rng.randint(roof_margin + 5, w - roof_margin - 5)
+            y1 = rng.randint(roof_margin + 5, h - roof_margin - 5)
+            length = rng.randint(5, 15)
+            angle = rng.uniform(0, 2 * math.pi)
+            x2 = x1 + int(length * math.cos(angle))
+            y2 = y1 + int(length * math.sin(angle))
+            pygame.draw.line(surface, crack_color, (x1, y1), (x2, y2), 1)
+        if damage.value >= DamageLevel.HEAVY_DAMAGE.value:
+            for _ in range(damage.value):
+                hole_x = rng.randint(roof_margin + 8, w - roof_margin - 16)
+                hole_y = rng.randint(roof_margin + 8, h - roof_margin - 16)
+                hole_w = rng.randint(8, 16)
+                hole_h = rng.randint(8, 16)
+                pygame.draw.rect(surface, (0, 0, 0),
+                               (hole_x, hole_y, hole_w, hole_h))
+
+    shadow_base_color = tuple(int(c * 0.7) for c in church_roof)
+    shadow_width = 4
+
+    # South shadow (bottom, gradient: darker at outer edge)
+    for i in range(shadow_width):
+        gradient_factor = 1.0 - (i / shadow_width) * 0.4
+        shadow_color = tuple(int(c * gradient_factor) for c in shadow_base_color)
+        pygame.draw.line(surface, shadow_color, (0, h - shadow_width + i), (w, h - shadow_width + i), 1)
+
+    # East shadow (right side, gradient: darker at outer edge)
+    for i in range(shadow_width):
+        gradient_factor = 1.0 - (i / shadow_width) * 0.4
+        shadow_color = tuple(int(c * gradient_factor) for c in shadow_base_color)
+        pygame.draw.line(surface, shadow_color, (w - shadow_width + i, 0), (w - shadow_width + i, h), 1)
+
+    return surface
+
+
+def _render_wall(
+    surface: pygame.Surface, w: int, h: int, tile_size: int,
+    damage: DamageLevel
+) -> pygame.Surface:
+    """渲染石墙 - CC2正交顶部俯视 (TOP-DOWN VIEW!)
+
+    石墙特征（纯俯视角度）:
+    - 薄矩形 (width = 3px, length = tile width)
+    - 石块图案: 交替亮暗段 (1-2px each)
+    - 无侧面可见 — 只有墙顶面
+    - 损坏: 墙线中的缺口
+    """
+    wall_stone = (112, 112, 112)
+    wall_stone_light = (128, 128, 128)
+    wall_stone_dark = (85, 85, 85)
+
+    if damage == DamageLevel.LIGHT_DAMAGE:
+        wall_stone = tuple(max(0, c - 15) for c in wall_stone)
+    elif damage == DamageLevel.HEAVY_DAMAGE:
+        wall_stone = tuple(max(0, c - 35) for c in wall_stone)
+    elif damage == DamageLevel.DESTROYED:
+        wall_stone = tuple(max(0, c - 55) for c in wall_stone)
+
+    wall_thickness = 3
+    wall_y = h // 2 - wall_thickness // 2
+
+    rng_gaps = random.Random(hash(str(damage) + "wall_topdown"))
+    gaps = []
+    if damage.value >= DamageLevel.LIGHT_DAMAGE.value:
+        for _ in range(damage.value):
+            gap_x = rng_gaps.randint(4, w - 8)
+            gap_w = rng_gaps.randint(4, 8)
+            gaps.append((gap_x, gap_w))
+
+    segments = []
+    current_x = 0
+    for gap_x, gap_w in sorted(gaps):
+        if current_x < gap_x:
+            segments.append((current_x, gap_x - current_x))
+        current_x = gap_x + gap_w
+    if current_x < w:
+        segments.append((current_x, w - current_x))
+    if not gaps:
+        segments = [(0, w)]
+
+    for seg_x, seg_w in segments:
+        pygame.draw.rect(surface, wall_stone, (seg_x, wall_y, seg_w, wall_thickness))
+
+    stone_rng = random.Random(hash("wall_stone_topdown"))
+    for seg_x, seg_w in segments:
+        sx = seg_x
+        while sx < seg_x + seg_w:
+            seg_len = stone_rng.randint(2, 4)
+            is_light = stone_rng.random() > 0.5
+            seg_color = wall_stone_light if is_light else wall_stone_dark
+            seg_end = min(sx + seg_len, seg_x + seg_w)
+            pygame.draw.line(surface, seg_color, (sx, wall_y), (seg_end, wall_y), 1)
+            pygame.draw.line(surface, seg_color, (sx, wall_y + wall_thickness - 1), (seg_end, wall_y + wall_thickness - 1), 1)
+            if sx > seg_x:
+                pygame.draw.line(surface, (90, 88, 82), (sx, wall_y), (sx, wall_y + wall_thickness), 1)
+            sx = seg_end
+
+    pygame.draw.line(surface, wall_stone_light, (0, wall_y), (w, wall_y), 1)
+
+    if damage.value >= DamageLevel.LIGHT_DAMAGE.value:
+        for gap_x, gap_w in sorted(gaps):
+            for _ in range(rng_gaps.randint(2, 4)):
+                rx = gap_x + rng_gaps.randint(-2, gap_w + 2)
+                ry = wall_y + rng_gaps.randint(-3, wall_thickness + 3)
+                if 0 <= rx < w and 0 <= ry < h:
+                    pygame.draw.rect(surface, wall_stone_dark, (rx, ry, 1, 1))
+
+    return surface
+
+
+def _render_barn(
+    surface: pygame.Surface, w: int, h: int, tile_size: int,
+    damage: DamageLevel, show_number: bool, number: str | None
+) -> pygame.Surface:
+    """渲染谷仓 - CC2正交顶部俯视 (TOP-DOWN VIEW!)
+
+    谷仓特征（纯俯视角度）:
+    - 较大矩形 + 棕色屋顶
+    - 干草门 (一端较大的矩形)
+    - 同标准建筑的阴影条
+    """
+    barn_roof = CC2_ROOF_COLORS[CC2BuildingType.BARN]
+
+    if damage == DamageLevel.LIGHT_DAMAGE:
+        barn_roof = tuple(max(0, c - 20) for c in barn_roof)
+    elif damage == DamageLevel.HEAVY_DAMAGE:
+        barn_roof = tuple(max(0, c - 45) for c in barn_roof)
+    elif damage == DamageLevel.DESTROYED:
+        barn_roof = tuple(max(0, c - 70) for c in barn_roof)
+
+    surface.fill(barn_roof)
+
+    ridge_color = tuple(max(0, c - 25) for c in barn_roof)
+    pygame.draw.line(surface, ridge_color, (2, h // 2), (w - 2, h // 2), 1)
+
+    hayloft_color = tuple(max(0, c - 30) for c in barn_roof)
+    hayloft_w = max(8, w // 3)
+    hayloft_h = max(6, h // 5)
+    hayloft_x = w // 2 - hayloft_w // 2
+    hayloft_y = h - hayloft_h - 2
+    pygame.draw.rect(surface, hayloft_color, (hayloft_x, hayloft_y, hayloft_w, hayloft_h))
+    pygame.draw.rect(surface, tuple(max(0, c - 40) for c in barn_roof), (hayloft_x, hayloft_y, hayloft_w, hayloft_h), 1)
+
+    shadow_base_color = tuple(int(c * 0.7) for c in barn_roof)
+    shadow_width = 4
+
+    # South shadow (bottom, gradient: darker at outer edge)
+    for i in range(shadow_width):
+        gradient_factor = 1.0 - (i / shadow_width) * 0.4
+        shadow_color = tuple(int(c * gradient_factor) for c in shadow_base_color)
+        pygame.draw.line(surface, shadow_color, (0, h - shadow_width + i), (w, h - shadow_width + i), 1)
+
+    # East shadow (right side, gradient: darker at outer edge)
+    for i in range(shadow_width):
+        gradient_factor = 1.0 - (i / shadow_width) * 0.4
+        shadow_color = tuple(int(c * gradient_factor) for c in shadow_base_color)
+        pygame.draw.line(surface, shadow_color, (w - shadow_width + i, 0), (w - shadow_width + i, h), 1)
+
+    if show_number and number:
+        font_size = min(w, h) // 2
+        font = pygame.font.SysFont("arial", font_size, bold=True)
+        text = font.render(number, True, (255, 215, 0))
+        text_rect = text.get_rect(center=(w // 2, h // 2))
+        surface.blit(text, text_rect)
+
+    if damage.value >= DamageLevel.LIGHT_DAMAGE.value:
+        crack_color = (40, 36, 32)
+        rng = random.Random(hash(str(damage) + "barn"))
+        num_cracks = damage.value * 2
+        for _ in range(num_cracks):
+            x1 = rng.randint(5, w - 5)
+            y1 = rng.randint(5, h - 5)
+            x2 = x1 + rng.randint(-15, 15)
+            y2 = y1 + rng.randint(-15, 15)
+            pygame.draw.line(surface, crack_color, (x1, y1), (x2, y2), 1)
+        if damage.value >= DamageLevel.HEAVY_DAMAGE.value:
+            for _ in range(damage.value):
+                hole_x = rng.randint(5, w - 10)
+                hole_y = rng.randint(5, h - 10)
+                hole_w = rng.randint(4, 8)
+                hole_h = rng.randint(4, 8)
+                pygame.draw.rect(surface, (0, 0, 0), (hole_x, hole_y, hole_w, hole_h))
 
     return surface

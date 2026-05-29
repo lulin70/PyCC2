@@ -11,8 +11,11 @@ Reference: Original CC2 screenshot provided by user.
 
 from __future__ import annotations
 
+import logging
 import math
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 import pygame
 from pygame import Rect, Surface, draw, font
@@ -95,7 +98,7 @@ class CC2BottomPanel:
         self._on_command: callable | None = None
         self._on_zoom_change: callable | None = None
 
-        # Command buttons - CC2 complete 7-command system + End Battle
+        # Command buttons - CC2 complete 7-command system + Hide + End Battle
         self._commands: list[dict] = [
             {"id": "move", "label": "Move", "key": "Z", "enabled_when_selected": True},
             {"id": "fast", "label": "Fast", "key": "X", "enabled_when_selected": True},
@@ -103,6 +106,7 @@ class CC2BottomPanel:
             {"id": "attack", "label": "Attack", "key": "C", "enabled_when_selected": True},
             {"id": "smoke", "label": "Smoke", "key": "V", "enabled_when_selected": True, "needs_smoke_ammo": True},
             {"id": "defend", "label": "Defend", "key": "D", "enabled_when_selected": True},
+            {"id": "hide", "label": "Hide", "key": "H", "enabled_when_selected": True},
             {"id": "cancel", "label": "Cancel", "key": "ESC", "enabled_when_selected": False},  # Always available
             {"id": "end_battle", "label": "END BATTLE", "key": "E", "enabled_when_selected": False},  # Always available
         ]
@@ -118,10 +122,16 @@ class CC2BottomPanel:
         # Icon caches (populated in initialize)
         self._command_icons: dict[str, Surface] = {}
         self._roster_icons: dict[str, Surface] = {}
+        self._commander_portrait: Surface | None = None
 
         # Info toggle buttons state (ALL/STYLE/OUTLINE)
         self._info_mode: str = "ALL"
         self._info_button_rects: dict[str, Rect] = {}
+
+        # Soldier monitor right-click popup state
+        self._soldier_member_rects: list[tuple[Rect, object]] = []  # (rect, SquadMember)
+        self._active_popup_member: object | None = None  # SquadMember for detail popup
+        self._active_popup_rect: Rect | None = None
 
     def initialize(self) -> None:
         """Initialize fonts and icons."""
@@ -132,7 +142,8 @@ class CC2BottomPanel:
             self._font_normal = pygame.font.SysFont('consolas', 15)
             self._font_title = pygame.font.SysFont('consolas', 17)
             self._font_large = pygame.font.SysFont('consolas', 22, bold=True)
-        except Exception:
+        except Exception as e:
+            logging.debug(f"SysFont fallback to default fonts: {e}")
             self._font_small = pygame.font.Font(None, 16)
             self._font_normal = pygame.font.Font(None, 20)
             self._font_title = pygame.font.Font(None, 22)
@@ -140,6 +151,7 @@ class CC2BottomPanel:
 
         self._command_icons = self._create_command_icons()
         self._roster_icons = self._create_roster_icons()
+        self._commander_portrait = self._create_commander_portrait()
 
     def set_battle_timer(self, seconds: int) -> None:
         """Update the battle countdown timer."""
@@ -154,79 +166,120 @@ class CC2BottomPanel:
     # ------------------------------------------------------------------
 
     def _create_command_icons(self) -> dict[str, Surface]:
-        """Create 24x24 command button icons procedurally."""
+        """Create 24x24 command button icons procedurally - enhanced recognizable versions."""
         icons: dict[str, Surface] = {}
         bg = self.BG_COLOR
 
-        # move: green arrow pointing right
+        # Move (Z): Boot/footprint icon
         s = Surface((24, 24))
         s.fill(bg)
         green = (80, 220, 80)
-        # Arrow shaft
-        draw.rect(s, green, Rect(4, 10, 12, 4))
-        # Arrow head (triangle)
-        draw.polygon(s, green, [(16, 5), (22, 12), (16, 19)])
+        # Boot sole (horizontal rectangle)
+        draw.rect(s, green, Rect(6, 14, 12, 5))
+        # Boot upper (angled shape)
+        draw.polygon(s, green, [(8, 14), (14, 14), (12, 6), (10, 6)])
+        # Boot heel
+        draw.rect(s, green, Rect(6, 10, 4, 4))
+        # Sole tread lines
+        draw.line(s, (60, 180, 60), (7, 16), (17, 16), 1)
+        draw.line(s, (60, 180, 60), (7, 18), (17, 18), 1)
         icons["move"] = s
 
-        # fast: double arrow right
+        # Fast (X): Running figure with double arrows
         s = Surface((24, 24))
         s.fill(bg)
         bright_green = (100, 255, 100)
-        draw.rect(s, bright_green, Rect(2, 9, 8, 3))
-        draw.polygon(s, bright_green, [(10, 4), (16, 10), (10, 17)])
-        draw.rect(s, bright_green, Rect(12, 9, 5, 3))
-        draw.polygon(s, bright_green, [(17, 4), (23, 10), (17, 17)])
+        # Running figure - head
+        draw.circle(s, bright_green, (10, 4), 3)
+        # Body leaning forward
+        draw.line(s, bright_green, (10, 7), (12, 14), 2)
+        # Arms swinging
+        draw.line(s, bright_green, (10, 9), (6, 11), 2)
+        draw.line(s, bright_green, (10, 9), (15, 8), 2)
+        # Legs in running pose
+        draw.line(s, bright_green, (12, 14), (7, 19), 2)
+        draw.line(s, bright_green, (12, 14), (17, 19), 2)
+        # Speed lines
+        draw.line(s, (80, 200, 80), (3, 8), (3, 12), 1)
+        draw.line(s, (80, 200, 80), (5, 6), (5, 10), 1)
+        # Double arrow indicating speed
+        draw.polygon(s, bright_green, [(18, 10), (22, 13), (18, 16)])
+        draw.polygon(s, bright_green, [(20, 10), (24, 13), (20, 16)])
         icons["fast"] = s
 
-        # sneak: curved arrow (stealth)
+        # Sneak (S): Crouching figure
         s = Surface((24, 24))
         s.fill(bg)
         olive = (140, 180, 80)
-        # Curved path (approximated with line segments)
-        pts = [(4, 18), (6, 14), (9, 11), (13, 9), (17, 9)]
-        for i in range(len(pts) - 1):
-            draw.line(s, olive, pts[i], pts[i + 1], 2)
-        # Small arrowhead at end
-        draw.polygon(s, olive, [(17, 5), (22, 9), (17, 12)])
+        # Crouching head (lower position)
+        draw.circle(s, olive, (8, 10), 3)
+        # Crouched body (horizontal)
+        draw.line(s, olive, (8, 12), (16, 12), 2)
+        # Bent legs
+        draw.line(s, olive, (8, 12), (6, 16), 2)
+        draw.line(s, olive, (6, 16), (8, 19), 2)
+        # Arm reaching forward
+        draw.line(s, olive, (14, 12), (19, 10), 2)
+        # Stealth dots (quiet movement)
+        draw.circle(s, (100, 140, 60), (20, 18), 1)
+        draw.circle(s, (100, 140, 60), (22, 16), 1)
         icons["sneak"] = s
 
-        # attack: red crosshair
+        # Attack/Fire (C): Crosshair with center dot
         s = Surface((24, 24))
         s.fill(bg)
         red = (255, 60, 60)
         cx, cy = 12, 12
-        draw.circle(s, red, (cx, cy), 8, 1)
-        draw.circle(s, red, (cx, cy), 3, 1)
-        draw.line(s, red, (cx, cy - 10), (cx, cy - 4), 1)
-        draw.line(s, red, (cx, cy + 4), (cx, cy + 10), 1)
-        draw.line(s, red, (cx - 10, cy), (cx - 4, cy), 1)
-        draw.line(s, red, (cx + 4, cy), (cx + 10, cy), 1)
+        # Outer circle
+        draw.circle(s, red, (cx, cy), 9, 1)
+        # Inner circle
+        draw.circle(s, red, (cx, cy), 4, 1)
+        # Center dot
+        draw.circle(s, red, (cx, cy), 1)
+        # Crosshair lines extending beyond circles
+        draw.line(s, red, (cx, cy - 11), (cx, cy - 5), 1)
+        draw.line(s, red, (cx, cy + 5), (cx, cy + 11), 1)
+        draw.line(s, red, (cx - 11, cy), (cx - 5, cy), 1)
+        draw.line(s, red, (cx + 5, cy), (cx + 11, cy), 1)
         icons["attack"] = s
 
-        # smoke: gray cloud
+        # Smoke (V): Cloud/smoke puff shape
         s = Surface((24, 24))
         s.fill(bg)
         gray = (180, 180, 180)
         dark_gray = (140, 140, 140)
-        draw.circle(s, gray, (9, 14), 5)
-        draw.circle(s, gray, (15, 13), 6)
-        draw.circle(s, dark_gray, (12, 9), 5)
-        draw.circle(s, gray, (7, 10), 4)
+        light_gray = (210, 210, 210)
+        # Multiple overlapping circles for cloud effect
+        draw.circle(s, gray, (8, 15), 5)
+        draw.circle(s, light_gray, (14, 13), 6)
+        draw.circle(s, dark_gray, (11, 9), 5)
+        draw.circle(s, gray, (6, 11), 4)
+        draw.circle(s, light_gray, (18, 11), 3)
+        # Wispy top
+        draw.circle(s, dark_gray, (13, 6), 3)
+        # Base line (ground)
+        draw.line(s, (100, 100, 100), (3, 20), (21, 20), 1)
         icons["smoke"] = s
 
-        # defend: shield shape
+        # Defend (D): Shield with horizontal line
         s = Surface((24, 24))
         s.fill(bg)
         shield_color = (100, 160, 255)
-        # Shield outline
-        shield_pts = [(12, 2), (21, 7), (21, 14), (12, 22), (3, 14), (3, 7)]
-        draw.polygon(s, shield_color, shield_pts, 2)
-        # Inner fill (slightly transparent look via darker shade)
-        inner_pts = [(12, 5), (18, 9), (18, 13), (12, 19), (6, 13), (6, 9)]
-        draw.polygon(s, (50, 80, 140), inner_pts)
+        shield_dark = (50, 80, 140)
+        # Shield outline (wider shape)
+        shield_pts = [(12, 1), (22, 6), (22, 14), (12, 22), (2, 14), (2, 6)]
+        draw.polygon(s, shield_color, shield_pts)
+        # Inner fill
+        inner_pts = [(12, 4), (19, 8), (19, 13), (12, 19), (5, 13), (5, 8)]
+        draw.polygon(s, shield_dark, inner_pts)
+        # Chevron (V-shape pointing up) on shield
+        draw.polygon(s, (200, 220, 255), [(7, 7), (12, 13), (17, 7)])
+        draw.polygon(s, (200, 220, 255), [(7, 7), (12, 13), (17, 7)], 1)
+        # Shield border
+        draw.polygon(s, (140, 190, 255), shield_pts, 1)
         icons["defend"] = s
 
-        # cancel: red X
+        # Cancel: Red X
         s = Surface((24, 24))
         s.fill(bg)
         x_red = (255, 50, 50)
@@ -234,7 +287,7 @@ class CC2BottomPanel:
         draw.line(s, x_red, (19, 5), (5, 19), 3)
         icons["cancel"] = s
 
-        # end_battle: olive flag on pole
+        # End battle: Olive flag on pole
         s = Surface((24, 24))
         s.fill(bg)
         olive = (120, 140, 80)
@@ -246,93 +299,263 @@ class CC2BottomPanel:
         draw.polygon(s, (80, 100, 50), [(7, 3), (20, 5), (19, 13), (7, 11)], 1)
         icons["end_battle"] = s
 
+        # Hide (H): Eye with slash
+        s = Surface((24, 24))
+        s.fill(bg)
+        eye_color = (180, 200, 220)
+        # Eye outline (almond shape)
+        eye_pts = [(2, 12), (6, 7), (12, 6), (18, 7), (22, 12), (18, 17), (12, 18), (6, 17)]
+        draw.polygon(s, eye_color, eye_pts, 2)
+        # Pupil
+        draw.circle(s, (100, 150, 200), (12, 12), 3)
+        draw.circle(s, (40, 40, 40), (12, 12), 1)
+        # Slash through eye
+        draw.line(s, (255, 60, 60), (4, 4), (20, 20), 2)
+        icons["hide"] = s
+
         return icons
 
     def _create_roster_icons(self) -> dict[str, Surface]:
-        """Create 8x8 unit type thumbnail icons procedurally."""
+        """Create 16x16 unit type thumbnail icons procedurally - visually distinct per unit type."""
         icons: dict[str, Surface] = {}
         bg = self.BG_COLOR
 
-        # Infantry: green stick figure
-        s = Surface((8, 8))
+        # Infantry: Soldier silhouette (16x16)
+        s = Surface((16, 16))
         s.fill(bg)
         green = (80, 200, 80)
-        draw.circle(s, green, (4, 1), 1)       # head
-        draw.line(s, green, (4, 2), (4, 5), 1)  # body
-        draw.line(s, green, (2, 3), (6, 3), 1)  # arms
-        draw.line(s, green, (4, 5), (2, 7), 1)  # left leg
-        draw.line(s, green, (4, 5), (6, 7), 1)  # right leg
+        dark_green = (50, 150, 50)
+        # Helmet (semi-circle)
+        draw.ellipse(s, dark_green, (5, 1, 6, 4))
+        # Helmet brim
+        draw.line(s, dark_green, (4, 4), (12, 4), 1)
+        # Face
+        draw.rect(s, (200, 170, 140), (6, 4, 4, 2))
+        # Body/torso
+        draw.rect(s, green, (5, 6, 6, 5))
+        # Arms
+        draw.line(s, green, (5, 7), (3, 9), 1)
+        draw.line(s, green, (10, 7), (12, 9), 1)
+        # Legs
+        draw.line(s, dark_green, (6, 11), (5, 14), 2)
+        draw.line(s, dark_green, (9, 11), (10, 14), 2)
+        # Boots
+        draw.rect(s, (45, 38, 28), (4, 13, 2, 2))
+        draw.rect(s, (45, 38, 28), (9, 13, 2, 2))
+        # Rifle
+        draw.line(s, (60, 60, 60), (11, 6), (14, 3), 1)
         icons["infantry"] = s
 
-        # MG: green stick figure + thick line (weapon)
-        s = Surface((8, 8))
+        # MG: Gun shape (16x16)
+        s = Surface((16, 16))
         s.fill(bg)
-        draw.circle(s, green, (3, 1), 1)
-        draw.line(s, green, (3, 2), (3, 5), 1)
-        draw.line(s, green, (1, 3), (5, 3), 1)
-        draw.line(s, green, (3, 5), (1, 7), 1)
-        draw.line(s, green, (3, 5), (5, 7), 1)
-        draw.line(s, (200, 200, 80), (5, 3), (7, 3), 2)  # MG barrel
+        mg_green = (80, 200, 80)
+        mg_yellow = (200, 200, 80)
+        # Gunner silhouette (small)
+        draw.circle(s, mg_green, (5, 4), 2)
+        draw.rect(s, mg_green, (4, 6, 3, 4))
+        # MG barrel (thick horizontal line)
+        draw.line(s, mg_yellow, (7, 7), (15, 5), 2)
+        # MG body
+        draw.rect(s, (100, 100, 60), (7, 6, 4, 3))
+        # Bipod legs
+        draw.line(s, (80, 80, 50), (13, 6), (14, 10), 1)
+        draw.line(s, (80, 80, 50), (15, 5), (15, 10), 1)
+        # Ammo belt
+        draw.rect(s, (55, 50, 38), (3, 8, 3, 2))
         icons["mg"] = s
 
-        # Tank: gray rectangle
-        s = Surface((8, 8))
+        # Sniper: Soldier with long rifle (16x16)
+        s = Surface((16, 16))
         s.fill(bg)
-        gray = (160, 160, 170)
-        draw.rect(s, gray, Rect(1, 2, 6, 4))   # hull
-        draw.rect(s, gray, Rect(3, 1, 3, 2))    # turret
-        draw.line(s, (200, 200, 210), (5, 2), (7, 2), 1)  # barrel
-        icons["tank"] = s
-
-        # Commander: yellow diamond
-        s = Surface((8, 8))
-        s.fill(bg)
-        yellow = (255, 230, 80)
-        draw.polygon(s, yellow, [(4, 0), (7, 4), (4, 7), (1, 4)])
-        icons["commander"] = s
-
-        # AT: green stick figure + long line (anti-tank weapon)
-        s = Surface((8, 8))
-        s.fill(bg)
-        draw.circle(s, green, (3, 1), 1)
-        draw.line(s, green, (3, 2), (3, 5), 1)
-        draw.line(s, green, (1, 3), (5, 3), 1)
-        draw.line(s, green, (3, 5), (1, 7), 1)
-        draw.line(s, green, (3, 5), (5, 7), 1)
-        draw.line(s, (200, 100, 80), (5, 3), (7, 1), 1)  # AT launcher
-        icons["at"] = s
-
-        # Mortar: green stick figure + arc
-        s = Surface((8, 8))
-        s.fill(bg)
-        draw.circle(s, green, (3, 2), 1)
-        draw.line(s, green, (3, 3), (3, 6), 1)
-        draw.line(s, green, (1, 4), (5, 4), 1)
-        draw.line(s, green, (3, 6), (1, 7), 1)
-        draw.line(s, green, (3, 6), (5, 7), 1)
-        draw.arc(s, (200, 200, 80), Rect(4, 0, 4, 6), 0, math.pi / 2, 1)  # mortar arc
-        icons["mortar"] = s
-
-        # Sniper: green stick figure + long thin line
-        s = Surface((8, 8))
-        s.fill(bg)
-        draw.circle(s, green, (3, 1), 1)
-        draw.line(s, green, (3, 2), (3, 5), 1)
-        draw.line(s, green, (1, 3), (5, 3), 1)
-        draw.line(s, green, (3, 5), (1, 7), 1)
-        draw.line(s, green, (3, 5), (5, 7), 1)
-        draw.line(s, (180, 220, 255), (5, 3), (7, 2), 1)  # sniper rifle
+        green = (80, 200, 80)
+        dark_green = (50, 150, 50)
+        # Helmet (semi-circle)
+        draw.ellipse(s, dark_green, (4, 0, 6, 4))
+        draw.line(s, dark_green, (3, 3), (11, 3), 1)
+        # Face
+        draw.rect(s, (200, 170, 140), (5, 3, 4, 2))
+        # Body/torso (slightly hunched)
+        draw.rect(s, green, (4, 5, 6, 4))
+        # Arms - one forward holding rifle
+        draw.line(s, green, (4, 6), (2, 8), 1)
+        draw.line(s, green, (9, 6), (11, 5), 1)
+        # Long rifle extending far forward
+        draw.line(s, (60, 60, 60), (11, 5), (15, 1), 1)
+        # Scope on rifle
+        draw.rect(s, (100, 180, 255), (12, 3, 3, 2))
+        # Legs (kneeling/prone)
+        draw.line(s, dark_green, (5, 9), (4, 12), 2)
+        draw.line(s, dark_green, (8, 9), (10, 12), 2)
+        # Boots
+        draw.rect(s, (45, 38, 28), (3, 11, 2, 2))
+        draw.rect(s, (45, 38, 28), (9, 11, 2, 2))
         icons["sniper"] = s
 
-        # Medic: white cross
-        s = Surface((8, 8))
+        # Commander: Soldier with radio antenna (16x16)
+        s = Surface((16, 16))
+        s.fill(bg)
+        green = (80, 200, 80)
+        dark_green = (50, 150, 50)
+        gold = (255, 230, 80)
+        # Officer cap (flat top with brim)
+        draw.rect(s, dark_green, (4, 0, 7, 3))
+        draw.line(s, dark_green, (3, 3), (12, 3), 1)
+        # Cap badge (small gold dot)
+        draw.rect(s, gold, (7, 1, 2, 1))
+        # Face
+        draw.rect(s, (200, 170, 140), (5, 3, 4, 2))
+        # Body/torso
+        draw.rect(s, green, (4, 5, 6, 5))
+        # Arms - one raised holding radio
+        draw.line(s, green, (4, 6), (2, 8), 1)
+        draw.line(s, green, (9, 6), (12, 4), 1)
+        # Radio backpack
+        draw.rect(s, (70, 70, 80), (10, 4, 4, 5))
+        # Radio antenna (tall line from backpack)
+        draw.line(s, (180, 180, 190), (12, 4), (12, 0), 1)
+        # Antenna tip
+        draw.circle(s, (255, 230, 80), (12, 0), 1)
+        # Legs
+        draw.line(s, dark_green, (5, 10), (5, 13), 2)
+        draw.line(s, dark_green, (8, 10), (9, 13), 2)
+        # Boots
+        draw.rect(s, (45, 38, 28), (4, 12, 2, 2))
+        draw.rect(s, (45, 38, 28), (8, 12, 2, 2))
+        icons["commander"] = s
+
+        # Engineer: Wrench (16x16)
+        s = Surface((16, 16))
+        s.fill(bg)
+        wrench_silver = (180, 180, 190)
+        wrench_dark = (120, 120, 130)
+        # Wrench handle (diagonal)
+        draw.line(s, wrench_dark, (3, 13), (10, 6), 2)
+        # Wrench head (open end)
+        draw.line(s, wrench_silver, (8, 4), (10, 6), 2)
+        draw.line(s, wrench_silver, (10, 6), (12, 4), 2)
+        draw.line(s, wrench_silver, (8, 4), (9, 3), 1)
+        draw.line(s, wrench_silver, (12, 4), (13, 3), 1)
+        # Small figure
+        draw.circle(s, (80, 200, 80), (4, 3), 2)
+        draw.line(s, (80, 200, 80), (4, 5), (4, 8), 1)
+        icons["engineer"] = s
+
+        # AT: Rocket shape (16x16)
+        s = Surface((16, 16))
+        s.fill(bg)
+        rocket_red = (200, 80, 60)
+        rocket_dark = (150, 50, 40)
+        # Rocket body (horizontal)
+        draw.rect(s, rocket_red, (2, 6, 10, 4))
+        # Nose cone
+        draw.polygon(s, rocket_dark, [(12, 6), (15, 8), (12, 10)])
+        # Fins
+        draw.polygon(s, rocket_dark, [(2, 6), (4, 3), (5, 6)])
+        draw.polygon(s, rocket_dark, [(2, 10), (4, 13), (5, 10)])
+        # Exhaust flame
+        draw.line(s, (255, 200, 50), (1, 8), (0, 7), 1)
+        draw.line(s, (255, 200, 50), (1, 8), (0, 9), 1)
+        icons["at"] = s
+
+        # Mortar: Tube shape (16x16)
+        s = Surface((16, 16))
+        s.fill(bg)
+        tube_gray = (140, 140, 150)
+        tube_dark = (100, 100, 110)
+        # Tube (angled)
+        draw.line(s, tube_gray, (4, 14), (10, 4), 3)
+        # Muzzle opening
+        draw.circle(s, tube_dark, (10, 4), 2)
+        # Base plate
+        draw.rect(s, tube_dark, (2, 13, 4, 2))
+        # Bipod
+        draw.line(s, tube_dark, (6, 10), (3, 12), 1)
+        draw.line(s, tube_dark, (6, 10), (8, 13), 1)
+        icons["mortar"] = s
+
+        # Tank: Gray rectangle with turret (16x16)
+        s = Surface((16, 16))
+        s.fill(bg)
+        tank_gray = (160, 160, 170)
+        tank_dark = (120, 120, 130)
+        # Hull
+        draw.rect(s, tank_gray, (2, 8, 12, 5))
+        # Turret
+        draw.rect(s, tank_dark, (4, 5, 6, 4))
+        # Barrel
+        draw.line(s, (100, 100, 110), (10, 7), (15, 5), 2)
+        # Tracks
+        draw.rect(s, (80, 80, 90), (1, 12, 14, 2))
+        # Track details
+        for tx in range(2, 14, 3):
+            draw.line(s, (60, 60, 70), (tx, 12), (tx, 14), 1)
+        icons["tank"] = s
+
+        # Medic: White cross on green (16x16)
+        s = Surface((16, 16))
         s.fill(bg)
         white = (240, 240, 240)
-        draw.rect(s, white, Rect(3, 1, 2, 6))  # vertical bar
-        draw.rect(s, white, Rect(1, 3, 6, 2))  # horizontal bar
+        green_bg = (60, 120, 60)
+        # Green background circle
+        draw.circle(s, green_bg, (8, 8), 6)
+        # White cross
+        draw.rect(s, white, (6, 3, 4, 10))  # vertical bar
+        draw.rect(s, white, (3, 6, 10, 4))  # horizontal bar
         icons["medic"] = s
 
         return icons
+
+    def _create_commander_portrait(self) -> Surface:
+        """Create 24x24 commander portrait - pixel art face with beret/cap."""
+        s = Surface((24, 24))
+        bg = self.BG_COLOR
+        s.fill(bg)
+        skin = (210, 180, 150)
+        skin_dark = (185, 155, 125)
+        beret = (50, 80, 50)
+        beret_dark = (35, 55, 35)
+        eye_color = (40, 40, 40)
+        lip = (180, 130, 120)
+
+        # Beret (flat cap tilted to one side)
+        draw.ellipse(s, beret, (4, 1, 16, 6))
+        # Beret band
+        draw.rect(s, beret_dark, (5, 5, 14, 2))
+        # Beret badge (small gold circle)
+        draw.circle(s, (255, 230, 80), (8, 3), 1)
+
+        # Face (oval)
+        draw.ellipse(s, skin, (6, 5, 12, 12))
+        # Face shadow on right side
+        draw.ellipse(s, skin_dark, (13, 7, 4, 8))
+
+        # Eyes (two small dots)
+        draw.rect(s, eye_color, (8, 9, 2, 2))
+        draw.rect(s, eye_color, (14, 9, 2, 2))
+        # Eye whites (tiny highlight)
+        draw.rect(s, (240, 240, 240), (8, 9, 1, 1))
+        draw.rect(s, (240, 240, 240), (14, 9, 1, 1))
+
+        # Nose (small line)
+        draw.line(s, skin_dark, (11, 10), (11, 13), 1)
+
+        # Mouth
+        draw.line(s, lip, (9, 15), (13, 15), 1)
+
+        # Collar/shoulders
+        draw.rect(s, beret_dark, (4, 17, 16, 3))
+        # Collar V-neck
+        draw.polygon(s, skin, [(10, 17), (12, 17), (11, 20)])
+
+        # Rank insignia on collar (small gold bars)
+        draw.rect(s, (255, 230, 80), (5, 17, 3, 1))
+        draw.rect(s, (255, 230, 80), (16, 17, 3, 1))
+
+        # Border
+        draw.rect(s, self.BORDER_COLOR, (0, 0, 24, 24), 1)
+
+        return s
 
     def set_friendly_units(self, units: list[Unit]) -> None:
         """Set the list of friendly units for the roster."""
@@ -440,6 +663,35 @@ class CC2BottomPanel:
             if rect.collidepoint(x, y):
                 self._info_mode = mode
                 return f"info_mode:{mode}"
+
+        # If click is outside any soldier member rect, dismiss popup
+        if self._active_popup_member is not None:
+            self._active_popup_member = None
+            self._active_popup_rect = None
+
+        return None
+
+    def handle_right_click(self, screen_pos: tuple[int, int]) -> str | None:
+        """Handle right-click on panel. Shows soldier detail popup if clicked on a squad member.
+
+        Returns action string or None.
+        """
+        if not self._visible:
+            return None
+
+        x, y = screen_pos
+
+        # Check soldier monitor member rects
+        for rect, member in self._soldier_member_rects:
+            if rect.collidepoint(x, y):
+                self._active_popup_member = member
+                self._active_popup_rect = Rect(x, y, 1, 1)  # Position for popup
+                return f"soldier_detail:{getattr(member, 'member_id', '?')}"
+
+        # Click elsewhere dismisses popup
+        if self._active_popup_member is not None:
+            self._active_popup_member = None
+            self._active_popup_rect = None
 
         return None
 
@@ -558,18 +810,18 @@ class CC2BottomPanel:
             if is_selected:
                 draw.rect(surface, self.HIGHLIGHT_COLOR, Rect(x + 2, item_y, 2, self._roster_item_height))
 
-            # Unit type thumbnail icon (8x8)
+            # Unit type thumbnail icon (16x16)
             icon_key = self._map_unit_type_to_icon_key(unit)
             roster_icon = self._roster_icons.get(icon_key)
             if roster_icon:
-                surface.blit(roster_icon, (x + 7, item_y + 4))
+                surface.blit(roster_icon, (x + 5, item_y + 4))
 
             # Unit name (truncated) — Unit uses .name, not .display_name
             name = getattr(unit, 'display_name', None) or getattr(unit, 'name', 'Unknown')
-            name = str(name)[:14]
+            name = str(name)[:12]
             text_color = self.HIGHLIGHT_COLOR if is_selected else self.TEXT_COLOR
             name_surf = self._font_small.render(name, True, text_color)
-            surface.blit(name_surf, (x + 18, item_y + 5))
+            surface.blit(name_surf, (x + 23, item_y + 5))
 
             # Health bar with 1px dark border — HealthComponent uses .hp/.max_hp, not .current/.max
             hp_current = getattr(unit.health, 'hp', getattr(unit.health, 'current', 0))
@@ -638,10 +890,17 @@ class CC2BottomPanel:
         line_y = y + 5
         line_height = 18
 
+        # Commander portrait (24x24) if unit is commander/officer type
+        portrait_offset = 0
+        icon_key = self._map_unit_type_to_icon_key(unit)
+        if icon_key == 'commander' and self._commander_portrait:
+            surface.blit(self._commander_portrait, (x + 8, line_y))
+            portrait_offset = 28  # Shift title right to make room for portrait
+
         # Title — Unit uses .name, not .display_name
         display_name = getattr(unit, 'display_name', None) or getattr(unit, 'name', 'Unknown')
         title = self._font_title.render(str(display_name), True, self.HIGHLIGHT_COLOR)
-        surface.blit(title, (x + 8, line_y))
+        surface.blit(title, (x + 8 + portrait_offset, line_y))
         line_y += line_height + 5
 
         # Separator line under title
@@ -730,10 +989,45 @@ class CC2BottomPanel:
 
         Displays:
         - State icon (✓ healthy, ⚠ wounded, ✗ dead, ◉ pinned, ⚿ surrendered)
+        - Personal name (e.g., "Pvt. Johnson")
+        - Weapon type name (e.g., "M1 Garand", "Thompson")
         - HP bar for each member
-        - Role name (rifleman, mg_gunner, etc.)
+        - Ammo bar showing remaining ammo percentage
+        - Morale status text (Rallied/Wavering/Pinned/Broken/Routing)
         - Experience level
         """
+        # Weapon name mapping by role
+        WEAPON_NAMES = {
+            "rifleman": "M1 Garand",
+            "grenadier": "M1 Carbine",
+            "mg_gunner": "MG42",
+            "mg_assistant": "MG42",
+            "ammo_bearer": "M1 Garand",
+            "sniper": "Springfield",
+            "spotter": "M1 Garand",
+            "at_gunner": "Bazooka",
+            "at_assistant": "M1 Garand",
+            "mortar_gunner": "60mm Mortar",
+            "team_leader": "Thompson",
+            "commander": "Colt .45",
+            "officer": "Colt .45",
+            "gunner": "Thompson",
+            "loader": "M1 Garand",
+            "driver": "M1 Garand",
+            "assistant_driver": "M1 Garand",
+            "radioman": "M1 Garand",
+            "runner": "M1 Garand",
+        }
+
+        # Morale status text mapping
+        MORALE_STATUS = {
+            "healthy": "Rallied",
+            "wounded": "Wavering",
+            "pinned": "Pinned",
+            "dead": "Dead",
+            "surrendered": "Routing",
+        }
+
         # Separator line
         draw.line(surface, (45, 48, 55), (x, y), (x + w, y), 1)
         y += 3
@@ -761,13 +1055,33 @@ class CC2BottomPanel:
             "surrendered": (150, 150, 150),
         }
 
+        # Experience level labels
+        XP_LEVELS = [
+            (80, "Vet", (255, 215, 0)),
+            (50, "Reg", (100, 200, 255)),
+            (25, "Trn", (180, 180, 180)),
+            (0, "Rct", (150, 150, 150)),
+        ]
+
+        # Track member rects for right-click interaction
+        self._soldier_member_rects = []
+        start_y = y
+
         for member in members:
-            if y + member_line_h > y + h:
+            if y + member_line_h > start_y + h:
                 break
 
             state_name = member.state.value if hasattr(member.state, 'value') else str(member.state)
             icon = state_icons.get(state_name, "?")
             icon_color = state_colors.get(state_name, (180, 180, 180))
+
+            # Track clickable rect for this member
+            member_rect = Rect(x + 2, y, w - 4, member_line_h)
+            self._soldier_member_rects.append((member_rect, member))
+
+            # Highlight if this is the popup member
+            if member is self._active_popup_member:
+                draw.rect(surface, (50, 55, 70), member_rect)
 
             # State icon
             icon_surf = self._font_small.render(icon, True, icon_color)
@@ -777,26 +1091,154 @@ class CC2BottomPanel:
             personal_name = getattr(member, 'name', '')
             if not personal_name:
                 personal_name = getattr(member, 'role', '?')
-            display_name = personal_name[:14]
+            display_name = personal_name[:12]
             name_surf = self._font_small.render(display_name, True, self.TEXT_COLOR)
-            surface.blit(name_surf, (x + 20, y))
+            surface.blit(name_surf, (x + 18, y))
+
+            # Weapon type name
+            role = getattr(member, 'role', 'rifleman')
+            weapon_name = WEAPON_NAMES.get(role, "M1 Garand")
+            weapon_surf = self._font_small.render(weapon_name[:10], True, (150, 180, 210))
+            surface.blit(weapon_surf, (x + 95, y))
 
             # HP bar
             hp = getattr(member, 'hp', 0)
-            hp_bar_x = x + 80
-            hp_bar_w = w - 115
+            hp_bar_x = x + 155
+            hp_bar_w = 30
             hp_ratio = max(0, min(1, hp / 100))
             draw.rect(surface, (40, 42, 48), Rect(hp_bar_x, y + 2, hp_bar_w, 9))
             hp_color = (80, 200, 80) if hp_ratio > 0.5 else (255, 200, 50) if hp_ratio > 0.25 else (220, 60, 60)
             draw.rect(surface, hp_color, Rect(hp_bar_x, y + 2, int(hp_bar_w * hp_ratio), 9))
 
-            # Experience level
-            exp = getattr(member, 'experience', 0)
-            exp_grade = "G5" if exp >= 80 else "G4" if exp >= 60 else "G3" if exp >= 40 else "G2" if exp >= 20 else "G1"
-            exp_surf = self._font_small.render(exp_grade, True, (150, 150, 180))
-            surface.blit(exp_surf, (x + w - 30, y))
+            # Ammo bar (small bar showing remaining ammo percentage)
+            ammo_bar_x = hp_bar_x + hp_bar_w + 3
+            ammo_bar_w = 20
+            # Estimate ammo based on role and state
+            ammo_ratio = 1.0 if state_name == "healthy" else 0.6 if state_name == "wounded" else 0.0
+            draw.rect(surface, (40, 42, 48), Rect(ammo_bar_x, y + 2, ammo_bar_w, 9))
+            ammo_color = (100, 150, 255) if ammo_ratio > 0.5 else (200, 150, 50) if ammo_ratio > 0.2 else (200, 60, 60)
+            draw.rect(surface, ammo_color, Rect(ammo_bar_x, y + 2, int(ammo_bar_w * ammo_ratio), 9))
+
+            # Morale status text
+            morale_text = MORALE_STATUS.get(state_name, "?")
+            morale_color = state_colors.get(state_name, (180, 180, 180))
+            morale_surf = self._font_small.render(morale_text[:5], True, morale_color)
+            surface.blit(morale_surf, (x + w - 38, y))
+
+            # Experience level indicator
+            xp = getattr(member, 'experience', 0)
+            xp_label = "Rct"
+            xp_color = (150, 150, 150)
+            for threshold, label, color in XP_LEVELS:
+                if xp >= threshold:
+                    xp_label = label
+                    xp_color = color
+                    break
+            xp_surf = self._font_small.render(xp_label, True, xp_color)
+            surface.blit(xp_surf, (x + w - 60, y))
 
             y += member_line_h
+
+        # Render soldier detail popup if active
+        if self._active_popup_member is not None and self._active_popup_rect is not None:
+            self._render_soldier_detail_popup(surface, self._active_popup_member, self._active_popup_rect)
+
+    def _render_soldier_detail_popup(
+        self, surface: Surface, member: object, popup_pos: Rect
+    ) -> None:
+        """Render a detail popup for a right-clicked soldier.
+
+        Shows:
+        - Full name and rank
+        - Weapon and ammo count
+        - Health and morale status
+        - Experience level
+        """
+        popup_w = 180
+        popup_h = 90
+        # Position popup near the click, but keep it on screen
+        px = min(popup_pos.x, surface.get_width() - popup_w - 5)
+        py = min(popup_pos.y, surface.get_height() - popup_h - 5)
+        py = max(py, 5)
+
+        # Popup background
+        popup_rect = Rect(px, py, popup_w, popup_h)
+        draw.rect(surface, (25, 28, 35), popup_rect)
+        draw.rect(surface, (120, 130, 150), popup_rect, 1)
+        # Inner border
+        draw.rect(surface, (40, 44, 55), Rect(px + 1, py + 1, popup_w - 2, popup_h - 2), 1)
+
+        line_y = py + 5
+        line_h = 15
+
+        # Full name and rank
+        personal_name = getattr(member, 'name', '')
+        if not personal_name:
+            personal_name = getattr(member, 'role', 'Unknown')
+        name_surf = self._font_normal.render(str(personal_name), True, self.HIGHLIGHT_COLOR)
+        surface.blit(name_surf, (px + 8, line_y))
+        line_y += line_h
+
+        # Role
+        role = getattr(member, 'role', 'rifleman')
+        role_surf = self._font_small.render(f"Role: {role}", True, (180, 180, 180))
+        surface.blit(role_surf, (px + 8, line_y))
+        line_y += line_h
+
+        # Weapon
+        WEAPON_NAMES = {
+            "rifleman": "M1 Garand", "grenadier": "M1 Carbine",
+            "mg_gunner": "MG42", "mg_assistant": "MG42",
+            "ammo_bearer": "M1 Garand", "sniper": "Springfield",
+            "spotter": "M1 Garand", "at_gunner": "Bazooka",
+            "at_assistant": "M1 Garand", "mortar_gunner": "60mm Mortar",
+            "team_leader": "Thompson", "commander": "Colt .45",
+            "officer": "Colt .45", "gunner": "Thompson",
+            "loader": "M1 Garand", "driver": "M1 Garand",
+            "assistant_driver": "M1 Garand", "radioman": "M1 Garand",
+            "runner": "M1 Garand",
+        }
+        weapon_name = WEAPON_NAMES.get(role, "M1 Garand")
+        weapon_surf = self._font_small.render(f"Weapon: {weapon_name}", True, (150, 180, 210))
+        surface.blit(weapon_surf, (px + 8, line_y))
+        line_y += line_h
+
+        # Health
+        hp = getattr(member, 'hp', 0)
+        hp_color = (80, 200, 80) if hp > 50 else (255, 200, 50) if hp > 25 else (220, 60, 60)
+        hp_surf = self._font_small.render(f"HP: {hp}/100", True, hp_color)
+        surface.blit(hp_surf, (px + 8, line_y))
+        line_y += line_h
+
+        # State / Morale
+        state_name = member.state.value if hasattr(member.state, 'value') else str(member.state)
+        MORALE_STATUS = {
+            "healthy": "Rallied", "wounded": "Wavering",
+            "pinned": "Pinned", "dead": "Dead", "surrendered": "Routing",
+        }
+        morale_text = MORALE_STATUS.get(state_name, "?")
+        state_colors = {
+            "healthy": (80, 200, 80), "wounded": (255, 200, 50),
+            "pinned": (255, 220, 50), "dead": (200, 60, 60),
+            "surrendered": (150, 150, 150),
+        }
+        morale_color = state_colors.get(state_name, (180, 180, 180))
+        morale_surf = self._font_small.render(f"Morale: {morale_text}", True, morale_color)
+        surface.blit(morale_surf, (px + 8, line_y))
+        line_y += line_h
+
+        # Experience level
+        xp = getattr(member, 'experience', 0)
+        XP_LEVELS = [
+            (80, "Veteran"), (50, "Regular"), (25, "Trained"), (0, "Recruit"),
+        ]
+        xp_label = "Recruit"
+        for threshold, label in XP_LEVELS:
+            if xp >= threshold:
+                xp_label = label
+                break
+        xp_surf = self._font_small.render(f"XP: {xp} ({xp_label})", True, (200, 200, 200))
+        surface.blit(xp_surf, (px + 8, line_y))
 
     def _render_urgency_indicator(
         self, surface: Surface, x: int, y: int, w: int, h: int
@@ -1001,7 +1443,8 @@ class CC2BottomPanel:
         # Render timer text (monospace bold, centered)
         try:
             timer_font = pygame.font.SysFont('consolas', 18, bold=True)
-        except Exception:
+        except Exception as e:
+            logging.debug(f"Timer font fallback: {e}")
             timer_font = pygame.font.Font(None, 24)
 
         timer_text = timer_font.render(time_str, True, timer_color)

@@ -155,6 +155,16 @@ class Minimap:
             # Draw unit dot
             draw.circle(self._surface, color, (dot_x, dot_y), dot_radius)
 
+            # R9: Draw unit facing direction indicator
+            facing = getattr(unit, 'facing', 0.0)
+            if facing != 0.0 or True:  # Always draw direction
+                import math
+                facing_rad = math.radians(getattr(unit, 'facing', 0.0))
+                dir_len = dot_radius + 3
+                end_x = int(dot_x + math.cos(facing_rad) * dir_len)
+                end_y = int(dot_y + math.sin(facing_rad) * dir_len)
+                draw.line(self._surface, color, (dot_x, dot_y), (end_x, end_y), 1)
+
             # Draw selection highlight ring for selected unit
             if self._selected_unit_id and unit.unit_id == self._selected_unit_id:
                 highlight_radius = dot_radius + 2

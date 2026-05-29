@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
@@ -179,8 +182,8 @@ class Tooltip:
             
             surface.blit(tooltip_surface, (x, y))
             
-        except Exception:
-            pass  # Graceful degradation
+        except Exception as e:
+            logging.debug(f"Tooltip rendering failed: {e}")
 
     def _get_display_lines(self) -> list[tuple[str, tuple[int, int, int]]]:
         """Generate formatted text lines for display."""

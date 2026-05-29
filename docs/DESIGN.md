@@ -1,8 +1,8 @@
-# PyCC2 技术设计文档 (DESIGN) **v0.1.1**
+# PyCC2 技术设计文档 (DESIGN) **v0.3.0**
 
-> **项目**: Close Combat 2 Python 重写 | **阶段**: M1 — 紧急修复
-> **输入**: P2 ADD v1.0 (架构设计) + P1 PRD v1.0 (需求规格) + M1 修复方案
-> **文档版本**: v0.1.1 | **日期**: 2026-05-23
+> **项目**: Close Combat 2 Python 重写 | **阶段**: M2 — 核心功能完善已完成
+> **输入**: P2 ADD v1.0 (架构设计) + P1 PRD v1.0 (需求规格) + M1/M2 修复与新增方案
+> **文档版本**: v0.3.0 | **日期**: 2026-05-27
 
 ---
 
@@ -683,4 +683,269 @@ GameSettings ──→ SettingsApplier ──→ Unit/Combat/Campaign
         ├── LIMITED: ammo * 0.8, limited reinforcement
         ├── NORMAL: ammo * 1.0, standard reinforcement
         └── ABUNDANT: ammo * 1.2, extra reinforcement waves
+```
+
+---
+
+## 第10部分：胜利条件系统设计 (M2 新增)
+
+### 10.1 CC2原版胜利条件
+
+CC2原版采用三重胜利条件机制，PyCC2现已完整实现：
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    Victory Conditions                         │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  1. 即时VL占领 (Instant VL Capture)                          │
+│     ├── 占领所有敌方Victory Location → 立即胜利              │
+│     ├── VL被占领时立即判定，无需等待                          │
+│     └── 双方同时满足条件时，进攻方优先                        │
+│                                                              │
+│  2. 20分钟战斗计时器 (Battle Timer)                           │
+│     ├── 每场战斗限时20分钟实时                                │
+│     ├── 时间耗尽 → 按积分判定胜负                             │
+│     └── 计时器在HUD顶部显示                                   │
+│                                                              │
+│  3. 积分制评分 (Point Scoring)                                │
+│     ├── Bridge VL = 40分                                     │
+│     ├── Road VL = 30分                                       │
+│     ├── LZ VL = 20分                                         │
+│     ├── Regular VL = 10-19分                                 │
+│     ├── 时间耗尽时比较双方积分                                │
+│     └── 积分差距决定胜利等级: 决定性/中等/勉强                 │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### 10.2 胜利条件数据模型
+
+```python
+class VictoryConditionType(Enum):
+    INSTANT_VL_CAPTURE = "instant_vl_capture"    # 即时VL占领
+    TIMER_EXPIRY = "timer_expiry"                # 计时器到期
+    POINT_SCORING = "point_scoring"              # 积分制
+
+@dataclass
+class VictoryLocation:
+    id: str
+    position: TileCoord
+    value: int                    # 10-40分
+    owner: Faction | None         # None=中立
+    vl_type: VLType               # BRIDGE/ROAD/LZ/REGULAR
+
+@dataclass
+class BattleResult:
+    winner: Faction | None        # None=平局
+    victory_type: VictoryConditionType
+    margin: str                   # "decisive" / "moderate" / "marginal"
+    allied_score: int
+    axis_score: int
+    battle_duration_ticks: int
+```
+
+---
+
+## 第11部分：建筑驻守系统设计 (M2 新增)
+
+### 11.1 建筑驻守架构
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    Building Garrison System                    │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌─────────────────┐    ┌──────────────────────────────┐    │
+│  │  BUILDING_       │    │  BuildingGarrisonSystem      │    │
+│  │  ENTERABLE       │───→│                              │    │
+│  │  terrain tile    │    │  • enter_building(unit, tile) │    │
+│  │                  │    │  • exit_building(unit)        │    │
+│  │  capacity: 2-4   │    │  • get_garrison(tile)        │    │
+│  │  units           │    │  • get_defense_bonus(unit)   │    │
+│  └─────────────────┘    └──────────────────────────────┘    │
+│                                                              │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Defense Bonuses                                      │   │
+│  │  ├── Cover modifier: +0.50 (BUILDING_ENTERABLE)      │   │
+│  │  ├── Concealment: +0.30                              │   │
+│  │  ├── Suppression resistance: +25%                    │   │
+│  │  └── Incoming accuracy penalty: -20% for attackers   │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                              │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Window Firing Arc Restriction                        │   │
+│  │  ├── Each building has 1-4 windows (facing dirs)     │   │
+│  │  ├── Units can only fire through windows             │   │
+│  │  ├── Firing arc: 90° cone per window                 │   │
+│  │  └── Units must rotate to window to fire             │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### 11.2 窗户射击弧度
+
+```python
+@dataclass
+class BuildingWindow:
+    position: TileCoord           # 窗户所在瓦片
+    facing: Direction             # 窗户朝向 (N/NE/E/SE/S/SW/W/NW)
+    arc_degrees: float = 90.0    # 射击弧度
+
+    def is_in_firing_arc(self, target: Vec2) -> bool:
+        """检查目标是否在窗户射击弧度内"""
+        direction_to_target = (target - self.position.to_vec2()).normalized
+        facing_vec = Direction.to_vec2(self.facing)
+        angle = direction_to_target.angle_to(facing_vec)
+        return abs(angle) <= self.arc_degrees / 2
+
+@dataclass
+class GarrisonState:
+    building_tile: TileCoord
+    units: list[Unit]             # 当前驻守单位 (max 2-4)
+    windows: list[BuildingWindow] # 建筑窗户列表
+    is_enterable: bool = True
+```
+
+---
+
+## 第12部分：桥梁摧毁系统设计 (M2 新增)
+
+### 12.1 工兵炸桥架构
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    Bridge Destruction System                   │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌─────────────────┐    ┌──────────────────────────────┐    │
+│  │  BRIDGE          │    │  BridgeDestructionSystem     │    │
+│  │  terrain tile    │───→│                              │    │
+│  │                  │    │  • can_destroy(unit, tile)    │    │
+│  │  destroyable:    │    │  • destroy_bridge(tile)      │    │
+│  │    True          │    │  • is_destroyed(tile)        │    │
+│  │                  │    │                              │    │
+│  └─────────────────┘    └──────────────────────────────┘    │
+│                                                              │
+│  前提条件:                                                    │
+│  ├── 单位必须是Engineer类型                                   │
+│  ├── 单位必须在桥梁相邻瓦片上                                 │
+│  ├── 单位必须未被压制                                         │
+│  └── 炸桥需要5秒准备时间（150 ticks）                        │
+│                                                              │
+│  炸桥效果:                                                    │
+│  ├── BRIDGE tile → WATER tile (不可通过)                     │
+│  ├── 相邻桥梁瓦片也变为WATER                                  │
+│  ├── 桥上单位落入水中（阵亡）                                  │
+│  ├── VL价值归零（如桥梁上有VL）                               │
+│  └── EventBus.publish(BridgeDestroyedEvent)                  │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### 12.2 桥梁摧毁数据流
+
+```
+Engineer unit ──→ BridgeDestructionSystem.can_destroy()
+    │
+    ├── 条件检查:
+    │    ├── unit.unit_type == ENGINEER ✓
+    │    ├── adjacent_to_bridge ✓
+    │    ├── not suppressed ✓
+    │    └── bridge not already destroyed ✓
+    │
+    ├── 准备阶段 (150 ticks):
+    │    ├── unit.state = DEMOLISHING
+    │    ├── 进度条显示
+    │    └── 可被攻击打断
+    │
+    └── 执行炸桥:
+         ├── bridge_tile.terrain = WATER
+         ├── adjacent_bridge_tiles.terrain = WATER
+         ├── units_on_bridge → killed
+         ├── VL on bridge → value = 0
+         └── EventBus.publish(BridgeDestroyedEvent)
+```
+
+---
+
+## 第13部分：战役继承系统设计 (M2 新增)
+
+### 13.1 战斗间单位继承架构
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    Campaign Carryover System                   │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Battle 1 完成                                               │
+│  ├── 收集存活单位状态                                         │
+│  ├── 记录伤亡/弹药消耗/士气状态                               │
+│  └── 保存到 CampaignState.surviving_units                    │
+│           │                                                  │
+│           ▼                                                  │
+│  Campaign Day Briefing                                       │
+│  ├── 显示战略地图                                             │
+│  ├── 显示存活单位列表                                         │
+│  ├── 显示伤亡报告                                             │
+│  └── 预览下一场战斗                                           │
+│           │                                                  │
+│           ▼                                                  │
+│  Battle 2 部署                                               │
+│  ├── 从surviving_units加载存活单位                            │
+│  ├── 保留: 经验/士气/弹药/损伤状态                            │
+│  ├── 补充: 新增援单位（根据补给等级）                          │
+│  └── 移除: 阵亡/投降单位                                     │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### 13.2 继承数据模型
+
+```python
+@dataclass
+class UnitCarryoverState:
+    unit_id: str
+    template_id: str
+    faction: Faction
+    health_ratio: float          # 当前HP/最大HP
+    morale_value: int            # 当前士气值
+    ammo_remaining: int          # 剩余弹药
+    experience: ExperienceLevel  # 经验等级
+    kills: int                   # 累计击杀
+    battles_survived: int        # 存活战斗数
+
+@dataclass
+class CampaignState:
+    current_day: int             # 当前战役日 (1-9)
+    current_battle_index: int    # 当前战斗索引
+    surviving_units: dict[str, UnitCarryoverState]  # 存活单位
+    total_casualties: int        # 总伤亡
+    total_kills: int             # 总击杀
+    victory_locations_held: list[str]  # 已占领VL
+
+    def apply_battle_result(self, result: BattleResult) -> None:
+        """应用战斗结果，更新存活单位状态"""
+        ...
+
+    def get_reinforcements(self, supply: SupplyLevel) -> list[UnitCarryoverState]:
+        """根据补给等级获取增援单位"""
+        ...
+```
+
+### 13.3 战役结束画面
+
+```python
+@dataclass
+class CampaignResult:
+    winner: Faction
+    total_days: int
+    battles_fought: int
+    battles_won: int
+    total_casualties: int
+    total_kills: int
+    victory_locations_captured: int
+    units_survived: int
+    campaign_rating: str          # "Historic Victory" / "Marginal Victory" / etc.
 ```

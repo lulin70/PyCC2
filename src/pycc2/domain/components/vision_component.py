@@ -36,3 +36,21 @@ class VisionComponent:
 
     def clear_vision(self) -> None:
         self.visible_tiles.clear()
+
+    def effective_range(self, time_of_day: str | None = None, weather_modifier: float = 1.0) -> int:
+        """Get effective vision range after applying day/night and weather modifiers.
+
+        Args:
+            time_of_day: One of 'dawn', 'day', 'dusk', 'night'. None = no modifier.
+            weather_modifier: Multiplier from weather (1.0 = clear).
+        """
+        base = self.range_tiles
+        # R5: Night battle visibility reduction
+        tod_modifiers = {
+            'dawn': 0.9,
+            'day': 1.0,
+            'dusk': 0.8,
+            'night': 0.3,
+        }
+        tod_mod = tod_modifiers.get(time_of_day, 1.0) if time_of_day else 1.0
+        return max(1, int(base * tod_mod * weather_modifier))

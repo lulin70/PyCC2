@@ -91,8 +91,8 @@ class TestNewTerrainTypes:
     def test_crater_depression_height(self):
         assert TerrainType.CRATER.height == -1
 
-    def test_total_terrain_types_is_14(self):
-        assert len(TerrainType) == 14
+    def test_total_terrain_types_is_15(self):
+        assert len(TerrainType) == 22
 
 
 class TestCampaignSystem:

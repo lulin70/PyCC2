@@ -6,9 +6,12 @@ Supports hotkey binding (1=primary, 2=secondary, 3=melee) and cooldown managemen
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
@@ -76,8 +79,8 @@ class WeaponSwitchSystem:
                 accuracy=0.6,
             )
             self._weapons[WeaponSlot.SECONDARY] = secondary_weapon
-        except Exception:
-            pass
+        except Exception as e:
+            logging.warning(f"Secondary weapon init failed: {e}")
             
         try:
             melee_weapon = WeaponComponent(
@@ -89,8 +92,8 @@ class WeaponSwitchSystem:
                 is_melee=True,
             )
             self._weapons[WeaponSlot.MELEE] = melee_weapon
-        except Exception:
-            pass
+        except Exception as e:
+            logging.warning(f"Melee weapon init failed: {e}")
 
     @property
     def active_slot(self) -> WeaponSlot:

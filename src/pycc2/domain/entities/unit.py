@@ -4,9 +4,12 @@ Unit Entity - Core Game Unit
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 from pycc2.domain.components.fatigue_component import FatigueComponent
 from pycc2.domain.components.health_component import HealthComponent
@@ -18,6 +21,7 @@ from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
 if TYPE_CHECKING:
+    from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.squad import Squad
     from pycc2.domain.state_machine import StateMachine
     from pycc2.domain.systems.combat_mechanics_enhanced import (
@@ -79,6 +83,13 @@ class Unit:
     combat_state: CombatState | None = None
     move_target: "TileCoord | None" = field(default=None, init=False)  # Movement destination
     facing: float = 0.0  # Facing direction in degrees (0=East, 90=South, 180=West, 270=North)
+    current_building_pos: tuple[int, int] | None = None  # None = not in building; set when on BUILDING_ENTERABLE tile
+    building_floor: int = 0  # 0=ground, 1=2nd floor, 2=3rd floor, etc.
+
+    # R6: Vehicle fuel tracking
+    fuel: float = -1.0  # -1 = not a vehicle (infantry); vehicles start with max_fuel
+    max_fuel: float = 100.0
+    fuel_per_tile: float = 1.0  # Fuel consumed per tile moved
     
     # Movement mode system (for Fast Move, Sneak, Defend commands)
     _movement_mode: str = field(init=False, default="normal")  # normal, fast_move, sneak, defend
@@ -167,9 +178,7 @@ class Unit:
             self._movement_mode_ticks_remaining = -1  # Indefinite
         else:
             self._movement_mode_ticks_remaining = 0  # Immediate reset
-        
-        import logging
-        logger = logging.getLogger(__name__)
+
         if old_mode != mode:
             logger.info(
                 f"[COMMAND] {self.name or self.id} mode change: {old_mode} -> {mode}"
@@ -284,8 +293,8 @@ class Unit:
         elif cmd_type == 'attack':
             try:
                 self.state_machine.transition(UnitState.ATTACKING)
-            except Exception:
-                pass
+            except Exception as e:
+                logging.warning(f"Unit state transition to ATTACKING failed: {e}")
 
     def __post_init__(self) -> None:
         from pycc2.domain.state_machine import StateMachine
@@ -320,6 +329,9 @@ class Unit:
         if self.crew is None and self.unit_type == UnitType.TANK:
             from pycc2.domain.systems.vehicle_crew_system import VehicleCrew
             self.crew = VehicleCrew(self.id)
+        # R6: Initialize fuel for vehicle units
+        if self.fuel < 0 and self.unit_type == UnitType.TANK:
+            self.fuel = self.max_fuel
 
     @property
     def squad_size(self) -> int:
@@ -345,6 +357,13 @@ class Unit:
     @property
     def is_alive(self) -> bool:
         return self.health.is_alive
+
+    @property
+    def is_out_of_fuel(self) -> bool:
+        """R6: Check if vehicle is out of fuel (immobilized)."""
+        if self.fuel < 0:
+            return False  # Not a vehicle
+        return self.fuel <= 0
 
     @property
     def can_act(self) -> bool:
@@ -417,6 +436,24 @@ class Unit:
             return self.combat_state.concealment.calculate_total_concealment()
         return 0.0
 
+    def update_garrison_status(self, game_map: GameMap) -> None:
+        """Update building garrison status based on current tile terrain.
+
+        When a unit moves onto a BUILDING_ENTERABLE tile, it is considered
+        garrisoned inside the building. When it moves off, the garrison
+        status is cleared.
+        """
+        from pycc2.domain.value_objects.terrain_type import TerrainType
+        tc = self.position.tile_coord
+        if 0 <= tc.x < game_map.width and 0 <= tc.y < game_map.height:
+            terrain = game_map.get_terrain(tc)
+            if terrain == TerrainType.BUILDING_ENTERABLE:
+                self.current_building_pos = (tc.x, tc.y)
+            else:
+                self.current_building_pos = None
+        else:
+            self.current_building_pos = None
+
     def move_to_tile(self, tile: TileCoord) -> None:
         self.position.move_to_tile(tile)
 
@@ -427,8 +464,8 @@ class Unit:
         if self.state_machine.current != UnitState.MOVING:
             try:
                 self.state_machine.transition(UnitState.MOVING)
-            except Exception:
-                pass
+            except Exception as e:
+                logging.warning(f"Unit state transition to MOVING failed: {e}")
 
     def update_movement(self, dt: float = 1.0) -> bool:
         """
@@ -442,6 +479,15 @@ class Unit:
             self.move_target = None
             return True
 
+        # R6: Out of fuel vehicles cannot move
+        if self.is_out_of_fuel:
+            self.move_target = None
+            try:
+                self.state_machine.transition(UnitState.IDLE)
+            except Exception as e:
+                logger.debug("State transition to IDLE failed: %s", e)
+            return True
+
         # Get current and target positions
         current = self.position.tile_coord
         target = self.move_target
@@ -451,8 +497,8 @@ class Unit:
             self.move_target = None
             try:
                 self.state_machine.transition(UnitState.IDLE)
-            except Exception:
-                pass
+            except Exception as e:
+                logging.warning(f"Unit state transition to IDLE failed: {e}")
             return True  # Arrived!
 
         # Calculate direction
@@ -494,6 +540,9 @@ class Unit:
 
         if dist <= speed:
             # Close enough: snap to target
+            # R6: Consume fuel for vehicle movement
+            if self.fuel >= 0:
+                self.fuel = max(0.0, self.fuel - self.fuel_per_tile)
             self.move_to_tile(target)
             self.move_target = None
             # Check for queued commands before transitioning to IDLE
@@ -503,11 +552,14 @@ class Unit:
             else:
                 try:
                     self.state_machine.transition(UnitState.IDLE)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logging.warning(f"Unit state transition to IDLE (after move) failed: {e}")
             return True
         else:
             # Move toward target
+            # R6: Consume fuel for vehicle movement (partial tile)
+            if self.fuel >= 0:
+                self.fuel = max(0.0, self.fuel - self.fuel_per_tile * speed / max(dist, 1.0))
             move_x = int(dx / dist * speed)
             move_y = int(dy / dist * speed)
             new_tile = type(target)(

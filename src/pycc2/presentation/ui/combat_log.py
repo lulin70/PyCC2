@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.value_objects.tile_coord import TileCoord
@@ -185,8 +188,8 @@ class CombatLog:
                 surface.blit(text_surf, (position[0] + padding, position[1] + y_offset))
                 y_offset += line_height
                 
-        except Exception:
-            pass  # Graceful degradation
+        except Exception as e:
+            logging.debug(f"Combat log rendering failed: {e}")
     
     def render_fullscreen(self, surface, screen_size: tuple[int, int]) -> None:
         """
@@ -227,8 +230,8 @@ class CombatLog:
             
             surface.blit(panel, (x, 0))
             
-        except Exception:
-            pass
+        except Exception as e:
+            logging.debug(f"Combat log fullscreen rendering failed: {e}")
     
     @staticmethod
     def _get_event_color(event_type: CombatEventType) -> tuple[int, int, int]:

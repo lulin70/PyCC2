@@ -232,8 +232,8 @@ class InteractionController:
                         type_key = unit_type_str
                     
                     radius = type_radius.get(type_key, 20) * self._camera.zoom
-                except Exception:
-                    pass  # Use default radius
+                except Exception as e:
+                    logging.debug(f"Unit click radius lookup failed: {e}")
 
                 # Ensure minimum radius for easy clicking
                 radius = max(radius, 15 * self._camera.zoom)
@@ -492,12 +492,12 @@ class InteractionController:
         if self._keybind_manager:
             action = self._keybind_manager.get_action(key)
 
-        if action == 'move' or (not action and key == pygame.K_m):
-            # Move: M (legacy) or custom key
+        if action == 'move' or (not action and key == pygame.K_z):
+            # Move: Z (CC2 standard) or custom key
             self._mode = InteractionMode.MOVE
             self.cursor_manager.set_cursor(CursorType.MOVE)
-        elif action == 'fire' or (not action and key == pygame.K_a):
-            # Fire/Attack: A (legacy) or custom key
+        elif action == 'fire' or (not action and key == pygame.K_c):
+            # Fire/Attack: C (CC2 standard) or custom key
             self._mode = InteractionMode.ATTACK
             self.cursor_manager.set_cursor(CursorType.ATTACK)
         elif action == 'cancel' or key == pygame.K_ESCAPE:
@@ -507,7 +507,7 @@ class InteractionController:
             if self._on_deselect:
                 self._on_deselect()
         elif action == 'sneak' or (not action and key == pygame.K_s):
-            # Sneak command
+            # Sneak command: S (CC2 standard) or custom key
             self.cursor_manager.set_cursor(CursorType.MOVE)
             self._event_bus.publish(
                 {
@@ -515,8 +515,8 @@ class InteractionController:
                     "unit_ids": list(self._selected_ids),
                 }
             )
-        elif action == 'smoke' or (not action and key == pygame.K_k):
-            # Smoke: K (legacy) or custom key
+        elif action == 'smoke' or (not action and key == pygame.K_v):
+            # Smoke: V (CC2 standard) or custom key
             self.cursor_manager.set_cursor(CursorType.SMOKE)
             self._event_bus.publish(
                 {
@@ -525,15 +525,15 @@ class InteractionController:
                 }
             )
         elif action == 'defend' or (not action and key == pygame.K_d):
-            # Defend command
+            # Defend command: D (CC2 standard) or custom key
             self._event_bus.publish(
                 {
                     "command": "defend",
                     "unit_ids": list(self._selected_ids),
                 }
             )
-        elif action == 'move_fast' or (not action and key == pygame.K_f):
-            # Fast Move: F (legacy) or custom key
+        elif action == 'move_fast' or (not action and key == pygame.K_x):
+            # Fast Move: X (CC2 standard) or custom key
             self._event_bus.publish(
                 {
                     "command": "fast_move",
@@ -541,7 +541,7 @@ class InteractionController:
                 }
             )
         elif action == 'hide' or (not action and key == pygame.K_h):
-            # Hide command
+            # Hide command: H (CC2 standard) or custom key
             self._event_bus.publish(
                 {
                     "command": "hide",

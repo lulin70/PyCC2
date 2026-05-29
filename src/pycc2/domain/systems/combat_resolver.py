@@ -3,14 +3,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from pycc2.domain.systems.morale_sys import MoraleEvent
+from pycc2.domain.systems.morale_system import MoraleEvent
 from pycc2.domain.systems.spatial_hash import SpatialHash
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.systems.ballistic import BallisticEngine, ShotResult
-    from pycc2.domain.systems.morale_sys import MoraleCalculator
+    from pycc2.domain.systems.morale_system import MoraleCalculator
     from pycc2.services.event_bus import EventBus
     from pycc2.services.random_context import RandomContext
 
@@ -62,7 +62,20 @@ class CombatResolver:
         if not shot_result.hit:
             return morale_result
 
-        actual_damage = target.take_damage(int(shot_result.damage_dealt))
+        # Building garrison hard cover bonus: reduce incoming damage by 50%
+        damage_amount = int(shot_result.damage_dealt)
+        if target.current_building_pos is not None:
+            # R1: Multi-floor combat modifiers
+            # Upper floors: better LOS (already in building) but more vulnerable to artillery
+            floor = getattr(target, 'building_floor', 0)
+            if floor > 0:
+                # Upper floor: less cover from direct fire (windows expose more)
+                cover_reduction = 1.0 - floor * 0.15  # 15% less cover per floor
+                damage_amount = max(1, int(damage_amount * (1.0 - 0.5 * cover_reduction)))
+            else:
+                damage_amount = max(1, damage_amount // 2)
+
+        actual_damage = target.take_damage(damage_amount)
 
         if self.event_bus is not None:
             event: dict = {
@@ -105,6 +118,15 @@ class CombatResolver:
         suppression_amount = int(shot_result.suppression_dealt)
         if suppression_amount <= 0:
             return
+
+        # Building garrison bonus: reduce suppression accumulation by 40%
+        if target.current_building_pos is not None:
+            suppression_amount = max(1, int(suppression_amount * 0.6))
+
+        # R3: Veteran units resist suppression better
+        if target.veterancy is not None:
+            resist = target.veterancy.morale_resistance  # 1.0 recruit, 1.35 elite
+            suppression_amount = max(1, int(suppression_amount / resist))
 
         old_morale = target.morale.value
         target.morale.add_suppression(suppression_amount)

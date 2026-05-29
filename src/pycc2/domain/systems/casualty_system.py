@@ -6,10 +6,13 @@ and morale impact from untreated casualties.
 
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
@@ -287,8 +290,8 @@ class Casualty:
             from pycc2.domain.entities.unit import UnitState
             try:
                 self._unit.state_machine.force_state(UnitState.DEAD)
-            except Exception:
-                pass
+            except Exception as e:
+                logging.warning(f"Casualty state transition to DEAD failed: {e}")
                 
         # Apply morale penalty to squad
         morale_penalty = self._config.morale_death_penalty

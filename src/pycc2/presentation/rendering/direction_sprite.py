@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 import math
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 import pygame
 
@@ -301,8 +304,8 @@ class DirectionSpriteManager:
             )
             try:
                 sprite_set.load_from_spritesheet(default_path)
-            except Exception:
-                pass
+            except Exception as e:
+                logging.debug(f"Spritesheet load failed: {e}")
 
         if not sprite_set.is_loaded:
             self._generate_placeholder(sprite_set, unit_type, faction)

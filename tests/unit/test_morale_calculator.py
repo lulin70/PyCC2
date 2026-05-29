@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from pycc2.domain.components.morale_component import MoraleComponent, MoraleState
-from pycc2.domain.systems.morale_sys import (
+from pycc2.domain.systems.morale_system import (
     MoraleCalculator,
     MoraleEvent,
 )

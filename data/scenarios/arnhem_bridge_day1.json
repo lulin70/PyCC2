@@ -43,5 +43,6 @@
     {"id": "vl_bridge_s", "position": [25, 28], "value": 30, "type": "bridge"},
     {"id": "vl_north_bank", "position": [25, 10], "value": 20, "type": "road_junction"}
   ],
-  "special_rules": ["bridge_destructible", "no_air_support"]
+  "special_rules": ["bridge_destructible", "no_air_support"],
+  "attacker_faction": "allied"
 }

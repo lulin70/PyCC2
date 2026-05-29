@@ -111,6 +111,11 @@
         ]
       },
       "description": "Special gameplay rules that modify standard battle mechanics"
+    },
+    "attacker_faction": {
+      "type": "string",
+      "enum": ["allied", "axis"],
+      "description": "Which faction is the attacker (gets more requisition points but must capture VLs). Auto-detected from deployment zones if not specified. Defaults to 'allied' for Market Garden."
     }
   },
   "additionalProperties": false,

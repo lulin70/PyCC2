@@ -497,7 +497,7 @@ class TestCompleteBattleFlow:
     def test_full_combat_resolution_flow(self):
         """Test a complete combat engagement from spotting to damage."""
         from pycc2.domain.systems.ballistic import BallisticEngine
-        from pycc2.domain.systems.morale_sys import MoraleCalculator
+        from pycc2.domain.systems.morale_system import MoraleCalculator
         from pycc2.services.random_context import RandomContext
 
         game_map = _make_map()

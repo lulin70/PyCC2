@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
@@ -144,8 +147,8 @@ class RangeIndicator:
                      int(screen_pos[1]) - max_radius - 2),
                 )
                 
-        except Exception:
-            pass  # Graceful degradation
+        except Exception as e:
+            logging.debug(f"Range indicator rendering failed: {e}")
 
     def contains_point(
         self,

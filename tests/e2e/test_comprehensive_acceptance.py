@@ -499,14 +499,14 @@ class TestStageDSevenCommands:
         units = [ally_unit]
         sp = ic.camera.world_to_screen(ally_unit.position.pixel_position)
         ic.handle_left_click(sp, units)
-        ic.handle_shortcut_key(pygame.K_m)
+        ic.handle_shortcut_key(pygame.K_z)
         assert ic.mode == InteractionMode.MOVE
 
     def test_d02_move_command_sets_target(self, ic, ally_unit):
         units = [ally_unit]
         sp = ic.camera.world_to_screen(ally_unit.position.pixel_position)
         ic.handle_left_click(sp, units)
-        ic.handle_shortcut_key(pygame.K_m)
+        ic.handle_shortcut_key(pygame.K_z)
         targets = []
         ic.register_on_move(lambda ids, t: targets.append((ids, t)))
         ic.handle_left_click((400.0, 400.0), units)
@@ -544,7 +544,7 @@ class TestStageDSevenCommands:
         ic.handle_left_click(sp, units)
         received = []
         event_bus.subscribe(dict, lambda e: received.append(e))
-        ic.handle_shortcut_key(pygame.K_k)
+        ic.handle_shortcut_key(pygame.K_v)
         smoke_events = [e for e in received if isinstance(e, dict) and e.get("command") == "smoke"]
         assert len(smoke_events) >= 1
         assert ally_unit.id in smoke_events[0]["unit_ids"]
@@ -576,7 +576,7 @@ class TestStageDSevenCommands:
         ic.handle_left_click(sp, units)
         received = []
         event_bus.subscribe(dict, lambda e: received.append(e))
-        ic.handle_shortcut_key(pygame.K_f)
+        ic.handle_shortcut_key(pygame.K_x)
         fast_events = [e for e in received if isinstance(e, dict) and e.get("command") == "fast_move"]
         assert len(fast_events) >= 1
 
@@ -601,7 +601,7 @@ class TestStageDSevenCommands:
         assert len(fast_events) >= 1
 
     def test_d13_all_seven_commands_defined_in_panel(self, bottom_panel):
-        expected_cmds = {"move", "fast", "sneak", "attack", "smoke", "defend", "cancel", "end_battle"}
+        expected_cmds = {"move", "fast", "sneak", "attack", "smoke", "defend", "hide", "cancel", "end_battle"}
         actual_cmds = {cmd["id"] for cmd in bottom_panel._commands}
         assert expected_cmds == actual_cmds
 
@@ -1103,6 +1103,7 @@ class TestStageIUIDetailCheck:
             "attack": "C",
             "smoke": "V",
             "defend": "D",
+            "hide": "H",
             "cancel": "ESC",
             "end_battle": "E",
         }
@@ -1282,7 +1283,7 @@ class TestFullIntegrationJourney:
         selected = ic.handle_left_click(sp, units)
         assert ally.id in selected
 
-        ic.handle_shortcut_key(pygame.K_m)
+        ic.handle_shortcut_key(pygame.K_z)
         assert ic.mode == InteractionMode.MOVE
 
         move_received = []
@@ -1353,7 +1354,7 @@ class TestFullIntegrationJourney:
         ic.handle_left_click(sp, units)
         assert ally_unit.id in ic.selected_unit_ids
 
-        ic.handle_shortcut_key(pg.K_m)
+        ic.handle_shortcut_key(pg.K_z)
         assert ic.mode == InteractionMode.MOVE
 
         moves = []

@@ -248,16 +248,16 @@ class TestHandleRightClick:
 
 
 class TestShortcutKeys:
-    def test_key_m_sets_move_mode(self, interaction_controller):
+    def test_key_z_sets_move_mode(self, interaction_controller):
         import pygame
 
-        interaction_controller.handle_shortcut_key(pygame.K_m)
+        interaction_controller.handle_shortcut_key(pygame.K_z)
         assert interaction_controller.mode == InteractionMode.MOVE
 
-    def test_key_a_sets_attack_mode(self, interaction_controller):
+    def test_key_c_sets_attack_mode(self, interaction_controller):
         import pygame
 
-        interaction_controller.handle_shortcut_key(pygame.K_a)
+        interaction_controller.handle_shortcut_key(pygame.K_c)
         assert interaction_controller.mode == InteractionMode.ATTACK
 
     def test_key_esc_clears_selection(self, interaction_controller, sample_units):
@@ -279,7 +279,7 @@ class TestShortcutKeys:
             sample_units[0].position.pixel_position
         )
         interaction_controller.handle_left_click(screen, sample_units)
-        interaction_controller.handle_shortcut_key(pygame.K_m)
+        interaction_controller.handle_shortcut_key(pygame.K_z)
         assert len(interaction_controller.selected_unit_ids) > 0
 
 

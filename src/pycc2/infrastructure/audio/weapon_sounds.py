@@ -5,8 +5,11 @@ waveform synthesis. No external sound files are needed.
 """
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import ClassVar
+
+logger = logging.getLogger(__name__)
 
 import numpy as np
 
@@ -191,8 +194,8 @@ class WeaponSoundGenerator:
                 mixer.init(frequency=cls.SAMPLE_RATE, size=-16, channels=1, buffer=512)
             sound = mixer.Sound(array=scaled)
             sound.play()
-        except Exception:
-            pass  # pygame unavailable – sound was generated but not played
+        except Exception as e:
+            logging.info(f"Weapon sound playback failed: {e}")
 
     # ------------------------------------------------------------------
     # Weapon-specific generators

@@ -429,6 +429,17 @@ class GameLoop:
         )
         self._combat_director.process_effects(renderer=self.renderer, camera=self.state.camera)
 
+        # Process queued commands for units that completed their current command
+        # (movement arrival is handled in Unit.update_movement(); this handles
+        # attack/reload completion and other IDLE transitions with queued commands)
+        for unit in self.state.units:
+            if not unit.is_alive:
+                continue
+            if unit.state_machine.current == UnitState.IDLE and unit.has_queued_commands:
+                next_cmd = unit.get_next_queued_command()
+                if next_cmd is not None:
+                    unit._execute_queued_command(next_cmd)
+
         # Trigger combat popups for significant events
         self._process_combat_popups()
 

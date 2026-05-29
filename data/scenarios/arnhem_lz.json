@@ -48,5 +48,6 @@
     {"id": "vl_lz_charlie", "position": [18, 22], "value": 30, "type": "landing_zone"},
     {"id": "vl_crossroads", "position": [18, 15], "value": 20, "type": "road_junction"}
   ],
-  "special_rules": ["airdrop_deployment", "initial_scatter", "lz_must_hold_for_reinforcements", "no_air_support"]
+  "special_rules": ["airdrop_deployment", "initial_scatter", "lz_must_hold_for_reinforcements", "no_air_support"],
+  "attacker_faction": "allied"
 }

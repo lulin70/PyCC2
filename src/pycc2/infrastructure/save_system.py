@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import hashlib
 import hmac
 import json
@@ -10,6 +11,8 @@ from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 class SaveSlotStatus(Enum):
@@ -63,8 +66,8 @@ class SecureSaveManager:
         if env_key:
             try:
                 return env_key.encode("utf-8")
-            except Exception:
-                pass
+            except Exception as e:
+                logging.info(f"HMAC key from env failed: {e}")
         config_path = Path(__file__).resolve().parent.parent / "config" / "secrets.toml"
         if config_path.exists():
             try:
@@ -73,8 +76,8 @@ class SecureSaveManager:
                     if line.startswith("hmac_key") and "=" in line:
                         key_val = line.split("=", 1)[1].strip().strip('"').strip("'")
                         return key_val.encode("utf-8")
-            except Exception:
-                pass
+            except Exception as e:
+                logging.info(f"HMAC key from config failed: {e}")
         import warnings
 
         is_production = os.environ.get("PYCC2_ENV", "").lower() == "production"
@@ -151,7 +154,8 @@ class SecureSaveManager:
                 f.write(final_json)
 
             return True
-        except Exception:
+        except Exception as e:
+            logging.info(f"Save game failed: {e}")
             return False
 
     def load_game(self, slot: int) -> tuple[dict | None, SaveMetaData | None, SaveSlotStatus]:

@@ -170,7 +170,7 @@ class TestPanelLayout:
 @pytest.mark.unit
 class TestCommandButtons:
 
-    EXPECTED_IDS = ["move", "fast", "sneak", "attack", "smoke", "defend", "cancel", "end_battle"]
+    EXPECTED_IDS = ["move", "fast", "sneak", "attack", "smoke", "defend", "hide", "cancel", "end_battle"]
 
     def test_command_buttons_exist(self, panel):
         ids = [cmd["id"] for cmd in panel._commands]

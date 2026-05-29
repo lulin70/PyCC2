@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.systems.campaign_state import CampaignState
@@ -173,8 +176,8 @@ class StrategicMapView:
             
             surface.blit(bg, (0, 0))
             
-        except Exception:
-            pass  # Graceful degradation
+        except Exception as e:
+            logging.debug(f"Strategic map rendering failed: {e}")
     
     def get_sector(self, sector_id: str) -> Sector | None:
         """Get sector by ID."""

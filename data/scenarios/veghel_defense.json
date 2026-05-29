@@ -47,5 +47,6 @@
     {"id": "vl_veghel_village", "position": [14, 12], "value": 40, "type": "building"},
     {"id": "vl_veghel_crossroads", "position": [10, 20], "value": 30, "type": "road_junction"}
   ],
-  "special_rules": ["corridor_must_remain_open", "defender_advantage", "limited_air_support"]
+  "special_rules": ["corridor_must_remain_open", "defender_advantage", "limited_air_support"],
+  "attacker_faction": "axis"
 }

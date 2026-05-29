@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 import math
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
@@ -250,8 +253,8 @@ class PathPreview:
                     text_surf = font.render(time_text, True, (255, 255, 255))
                     surface.blit(text_surf, (end_screen[0] + 5, end_screen[1] - 5))
                     
-        except Exception:
-            pass  # Graceful degradation if pygame not available
+        except Exception as e:
+            logging.debug(f"Path preview rendering failed: {e}")
 
     @staticmethod
     def _draw_dashed_line(
@@ -286,8 +289,8 @@ class PathPreview:
                 y2 = start[1] + dy * end_frac
                 
                 pygame.draw.line(surface, color[:3], (x1, y1), (x2, y2), 2)
-        except Exception:
-            pass
+        except Exception as e:
+            logging.debug(f"Dashed line draw failed: {e}")
 
     def estimate_total_time(self, path: PreviewPath | None = None) -> float:
         """Estimate total movement time for path."""

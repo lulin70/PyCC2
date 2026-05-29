@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 import math
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
@@ -76,6 +79,9 @@ class AttackLineSystem:
     def __init__(self) -> None:
         self.state = AttackLineState()
         self._confirmed_attacks: dict[str, AttackTarget] = {}  # unit_id -> locked target
+        # R8: Attack line fade-out animation
+        self._fading_lines: list[dict] = []  # [{source, target, color, alpha, start_tick}]
+        self._fade_duration_ms: int = 1500  # 1.5 seconds fade
 
     def begin_attack(self, unit_id: str, source_pos: Vec2) -> None:
         """Start drawing attack line from this unit."""
@@ -247,8 +253,8 @@ class AttackLineSystem:
                     cover_level = getattr(tile, 'cover_level', 0)
                     concealment = getattr(tile, 'concealment', 0)
                     cover_penalty = (cover_level * 0.15 + concealment * 0.10)
-            except Exception:
-                pass
+            except Exception as e:
+                logging.debug(f"Cover penalty calculation failed: {e}")
 
         # Attacker accuracy modifier (fatigue, veterancy, mode)
         accuracy_mod = 1.0
@@ -329,8 +335,34 @@ class AttackLineSystem:
         return colors.get(status, self.COLOR_OUT_OF_RANGE)
 
     def remove_attack(self, unit_id: str) -> None:
-        """Remove confirmed attack for a unit."""
+        """Remove confirmed attack for a unit, starting fade-out animation."""
+        target = self._confirmed_attacks.get(unit_id)
+        if target is not None:
+            # R8: Start fade-out animation instead of instant removal
+            source_pos = getattr(self, '_active_source', None)
+            if source_pos is not None:
+                import time
+                self._fading_lines.append({
+                    'source': source_pos,
+                    'target': target.position,
+                    'color': self.COLOR_CAN_ATTACK[:3],
+                    'alpha': 200,
+                    'start_tick': time.monotonic(),
+                })
         self._confirmed_attacks.pop(unit_id, None)
+
+    def update_fading(self) -> list[dict]:
+        """R8: Update fading attack lines. Returns list of still-visible fading lines."""
+        import time
+        now = time.monotonic()
+        remaining = []
+        for line in self._fading_lines:
+            elapsed_ms = (now - line['start_tick']) * 1000
+            if elapsed_ms < self._fade_duration_ms:
+                line['alpha'] = int(200 * (1.0 - elapsed_ms / self._fade_duration_ms))
+                remaining.append(line)
+        self._fading_lines = remaining
+        return remaining
 
     def clear_all(self) -> None:
         """Clear all attacks."""

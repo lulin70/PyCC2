@@ -45,5 +45,6 @@
     {"id": "vl_lz_bravo", "position": [6, 14], "value": 20, "type": "landing_zone"},
     {"id": "vl_groesbeek_village", "position": [10, 10], "value": 20, "type": "building"}
   ],
-  "special_rules": ["airdrop_deployment", "initial_scatter", "lz_must_hold_for_reinforcements", "no_air_support"]
+  "special_rules": ["airdrop_deployment", "initial_scatter", "lz_must_hold_for_reinforcements", "no_air_support"],
+  "attacker_faction": "allied"
 }

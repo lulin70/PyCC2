@@ -194,16 +194,16 @@ class TestInfantrySprite:
     """步兵精灵生成测试"""
 
     def test_infantry_generates_successfully(self):
-        spec = UnitSpriteSpec(faction="allies", unit_type="INFANTRY_SQUAD", direction=0, size=56)
+        spec = UnitSpriteSpec(faction="allies", unit_type="INFANTRY_SQUAD", direction=0, size=24)
         canvas = UnitSpriteGenerator.generate(spec)
         assert canvas is not None
-        assert canvas.width == 56
-        assert canvas.height == 56
+        assert canvas.width == 24
+        assert canvas.height == 24
 
     def test_infantry_has_correct_size(self):
         canvas = create_unit_sprite("allies", "INFANTRY_SQUAD")
-        assert canvas.width == 56
-        assert canvas.height == 56
+        assert canvas.width == 24
+        assert canvas.height == 24
 
     def test_infantry_has_key_body_parts(self):
         """检查步兵精灵包含头/身/腿/武器等关键部位（非全透明）"""
@@ -274,11 +274,15 @@ class TestCommanderSprite:
 
     def test_commander_has_cap_not_round_helmet(self):
         canvas = create_unit_sprite("allies", "COMMANDER", size=56)
-        top_row_nonzero = 0
-        for x in range(canvas.width):
-            if canvas.get_pixel(x, 5)[3] > 0:
-                top_row_nonzero += 1
-        assert top_row_nonzero >= 3, "Commander should have a flat cap at top"
+        cx, cy = canvas.width // 2, canvas.height // 2
+        helmet_pixels = 0
+        for dy in range(-5, 0):
+            for dx in range(-4, 5):
+                px, py = cx + dx, cy + dy
+                if 0 <= px < canvas.width and 0 <= py < canvas.height:
+                    if canvas.get_pixel(px, py)[3] > 0:
+                        helmet_pixels += 1
+        assert helmet_pixels >= 5, "Commander should have a top-down helmet circle visible"
 
     def test_commander_has_binoculars(self):
         canvas = create_unit_sprite("allies", "COMMANDER", size=56)
@@ -314,8 +318,8 @@ class TestEightDirections:
     def test_all_eight_directions_generate_without_crash(self):
         for d in range(8):
             canvas = create_unit_sprite("allies", "INFANTRY_SQUAD", direction=d)
-            assert canvas.width == 56
-            assert canvas.height == 56
+            assert canvas.width == 24
+            assert canvas.height == 24
 
     def test_direction_affects_arrow_position(self):
         canvases = []

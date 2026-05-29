@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 import json
 from dataclasses import dataclass, field, asdict
 from datetime import UTC, datetime
 from enum import Enum, auto
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 class BattleOutcome(Enum):
@@ -336,7 +339,8 @@ class CampaignPersistenceManager:
                     "file_path": str(filepath),
                 })
 
-            except Exception:
+            except Exception as e:
+                logging.info(f"Campaign save parse failed for {filepath.stem}: {e}")
                 campaigns.append({
                     "campaign_id": filepath.stem,
                     "saved_at": "Unknown",

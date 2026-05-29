@@ -11,7 +11,7 @@ from typing import Any
 import pygame
 from pygame import Font, Surface
 
-from pycc2.infra.config import Settings
+from pycc2.infrastructure.config import Settings
 
 
 class DebugLevel(Enum):

@@ -270,8 +270,8 @@ class AssetLoader:
                 surface = pygame.image.load(str(effect_path)).convert_alpha()
                 self._sprite_cache[cache_key] = surface
                 return surface
-            except Exception:
-                pass
+            except Exception as e:
+                logging.debug(f"Effect sprite load failed: {e}")
         
         return None
     

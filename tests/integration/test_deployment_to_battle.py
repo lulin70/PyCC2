@@ -346,6 +346,9 @@ class TestAIServiceInitialization:
                 "position": (12, 12),
             }
         ]
+        # Pre-create AI units from the injected deployments
+        # (normally done during start(), but we injected after start())
+        deployment_manager._ai_units = deployment_manager._pre_create_ai_units("axis")
 
         deployment_manager.complete(ai_service=ai_service, state=game_state)
 

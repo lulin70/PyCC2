@@ -208,7 +208,7 @@ class TestFullCustomerJourney:
         """User can see combat resolve between units."""
         from pycc2.domain.systems.combat_resolver import CombatResolver
         from pycc2.domain.systems.ballistic import BallisticEngine
-        from pycc2.domain.systems.morale_sys import MoraleCalculator
+        from pycc2.domain.systems.morale_system import MoraleCalculator
         from pycc2.services.random_context import RandomContext
         from pycc2.services.event_bus import EventBus
 

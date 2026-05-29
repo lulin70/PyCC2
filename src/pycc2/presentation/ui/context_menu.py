@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Callable
+
+logger = logging.getLogger(__name__)
 
 import pygame
 
@@ -70,12 +73,12 @@ class ContextMenu:
     def _init_items(self) -> None:
         """Initialize default menu items in CC2 order."""
         self._items = [
-            MenuItem(ContextAction.MOVE, "Move", "M", "→"),
-            MenuItem(ContextAction.ATTACK, "Attack", "A", "✶"),
-            MenuItem(ContextAction.STOP, "Stop", "S", "■"),
-            MenuItem(ContextAction.SMOKE, "Smoke", "X", "☁"),
+            MenuItem(ContextAction.MOVE, "Move", "Z", "→"),
+            MenuItem(ContextAction.ATTACK, "Attack", "C", "✶"),
+            MenuItem(ContextAction.STOP, "Stop", "D", "■"),
+            MenuItem(ContextAction.SMOKE, "Smoke", "V", "☁"),
             MenuItem(ContextAction.HIDE, "Hide", "H", "▽"),
-            MenuItem(ContextAction.SNEAK, "Sneak", "K", "◇"),
+            MenuItem(ContextAction.SNEAK, "Sneak", "S", "◇"),
             MenuItem(ContextAction.CANCEL, "Cancel", "Esc", "✕"),
         ]
 
@@ -117,7 +120,8 @@ class ContextMenu:
         """Build the menu surface with all items."""
         try:
             self._font = pygame.font.SysFont("arial", self.FONT_SIZE)
-        except Exception:
+        except Exception as e:
+            logging.debug(f"Context menu font fallback: {e}")
             self._font = pygame.font.Font(None, self.FONT_SIZE)
 
         width = 180
@@ -235,12 +239,12 @@ class ContextMenu:
 
     def _handle_key(self, key: int) -> bool:
         key_map = {
-            pygame.K_m: ContextAction.MOVE,
-            pygame.K_a: ContextAction.ATTACK,
-            pygame.K_s: ContextAction.STOP,
-            pygame.K_x: ContextAction.SMOKE,
+            pygame.K_z: ContextAction.MOVE,
+            pygame.K_c: ContextAction.ATTACK,
+            pygame.K_d: ContextAction.STOP,
+            pygame.K_v: ContextAction.SMOKE,
             pygame.K_h: ContextAction.HIDE,
-            pygame.K_k: ContextAction.SNEAK,
+            pygame.K_s: ContextAction.SNEAK,
             pygame.K_ESCAPE: ContextAction.CANCEL,
         }
 

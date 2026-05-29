@@ -41,8 +41,8 @@ class EventBus:
             )
             if required:
                 return required
-        except Exception:
-            pass
+        except Exception as e:
+            logging.warning(f"TypedDict required keys introspection failed: {e}")
         rk = getattr(typed_dict_cls, "__required_keys__", None)
         return rk if rk is not None else frozenset()
 

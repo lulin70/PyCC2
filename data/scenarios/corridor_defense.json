@@ -47,5 +47,6 @@
     {"id": "vl_schijndel_village", "position": [14, 14], "value": 40, "type": "building"},
     {"id": "vl_schijndel_crossroads", "position": [10, 20], "value": 30, "type": "road_junction"}
   ],
-  "special_rules": ["corridor_must_remain_open", "defender_advantage", "limited_air_support", "fortified_positions"]
+  "special_rules": ["corridor_must_remain_open", "defender_advantage", "limited_air_support", "fortified_positions"],
+  "attacker_faction": "axis"
 }

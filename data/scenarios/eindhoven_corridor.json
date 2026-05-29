@@ -48,5 +48,6 @@
     {"id": "vl_south_road", "position": [21, 32], "value": 30, "type": "road_junction"},
     {"id": "vl_factory", "position": [28, 15], "value": 20, "type": "building"}
   ],
-  "special_rules": ["corridor_must_remain_open", "xxx_corps_linkup", "limited_air_support"]
+  "special_rules": ["corridor_must_remain_open", "xxx_corps_linkup", "limited_air_support"],
+  "attacker_faction": "allied"
 }

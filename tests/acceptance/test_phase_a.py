@@ -450,7 +450,7 @@ class TestA4ContextMenu:
         callback = MagicMock()
         menu.show((0, 0), callback)
 
-        event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_m)
+        event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_z)
         consumed = menu.handle_event(event)
 
         assert consumed is True

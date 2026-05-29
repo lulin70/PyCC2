@@ -6,7 +6,10 @@ Shows the New Game menu first, then enters the deployment phase
 where the player selects and places troops, then launches the battle.
 """
 
+import logging
 import sys
+
+logger = logging.getLogger("pycc2")
 
 
 def main() -> int:
@@ -15,10 +18,8 @@ def main() -> int:
     Returns:
         Exit code (0 for success, non-zero for error)
     """
-    import logging
     from pathlib import Path
 
-    logger = logging.getLogger("pycc2")
     logging.basicConfig(level=logging.INFO, format="%(name)s %(levelname)s: %(message)s")
 
     try:
@@ -323,6 +324,39 @@ def main() -> int:
             ],
         }
 
+        # Load scenario data for faction asymmetry and VL info (G5/G6)
+        scenario_stem = menu.get_selected_map() if hasattr(menu, 'get_selected_map') else map_stem
+        scenario_path = Path(f"data/scenarios/{scenario_stem}.json")
+        if not scenario_path.exists():
+            # Try matching by map_id in scenario files
+            for sp in Path("data/scenarios").glob("*.json"):
+                if sp.stem == "_schema":
+                    continue
+                try:
+                    import json
+                    with open(sp) as f:
+                        scenario = json.load(f)
+                    if scenario.get("map_id") == scenario_stem:
+                        scenario_path = sp
+                        break
+                except Exception as e:
+                    logging.info(f"Scenario file parse failed: {e}")
+                    continue
+
+        if scenario_path.exists():
+            try:
+                import json
+                with open(scenario_path) as f:
+                    scenario_data = json.load(f)
+                # Include scenario-level data in map_data for deployment
+                map_data["victory_locations"] = scenario_data.get("victory_locations", [])
+                map_data["forces"] = scenario_data.get("forces", {})
+                map_data["special_rules"] = scenario_data.get("special_rules", [])
+                map_data["scenario_id"] = scenario_data.get("scenario_id", "")
+                logger.info("Loaded scenario data from %s", scenario_path.stem)
+            except Exception as e:
+                logger.warning("Failed to load scenario data from %s: %s", scenario_path, e)
+
         logger.info("Entering deployment phase — faction=%s", faction)
         try:
             game_loop.start_deployment(
@@ -358,8 +392,8 @@ def main() -> int:
         try:
             import pygame
             pygame.quit()
-        except Exception:
-            pass
+        except Exception as e:
+            logging.debug(f"pygame.quit() failed: {e}")
 
 
 if __name__ == "__main__":

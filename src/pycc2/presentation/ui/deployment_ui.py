@@ -20,10 +20,13 @@ Placement rules:
 
 from __future__ import annotations
 
+import logging
 import math
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Pygame – imported lazily so the module can be imported in headless tests
@@ -211,6 +214,9 @@ class DeploymentUI:
         self._zone_map: list[list[ZoneType]] | None = None
         self._faction: str = "ally"
 
+        # Victory locations for LOS preview (G5)
+        self._victory_locations: list[dict] = []  # [{"id": str, "position": (x,y), "value": int}]
+
         # Roster panel geometry (LEFT side)
         self._roster_width: int = 240
         self._roster_padding: int = 6
@@ -342,6 +348,9 @@ class DeploymentUI:
         if self._state.requisition_points <= 0:
             self._state.requisition_points = 2000
         self._state.requisition_points_spent = 0
+
+        # Store victory locations for LOS preview (G5)
+        self._victory_locations = map_data.get("victory_locations", [])
 
         # Rebuild roster layout
         self._rebuild_roster_layout()
@@ -754,6 +763,9 @@ class DeploymentUI:
         # 3.5. Pending order arrows (GAP-8)
         self._render_pending_orders(screen, actual_map_offset_x, actual_map_offset_y, tile_size)
 
+        # 3.6. LOS preview lines from placed/selected units to VLs (G5)
+        self._render_los_preview(screen, actual_map_offset_x, actual_map_offset_y, tile_size)
+
         # 4. Force pool panel (left side) - drawn at (0, 0)
         self._render_roster(screen)
 
@@ -862,7 +874,8 @@ class DeploymentUI:
                         self._selected_unit_index = idx
                         try:
                             self._ghost_surface = self._create_ghost_surface(unit)
-                        except Exception:
+                        except Exception as e:
+                            logging.debug(f"Ghost surface creation failed: {e}")
                             self._ghost_surface = None
 
         elif event.type == pygame.MOUSEMOTION and self._is_dragging:
@@ -1100,6 +1113,188 @@ class DeploymentUI:
 
             # Arrowhead at destination
             self._draw_arrowhead(screen, (255, 200, 50), (sx, sy), (dx, dy), size=8)
+
+    # ------------------------------------------------------------------
+    # Internal – LOS preview lines (G5)
+    # ------------------------------------------------------------------
+
+    # LOS preview color constants (matching AttackLineSystem 4-color scheme)
+    _LOS_COLOR_HIGH: tuple[int, int, int, int] = (0, 255, 0, 160)       # Green (60-100% hit)
+    _LOS_COLOR_MODERATE: tuple[int, int, int, int] = (255, 255, 0, 160) # Yellow (30-59% hit)
+    _LOS_COLOR_LOW: tuple[int, int, int, int] = (255, 50, 50, 160)      # Red (10-29% hit)
+    _LOS_COLOR_IMPOSSIBLE: tuple[int, int, int, int] = (0, 0, 0, 160)   # Black (0-9% hit)
+    _LOS_DEFAULT_RANGE: int = 15  # Default visual range in tiles
+
+    def _render_los_preview(
+        self,
+        screen: Any,
+        ox: int,
+        oy: int,
+        ts: int,
+    ) -> None:
+        """Render LOS preview lines from placed/selected units to VLs.
+
+        When a unit is placed or selected during deployment, draw thin
+        lines from that unit to each Victory Location.  The line color
+        indicates estimated hit probability from that position, using
+        the same 4-color scheme as the attack line system:
+          - Green:  high hit chance (60-100%)
+          - Yellow: moderate hit chance (30-59%)
+          - Red:    low hit chance (10-29%)
+          - Black:  impossible / blocked (0-9%)
+
+        This gives the player visual feedback about whether their
+        deployment position has good firing angles toward key objectives.
+        """
+        if not _pygame_available or screen is None:
+            return
+
+        if not self._victory_locations:
+            return
+
+        # Collect units to show LOS for: placed units + currently selected unit
+        units_to_preview: list[DeploymentUnit] = []
+
+        # Add all placed units
+        for pu in self._state.placed_units:
+            if pu.position is not None:
+                units_to_preview.append(pu)
+
+        # Also add the currently selected unit if it's placed
+        if self._selected_unit_index is not None:
+            sel_unit = self._state.available_units[self._selected_unit_index]
+            if sel_unit.is_placed and sel_unit.position is not None:
+                if sel_unit not in units_to_preview:
+                    units_to_preview.append(sel_unit)
+
+        if not units_to_preview:
+            return
+
+        # For each placed unit, draw LOS lines to each VL
+        for pu in units_to_preview:
+            if pu.position is None:
+                continue
+            src_x, src_y = pu.position
+            sx = ox + src_x * ts + ts // 2
+            sy = oy + src_y * ts + ts // 2
+
+            for vl in self._victory_locations:
+                vl_pos = vl.get("position")
+                if vl_pos is None:
+                    continue
+
+                # Handle both tuple and list position formats
+                if isinstance(vl_pos, (list, tuple)) and len(vl_pos) >= 2:
+                    dst_x, dst_y = int(vl_pos[0]), int(vl_pos[1])
+                else:
+                    continue
+
+                # Calculate distance
+                dx_tiles = abs(dst_x - src_x)
+                dy_tiles = abs(dst_y - src_y)
+                distance = (dx_tiles * dx_tiles + dy_tiles * dy_tiles) ** 0.5
+
+                # Estimate hit probability based on distance and terrain
+                hit_prob = self._estimate_deployment_hit_probability(
+                    src_x, src_y, dst_x, dst_y, distance, pu
+                )
+
+                # Choose color based on hit probability
+                line_color = self._hit_probability_to_los_color(hit_prob)
+
+                # Destination center
+                dx_screen = ox + dst_x * ts + ts // 2
+                dy_screen = oy + dst_y * ts + ts // 2
+
+                # Draw thin dashed line from unit to VL
+                self._draw_dashed_line(
+                    screen, line_color, (sx, sy), (dx_screen, dy_screen),
+                    dash_length=4, gap_length=3,
+                )
+
+                # Draw small dot at VL end
+                pygame.draw.circle(screen, line_color[:3], (dx_screen, dy_screen), 3)
+
+    def _estimate_deployment_hit_probability(
+        self,
+        src_x: int,
+        src_y: int,
+        dst_x: int,
+        dst_y: int,
+        distance: float,
+        unit: DeploymentUnit,
+    ) -> float:
+        """Estimate hit probability from a deployment position to a VL.
+
+        Simplified calculation for deployment preview purposes:
+        - Uses distance ratio against effective range
+        - Checks terrain blocking along the line
+        - Considers unit type (vehicles have longer range)
+        - Does NOT factor in fatigue/morale/weather (not in battle yet)
+
+        Returns a float 0.0-1.0.
+        """
+        # Effective range by unit type
+        type_ranges = {
+            "vehicle": 20,
+            "support": 18,
+            "recon": 16,
+            "infantry": 15,
+        }
+        effective_range = type_ranges.get(unit.unit_type, self._LOS_DEFAULT_RANGE)
+
+        # Distance ratio
+        if effective_range <= 0:
+            return 0.0
+        distance_ratio = min(distance / effective_range, 1.5)
+
+        # Out of range entirely
+        if distance_ratio > 1.0:
+            return 0.05
+
+        # Base probability from distance (same curve as AttackLineSystem)
+        if distance_ratio <= 0.3:
+            base_prob = 0.9
+        else:
+            base_prob = 0.9 - 0.7 * ((distance_ratio - 0.3) / 0.7)
+        base_prob = max(base_prob, 0.05)
+
+        # Terrain blocking check: walk the line and check for blocking terrain
+        block_penalty = 0.0
+        if self._tile_grid is not None:
+            steps = max(int(distance), 1)
+            for step in range(1, steps):
+                t = step / steps
+                check_x = int(src_x + (dst_x - src_x) * t)
+                check_y = int(src_y + (dst_y - src_y) * t)
+                terrain = self._get_terrain_at(check_x, check_y)
+
+                if terrain in _BUILDING_TERRAINS:
+                    block_penalty += 0.3  # Buildings block heavily
+                elif terrain == TERRAIN_WOODS:
+                    block_penalty += 0.15  # Woods partially block
+                elif terrain == TERRAIN_HEDGE:
+                    block_penalty += 0.1   # Hedges slight block
+                elif terrain == TERRAIN_WALL:
+                    block_penalty += 0.4   # Walls block heavily
+
+        # If fully blocked, return very low
+        if block_penalty >= 0.5:
+            return 0.05
+
+        hit_prob = base_prob - block_penalty
+        return max(0.0, min(hit_prob, 1.0))
+
+    def _hit_probability_to_los_color(self, hit_prob: float) -> tuple[int, int, int, int]:
+        """Map hit probability to LOS preview line color (4-color CC2 scheme)."""
+        if hit_prob >= 0.60:
+            return self._LOS_COLOR_HIGH
+        elif hit_prob >= 0.30:
+            return self._LOS_COLOR_MODERATE
+        elif hit_prob >= 0.10:
+            return self._LOS_COLOR_LOW
+        else:
+            return self._LOS_COLOR_IMPOSSIBLE
 
     @staticmethod
     def _draw_dashed_line(
@@ -1535,7 +1730,8 @@ class DeploymentUI:
             # Large bold text
             try:
                 battle_font = pygame.font.Font(None, 26)
-            except Exception:
+            except Exception as e:
+                logging.debug(f"Battle font fallback: {e}")
                 battle_font = self._font_normal
                 
             label = battle_font.render("⚔ START BATTLE", True, text_color)
@@ -1823,7 +2019,8 @@ class DeploymentUI:
                 ghost.blit(label, (cx - label.get_width() // 2, cy - radius - 12))
 
             return ghost
-        except Exception:
+        except Exception as e:
+            logging.debug(f"Ghost surface rendering failed: {e}")
             return None
 
     def _render_unit_details_panel(self, screen: Any) -> None:
@@ -2091,18 +2288,21 @@ class DeploymentUI:
                 # Create default normal font (was missing - caused button text to not render!)
                 try:
                     self._font_normal = pygame.font.Font(None, 20)
-                except Exception:
+                except Exception as e:
+                    logging.debug(f"Normal font creation failed: {e}")
                     self._font_normal = None
         if self._font_small is None:
             try:
                 self._font_small = pygame.font.Font(None, 16)
-            except Exception:
-                self._font_small = None
+            except Exception as e:
+                    logging.debug(f"Small font creation failed: {e}")
+                    self._font_small = None
         if self._font_large is None:
             try:
                 self._font_large = pygame.font.Font(None, 32)
-            except Exception:
-                self._font_large = None
+            except Exception as e:
+                    logging.debug(f"Large font creation failed: {e}")
+                    self._font_large = None
 
     @staticmethod
     def _build_default_roster() -> list[DeploymentUnit]:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -24,6 +25,16 @@ _TERRAIN_NAME_MAP: dict[str, int] = {
     "shallow": 10,
     "bridge": 11,
 }
+
+
+def _angle_diff(a: float, b: float) -> float:
+    """Compute the shortest angular difference between two angles."""
+    diff = a - b
+    while diff > math.pi:
+        diff -= 2 * math.pi
+    while diff < -math.pi:
+        diff += 2 * math.pi
+    return diff
 
 
 @dataclass(slots=True)
@@ -145,6 +156,17 @@ class GameMap:
     def set_terrain(self, coord: TileCoord, terrain: TerrainType) -> None:
         self.tile_grid[coord.y, coord.x] = terrain.value
 
+    def modify_terrain(self, x: int, y: int, new_terrain: TerrainType) -> None:
+        """Safely change a tile's terrain type at runtime.
+
+        Validates coordinates before modification. Used for dynamic
+        terrain changes such as bridge destruction or building collapse.
+        """
+        coord = TileCoord(x, y)
+        if not self.is_within_bounds(coord):
+            return
+        self.tile_grid[y, x] = new_terrain.value
+
     def is_passable(self, coord: TileCoord) -> bool:
         if not self.is_within_bounds(coord):
             return False
@@ -154,6 +176,13 @@ class GameMap:
         return coord.is_within_bounds(self.width, self.height)
 
     def has_line_of_sight(self, from_coord: TileCoord, to_coord: TileCoord) -> bool:
+        # Window firing arc check: if shooter is inside a building, verify
+        # the firing angle passes through a window
+        from_terrain = self.get_terrain(from_coord)
+        if from_terrain.name == "building_enterable":
+            if not self._check_window_firing_arc(from_coord, to_coord):
+                return False
+
         line = self._bresenham_line(from_coord, to_coord)
         for c in line[1:-1]:
             if not self.is_within_bounds(c):
@@ -161,6 +190,64 @@ class GameMap:
             if self.get_terrain(c).blocks_los:
                 return False
         return True
+
+    def _check_window_firing_arc(
+        self, from_coord: TileCoord, to_coord: TileCoord,
+    ) -> bool:
+        """Check if a unit inside a building can fire through a window toward the target.
+
+        In CC2, units inside buildings can only fire through windows. Each window
+        faces a cardinal direction (N/S/E/W) with a ~90 degree firing arc centered
+        on that direction. If no window faces the target direction, the shot is blocked.
+        """
+        from pycc2.domain.value_objects.building_data import (
+            BUILDING_WINDOWS,
+            CC2BuildingType,
+        )
+
+        # Calculate firing angle from building center to target
+        angle = math.atan2(
+            to_coord.y - from_coord.y,
+            to_coord.x - from_coord.x,
+        )
+
+        # Look up building type from enhanced tile data
+        enhanced = self.get_enhanced_tile(from_coord.x, from_coord.y)
+        building_type_str = ""
+        if enhanced and "building_type" in enhanced:
+            building_type_str = enhanced["building_type"]
+
+        bt = None
+        for btype in CC2BuildingType:
+            if btype.value == building_type_str:
+                bt = btype
+                break
+
+        if bt is None:
+            # Unknown building type: allow firing (no window restriction)
+            return True
+
+        windows = BUILDING_WINDOWS.get(bt, [])
+        if not windows:
+            # No windows defined: allow firing
+            return True
+
+        # Check if any window faces the target direction
+        # Screen coordinates: y increases downward
+        #   east  = 0 rad, south = pi/2, west = pi/-pi, north = -pi/2
+        half_arc = math.pi / 4  # 45-degree half-arc → 90 degree total arc
+        for window in windows:
+            wall = window["wall"]
+            if wall == "east" and abs(_angle_diff(angle, 0.0)) < half_arc:
+                return True
+            elif wall == "south" and abs(_angle_diff(angle, math.pi / 2)) < half_arc:
+                return True
+            elif wall == "west" and abs(_angle_diff(angle, math.pi)) < half_arc:
+                return True
+            elif wall == "north" and abs(_angle_diff(angle, -math.pi / 2)) < half_arc:
+                return True
+
+        return False  # No window faces the target direction
 
     @staticmethod
     def _bresenham_line(from_coord: TileCoord, to_coord: TileCoord) -> list[TileCoord]:

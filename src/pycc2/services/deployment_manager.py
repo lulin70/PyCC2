@@ -36,12 +36,35 @@ class DeploymentManager:
         Return the current DeploymentUI state.
     is_active (property)
         Whether the deployment phase is currently active.
+
+    Faction Difficulty Asymmetry (G6)
+    ----------------------------------
+    In CC2, the attacking side and defending side have different advantages:
+      - **Attacker**: More requisition points (2400 base), more units,
+        but must capture VLs.
+      - **Defender**: Fewer RP (1800 base), but starts in good positions
+        (closer to VLs), only needs to hold VLs.
+
+    The ``attacker_faction`` field determines which side gets the attacker
+    RP bonus.  It is auto-detected from scenario data (the side whose
+    deployment zone is farther from VLs is the attacker) or defaults to
+    ``"allied"`` (historically accurate for Market Garden).
     """
 
     deployment_ui: DeploymentUI | None = None
     deployment_phase_active: bool = False
+    attacker_faction: str = "allied"
     _ai_deployments: list[dict] = field(init=False, default_factory=list)
+    _ai_units: list = field(init=False, default_factory=list)
     _pending_orders: dict[str, tuple[int, int]] = field(init=False, default_factory=dict)
+
+    # ------------------------------------------------------------------
+    # Class constants — asymmetric RP allocation (G6)
+    # ------------------------------------------------------------------
+    ATTACKER_BASE_RP: int = 2400
+    DEFENDER_BASE_RP: int = 1800
+    AI_ATTACKER_BASE_RP: int = 1800
+    AI_DEFENDER_BASE_RP: int = 1350
 
     # ------------------------------------------------------------------
     # Class constants — mapping tables used during unit creation
@@ -130,8 +153,17 @@ class DeploymentManager:
 
             self.deployment_ui = DUI(width=width, height=height)
 
-            # Calculate requisition points from game settings
-            requisition_points = 2000
+            # Determine attacker faction from scenario data (G6)
+            self.attacker_faction = self._detect_attacker_faction(map_data, faction)
+
+            # Calculate requisition points with faction asymmetry (G6)
+            # Attacker gets more RP (must advance and capture VLs)
+            # Defender gets less RP (but has positional advantage near VLs)
+            is_attacker = faction in ("ally", "allied") and self.attacker_faction == "allied" or \
+                          faction == "axis" and self.attacker_faction == "axis"
+            base_rp = self.ATTACKER_BASE_RP if is_attacker else self.DEFENDER_BASE_RP
+
+            requisition_points = base_rp
             max_infantry = 15   # Increased for better gameplay
             max_support = 10    # Increased for better gameplay
             force_pool = None
@@ -144,7 +176,7 @@ class DeploymentManager:
                     side_settings = game_settings.axis_settings
 
                 supply_effects = SUPPLY_EFFECTS[side_settings.supply_level]
-                requisition_points = int(2000 * supply_effects.requisition_point_modifier)
+                requisition_points = int(base_rp * supply_effects.requisition_point_modifier)
 
                 # Build force pool based on faction
                 force_pool = DUI.build_force_pool_from_settings(
@@ -161,16 +193,24 @@ class DeploymentManager:
             )
             self.deployment_phase_active = True
 
+            # Determine enemy faction
+            enemy_faction = "axis" if faction in ("ally", "allied") else "allied"
+
             # Generate AI deployment for enemy side
             self._ai_deployments = []
             if game_settings is not None:
-                enemy_faction = "axis" if faction in ("ally", "allied") else "allied"
                 if enemy_faction == "allied":
                     enemy_supply = game_settings.allied_settings.supply_level
                 else:
                     enemy_supply = game_settings.axis_settings.supply_level
                 enemy_supply_effects = SUPPLY_EFFECTS[enemy_supply]
-                enemy_rp = int(1500 * enemy_supply_effects.requisition_point_modifier)
+
+                # AI also gets asymmetric RP (G6)
+                is_enemy_attacker = enemy_faction == self.attacker_faction or \
+                    (enemy_faction == "allied" and self.attacker_faction == "allied") or \
+                    (enemy_faction == "axis" and self.attacker_faction == "axis")
+                enemy_base_rp = self.AI_ATTACKER_BASE_RP if is_enemy_attacker else self.AI_DEFENDER_BASE_RP
+                enemy_rp = int(enemy_base_rp * enemy_supply_effects.requisition_point_modifier)
 
                 try:
                     self._ai_deployments = DUI.generate_ai_deployment(
@@ -182,9 +222,14 @@ class DeploymentManager:
                     logger.warning(f"Failed to generate AI deployment: {e}")
                     self._ai_deployments = []
 
+            # Pre-create AI Unit entities (hidden during deployment, ready for battle)
+            # These units exist in memory but are NOT added to state.units until
+            # complete() is called, so the player never sees them during deployment.
+            self._ai_units = self._pre_create_ai_units(enemy_faction)
+
             logger.info(
-                "Deployment phase started — faction=%s, RP=%d, AI units=%d",
-                faction, requisition_points, len(self._ai_deployments),
+                "Deployment phase started — faction=%s, attacker=%s, RP=%d, AI deployments=%d, AI units pre-created=%d",
+                faction, self.attacker_faction, requisition_points, len(self._ai_deployments), len(self._ai_units),
             )
 
         except Exception as e:
@@ -251,22 +296,13 @@ class DeploymentManager:
                 state.units.append(unit)
                 unit_counter += 1
 
-        # Create AI units from generated deployments
-        if not self._ai_deployments:
-            logger.info("No AI deployments generated")
+        # Add pre-created AI units to game state (already in position, hidden during deployment)
+        if not self._ai_units:
+            logger.info("No AI units pre-created")
         else:
-            for ai_placement in self._ai_deployments:
-                unit = self._create_unit_from_placement(
-                    placement=ai_placement,
-                    faction=ai_faction,
-                    id_prefix="ai",
-                    counter=unit_counter,
-                    type_map=type_map,
-                    template_type_map=template_type_map,
-                )
-                if unit is not None:
-                    state.units.append(unit)
-                    unit_counter += 1
+            for ai_unit in self._ai_units:
+                state.units.append(ai_unit)
+                unit_counter += 1
 
         # Initialize AI service with deployed AI units
         self._initialize_ai_service(ai_service, state.units, ai_faction)
@@ -280,7 +316,7 @@ class DeploymentManager:
         logger.info(
             "Deployment complete — player units=%d, AI units=%d, total=%d",
             result.get("infantry_count", 0) + result.get("support_count", 0),
-            len(self._ai_deployments),
+            len(self._ai_units),
             len(state.units),
         )
 
@@ -490,3 +526,126 @@ class DeploymentManager:
         except ImportError as e:
             logger.warning(f"Could not initialize AI behavior tree: {e}")
             logger.info("Continuing without AI behavior trees (units will use default AI)")
+
+    def _pre_create_ai_units(self, enemy_faction: str) -> list:
+        """Pre-create AI Unit entities from generated deployments.
+
+        These units are created during the deployment phase but not added
+        to the game state until ``complete()`` is called.  This ensures
+        they are already in position when the battle starts, while
+        remaining invisible to the player during deployment (they are
+        not in ``state.units`` so the renderer never draws them).
+
+        Parameters
+        ----------
+        enemy_faction : str
+            The faction string for the enemy side (``"axis"`` or ``"allied"``).
+
+        Returns
+        -------
+        list[Unit]
+            Pre-created AI Unit entities ready to be added to the game state.
+        """
+        if not self._ai_deployments:
+            return []
+
+        from pycc2.domain.entities.unit import Faction, UnitType
+
+        # Determine AI faction enum (consistent with complete())
+        ai_faction = Faction.AXIS
+
+        # Build runtime type maps
+        type_map = {k: getattr(UnitType, v) for k, v in self._TYPE_MAP.items()}
+        template_type_map = {k: getattr(UnitType, v) for k, v in self._TEMPLATE_TYPE_MAP.items()}
+
+        units: list = []
+        for counter, ai_placement in enumerate(self._ai_deployments):
+            unit = self._create_unit_from_placement(
+                placement=ai_placement,
+                faction=ai_faction,
+                id_prefix="ai",
+                counter=counter,
+                type_map=type_map,
+                template_type_map=template_type_map,
+            )
+            if unit is not None:
+                units.append(unit)
+
+        logger.info(
+            "Pre-created %d AI units (enemy_faction=%s)", len(units), enemy_faction
+        )
+        return units
+
+    # ------------------------------------------------------------------
+    # Attacker detection (G6)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _detect_attacker_faction(map_data: dict, player_faction: str) -> str:
+        """Detect which faction is the attacker based on scenario data.
+
+        Strategy:
+        0. If the scenario has an explicit ``attacker_faction`` field, use it.
+        1. If the scenario has ``forces.allies.deployment_zone`` and
+           ``forces.axis.deployment_zone``, the side whose zone center
+           is farther from the VL center is the attacker.
+        2. If the scenario has ``special_rules`` containing
+           ``"defender_advantage"``, the *other* side is the attacker.
+        3. Default: ``"allied"`` (historically accurate for Market Garden
+           — Allies are always on the offensive).
+
+        Parameters
+        ----------
+        map_data : dict
+            Scenario map data, possibly containing ``forces``,
+            ``victory_locations``, and ``attacker_faction``.
+        player_faction : str
+            The player's faction (unused for detection but available
+            for future scenario-specific overrides).
+
+        Returns
+        -------
+        str
+            ``"allied"`` or ``"axis"``.
+        """
+        # Strategy 0: Explicit attacker_faction in scenario data
+        explicit_attacker = map_data.get("attacker_faction")
+        if explicit_attacker in ("allied", "axis"):
+            return explicit_attacker
+
+        forces = map_data.get("forces", {})
+        vls = map_data.get("victory_locations", [])
+
+        # Strategy 1: Compare deployment zone centers to VL center
+        if forces and vls:
+            ally_zone = forces.get("allies", {}).get("deployment_zone")
+            axis_zone = forces.get("axis", {}).get("deployment_zone")
+
+            if ally_zone and axis_zone:
+                # Calculate zone centers
+                ally_cx = (ally_zone.get("x_min", 0) + ally_zone.get("x_max", 0)) / 2
+                axis_cx = (axis_zone.get("x_min", 0) + axis_zone.get("x_max", 0)) / 2
+
+                # Calculate VL center
+                vl_xs = [vl["position"][0] for vl in vls if "position" in vl and len(vl["position"]) >= 1]
+                if vl_xs:
+                    vl_cx = sum(vl_xs) / len(vl_xs)
+
+                    # The side farther from VLs is the attacker
+                    ally_dist = abs(ally_cx - vl_cx)
+                    axis_dist = abs(axis_cx - vl_cx)
+
+                    if ally_dist > axis_dist:
+                        return "allied"
+                    elif axis_dist > ally_dist:
+                        return "axis"
+
+        # Strategy 2: Check special_rules for defender_advantage
+        special_rules = map_data.get("special_rules", [])
+        if isinstance(special_rules, list) and "defender_advantage" in special_rules:
+            # If defender_advantage is set, the defending side is axis
+            # (in Market Garden, Germans typically defend)
+            return "allied"
+
+        # Default: Allies are the attacker (Market Garden historical accuracy)
+        return "allied"

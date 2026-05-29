@@ -16,50 +16,60 @@ if TYPE_CHECKING:
 
 
 class CCPalette(Enum):
-    """Close Combat 2 风格军事调色板"""
+    """Close Combat 2 风格军事调色板 — 基于CC2截图精确分析"""
 
-    ALLIES_HELMET = (85, 107, 47)
-    ALLIES_UNIFORM = (120, 140, 90)
-    ALLIES_SKIN = (222, 184, 135)
-    ALLIES_WEAPON = (75, 65, 55)
-    ALLIES_METAL = (110, 110, 115)
+    # Grass — DARK military olive green (exact from CC2 screenshot)
+    GRASS_BASE = (76, 124, 35)       # #4C7C23 exact from CC2
+    GRASS_LIGHT = (90, 142, 43)      # #5A8E2B
+    GRASS_DARK = (58, 100, 24)       # #3A6418
 
-    AXIS_HELMET = (55, 58, 50)
-    AXIS_UNIFORM = (75, 72, 65)
-    AXIS_SKIN = (218, 180, 132)
-    AXIS_WEAPON = (80, 70, 60)
-    AXIS_METAL = (105, 105, 110)
+    # Road — grey-brown, NOT orange-brown
+    ROAD = (107, 90, 64)             # #6B5A40
+    DIRT_ROAD = (95, 80, 55)         # #5F5037
+    DIRT = (131, 102, 58)
 
-    GRASS_LIGHT = (96, 143, 48)
-    GRASS_DARK = (68, 112, 34)
-    DIRT = (166, 138, 95)
-    ROAD = (149, 126, 94)
-    WATER = (64, 120, 172)
-    WOOD_TRUNK = (101, 67, 33)
-    WOOD_LEAF_DARK = (34, 85, 37)
-    WOOD_LEAF_LIGHT = (52, 120, 52)
+    # Water — dark blue-grey, semi-transparent
+    WATER_DEEP = (25, 55, 95)        # #19375F much darker
+    WATER_SHALLOW = (48, 96, 160)    # #3060A0
+    WATER_FOAM = (125, 163, 201)
 
-    BUILDING_WALL = (95, 92, 88)
-    BUILDING_ROOF = (70, 68, 65)
-    BUILDING_WINDOW = (180, 210, 220)
-    BUILDING_DOOR = (60, 45, 35)
-    BUILDING_SHADOW = (50, 48, 45)
+    TREE_CROWN = (38, 74, 33)
+    TREE_CROWN_DARK = (28, 59, 25)
+    TREE_TRUNK = (81, 58, 34)
+    HEDGE_GREEN = (45, 85, 34)
 
-    BLOOD = (139, 0, 0)
-    MUZZLE_FLASH = (255, 230, 130)
-    SMOKE = (160, 160, 155)
-    SELECTION_GLOW = (255, 220, 80)
+    # Building roofs — match CC2 exactly
+    BUILDING_WALL = (178, 169, 150)
+    BUILDING_ROOF = (139, 96, 64)     # #8B6040 brown roof
+    BUILDING_SHADOW = (101, 62, 42)
+    ROAD_MARK = (121, 97, 53)
+    CONCRETE = (159, 154, 144)
+    SAND = (179, 164, 121)
+    MUD = (138, 106, 24)
+    SNOW = (229, 234, 239)
+    WIRE = (102, 102, 102)
+    BUNKER = (120, 115, 106)
+    ALLIES_HELMET = (86, 106, 50)
+    ALLIES_UNIFORM = (77, 83, 34)
+    AXIS_HELMET = (57, 59, 52)
+    AXIS_UNIFORM = (86, 93, 81)
+    WATER = (35, 70, 120)            # #234678 dark blue-grey
+    WOOD_TRUNK = (81, 58, 34)
+    WOOD_LEAF_DARK = (38, 74, 33)
+    WOOD_LEAF_LIGHT = (76, 124, 35)
+    BUILDING_WINDOW = (84, 120, 159)
+    BUILDING_DOOR = (101, 66, 36)
+    BLOOD = (140, 20, 20)
 
 
 @dataclass(slots=True)
 class PaletteSet:
     """一套完整调色板（区分阵营）"""
 
+    is_allies: bool
     helmet: tuple[int, int, int]
     uniform: tuple[int, int, int]
     uniform_dark: tuple[int, int, int]
-    skin: tuple[int, int, int]
-    skin_shadow: tuple[int, int, int]
     weapon: tuple[int, int, int]
     weapon_metal: tuple[int, int, int]
     boots: tuple[int, int, int]
@@ -67,26 +77,24 @@ class PaletteSet:
     @classmethod
     def allies(cls) -> PaletteSet:
         return cls(
+            is_allies=True,
             helmet=CCPalette.ALLIES_HELMET.value,
             uniform=CCPalette.ALLIES_UNIFORM.value,
-            uniform_dark=(90, 110, 65),
-            skin=CCPalette.ALLIES_SKIN.value,
-            skin_shadow=(195, 160, 115),
-            weapon=CCPalette.ALLIES_WEAPON.value,
-            weapon_metal=CCPalette.ALLIES_METAL.value,
+            uniform_dark=(55, 63, 22),
+            weapon=(75, 65, 55),
+            weapon_metal=(110, 110, 115),
             boots=(55, 42, 30),
         )
 
     @classmethod
     def axis(cls) -> PaletteSet:
         return cls(
+            is_allies=False,
             helmet=CCPalette.AXIS_HELMET.value,
             uniform=CCPalette.AXIS_UNIFORM.value,
-            uniform_dark=(55, 55, 48),
-            skin=CCPalette.AXIS_SKIN.value,
-            skin_shadow=(190, 155, 110),
-            weapon=CCPalette.AXIS_WEAPON.value,
-            weapon_metal=CCPalette.AXIS_METAL.value,
+            uniform_dark=(65, 73, 60),
+            weapon=(80, 70, 60),
+            weapon_metal=(105, 105, 110),
             boots=(45, 38, 28),
         )
 
@@ -305,9 +313,10 @@ class UnitSpriteSpec:
     faction: str
     unit_type: str
     direction: int
-    size: int = 56
+    size: int = 24
     is_moving: bool = False
     frame_offset: int = 0
+    state: str = "idle"
 
 
 class UnitSpriteGenerator:
@@ -331,138 +340,82 @@ class UnitSpriteGenerator:
             "SNIPER_TEAM": UnitSpriteGenerator._draw_sniper,
             "MEDIC_TEAM": UnitSpriteGenerator._draw_medic,
         }
-        func = gen_map.get(spec.unit_type, UnitSpriteGenerator._draw_infantry)
 
         palette = PaletteSet.allies() if spec.faction == "allies" else PaletteSet.axis()
         canvas = PixelCanvas(spec.size, spec.size, bg=(0, 0, 0, 0))
 
-        func(canvas, palette, spec.direction, spec.frame_offset)
+        prone_states = {'crawl', 'defend', 'attack', 'sneak', 'hide'}
+        if spec.state in prone_states and spec.unit_type not in ("TANK",):
+            UnitSpriteGenerator._draw_infantry_prone(canvas, palette, spec.direction, spec.frame_offset)
+        else:
+            func = gen_map.get(spec.unit_type, UnitSpriteGenerator._draw_infantry)
+            func(canvas, palette, spec.direction, spec.frame_offset)
 
         add_noise(canvas, intensity=8)
 
         return canvas
 
     @staticmethod
-    def _draw_infantry(c: PixelCanvas, pal: PaletteSet, direction: int, frame: int) -> None:
-        """
-        绘制步兵精灵。
-
-        设计（56x56画布，中心为脚底）：
-        ┌─────────────────┐
-        │    ○ 头盔(圆)   │  y=8-14
-        │    ● 头部(圆)   │  y=14-20
-        │   ╭──╮ 制服躯干 │  y=20-36 (梯形上窄下宽)
-        │   │  │          │
-        │   ╰──╯ 腿部    │  y=36-48 (两条分开腿)
-        │   ╱  ╲          │
-        │  步枪 →→       │  y=22-38 (右侧斜向)
-        └─────────────────┘
-        """
+    def _draw_infantry_prone(c: PixelCanvas, pal: PaletteSet, direction: int, frame: int) -> None:
+        """Top-down prone soldier — elongated oval lying flat on ground."""
         sz = c.width
-        cx = sz // 2
+        cx, cy = sz // 2, sz // 2
 
-        helmet_r = 7
-        hy = 10
-        c.fill_circle(cx, hy - 2, helmet_r, pal.helmet)
-        c.fill_circle(cx, hy - 3, helmet_r - 1, tuple(max(0, v - 20) for v in pal.helmet))
+        dir_angles = [270, 292.5, 315, 337.5, 0, 22.5, 45, 67.5]
+        angle = math.radians(dir_angles[direction % 8])
 
-        c.draw_line(
-            cx - helmet_r + 1,
-            hy - 3,
-            cx + helmet_r - 1,
-            hy - 3,
-            tuple(max(0, v - 25) for v in pal.helmet),
-            1,
-        )
+        body_len = sz - 4
+        body_w = 3
 
-        head_r = 5
-        c.fill_circle(cx, hy + 3, head_r, pal.skin)
-        c.fill_circle(cx - 1, hy + 2, head_r - 1, pal.skin_shadow)
+        for i in range(body_len):
+            t = i / max(body_len - 1, 1)
+            perp_x = int(math.sin(angle) * (t - 0.5) * body_w)
+            perp_y = int(-math.cos(angle) * (t - 0.5) * body_w)
+            px = cx + int(math.cos(angle) * (i - body_len // 2)) + perp_x
+            py = cy + int(math.sin(angle) * (i - body_len // 2)) + perp_y
+            if 0 <= px < sz and 0 <= py < sz:
+                c.set_pixel(px, py, pal.uniform)
 
-        body_top_w = 9
-        body_bot_w = 12
-        body_top_y = hy + 9
-        body_h = 17
+        tip_x = cx + int(math.cos(angle) * (body_len // 2 + 4))
+        tip_y = cy + int(math.sin(angle) * (body_len // 2 + 4))
+        c.draw_line(cx, cy, tip_x, tip_y, pal.weapon, thickness=1)
 
-        for row in range(body_h):
-            progress = row / body_h
-            bw = int(
-                body_top_w + (body_top_w - body_top_w) * 0.3 + (body_bot_w - body_top_w) * progress
-            )
-            by = body_top_y + row
-            left = cx - bw // 2
-            mid_color = pal.uniform
-            edge_color = pal.uniform_dark
+    @staticmethod
+    def _draw_infantry(c: PixelCanvas, pal: PaletteSet, direction: int, frame: int) -> None:
+        """Pure top-down infantry — what you see looking STRAIGHT DOWN."""
+        sz = c.width
+        cx, cy = sz // 2, sz // 2
 
-            c.fill_rect(left + 1, by, int(bw) - 2, 1, mid_color)
-            if row % 3 == 0:
-                c.set_pixel(left, by, edge_color)
-                c.set_pixel(left + bw - 1, by, edge_color)
+        helmet_r = max(2, sz // 8)
+        c.fill_circle(cx, cy - 2, helmet_r, pal.helmet)
+        hl_color = (min(255, pal.helmet[0] + 40), min(255, pal.helmet[1] + 40), min(255, pal.helmet[2] + 40))
+        c.set_pixel(cx - 1, cy - 3, hl_color)
 
-        belt_y = body_top_y + 13
-        c.fill_rect(cx - 5, belt_y, 10, 1, pal.uniform_dark)
-        ep_y = body_top_y + 2
-        c.fill_rect(
-            cx + 4,
-            ep_y,
-            2,
-            2,
-            (200, 180, 50) if pal.helmet == CCPalette.ALLIES_HELMET.value else (40, 40, 40),
-        )
+        body_w, body_h = sz // 3, sz // 5
+        c.fill_ellipse(cx - body_w // 2, cy, body_w, body_h, pal.uniform)
 
-        leg_top_y = body_top_y + body_h
-        leg_sep = 5
-        leg_w = 4
-        leg_h = 10
+        dir_angles = [270, 292.5, 315, 337.5, 0, 22.5, 45, 67.5]
+        angle = math.radians(dir_angles[direction % 8])
 
-        ll_x = cx - leg_sep // 2 - leg_w
-        for ly in range(leg_h):
-            lw = leg_w - (ly // 3)
-            c.fill_rect(ll_x, leg_top_y + ly, max(2, lw), 1, pal.uniform_dark)
-        boot_y = leg_top_y + leg_h
-        c.fill_rect(ll_x - 1, boot_y, max(2, leg_w) + 2, 3, pal.boots)
+        weapon_len = sz // 2 + 2
+        wx = cx + int(math.cos(angle) * weapon_len)
+        wy = cy + int(math.sin(angle) * weapon_len)
+        c.draw_line(cx, cy, wx, wy, pal.weapon, thickness=max(1, sz // 24))
 
-        rl_x = cx + leg_sep // 2
-        for ly in range(leg_h):
-            lw = leg_w - (ly // 3)
-            c.fill_rect(rl_x, leg_top_y + ly, max(2, lw), 1, pal.uniform_dark)
-        c.fill_rect(rl_x - 1, boot_y, max(2, leg_w) + 2, 3, pal.boots)
-
-        gun_x = cx + 10
-        gun_top_y = hy + 12
-        gun_len = 20
-        gun_angle = -0.15
-
-        gx0, gy0 = gun_x, gun_top_y
-        gx1 = gun_x + int(gun_len * math.cos(gun_angle))
-        gy1 = gun_top_y + int(gun_len * math.sin(gun_angle))
-        c.draw_line(gx0, gy0, gx1, gy1, pal.weapon_metal, 2)
-        c.draw_line(gx0 + 1, gy0, gx1 + 1, gy1, pal.weapon, 1)
-
-        stock_x = gun_x - 2
-        stock_y = gun_top_y + 8
-        c.fill_rect(stock_x, stock_y, 6, 3, (139, 90, 43))
-        c.draw_line(stock_x, stock_y + 3, gun_x - 1, gun_top_y + 12, pal.weapon_metal, 1)
-
-        dir_angles = [0, 45, 90, 135, 180, 225, 270, 315]
-        angle_rad = math.radians(dir_angles[direction % 8])
-        arr_base_y = hy - helmet_r - 3
-        arr_len = 4
-        tip_x = cx + int(math.cos(angle_rad) * arr_len)
-        tip_y = arr_base_y + int(math.sin(angle_rad) * arr_len)
-        perp = angle_rad + math.pi / 2
-        p1x = tip_x - int(math.cos(perp) * 2)
-        p1y = tip_y - int(math.sin(perp) * 2)
-        p2x = tip_x + int(math.cos(perp) * 2)
-        p2y = tip_y + int(math.sin(perp) * 2)
-        c.set_pixel(int(tip_x), int(tip_y), (255, 255, 200))
+        leg_len = sz // 6
+        lx1 = cx + int(math.cos(angle + math.pi) * leg_len)
+        ly1 = cy + int(math.sin(angle + math.pi) * leg_len)
+        lx2 = cx + int(math.cos(angle + math.pi + 0.3) * leg_len * 0.7)
+        ly2 = cy + int(math.sin(angle + math.pi + 0.3) * leg_len * 0.7)
+        c.set_pixel(lx1, ly1, pal.boots)
+        c.set_pixel(lx2, ly2, pal.boots)
 
     @staticmethod
     def _draw_tank(c: PixelCanvas, pal: PaletteSet, direction: int, frame: int) -> None:
         sz = c.width
         cx, cy = sz // 2, sz // 2
 
-        if pal.helmet == CCPalette.ALLIES_HELMET.value:
+        if pal.is_allies:
             body_color = (85, 107, 47)
             dark_color = (60, 80, 30)
             turret_color = (100, 125, 55)
@@ -504,227 +457,147 @@ class UnitSpriteGenerator:
         sz = c.width
         cx, cy = sz // 2, sz // 2
 
-        helmet = pal.helmet
-        uniform = pal.uniform
-        skin = pal.skin
+        helmet_r = max(2, sz // 8)
+        c.fill_circle(cx, cy - 2, helmet_r, pal.helmet)
+        hl_color = (min(255, pal.helmet[0] + 40), min(255, pal.helmet[1] + 40), min(255, pal.helmet[2] + 40))
+        c.set_pixel(cx - 1, cy - 3, hl_color)
 
-        head_cx = cx + 1
-        head_cy = cy - sz // 4
-        c.fill_circle(head_cx, head_cy, sz // 6, helmet)
-        c.fill_circle(head_cx, head_cy + 1, sz // 7, skin)
+        body_w, body_h = sz // 3, sz // 5
+        c.fill_ellipse(cx - body_w // 2, cy, body_w, body_h, pal.uniform)
 
-        scope_x = head_cx + sz // 8
-        c.fill_rect(scope_x - 1, head_cy - 1, 3, 2, (20, 20, 20))
+        dir_angles = [270, 292.5, 315, 337.5, 0, 22.5, 45, 67.5]
+        angle = math.radians(dir_angles[direction % 8])
 
-        body_top = head_cy + sz // 5
-        body_bot = sz - 2
-        body_l = cx - sz // 3
-        body_r = cx + sz // 3
-        for row in range(body_top, body_bot):
-            t = (row - body_top) / max(body_bot - body_top, 1)
-            sl = int(body_l + t * 1)
-            sr = int(body_r - t * 1)
-            c.fill_rect(sl, row, sr - sl, 1, uniform)
+        weapon_len = sz // 2 + 4
+        wx = cx + int(math.cos(angle) * weapon_len)
+        wy = cy + int(math.sin(angle) * weapon_len)
+        c.draw_line(cx, cy, wx, wy, pal.weapon, thickness=max(1, sz // 24))
 
-        gun_y = body_top + 2
-        dir_idx = direction % 8
-        gun_dx = [0, 3, 5, 3, 0, -3, -5, -3][dir_idx]
-        gun_dy = [-1, -1, 0, 1, 1, 1, 0, -1][dir_idx]
-        c.draw_line(cx - 2, gun_y, cx - 2 + gun_dx, gun_y + gun_dy, (60, 50, 40), 2)
-        c.fill_rect(cx - 4, gun_y - 1, 3, 3, (80, 55, 30))
-        bx = cx + gun_dx * 2
-        by = gun_y + gun_dy
-        c.draw_line(bx, by, bx + gun_dx * 2, by + gun_dy, (40, 35, 30), 1)
+        scope_x = cx + int(math.cos(angle) * 2)
+        scope_y = cy + int(math.sin(angle) * 2)
+        c.fill_rect(scope_x - 1, scope_y - 1, 3, 2, (20, 20, 20))
+
+        leg_len = sz // 6
+        lx1 = cx + int(math.cos(angle + math.pi) * leg_len)
+        ly1 = cy + int(math.sin(angle + math.pi) * leg_len)
+        lx2 = cx + int(math.cos(angle + math.pi + 0.3) * leg_len * 0.7)
+        ly2 = cy + int(math.sin(angle + math.pi + 0.3) * leg_len * 0.7)
+        c.set_pixel(lx1, ly1, pal.boots)
+        c.set_pixel(lx2, ly2, pal.boots)
 
     @staticmethod
     def _draw_medic(c: PixelCanvas, pal: PaletteSet, direction: int, frame: int) -> None:
         sz = c.width
         cx, cy = sz // 2, sz // 2
 
-        if pal.helmet == CCPalette.ALLIES_HELMET.value:
-            helmet = (220, 220, 200)
-            uniform = pal.uniform
-            skin = pal.skin
-        else:
-            helmet = (100, 105, 95)
-            uniform = pal.uniform
-            skin = pal.skin
+        helmet_r = max(2, sz // 8)
+        c.fill_circle(cx, cy - 2, helmet_r, pal.helmet)
+        hl_color = (min(255, pal.helmet[0] + 40), min(255, pal.helmet[1] + 40), min(255, pal.helmet[2] + 40))
+        c.set_pixel(cx - 1, cy - 3, hl_color)
 
         red_cross = (200, 40, 40)
+        c.set_pixel(cx - 1, cy - 3, red_cross)
 
-        c.fill_circle(cx, cy - sz // 4, sz // 5, helmet)
-        c.fill_circle(cx, cy - sz // 4 + 1, sz // 6, skin)
-        c.fill_rect(cx - 1, cy - sz // 4 - 2, 3, 1, red_cross)
-        c.fill_rect(cx, cy - sz // 4 - 3, 1, 3, red_cross)
+        body_w, body_h = sz // 3, sz // 5
+        c.fill_ellipse(cx - body_w // 2, cy, body_w, body_h, pal.uniform)
 
-        body_top = cy - sz // 6
-        body_bot = sz - 2
-        body_l = cx - sz // 4
-        body_r = cx + sz // 4
-        for row in range(body_top, body_bot):
-            t = (row - body_top) / max(body_bot - body_top, 1)
-            sl = int(body_l + t * (sz // 8))
-            sr = int(body_r - t * (sz // 8))
-            c.fill_rect(sl, row, sr - sl, 1, uniform)
+        dir_angles = [270, 292.5, 315, 337.5, 0, 22.5, 45, 67.5]
+        angle = math.radians(dir_angles[direction % 8])
 
-        leg_w = sz // 6
-        leg_sep = sz // 5
-        c.fill_rect(cx - leg_sep - leg_w // 2, body_bot, leg_w, sz - body_bot, uniform)
-        c.fill_rect(cx + leg_sep - leg_w // 2, body_bot, leg_w, sz - body_bot, uniform)
+        perp_angle = angle + math.pi / 2
+        rx = cx + int(math.cos(perp_angle) * 3)
+        ry = cy + int(math.sin(perp_angle) * 3)
+        c.set_pixel(rx, ry - 1, red_cross)
+        c.set_pixel(rx, ry, red_cross)
+        c.set_pixel(rx, ry + 1, red_cross)
+        c.set_pixel(rx - 1, ry, red_cross)
+        c.set_pixel(rx + 1, ry, red_cross)
 
-        armband_x = body_l + 1
-        armband_y = body_top + sz // 5
-        c.fill_rect(armband_x, armband_y, 3, 4, red_cross)
-        c.fill_rect(armband_x + 1, armband_y + 1, 1, 2, (255, 255, 255))
+        weapon_len = sz // 2
+        wx = cx + int(math.cos(angle) * weapon_len)
+        wy = cy + int(math.sin(angle) * weapon_len)
+        c.draw_line(cx, cy, wx, wy, pal.weapon, thickness=max(1, sz // 24))
 
-        kit_x = body_r - 4
-        kit_y = body_top + sz // 4
-        c.fill_rect(kit_x, kit_y, 3, 3, (180, 180, 180))
-        c.fill_rect(kit_x + 1, kit_y + 1, 1, 1, red_cross)
+        leg_len = sz // 6
+        lx1 = cx + int(math.cos(angle + math.pi) * leg_len)
+        ly1 = cy + int(math.sin(angle + math.pi) * leg_len)
+        lx2 = cx + int(math.cos(angle + math.pi + 0.3) * leg_len * 0.7)
+        ly2 = cy + int(math.sin(angle + math.pi + 0.3) * leg_len * 0.7)
+        c.set_pixel(lx1, ly1, pal.boots)
+        c.set_pixel(lx2, ly2, pal.boots)
 
     @staticmethod
     def _draw_mg_squad(c: PixelCanvas, pal: PaletteSet, direction: int, frame: int) -> None:
-        """
-        绘制MG机枪组。
-
-        与步兵的区别：
-        - 更宽的身躯（两人并排暗示）
-        - 双管武器造型
-        - 三脚架底座
-        - 更深的姿势（蹲姿）
-        """
         sz = c.width
-        cx = sz // 2
+        cx, cy = sz // 2, sz // 2
 
-        helmet_r = 8
-        hy = 12
-        c.fill_circle(cx, hy - 2, helmet_r, pal.helmet)
-        c.fill_circle(cx, hy - 3, helmet_r - 1, tuple(max(0, v - 18) for v in pal.helmet))
+        helmet_r = max(3, sz // 7)
+        c.fill_circle(cx, cy - 2, helmet_r, pal.helmet)
+        hl_color = (min(255, pal.helmet[0] + 40), min(255, pal.helmet[1] + 40), min(255, pal.helmet[2] + 40))
+        c.set_pixel(cx - 1, cy - 3, hl_color)
 
-        c.fill_circle(cx, hy + 4, 5, pal.skin)
+        body_w, body_h = sz // 2.5, sz // 4
+        c.fill_ellipse(cx - body_w // 2, cy, body_w, body_h, pal.uniform)
 
-        body_w = 15
-        body_h = 14
-        body_top_y = hy + 10
+        dir_angles = [270, 292.5, 315, 337.5, 0, 22.5, 45, 67.5]
+        angle = math.radians(dir_angles[direction % 8])
 
-        for row in range(body_h):
-            progress = row / body_h
-            bw = int(body_w * (1.0 - progress * 0.2))
-            by = body_top_y + row
-            left = cx - bw // 2
-            c.fill_rect(left, by, bw, 1, pal.uniform)
-            if row % 4 == 0:
-                c.set_pixel(left, by, pal.uniform_dark)
-                c.set_pixel(left + bw - 1, by, pal.uniform_dark)
+        weapon_len = sz // 2 + 4
+        wx = cx + int(math.cos(angle) * weapon_len)
+        wy = cy + int(math.sin(angle) * weapon_len)
+        c.draw_line(cx, cy, wx, wy, pal.weapon_metal, thickness=max(2, sz // 12))
 
-        pack_y = body_top_y + 3
-        c.fill_rect(cx - 6, pack_y, 5, 5, (80, 70, 55))
-        c.draw_outline_rect(cx - 6, pack_y, 5, 5, (60, 50, 40), 1)
+        mid_x = (cx + wx) // 2
+        mid_y = (cy + wy) // 2
+        c.draw_line(mid_x - 1, mid_y, mid_x + 1, mid_y, (80, 70, 55), 1)
 
-        mg_x = cx + 9
-        mg_top = hy + 10
-        mg_len = 18
+        pack_offset_x = int(math.cos(angle + math.pi) * 3)
+        pack_offset_y = int(math.sin(angle + math.pi) * 3)
+        c.fill_rect(cx + pack_offset_x - 2, cy + pack_offset_y - 1, 4, 3, (80, 70, 55))
 
-        c.draw_line(mg_x, mg_top, mg_x + mg_len, mg_top + 2, pal.weapon_metal, 3)
-        c.draw_line(mg_x + 1, mg_top + 3, mg_x + mg_len, mg_top + 5, pal.weapon_metal, 3)
-        c.fill_rect(mg_x + 2, mg_top + 1, mg_len - 4, 4, (100, 80, 60))
-
-        tripod_y = body_top_y + body_h
-        c.draw_line(cx - 4, tripod_y, cx - 8, tripod_y + 8, pal.weapon_metal, 1)
-        c.draw_line(cx + 4, tripod_y, cx + 8, tripod_y + 8, pal.weapon_metal, 1)
-        c.fill_rect(cx - 9, tripod_y + 7, 18, 2, (70, 65, 55))
-
-        leg_y = tripod_y + 2
-        c.fill_rect(cx - 7, leg_y, 4, 6, pal.uniform_dark)
-        c.fill_rect(cx + 3, leg_y, 4, 6, pal.uniform_dark)
-        c.fill_rect(cx - 8, leg_y + 5, 5, 2, pal.boots)
-        c.fill_rect(cx + 2, leg_y + 5, 5, 2, pal.boots)
-
-        dir_angles = [0, 45, 90, 135, 180, 225, 270, 315]
-        angle_rad = math.radians(dir_angles[direction % 8])
-        base_y = hy - helmet_r - 3
-        tip_x = cx + int(math.cos(angle_rad) * 4)
-        tip_y = base_y + int(math.sin(angle_rad) * 4)
-        c.set_pixel(int(tip_x), int(tip_y), (255, 255, 200))
+        leg_len = sz // 6
+        lx1 = cx + int(math.cos(angle + math.pi) * leg_len)
+        ly1 = cy + int(math.sin(angle + math.pi) * leg_len)
+        lx2 = cx + int(math.cos(angle + math.pi + 0.3) * leg_len * 0.7)
+        ly2 = cy + int(math.sin(angle + math.pi + 0.3) * leg_len * 0.7)
+        c.set_pixel(lx1, ly1, pal.boots)
+        c.set_pixel(lx2, ly2, pal.boots)
 
     @staticmethod
     def _draw_commander(c: PixelCanvas, pal: PaletteSet, direction: int, frame: int) -> None:
-        """
-        绘制指挥官。
-
-        与普通步兵的区别：
-        - 军帽(平顶非半圆)
-        - 双筒望远镜/望远镜挂在胸前
-        - 站姿更挺拔
-        - 可能有一根指挥棒或手枪
-        """
         sz = c.width
-        cx = sz // 2
+        cx, cy = sz // 2, sz // 2
 
-        hat_w = 11
-        hat_h = 5
-        hat_y = 5
-        c.fill_rect(cx - hat_w // 2, hat_y, hat_w, hat_h, pal.helmet)
-        c.fill_rect(
-            cx - hat_w // 2,
-            hat_y + hat_h - 1,
-            hat_w,
-            1,
-            tuple(max(0, v - 20) for v in pal.helmet),
-        )
-        insignia_y = hat_y + 1
-        c.fill_rect(cx - 1, insignia_y, 3, 2, (220, 190, 50))
+        helmet_r = max(3, sz // 7)
+        c.fill_circle(cx, cy - 2, helmet_r, pal.helmet)
+        hl_color = (min(255, pal.helmet[0] + 40), min(255, pal.helmet[1] + 40), min(255, pal.helmet[2] + 40))
+        c.set_pixel(cx - 1, cy - 3, hl_color)
 
-        head_y = hat_y + hat_h + 1
-        c.fill_circle(cx, head_y + 3, 5, pal.skin)
-        c.fill_circle(cx - 1, head_y + 2, 4, pal.skin_shadow)
+        insignia_color = (220, 190, 50)
+        c.set_pixel(cx, cy - 3, insignia_color)
 
-        body_top_y = head_y + 9
-        body_h = 19
-        body_top_w = 10
-        body_bot_w = 11
+        body_w, body_h = sz // 3, sz // 5
+        c.fill_ellipse(cx - body_w // 2, cy, body_w, body_h, pal.uniform)
 
-        for row in range(body_h):
-            progress = row / body_h
-            bw = int(body_top_w + (body_bot_w - body_top_w) * progress * 0.7)
-            by = body_top_y + row
-            left = cx - bw // 2
-            c.fill_rect(left, by, bw, 1, pal.uniform)
+        dir_angles = [270, 292.5, 315, 337.5, 0, 22.5, 45, 67.5]
+        angle = math.radians(dir_angles[direction % 8])
 
-        rank_y = body_top_y + 3
-        c.fill_rect(cx + 4, rank_y, 3, 3, (200, 170, 50))
-        c.fill_rect(cx - 5, body_top_y + 14, 10, 1, pal.uniform_dark)
+        pistol_len = sz // 4
+        px = cx + int(math.cos(angle) * pistol_len)
+        py = cy + int(math.sin(angle) * pistol_len)
+        c.draw_line(cx, cy, px, py, pal.weapon_metal, thickness=max(1, sz // 24))
 
-        binoc_y = body_top_y + 7
-        binoc_x = cx - 6
-        c.fill_rect(binoc_x, binoc_y, 6, 3, (40, 40, 45))
-        c.fill_rect(binoc_x - 1, binoc_y + 1, 2, 1, (180, 180, 190))
-        c.fill_rect(binoc_x + 3, binoc_y + 1, 2, 1, (180, 180, 190))
-        c.draw_line(binoc_x + 3, binoc_y - 2, cx - 2, body_top_y + 4, (139, 115, 65), 1)
+        rank_x = cx + int(math.cos(angle + math.pi / 2) * 3)
+        rank_y = cy + int(math.sin(angle + math.pi / 2) * 3)
+        c.set_pixel(rank_x, rank_y, (200, 170, 50))
 
-        pistol_x = cx + 8
-        pistol_y = body_top_y + 15
-        c.fill_rect(pistol_x, pistol_y, 6, 4, pal.weapon_metal)
-        c.fill_rect(pistol_x + 5, pistol_y + 1, 3, 2, (40, 35, 30))
-
-        leg_top_y = body_top_y + body_h
-        leg_sep = 5
-        leg_w = 4
-        leg_h = 11
-
-        for side in [-1, 1]:
-            lx = cx + (leg_sep // 2) * side - leg_w // 2
-            for ly in range(leg_h):
-                lw = leg_w - (ly // 4)
-                c.fill_rect(lx, leg_top_y + ly, max(2, lw), 1, pal.uniform_dark)
-            boot_y = leg_top_y + leg_h
-            c.fill_rect(lx - 1, boot_y, max(2, leg_w) + 2, 3, pal.boots)
-
-        dir_angles = [0, 45, 90, 135, 180, 225, 270, 315]
-        angle_rad = math.radians(dir_angles[direction % 8])
-        tip_x = cx + int(math.cos(angle_rad) * 4)
-        tip_y = hat_y - 2 + int(math.sin(angle_rad) * 4)
-        c.set_pixel(int(tip_x), int(tip_y), (255, 255, 200))
+        leg_len = sz // 6
+        lx1 = cx + int(math.cos(angle + math.pi) * leg_len)
+        ly1 = cy + int(math.sin(angle + math.pi) * leg_len)
+        lx2 = cx + int(math.cos(angle + math.pi + 0.3) * leg_len * 0.7)
+        ly2 = cy + int(math.sin(angle + math.pi + 0.3) * leg_len * 0.7)
+        c.set_pixel(lx1, ly1, pal.boots)
+        c.set_pixel(lx2, ly2, pal.boots)
 
 
 # ============================================================
@@ -744,41 +617,96 @@ class TerrainTileGenerator:
 
     @staticmethod
     def generate_grass(size: int, variant: int = 0) -> PixelCanvas:
-        """生成草地瓦片"""
+        """生成草地瓦片 — CC2风格: 暗军绿色+微妙纹理+稀有泥土颗粒"""
         c = PixelCanvas(size, size)
 
         base = CCPalette.GRASS_LIGHT.value if variant % 2 == 0 else CCPalette.GRASS_DARK.value
         dark = CCPalette.GRASS_DARK.value
+        dirt = CCPalette.DIRT.value
 
+        # Base fill with subtle per-pixel random variation (reduced range for less contrast)
+        import numpy as np
         c.fill_rect(0, 0, size, size, base)
-
         rng = random.Random(123 + variant)
-        grass_count = max(15, size * size // 20)
-        for _ in range(grass_count):
+        region = c._pixels.astype(np.int16)
+        np_rng = np.random.RandomState(123 + variant)
+        noise = np_rng.randint(-8, 10, size=(size, size), dtype=np.int16)  # Reduced from -12~14 to -8~10
+        for ch in range(3):
+            region[:, :, ch] = np.clip(region[:, :, ch] + noise, 0, 255)
+        c._pixels = region.astype(np.uint8)
+
+        # Scattered grass blade pixels (smaller, more scattered, 1px wide, 1-2px tall)
+        grass_blade_count = max(18, size * size // 20)  # Reduced count for subtlety
+        blade_shades = [
+            dark,
+            (max(0, dark[0] - 8), max(0, dark[1] + 12), max(0, dark[2] - 4)),
+            (min(255, base[0] + 6), min(255, base[1] + 5), min(255, base[2] + 3)),
+        ]
+        for _ in range(grass_blade_count):
             gx = rng.randint(1, size - 2)
-            gy = rng.randint(1, size - 2)
-            gr = rng.randint(1, max(2, size // 24))
-            c.fill_circle(gx, gy, gr, dark)
+            gy = rng.randint(1, size - 3)
+            blade_len = rng.randint(1, 2)  # Shorter blades (1-2px instead of 2-3px)
+            blade_color = blade_shades[rng.randint(0, len(blade_shades) - 1)]
+            shade_var = rng.randint(-4, 4)  # Reduced variation
+            blade_color = (
+                max(0, min(255, blade_color[0] + shade_var)),
+                max(0, min(255, blade_color[1] + shade_var)),
+                max(0, min(255, blade_color[2] + shade_var)),
+            )
+            for dy in range(blade_len):
+                if 0 <= gy + dy < size:
+                    c.set_pixel(gx, gy + dy, blade_color)
 
-        for _ in range(max(3, size // 16)):
-            lx = rng.randint(2, size - 3)
-            ly = rng.randint(2, size - 3)
-            lh = rng.randint(2, max(3, size // 12))
-            angle = rng.uniform(-0.3, 0.3)
-            ex = lx + int(lh * math.cos(angle))
-            ey = ly + int(lh * math.sin(angle))
-            c.draw_line(lx, ly, ex, ey, (dark[0] - 15, dark[1] - 12, dark[2] - 10), 1)
+        # Rare 1px brown/dirt specks for realism (very sparse)
+        dirt_speck_count = max(2, size // 16)  # Very rare: only a few specks per tile
+        for _ in range(dirt_speck_count):
+            dx = rng.randint(1, size - 2)
+            dy = rng.randint(1, size - 2)
+            dirt_var = rng.randint(-8, 8)
+            speck_color = (
+                max(0, min(255, dirt[0] + dirt_var - 15)),  # Slightly darker dirt
+                max(0, min(255, dirt[1] + dirt_var - 10)),
+                max(0, min(255, dirt[2] + dirt_var - 5)),
+            )
+            c.set_pixel(dx, dy, speck_color)
 
-        edge_color = tuple(max(0, v - 20) for v in base)
-        for i in range(max(1, size // 16)):
+        # Smaller, more subtle brown dirt patches (2x2 instead of 3x3, less frequent)
+        dirt_count = max(2, size // 16)  # Reduced from size//12
+        for _ in range(dirt_count):
+            dx = rng.randint(2, size - 4)
+            dy = rng.randint(2, size - 4)
+            dirt_var = rng.randint(-8, 8)  # Reduced variation
+            patch_color = (
+                max(0, min(255, dirt[0] + dirt_var)),
+                max(0, min(255, dirt[1] + dirt_var)),
+                max(0, min(255, dirt[2] + dirt_var)),
+            )
+            for py in range(2):  # 2x2 instead of 3x3
+                for px in range(2):
+                    if 0 <= dx + px < size and 0 <= dy + py < size and rng.random() > 0.35:
+                        c.set_pixel(dx + px, dy + py, patch_color)
+
+        # Subtle edge darkening
+        edge_color = tuple(max(0, v - 15) for v in base)  # Softer edge
+        for i in range(max(1, size // 20)):  # Thinner edge
             c.draw_outline_rect(i, i, size - i * 2, size - i * 2, edge_color, 1)
 
-        add_noise(c, intensity=6)
+        add_noise(c, intensity=4)  # Reduced noise for cleaner look
         return c
 
     @staticmethod
-    def generate_road(size: int, orientation: str = "horizontal") -> PixelCanvas:
-        """生成道路瓦片"""
+    def generate_road(size: int, orientation: str = "horizontal",
+                      neighbors: dict | None = None) -> PixelCanvas:
+        """生成道路瓦片 — 增强版: 碎石颗粒+裂缝纹理+跨瓦片连续性
+
+        Args:
+            size: 瓦片尺寸
+            orientation: "horizontal" 或 "vertical"
+            neighbors: 邻居信息字典, 键为 "north"/"east"/"south"/"west",
+                       值为 True(道路邻居) 或 False(非道路邻居)
+        """
+        if neighbors is None:
+            neighbors = {}
         c = PixelCanvas(size, size)
 
         c.fill_rect(0, 0, size, size, CCPalette.DIRT.value)
@@ -786,21 +714,287 @@ class TerrainTileGenerator:
         road_color = CCPalette.ROAD.value
         road_margin = max(3, size // 10)
 
+        has_n = neighbors.get("north", False)
+        has_e = neighbors.get("east", False)
+        has_s = neighbors.get("south", False)
+        has_w = neighbors.get("west", False)
+
         if orientation == "horizontal":
-            c.fill_rect(0, size // 2 - road_margin // 2, size, road_margin, road_color)
+            road_top = size // 2 - road_margin // 2
+            road_bot = size // 2 + road_margin // 2
+            if has_n:
+                road_top = 0
+            if has_s:
+                road_bot = size
+            road_h = road_bot - road_top
+            c.fill_rect(0, road_top, size, road_h, road_color)
+            if not has_n and road_h > 4:
+                curb_y = road_top
+                c.fill_rect(0, curb_y, size, 2, tuple(max(0, v - 25) for v in road_color))
+            if not has_s and road_h > 4:
+                curb_y = road_bot - 2
+                c.fill_rect(0, curb_y, size, 2, tuple(max(0, v - 25) for v in road_color))
+            if not has_w:
+                for i in range(min(4, road_margin)):
+                    alpha = i / 4
+                    blended = tuple(
+                        int(CCPalette.DIRT.value[j] * (1 - alpha) + road_color[j] * alpha) for j in range(3)
+                    )
+                    for ry in range(road_top, road_bot):
+                        c.set_pixel(i, ry, blended)
+            if not has_e:
+                for i in range(min(4, road_margin)):
+                    alpha = i / 4
+                    blended = tuple(
+                        int(CCPalette.DIRT.value[j] * (1 - alpha) + road_color[j] * alpha) for j in range(3)
+                    )
+                    for ry in range(road_top, road_bot):
+                        c.set_pixel(size - 1 - i, ry, blended)
             rut_y1 = size // 2 - road_margin // 4
             rut_y2 = size // 2 + road_margin // 4
             rut_color = tuple(max(0, v - 20) for v in road_color)
             c.fill_rect(0, rut_y1, size, max(1, size // 32), rut_color)
             c.fill_rect(0, rut_y2, size, max(1, size // 32), rut_color)
+
+            # *** 轮胎痕迹（两条平行暗线，略不规则）***
+            tire_rng = random.Random(7777)
+            tire_color = tuple(max(0, v - 30) for v in road_color)  # 比路面暗30
+            tire_spacing = tire_rng.randint(4, 6)  # 轮胎间距(中心到中心) 4-6px
+            tire_width = tire_rng.choice([1, 2])  # 轮胎宽度
+
+            # 计算轮胎位置（相对于道路中心）
+            center_y = (road_top + road_bot) // 2
+            tire1_y = center_y - tire_spacing // 2
+            tire2_y = center_y + tire_spacing // 2
+
+            # 绘制左轮胎痕迹（带周期性随机偏移，每8-12px偏移一次）
+            wobble_interval = tire_rng.randint(8, 12)
+            current_offset = tire_rng.randint(-1, 1)
+            for px in range(0, size):
+                # 在道路边缘处,如果有邻居则延伸,否则逐渐消失
+                if px < 4 and not has_w:
+                    fade = px / 4
+                    if tire_rng.random() > fade:
+                        continue
+                elif px >= size - 4 and not has_e:
+                    fade = (size - 1 - px) / 4
+                    if tire_rng.random() > fade:
+                        continue
+
+                # 每隔8-12px更新偏移量（模拟真实轮胎摆动）
+                if px > 0 and px % wobble_interval == 0:
+                    current_offset = tire_rng.randint(-1, 1)
+                py = tire1_y + current_offset
+                if road_top <= py < road_bot:
+                    # 偶尔断开（模拟真实轮胎痕迹）
+                    if tire_rng.random() > 0.05:  # 95%的概率绘制
+                        for w in range(tire_width):
+                            if 0 <= py + w < size:
+                                c.set_pixel(px, py + w, tire_color)
+
+            # 绘制右轮胎痕迹（带周期性随机偏移）
+            wobble_interval = tire_rng.randint(8, 12)
+            current_offset = tire_rng.randint(-1, 1)
+            for px in range(0, size):
+                if px < 4 and not has_w:
+                    fade = px / 4
+                    if tire_rng.random() > fade:
+                        continue
+                elif px >= size - 4 and not has_e:
+                    fade = (size - 1 - px) / 4
+                    if tire_rng.random() > fade:
+                        continue
+
+                if px > 0 and px % wobble_interval == 0:
+                    current_offset = tire_rng.randint(-1, 1)
+                py = tire2_y + current_offset
+                if road_top <= py < road_bot:
+                    if tire_rng.random() > 0.05:
+                        for w in range(tire_width):
+                            if 0 <= py + w < size:
+                                c.set_pixel(px, py + w, tire_color)
+
             rng = random.Random(77)
-            for _ in range(max(5, size // 8)):
-                sx = rng.randint(road_margin, size - road_margin)
-                sy = rng.randint(size // 2 - road_margin // 2, size // 2 + road_margin // 2)
-                sr = rng.randint(1, max(2, size // 40))
-                c.fill_circle(sx, sy, sr, (rut_color[0] + 20, rut_color[1] + 15, rut_color[2] + 10))
+
+            gravel_count = max(20, size * size // 10)
+            if road_top <= road_bot - 1:
+                for _ in range(gravel_count):
+                    gx = rng.randint(1, size - 2)
+                    gy = rng.randint(road_top, road_bot - 1)
+                    bright_var = rng.randint(15, 35)
+                    gravel_color = (
+                        min(255, road_color[0] + bright_var),
+                        min(255, road_color[1] + bright_var),
+                        min(255, road_color[2] + bright_var),
+                    )
+                    c.set_pixel(gx, gy, gravel_color)
+
+            dark_gravel_count = max(10, size * size // 20)
+            if road_top <= road_bot - 1:
+                for _ in range(dark_gravel_count):
+                    gx = rng.randint(1, size - 2)
+                    gy = rng.randint(road_top, road_bot - 1)
+                    dark_var = rng.randint(10, 25)
+                    if rng.random() > 0.5:
+                        gravel_color = (
+                            max(0, road_color[0] - dark_var),
+                            max(0, road_color[1] - dark_var),
+                            max(0, road_color[2] - dark_var),
+                        )
+                    else:
+                        gray_tone = rng.randint(100, 140)
+                        gravel_color = (gray_tone, gray_tone - 5, gray_tone - 10)
+                    c.set_pixel(gx, gy, gravel_color)
+
+            crack_count = max(3, size // 10)
+            crack_lo = road_top + 1
+            crack_hi = road_bot - 2
+            if crack_lo <= crack_hi:
+                for _ in range(crack_count):
+                    cx = rng.randint(2, size - 8)
+                    cy = rng.randint(crack_lo, crack_hi)
+                    crack_len = rng.randint(4, 10)
+                    crack_angle = rng.uniform(-0.4, 0.4)
+                    crack_color = tuple(max(0, v - 30) for v in road_color)
+                    for i in range(crack_len):
+                        px = cx + i
+                        py = cy + int(i * math.sin(crack_angle))
+                        if 0 <= px < size and road_top <= py < road_bot:
+                            c.set_pixel(px, py, crack_color)
         else:
-            c.fill_rect(size // 2 - road_margin // 2, 0, road_margin, size, road_color)
+            road_left = size // 2 - road_margin // 2
+            road_right = size // 2 + road_margin // 2
+            if has_w:
+                road_left = 0
+            if has_e:
+                road_right = size
+            road_w = road_right - road_left
+            c.fill_rect(road_left, 0, road_w, size, road_color)
+            if not has_w and road_w > 4:
+                curb_x = road_left
+                c.fill_rect(curb_x, 0, 2, size, tuple(max(0, v - 25) for v in road_color))
+            if not has_e and road_w > 4:
+                curb_x = road_right - 2
+                c.fill_rect(curb_x, 0, 2, size, tuple(max(0, v - 25) for v in road_color))
+            if not has_n:
+                for i in range(min(4, road_margin)):
+                    alpha = i / 4
+                    blended = tuple(
+                        int(CCPalette.DIRT.value[j] * (1 - alpha) + road_color[j] * alpha) for j in range(3)
+                    )
+                    for rx in range(road_left, road_right):
+                        c.set_pixel(rx, i, blended)
+            if not has_s:
+                for i in range(min(4, road_margin)):
+                    alpha = i / 4
+                    blended = tuple(
+                        int(CCPalette.DIRT.value[j] * (1 - alpha) + road_color[j] * alpha) for j in range(3)
+                    )
+                    for rx in range(road_left, road_right):
+                        c.set_pixel(rx, size - 1 - i, blended)
+
+            # *** 轮胎痕迹（两条平行暗线，略不规则）***
+            tire_rng = random.Random(7778)
+            tire_color = tuple(max(0, v - 30) for v in road_color)  # 比路面暗30
+            tire_spacing = tire_rng.randint(4, 6)  # 轮胎间距(中心到中心) 4-6px
+            tire_width = tire_rng.choice([1, 2])  # 轮胎宽度
+
+            # 计算轮胎位置（相对于道路中心）
+            center_x = (road_left + road_right) // 2
+            tire1_x = center_x - tire_spacing // 2
+            tire2_x = center_x + tire_spacing // 2
+
+            # 绘制上轮胎痕迹（带周期性随机偏移，每8-12px偏移一次）
+            wobble_interval = tire_rng.randint(8, 12)
+            current_offset = tire_rng.randint(-1, 1)
+            for py in range(0, size):
+                if py < 4 and not has_n:
+                    fade = py / 4
+                    if tire_rng.random() > fade:
+                        continue
+                elif py >= size - 4 and not has_s:
+                    fade = (size - 1 - py) / 4
+                    if tire_rng.random() > fade:
+                        continue
+
+                # 每隔8-12px更新偏移量（模拟真实轮胎摆动）
+                if py > 0 and py % wobble_interval == 0:
+                    current_offset = tire_rng.randint(-1, 1)
+                px = tire1_x + current_offset
+                if road_left <= px < road_right:
+                    if tire_rng.random() > 0.05:
+                        for w in range(tire_width):
+                            if 0 <= px + w < size:
+                                c.set_pixel(px + w, py, tire_color)
+
+            # 绘制下轮胎痕迹（带周期性随机偏移）
+            wobble_interval = tire_rng.randint(8, 12)
+            current_offset = tire_rng.randint(-1, 1)
+            for py in range(0, size):
+                if py < 4 and not has_n:
+                    fade = py / 4
+                    if tire_rng.random() > fade:
+                        continue
+                elif py >= size - 4 and not has_s:
+                    fade = (size - 1 - py) / 4
+                    if tire_rng.random() > fade:
+                        continue
+
+                if py > 0 and py % wobble_interval == 0:
+                    current_offset = tire_rng.randint(-1, 1)
+                px = tire2_x + current_offset
+                if road_left <= px < road_right:
+                    if tire_rng.random() > 0.05:
+                        for w in range(tire_width):
+                            if 0 <= px + w < size:
+                                c.set_pixel(px + w, py, tire_color)
+
+            rng = random.Random(77)
+            gravel_count = max(20, size * size // 10)
+            if road_left <= road_right - 1:
+                for _ in range(gravel_count):
+                    gx = rng.randint(road_left, road_right - 1)
+                    gy = rng.randint(1, size - 2)
+                    bright_var = rng.randint(15, 35)
+                    gravel_color = (
+                        min(255, road_color[0] + bright_var),
+                        min(255, road_color[1] + bright_var),
+                        min(255, road_color[2] + bright_var),
+                    )
+                    c.set_pixel(gx, gy, gravel_color)
+
+            dark_gravel_count = max(10, size * size // 20)
+            if road_left <= road_right - 1:
+                for _ in range(dark_gravel_count):
+                    gx = rng.randint(road_left, road_right - 1)
+                    gy = rng.randint(1, size - 2)
+                    dark_var = rng.randint(10, 25)
+                    if rng.random() > 0.5:
+                        gravel_color = (
+                            max(0, road_color[0] - dark_var),
+                            max(0, road_color[1] - dark_var),
+                            max(0, road_color[2] - dark_var),
+                        )
+                    else:
+                        gray_tone = rng.randint(100, 140)
+                        gravel_color = (gray_tone, gray_tone - 5, gray_tone - 10)
+                    c.set_pixel(gx, gy, gravel_color)
+
+            crack_count = max(3, size // 10)
+            crack_lo = road_left + 1
+            crack_hi = road_right - 2
+            if crack_lo <= crack_hi:
+                for _ in range(crack_count):
+                    cx = rng.randint(crack_lo, crack_hi)
+                    cy = rng.randint(2, size - 8)
+                    crack_len = rng.randint(4, 10)
+                    crack_angle = rng.uniform(-0.4, 0.4)
+                    crack_color = tuple(max(0, v - 30) for v in road_color)
+                    for i in range(crack_len):
+                        px = cx + int(i * math.sin(crack_angle))
+                        py = cy + i
+                        if 0 <= py < size and road_left <= px < road_right:
+                            c.set_pixel(px, py, crack_color)
 
         edge_color = CCPalette.DIRT.value
         for i in range(road_margin):
@@ -815,7 +1009,7 @@ class TerrainTileGenerator:
                 c.set_pixel(size // 2, i, blended)
                 c.set_pixel(size // 2, size - 1 - i, blended)
 
-        add_noise(c, intensity=10)
+        add_noise(c, intensity=8)
         return c
 
     @staticmethod
@@ -880,6 +1074,26 @@ class TerrainTileGenerator:
             shadow_r = tr // 2
             shadow_y = ty + tr // 2 + max(6, tr // 3)
             c.fill_circle(tx, shadow_y, shadow_r, (40, 55, 30))
+
+        # Small circular clusters of dark green dots (canopy/underbrush texture)
+        canopy_rng = random.Random(88)
+        cluster_count = max(8, size // 4)
+        for _ in range(cluster_count):
+            cx = canopy_rng.randint(3, size - 4)
+            cy = canopy_rng.randint(3, size - 4)
+            cluster_r = canopy_rng.randint(2, 4)
+            dot_count = canopy_rng.randint(3, 6)
+            for _ in range(dot_count):
+                dx = cx + canopy_rng.randint(-cluster_r, cluster_r)
+                dy = cy + canopy_rng.randint(-cluster_r, cluster_r)
+                if 0 <= dx < size and 0 <= dy < size:
+                    shade = canopy_rng.randint(-15, 15)
+                    dot_color = (
+                        max(0, min(255, leaf_dark[0] + shade)),
+                        max(0, min(255, leaf_dark[1] + shade)),
+                        max(0, min(255, leaf_dark[2] + shade)),
+                    )
+                    c.set_pixel(dx, dy, dot_color)
 
         add_noise(c, intensity=5)
         return c
@@ -1012,12 +1226,15 @@ class TerrainTileGenerator:
 
     @staticmethod
     def generate_bridge(size: int) -> PixelCanvas:
-        """生成桥梁瓦片"""
+        """生成桥梁瓦片 — 纯俯视: 水上矩形平台, 木板线+细栏杆"""
         c = PixelCanvas(size, size)
 
         water = CCPalette.WATER.value
-        deck = (160, 140, 90)
-        rail = (100, 80, 60)
+        deck_color = (160, 140, 90)
+        deck_dark = (130, 112, 70)
+        plank_line = (110, 92, 55)
+        rail_color = (90, 72, 50)
+        rail_post = (110, 90, 60)
 
         c.fill_rect(0, 0, size, size, water)
         rng = random.Random(99)
@@ -1029,110 +1246,330 @@ class TerrainTileGenerator:
 
         deck_margin = max(3, size // 10)
         deck_h = max(size // 5, 8)
-        c.fill_rect(0, size // 2 - deck_h // 2, size, deck_h, deck)
-        plank_gap = max(8, size // 6)
-        for px in range(0, size, plank_gap):
-            gap_color = tuple(max(0, v - 25) for v in deck)
-            c.fill_rect(px, size // 2 - deck_h // 2, 2, deck_h, gap_color)
-        nail_spacing = max(12, size // 5)
-        for nx in range(nail_spacing // 2, size, nail_spacing):
-            c.set_pixel(nx, size // 2 - deck_h // 2 + 1, (80, 70, 55))
-            c.set_pixel(nx, size // 2 + deck_h // 2 - 1, (80, 70, 55))
+        deck_y = size // 2 - deck_h // 2
 
-        rail_y_top = size // 2 - deck_h // 2 - max(2, size // 24)
-        rail_y_bot = size // 2 + deck_h // 2 + max(2, size // 24)
-        rail_h = max(2, size // 24)
-        c.fill_rect(0, rail_y_top, size, rail_h, rail)
-        c.fill_rect(0, rail_y_bot, size, rail_h, rail)
-        post_spacing = max(10, size // 8)
+        c.fill_rect(0, deck_y, size, deck_h, deck_color)
+
+        c.fill_rect(0, deck_y, size, 1, deck_dark)
+        c.fill_rect(0, deck_y + deck_h - 1, size, 1, deck_dark)
+
+        plank_gap = max(6, size // 8)
+        for px in range(plank_gap, size, plank_gap):
+            c.fill_rect(px - 1, deck_y, 1, deck_h, plank_line)
+
+        nail_spacing = max(10, size // 4)
+        for nx in range(nail_spacing // 2, size, nail_spacing):
+            c.set_pixel(nx, deck_y + 1, (80, 70, 55))
+            c.set_pixel(nx, deck_y + deck_h - 2, (80, 70, 55))
+
+        rail_y_top = deck_y
+        rail_y_bot = deck_y + deck_h - 1
+        c.fill_rect(0, rail_y_top, size, 1, rail_color)
+        c.fill_rect(0, rail_y_bot, size, 1, rail_color)
+
+        post_spacing = max(8, size // 6)
         for px in range(post_spacing // 2, size, post_spacing):
-            c.fill_rect(px, rail_y_top - 1, 2, rail_h + 2, (120, 100, 70))
-            c.fill_rect(px, rail_y_bot - 1, 2, rail_h + 2, (120, 100, 70))
+            c.fill_rect(px, rail_y_top, 2, 1, rail_post)
+            c.fill_rect(px, rail_y_bot, 2, 1, rail_post)
 
         add_noise(c, intensity=5)
         return c
 
     @staticmethod
-    def generate_water(size: int) -> PixelCanvas:
-        """生成水面瓦片"""
+    def generate_water(size: int, tile_x: int = 0, tile_y: int = 0,
+                       neighbors: dict | None = None) -> PixelCanvas:
+        """生成水面瓦片 — 增强版: 暗蓝绿色基底+有机波纹+稀有白色闪光
+
+        CC2风格水面特征:
+        - 基础颜色: 暗蓝绿色 (35, 70, 120) 而非亮蓝色
+        - 整体亮度降低25%，营造深邃水体感
+        - 半透明效果 (alpha=170)
+        - 有机波纹: 正弦波+变化频率，非规则条纹
+        - 稀有白色闪光: 仅2-3个/tile，1-2px大小
+
+        Args:
+            size: 瓦片尺寸
+            tile_x: 瓦片在世界中的X坐标(用于波纹相位对齐)
+            tile_y: 瓦片在世界中的Y坐标(用于波纹相位对齐)
+            neighbors: 邻居信息字典, 键为 "north"/"east"/"south"/"west",
+                       值为 True(水域邻居) 或 False(非水域邻居)
+        """
+        if neighbors is None:
+            neighbors = {}
         c = PixelCanvas(size, size)
-        base = CCPalette.WATER.value
+
+        # *** 暗蓝绿色基底 (替代原来的亮蓝色) ***
+        base = (35, 70, 120)  # DARK blue-green, not bright swimming pool blue
         c.fill_rect(0, 0, size, size, base)
 
         rng = random.Random(44)
-        for _ in range(max(8, size // 6)):
-            wy = rng.randint(2, size - 3)
-            ww = rng.randint(size // 4, size // 2)
-            wave_color = tuple(min(255, base[i] + rng.randint(10, 25)) for i in range(3))
-            c.fill_rect(0, wy, size, 1, wave_color)
 
-        for _ in range(max(3, size // 12)):
-            rx = rng.randint(2, size - 3)
-            ry = rng.randint(2, size - 3)
-            rr = rng.randint(1, max(2, size // 20))
-            c.fill_circle(rx, ry, rr, (140, 185, 220))
+        has_n = neighbors.get("north", False)
+        has_e = neighbors.get("east", False)
+        has_s = neighbors.get("south", False)
+        has_w = neighbors.get("west", False)
+
+        # *** 降低亮度25%的水面纹理 ***
+        water_light = tuple(min(255, int(v * 0.88)) for v in base)  # 比基底稍亮12% (总降25%)
+        water_dark = tuple(max(0, int(v * 0.85)) for v in base)     # 比基底暗15%
+
+        # *** 有机波纹模式 (正弦波 + 变化频率，非规则条纹) ***
+        for y in range(size):
+            for x in range(size):
+                # 使用复合正弦波创建有机波纹
+                wave1 = math.sin((x + tile_x * size) * 0.15 + tile_y * 0.3)
+                wave2 = math.sin((y + tile_y * size) * 0.12 + tile_x * 0.25)
+                wave3 = math.sin(((x + y) + (tile_x + tile_y) * size) * 0.08)
+
+                # 组合波形 (加权平均)
+                combined_wave = (wave1 * 0.4 + wave2 * 0.35 + wave3 * 0.25)
+
+                # 根据波相位选择颜色
+                if combined_wave > 0.15:
+                    row_color = water_light
+                elif combined_wave < -0.15:
+                    row_color = water_dark
+                else:
+                    row_color = base
+
+                # 添加微小随机变化
+                var = rng.randint(-4, 4)
+                px_color = (
+                    max(0, min(255, row_color[0] + var)),
+                    max(0, min(255, row_color[1] + var)),
+                    max(0, min(255, row_color[2] + var)),
+                )
+                c.set_pixel(x, y, px_color)
+
+        # *** 增强有机波纹线条 (多条不同频率的正弦波) ***
+        wave_phase_base = (tile_x * size) * 0.3
+        for wave_idx in range(max(6, size // 8)):  # 减少波纹线条数量
+            wy_base = rng.randint(2, size - 3)
+            wx_start = rng.randint(0, size // 4)
+            ww = rng.randint(size // 4, size // 2)
+            wave_color = tuple(min(255, base[i] + rng.randint(10, 22)) for i in range(3))
+            wave_amp = rng.randint(1, 2)
+            # 变化频率 (每次都不同)
+            wave_freq = rng.uniform(0.2, 0.7)  # 更宽的频率范围
+            wave_phase = wave_phase_base + rng.uniform(0, 2 * math.pi)
+            for x in range(wx_start, min(size, wx_start + ww)):
+                wy = wy_base + int(wave_amp * math.sin(wave_freq * (x + tile_x * size) + wave_phase))
+                if 0 <= wy < size:
+                    c.set_pixel(x, wy, wave_color)
+
+        # *** 稀有白色闪光点 (仅2-3个/tile，非常稀少) ***
+        glint_count = 3  # 固定2-3个闪光点（原来太多）
+        for _ in range(glint_count):
+            gx = rng.randint(3, size - 4)
+            gy = rng.randint(3, size - 4)
+            # 1-2px 大小的白色闪光
+            c.set_pixel(gx, gy, (240, 248, 255))  # 微蓝白色
+            if rng.random() > 0.5:
+                # 50%概率扩展到2px
+                c.set_pixel(gx + 1, gy, (240, 248, 255))
+
+        # *** 岸边渐变处理 ***
+        bank_color = CCPalette.WATER_FOAM.value
+        bank_dark = tuple(max(0, v - 30) for v in base)
+        bank_width = max(3, size // 10)
+        if not has_n:
+            for y in range(bank_width):
+                gradient = y / bank_width
+                for x in range(size):
+                    existing = c.get_pixel(x, y)
+                    blended = (
+                        max(0, int(bank_dark[0] * (1 - gradient) + existing[0] * gradient)),
+                        max(0, int(bank_dark[1] * (1 - gradient) + existing[1] * gradient)),
+                        max(0, int(bank_dark[2] * (1 - gradient) + existing[2] * gradient)),
+                    )
+                    c.set_pixel(x, y, blended)
+            for x in range(0, size, 2):
+                c.set_pixel(x, 0, bank_color)
+        if not has_s:
+            for y in range(bank_width):
+                gradient = y / bank_width
+                for x in range(size):
+                    existing = c.get_pixel(x, size - 1 - y)
+                    blended = (
+                        max(0, int(bank_dark[0] * (1 - gradient) + existing[0] * gradient)),
+                        max(0, int(bank_dark[1] * (1 - gradient) + existing[1] * gradient)),
+                        max(0, int(bank_dark[2] * (1 - gradient) + existing[2] * gradient)),
+                    )
+                    c.set_pixel(x, size - 1 - y, blended)
+            for x in range(0, size, 2):
+                c.set_pixel(x, size - 1, bank_color)
+        if not has_w:
+            for x in range(bank_width):
+                gradient = x / bank_width
+                for y in range(size):
+                    existing = c.get_pixel(x, y)
+                    blended = (
+                        max(0, int(bank_dark[0] * (1 - gradient) + existing[0] * gradient)),
+                        max(0, int(bank_dark[1] * (1 - gradient) + existing[1] * gradient)),
+                        max(0, int(bank_dark[2] * (1 - gradient) + existing[2] * gradient)),
+                    )
+                    c.set_pixel(x, y, blended)
+            for y in range(0, size, 2):
+                c.set_pixel(0, y, bank_color)
+        if not has_e:
+            for x in range(bank_width):
+                gradient = x / bank_width
+                for y in range(size):
+                    existing = c.get_pixel(size - 1 - x, y)
+                    blended = (
+                        max(0, int(bank_dark[0] * (1 - gradient) + existing[0] * gradient)),
+                        max(0, int(bank_dark[1] * (1 - gradient) + existing[1] * gradient)),
+                        max(0, int(bank_dark[2] * (1 - gradient) + existing[2] * gradient)),
+                    )
+                    c.set_pixel(size - 1 - x, y, blended)
+            for y in range(0, size, 2):
+                c.set_pixel(size - 1, y, bank_color)
 
         add_noise(c, intensity=3)
+
+        # *** 移除旧的spark代码，已整合到上面的glint中 ***
+
+        # *** 半透明设置 (alpha = 170) ***
+        c._pixels[:, :, 3] = 170
         return c
 
     @staticmethod
     def generate_hedge(size: int) -> PixelCanvas:
-        """生成树篱瓦片"""
+        """生成树篱瓦片 — 纯俯视: 密集灌木丛行, 不规则绿色团块"""
         c = PixelCanvas(size, size)
-        hedge_color = (121, 85, 72)
-        c.fill_rect(0, 0, size, size, (139, 119, 66))
 
-        margin = max(2, size // 12)
-        c.fill_rect(margin, margin, size - margin * 2, size - margin * 2, hedge_color)
+        grass_base = CCPalette.GRASS_LIGHT.value
+        c.fill_rect(0, 0, size, size, grass_base)
 
         rng = random.Random(55)
-        for _ in range(max(10, size // 4)):
-            hx = rng.randint(margin, size - margin - 1)
-            hy = rng.randint(margin, size - margin - 1)
-            hr = rng.randint(1, max(2, size // 20))
-            c.fill_circle(hx, hy, hr, tuple(max(0, v - 15) for v in hedge_color))
-            c.fill_circle(hx + 1, hy + 1, hr // 2, tuple(min(255, v + 12) for v in hedge_color))
 
-        c.fill_rect(
-            margin,
-            margin,
-            size - margin * 2,
-            max(2, size // 16),
-            tuple(min(255, v + 20) for v in hedge_color),
-        )
+        hedge_band_y = size // 3
+        hedge_band_h = size // 3
 
-        add_noise(c, intensity=8)
+        leaf_shades = [
+            (35, 70, 25),
+            (45, 85, 32),
+            (55, 100, 38),
+            (65, 115, 45),
+        ]
+
+        for y in range(hedge_band_y, hedge_band_y + hedge_band_h):
+            for x in range(0, size):
+                dist_from_center = abs(y - (hedge_band_y + hedge_band_h // 2))
+                edge_fade = max(0, 1.0 - dist_from_center / (hedge_band_h // 2 + 1))
+                if rng.random() < edge_fade * 0.95:
+                    shade = leaf_shades[rng.randint(0, len(leaf_shades) - 1)]
+                    var = rng.randint(-8, 8)
+                    dot_color = (
+                        max(0, min(255, shade[0] + var)),
+                        max(0, min(255, shade[1] + var)),
+                        max(0, min(255, shade[2] + var)),
+                    )
+                    c.set_pixel(x, y, dot_color)
+
+        bush_count = max(6, size // 4)
+        for _ in range(bush_count):
+            bx = rng.randint(2, size - 5)
+            by = rng.randint(hedge_band_y + 1, hedge_band_y + hedge_band_h - 3)
+            br = rng.randint(2, 4)
+            shade = leaf_shades[rng.randint(0, len(leaf_shades) - 1)]
+            c.fill_circle(bx, by, br, shade)
+            hl_color = (min(255, shade[0] + 20), min(255, shade[1] + 25), min(255, shade[2] + 12))
+            c.fill_circle(bx - 1, by - 1, max(1, br // 2), hl_color)
+
+        for _ in range(max(8, size // 3)):
+            gx = rng.randint(1, size - 3)
+            gy = rng.randint(hedge_band_y, hedge_band_y + hedge_band_h - 1)
+            shade = leaf_shades[rng.randint(0, len(leaf_shades) - 1)]
+            var = rng.randint(-10, 10)
+            dot_color = (
+                max(0, min(255, shade[0] + var)),
+                max(0, min(255, shade[1] + var)),
+                max(0, min(255, shade[2] + var)),
+            )
+            c.set_pixel(gx, gy, dot_color)
+            if rng.random() > 0.5 and gx + 1 < size:
+                c.set_pixel(gx + 1, gy, dot_color)
+
+        shadow_offset = 2
+        for y in range(hedge_band_y + hedge_band_h, min(size, hedge_band_y + hedge_band_h + shadow_offset + 2)):
+            alpha = max(0, 1.0 - (y - hedge_band_y - hedge_band_h) / (shadow_offset + 2))
+            for x in range(0, size):
+                if rng.random() < alpha * 0.6:
+                    existing = c.get_pixel(x, y)
+                    shadow_blend = (
+                        max(0, int(existing[0] * (1 - alpha * 0.4))),
+                        max(0, int(existing[1] * (1 - alpha * 0.3))),
+                        max(0, int(existing[2] * (1 - alpha * 0.4))),
+                    )
+                    c.set_pixel(x, y, shadow_blend)
+
+        add_noise(c, intensity=5)
         return c
 
     @staticmethod
     def generate_wall(size: int) -> PixelCanvas:
-        """生成墙壁瓦片"""
+        """生成石墙瓦片 — 纯俯视: 细线石块纹理, 交替明暗段"""
         c = PixelCanvas(size, size)
-        wall_color = (80, 78, 74)
-        c.fill_rect(0, 0, size, size, (139, 119, 66))
 
-        margin = max(3, size // 10)
-        c.fill_rect(margin, margin, size - margin * 2, size - margin * 2, wall_color)
-        brick_h = max(3, size // 16)
-        brick_color = tuple(max(0, v - 8) for v in wall_color)
-        mortar_color = tuple(min(255, v + 15) for v in wall_color)
-        for by in range(margin, size - margin, brick_h):
-            for bx in range(margin, size - margin, max(8, size // 8)):
-                offset = (by // brick_h) % 2 * (max(4, size // 16) // 2)
-                if (bx + offset) % (max(8, size // 8)) < max(4, size // 16):
-                    c.set_pixel(bx, by, mortar_color)
+        grass_base = CCPalette.GRASS_LIGHT.value
+        c.fill_rect(0, 0, size, size, grass_base)
+
+        rng = random.Random(88)
+
+        wall_y = size // 2 - 1
+        wall_h = 3
+
+        stone_light = (140, 135, 125)
+        stone_dark = (100, 95, 88)
+        stone_mid = (120, 115, 108)
+        mortar_color = (85, 80, 72)
+
+        c.fill_rect(0, wall_y, size, wall_h, stone_mid)
+
+        block_w = max(4, size // 8)
+        for row in range(wall_h):
+            offset = (row % 2) * (block_w // 2)
+            for bx in range(-offset, size, block_w):
+                block_type = rng.random()
+                if block_type < 0.4:
+                    block_color = stone_light
+                elif block_type < 0.7:
+                    block_color = stone_dark
                 else:
-                    c.set_pixel(bx, by, brick_color)
+                    block_color = stone_mid
+                var = rng.randint(-8, 8)
+                block_color = (
+                    max(0, min(255, block_color[0] + var)),
+                    max(0, min(255, block_color[1] + var)),
+                    max(0, min(255, block_color[2] + var)),
+                )
+                bw = min(block_w - 1, size - bx)
+                if bw > 0 and 0 <= bx < size:
+                    c.fill_rect(bx, wall_y + row, bw, 1, block_color)
 
-        c.fill_rect(
-            margin,
-            margin,
-            size - margin * 2,
-            max(1, size // 32),
-            tuple(min(255, v + 18) for v in wall_color),
-        )
+        for row in range(wall_h + 1):
+            cy = wall_y + row
+            for bx in range(0, size, block_w):
+                offset = (row % 2) * (block_w // 2)
+                mx = bx + offset
+                if 0 <= mx < size:
+                    c.set_pixel(mx, cy, mortar_color)
 
-        add_noise(c, intensity=6)
+        shadow_y = wall_y + wall_h
+        for sy in range(shadow_y, min(size, shadow_y + 2)):
+            alpha = max(0, 1.0 - (sy - shadow_y) / 2)
+            for sx in range(0, size):
+                if rng.random() < alpha * 0.5:
+                    existing = c.get_pixel(sx, sy)
+                    shadow_blend = (
+                        max(0, int(existing[0] * (1 - alpha * 0.3))),
+                        max(0, int(existing[1] * (1 - alpha * 0.3))),
+                        max(0, int(existing[2] * (1 - alpha * 0.3))),
+                    )
+                    c.set_pixel(sx, sy, shadow_blend)
+
+        add_noise(c, intensity=5)
         return c
 
     @staticmethod
@@ -1231,6 +1668,224 @@ class TerrainTileGenerator:
 
         return c
 
+    @staticmethod
+    def generate_mud(size: int, variant: int = 0) -> PixelCanvas:
+        c = PixelCanvas(size, size, bg=(90, 70, 45))
+        rng = random.Random(variant * 211 + 13)
+
+        wet_dark = (65, 50, 32)
+        dry_light = (110, 88, 58)
+        highlight = (130, 105, 70)
+
+        for _ in range(size * size // 8):
+            mx = rng.randint(0, size - 1)
+            my = rng.randint(0, size - 1)
+            mr = rng.randint(1, max(2, size // 16))
+            shade = rng.choice([wet_dark, dry_light])
+            c.fill_circle(mx, my, mr, shade)
+
+        for _ in range(size // 2):
+            rx = rng.randint(1, size - 2)
+            ry = rng.randint(1, size - 2)
+            rw = rng.randint(2, max(3, size // 8))
+            c.fill_rect(rx, ry, rw, 1, highlight)
+
+        for _ in range(max(3, size // 8)):
+            px = rng.randint(2, size - 3)
+            py = rng.randint(2, size - 3)
+            c.set_pixel(px, py, (50, 38, 25))
+            if rng.random() > 0.5:
+                c.set_pixel(px + 1, py, (50, 38, 25))
+
+        add_noise(c, intensity=8)
+        return c
+
+    @staticmethod
+    def generate_sand(size: int, variant: int = 0) -> PixelCanvas:
+        c = PixelCanvas(size, size, bg=(180, 165, 120))
+        rng = random.Random(variant * 317 + 23)
+
+        ripple_light = (195, 180, 135)
+        ripple_dark = (160, 145, 100)
+        grain_dark = (140, 125, 85)
+
+        for i in range(max(4, size // 6)):
+            ry = rng.randint(2, size - 3)
+            rx_start = rng.randint(0, size // 4)
+            rw = rng.randint(size // 4, size // 2)
+            ripple_color = ripple_light if i % 2 == 0 else ripple_dark
+            for x in range(rx_start, min(size, rx_start + rw)):
+                wy = ry + int(0.5 * math.sin(0.3 * x + i))
+                if 0 <= wy < size:
+                    c.set_pixel(x, wy, ripple_color)
+
+        for _ in range(size * size // 6):
+            gx = rng.randint(0, size - 1)
+            gy = rng.randint(0, size - 1)
+            var = rng.randint(-8, 8)
+            grain_color = (
+                max(0, min(255, grain_dark[0] + var)),
+                max(0, min(255, grain_dark[1] + var)),
+                max(0, min(255, grain_dark[2] + var)),
+            )
+            c.set_pixel(gx, gy, grain_color)
+
+        add_noise(c, intensity=6)
+        return c
+
+    @staticmethod
+    def generate_snow(size: int, variant: int = 0) -> PixelCanvas:
+        c = PixelCanvas(size, size, bg=(230, 235, 240))
+        rng = random.Random(variant * 431 + 37)
+
+        blue_shadow = (200, 210, 225)
+        footprint_dark = (210, 218, 228)
+
+        for _ in range(size // 3):
+            sx = rng.randint(1, size - 3)
+            sy = rng.randint(1, size - 3)
+            sw = rng.randint(2, max(3, size // 10))
+            sh = rng.randint(2, max(3, size // 10))
+            c.fill_rect(sx, sy, sw, sh, blue_shadow)
+
+        for _ in range(max(2, size // 10)):
+            fx = rng.randint(3, size - 6)
+            fy = rng.randint(3, size - 6)
+            c.fill_ellipse(fx, fy, 2, 3, footprint_dark)
+            c.fill_ellipse(fx + 4, fy + 1, 2, 3, footprint_dark)
+
+        for _ in range(size * size // 20):
+            sx = rng.randint(0, size - 1)
+            sy = rng.randint(0, size - 1)
+            var = rng.randint(-5, 5)
+            sparkle = (
+                max(0, min(255, 235 + var)),
+                max(0, min(255, 240 + var)),
+                max(0, min(255, 245 + var)),
+            )
+            c.set_pixel(sx, sy, sparkle)
+
+        add_noise(c, intensity=3)
+        return c
+
+    @staticmethod
+    def generate_wire(size: int, variant: int = 0) -> PixelCanvas:
+        c = TerrainTileGenerator.generate_grass(size, variant=variant + 10)
+
+        rng = random.Random(variant * 523 + 51)
+        wire_color = (100, 100, 100)
+        post_color = (80, 75, 65)
+
+        for strand in range(3):
+            y_base = size // 4 + strand * (size // 5)
+            x = 0
+            y = y_base
+            while x < size - 1:
+                zig = rng.randint(2, max(3, size // 8))
+                zag = rng.randint(2, max(3, size // 8))
+                next_x = min(size - 1, x + zig)
+                next_y = max(1, min(size - 2, y + rng.choice([-2, -1, 0, 1, 2])))
+                c.draw_line(x, y, next_x, next_y, wire_color, 1)
+                x = next_x
+                y = next_y
+
+        post_spacing = max(8, size // 4)
+        for px in range(post_spacing // 2, size, post_spacing):
+            for strand in range(3):
+                py = size // 4 + strand * (size // 5)
+                c.fill_rect(px - 1, py - 1, 3, 3, post_color)
+
+        add_noise(c, intensity=4)
+        return c
+
+    @staticmethod
+    def generate_trench(size: int, variant: int = 0) -> PixelCanvas:
+        c = PixelCanvas(size, size, bg=(76, 153, 0))
+        rng = random.Random(variant * 641 + 61)
+
+        grass_base = CCPalette.GRASS_LIGHT.value
+        c.fill_rect(0, 0, size, size, grass_base)
+
+        trench_w = max(8, size // 3)
+        trench_left = (size - trench_w) // 2
+        trench_right = trench_left + trench_w
+
+        earth_wall = (120, 90, 55)
+        wall_w = max(2, size // 10)
+        c.fill_rect(trench_left - wall_w, 0, wall_w, size, earth_wall)
+        c.fill_rect(trench_right, 0, wall_w, size, earth_wall)
+
+        depression = (60, 45, 30)
+        c.fill_rect(trench_left, 0, trench_w, size, depression)
+
+        for _ in range(size // 2):
+            dx = rng.randint(trench_left + 1, trench_right - 2)
+            dy = rng.randint(0, size - 1)
+            var = rng.randint(-10, 10)
+            dirt_color = (
+                max(0, min(255, depression[0] + var)),
+                max(0, min(255, depression[1] + var)),
+                max(0, min(255, depression[2] + var)),
+            )
+            c.set_pixel(dx, dy, dirt_color)
+
+        for _ in range(size // 3):
+            wx = rng.randint(trench_left - wall_w, trench_left - 1)
+            wy = rng.randint(0, size - 1)
+            var = rng.randint(-8, 8)
+            wall_var = (
+                max(0, min(255, earth_wall[0] + var)),
+                max(0, min(255, earth_wall[1] + var)),
+                max(0, min(255, earth_wall[2] + var)),
+            )
+            c.set_pixel(wx, wy, wall_var)
+
+        add_noise(c, intensity=6)
+        return c
+
+    @staticmethod
+    def generate_bunker(size: int, variant: int = 0) -> PixelCanvas:
+        c = PixelCanvas(size, size, bg=(76, 153, 0))
+        grass_base = CCPalette.GRASS_LIGHT.value
+        c.fill_rect(0, 0, size, size, grass_base)
+
+        concrete = (120, 115, 105)
+        concrete_dark = (90, 85, 78)
+        slit_dark = (30, 28, 25)
+
+        bw = max(16, size * 2 // 3)
+        bh = max(12, size // 2)
+        bx = (size - bw) // 2
+        by = (size - bh) // 2
+
+        c.fill_rect(bx, by, bw, bh, concrete)
+
+        c.fill_rect(bx, by, bw, max(2, size // 16), concrete_dark)
+        c.fill_rect(bx, by + bh - max(2, size // 16), bw, max(2, size // 16), concrete_dark)
+        c.fill_rect(bx, by, max(2, size // 16), bh, concrete_dark)
+        c.fill_rect(bx + bw - max(2, size // 16), by, max(2, size // 16), bh, concrete_dark)
+
+        slit_w = max(6, bw // 3)
+        slit_h = max(2, size // 16)
+        slit_x = bx + (bw - slit_w) // 2
+        slit_y = by + bh // 2 - slit_h // 2
+        c.fill_rect(slit_x, slit_y, slit_w, slit_h, slit_dark)
+
+        rng = random.Random(variant * 757 + 71)
+        for _ in range(bw * bh // 8):
+            px = rng.randint(bx + 1, bx + bw - 2)
+            py = rng.randint(by + 1, by + bh - 2)
+            var = rng.randint(-8, 8)
+            tex_color = (
+                max(0, min(255, concrete[0] + var)),
+                max(0, min(255, concrete[1] + var)),
+                max(0, min(255, concrete[2] + var)),
+            )
+            c.set_pixel(px, py, tex_color)
+
+        add_noise(c, intensity=5)
+        return c
+
 
 # ============================================================
 # 6. 工厂函数 — 对外统一接口
@@ -1241,8 +1896,9 @@ def create_unit_sprite(
     faction: str,
     unit_type: str,
     direction: int = 0,
-    size: int = 56,
+    size: int = 24,
     frame: int = 0,
+    state: str = "idle",
 ) -> PixelCanvas:
     """便捷函数：创建单位精灵"""
     spec = UnitSpriteSpec(
@@ -1251,20 +1907,36 @@ def create_unit_sprite(
         direction=direction,
         size=size,
         frame_offset=frame,
+        state=state,
     )
     return UnitSpriteGenerator.generate(spec)
 
 
-def create_terrain_tile(terrain_id: int, size: int = 48) -> PixelCanvas:
-    """便捷函数：创建地形瓦片"""
+def create_terrain_tile(terrain_id: int, size: int = 48,
+                        tile_x: int = 0, tile_y: int = 0,
+                        neighbors: dict | None = None) -> PixelCanvas:
+    """便捷函数：创建地形瓦片
+
+    Args:
+        terrain_id: 地形类型ID
+        size: 瓦片尺寸
+        tile_x: 瓦片世界X坐标(用于跨瓦片连续性)
+        tile_y: 瓦片世界Y坐标(用于跨瓦片连续性)
+        neighbors: 邻居信息字典, 键为 "north"/"east"/"south"/"west",
+                   值为 True(同类型邻居) 或 False(非同类型邻居)
+    """
+    if terrain_id == 1:
+        return TerrainTileGenerator.generate_road(size, neighbors=neighbors)
+    if terrain_id == 6:
+        return TerrainTileGenerator.generate_water(
+            size, tile_x=tile_x, tile_y=tile_y, neighbors=neighbors
+        )
     generators = {
         0: lambda s: TerrainTileGenerator.generate_open(s),
-        1: lambda s: TerrainTileGenerator.generate_road(s),
         2: lambda s: TerrainTileGenerator.generate_grass(s, variant=2),
         3: lambda s: TerrainTileGenerator.generate_woods(s, "medium"),
         4: lambda s: TerrainTileGenerator.generate_building(s, "enterable"),
         5: lambda s: TerrainTileGenerator.generate_building(s, "solid"),
-        6: lambda s: TerrainTileGenerator.generate_water(s),
         7: lambda s: TerrainTileGenerator.generate_hedge(s),
         8: lambda s: TerrainTileGenerator.generate_wall(s),
         9: lambda s: TerrainTileGenerator.generate_rough(s),
@@ -1272,6 +1944,14 @@ def create_terrain_tile(terrain_id: int, size: int = 48) -> PixelCanvas:
         11: lambda s: TerrainTileGenerator.generate_bridge(s),
         12: lambda s: TerrainTileGenerator.generate_crater(s),
         13: lambda s: TerrainTileGenerator.generate_swamp(s),
+        14: lambda s: TerrainTileGenerator.generate_bridge(s),
+        15: lambda s: TerrainTileGenerator.generate_crater(s, variant=5),
+        16: lambda s: TerrainTileGenerator.generate_trench(s),
+        17: lambda s: TerrainTileGenerator.generate_mud(s),
+        18: lambda s: TerrainTileGenerator.generate_sand(s),
+        19: lambda s: TerrainTileGenerator.generate_snow(s),
+        20: lambda s: TerrainTileGenerator.generate_wire(s),
+        21: lambda s: TerrainTileGenerator.generate_bunker(s),
     }
     gen = generators.get(terrain_id, lambda s: TerrainTileGenerator.generate_open(s))
     return gen(size)

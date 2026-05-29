@@ -13,6 +13,15 @@ from pycc2.infrastructure.audio.weapon_sounds import (
     WeaponSoundGenerator,
     WeaponSoundProfile,
 )
+from pycc2.infrastructure.audio.voice_command_system import (
+    VoiceCommandSystem,
+    VoiceCommandType,
+)
+from pycc2.infrastructure.audio.environmental_audio import (
+    EnvironmentalAudioSystem,
+    EnvironmentSoundType,
+)
+from pycc2.infrastructure.audio.stereo_sound import StereoSoundSystem
 
 __all__ = [
     "AmbientSoundGenerator",
@@ -24,4 +33,9 @@ __all__ = [
     "WeaponSoundGenerator",
     "WeaponSoundProfile",
     "play_command",
+    "VoiceCommandSystem",
+    "VoiceCommandType",
+    "EnvironmentalAudioSystem",
+    "EnvironmentSoundType",
+    "StereoSoundSystem",
 ]

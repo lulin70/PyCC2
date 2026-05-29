@@ -226,12 +226,13 @@ class TestUnitTypeWeaponShapes:
 class TestTerrainCache:
     """测试6-9: 地形缓存相关测试"""
 
-    def test_terrain_cache_contains_all_14_types(self):
-        """测试6: 地形缓存包含所有14种TerrainType值"""
+    def test_terrain_cache_contains_all_terrain_types(self):
+        """测试6: 地形缓存包含所有TerrainType值"""
+        from pycc2.domain.value_objects.terrain_type import TerrainType
         renderer = SpriteRenderer()
-        assert len(renderer._terrain_cache) == 14
-        for i in range(14):
-            assert i in renderer._terrain_cache, f"Missing terrain type {i}"
+        assert len(renderer._terrain_cache) == len(TerrainType)
+        for tt in TerrainType:
+            assert tt.value in renderer._terrain_cache, f"Missing terrain type {tt.name}"
 
     def test_terrain_tiles_have_correct_size(self):
         renderer = SpriteRenderer()

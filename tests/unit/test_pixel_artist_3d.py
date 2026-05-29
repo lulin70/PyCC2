@@ -5,7 +5,6 @@ Tests cover:
 - Infantry sprite generation (8 directions, 4 states)
 - Tank sprite generation
 - Tree and building sprites
-- Terrain tile generation (isometric)
 - Color palette correctness
 - Direction offset calculations
 """
@@ -58,9 +57,9 @@ class TestPixelArtist3DInitialization:
         axis_palette = PixelArtist3D.CC2_PALETTE["axis"]
 
         # Check required color keys exist
-        required_keys = ['uniform', 'helmet', 'skin', 'weapon', 'boots',
+        required_keys = ['uniform', 'helmet', 'weapon', 'boots',
                          'uniform_dark', 'uniform_light', 'helmet_dark',
-                         'helmet_highlight', 'skin_shadow', 'weapon_metal',
+                         'helmet_highlight', 'weapon_metal',
                          'weapon_wood', 'equipment', 'equipment_dark',
                          'canteen', 'ammo_belt', 'beret']
         for key in required_keys:
@@ -258,7 +257,7 @@ class TestVehicleSpriteGeneration:
 
         assert sprite is not None
         assert isinstance(sprite, pygame.Surface)
-        assert sprite.get_size() == (32, 40)
+        assert sprite.get_size() == (40, 44)
         # Check alpha channel exists
         assert sprite.get_bitsize() == 32
 
@@ -315,7 +314,7 @@ class TestVehicleSpriteGeneration:
 
         assert sprite is not None
         assert isinstance(sprite, pygame.Surface)
-        assert sprite.get_size() == (24, 18)  # Smallest vehicle size per spec
+        assert sprite.get_size() == (28, 20)  # Smallest vehicle size per spec
 
     def test_create_jeep_axis_east(self, artist, pygame_display):
         """Test creating Axis jeep (Kubelwagen) facing East"""
@@ -345,7 +344,7 @@ class TestVehicleSpriteGeneration:
         # Verify all sprites are valid surfaces
         assert len(sprites) == 8
         for i, sprite in enumerate(sprites):
-            assert sprite.get_size() == (24, 18), f"Jeep {Direction(i).name} has wrong size"
+            assert sprite.get_size() == (28, 20), f"Jeep {Direction(i).name} has wrong size"
 
     def test_create_at_gun_allies_idle(self, artist, pygame_display):
         """Test creating Allied anti-tank gun sprite"""
@@ -430,8 +429,8 @@ class TestVehicleSpriteGeneration:
         from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
 
         expected_sizes = {
-            'halftrack': (32, 40),
-            'jeep': (24, 18),
+            'halftrack': (40, 44),
+            'jeep': (28, 20),
             'at_gun': (28, 20),
             'mortar': (22, 20),
         }
@@ -468,7 +467,7 @@ class TestEnvironmentSprites:
             sprite = artist.create_tree_sprite(variant=variant)
             assert sprite is not None
             assert isinstance(sprite, pygame.Surface)
-            assert sprite.get_size() == (14, 14)
+            assert sprite.get_size() == (24, 24)
 
     def test_create_building_house(self, artist, pygame_display):
         """Test house building sprite"""
@@ -501,49 +500,6 @@ class TestEnvironmentSprites:
         )
         assert sprite is not None
 
-    def test_create_terrain_grass_isometric(self, artist, pygame_display):
-        """Test isometric grass terrain tile"""
-        import pygame
-
-        sprite = artist.create_terrain_tile_isometric(
-            terrain_type="grass",
-            size=64,
-            variant=0,
-        )
-        assert sprite is not None
-        assert isinstance(sprite, pygame.Surface)
-        # Isometric tiles should be half height
-        assert sprite.get_size() == (64, 32)
-
-    def test_create_terrain_dirt_isometric(self, artist, pygame_display):
-        """Test isometric dirt terrain tile"""
-
-        sprite = artist.create_terrain_tile_isometric(
-            terrain_type="dirt",
-            size=64,
-            variant=1,
-        )
-        assert sprite is not None
-
-    def test_create_terrain_road_isometric(self, artist, pygame_display):
-        """Test isometric road terrain tile"""
-
-        sprite = artist.create_terrain_tile_isometric(
-            terrain_type="road",
-            size=64,
-            variant=0,
-        )
-        assert sprite is not None
-
-    def test_create_terrain_water_isometric(self, artist, pygame_display):
-        """Test isometric water terrain tile"""
-
-        sprite = artist.create_terrain_tile_isometric(
-            terrain_type="water",
-            size=64,
-            variant=0,
-        )
-        assert sprite is not None
 
 
 class TestIsometricCalculations:
@@ -641,21 +597,17 @@ class TestColorPaletteCorrectness:
     """Test that color palettes match CC2 screenshot analysis."""
 
     def test_allies_uniform_color(self):
-        """Test Allies uniform is WWII Olive Drab (brownish-olive, NOT bright green).
+        """Test Allies uniform is CC2-accurate OD Green.
         
-        Historical correction: US Olive Drab is (112,108,76) per Steve Zaloga
-        and Tamiya XF62 model paint. CC2 screenshots confirm dark earthy tone.
+        CC2 spec (UI_REALISTIC_PIXEL_SPEC.md): Allied uniform #4B5320 = (75, 83, 32)
+        This is the authentic WWII Olive Drab shade used in CC2.
         """
         from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
 
         allies_uniform = PixelArtist3D.CC2_PALETTE['allies']['uniform']
-        # WWII Olive Drab: brownish-olive, R~112, G~108, B~76
-        # Key: R and G are close (olive), B is lower (brown), NOT bright green
-        assert 100 <= allies_uniform[0] <= 130, f"Allies uniform R out of olive range: {allies_uniform}"
-        assert 95 <= allies_uniform[1] <= 125, f"Allies uniform G out of olive range: {allies_uniform}"
-        assert 65 <= allies_uniform[2] <= 90, f"Allies uniform B out of brown range: {allies_uniform}"
-        # Verify it's NOT the old incorrect bright green (75,83,32)
-        assert allies_uniform != (75, 83, 32), "Should use corrected Olive Drab, not old bright green"
+        assert 65 <= allies_uniform[0] <= 90, f"Allies uniform R out of OD green range: {allies_uniform}"
+        assert 70 <= allies_uniform[1] <= 95, f"Allies uniform G out of OD green range: {allies_uniform}"
+        assert 20 <= allies_uniform[2] <= 45, f"Allies uniform B out of OD green range: {allies_uniform}"
 
     def test_axis_uniform_color(self):
         """Test Axis uniform is Field gray"""
@@ -663,21 +615,20 @@ class TestColorPaletteCorrectness:
 
         axis_uniform = PixelArtist3D.CC2_PALETTE['axis']['uniform']
         # Should be gray-green: values close together, mid-range
-        assert 60 <= axis_uniform[0] <= 80, f"Axis uniform R out of range: {axis_uniform}"
-        assert 60 <= axis_uniform[1] <= 80, f"Axis uniform G out of range: {axis_uniform}"
-        assert 55 <= axis_uniform[2] <= 70, f"Axis uniform B out of range: {axis_uniform}"
+        assert 75 <= axis_uniform[0] <= 95, f"Axis uniform R out of range: {axis_uniform}"
+        assert 80 <= axis_uniform[1] <= 100, f"Axis uniform G out of range: {axis_uniform}"
+        assert 65 <= axis_uniform[2] <= 90, f"Axis uniform B out of range: {axis_uniform}"
 
-    def test_skin_tone_reasonable(self):
-        """Test skin tone is reasonable flesh color"""
+    def test_helmet_color_reasonable(self):
+        """Test helmet color is reasonable military steel color"""
         from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
 
         for faction in ['allies', 'axis']:
-            skin = PixelArtist3D.CC2_PALETTE[faction]['skin']
-            # Skin should be warm: R highest, G mid, B lowest
-            assert skin[0] > 180, f"{faction} skin R too low: {skin}"
-            assert skin[1] > 150, f"{faction} skin G too low: {skin}"
-            assert skin[2] > 120, f"{faction} skin B too low: {skin}"
-            assert skin[0] > skin[1] > skin[2], f"{faction} skin tones incorrect: {skin}"
+            helmet = PixelArtist3D.CC2_PALETTE[faction]['helmet']
+            # Helmet should be gray-green steel: mid range RGB
+            assert 50 <= helmet[0] <= 80, f"{faction} helmet R out of range: {helmet}"
+            assert 50 <= helmet[1] <= 80, f"{faction} helmet G out of range: {helmet}"
+            assert 50 <= helmet[2] <= 80, f"{faction} helmet B out of range: {helmet}"
 
 
 if __name__ == "__main__":

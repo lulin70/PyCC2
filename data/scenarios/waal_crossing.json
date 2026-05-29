@@ -47,5 +47,6 @@
     {"id": "vl_south_bank", "position": [20, 36], "value": 20, "type": "road_junction"},
     {"id": "vl_river_crossing", "position": [20, 21], "value": 30, "type": "bridge"}
   ],
-  "special_rules": ["amphibious_crossing_available", "combined_arms_bonus", "defender_advantage", "limited_air_support"]
+  "special_rules": ["amphibious_crossing_available", "combined_arms_bonus", "defender_advantage", "limited_air_support"],
+  "attacker_faction": "allied"
 }

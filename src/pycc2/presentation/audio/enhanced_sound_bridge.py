@@ -6,11 +6,14 @@ Provides unified interface for combat event sound triggering.
 
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
 from typing import Callable
+
+logger = logging.getLogger(__name__)
 
 from pygame import mixer
 
@@ -217,7 +220,8 @@ class EnhancedSoundSystem:
             sound = mixer.Sound(str(full_path))
             self._cache_sound(mapping.event.name, sound)
             return sound
-        except Exception:
+        except Exception as e:
+            logging.info(f"Sound file load failed: {e}")
             return None
 
     def _generate_procedural_fallback(

@@ -12,7 +12,7 @@ from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.systems.ballistic import BallisticEngine
 from pycc2.domain.systems.combat_resolver import CombatResolver
-from pycc2.domain.systems.morale_sys import MoraleCalculator
+from pycc2.domain.systems.morale_system import MoraleCalculator
 from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.services.event_bus import EventBus
@@ -172,7 +172,7 @@ class TestCRMorale:
         leader = make_unit("Leader", Faction.AXIS, TileCoord(1, 0), hp=5)
         normal_unit = make_unit("Soldier", Faction.AXIS, TileCoord(2, 0), hp=100)
 
-        from pycc2.domain.systems.morale_sys import MoraleEvent
+        from pycc2.domain.systems.morale_system import MoraleEvent
 
         leader_result = resolver.morale_calc.calculate_event_effect(
             leader.morale, MoraleEvent.LEADER_KILLED

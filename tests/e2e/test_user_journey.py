@@ -375,8 +375,8 @@ class TestSevenActions:
         ic.handle_left_click(screen_pos, units)
         assert ally_unit.id in ic.selected_unit_ids
 
-        # 按M进入移动模式
-        ic.handle_shortcut_key(pygame.K_m)
+        # 按Z进入移动模式
+        ic.handle_shortcut_key(pygame.K_z)
         assert ic.mode == InteractionMode.MOVE
 
         # 注册移动回调并点击目标位置
@@ -465,8 +465,8 @@ class TestSevenActions:
         received = []
         event_bus.subscribe(dict, lambda e: received.append(e))
 
-        # 按K发布smoke命令
-        ic.handle_shortcut_key(pygame.K_k)
+        # 按V发布smoke命令
+        ic.handle_shortcut_key(pygame.K_v)
 
         # 验证事件发布
         smoke_events = [e for e in received if isinstance(e, dict) and e.get("command") == "smoke"]
@@ -796,7 +796,7 @@ class TestFullJourney:
         assert ally.id in selected
 
         # 发布移动命令
-        ic.handle_shortcut_key(pygame.K_m)
+        ic.handle_shortcut_key(pygame.K_z)
         assert ic.mode == InteractionMode.MOVE
 
         move_received = []

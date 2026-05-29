@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from pycc2.services.random_context import RandomContext
 
 from pycc2.domain.systems.swiss_cheese_damage import SwissCheeseEngine, SwissCheeseResult
+from pycc2.domain.value_objects.terrain_type import TerrainType
 
 
 @dataclass(slots=True, frozen=True)
@@ -176,15 +177,39 @@ class BallisticEngine:
                 reason="no line of sight",
             )
 
+        # Vehicle passability check: vehicles cannot fire through or
+        # occupy destroyed bridge tiles
+        if game_map is not None and getattr(attacker, 'is_vehicle', False):
+            attacker_terrain = game_map.get_terrain(attacker.position.tile_coord)
+            if attacker_terrain == TerrainType.BRIDGE_DESTROYED:
+                return ShotResult(
+                    hit=False,
+                    distance=dist,
+                    actual_accuracy=0.0,
+                    reason="vehicle on destroyed bridge (impassable)",
+                )
+
         base_acc = wstats["base_accuracy"]
         dist_penalty = self._calc_distance_penalty(dist, wstats["effective_range"])
         accuracy = base_acc * dist_penalty
         cover_mod = self._calc_cover_modifier(target, game_map)
         accuracy *= cover_mod
+        # R1: Upper floor attacker gets LOS/accuracy bonus (better vantage point)
+        attacker_floor = getattr(attacker, 'building_floor', 0)
+        if attacker_floor > 0:
+            accuracy *= 1.0 + attacker_floor * 0.08  # +8% per floor above ground
         morale_mod = max(0.3, target.morale.accuracy_modifier)
         accuracy *= morale_mod
         if environment is not None:
             accuracy *= environment.get_accuracy_modifier()
+        # R4: Weather accuracy modifier (rain reduces accuracy, fog reduces less)
+        if game_map is not None:
+            weather_state = getattr(game_map, 'weather_state', None)
+            if weather_state is not None:
+                from pycc2.domain.systems.weather_effects import WeatherEffects, WeatherType
+                weather_type = getattr(weather_state, 'weather_type', None)
+                if weather_type is not None:
+                    accuracy = WeatherEffects().apply_to_accuracy(accuracy, weather_type)
         final_accuracy = min(0.98, max(0.02, accuracy))
 
         roll = self.rng.uniform(0.0, 1.0)

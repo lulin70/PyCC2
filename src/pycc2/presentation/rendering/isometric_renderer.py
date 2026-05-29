@@ -291,7 +291,8 @@ class IsometricRenderer:
         for unit in units:
             try:
                 renderables.append(unit_to_renderable(unit))
-            except Exception:
+            except Exception as e:
+                logging.debug(f"Unit to renderable conversion failed: {e}")
                 continue
 
         # Sort back-to-front
@@ -509,8 +510,8 @@ class IsometricRenderer:
                             height_levels = max(1, etile.height)
                         if hasattr(etile, 'damage_state'):
                             damage_state = etile.damage_state
-            except Exception:
-                pass
+            except Exception as e:
+                logging.debug(f"Building tile info lookup failed: {e}")
 
             scaled = self._get_scaled_building_surface(
                 terrain_id, height_levels, damage_state, quantized_zoom
@@ -604,7 +605,8 @@ class IsometricRenderer:
                     self._offscreen, (255, 255, 0), (sx, sy), select_radius, 2
                 )
 
-        except Exception:
+        except Exception as e:
+            logging.debug(f"Isometric unit rendering failed: {e}")
             return
 
     def _draw_debug_grid(
