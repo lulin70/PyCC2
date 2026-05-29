@@ -23,7 +23,7 @@ class DamageLevel(Enum):
 
 
 CC2_ROOF_COLORS = {
-    CC2BuildingType.SMALL_HOUSE: (90, 95, 100),      # #5A5F64 grey-blue (NOT red!)
+    CC2BuildingType.SMALL_HOUSE: (90, 95, 100),      # #5A5F64 grey-blue
     CC2BuildingType.MEDIUM_HOUSE: (80, 85, 92),      # Slightly darker grey-blue
     CC2BuildingType.LARGE_BUILDING: (70, 76, 84),    # Darker grey
     CC2BuildingType.BARN: (139, 96, 64),             # Brown (special building)
@@ -32,6 +32,15 @@ CC2_ROOF_COLORS = {
     CC2BuildingType.NORMANDY_FARMHOUSE: (160, 42, 28),  # Red tile (Normandy special)
     CC2BuildingType.NORMANDY_BARN: (120, 75, 45),   # Brown wood (Normandy special)
 }
+
+# A2 Fix: 建筑颜色变体池（从CC2截图提取的5种主要屋顶色）
+CC2_ROOF_VARIANTS = [
+    (90, 95, 100),     # 灰蓝色 (默认)
+    (140, 82, 45),     # 橙棕色 (常见于CC2城市)
+    (150, 55, 38),     # 红橙色 (工厂/仓库)
+    (65, 75, 95),      # 深蓝灰色 (大型建筑)
+    (120, 115, 105),   # 暖灰色 (住宅区)
+]
 
 ROOF_TRIM_COLOR = (176, 128, 80)  # #B08050 orange-brown
 WALL_FACE_MULTIPLIER = 0.55  # Wall is much darker than roof (not 0.7!)
@@ -222,6 +231,14 @@ def render_cc2_building(
 
     # 标准CC2建筑渲染（OBLIQUE PROJECTION!）
     roof_color = CC2_ROOF_COLORS[building_type]
+
+    # A2 Fix: 为标准建筑应用颜色变体（基于位置hash实现多样性）
+    if building_type in [CC2BuildingType.SMALL_HOUSE, CC2BuildingType.MEDIUM_HOUSE, CC2BuildingType.LARGE_BUILDING]:
+        import random as _rnd
+        variant_seed = hash((building_type.name, tile_x if 'tile_x' in dir() else 0, tile_y if 'tile_y' in dir() else 0))
+        variant_idx = _rnd.Random(variant_seed).randint(0, len(CC2_ROOF_VARIANTS) - 1)
+        roof_color = CC2_ROOF_VARIANTS[variant_idx]
+
     if damage == DamageLevel.LIGHT_DAMAGE:
         roof_color = tuple(max(0, c - 20) for c in roof_color)
     elif damage == DamageLevel.HEAVY_DAMAGE:

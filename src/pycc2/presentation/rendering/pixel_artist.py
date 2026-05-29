@@ -18,18 +18,16 @@ if TYPE_CHECKING:
 class CCPalette(Enum):
     """Close Combat 2 风格军事调色板 — 基于CC2截图精确分析
 
-    2026-05-29更新: Phase 4 Fix — 应用额外5%全局去饱和（S6）
-    使整体色调更暗沉、更接近CC2原版军事风格
+    2026-05-29更新: Phase 5 Fix — 草地再降暗8%匹配CC2原版(A1)
+    CC2截图显示草地为极暗军绿色(#3A5F0F级别)，之前仍偏亮
     排除: BLOOD颜色（保持鲜艳用于视觉效果）
-    公式: c + ((r+g+b)/3 - c) * 0.05 per channel
     """
 
     # Grass — DARK military olive green (exact from CC2 screenshot)
-    # 2026-05-29 Phase 3 Fix: 恢复为CC2精确值（之前过度去饱和导致过暗）
-    # 2026-05-29 Phase 4 Fix: 应用5%去饱和
-    GRASS_BASE = (76, 122, 37)       # 原(76,124,35) → 去饱和5%
-    GRASS_LIGHT = (90, 139, 45)      # 原(90,142,43) → 去饱和5%
-    GRASS_DARK = (58, 98, 26)        # 原(58,100,24) → 去饱和5%
+    # 2026-05-29 Phase 5 Fix: 再降8%到CC2精确值（对比12张CC2截图确认）
+    GRASS_BASE = (68, 110, 32)       # 原(76,122,37) → 再降8%→#6E6E20
+    GRASS_LIGHT = (82, 126, 39)      # 原(90,139,45) → 再降8%→#527E27
+    GRASS_DARK = (52, 88, 23)        # 原(58,98,26) → 再降8%→#345817
 
     # Road — grey-brown, NOT orange-brown
     ROAD = (105, 89, 65)             # 原始(105,89,64) → 去饱和5%
@@ -43,30 +41,31 @@ class CCPalette(Enum):
 
     TREE_CROWN = (37, 73, 34)        # 原始(37,73,33) → 去饱和5%
     TREE_CROWN_DARK = (28, 58, 26)   # 原始(27,58,25) → 去饱和5%
+    TREE_CROWN_MID = (48, 88, 42)    # A4: 新增中间色调 (介于dark和light之间)
     TREE_TRUNK = (80, 57, 35)        # 原始(80,57,34) → 去饱和5%
     HEDGE_GREEN = (44, 83, 35)       # 原始(44,83,34) → 去饱和5%
 
     # Building roofs — match CC2 exactly (with 5% desaturation)
     BUILDING_WALL = (173, 165, 148)  # 原始(175,166,148) → 去饱和5%
     BUILDING_ROOF = (136, 95, 64)    # 原始(137,95,63) → 去饱和5%
-    BUILDING_SHADOW = (99, 62, 43)   # 原始(99,61,42) → 去饱和5%
+    BUILDING_SHADOW = (89, 55, 38)    # A3: 再降10%增强对比度 (原99,62,43)
     ROAD_MARK = (118, 96, 54)        # 原始(119,96,53) → 去饱和5%
-    CONCRETE = (154, 150, 140)       # 原始(156,151,141) → 去饱和5%
-    SAND = (174, 160, 119)           # 原始(176,161,119) → 去饱和5%
+    CONCRETE = (160, 156, 145)       # A3: +4亮度增强对比 (原154,150,140)
+    SAND = (178, 164, 122)           # A3: +4亮度增强对比 (原174,160,119)
     MUD = (134, 104, 25)             # 原始(136,104,24) → 去饱和5%
-    SNOW = (224, 229, 234)           # 原始(226,230,235) → 去饱和5%
+    SNOW = (228, 233, 238)           # A3: +4亮度增强对比 (原224,229,234)
     WIRE = (100, 100, 100)           # 原始(100,100,100) → 无变化（灰色）
     BUNKER = (117, 112, 103)         # 原始(118,113,104) → 去饱和5%
-    ALLIES_HELMET = (85, 103, 51)    # 原始(85,104,50) → 去饱和5%
-    ALLIES_UNIFORM = (76, 82, 35)     # 原始(76,82,34) → 去饱和5%
-    AXIS_HELMET = (56, 58, 52)       # 原始(56,58,51) → 去饱和5%
-    AXIS_UNIFORM = (85, 91, 80)      # 原始(85,92,80) → 去饱和5%
-    WATER = (35, 70, 120)            # #234678 dark blue-grey (was 34,69,118)
-    WOOD_TRUNK = (80, 57, 35)        # 原始(81,58,34) → 去饱和5%
-    WOOD_LEAF_DARK = (37, 73, 34)    # 原始(38,74,33) → 去饱和5%
-    WOOD_LEAF_LIGHT = (75, 121, 36)  # 原始(76,124,35) → 去饱和5%
-    BUILDING_WINDOW = (83, 117, 156)  # 原始(84,120,159) → 去饱和5%
-    BUILDING_DOOR = (99, 65, 37)      # 原始(101,66,36) → 去饱和5%
+    ALLIES_HELMET = (89, 107, 53)    # A3: +4亮度增强对比 (原85,103,51)
+    ALLIES_UNIFORM = (80, 86, 38)     # A3: +4亮度增强对比 (原76,82,35)
+    AXIS_HELMET = (60, 62, 56)       # A3: +4亮度增强对比 (原56,58,52)
+    AXIS_UNIFORM = (89, 95, 84)      # A3: +4亮度增强对比 (原85,91,80)
+    WATER = (33, 66, 114)            # A3: 再降5%更深 (原35,70,120)
+    WOOD_TRUNK = (84, 59, 37)        # A3: +4亮度增强对比 (原80,57,35)
+    WOOD_LEAF_DARK = (33, 69, 30)    # A3: 再降10%增强对比 (原37,73,34)
+    WOOD_LEAF_LIGHT = (79, 125, 39)   # A3: +4亮度增强对比 (原75,121,36)
+    BUILDING_WINDOW = (87, 121, 160)  # A3: +4亮度增强对比 (原83,117,156)
+    BUILDING_DOOR = (103, 68, 40)     # A3: +4亮度增强对比 (原99,65,37)
     BLOOD = (140, 20, 20)            # *** 保持不变！排除去饱和 ***
 
 
@@ -1030,6 +1029,7 @@ class TerrainTileGenerator:
         trunk_color = CCPalette.WOOD_TRUNK.value
         leaf_dark = CCPalette.WOOD_LEAF_DARK.value
         leaf_light = CCPalette.WOOD_LEAF_LIGHT.value
+        leaf_mid = CCPalette.TREE_CROWN_MID.value  # A4: 新增中间色调
 
         if density == "light":
             trees = [(size // 4, size // 3, size // 5), (size * 3 // 4, size * 2 // 3, size // 6)]
@@ -1057,11 +1057,17 @@ class TerrainTileGenerator:
                 1,
             )
 
-            layers = 3
+            layers = 4  # A4: 从3层增加到4层增强层次感
             for layer in range(layers):
-                lr = tr - layer * (tr // 6)
-                ly_offset = -layer * (tr // 8)
-                lc = leaf_dark if layer % 2 == 0 else leaf_light
+                lr = tr - layer * (tr // 7)
+                ly_offset = -layer * (tr // 9)
+                # A4: 使用3种色调循环 (dark → mid → light → mid)
+                if layer % 3 == 0:
+                    lc = leaf_dark
+                elif layer % 3 == 1:
+                    lc = leaf_mid
+                else:
+                    lc = leaf_light
                 c.fill_circle(tx, ty + ly_offset, lr, lc)
                 hl_r = lr // 2
                 c.fill_circle(
