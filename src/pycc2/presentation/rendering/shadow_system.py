@@ -35,8 +35,8 @@ class ShadowRenderer:
     SHADOW_OFFSET_X = 3   # pixels right per 24px unit
     SHADOW_OFFSET_Y = 2   # pixels down per 24px unit
     
-    # Base shadow color (near-black with alpha)
-    DEFAULT_SHADOW_COLOR = (10, 10, 15)
+    # Base shadow color (near-black with alpha) - DARKER for visibility
+    DEFAULT_SHADOW_COLOR = (5, 5, 8)
     
     # Common shadow sizes to pre-render at init time
     _COMMON_SIZES = [
@@ -61,7 +61,7 @@ class ShadowRenderer:
     def _pre_render_common_shadows(self) -> None:
         """Pre-render common shadow sizes at init time for performance."""
         for width, height in self._COMMON_SIZES:
-            for alpha in [70, 80, 90, 100]:
+            for alpha in [55, 65, 70, 75, 110, 130, 140, 150]:  # Expanded for new alpha values
                 self._get_or_create_shadow(width, height, alpha)
 
     def _get_or_create_shadow(self, width: int, height: int, alpha: int) -> pygame.Surface:
@@ -115,17 +115,17 @@ class ShadowRenderer:
             # Infantry: small subtle shadow
             shadow_w, shadow_h = max(6, w // 2), 3
             offset_x, offset_y = 2, 1
-            base_alpha = 80
+            base_alpha = 130  # INCREASED from 80 for visibility
         elif obj_height == 2:
             # Vehicle/Tree: medium shadow
             shadow_w, shadow_h = max(12, int(w * 0.8)), max(4, h // 3)
             offset_x, offset_y = 4, 2
-            base_alpha = 100 if obj_height == 2 else 90
+            base_alpha = 150 if obj_height == 2 else 140  # INCREASED from 100/90
         else:
             # Building: large subtle shadow
             shadow_w, shadow_h = max(24, int(w * 0.9)), 6
             offset_x, offset_y = 6, 3
-            base_alpha = 70
+            base_alpha = 110  # INCREASED from 70 for visibility
         
         # Reduce alpha for hidden/sneaking objects
         alpha = base_alpha // 2 if is_hidden else base_alpha
@@ -161,7 +161,7 @@ class ShadowRenderer:
         # Infantry-sized shadow: 6×3 px ellipse, offset (+2, +1)
         shadow_w, shadow_h = 6, 3
         offset_x, offset_y = 2, 1
-        alpha = 40 if is_hidden else 80
+        alpha = 65 if is_hidden else 130  # INCREASED from 40/80
         
         shadow_surf = self._get_or_create_shadow(shadow_w, shadow_h, alpha)
         shadow_x = x + offset_x
@@ -196,7 +196,7 @@ class ShadowRenderer:
         shadow_w = max(12, int(w * 0.9))
         shadow_h = max(4, 4)
         offset_x, offset_y = 4, 2
-        alpha = 50 if is_hidden else 100
+        alpha = 75 if is_hidden else 150  # INCREASED from 50/100
         
         shadow_surf = self._get_or_create_shadow(shadow_w, shadow_h, alpha)
         shadow_x = x + offset_x
@@ -234,7 +234,7 @@ class ShadowRenderer:
         
         shadow_w, shadow_h = size_map.get(tree_size, (18, 8))
         offset_x, offset_y = 5, 3
-        alpha = 45 if is_hidden else 90
+        alpha = 70 if is_hidden else 140  # INCREASED from 45/90
         
         shadow_surf = self._get_or_create_shadow(shadow_w, shadow_h, alpha)
         shadow_x = x + offset_x
@@ -269,7 +269,7 @@ class ShadowRenderer:
         shadow_w = max(24, int(w * 0.9))
         shadow_h = 6
         offset_x, offset_y = 6, 3
-        alpha = 35 if is_hidden else 70
+        alpha = 55 if is_hidden else 110  # INCREASED from 35/70
         
         shadow_surf = self._get_or_create_shadow(shadow_w, shadow_h, alpha)
         shadow_x = x + offset_x

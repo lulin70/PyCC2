@@ -2195,14 +2195,12 @@ class EnhancedRenderer:
         # STEP 4: Draw decorations (minimal)
         self._draw_decorations(game_map, camera)
 
-        # STEP 4.1: Draw tree shadows (AFTER terrain, BEFORE trees)
-        self._render_tree_shadows(game_map, camera)
+        # STEP 4.0: Draw ALL shadows FIRST (under everything - correct Z-order)
+        self._render_building_shadows(game_map, camera)  # Building shadows BEFORE roofs
+        self._render_tree_shadows(game_map, camera)      # Tree shadows BEFORE trees
 
         # STEP 4.4: Draw building roofs (CC2 top-down view — covers side-view terrain texture)
         self._draw_building_roofs(game_map, camera)
-
-        # STEP 4.45: Draw building shadows (BEFORE buildings, ABOVE terrain)
-        self._render_building_shadows(game_map, camera)
 
         # STEP 4.5: Draw building interiors (auto-switch when units are inside)
         self._draw_building_interiors(game_map, units, camera)
@@ -3505,13 +3503,30 @@ class EnhancedRenderer:
                     if tile is None:
                         continue
 
-                    # Check if tile has building
+                    # Check if tile has building (ENHANCED detection)
                     has_building = (
                         hasattr(tile, 'building') and tile.building is not None
                     ) or (
-                        hasattr(tile, 'terrain_type') and 
+                        hasattr(tile, 'terrain_type') and
                         str(tile.terrain_type).lower() in ['building', 'house', 'barn', 'church']
                     )
+
+                    # ADD: check by numeric terrain ID range (buildings usually have high IDs)
+                    if not has_building:
+                        try:
+                            tt = getattr(tile, 'terrain_type', None)
+                            if tt is not None:
+                                tt_val = int(tt) if isinstance(tt, (int, float)) else -1
+                                if tt_val >= 20:  # buildings typically have terrain type IDs >= 20
+                                    has_building = True
+                        except (ValueError, TypeError):
+                            pass
+
+                    # ADD: check tile name/description if available
+                    if not has_building:
+                        tile_name = str(getattr(tile, 'name', '')).lower()
+                        if any(w in tile_name for w in ['build', 'house', 'church', 'barn', 'factory']):
+                            has_building = True
 
                     if has_building:
                         # Convert tile position to screen coordinates
@@ -3542,9 +3557,26 @@ class EnhancedRenderer:
                     if tile is None:
                         continue
 
-                    # Check if tile has tree/vegetation
+                    # Check if tile has tree/vegetation (ENHANCED detection)
                     terrain_str = str(getattr(tile, 'terrain_type', '')).lower()
                     is_tree = any(t in terrain_str for t in ['tree', 'forest', 'woods', 'hedgerow', 'orchard'])
+
+                    # ADD: check by numeric terrain ID range (trees usually have specific IDs)
+                    if not is_tree:
+                        try:
+                            tt = getattr(tile, 'terrain_type', None)
+                            if tt is not None:
+                                tt_val = int(tt) if isinstance(tt, (int, float)) else -1
+                                if 3 <= tt_val <= 7:  # woods/hedge terrain type IDs in CC2
+                                    is_tree = True
+                        except (ValueError, TypeError):
+                            pass
+
+                    # ADD: check tile name/description if available
+                    if not is_tree:
+                        tile_name = str(getattr(tile, 'name', '')).lower()
+                        if any(w in tile_name for w in ['tree', 'forest', 'wood', 'hedge', 'bush', 'orchard']):
+                            is_tree = True
 
                     if is_tree:
                         # Convert tile position to screen coordinates
@@ -3642,6 +3674,102 @@ class EnhancedRenderer:
 
         except Exception as e:
             logger.warning(f"Failed to render unit shadows: {e}")
+
+    def _debug_render_shadow_bounds(self, game_map: GameMap, camera: Camera) -> None:
+        """Draw red rectangles showing where shadows WOULD be rendered (debug visualization).
+
+        This helps verify shadow positions without relying on subtle alpha.
+        Call this from render() when debug_mode=True to see shadow placement.
+        """
+        if self._offscreen is None:
+            return
+
+        import pygame as pg
+
+        try:
+            # Debug colors for different shadow types
+            BUILDING_DEBUG_COLOR = (255, 0, 0)      # Red for buildings
+            TREE_DEBUG_COLOR = (0, 255, 0)           # Green for trees
+            UNIT_DEBUG_COLOR = (0, 0, 255)           # Blue for units
+
+            # Draw building shadow bounds
+            for y in range(game_map.height):
+                for x in range(game_map.width):
+                    tile = game_map.get_tile(x, y)
+                    if tile is None:
+                        continue
+
+                    # Same detection logic as _render_building_shadows
+                    has_building = (
+                        hasattr(tile, 'building') and tile.building is not None
+                    ) or (
+                        hasattr(tile, 'terrain_type') and
+                        str(tile.terrain_type).lower() in ['building', 'house', 'barn', 'church']
+                    )
+
+                    if not has_building:
+                        try:
+                            tt = getattr(tile, 'terrain_type', None)
+                            if tt is not None:
+                                tt_val = int(tt) if isinstance(tt, (int, float)) else -1
+                                if tt_val >= 20:
+                                    has_building = True
+                        except (ValueError, TypeError):
+                            pass
+
+                    if not has_building:
+                        tile_name = str(getattr(tile, 'name', '')).lower()
+                        if any(w in tile_name for w in ['build', 'house', 'church', 'barn', 'factory']):
+                            has_building = True
+
+                    if has_building:
+                        world_pos = (x * self.TILE_SIZE, y * self.TILE_SIZE)
+                        screen_pos = camera.world_to_screen(world_pos)
+                        sx, sy = int(screen_pos[0]), int(screen_pos[1])
+
+                        # Draw red rectangle where building shadow would appear
+                        shadow_rect = pg.Rect(sx + 6, sy + self.TILE_SIZE // 2 + 3,
+                                             max(24, int(self.TILE_SIZE * 0.9)), 6)
+                        pg.draw.rect(self._offscreen, BUILDING_DEBUG_COLOR, shadow_rect, 2)
+
+            # Draw tree shadow bounds
+            for y in range(game_map.height):
+                for x in range(game_map.width):
+                    tile = game_map.get_tile(x, y)
+                    if tile is None:
+                        continue
+
+                    terrain_str = str(getattr(tile, 'terrain_type', '')).lower()
+                    is_tree = any(t in terrain_str for t in ['tree', 'forest', 'woods', 'hedgerow', 'orchard'])
+
+                    if not is_tree:
+                        try:
+                            tt = getattr(tile, 'terrain_type', None)
+                            if tt is not None:
+                                tt_val = int(tt) if isinstance(tt, (int, float)) else -1
+                                if 3 <= tt_val <= 7:
+                                    is_tree = True
+                        except (ValueError, TypeError):
+                            pass
+
+                    if not is_tree:
+                        tile_name = str(getattr(tile, 'name', '')).lower()
+                        if any(w in tile_name for w in ['tree', 'forest', 'wood', 'hedge', 'bush', 'orchard']):
+                            is_tree = True
+
+                    if is_tree:
+                        world_pos = (x * self.TILE_SIZE, y * self.TILE_SIZE)
+                        screen_pos = camera.world_to_screen(world_pos)
+                        sx, sy = int(screen_pos[0]), int(screen_pos[1])
+
+                        # Draw green rectangle where tree shadow would appear
+                        shadow_rect = pg.Rect(sx + 5, sy + 3, 18, 8)
+                        pg.draw.rect(self._offscreen, TREE_DEBUG_COLOR, shadow_rect, 2)
+
+            logger.debug("Debug shadow bounds rendered (red=buildings, green=trees)")
+
+        except Exception as e:
+            logger.warning(f"Failed to debug render shadow bounds: {e}")
 
     def _draw_attack_lines(self, camera: Camera) -> None:
         """Draw CC2-style attack lines with color coding.
