@@ -217,7 +217,7 @@ class ShadowRenderer:
     ) -> None:
         """
         Render shadow for tree.
-        
+
         Args:
             surface: Target surface
             x: Tree X position (base)
@@ -225,24 +225,25 @@ class ShadowRenderer:
             tree_size: Size category ("small", "medium", "large")
             is_hidden: If tree is somehow hidden (rare)
         """
+        # FIXED: Larger shadows with higher visibility
         # Tree shadow dimensions based on canopy size
         size_map = {
-            "small": (14, 6),
-            "medium": (18, 8),
-            "large": (22, 10),
+            "small": (18, 8),    # Increased from (14, 6)
+            "medium": (24, 10),  # Increased from (18, 8)
+            "large": (30, 12),   # Increased from (22, 10)
         }
-        
-        shadow_w, shadow_h = size_map.get(tree_size, (18, 8))
-        offset_x, offset_y = 5, 3
-        alpha = 70 if is_hidden else 140  # INCREASED from 45/90
-        
+
+        shadow_w, shadow_h = size_map.get(tree_size, (24, 10))
+        offset_x, offset_y = 6, 4  # Slightly larger offset
+        alpha = 100 if is_hidden else 180  # INCREASED alpha for visibility
+
         shadow_surf = self._get_or_create_shadow(shadow_w, shadow_h, alpha)
         shadow_x = x + offset_x
         shadow_y = y + offset_y
-        
+
         surface.blit(shadow_surf, (shadow_x, shadow_y))
-        
-        logger.debug("Rendered tree shadow at (%d, %d) [size=%s]", 
+
+        logger.debug("Rendered tree shadow at (%d, %d) [size=%s]",
                     shadow_x, shadow_y, tree_size)
 
     def render_building_shadow(
@@ -256,7 +257,7 @@ class ShadowRenderer:
     ) -> None:
         """
         Render shadow for building.
-        
+
         Args:
             surface: Target surface
             x: Building X position
@@ -265,19 +266,20 @@ class ShadowRenderer:
             h: Building height
             is_hidden: If building is hidden (very rare)
         """
-        # Building shadow: roof_w × 0.9 × 6 px, offset (+6, +3)
-        shadow_w = max(24, int(w * 0.9))
-        shadow_h = 6
-        offset_x, offset_y = 6, 3
-        alpha = 55 if is_hidden else 110  # INCREASED from 35/70
-        
+        # FIXED: Larger offset to make shadows visible beyond building edges
+        # Building shadow: roof_w × 0.9 × 8 px, offset (+8, +5)
+        shadow_w = max(32, int(w * 0.95))  # Wider shadow
+        shadow_h = 8  # Taller shadow for visibility
+        offset_x, offset_y = 8, 5  # Larger SE offset
+        alpha = 80 if is_hidden else 160  # INCREASED alpha for visibility
+
         shadow_surf = self._get_or_create_shadow(shadow_w, shadow_h, alpha)
         shadow_x = x + offset_x
-        shadow_y = y + h + offset_y - shadow_h // 2
-        
+        shadow_y = y + h + offset_y - 2  # Adjusted position
+
         surface.blit(shadow_surf, (shadow_x, shadow_y))
-        
-        logger.debug("Rendered building shadow at (%d, %d) [size=%dx%d]", 
+
+        logger.debug("Rendered building shadow at (%d, %d) [size=%dx%d]",
                     shadow_x, shadow_y, shadow_w, shadow_h)
 
     def clear_cache(self) -> None:

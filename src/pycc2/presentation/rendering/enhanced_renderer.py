@@ -1257,7 +1257,7 @@ class ProceduralTextureGenerator:
         rng = random.Random(var * 241)
 
         # Water underneath at edges
-        water_color = (40, 110, 200)
+        water_color = (35, 70, 120)  # #234678 dark blue-grey (was bright 40,110,200)
         surface.fill(water_color)
         pixels = pygame.surfarray.pixels3d(surface)
         tile_sz = ProceduralTextureGenerator.TILE_SIZE
@@ -2125,12 +2125,13 @@ class EnhancedRenderer:
         """Initialize renderer with display surface."""
         self._screen = screen
         try:
-            self._offscreen = pygame.Surface(screen.get_size()).convert()
+            # FIXED: Use SRCALPHA to support transparent shadows
+            self._offscreen = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
         except pygame.error as e:
             # Fallback for headless/testing environments without video mode set
             import warnings
-            warnings.warn(f"Could not convert surface (no video mode?): {e}. Using SRCALPHA fallback.")
-            self._offscreen = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+            warnings.warn(f"Could not create SRCALPHA surface: {e}. Using convert() fallback.")
+            self._offscreen = pygame.Surface(screen.get_size()).convert()
 
         # 现在display已初始化，可以创建SpriteRenderer加载PNG
         try:
@@ -2176,7 +2177,8 @@ class EnhancedRenderer:
         # Ensure off-screen buffer matches display surface size (handles resize)
         screen_w, screen_h = self._screen.get_size()
         if self._offscreen is None or self._offscreen.get_size() != (screen_w, screen_h):
-            self._offscreen = pygame.Surface((screen_w, screen_h)).convert()
+            # FIXED: Use SRCALPHA to support transparent shadows
+            self._offscreen = pygame.Surface((screen_w, screen_h), pygame.SRCALPHA)
 
         # STEP 1: Clear off-screen buffer
         self._offscreen.fill((34, 40, 48))  # Dark blue-gray background
@@ -3497,40 +3499,21 @@ class EnhancedRenderer:
 
         try:
             # Iterate through map tiles to find buildings
+            # FIXED: Use game_map.tile_grid[y, x] which returns integer terrain type
+            # TerrainType: 4=BUILDING_ENTERABLE, 5=BUILDING_SOLID
+            buildings_found = 0
             for y in range(game_map.height):
                 for x in range(game_map.width):
-                    tile = game_map.get_tile(x, y)
-                    if tile is None:
-                        continue
+                    # Get terrain type as integer from tile_grid
+                    terrain_int = int(game_map.tile_grid[y, x])
 
-                    # Check if tile has building (ENHANCED detection)
-                    has_building = (
-                        hasattr(tile, 'building') and tile.building is not None
-                    ) or (
-                        hasattr(tile, 'terrain_type') and
-                        str(tile.terrain_type).lower() in ['building', 'house', 'barn', 'church']
-                    )
-
-                    # ADD: check by numeric terrain ID range (buildings usually have high IDs)
-                    if not has_building:
-                        try:
-                            tt = getattr(tile, 'terrain_type', None)
-                            if tt is not None:
-                                tt_val = int(tt) if isinstance(tt, (int, float)) else -1
-                                if tt_val >= 20:  # buildings typically have terrain type IDs >= 20
-                                    has_building = True
-                        except (ValueError, TypeError):
-                            pass
-
-                    # ADD: check tile name/description if available
-                    if not has_building:
-                        tile_name = str(getattr(tile, 'name', '')).lower()
-                        if any(w in tile_name for w in ['build', 'house', 'church', 'barn', 'factory']):
-                            has_building = True
+                    # Check if this is a building tile (4 or 5)
+                    has_building = terrain_int in (4, 5)  # BUILDING_ENTERABLE or BUILDING_SOLID
 
                     if has_building:
                         # Convert tile position to screen coordinates
-                        world_pos = (x * self.TILE_SIZE, y * self.TILE_SIZE)
+                        from pycc2.domain.value_objects.vec2 import Vec2
+                        world_pos = Vec2(x * self.TILE_SIZE, y * self.TILE_SIZE)
                         screen_pos = camera.world_to_screen(world_pos)
                         sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
@@ -3541,6 +3524,10 @@ class EnhancedRenderer:
                             self.TILE_SIZE,  # Building width ≈ tile size
                             self.TILE_SIZE // 2  # Approximate building height
                         )
+                        buildings_found += 1
+
+            if buildings_found > 0:
+                logger.debug(f"Rendered {buildings_found} building shadows")
         except Exception as e:
             logger.warning(f"Failed to render building shadows: {e}")
 
@@ -3551,44 +3538,29 @@ class EnhancedRenderer:
 
         try:
             # Iterate through map tiles to find trees
+            # FIXED: Use game_map.tile_grid[y, x] which returns integer terrain type
+            # TerrainType: 3=WOODS, 7=HEDGE
+            trees_found = 0
             for y in range(game_map.height):
                 for x in range(game_map.width):
-                    tile = game_map.get_tile(x, y)
-                    if tile is None:
-                        continue
+                    # Get terrain type as integer from tile_grid
+                    terrain_int = int(game_map.tile_grid[y, x])
 
-                    # Check if tile has tree/vegetation (ENHANCED detection)
-                    terrain_str = str(getattr(tile, 'terrain_type', '')).lower()
-                    is_tree = any(t in terrain_str for t in ['tree', 'forest', 'woods', 'hedgerow', 'orchard'])
-
-                    # ADD: check by numeric terrain ID range (trees usually have specific IDs)
-                    if not is_tree:
-                        try:
-                            tt = getattr(tile, 'terrain_type', None)
-                            if tt is not None:
-                                tt_val = int(tt) if isinstance(tt, (int, float)) else -1
-                                if 3 <= tt_val <= 7:  # woods/hedge terrain type IDs in CC2
-                                    is_tree = True
-                        except (ValueError, TypeError):
-                            pass
-
-                    # ADD: check tile name/description if available
-                    if not is_tree:
-                        tile_name = str(getattr(tile, 'name', '')).lower()
-                        if any(w in tile_name for w in ['tree', 'forest', 'wood', 'hedge', 'bush', 'orchard']):
-                            is_tree = True
+                    # Check if this is a tree/vegetation tile (3 or 7)
+                    is_tree = terrain_int in (3, 7)  # WOODS or HEDGE
 
                     if is_tree:
                         # Convert tile position to screen coordinates
-                        world_pos = (x * self.TILE_SIZE, y * self.TILE_SIZE)
+                        from pycc2.domain.value_objects.vec2 import Vec2
+                        world_pos = Vec2(x * self.TILE_SIZE, y * self.TILE_SIZE)
                         screen_pos = camera.world_to_screen(world_pos)
                         sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
                         # Determine tree size based on terrain type
                         tree_size = "medium"
-                        if 'forest' in terrain_str or 'woods' in terrain_str:
+                        if terrain_int == 3:  # WOODS - larger forest areas
                             tree_size = "large"
-                        elif 'orchard' in terrain_str:
+                        elif terrain_int == 7:  # HEDGE - smaller individual hedges
                             tree_size = "small"
 
                         # Render tree shadow
@@ -3597,6 +3569,10 @@ class EnhancedRenderer:
                             sx, sy,
                             tree_size
                         )
+                        trees_found += 1
+
+            if trees_found > 0:
+                logger.debug(f"Rendered {trees_found} tree shadows")
         except Exception as e:
             logger.warning(f"Failed to render tree shadows: {e}")
 
@@ -4018,7 +3994,7 @@ class EnhancedRenderer:
             return
         
         bounds = camera.view_bounds
-        grid_color = (100, 100, 100, 100)
+        grid_color = (60, 80, 40, 80)  # Dim grey-green (was bright grey 100,100,100)
         
         start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
         end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))

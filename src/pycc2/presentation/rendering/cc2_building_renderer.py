@@ -23,14 +23,14 @@ class DamageLevel(Enum):
 
 
 CC2_ROOF_COLORS = {
-    CC2BuildingType.SMALL_HOUSE: (160, 45, 35),
-    CC2BuildingType.MEDIUM_HOUSE: (160, 45, 35),
-    CC2BuildingType.LARGE_BUILDING: (90, 95, 100),
-    CC2BuildingType.BARN: (139, 96, 64),
-    CC2BuildingType.CHURCH: (200, 200, 200),
-    CC2BuildingType.WALL: (112, 112, 112),
-    CC2BuildingType.NORMANDY_FARMHOUSE: (160, 42, 28),
-    CC2BuildingType.NORMANDY_BARN: (120, 75, 45),
+    CC2BuildingType.SMALL_HOUSE: (90, 95, 100),      # #5A5F64 grey-blue (NOT red!)
+    CC2BuildingType.MEDIUM_HOUSE: (80, 85, 92),      # Slightly darker grey-blue
+    CC2BuildingType.LARGE_BUILDING: (70, 76, 84),    # Darker grey
+    CC2BuildingType.BARN: (139, 96, 64),             # Brown (special building)
+    CC2BuildingType.CHURCH: (200, 200, 200),         # White/grey
+    CC2BuildingType.WALL: (112, 112, 112),           # Grey
+    CC2BuildingType.NORMANDY_FARMHOUSE: (160, 42, 28),  # Red tile (Normandy special)
+    CC2BuildingType.NORMANDY_BARN: (120, 75, 45),   # Brown wood (Normandy special)
 }
 
 ROOF_TRIM_COLOR = (176, 128, 80)  # #B08050 orange-brown
