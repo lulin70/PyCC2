@@ -24,9 +24,10 @@ class CCPalette(Enum):
     """
 
     # Grass — DARK military olive green (exact from CC2 screenshot)
-    GRASS_BASE = (74, 121, 36)       # 原始(76,124,35) → -7%饱和
-    GRASS_LIGHT = (88, 139, 43)      # 原始(90,142,43)
-    GRASS_DARK = (57, 97, 24)        # 原始(58,100,24)
+    # 2026-05-29 Phase 2 Fix: 额外去饱和 (总降~35%，接近CC2 #4C7C23)
+    GRASS_BASE = (63, 103, 31)       # 原(76,124,35) → -17% (×0.85)
+    GRASS_LIGHT = (77, 122, 38)      # 原(90,142,43) → -14% (×0.88)
+    GRASS_DARK = (51, 87, 22)        # 原(58,100,24) → -12% (×0.90)
 
     # Road — grey-brown, NOT orange-brown
     ROAD = (105, 89, 64)             # 原始(107,90,64)

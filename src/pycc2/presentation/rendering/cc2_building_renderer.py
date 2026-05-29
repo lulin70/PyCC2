@@ -35,6 +35,72 @@ CC2_ROOF_COLORS = {
 
 ROOF_TRIM_COLOR = (176, 128, 80)  # #B08050 orange-brown
 WALL_FACE_MULTIPLIER = 0.55  # Wall is much darker than roof (not 0.7!)
+ROOF_NUMBER_COLOR = (220, 200, 50)  # Yellow for floor count digits
+
+
+def _draw_pixel_digit(
+    surface: pygame.Surface,
+    digit: int,
+    cx: int,
+    cy: int,
+    size: int,
+    color: tuple[int, int, int],
+) -> None:
+    """Draw a single pixel-style digit using pygame.draw.lines.
+
+    Args:
+        surface: Target surface to draw on.
+        digit: Digit to draw (0-9).
+        cx, cy: Center position of the digit.
+        size: Base size of the digit (height=1 → small, height=3 → larger).
+        color: RGB color tuple for the digit.
+    """
+    scale = max(1, size)
+    thickness = max(1, scale // 3)
+
+    pixel_patterns = {
+        0: [
+            (0, 0, 1, 0), (1, 0, 1, 2), (0, 2, 1, 2), (0, 0, 0, 2),
+        ],
+        1: [
+            (0.5, 0, 0.5, 2),
+        ],
+        2: [
+            (0, 0, 1, 0), (1, 0, 1, 1), (0, 1, 1, 1), (0, 1, 0, 2), (0, 2, 1, 2),
+        ],
+        3: [
+            (0, 0, 1, 0), (1, 0, 1, 2), (0, 2, 1, 2), (0, 1, 1, 1),
+        ],
+        4: [
+            (0, 0, 0, 1), (0, 1, 1, 1), (1, 0, 1, 2),
+        ],
+        5: [
+            (1, 0, 0, 0), (0, 0, 0, 1), (0, 1, 1, 1), (1, 1, 1, 2), (0, 2, 1, 2),
+        ],
+        6: [
+            (1, 0, 0, 0), (0, 0, 0, 2), (0, 2, 1, 2), (0, 1, 1, 1), (1, 1, 1, 2),
+        ],
+        7: [
+            (0, 0, 1, 0), (1, 0, 1, 2),
+        ],
+        8: [
+            (0, 0, 1, 0), (1, 0, 1, 2), (0, 2, 1, 2), (0, 0, 0, 2), (0, 1, 1, 1),
+        ],
+        9: [
+            (0, 2, 1, 2), (1, 2, 1, 0), (1, 0, 0, 0), (0, 1, 1, 1),
+        ],
+    }
+
+    if digit not in pixel_patterns:
+        return
+
+    pattern = pixel_patterns[digit]
+    for x1, y1, x2, y2 in pattern:
+        px1 = int(cx + (x1 - 0.5) * scale)
+        py1 = int(cy + (y1 - 1) * scale)
+        px2 = int(cx + (x2 - 0.5) * scale)
+        py2 = int(cy + (y2 - 1) * scale)
+        pygame.draw.line(surface, color, (px1, py1), (px2, py2), thickness)
 
 
 def get_building_size(building_type: CC2BuildingType) -> tuple[int, int]:
@@ -186,52 +252,64 @@ def render_cc2_building(
         surface.set_at((sx, sy), stipple_color)
 
     # 4. Window dots (dark rectangles, 2-6 depending on size)
-    window_color = (40, 50, 65)
+    window_color = tuple(int(c * 0.5) for c in roof_color)  # roof_color * 0.5
     win_rng = random.Random(hash(str(building_type) + "roof_windows"))
-    if building_type in [CC2BuildingType.SMALL_HOUSE]:
-        num_windows = win_rng.randint(2, 3)
+    if building_type in [CC2BuildingType.SMALL_HOUSE, CC2BuildingType.WALL]:
+        num_windows = 2
     elif building_type in [CC2BuildingType.MEDIUM_HOUSE]:
-        num_windows = win_rng.randint(3, 5)
+        num_windows = 4
     elif building_type in [CC2BuildingType.LARGE_BUILDING]:
-        num_windows = win_rng.randint(6, 8)
+        num_windows = 6
     else:
-        num_windows = win_rng.randint(2, 4)
+        num_windows = win_rng.randint(3, 5)
 
     placed_windows = []
-    for _ in range(num_windows * 3):
-        wx = win_rng.randint(4, w - wall_width - 5)
-        wy = win_rng.randint(4, h - wall_height - 5)
-        too_close = False
-        for px, py in placed_windows:
-            if abs(wx - px) < 5 and abs(wy - py) < 5:
-                too_close = True
-                break
-        if not too_close:
-            pygame.draw.rect(surface, window_color, (wx, wy, 2, 2))
+    if building_type == CC2BuildingType.MEDIUM_HOUSE and num_windows >= 4:
+        margin = tile_size // 4
+        corners = [
+            (margin + 2, margin + 2),
+            (w - wall_width - margin - 4, margin + 2),
+            (margin + 2, h - wall_height - margin - 4),
+            (w - wall_width - margin - 4, h - wall_height - margin - 4),
+        ]
+        for wx, wy in corners[:num_windows]:
+            win_size = 2 if tw >= 2 else 3
+            pygame.draw.rect(surface, window_color, (wx, wy, win_size, win_size))
             placed_windows.append((wx, wy))
-            if len(placed_windows) >= num_windows:
-                break
+    else:
+        for _ in range(num_windows * 3):
+            wx = win_rng.randint(4, w - wall_width - 5)
+            wy = win_rng.randint(4, h - wall_height - 5)
+            too_close = False
+            for px, py in placed_windows:
+                if abs(wx - px) < 5 and abs(wy - py) < 5:
+                    too_close = True
+                    break
+            if not too_close:
+                win_size = 2 if tw >= 2 else 3
+                pygame.draw.rect(surface, window_color, (wx, wy, win_size, win_size))
+                placed_windows.append((wx, wy))
+                if len(placed_windows) >= num_windows:
+                    break
 
-    # 5. Building number (yellow text at center)
-    # Fix 1.5: 数字表示楼层数，大小随值缩放（更高的楼=稍大的字）
+    # 5. Building number (pixel digits at center, size proportional to floor count)
     if show_number and number:
-        base_font_size = min(w - wall_width, h - wall_height) // 2
+        cx = (w - wall_width) // 2
+        cy = (h - wall_height) // 2
 
         try:
             floor_value = int(number)
-            if floor_value >= 3:
-                font_size = base_font_size + 2  # 3层及以上: +2px
-            elif floor_value == 2:
-                font_size = base_font_size + 1  # 2层: +1px
-            else:
-                font_size = base_font_size      # 1层: 标准大小
+            digit_size = 6 + floor_value * 2  # height=1 → 8px, height=3 → 12px
         except (ValueError, TypeError):
-            font_size = base_font_size          # 非数字: 使用默认大小
+            digit_size = 8
 
-        font = pygame.font.SysFont("arial", max(12, font_size), bold=True)
-        text = font.render(str(number), True, (255, 215, 0))
-        text_rect = text.get_rect(center=((w - wall_width) // 2, (h - wall_height) // 2))
-        surface.blit(text, text_rect)
+        for i, char in enumerate(str(number)):
+            try:
+                digit = int(char)
+                offset_x = (i - len(str(number)) / 2 + 0.5) * (digit_size + 2)
+                _draw_pixel_digit(surface, digit, cx + offset_x, cy, digit_size, ROOF_NUMBER_COLOR)
+            except ValueError:
+                pass
 
     # 6. Chimney (some building types)
     chimney_rng = random.Random(hash(str(building_type) + "chimney"))
