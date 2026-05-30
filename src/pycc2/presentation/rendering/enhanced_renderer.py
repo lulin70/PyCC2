@@ -3978,11 +3978,73 @@ class EnhancedRenderer:
                     pygame.draw.circle(self._offscreen, (255, 255, 0), (cx, cy), select_radius, 4)
                     pygame.draw.circle(self._offscreen, (255, 200, 0), (cx, cy), select_radius - 3, 2)
 
+                # STEP 7: Damage visual effects (smoke/fire for damaged units)
+                if hasattr(unit, 'is_damaged') and unit.is_damaged:
+                    self._draw_damage_vfx(unit, cx, cy)
+
             except Exception as e:
                 # CRITICAL: NEVER crash on a single unit - just skip it
                 print(f"[WARN] Failed to render unit {idx}: {e}")
                 continue
-    
+
+    def _draw_damage_vfx(self, unit: Unit, cx: int, cy: int) -> None:
+        """STEP A-2: Render damage visual effects (smoke/fire) for damaged units.
+
+        Based on unit.damage_state:
+        - undamaged: No effects
+        - light: Light gray smoke wisps (2-3 particles)
+        - moderate: Thicker smoke (4-5 particles)
+        - heavy: Thick smoke + orange fire glow (6+ particles)
+        destroyed: Intense fire + thick black smoke
+        """
+        if not hasattr(unit, 'damage_state'):
+            return
+
+        state = unit.damage_state
+        if state == "undamaged":
+            return
+
+        # Ensure VFX particles are generated
+        if hasattr(unit, 'update_damage_vfx'):
+            if not getattr(unit, '_smoke_particles', None):
+                unit.update_damage_vfx()
+
+        # Draw smoke particles
+        smoke_particles = getattr(unit, '_smoke_particles', [])
+        for particle in smoke_particles[:8]:  # Limit to 8 for performance
+            px = cx + particle.get('x', 0)
+            py = cy + particle.get('y', 0)
+            alpha = particle.get('alpha', 100)
+            size = particle.get('size', 3)
+
+            # Smoke color: gray with transparency
+            smoke_color = (120, 120, 120)
+
+            # Create temporary surface for alpha blending
+            smoke_surf = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
+            pygame.draw.circle(smoke_surf, (*smoke_color, alpha), (size, size), size)
+            self._offscreen.blit(smoke_surf, (px - size, py - size))
+
+        # Draw fire particles (for heavy/destroyed)
+        fire_particles = getattr(unit, '_fire_particles', [])
+        for particle in fire_particles[:6]:  # Limit to 6 for performance
+            px = cx + particle.get('x', 0)
+            py = cy + particle.get('y', 0)
+            color = particle.get('color', (220, 120, 20))
+            size = particle.get('size', 3)
+
+            # Fire glow effect (larger semi-transparent circle behind)
+            glow_size = size + 2
+            glow_surf = pygame.Surface((glow_size * 2, glow_size * 2), pygame.SRCALPHA)
+            pygame.draw.circle(glow_surf, (*color, 80), (glow_size, glow_size), glow_size)
+            self._offscreen.blit(glow_surf, (px - glow_size, py - glow_size))
+
+            # Fire core (bright center)
+            bright_color = tuple(min(255, c + 40) for c in color)
+            core_surf = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
+            pygame.draw.circle(core_surf, (*bright_color, 200), (size, size), size // 2 + 1)
+            self._offscreen.blit(core_surf, (px - size, py - size))
+
     def _draw_hexagon(
         self, cx: int, cy: int, radius: int, color: tuple[int, int, int],
         selected: bool = False
