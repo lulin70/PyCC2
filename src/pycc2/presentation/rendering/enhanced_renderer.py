@@ -1720,6 +1720,14 @@ class SpriteGenerator:
             'BARBED_WIRE': SpriteGenerator._draw_barbed_wire,  # P1-4 Fix: New
             'WRECKAGE_VEHICLE': SpriteGenerator._draw_wreckage,
             'CAMOUFLAGE_NET': SpriteGenerator._draw_camo_net,
+
+            # CC2特色装饰物 (STEP B - 对照CC2截图新增)
+            'WRECKAGE_PLANE': SpriteGenerator._draw_plane_wreckage,      # ✈️ 飞机残骸
+            'BARRICADE_CONCRETE': SpriteGenerator._draw_concrete_barricade,  # 🚧 混凝土路障
+            'BARRICADE_SANDBAG': SpriteGenerator._draw_sandbag_barricade,   # 🛡️ 沙袋路障
+            'CRATER_CLUSTER': SpriteGenerator._draw_crater_cluster,         # 💣 弹坑群
+            'DEBRIS_FIELD': SpriteGenerator._draw_debris_field,             # 🗑️ 碎片场
+            'BURNING_WRECKAGE': SpriteGenerator._draw_burning_wreckage,     # 🔥 燃烧残骸
         }
         
         draw_func = sprite_funcs.get(deco_type_name, SpriteGenerator._draw_placeholder)
@@ -2031,6 +2039,304 @@ class SpriteGenerator:
             for x in range(10, 22):
                 if (x+y) % 2 == 0:
                     surface.set_at((x, y), color)
+
+    # ===================================================================
+    # CC2特色装饰物 (STEP B - 对照CC2截图实现)
+    # ===================================================================
+
+    @staticmethod
+    def _draw_plane_wreckage(surface: pygame.Surface, variant: int) -> None:
+        """Draw crashed aircraft wreckage (✈️ 飞机残骸).
+
+        Based on CC2 screenshots: irregular wing+fuselage shape,
+        dark metal color with rust patches, larger than vehicle wreckage.
+        Common near airfields and drop zones.
+        """
+        fuselage_color = (55, 50, 45)
+        wing_color = (60, 55, 50)
+        rust = (110, 65, 25)
+        dark_rust = (80, 45, 15)
+        shadow = (35, 30, 25)
+
+        # Fuselage (机身 - central elongated shape)
+        fuselage_points = [
+            (14, 8), (16, 7), (18, 8), (19, 12), (18, 20),
+            (17, 24), (15, 26), (13, 24), (12, 20), (13, 12), (14, 8)
+        ]
+
+        for y in range(7, 27):
+            for x in range(11, 21):
+                if SpriteGenerator._point_in_polygon(x, y, fuselage_points):
+                    # Rust variation
+                    if (x + y + variant) % 9 == 0:
+                        surface.set_at((x, y), rust)
+                    elif (x * y) % 13 == 0:
+                        surface.set_at((x, y), dark_rust)
+                    else:
+                        surface.set_at((x, y), fuselage_color)
+
+        # Left wing (左翼 - swept back shape)
+        left_wing = [
+            (6, 14), (9, 13), (12, 14), (13, 16), (12, 18),
+            (9, 17), (6, 16), (5, 15)
+        ]
+        for y in range(13, 19):
+            for x in range(5, 14):
+                if SpriteGenerator._point_in_polygon(x, y, left_wing):
+                    shade = wing_color if (x + y) % 3 != 0 else shadow
+                    surface.set_at((x, y), shade)
+
+        # Right wing (右翼 - mirror of left)
+        right_wing = [
+            (26, 14), (23, 13), (20, 14), (19, 16), (20, 18),
+            (23, 17), (26, 16), (27, 15)
+        ]
+        for y in range(13, 19):
+            for x in range(19, 28):
+                if SpriteGenerator._point_in_polygon(x, y, right_wing):
+                    shade = wing_color if (x + y) % 3 != 0 else shadow
+                    surface.set_at((x, y), shade)
+
+        # Tail section (尾翼)
+        for x in range(14, 19):
+            surface.set_at((x, 6), dark_rust)
+
+    @staticmethod
+    def _draw_concrete_barricade(surface: pygame.Surface, variant: int) -> None:
+        """Draw concrete anti-tank barricade (🚧 混凝土路障).
+
+        Based on CC2 urban combat: X-shaped or angled concrete blocks,
+        gray color with weathering, provides heavy cover.
+        """
+        concrete = (140, 135, 130)
+        dark_concrete = (110, 105, 100)
+        highlight = (160, 155, 150)
+        shadow_edge = (90, 85, 80)
+
+        # Main block (X-shaped barricade from top-down view looks like diamond)
+        center_x, center_y = 16, 16
+
+        # Diagonal bar 1 (top-left to bottom-right)
+        for i in range(-6, 7):
+            offset = abs(i)
+            width = max(3, 5 - offset // 2)
+            for w in range(-width, width + 1):
+                px = center_x + i + w // 2
+                py = center_y - i + w // 2
+                if 4 <= px < 28 and 4 <= py < 28:
+                    if w == -width or w == width:
+                        surface.set_at((px, py), shadow_edge)
+                    elif w == -width + 1 or w == width - 1:
+                        surface.set_at((px, py), dark_concrete)
+                    else:
+                        surface.set_at((px, py), concrete if (i + w) % 4 != 0 else highlight)
+
+        # Diagonal bar 2 (bottom-left to top-right)
+        for i in range(-6, 7):
+            offset = abs(i)
+            width = max(3, 5 - offset // 2)
+            for w in range(-width, width + 1):
+                px = center_x + i + w // 2
+                py = center_y + i + w // 2
+                if 4 <= px < 28 and 4 <= py < 28:
+                    if w == -width or w == width:
+                        surface.set_at((px, py), shadow_edge)
+                    elif w == -width + 1 or w == width - 1:
+                        surface.set_at((px, py), dark_concrete)
+                    else:
+                        surface.set_at((px, py), concrete if (i - w) % 4 != 0 else highlight)
+
+    @staticmethod
+    def _draw_sandbag_barricade(surface: pygame.Surface, variant: int) -> None:
+        """Draw sandbag defensive position (🛡️ 沙袋路障).
+
+        Smaller than SANDBAG_WALL, used for individual firing positions.
+        L-shaped or U-shaped layout visible from above.
+        """
+        bag_color = (160, 145, 110)
+        bag_dark = (130, 115, 85)
+        bag_shadow = (100, 90, 65)
+
+        # U-shaped sandbag wall (3 sides)
+        walls = [
+            # Top wall (horizontal)
+            [(8, 10), (8, 13), (24, 13), (24, 10)],
+            # Left wall (vertical)
+            [(8, 13), (11, 13), (11, 24), (8, 24)],
+            # Right wall (vertical)
+            [(21, 13), (24, 13), (24, 24), (21, 24)],
+        ]
+
+        for wall_idx, wall in enumerate(walls):
+            for y in range(min(p[1] for p in wall), max(p[1] for p in wall)):
+                for x in range(min(p[0] for p in wall), max(p[0] for p in wall)):
+                    if SpriteGenerator._point_in_polygon(x, y, wall):
+                        # Bag texture (individual bags ~3px each)
+                        bag_idx = ((x - 8) // 3 + (y - 10) // 3 + variant) % 3
+                        if bag_idx == 0:
+                            color = bag_color
+                        elif bag_idx == 1:
+                            color = bag_dark
+                        else:
+                            color = bag_shadow
+
+                        # Edge highlight
+                        is_edge = (y == min(p[1] for p in wall) or
+                                 y == max(p[1] for p in wall) - 1 or
+                                 x == min(p[0] for p in wall) or
+                                 x == max(p[0] for p in wall) - 1)
+                        if is_edge:
+                            color = tuple(min(255, c + 20) for c in color)
+
+                        surface.set_at((x, y), color)
+
+    @staticmethod
+    def _draw_crater_cluster(surface: pygame.Surface, variant: int) -> None:
+        """Draw cluster of impact craters (💣 弹坑群).
+
+        Multiple small craters from artillery barrage or bombing.
+        Based on CC2 screenshot 8: scattered dark circles on grass.
+        """
+        crater_base = (75, 65, 50)
+        crater_dark = (55, 48, 35)
+        crater_rim = (95, 85, 70)
+
+        # Cluster pattern (3-5 small craters based on variant)
+        rng = random.Random(variant * 42)
+        num_craters = 3 + (variant % 3)
+        positions = []
+
+        for _ in range(num_craters):
+            cx = rng.randint(8, 24)
+            cy = rng.randint(8, 24)
+            radius = rng.randint(3, 6)
+            positions.append((cx, cy, radius))
+
+        for cx, cy, radius in positions:
+            for y in range(max(4, cy - radius - 2), min(28, cy + radius + 2)):
+                for x in range(max(4, cx - radius - 2), min(28, cx + radius + 2)):
+                    dist = math.sqrt((x - cx)**2 + (y - cy)**2)
+                    if dist <= radius:
+                        # Depth shading (darker toward center)
+                        depth_factor = dist / radius
+                        if depth_factor < 0.3:
+                            color = crater_dark
+                        elif depth_factor < 0.7:
+                            color = crater_base
+                        else:
+                            color = crater_rim
+
+                        # Rim highlight at edge
+                        if dist > radius - 1.5:
+                            color = tuple(min(255, c + 15) for c in crater_rim)
+
+                        surface.set_at((x, y), color)
+
+    @staticmethod
+    def _draw_debris_field(surface: pygame.Surface, variant: int) -> None:
+        """Draw scattered debris field (🗑️ 碎片场).
+
+        Small irregular fragments from destroyed structures/vehicles.
+        Random pixel noise with some structure.
+        """
+        debris_colors = [
+            (80, 75, 70),   # Metal
+            (100, 95, 88),  # Light metal
+            (120, 110, 100),# Wood/plastic
+            (60, 55, 50),   # Dark debris
+            (90, 85, 75),   # Mixed material
+        ]
+        bg = (0, 0, 0, 0)  # Transparent
+
+        rng = random.Random(variant * 137)
+
+        # Scatter 40-60 debris pixels
+        num_debris = 40 + (variant % 20)
+        for _ in range(num_debris):
+            x = rng.randint(4, 27)
+            y = rng.randint(4, 27)
+            color = debris_colors[rng.randint(0, len(debris_colors) - 1)]
+
+            # Draw 1-3 pixel clusters
+            size = rng.randint(1, 3)
+            for dx in range(size):
+                for dy in range(size):
+                    px, py = x + dx, y + dy
+                    if 4 <= px < 28 and 4 <= py < 28:
+                        # Slight color variation per pixel
+                        variation = rng.randint(-8, 8)
+                        final_color = tuple(
+                            max(0, min(255, c + variation)) for c in color
+                        )
+                        surface.set_at((px, py), final_color)
+
+        # Add a few larger structural pieces (2-3 per debris field)
+        for _ in range(2 + (variant % 2)):
+            start_x = rng.randint(6, 22)
+            start_y = rng.randint(6, 22)
+            length = rng.randint(3, 7)
+            angle = rng.uniform(0, math.pi * 2)
+
+            for i in range(length):
+                px = int(start_x + i * math.cos(angle))
+                py = int(start_y + i * math.sin(angle))
+                if 4 <= px < 28 and 4 <= py < 28:
+                    surface.set_at((px, py), (70, 65, 58))
+
+    @staticmethod
+    def _draw_burning_wreckage(surface: pygame.Surface, variant: int) -> None:
+        """Draw burning/destroyed wreckage (🔥 燃烧残骸).
+
+        Vehicle or structure actively on fire.
+        Dark hull with orange/red/yellow flame overlay.
+        """
+        hull_color = (50, 45, 40)
+        flame_orange = (220, 120, 20)
+        flame_red = (180, 50, 10)
+        flame_yellow = (240, 200, 50)
+        smoke_gray = (120, 120, 120)
+
+        # Base wreckage hull (similar to _draw_wreckage but more damaged)
+        hull_points = [
+            (5, 20), (7, 16), (11, 14), (17, 13), (23, 14),
+            (26, 17), (27, 22), (25, 26), (17, 27), (9, 26), (6, 23)
+        ]
+
+        for y in range(13, 28):
+            for x in range(5, 28):
+                if SpriteGenerator._point_in_polygon(x, y, hull_points):
+                    surface.set_at((x, y), hull_color)
+
+        # Flame areas (multiple fire points)
+        fire_centers = [
+            (12, 18), (18, 17), (22, 20)
+        ]
+        rng = random.Random(variant * 99)  # FIX: varant → variant
+
+        for fcx, fcy in fire_centers[:2 + (variant % 2)]:
+            # Flickering flames (irregular shapes)
+            for y in range(fcy - 4, fcy + 5):
+                for x in range(fcx - 4, fcx + 5):
+                    dist = math.sqrt((x - fcx)**2 + (y - fcy)**2)
+                    if dist <= 4.5 and rng.random() > 0.3:
+                        # Color gradient: yellow core → orange → red edge
+                        if dist < 1.5:
+                            color = flame_yellow
+                        elif dist < 2.8:
+                            color = flame_orange
+                        else:
+                            color = flame_red
+
+                        # Random flicker (some pixels transparent for flicker effect)
+                        if rng.random() > 0.15:
+                            surface.set_at((x, y), color)
+
+        # Smoke plume (light gray pixels rising from fires)
+        for smoke_y in range(8, 14):
+            for smoke_x in range(10, 24):
+                if rng.random() > 0.85:
+                    alpha_smoke = (*smoke_gray, 150 - (smoke_y - 8) * 10)
+                    surface.set_at((smoke_x, smoke_y), alpha_smoke)
 
 
 class TerrainTileCache:
