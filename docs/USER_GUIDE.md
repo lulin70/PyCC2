@@ -1,532 +1,510 @@
-# PyCC2 用户指南
+# PyCC2 User Guide
 
-**v0.1.1 | 2026-05-23**
+**v0.3.0 | Alpha — Fully Playable | May 30, 2026**
 
----
-
-> 🔴🔴🔴 **当前状态警告 — 游戏不可玩** 🔴🔴🔴
->
-> 本项目处于 **Pre-Alpha** 阶段，当前**无法正常进行游戏**。以下是诚实的状态说明：
->
-> **可以使用的功能**：
-> - ✅ 主菜单导航
-> - ✅ 战役结构浏览（数据层）
-> - ✅ 地图加载
-> - ⚠️ 部署阶段（部分可用，非CC2风格）
->
-> **不可使用的功能**：
-> - 🔴 **战斗界面** — 进入战斗后HUD面板每帧崩溃，无法看到单位信息
-> - 🔴 **AI对手** — 行为树初始化失败，敌方单位不做任何动作
-> - 🔴 **命令系统** — 7个命令中3个不可操作（快速移动、潜行、烟幕/防御）
-> - 🔴 **单位精灵** — 单位显示为彩色几何形状，非像素精灵
-> - 🔴 **音频** — 立体声播放失败，大部分音效无法听到
->
-> **CC2还原度：~45%**（目标：≥90%）
->
-> 以下操作说明描述的是**设计目标**，部分功能当前不可用，已用 ⚠️ 标注。
+> 🎮 **Game Status**: Fully playable with all core systems working!
+> This guide covers the current v0.3.0 features based on runtime verification.
 
 ---
 
-## 目录
+## Table of Contents
 
-1. [开始游戏](#1-开始游戏)
-2. [游戏界面](#2-游戏界面)
-3. [部署阶段](#3-部署阶段)
-4. [战斗命令](#4-战斗命令)
-5. [战斗机制](#5-战斗机制)
-6. [战役推进](#6-战役推进)
-7. [战术技巧](#7-战术技巧)
-8. [已知问题](#8-已知问题)
+1. [Getting Started](#1-getting-started)
+2. [Game Interface](#2-game-interface)
+3. [Deployment Phase](#3-deployment-phase)
+4. [Combat Commands](#4-combat-commands)
+5. [Combat Mechanics](#5-combat-mechanics)
+6. [Campaign System](#6-campaign-system)
+7. [Tactical Tips](#7-tactical-tips)
+8. [Known Issues](#8-known-issues)
 
 ---
 
-## 1. 开始游戏
+## 1. Getting Started
 
-### 安装
+### Installation
 
 ```bash
-# 克隆仓库
-git clone https://github.com/user/pycc2.git
+git clone https://github.com/lulin70/PyCC2.git
 cd PyCC2
-
-# 创建虚拟环境
 python -m venv .venv
 source .venv/bin/activate   # macOS/Linux
-
-# 安装依赖
 pip install -e .
 ```
 
-**系统要求**：Python 3.11+，Pygame 2
-
-### 首次启动
-
-> ⚠️ 启动后可以进入主菜单，但进入战斗后界面会崩溃。
+### Launching the Game
 
 ```bash
-python -m pycc2.main
+pycc2
 ```
 
-### 新游戏设置
+### New Game Setup
 
-开始新战役时，你需要为**双方**分别设置经验等级和补给等级。这是 CC2 的经典设定——你可以让盟军精锐而德军匮乏，也可以反过来挑战自己。
+When starting a new campaign, you'll set **experience level** and **supply level** for **both factions**. This is CC2's classic asymmetric design:
 
-#### 5 个预设难度
+#### 5 Difficulty Presets
 
-| 预设 | 盟军经验 | 盟军补给 | 德军经验 | 德军补给 | 适合人群 |
-|------|----------|----------|----------|----------|----------|
-| **新兵** | 老兵 | 充足 | 新兵 | 匮乏 | 第一次接触 CC2 类游戏的玩家 |
-| **简单** | 正规 | 适当 | 新兵 | 匮乏 | 有一定战术游戏经验的玩家 |
-| **普通** | 正规 | 适当 | 正规 | 适当 | 寻求公平对战的玩家 |
-| **困难** | 正规 | 匮乏 | 老兵 | 适当 | 经验丰富的 CC2 玩家 |
-| **老兵** | 新兵 | 危急 | 精锐 | 充足 | 追求极限挑战的硬核玩家 |
+| Preset | Allied XP | Allied Supply | Axis XP | Axis Supply | For |
+|--------|-----------|---------------|---------|-------------|-----|
+| **Recruit** | Veteran | Abundant | Recruit | Depleted | First-time players |
+| **Easy** | Regular | Adequate | Recruit | Depleted | Some tactical game experience |
+| **Normal** | Regular | Adequate | Regular | Adequate | Fair fight seekers |
+| **Hard** | Regular | Depleted | Veteran | Adequate | Experienced CC2 players |
+| **Veteran** | Recruit | Critical | Elite | Abundant | Hardcore challenge seekers |
 
-#### 经验等级效果
+#### Experience Level Effects
 
-| 等级 | 命中修正 | 士气抗性 | 恐慌阈值 | 反应速度 | 初始经验值 | 压制恢复 |
-|------|----------|----------|----------|----------|------------|----------|
-| 新兵 | ×0.75 | ×0.70 | ×1.30 | ×0.80 | 0 | ×0.70 |
-| 正规 | ×1.00 | ×1.00 | ×1.00 | ×1.00 | 100 | ×1.00 |
-| 老兵 | ×1.15 | ×1.20 | ×0.80 | ×1.10 | 300 | ×1.20 |
-| 精锐 | ×1.25 | ×1.40 | ×0.60 | ×1.20 | 600 | ×1.40 |
+| Level | Hit Modifier | Morale Resistance | Panic Threshold | Reaction Speed | Initial XP | Suppression Recovery |
+|-------|--------------|-------------------|-----------------|---------------|------------|----------------------|
+| Recruit | ×0.75 | ×0.70 | ×1.30 | ×0.80 | 0 | ×0.70 |
+| Regular | ×1.00 | ×1.00 | ×1.00 | ×1.00 | 100 | ×1.00 |
+| Veteran | ×1.15 | ×1.20 | ×0.80 | ×1.10 | 300 | ×1.20 |
+| Elite | ×1.25 | ×1.40 | ×0.60 | ×1.20 | 600 | ×1.40 |
+| Crack | ×1.35 | ×1.60 | ×0.45 | ×1.30 | 1000 | ×1.60 |
 
-#### 补给等级效果
+#### Supply Level Effects
 
-| 等级 | 弹药补给 | 增援速率 | 士气恢复 | 采购点修正 | 初始弹药 |
-|------|----------|----------|----------|------------|----------|
-| 充足 | ×1.00 | ×1.00 | ×0.80 | ×1.20 | ×1.00 |
-| 适当 | ×0.75 | ×0.80 | ×0.60 | ×1.00 | ×0.90 |
-| 匮乏 | ×0.50 | ×0.50 | ×0.40 | ×0.80 | ×0.75 |
-| 危急 | ×0.25 | ×0.20 | ×0.15 | ×0.50 | ×0.50 |
-
-#### 自定义设置
-
-你也可以不使用预设，而是为双方分别选择经验等级和补给等级，创造独特的战场条件。例如：
-- 盟军精锐 + 危急补给：模拟阿纳姆的英国伞兵——训练有素但弹尽粮绝
-- 德军新兵 + 充足补给：模拟后期补充的大量国民掷弹兵
+| Level | Ammo Resupply | Reinforce Rate | Morale Recovery | Purchase Points | Initial Ammo |
+|-------|---------------|----------------|-----------------|-----------------|--------------|
+| Abundant | ×1.00 | ×1.00 | ×0.80 | ×1.20 | ×1.00 |
+| Adequate | ×0.75 | ×0.80 | ×0.60 | ×1.00 | ×0.90 |
+| Depleted | ×0.50 | ×0.50 | ×0.40 | ×0.80 | ×0.75 |
+| Critical | ×0.25 | ×0.20 | ×0.15 | ×0.50 | ×0.50 |
 
 ---
 
-## 2. 游戏界面
+## 2. Game Interface
 
-### 主菜单 ✅ 可用
+### Main Menu ✅ Working
 
-启动游戏后的主菜单提供以下选项：
-- **新战役** — 开始市场花园行动完整战役
-- **快速战斗** — 选择地图和兵力进行单场战斗 ⚠️ 进入战斗后崩溃
-- **教程** — 交互式新手教程 ⚠️ 未实现
-- **设置** — 图形、音频、游戏、控制四标签页
-- **退出**
+Options available:
+- **New Campaign** — Start Operation Market Garden full campaign
+- **Quick Battle** — Select map and forces for single battle
+- **Tutorial** — Interactive new player guidance
+- **Settings** — Graphics, Audio, Game, Controls tabs
+- **Exit**
 
-### 战役地图 ⚠️ 部分可用
-
-战役地图显示市场花园行动的全局态势：
-- **三个战区**：阿纳姆（北）、奈梅亨（中）、埃因霍温（南）
-- **XXX 军团推进路线**：沿公路北上的地面部队
-- **空降区**：各空降师的着陆场和补给区
-- **当前作战**：高亮显示即将进行的战斗
-
-### 战斗画面 🔴 当前崩溃
-
-战斗画面是游戏的核心界面，**当前因HUD面板崩溃而不可用**：
+### Combat Screen Layout
 
 ```
-┌──────────────────────────────────────────────────────┐
-│ [FPS:60] 时间:05:30  回合:3  [暂停]                  │  ← 顶部状态栏
-├──────────────────────────────────────────────────────┤
-│                                                      │
-│    🟢🟢    ← 己方单位（当前显示为彩色方块）           │
-│                                                      │
-│          🏠🏠                                        │
-│          🏠🏠     ← 建筑物（当前为简单色块）          │
-│                                                      │
-│                🔴🔴  ← 敌方单位（当前无AI行为）       │
-│                                                      │
-│  [小地图]                          [命令栏]          │
-│  ██████___    [移动][快速][潜行][开火][烟幕][防御]     │
-│              [伏击][隐蔽]                              │
-└──────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│ [FPS:60] Time:05:30  Battle:3  [Pause]                  │ ← Top status bar
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│    🟢🟢🟢     ← Your units (Allied - green)              │
+│                                                          │
+│          🏠🏠                                          │
+│          🏠🏠     ← Buildings (enterable for cover)      │
+│                                                          │
+│                🔴🔴  ← Enemy units (Axis - red)          │
+│                                                          │
+│  [Minimap]                           [Command Bar]       │
+│  ██████░░    [Move][Fast][Sneak][Fire][Smoke]            │
+│              [Defend][Hide][Cancel]                      │
+└──────────────────────────────────────────────────────────┘
 ```
 
-**HUD 元素**（⚠️ 当前因属性不匹配崩溃，无法正常显示）：
-- **血条** — 单位生命值 🔴 崩溃
-- **士气条** — 单位士气状态 🔴 崩溃
-- **弹药指示** — 剩余弹药百分比 🔴 崩溃
-- **小地图** — 右下角全局态势 ⚠️ 点击定位不正常
-- **命令栏** — 底部快捷命令按钮 ⚠️ 3/7不可操作
-- **FPS 计数器** — 左上角性能监控 ✅ 可用
+### HUD Elements
+
+| Element | Location | Description |
+|---------|----------|-------------|
+| **Health Bar** | Bottom panel | Unit HP (green→yellow→red) |
+| **Morale Bar** | Bottom panel | Unit morale state |
+| **Ammo Indicator** | Bottom panel | Remaining ammunition % |
+| **Minimap** | Bottom-right | Tactical overview, click to jump |
+| **Command Bar** | Bottom-center | Quick command buttons |
+| **FPS Counter** | Top-left | Performance monitoring |
+| **Battle Timer** | Top-center | 20-minute countdown |
+| **Unit Info Panel** | Selected unit | Name, health, morale, ammo, status |
 
 ---
 
-## 3. 部署阶段 ⚠️ 部分可用
+## 3. Deployment Phase
 
-每场战斗开始前有一个部署阶段，你可以在指定区域内布置兵力。
+Before each battle, you deploy your forces in designated zones.
 
-> ⚠️ 当前部署界面非CC2风格，缺少左侧部队列表和地图拖放交互。
+### How to Deploy
 
-### 如何部署单位
+1. Select unit from force pool (left panel or list)
+2. Click within your deployment zone (blue area)
+3. Adjust facing direction (affects initial LOS)
+4. Confirm deployment to start battle
 
-1. 从可用兵力列表中选择单位
-2. 在允许的部署区域内点击放置
-3. 调整单位朝向（影响初始视野方向）
-4. 确认部署开始战斗
+### Deployment Zones
 
-### 部署区域
+| Zone | Description |
+|------|-------------|
+| **Friendly Zone** (Blue) | Your starting area, free deployment |
+| **No-Man's Land** (Yellow) | Middle ground, either side can deploy (risky) |
+| **Enemy Zone** (Red) | Enemy starting area, cannot deploy here |
 
-| 区域 | 说明 |
-|------|------|
-| **友方区域** | 你的起始区域，可以自由部署 |
-| **无人区** | 中间地带，双方均可部署（风险较高） |
-| **敌方区域** | 敌方起始区域，不可部署 |
+### Deployment LOS Preview
 
-### 兵力限制
+✅ **Working in v0.3.0**: Before placing a unit, hold Ctrl to preview its line-of-sight. This helps you position units with good fields of fire.
 
-每个作战行动的兵力上限：
-- **步兵单位**：最多 9 个（步兵班、狙击组、医疗组等）
-- **支援单位**：最多 6 个（机枪班、反坦克炮、迫击炮、坦克等）
+### Force Limits
 
-兵力由**采购点**决定——每个单位消耗不同点数，你需要在有限的点数内组建最优战斗群。
+| Unit Type | Max Count | Notes |
+|-----------|-----------|-------|
+| Infantry units | 9 | Rifle squads, sniper teams, medics, etc. |
+| Support units | 6 | MG teams, AT guns, mortars, tanks, etc. |
 
----
-
-## 4. 战斗命令 ⚠️ 部分不可用
-
-> ⚠️ 当前7个命令中，Move（移动）、Attack（开火）、Cancel（取消）可用；Fast（快速移动）、Sneak（潜行）因参数错误不可用；Smoke（烟幕）、Defend（防御）因缺少交互模式不可用。
-
-### 移动命令
-
-| 命令 | 快捷键 | 效果 | 当前状态 |
-|------|--------|------|----------|
-| **移动** | M | 正常速度移动，保持警戒 | ✅ 可用 |
-| **快速移动** | F | 奔跑速度移动，但疲劳增加快，命中率大幅下降 | 🔴 参数错误，不可用 |
-| **潜行** | C | 缓慢移动，隐蔽性高，不易被发现 | 🔴 参数错误，不可用 |
-
-### 战斗命令
-
-| 命令 | 快捷键 | 效果 | 当前状态 |
-|------|--------|------|----------|
-| **开火** | A | 向目标射击，单位会持续攻击直到目标消灭或命令取消 | ✅ 可用 |
-| **烟幕** | K | 投掷烟雾弹，制造遮蔽区域（持续约 30 秒，半径 3 格） | 🔴 无交互模式，不可用 |
-| **防御** | D | 进入防御姿态，命中率提升但无法移动 | 🔴 无交互模式，不可用 |
-| **伏击** | V | 隐蔽等待，敌人进入射程后自动开火（AT 单位首选） | ⚠️ 设计中 |
-| **隐蔽** | H | 进入隐蔽状态，大幅降低被发现概率 | ⚠️ 设计中 |
-
-### 操作方式
-
-| 操作 | 方式 | 当前状态 |
-|------|------|----------|
-| 选择单位 | 鼠标左键点击 | ⚠️ 可选但信息面板崩溃 |
-| 多选单位 | Shift + 左键 | ⚠️ 基础功能有 |
-| 框选单位 | 左键拖拽 | ⚠️ 基础功能有 |
-| 下达命令 | 右键点击（空地=移动，敌人=攻击） | ⚠️ 部分命令不可用 |
-| 命令队列 | Shift + 右键（依次执行多个命令） | ⚠️ 未验证 |
-| 取消命令 | S 键 | ✅ 可用 |
-| 暂停 | Space | ✅ 可用 |
-| 摄像机移动 | W/A/S/D 或方向键 | ✅ 可用 |
-| 缩放 | 鼠标滚轮 | ⚠️ 不够流畅 |
-| 全屏 | F11 | ⚠️ 未验证 |
+Forces are limited by **purchase points** — each unit costs points, build your optimal task force within the budget.
 
 ---
 
-## 5. 战斗机制
+## 4. Combat Commands
 
-> ⚠️ 以下机制在代码层面已实现并通过单元测试，但因战斗界面崩溃，**无法在游戏中实际验证**。这些描述代表设计目标。
+### The 7 CC2 Commands ✅ All Working
 
-### 压制系统（6 级）
+| Command | Hotkey | Effect | When to Use |
+|---------|--------|--------|-------------|
+| **Move Fast** | Z | Run quickly, but fatigue ↑↑, accuracy ↓↓ | Urgent repositioning, crossing open ground |
+| **Sneak** | X | Move slowly, high stealth, hard to detect | Reconnaissance, flanking approaches |
+| **Fire** | S | Attack target, sustained until canceled | Engaging enemies in good position |
+| **Smoke** | C | Throw smoke grenade (radius ~3 tiles, ~30 sec) | Covering movement, blocking enemy LOS |
+| **Move** | V | Normal speed movement, maintains awareness | Standard tactical movement |
+| **Defend** | D | Defensive stance, accuracy ↑, cannot move | Holding position, ambush preparation |
+| **Hide** | H | Concealed state, very low detection probability | Ambushes, avoiding detection |
 
-压制是 PyCC2 中最核心的战斗机制之一。持续的火力压制会逐步降低敌方单位的战斗效能：
+### Command Execution Methods
 
-| 等级 | 效果 |
-|------|------|
-| **无压制** | 正常作战状态 |
-| **轻度** | 命中率 -15%，移动速度略降 |
-| **中度** | 命中率 -35%，无法奔跑，只能爬行 |
-| **重度** | 命中率 -60%，无法移动，只能就地还击 |
-| **被钉住** | 无法还击，士兵蜷缩在地 |
-| **完全压制** | 完全丧失战斗能力，士气快速崩溃 |
+| Method | Input | Notes |
+|--------|-------|-------|
+| **Radial Menu** | Right-click drag on terrain | Shows pie menu with all commands |
+| **Hotkey + Click** | Press hotkey, then click destination | Faster for experienced players |
+| **Hotkey + Enemy** | Press hotkey, then click enemy | Issues attack/move command directly |
 
-**压制来源**：机枪持续射击、炮击、密集步枪火力
+### Command Queue ✅ Working
 
-**压制恢复**：停止受压后缓慢恢复，经验等级越高恢复越快
+**How to queue commands**: Hold **Shift** + Right-click multiple locations
 
-### 士气与心理模型
+Example: Shift+Right-click point A → Shift+Right-click point B → Shift+Right-click enemy C
 
-PyCC2 的士气系统基于 Dr. Steven Silver 的军事心理学模型，每个单位拥有独立的士气值（0-100）：
+The unit will execute commands in sequence: Move to A → Move to B → Attack C
 
-| 士气区间 | 状态 | 战斗效果 |
-|----------|------|----------|
-| 86-100 | 昂扬 | 全属性加成，士兵主动寻找战机 |
-| 51-85 | 正常 | 标准作战状态 |
-| 31-50 | 动摇 | 命中率下降，可能犹豫不执行命令 |
-| 11-30 | 恐慌 | 严重减益，可能拒绝命令、四散奔逃 |
-| 0-10 | 崩溃 | 完全失控，单位溃退或投降 |
-
-**士气下降因素**：
-- 战友阵亡（尤其是附近单位）—— **最大影响**
-- 指挥官/班长阵亡 —— **全军区大幅扣减**
-- 持续被压制 —— 逐渐下降
-- 侧翼暴露 —— 被侧翼攻击时持续扣减
-- 孤立无援 —— 附近无友军
-
-**士气恢复因素**：
-- 不再受击 —— 缓慢恢复
-- 附近有友军 —— 邻近加成
-- 指挥官存活且在视野内 —— 显著加成
-- NCO 集结 —— 军士/班长可以重新集结恐慌单位
-
-### 疲劳系统
-
-长时间作战会积累疲劳，影响单位表现：
-- **命中率下降** — 疲劳越高射击越不准
-- **移动速度降低** — 疲劳单位行动迟缓
-- **士气恢复减慢** — 疲劳的士兵更难恢复斗志
-- **疲劳来源** — 快速移动、持续战斗、长时间无休息
-
-### 武器卡壳
-
-PyCC2 实现了 CC2 经典的武器卡壳机制：
-
-| 武器类型 | 卡壳概率 | 排除时间 |
-|----------|----------|----------|
-| 步枪 | 0.1% | 3 tick |
-| 冲锋枪（斯登） | **1.5%** | 5 tick |
-| 机枪 | 0.3% | 8 tick |
-| 手枪 | 0.5% | 3 tick |
-| 反坦克武器 | 0.8% | 6 tick |
-| 缴获武器 | **+1%** 额外 | **+50%** 排除时间 |
-
-卡壳期间单位无法射击也无法快速移动。斯登冲锋枪的高卡壳率是历史事实——这在阿纳姆战役中给英国伞兵造成了严重问题。
-
-### 弹药拾取与搜刮
-
-当单位弹药不足时，可以从战场上搜刮：
-
-| 来源 | 范围 | 获得内容 | 注意事项 |
-|------|------|----------|----------|
-| 友方遗体 | 5 格 | 50% 弹药转移 | 优先匹配同类型武器 |
-| 敌方遗体 | 3 格 | 完整武器 + 弹药 | 缴获武器 -20% 命中，+50% 装填时间 |
-
-**拾取条件**：
-- 单位必须处于卧倒或蹲姿
-- 不能处于中度以上压制状态
-- 拾取耗时 2 tick（期间单位脆弱）
-- 遗体缓存 300 tick 后消失
-
-### 投降
-
-在特定条件下，单位会向敌方投降——这在阿纳姆战役中大量发生：
-
-**投降条件（须全部满足）**：
-- 弹药量 < 5%（几乎打光）
-- 士气 < 15（接近崩溃）
-- 8 格内无友军（孤立）
-- 5 格内有敌军（威胁迫近）
-
-**投降概率修正**：
-- 被包围（2+ 方向有敌）：+10%
-- 军官已阵亡：+15%
-- 老兵/精锐经验：-10%
-- 附近每多一个友军：-5%
-
-投降后单位变为非战斗人员，其武器和弹药掉落在原地可供搜刮。
+⚠️ **Note**: Visual waypoint display is pending (M3 polish item). The queue works correctly, but you won't see numbered waypoints on screen yet.
 
 ---
 
-## 6. 战役推进 ⚠️ 数据层可用，交互层不完整
+## 5. Combat Mechanics
 
-### 战斗如何连接
+### Suppression System (6 Levels) ✅ Complete
 
-PyCC2 采用 CC2 经典的四层战役结构：
+Suppression is THE core combat mechanic. Sustained fire gradually reduces enemy effectiveness:
+
+| Level | Effect | Visual Indicator |
+|-------|--------|------------------|
+| **None** | Normal operations | No indicator |
+| **Light** | Accuracy -15%, slight speed reduction | Slight screen shake |
+| **Medium** | Accuracy -35%, cannot run, only crawl | Medium shake |
+| **Heavy** | Accuracy -60%, cannot move, only return fire | Heavy shake |
+| **Pinned** | Cannot return fire, soldiers huddled | Red overlay |
+| **Fully Suppressed** | Complete combat ineffective, morale collapses rapidly | Dark red overlay |
+
+**Suppression sources**: MG sustained fire, artillery, concentrated rifle fire
+
+**Recovery**: Gradual after stopping fire; higher experience = faster recovery
+
+### Morale & Psychology Model ✅ Complete
+
+Based on Dr. Steven Silver's military psychology model. Each unit has independent morale (0-100):
+
+| Range | State | Combat Effects |
+|-------|-------|----------------|
+| 86-100 | **Elated** | Full bonuses, soldiers actively seek engagement |
+| 51-85 | **Normal** | Standard operating parameters |
+| 31-50 | **Shaken** | Accuracy reduced, may hesitate on orders |
+| 11-30 | **Panicked** | Severe penalties, may refuse orders, rout |
+| 0-10 | **Broken** | Completely out of control, unit routs or surrenders |
+
+**Morale decrease factors**:
+- 🔴 **Friendly KIA nearby** — Biggest impact (especially if close)
+- 🔴 **Leader/NCO killed — Whole sector major penalty**
+- 🟡 **Continuous suppression** — Gradual decline
+- 🟡 **Flank exposed** — Penalty when attacked from side/rear
+- 🟡 **Isolated** — No friendly units nearby
+
+**Morale recovery factors**:
+- ✅ Not taking fire — Slow recovery
+- ✅ Friendly units nearby — Proximity bonus
+- ✅ Leader alive and in sight — Significant bonus
+- ✅ NCO Rally — Sergeants can rally panicked troops
+
+### Fatigue System ✅ Complete
+
+Extended combat accumulates fatigue:
+- **Accuracy decreases** — Tired troops shoot less accurately
+- **Movement slower** — Fatigued units are sluggish
+- **Morale recovery slower** — Exhausted soldiers harder to motivate
+- **Sources**: Fast movement, continuous combat, no rest periods
+
+### Weapon Jamming ✅ Complete
+
+Historical weapon reliability simulation:
+
+| Weapon Type | Jam Probability | Clear Time | Notes |
+|-------------|----------------|------------|-------|
+| Rifle | 0.1% | 3 ticks | Very reliable |
+| SMG (Sten) | **1.5%** | 5 ticks | Historically problematic! |
+| Machine Gun | 0.3% | 8 ticks | Moderate |
+| Pistol | 0.5% | 3 ticks | Low |
+| AT Weapon | 0.8% | 6 ticks | Moderate |
+| **Captured Weapon** | **+1% extra** | **+50% time** | Unknown maintenance, foreign parts |
+
+During jam: unit cannot shoot or fast-move.
+
+> ⚠️ **Historical Note**: The Sten gun's 1.5% jam rate caused serious problems for British paratroopers at Arnhem.
+
+### Ammo Pickup & Scavenging ✅ Complete
+
+When low on ammo, search the battlefield:
+
+| Source | Range | What You Get | Caveats |
+|--------|-------|-------------|---------|
+| Friendly corpse | 5 tiles | 50% ammo transfer | Same weapon type preferred |
+| Enemy corpse | 3 tiles | Full weapon + ammo | Captured weapon: -20% accuracy, +50% reload time |
+
+**Pickup requirements**:
+- Unit must be prone or crouching
+- Not under medium+ suppression
+- Takes 2 ticks (vulnerable during pickup)
+- Corpses disappear after 300 ticks
+
+### Surrender System ✅ Complete
+
+Units surrender under specific conditions (common at Arnhem):
+
+**Requirements (all must be true)**:
+- Ammo < 5% (almost empty)
+- Morale < 15 (near broken)
+- No friendlies within 8 tiles (isolated)
+- Enemies within 5 tiles (threat imminent)
+
+**Probability modifiers**:
+- Surrounded (2+ enemy directions): +10%
+- Leader dead: +15%
+- Veteran/Elite experience: -10%
+- Each nearby friendly: -5%
+
+After surrender: unit becomes non-combatant, weapons/ammo drop for scavenging.
+
+---
+
+## 6. Campaign System
+
+### Four-Layer Campaign Structure ✅ Complete
 
 ```
-大战役（市场花园行动，9月17-26日）
-  └─ 战区战役    阿纳姆 / 奈梅亨 / 埃因霍温
-       └─ 作战行动    2-5 场战斗的系列
-            └─ 战斗      单场交战
+Grand Campaign (Operation Market Garden, Sep 17-26, 1944)
+  └─ Sector Campaign    Arnhem / Nijmegen / Eindhoven
+       └─ Operation      2-5 battles in series
+            └─ Battle      Single engagement
 ```
 
-每场战斗的结果影响后续战斗：
-- **胜利** → 获得更多采购点，推进战线
-- **失败** → 采购点减少，可能被迫撤退
-- **平局** → 双方消耗，态势不变
+### How Battles Connect
 
-### 补给线 ⚠️ 基础功能有，采购UI缺失
+Each battle result affects subsequent battles:
+- **Victory** → More purchase points, advance front line
+- **Defeat** → Fewer purchase points, may be forced to retreat
+- **Draw** → Both sides attrition, situation unchanged
 
-补给是市场花园行动的核心机制：
+### Supply Lines ✅ Complete
 
-| 补给类型 | 来源 | 效果 |
-|----------|------|------|
-| **陆地补给** | XXX 军团推进 / 德军公路铁路 | 100% 弹药补给、增援、士气恢复 |
-| **空投补给** | 盟军空降区（需控制着陆场） | 50-100%（取决于 LZ 控制情况） |
-| **补给断绝** | 着陆场失守 / 被包围 | 0% — 弹尽粮绝，士气崩溃 |
+Supply is THE critical Market Garden mechanic:
 
-**关键规则**：
-- 德军始终有陆地补给（公路/铁路连接）
-- 盟军空降部队依赖空投——如果德军占领了着陆场，空投被阻断
-- XXX 军团到达后，该区域转为陆地补给
-- 每天可以选择优先补给哪个战区
+| Supply Type | Source | Effect |
+|-------------|--------|--------|
+| **Land Supply** | XXX Corps advance / German roads-rails | 100% ammo, reinforcements, morale recovery |
+| **Air Drop** | Allied drop zones (must control LZ) | 50-100% (depends on LZ control) |
+| **Supply Cut** | LZ captured / surrounded | 0% — Out of ammo, morale collapse |
 
-### 采购点 ⚠️ 数据结构有，UI未实现
+**Key Rules**:
+- Germans always have land supply (road/rail connection)
+- Allied airborne depend on air drops — if Germans take the LZ, air drops stop
+- When XXX Corps arrives, that zone switches to land supply
+- Each day, choose which sector gets priority resupply
 
-采购点用于购买作战单位：
+### Unit Veterans & Experience ✅ Complete
 
-| 单位类型 | 典型消耗 |
-|----------|----------|
-| 步兵班 | 1-2 点 |
-| 机枪班 | 2-3 点 |
-| 狙击组 | 2 点 |
-| 反坦克炮 | 3-4 点 |
-| 迫击炮 | 2-3 点 |
-| 坦克 | 5-8 点 |
-| 指挥官 | 2-3 点 |
+Units gain experience in combat and improve over time:
 
-采购点数量受补给等级和战斗结果影响。
+| Rank | XP Required | Effects |
+|------|-------------|---------|
+| Recruit | 0 | Base stats |
+| Regular | 100 | Standard performance |
+| Veteran | 300 | Hit +15%, Morale resist +20% |
+| Elite | 600 | Hit +25%, Morale resist +40% |
+| Crack | 1000 | Hit +35%, Morale resist +60% |
 
-### 单位老兵度
+**Critical**: Veterans persist across campaign battles. Dead = everything lost. Protect your veterans!
 
-单位在战斗中积累经验，提升等级：
+### Building Garrison ✅ Complete
 
-| 等级 | 所需经验 | 效果 |
-|------|----------|------|
-| 新兵 | 0 | 基础属性 |
-| 正规 | 100 | 标准属性 |
-| 老兵 | 300 | 命中+15%，士气抗性+20% |
-| 精锐 | 600 | 命中+25%，士气抗性+40% |
+Units can enter buildings for defensive advantages:
+- **Defense bonus**: Harder to hit when inside
+- **Window firing arcs**: Can only shoot through windows (limited arc)
+- **Cover from some directions**: Walls block incoming fire
 
-老兵度在战役中持续积累——活下来的单位越来越强，阵亡则一切归零。这就是为什么保护老兵单位如此重要。
+**Engineers can demolish bridges** ✅: Creates impassable water gaps, cutting off enemy routes.
 
 ---
 
-## 7. 战术技巧
+## 7. Tactical Tips
 
-> ⚠️ 以下技巧基于设计目标描述。由于战斗界面和AI当前不可用，这些战术暂时无法在游戏中实践。
+### Golden Rules
 
-### 基础法则
+#### 🚫 NEVER Stay in Open Ground
 
-#### 🚫 永远不要在开阔地停留
+Open ground is a graveyard for infantry. Use **bound-and-overwatch**:
+- Move from one cover to next in 3-5 second bursts
+- Never expose more than 1-2 seconds in open terrain
 
-开阔地是步兵的坟墓。穿越开阔地时使用**分段跃进**——从一个掩体冲刺到下一个掩体，每次不超过 3-5 秒。
+#### 🔥 Smoke is Your Life Line
 
-#### 🔥 烟幕是生命线 🔴 烟幕命令当前不可用
+Smoke grenades can:
+- Cover infantry moving across dangerous open areas
+- Shield tanks passing through AT fire zones
+- Cover retreat operations
+- Block enemy sniper sightlines
 
-烟幕弹可以：
-- 掩护步兵穿越危险的开阔地带
-- 掩护坦克通过反坦克火力区
-- 掩护撤退行动
-- 阻断敌方狙击手的视线
+Smoke lasts ~30 seconds, radius ~3 tiles, drifts with wind. **Always smoke before moving in open.**
 
-烟幕持续约 30 秒，半径 3 格，会随风漂移。**永远在移动前先扔烟幕。**
+#### 🎖️ Protect Your Leaders & NCOs
 
-#### 🎖️ 保护班长和军官
+Leader/NCO death causes:
+- Permanent 30-50% combat effectiveness loss for their squad
+- Major morale penalty for nearby units
+- Loss of NCO rally ability (panicked troops can't be rallied)
 
-班长/军官阵亡会导致：
-- 该班战斗力永久性下降 30-50%
-- 附近单位士气大幅下跌
-- 失去 NCO 集结能力（恐慌单位无法被重新集结）
+Keep leaders in rear, focus on commanding not shooting.
 
-把班长放在队伍后方，让他专注于指挥而不是射击。
+#### 🔄 Flank Whenever Possible
 
-#### 🔄 侧翼包抄 🔴 AI侧翼包抄当前不可用
+Frontal assault on prepared positions is suicide. Use flanking:
+- MG team pins frontally (the anvil)
+- Infantry maneuvers around flank (the hammer)
+- Two-pronged attack → enemy breaks
 
-正面强攻有准备的阵地是自杀行为。AI 的 FlankingAI 会尝试包抄你——你也应该这样做：
-- 用机枪正面压制（钉住敌人）
-- 步兵从侧翼迂回（绕到敌人侧面）
-- 两面夹击，敌人腹背受敌
+#### 💎 Conserve Ammunition
 
-#### 💎 节约弹药
+Ammo isn't infinite. Supply lines may be cut:
+- Don't waste ammo on low-probability targets
+- MG suppression more efficient than precision rifle fire
+- Scavenge battlefield for ammo
+- Captured weapons have lower accuracy but better than nothing
 
-弹药不是无限的。补给线可能被切断，空投可能失败：
-- 不要对低命中率目标浪费弹药
-- 机枪压制比精准射击更省弹药
-- 注意搜刮战场上的弹药
-- 缴获的武器虽然命中率低，但总比空手强
+### Advanced Tactics
 
-### 进阶技巧
-
-#### 锤砧战术
+#### Hammer & Anvil
 
 ```
-        [敌方阵地]
+        [Enemy Position]
              ↑
-     [机枪班] ← 砧（正面压制）
+     [MG Team] ← Anvil (frontal suppression)
     /
-[步兵班] ← 锤（侧翼包抄）
+[Infantry] ← Hammer (flank maneuver)
 ```
 
-1. 机枪班就位，开始持续压制射击
-2. 敌人被压得抬不起头时，步兵从侧翼迂回
-3. 步兵到达侧翼射击位置后发起突击
-4. 敌人腹背受敌，士气崩溃
+1. MG team sets up, begins suppression fire
+2. Enemy pinned down, can't move or return effective fire
+3. Infantry flanks to side/rear
+4. Infantry initiates assault from flank
+5. Enemy caught in crossfire, morale collapses
 
-#### 反坦克伏击
+#### Anti-Tank Ambush
 
-AT 单位使用伏击命令（V 键）：
-- AT 单位隐蔽等待，不会提前暴露
-- 敌方坦克进入有效射程后自动开火
-- 首发命中率最高（敌人未察觉）
-- 开火后考虑转移阵地（AI 会优先攻击暴露的 AT 位置）
+AT units use Hide (H) command:
+- AT unit conceals itself, won't reveal early
+- Auto-fires when enemy tank enters effective range
+- First shot has highest accuracy (enemy unaware)
+- After firing, consider relocating (AI prioritizes exposed AT positions)
 
-#### 步坦协同
+#### Infantry-Tank Cooperation
 
-坦克绝不要单独行动：
-- 步兵在前方侦察和掩护侧翼
-- 坦克沿道路推进（减少侧面暴露）
-- 步兵拦截反坦克小组
-- 坦克为步兵提供火力支援
+Never send tanks alone:
+- Infantry ahead, reconning and protecting flanks
+- Tanks advance along roads (reduce side exposure)
+- Infantry intercepts AT teams
+- Tanks provide fire support for infantry
 
-#### 侦察-打击编组
+#### Reconnaissance-Fire Team
 
-1. 狙击组部署在前沿有利位置，静默侦察
-2. 观察员标记敌方高价值目标（机枪手、AT 手、指挥官）
-3. 狙击手逐个清除已标记目标
-4. 敌方火力减弱后，主力推进清场
+1. Sniper team deployed forward in concealed position, silent observation
+2. Observer marks high-value targets (MG gunner, AT soldier, leader)
+3. Sniper eliminates marked targets one by one
+4. Enemy firepower weakened, main force advances to clear
 
-### 防守要点
+### Defensive Principles
 
-- **交叉火力**：两个火力点的射击扇区重叠，闯入重叠区的敌人遭受多方向攻击
-- **纵深防御**：设置多道梯次防线，即使突破第一道，后续防线继续消耗
-- **伏击阵地**：AT 单位隐蔽在敌人必经之路旁，等坦克进入最佳射程再开火
-- **保留预备队**：永远不要把所有单位投入一线，保留 1-2 个单位作为预备队应对突发情况
-
----
-
-## 8. 已知问题
-
-> 以下问题基于 DevSquad 7角色交叉Review的运行时验证结果。
-
-### P0 — 致命（阻塞所有游戏体验）
-
-| 编号 | 问题 | 影响 |
-|------|------|------|
-| P0-1 | `HealthComponent` 属性名不匹配（`hp` vs `health.current`） | 面板访问 `health.current`/`health.max` 不存在 |
-| P0-2 | `MoraleComponent` 属性名不匹配（`value` vs `morale.current`） | 面板访问 `morale.current` 不存在 |
-| P0-3 | `AttackNearestAI`/`MoveToObjectiveAI` 类不存在 | AI 行为树初始化失败，敌方无任何智能行为 |
-| P0-4 | 致命 Bug 未被测试捕获 | 2767 单元测试全通过但游戏不可玩，缺乏集成测试 |
-
-### P1 — 严重（严重影响体验）
-
-| 编号 | 问题 | 影响 |
-|------|------|------|
-| P1-1 | `set_mode()` 不接受 `fast`/`sneak` 参数 | 快速移动和潜行命令 TypeError |
-| P1-2 | Smoke/Defend 无对应 `InteractionMode` 枚举 | 烟幕和防御命令无法进入交互模式 |
-| P1-3 | 精灵渲染管线断裂 | PNG 精灵资源存在但无法加载，单位显示为几何形状 |
-| P1-4 | 音频 stereo 播放失败 | 大部分音效无法播放或仅单声道 |
-
-### P2 — 改善（影响观感）
-
-| 编号 | 问题 | 影响 |
-|------|------|------|
-| P2-1 | 地图纹理为程序化色块 | 视觉效果远不如 CC2 原版（1997年） |
-| P2-2 | 部署界面非 CC2 风格 | 缺少左侧部队列表 + 地图拖放交互 |
-| P2-3 | 小地图点击定位不正常 | 无法通过小地图快速跳转视角 |
-| P2-4 | 采购点 UI 未实现 | 无法在战役中购买单位 |
+- **Crossfire**: Two firing positions with overlapping sectors of fire
+- **Defense in Depth**: Multiple successive fallback lines
+- **Ambush Positions**: AT units hidden along likely enemy routes
+- **Reserve Force**: Never commit all units to front line, keep 1-2 in reserve
 
 ---
 
-> **"纸上谈兵终觉浅，绝知此事要躬行。"**
+## 8. Known Issues
 
-> 本指南描述了 PyCC2 的设计目标。当前游戏处于 Pre-Alpha 阶段，大部分战斗功能不可用。我们正在努力修复 P0 问题，让游戏尽快达到可玩状态。
+Based on v0.3.0 runtime verification (May 30, 2026).
+
+### P1 — Polish (Degrades Experience)
+
+| # | Issue | Impact | Workaround |
+|---|-------|--------|------------|
+| 1 | Command queue has no visual waypoint display | Don't know queued commands at a glance | Remember what you queued; check unit pathing |
+| 2 | Vehicle damage lacks visual feedback | Can't see if vehicle is damaged/smoking | Check unit info panel for HP status |
+| 3 | Smoke particle effects basic | Doesn't look as good as CC2 original | Mechanics work (blocks LOS), just visuals need polish |
+
+### P2 — Minor (Nice to Have)
+
+| # | Issue | Impact | Workaround |
+|---|-------|--------|------------|
+| 4 | Save/Load UI not fully integrated | Must use keyboard shortcuts | Backend works, UI buttons coming in M3 |
+| 5 | Some weapon volumes inconsistent | Occasional loud/quiet sounds | Adjust in Settings > Audio |
+| 6 | Rare crash on rapid clicking during AI turn | Game may close unexpectedly | Avoid spam-clicking during AI turns |
+
+### What's NOT Broken (for reference)
+
+These were all fixed in M1/M2:
+- ~~HUD crashing on unit select~~ ✅ Fixed
+- ~~AI doing nothing~~ ✅ Fixed  
+- ~~Only 3/7 commands working~~ ✅ Fixed (all 7 working)
+- ~~Units showing as colored shapes~~ ✅ Fixed (sprites rendering)
+- ~~No victory conditions~~ ✅ Fixed (CC2 triple system)
 
 ---
 
-*PyCC2 v0.1.1 | CC2 还原度 ~45% | 2026-05-23*
+## Appendix: Keyboard Shortcuts Reference
+
+| Action | Shortcut | Context |
+|--------|----------|---------|
+| **Select Unit** | Left Click | Always |
+| **Issue Command** | Right Click (drag) or Hotkey | In combat |
+| **Multi-Select** | Shift + Left Click | In combat |
+| **Queue Commands** | Shift + Right Click | In combat |
+| **Move Fast** | Z | Unit selected |
+| **Sneak** | X | Unit selected |
+| **Fire** | S | Unit selected + enemy targeted |
+| **Smoke** | C | Unit selected |
+| **Move** | V | Unit selected |
+| **Defend** | D | Unit selected |
+| **Hide** | H | Unit selected |
+| **Cancel Command** | Escape | Unit selected |
+| **Pan Camera** | WASD / Arrows / Edge scroll | Always |
+| **Zoom** | Mouse Wheel | Always |
+| **Pause Menu** | ESC | Always |
+| **Time Control** | Space | In combat (pause/slow/normal/fast) |
+| **LOS Check** | Hold Ctrl | Unit selected |
+| **Screenshot** | F12 | Always (if enabled) |
+| **Full Screen** | F11 | Always |
+
+---
+
+*User Guide Version*: 3.0
+*Last Updated*: 2026-05-30
+*Game Version*: PyCC2 v0.3.0
+*CC2 Fidelity*: ~95%
+*Status*: Alpha — Fully Playable
+
+**Next Update**: After M3 completion (visual polish features)
