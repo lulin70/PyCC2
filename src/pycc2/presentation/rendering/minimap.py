@@ -166,7 +166,7 @@ class Minimap:
                 draw.line(self._surface, color, (dot_x, dot_y), (end_x, end_y), 1)
 
             # Draw selection highlight ring for selected unit
-            if self._selected_unit_id and unit.unit_id == self._selected_unit_id:
+            if self._selected_unit_id and unit.id == self._selected_unit_id:  # FIX: unit.unit_id → unit.id
                 highlight_radius = dot_radius + 2
                 draw.circle(self._surface, self.spec.selection_color, (dot_x, dot_y), highlight_radius, 1)
 
