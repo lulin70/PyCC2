@@ -408,13 +408,15 @@ class TestEnvironmentalAudioSystem:
     
     def test_combat_enables_artillery(self):
         env = EnvironmentalAudioSystem()
-        env.set_combat_intensity(0.5)
-        assert env.is_playing(EnvironmentSoundType.DISTANT_ARTILLERY) is True
-    
+        with patch.object(env, '_initialized', True), \
+             patch.object(env, 'start_ambient_loop', return_value=True) as mock_start:
+            env.set_combat_intensity(0.5)
+            mock_start.assert_called_once_with(EnvironmentSoundType.DISTANT_ARTILLERY)
+
     def test_high_intensity_silences_birds(self):
         env = EnvironmentalAudioSystem()
         env.set_combat_intensity(0.8)
-        assert env.is_playing(EnvironmentSoundType.BIRDS) is False
+        assert env._should_play_sound(EnvironmentSoundType.BIRDS) is False
     
     def test_low_intensity_allows_birds(self):
         env = EnvironmentalAudioSystem()

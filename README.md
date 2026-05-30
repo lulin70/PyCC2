@@ -6,7 +6,7 @@
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
 <img src="https://img.shields.io/badge/Tests-3372%20passed-brightgreen.svg" alt="Tests" />
-<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC95%25-brightgreen.svg" alt="CC2 Fidelity" />
+<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC90%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Alpha-yellow.svg" alt="Status" />
 </p>
 
@@ -50,7 +50,7 @@
 | **AI Behaviors** | 6 tactical AI types (flanking, suppression, VP, etc.) |
 | **Code Files** | 200+ Python modules |
 | **Class Definitions** | 286 classes |
-| **CC2 Fidelity** | ~95% (target: ≥90%) ✅ |
+| **CC2 Fidelity** | ~90% (Visual: 88%, Mechanics: 92%) ⚠️ | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for details |
 
 ---
 
@@ -318,7 +318,7 @@ pytest tests/e2e/test_e2e_full_coverage.py -v
 | **Bridge Destruction** | Engineer demos | Engineers destroy bridges | ✅ Complete |
 | **Audio** | Full soundscape | Weapons, ambient, music | 🟡 ~85% |
 
-**Overall Fidelity: ~95%** (Target: ≥90%) ✅
+**Overall Fidelity: ~90%** (Visual: 88%, Mechanics: 92%) ⚠️ See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for TOP5 visual gaps (UI panel/VP style/craters/explosions/color tone)
 
 ---
 
@@ -353,7 +353,7 @@ pytest tests/e2e/test_e2e_full_coverage.py -v
 
 **Target: v1.0**
 - [x] Full gameplay loop working end-to-end
-- [x] ≥90% CC2 fidelity (currently ~95%)
+- [x] ≥90% CC2 fidelity (currently ~90%, visual 88% / mechanics 92%)
 - [x] Complete AI tactical behaviors
 - [x] Sound effects and music
 - [x] CC2-authentic victory conditions
@@ -432,4 +432,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-*Last updated: 2026-05-30 | Version: v0.3.0 | CC2 Fidelity: ~95% | Tests: 3372 passing | Status: Alpha — Fully Playable*
+<p align="center"><sub>Generated on 2026-05-30 | v0.3.0 (7-dimension review, honest assessment edition) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
