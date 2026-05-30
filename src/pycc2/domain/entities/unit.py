@@ -105,6 +105,10 @@ class Unit:
     # Popup tracking (used by game_loop._process_combat_popups)
     _prev_morale_state: object = field(init=False, default=None)
     _kia_popup_shown: bool = field(init=False, default=False)
+
+    # P1-7 Fix: Smoke grenade capability
+    has_smoke_grenades: bool = False  # Set True for units with smoke capability
+    smoke_grenade_count: int = 0     # Remaining smoke grenades (0=unlimited in CC2)
     _ammo_popup_shown: bool = field(init=False, default=False)
     
     @property
@@ -332,6 +336,16 @@ class Unit:
         # R6: Initialize fuel for vehicle units
         if self.fuel < 0 and self.unit_type == UnitType.TANK:
             self.fuel = self.max_fuel
+
+        # P1-7 Fix: Initialize smoke grenade capability based on unit type
+        self.has_smoke_grenades = self.unit_type in (
+            UnitType.INFANTRY_SQUAD,
+            UnitType.MACHINE_GUN_SQUAD,
+            UnitType.COMMANDER,
+            UnitType.SNIPER_TEAM,
+        )
+        # CC2: Most units have unlimited smoke (0 = infinite)
+        self.smoke_grenade_count = 0 if self.has_smoke_grenades else -1
 
     @property
     def squad_size(self) -> int:

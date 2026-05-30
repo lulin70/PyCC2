@@ -47,6 +47,8 @@ class RenderPipeline:
         show_post_battle: bool = False,
         game_result: object | None = None,
         battle_stats: object | None = None,
+        weather=None,  # P0-3 Fix: WeatherCondition or None (default=CLEAR)
+        time_of_day=None,  # P0-3 Fix: TimeOfDay or None (default=DAY)
     ) -> None:
         self.renderer.render(
             game_map,
@@ -57,15 +59,18 @@ class RenderPipeline:
             debug_mode=debug_mode,
         )
 
-        # Render weather effects (before HUD)
+        # Render weather effects (before HUD) - P0-3 Fix: Use injected values or defaults
         if self.weather_renderer is not None:
             from pycc2.domain.systems.environment import WeatherCondition, TimeOfDay
             screen = self.window_manager.get_screen()
             cam_x, cam_y = int(camera.x), int(camera.y)
+            # Use provided values or fallback to defaults (backward compatible)
+            actual_weather = weather if weather is not None else WeatherCondition.CLEAR
+            actual_time = time_of_day if time_of_day is not None else TimeOfDay.DAY
             self.weather_renderer.render(
                 screen,
-                weather=WeatherCondition.CLEAR,  # TODO: get from game state
-                time_of_day=TimeOfDay.DAY,       # TODO: get from game state
+                weather=actual_weather,
+                time_of_day=actual_time,
                 camera_offset_x=cam_x,
                 camera_offset_y=cam_y,
             )

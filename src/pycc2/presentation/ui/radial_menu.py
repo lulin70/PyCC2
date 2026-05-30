@@ -64,7 +64,8 @@ class RadialMenu:
         self._hovered_command = None
         self._available_commands = available_commands or list(COMMAND_ORDER)
         if self._font is None:
-            self._font = pygame.font.SysFont("arial", 11, bold=True)
+            from pycc2.presentation.ui.font_helper import safe_init_font
+            self._font = safe_init_font(11, bold=True)
 
     def hide(self) -> None:
         """Hide the radial menu."""

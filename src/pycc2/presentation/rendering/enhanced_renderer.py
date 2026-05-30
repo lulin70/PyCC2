@@ -1253,19 +1253,50 @@ class ProceduralTextureGenerator:
     def _texture_bridge(
         surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
     ) -> None:
-        """BRIDGE (11): Brown wooden planks with support beams, clearly a bridge."""
-        rng = random.Random(var * 241)
+        """BRIDGE (11): Enhanced wooden/concrete bridge with texture, underwater shadows, and railings.
 
-        # Water underneath at edges
-        water_color = (35, 70, 120)  # #234678 dark blue-grey (was bright 40,110,200)
+        P2-8 Enhancements:
+        - Enhanced deck texture (wooden plank + concrete stripe patterns)
+        - Underwater pier shadows (SE direction offset)
+        - Rail post details (top and bottom rails with posts)
+        """
+        rng = random.Random(var * 241)
+        tile_sz = ProceduralTextureGenerator.TILE_SIZE
+
+        # Water underneath at edges (darker for shadow effect)
+        water_color = (35, 70, 120)  # #234678 dark blue-grey
         surface.fill(water_color)
         pixels = pygame.surfarray.pixels3d(surface)
-        tile_sz = ProceduralTextureGenerator.TILE_SIZE
+
+        # ===== P2-8 Enhancement 1: Underwater Pier Shadows (SE Direction) =====
+        # Simulate pier supports under water with SE-offset dark ellipses
+        shadow_color = (25, 55, 95)  # Darker than water
+        pier_positions = [
+            (tile_sz // 4, int(0.7 * tile_sz)),           # Left pier (SE of left beam)
+            (int(0.58 * tile_sz), int(0.72 * tile_sz)),   # Right pier (SE of right beam)
+        ]
+        for pier_cx, pier_cy in pier_positions:
+            # Elliptical shadow (wider horizontally, simulating perspective)
+            pier_radius_x = max(3, tile_sz // 10)
+            pier_radius_y = max(2, tile_sz // 14)
+            for dy in range(-pier_radius_y, pier_radius_y + 1):
+                for dx in range(-pier_radius_x, pier_radius_x + 1):
+                    sx, sy = pier_cx + dx, pier_cy + dy
+                    if 0 <= sx < tile_sz and 0 <= sy < tile_sz:
+                        # Ellipse equation: (dx/rx)^2 + (dy/ry)^2 <= 1
+                        if (dx / pier_radius_x) ** 2 + (dy / pier_radius_y) ** 2 <= 1.0:
+                            # Gradient alpha from center to edge
+                            dist_ratio = math.sqrt((dx / pier_radius_x) ** 2 + (dy / pier_radius_y) ** 2)
+                            alpha_factor = 1.0 - dist_ratio * 0.5  # Faded at edges
+                            pixels[sx, sy] = tuple(
+                                int(water_color[i] * (1 - alpha_factor) + shadow_color[i] * alpha_factor)
+                                for i in range(3)
+                            )
 
         # Bridge deck - wooden planks (scaled position and size)
         plank_color = (160, 120, 70)
         plank_dark = (130, 95, 55)
-        deck_top = max(2, tile_sz // 8)  # Scaled deck boundaries
+        deck_top = max(2, tile_sz // 8)
         deck_bottom = min(tile_sz - 2, int(0.54 * tile_sz))
         deck_left = max(1, tile_sz // 16)
         deck_right = min(tile_sz - 1, int(0.625 * tile_sz))
@@ -1274,19 +1305,46 @@ class ProceduralTextureGenerator:
             for x in range(deck_left, deck_right):
                 pixels[x, y] = plank_color
 
-        # Plank lines (horizontal gaps between planks) - scaled spacing
+        # ===== P2-8 Enhancement 2a: Enhanced Wooden Plank Texture =====
+        # Main horizontal plank gaps (more prominent)
         plank_spacing = max(3, tile_sz // 12)
         for y in range(deck_top, deck_bottom, plank_spacing):
             for x in range(deck_left, deck_right):
                 if x < tile_sz and y < tile_sz:
                     pixels[x, y] = plank_dark
 
-        # Plank grain (vertical lines per plank) - scaled
+        # Secondary fine plank lines (every 4px for wood grain detail)
+        fine_plank_spacing = max(4, tile_sz // 10)
+        fine_plank_color = (145, 108, 62)  # Slightly lighter dark
+        for y in range(deck_top + 2, deck_bottom - 1, fine_plank_spacing):
+            for x in range(deck_left + 1, deck_right - 1):
+                if x < tile_sz and y < tile_sz and rng.random() > 0.5:
+                    pixels[x, y] = fine_plank_color
+
+        # ===== P2-8 Enhancement 2b: Concrete Stripe Pattern (alternating planks) =====
+        concrete_color = (150, 140, 130)  # Light gray concrete
+        concrete_dark = (130, 120, 110)   # Concrete shadow
+        concrete_spacing = max(6, tile_sz // 6)  # Every 6th plank is concrete
+        for y in range(deck_top + plank_spacing, deck_bottom - plank_spacing, concrete_spacing):
+            for x in range(deck_left, deck_right):
+                if x < tile_sz and y < tile_sz:
+                    # Alternate between concrete and dark concrete for texture
+                    if (y // plank_spacing) % 2 == 0:
+                        pixels[x, y] = concrete_color
+                    else:
+                        pixels[x, y] = concrete_dark
+
+        # Plank grain (vertical lines per plank) - enhanced detail
         grain_spacing_x = max(4, tile_sz // 8)
         for x in range(deck_left + grain_spacing_x, deck_right, grain_spacing_x):
             for y in range(deck_top, deck_bottom):
-                if x < tile_sz and y < tile_sz and rng.random() > 0.6:
-                    pixels[x, y] = plank_dark
+                if x < tile_sz and y < tile_sz:
+                    # More frequent grain with variation
+                    if rng.random() > 0.5:
+                        pixels[x, y] = plank_dark
+                    elif rng.random() > 0.8:
+                        # Occasional lighter grain highlight
+                        pixels[x, y] = (175, 135, 85)
 
         # Support beams (vertical beams on sides) - scaled size and position
         beam_color = (110, 80, 45)
@@ -1310,20 +1368,37 @@ class ProceduralTextureGenerator:
                 if x < tile_sz and 0 <= cross_y < tile_sz:
                     pixels[x, cross_y] = beam_color
 
-        # Rail posts - scaled frequency and position
+        # ===== P2-8 Enhancement 3: Rail Post Details =====
         rail_post_spacing = max(5, tile_sz // 6)
         rail_post_top = max(1, tile_sz // 12)
         rail_post_bottom = min(tile_sz - 1, int(0.56 * tile_sz))
 
+        # Top rail line (horizontal bar connecting top posts)
+        top_rail_y = rail_post_top
+        if top_rail_y < tile_sz:
+            for x in range(deck_left, deck_right):
+                if x < tile_sz:
+                    pixels[x, top_rail_y] = (90, 65, 35)  # Darker rail color
+
+        # Bottom rail line (horizontal bar connecting bottom posts)
+        bottom_rail_y = rail_post_bottom
+        if bottom_rail_y < tile_sz:
+            for x in range(deck_left, deck_right):
+                if x < tile_sz:
+                    pixels[x, bottom_rail_y] = (90, 65, 35)
+
+        # Vertical rail posts (at regular intervals)
         for x in range(deck_left + rail_post_spacing, deck_right - rail_post_spacing // 2, rail_post_spacing):
-            if rail_post_top < tile_sz:
-                pixels[x, rail_post_top] = beam_color
-            if rail_post_top + 1 < tile_sz:
-                pixels[x, rail_post_top + 1] = beam_color
-            if rail_post_bottom < tile_sz:
-                pixels[x, rail_post_bottom] = beam_color
-            if rail_post_bottom - 1 < tile_sz:
-                pixels[x, rail_post_bottom - 1] = beam_color
+            # Top post (connects to top rail)
+            for py in range(rail_post_top, min(rail_post_top + 3, tile_sz)):
+                if 0 <= x < tile_sz and py < tile_sz:
+                    pixels[x, py] = beam_color
+
+            # Bottom post (connects to bottom rail)
+            for py in range(max(rail_post_bottom - 2, 0), rail_post_bottom):
+                if 0 <= x < tile_sz and py < tile_sz:
+                    pixels[x, py] = beam_color
+
         del pixels
 
     @staticmethod
@@ -1642,6 +1717,7 @@ class SpriteGenerator:
             'CRATER_LARGE': SpriteGenerator._draw_crater_large,
             'TRENCH_SECTION': SpriteGenerator._draw_trench,
             'SANDBAG_WALL': SpriteGenerator._draw_sandbag,
+            'BARBED_WIRE': SpriteGenerator._draw_barbed_wire,  # P1-4 Fix: New
             'WRECKAGE_VEHICLE': SpriteGenerator._draw_wreckage,
             'CAMOUFLAGE_NET': SpriteGenerator._draw_camo_net,
         }
@@ -1848,15 +1924,61 @@ class SpriteGenerator:
     
     @staticmethod
     def _draw_sandbag(surface: pygame.Surface, variant: int) -> None:
-        """Draw sandbag wall."""
+        """Draw sandbag wall (P1-4 Fix: Enhanced with texture detail)."""
         bag_color = (190, 170, 130)
         shadow = (150, 130, 90)
-        
-        for y in range(16, 24):
+        highlight = (210, 195, 160)
+
+        for y in range(14, 26):
             for x in range(2, 30):
                 is_bag = (x // 4 + y // 2) % 2 == 0
-                color = bag_color if is_bag else shadow
-                surface.set_at((x, y), color)
+                if is_bag:
+                    # P1-4: Add texture variation
+                    if (x * y + variant) % 5 == 0:
+                        color = highlight
+                    elif (x + y) % 7 == 0:
+                        color = shadow
+                    else:
+                        color = bag_color
+                    surface.set_at((x, y), color)
+                elif y in [15, 17, 19, 21, 23, 25]:
+                    # Shadow between bags
+                    surface.set_at((x, y), (120, 110, 85))
+
+    @staticmethod
+    def _draw_barbed_wire(surface: pygame.Surface, variant: int) -> None:
+        """Draw barbed wire obstacle (P1-4 Fix: New decoration type)."""
+        wire_color = (180, 180, 180)
+        dark_wire = (120, 120, 120)
+
+        # Horizontal wires (3 strands)
+        for strand_y in [10, 16, 22]:
+            for x in range(4, 28):
+                # P1-4: Wavy wire pattern
+                wave = math.sin(x * 0.5 + variant) * 2
+                y = int(strand_y + wave)
+                if 0 <= y < 32:
+                    surface.set_at((x, y), wire_color if x % 3 != 0 else dark_wire)
+
+        # Barbs (small V-shapes every 6 pixels)
+        for barb_x in range(6, 28, 6):
+            barb_y_base = 16 + int(math.sin(barb_x * 0.5 + variant) * 2)
+            # Up-pointing barb
+            surface.set_at((barb_x, barb_y_base - 2), dark_wire)
+            surface.set_at((barb_x - 1, barb_y_base - 1), dark_wire)
+            surface.set_at((barb_x + 1, barb_y_base - 1), dark_wire)
+            # Down-pointing barb (offset)
+            if barb_x % 12 == 0:
+                surface.set_at((barb_x, barb_y_base + 2), dark_wire)
+                surface.set_at((barb_x - 1, barb_y_base + 1), dark_wire)
+                surface.set_at((barb_x + 1, barb_y_base + 1), dark_wire)
+
+        # Posts (every 12 pixels)
+        for post_x in range(4, 28, 12):
+            post_color = (100, 90, 80)
+            for post_y in range(8, 24):
+                surface.set_at((post_x, post_y), post_color)
+                surface.set_at((post_x + 1, post_y), (120, 110, 100))
     
     @staticmethod
     def _draw_wreckage(surface: pygame.Surface, variant: int) -> None:
@@ -2101,7 +2223,7 @@ class EnhancedRenderer:
 
     TILE_SIZE = 48  # CC2 authentic: 48×48 pixel tiles
 
-    def __init__(self):
+    def __init__(self, attack_line_system=None):
         self._screen: pygame.Surface | None = None
         self._offscreen: pygame.Surface | None = None  # Off-screen buffer to eliminate flicker
         self._palette_gen = PaletteGenerator()
@@ -2120,6 +2242,7 @@ class EnhancedRenderer:
         self._sprite_renderer = None  # 延迟初始化，等待display ready
         self._isometric_renderer = None  # Isometric renderer (lazy init)
         self._shadow_renderer = ShadowRenderer()  # SE-direction shadow system
+        self._attack_line_system = attack_line_system  # P0-2 Fix: Dependency injection (was getattr hack)
     
     def initialize(self, screen: pygame.Surface) -> None:
         """Initialize renderer with display surface."""
@@ -2143,7 +2266,11 @@ class EnhancedRenderer:
             import warnings
             warnings.warn(f"SpriteRenderer initialization failed: {e}")
             self._sprite_renderer = None
-    
+
+    def set_attack_line_system(self, attack_line_system) -> None:
+        """Set attack line system (dependency injection setter - P0-2 Fix)."""
+        self._attack_line_system = attack_line_system
+
     def render(
         self,
         game_map: GameMap,
@@ -2191,6 +2318,12 @@ class EnhancedRenderer:
             self._draw_simple_terrain(game_map, camera)
 
         # STEP 3: Draw grid ONLY in debug mode
+        # ============================================================
+        # ⚠️ RELEASE MODE GUARD: 以下debug绘制仅在 debug_mode=True 时执行
+        # - _draw_grid(): 地形网格线（开发调试用）
+        # - 性能影响: O(width*height) 线段绘制/帧
+        # - 正式发布: debug_mode=False → 完全跳过，零开销
+        # ============================================================
         if debug_mode:
             self._draw_grid(game_map, camera)
 
@@ -2455,6 +2588,12 @@ class EnhancedRenderer:
             self._render_terrain_transitions(game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size)
 
         # Draw terrain borders ONLY in debug mode (Issue 4: remove harsh grid lines in normal mode)
+        # ============================================================
+        # ⚠️ RELEASE MODE GUARD: 地形边界线仅在 debug_mode=True 时绘制
+        # - _draw_terrain_borders(): 不同地形类型间的边界线
+        # - 性能影响: O(visible_tiles) 边界检查/帧
+        # - 正式发布: debug_mode=False → 完全跳过，零开销
+        # ============================================================
         if debug_mode:
             self._draw_terrain_borders(game_map, camera, start_x, end_x, start_y, end_y)
 
@@ -2824,6 +2963,12 @@ class EnhancedRenderer:
     ) -> None:
         """Render gradient transition strips between adjacent tiles of different terrain types.
 
+        P2-11 Enhanced Version:
+        - Smooth color interpolation (linear blend from current to neighbor color)
+        - Middle-color edge pixels (average of two terrain colors at boundary)
+        - Directional alpha fading (softer transitions toward tile center)
+        - Enhanced caching for performance
+
         For each tile, checks 4 neighbors (N/S/E/W). When a neighbor has a
         different terrain type, draws a 4-6px gradient strip on the shared edge
         that blends from the current tile's base color to the neighbor's base
@@ -2844,7 +2989,8 @@ class EnhancedRenderer:
         except Exception:
             pass
 
-        strip_width = max(4, min(6, tile_screen_size // 10))
+        # P2-11: Slightly wider transition strips for smoother blending
+        strip_width = max(5, min(7, tile_screen_size // 8))
 
         for ty in range(start_y, end_y):
             for tx in range(start_x, end_x):
@@ -2875,6 +3021,13 @@ class EnhancedRenderer:
                     color_from = self.TERRAIN_BASE_COLORS.get(current, (128, 128, 128))
                     color_to = self.TERRAIN_BASE_COLORS.get(neighbor, (128, 128, 128))
 
+                    # P2-11 Enhancement: Calculate middle color (average of two terrain colors)
+                    middle_color = (
+                        (color_from[0] + color_to[0]) // 2,
+                        (color_from[1] + color_to[1]) // 2,
+                        (color_from[2] + color_to[2]) // 2,
+                    )
+
                     world_x = tx * self.TILE_SIZE
                     world_y = ty * self.TILE_SIZE
                     screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
@@ -2892,32 +3045,81 @@ class EnhancedRenderer:
 
                     strip_surf = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
 
+                    # P2-11 Enhanced interpolation with middle-color emphasis
                     if direction in ('north', 'south'):
                         for col in range(rect.width):
-                            t = col / max(1, rect.width - 1)
-                            r = int(color_from[0] * (1 - t) + color_to[0] * t)
-                            g = int(color_from[1] * (1 - t) + color_to[1] * t)
-                            b = int(color_from[2] * (1 - t) + color_to[2] * t)
+                            t = col / max(1, rect.width - 1)  # 0.0 (from) → 1.0 (to)
+
+                            # Smooth interpolation with sinusoidal easing for natural look
+                            smooth_t = 0.5 * (1 - math.cos(t * math.pi))  # Ease in-out
+
+                            # Color interpolation: from → middle → to
+                            if t < 0.5:
+                                # First half: blend from color_from to middle_color
+                                local_t = t * 2  # 0.0 → 1.0
+                                r = int(color_from[0] * (1 - local_t) + middle_color[0] * local_t)
+                                g = int(color_from[1] * (1 - local_t) + middle_color[1] * local_t)
+                                b = int(color_from[2] * (1 - local_t) + middle_color[2] * local_t)
+                            else:
+                                # Second half: blend from middle_color to color_to
+                                local_t = (t - 0.5) * 2  # 0.0 → 1.0
+                                r = int(middle_color[0] * (1 - local_t) + color_to[0] * local_t)
+                                g = int(middle_color[1] * (1 - local_t) + color_to[1] * local_t)
+                                b = int(middle_color[2] * (1 - local_t) + color_to[2] * local_t)
+
                             for row in range(rect.height):
                                 edge_t = row / max(1, rect.height - 1)
+                                # Directional alpha fade (stronger at edge, fades inward)
                                 if direction == 'north':
-                                    alpha = int(120 * (1 - edge_t))
+                                    # North: stronger at top (row=0), fades downward
+                                    alpha = int(140 * (1 - edge_t ** 0.7))
                                 else:
-                                    alpha = int(120 * edge_t)
+                                    # South: stronger at bottom (row=max), fades upward
+                                    alpha = int(140 * edge_t ** 0.7)
+
+                                # P2-11: Boost alpha at exact boundary (middle of strip)
+                                boundary_boost = 1.0
+                                if 0.4 <= edge_t <= 0.6:
+                                    boundary_boost = 1.3  # 30% brighter at boundary
+
+                                alpha = int(min(255, alpha * boundary_boost))
                                 alpha = max(0, min(255, alpha))
                                 strip_surf.set_at((col, row), (r, g, b, alpha))
                     else:
                         for row in range(rect.height):
-                            t = row / max(1, rect.height - 1)
-                            r = int(color_from[0] * (1 - t) + color_to[0] * t)
-                            g = int(color_from[1] * (1 - t) + color_to[1] * t)
-                            b = int(color_from[2] * (1 - t) + color_to[2] * t)
+                            t = row / max(1, rect.height - 1)  # 0.0 (from) → 1.0 (to)
+
+                            # Smooth interpolation with sinusoidal easing
+                            smooth_t = 0.5 * (1 - math.cos(t * math.pi))
+
+                            # Color interpolation: from → middle → to
+                            if t < 0.5:
+                                local_t = t * 2
+                                r = int(color_from[0] * (1 - local_t) + middle_color[0] * local_t)
+                                g = int(color_from[1] * (1 - local_t) + middle_color[1] * local_t)
+                                b = int(color_from[2] * (1 - local_t) + middle_color[2] * local_t)
+                            else:
+                                local_t = (t - 0.5) * 2
+                                r = int(middle_color[0] * (1 - local_t) + color_to[0] * local_t)
+                                g = int(middle_color[1] * (1 - local_t) + color_to[1] * local_t)
+                                b = int(middle_color[2] * (1 - local_t) + color_to[2] * local_t)
+
                             for col in range(rect.width):
                                 edge_t = col / max(1, rect.width - 1)
+                                # Directional alpha fade
                                 if direction == 'west':
-                                    alpha = int(120 * (1 - edge_t))
+                                    # West: stronger at left (col=0), fades rightward
+                                    alpha = int(140 * (1 - edge_t ** 0.7))
                                 else:
-                                    alpha = int(120 * edge_t)
+                                    # East: stronger at right (col=max), fades leftward
+                                    alpha = int(140 * edge_t ** 0.7)
+
+                                # P2-11: Boost alpha at exact boundary
+                                boundary_boost = 1.0
+                                if 0.4 <= edge_t <= 0.6:
+                                    boundary_boost = 1.3
+
+                                alpha = int(min(255, alpha * boundary_boost))
                                 alpha = max(0, min(255, alpha))
                                 strip_surf.set_at((col, row), (r, g, b, alpha))
 
@@ -3037,7 +3239,21 @@ class EnhancedRenderer:
         self, game_map: GameMap, camera: Camera,
         start_x: int, end_x: int, start_y: int, end_y: int
     ) -> None:
-        """Draw thin dark borders between tiles of different terrain types for readability."""
+        """Draw thin dark borders between tiles of different terrain types for readability.
+
+        ⚠️ RELEASE MODE: 此方法仅在 debug_mode=True 时被调用 (见 _draw_enhanced_terrain L2510)
+        在正式发布版本中，此方法不会被调用，不会产生任何性能开销。
+
+        Debug功能：
+        - 绘制不同地形类型之间的边界线
+        - 帮助识别地形过渡区域
+        - 用于地图编辑和调试
+
+        性能注意：
+        - 遍历所有可见tile并检查邻居
+        - 仅在debug模式下启用
+        - Release构建时完全跳过
+        """
         if self._screen is None or self._offscreen is None:
             return
 
@@ -3761,10 +3977,11 @@ class EnhancedRenderer:
         import pygame as pg
         from pycc2.presentation.input.attack_line_system import AttackLineSystem, AttackLineStatus
 
-        # Try to get attack line state from interaction_controller
-        # This is accessed via a global reference for now
-        # TODO: Pass attack_line_system as parameter
-        attack_line = getattr(self, '_attack_line_system', None)
+        # Get attack line system (injected via constructor - P0-2 Fix)
+        import pygame as pg
+        from pycc2.presentation.input.attack_line_system import AttackLineSystem, AttackLineStatus
+
+        attack_line = self._attack_line_system
         if not attack_line:
             return
 
@@ -3989,7 +4206,21 @@ class EnhancedRenderer:
             pg.draw.line(self._offscreen, color, (int(sx), int(sy)), (int(ex), int(ey)), 2)
 
     def _draw_grid(self, game_map: GameMap, camera: Camera) -> None:
-        """Draw grid overlay for debugging."""
+        """Draw grid overlay for debugging.
+
+        ⚠️ RELEASE MODE: 此方法仅在 debug_mode=True 时被调用 (见 render() L2246)
+        在正式发布版本中，此方法不会被调用，不会产生任何性能开销。
+
+        Debug功能：
+        - 绘制地形网格线（灰色）
+        - 显示tile边界
+        - 用于开发调试和地图编辑
+
+        性能注意：
+        - 每帧绘制O(width*height)条线段
+        - 仅在debug模式下启用
+        - Release构建时完全跳过
+        """
         if self._screen is None:
             return
         

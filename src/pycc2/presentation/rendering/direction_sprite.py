@@ -319,20 +319,69 @@ class DirectionSpriteManager:
         unit_type: str,
         faction: str,
     ) -> None:
-        """Generate placeholder colored squares for missing sprites."""
-        size = (32, 32)
-        color = (0, 100, 200) if faction == "allies" else (200, 50, 50)
+        """Generate CC2-style simplified unit icons (P1-5 Fix: Enhanced from colored squares)."""
+        size = 32
+        surface = pygame.Surface((size, size), pygame.SRCALPHA)
+        surface.fill((0, 0, 0, 0))
 
-        base = pygame.Surface(size, pygame.SRCALPHA)
-        pygame.draw.rect(base, color, base.get_rect(), border_radius=4)
-        pygame.draw.rect(base, (255, 255, 255), base.get_rect(), width=2, border_radius=4)
+        # P1-5: CC2 authentic colors based on faction
+        if faction == "allies":
+            base_color = (95, 115, 75)   # Olive drab (Allies)
+            dark_color = (70, 85, 55)
+            light_color = (120, 140, 95)
+        else:
+            base_color = (85, 75, 65)    # Field grey (Axis)
+            dark_color = (65, 55, 48)
+            light_color = (105, 95, 82)
 
-        font = pygame.font.Font(None, 16)
-        label = font.render(unit_type[:3].upper(), True, (255, 255, 255))
-        label_rect = label.get_rect(center=(size[0] // 2, size[1] // 2))
-        base.blit(label, label_rect)
+        cx, cy = size // 2, size // 2
 
-        sprite_set.generate_procedural_variants(base)
+        # P1-5: Draw simplified unit shape based on type
+        if 'infantry' in unit_type or 'rifle' in unit_type or 'machine_gun' in unit_type:
+            # Soldier silhouette (top-down view - helmet circle + body)
+            pygame.draw.circle(surface, base_color, (cx, cy - 4), 6)
+            pygame.draw.circle(surface, dark_color, (cx, cy - 4), 6, 1)
+            # Body ellipse
+            pygame.draw.ellipse(surface, base_color, (cx - 5, cy, 10, 12))
+            pygame.draw.ellipse(surface, dark_color, (cx - 5, cy, 10, 12), 1)
+            # Rifle line
+            pygame.draw.line(surface, dark_color, (cx + 6, cy + 2), (cx + 11, cy - 2), 2)
+
+        elif 'vehicle' in unit_type or 'halftrack' in unit_type or 'jeep' in unit_type or 'tank' in unit_type:
+            # Vehicle rectangle with details
+            rect = pygame.Rect(cx - 10, cy - 6, 20, 14)
+            pygame.draw.rect(surface, base_color, rect, border_radius=3)
+            pygame.draw.rect(surface, dark_color, rect, width=1, border_radius=3)
+            # Turret/hatch
+            pygame.draw.circle(surface, dark_color, (cx, cy - 2), 4)
+            pygame.draw.circle(surface, light_color, (cx, cy - 2), 2)
+            # Tracks/wheels hint
+            pygame.draw.rect(surface, dark_color, (cx - 10, cy + 6, 20, 3))
+
+        elif 'mortar' in unit_type or 'artillery' in unit_type or 'at_gun' in unit_type:
+            # Gun barrel shape
+            pygame.draw.ellipse(surface, base_color, (cx - 6, cy - 2, 12, 10))
+            pygame.draw.line(surface, dark_color, (cx, cy - 2), (cx, cy - 10), 3)
+            # Base/tripod
+            pygame.draw.line(surface, dark_color, (cx - 4, cy + 6), (cx + 4, cy + 6), 2)
+
+        else:
+            # Generic unit marker (diamond shape)
+            points = [(cx, cy - 8), (cx + 8, cy), (cx, cy + 8), (cx - 8, cy)]
+            pygame.draw.polygon(surface, base_color, points)
+            pygame.draw.polygon(surface, dark_color, points, width=2)
+            # Center dot
+            pygame.draw.circle(surface, light_color, (cx, cy), 3)
+
+        # Direction indicator (small triangle showing facing)
+        dir_indicator = [
+            (cx, cy - 12),
+            (cx - 3, cy - 8),
+            (cx + 3, cy - 8),
+        ]
+        pygame.draw.polygon(surface, (255, 220, 50), dir_indicator)  # Yellow arrow
+
+        sprite_set.generate_procedural_variants(surface)
 
     def get_sprite_for_unit(
         self,

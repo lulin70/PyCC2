@@ -50,7 +50,8 @@ class CombatPopupManager:
                   color: tuple[int, int, int] = (255, 255, 100)) -> None:
         """Add a new combat popup."""
         if self._font is None:
-            self._font = pygame.font.SysFont("arial", 13, bold=True)
+            from pycc2.presentation.ui.font_helper import safe_init_font
+            self._font = safe_init_font(13, bold=True)
 
         self._popups.append(CombatPopup(text=text, x=world_x, y=world_y, color=color))
 

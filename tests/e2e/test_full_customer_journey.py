@@ -185,7 +185,6 @@ class TestFullCustomerJourney:
         ic.set_mode(InteractionMode.SELECT)
         assert ic.mode == InteractionMode.SELECT
 
-    @pytest.mark.xfail(reason="pygame.font requires non-dummy SDL driver; font module cannot initialize in headless test environment", strict=False)
     def test_06_radial_menu_works(self):
         """User can use the radial menu."""
         from pycc2.presentation.ui.radial_menu import RadialMenu, RadialCommand
@@ -282,7 +281,6 @@ class TestFullCustomerJourney:
         cm.set_cursor(CursorType.ATTACK)
         assert cm.current == CursorType.ATTACK
 
-    @pytest.mark.xfail(reason="pygame.font requires non-dummy SDL driver; font module cannot initialize in headless test environment", strict=False)
     def test_12_combat_popups_work(self):
         """User sees combat popup messages."""
         from pycc2.presentation.ui.combat_popup import CombatPopupManager

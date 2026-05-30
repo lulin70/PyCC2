@@ -1414,6 +1414,11 @@ class PixelArtist3D:
     ):
         """创建半履带车精灵 - 纯俯视角度 (TOP-DOWN VIEW!)
 
+        P2-10 Enhanced Version:
+        - Enhanced track texture lines (dark lines every 2px for tread detail)
+        - Prominent gun barrel (front MG mount with longer barrel)
+        - Body seam lines (panel gaps and armor plate seams)
+
         俯视特征:
         - 矩形车身
         - 后部履带 (更宽矩形)
@@ -1451,13 +1456,28 @@ class PixelArtist3D:
         body_y = tcy - body_h // 2
         pygame.draw.rect(temp, body_color, (body_x, body_y, body_w, body_h), border_radius=2)
 
+        # ===== P2-10 Enhancement 1: Track Texture Lines (every 2px) =====
         track_w = 20
         track_h = 12
         track_x = tcx - track_w // 2
         track_y = body_y + body_h - track_h
         pygame.draw.rect(temp, track_color, (track_x, track_y, track_w, track_h))
+
+        # Main track lines (every 2px - prominent tread pattern)
+        track_line_dark = (30, 35, 28)  # Darker than base track
         for ty in range(track_y, track_y + track_h, 2):
-            pygame.draw.line(temp, dark_color, (track_x, ty), (track_x + track_w, ty), 1)
+            pygame.draw.line(temp, track_line_dark, (track_x, ty), (track_x + track_w, ty), 1)
+
+        # Secondary fine track detail (every 4px for variation)
+        track_line_fine = (35, 40, 32)  # Slightly lighter dark
+        for ty in range(track_y + 1, track_y + track_h - 1, 4):
+            if ty < track_y + track_h:
+                pygame.draw.line(temp, track_line_fine, (track_x + 1, ty), (track_x + track_w - 1, ty), 1)
+
+        # Track edge highlights (side borders for 3D effect)
+        track_edge_light = (55, 60, 50)
+        pygame.draw.line(temp, track_edge_light, (track_x, track_y), (track_x, track_y + track_h), 1)
+        pygame.draw.line(temp, track_edge_light, (track_x + track_w - 1, track_y), (track_x + track_w - 1, track_y + track_h), 1)
 
         wheel_radius = 3
         wheel_y = body_y + 4
@@ -1466,13 +1486,60 @@ class PixelArtist3D:
         pygame.draw.circle(temp, wheel_color, (tcx + 5, wheel_y), wheel_radius)
         pygame.draw.circle(temp, dark_color, (tcx + 5, wheel_y), wheel_radius, 1)
 
+        # Wheel hub details (center dot for axle)
+        hub_color = (50, 50, 50)
+        pygame.draw.circle(temp, hub_color, (tcx - 5, wheel_y), 1)
+        pygame.draw.circle(temp, hub_color, (tcx + 5, wheel_y), 1)
+
         cargo_w = body_w - 4
         cargo_h = track_h - 2
         cargo_x = tcx - cargo_w // 2
         cargo_y = track_y + 1
         pygame.draw.rect(temp, cargo_color, (cargo_x, cargo_y, cargo_w, cargo_h), 1)
 
-        pygame.draw.circle(temp, (40, 40, 40), (tcx, body_y + 1), 1)
+        # Cargo area internal detail (cross-bracing lines)
+        cargo_brace = (70, 88, 36)
+        pygame.draw.line(temp, cargo_brace, (cargo_x + 2, cargo_y + 2), (cargo_x + cargo_w - 2, cargo_y + cargo_h - 2), 1)
+        pygame.draw.line(temp, cargo_brace, (cargo_x + cargo_w - 2, cargo_y + 2), (cargo_x + 2, cargo_y + cargo_h - 2), 1)
+
+        # ===== P2-10 Enhancement 2: Prominent Gun Barrel (Front MG Mount) =====
+        mg_mount_color = (45, 45, 45)
+        mg_barrel_color = (35, 35, 35)
+        mg_barrel_length = 6  # Longer barrel for prominence
+
+        # MG mount base (circular platform)
+        pygame.draw.circle(temp, mg_mount_color, (tcx, body_y + 1), 2)
+
+        # MG barrel (extending forward from mount)
+        barrel_start_y = body_y + 1
+        barrel_end_y = barrel_start_y - mg_barrel_length
+        pygame.draw.line(temp, mg_barrel_color, (tcx, barrel_start_y), (tcx, barrel_end_y), 2)
+
+        # Muzzle brake (barrel end detail)
+        muzzle_color = (25, 25, 25)
+        pygame.draw.circle(temp, muzzle_color, (tcx, barrel_end_y), 2)
+        pygame.draw.circle(temp, mg_barrel_color, (tcx, barrel_end_y), 2, 1)
+
+        # ===== P2-10 Enhancement 3: Body Seam Lines (Panel Gaps) =====
+        seam_color = tuple(max(0, c - 18) for c in dark_color)  # Darker seam
+
+        # Hood/engine compartment seam (front third of body)
+        hood_seam_y = body_y + body_h // 3
+        pygame.draw.line(temp, seam_color, (body_x + 1, hood_seam_y), (body_x + body_w - 1, hood_seam_y), 1)
+
+        # Center vertical seam (body panel division)
+        center_seam_x = tcx
+        pygame.draw.line(temp, seam_color, (center_seam_x, body_y + 2), (center_seam_x, body_y + body_h - track_h - 2), 1)
+
+        # Door seam lines (side access panels)
+        door_seam_offset = body_w // 4
+        pygame.draw.line(temp, seam_color, (body_x + door_seam_offset, hood_seam_y + 2), (body_x + door_seam_offset, body_y + body_h - track_h - 2), 1)
+        pygame.draw.line(temp, seam_color, (body_x + body_w - door_seam_offset, hood_seam_y + 2), (body_x + body_w - door_seam_offset, body_y + body_h - track_h - 2), 1)
+
+        # Fender line (above wheels)
+        fender_y = wheel_y + wheel_radius + 1
+        if fender_y < body_y + body_h:
+            pygame.draw.line(temp, dark_color, (body_x, fender_y), (body_x + body_w, fender_y), 1)
 
         pygame.draw.rect(temp, dark_color, (body_x, body_y, body_w, body_h), 1)
 
@@ -1528,6 +1595,11 @@ class PixelArtist3D:
     ):
         """创建吉普/侦察车精灵 - 纯俯视角度 (TOP-DOWN VIEW!)
 
+        P2-10 Enhanced Version:
+        - Body seam lines (hood, door, panel gaps)
+        - Enhanced windshield V-shape detail
+        - Wheel hub details
+
         俯视特征:
         - 小矩形车身
         - V型挡风玻璃线 (从上方可见为V形)
@@ -1559,8 +1631,14 @@ class PixelArtist3D:
         pygame.draw.rect(temp, body_color, (body_x, body_y, body_w, body_h), border_radius=1)
         pygame.draw.rect(temp, dark_color, (body_x, body_y, body_w, body_h), 1)
 
-        pygame.draw.line(temp, dark_color, (body_x + 2, body_y + 5), (tcx, body_y + 2), 1)
-        pygame.draw.line(temp, dark_color, (tcx, body_y + 2), (body_x + body_w - 2, body_y + 5), 1)
+        # Enhanced windshield V-shape (more prominent)
+        windshield_v_color = (60, 68, 35) if faction == Faction.ALLIES else (65, 70, 62)
+        pygame.draw.line(temp, windshield_v_color, (body_x + 2, body_y + 5), (tcx, body_y + 2), 1)
+        pygame.draw.line(temp, windshield_v_color, (tcx, body_y + 2), (body_x + body_w - 2, body_y + 5), 1)
+
+        # Windshield frame (slightly thicker V outline)
+        pygame.draw.line(temp, dark_color, (body_x + 3, body_y + 6), (tcx, body_y + 3), 1)
+        pygame.draw.line(temp, dark_color, (tcx, body_y + 3), (body_x + body_w - 3, body_y + 6), 1)
 
         wheel_color = (30, 30, 30)
         wheel_offset_x = body_w // 2 + 1
@@ -1570,7 +1648,42 @@ class PixelArtist3D:
             for wy_off in [wheel_offset_y_front, wheel_offset_y_rear]:
                 pygame.draw.circle(temp, wheel_color, (tcx + wx_off, body_y + wy_off), 2)
 
-        pygame.draw.circle(temp, (50, 50, 50), (tcx, body_y + 4), 1)
+                # ===== P2-10 Enhancement: Wheel Hub Details =====
+                hub_color = (50, 50, 50)
+                pygame.draw.circle(temp, hub_color, (tcx + wx_off, body_y + wy_off), 1)
+
+        # Steering wheel position (direction indicator)
+        steering_color = (55, 55, 55)
+        pygame.draw.circle(temp, steering_color, (tcx, body_y + 4), 1)
+
+        # ===== P2-10 Enhancement: Body Seam Lines =====
+        seam_color = tuple(max(0, c - 15) for c in dark_color)  # Darker seam lines
+
+        # Hood/bonnet seam (front third separation)
+        hood_seam_y = body_y + body_h // 3
+        pygame.draw.line(temp, seam_color, (body_x + 1, hood_seam_y), (body_x + body_w - 1, hood_seam_y), 1)
+
+        # Door seam line (vertical center division)
+        door_seam_x = tcx
+        pygame.draw.line(temp, seam_color, (door_seam_x, hood_seam_y + 2), (door_seam_x, body_y + body_h - 3), 1)
+
+        # Rear cargo bed seam (back quarter separation)
+        rear_seam_y = body_y + int(0.75 * body_h)
+        pygame.draw.line(temp, seam_color, (body_x + 1, rear_seam_y), (body_x + body_w - 1, rear_seam_y), 1)
+
+        # Side panel seams (door edges)
+        side_seam_offset = body_w // 4
+        pygame.draw.line(temp, seam_color, (body_x + side_seam_offset, hood_seam_y + 1), (body_x + side_seam_offset, rear_seam_y - 1), 1)
+        pygame.draw.line(temp, seam_color, (body_x + body_w - side_seam_offset, hood_seam_y + 1), (body_x + body_w - side_seam_offset, rear_seam_y - 1), 1)
+
+        # Fender line above front wheels
+        fender_y_front = body_y + wheel_offset_y_front + 3
+        if fender_y_front < body_y + body_h:
+            pygame.draw.line(temp, dark_color, (body_x, fender_y_front), (body_x + body_w, fender_y_front), 1)
+
+        # Tailgate seam (rear edge detail)
+        tailgate_y = body_y + body_h - 2
+        pygame.draw.line(temp, seam_color, (body_x + 2, tailgate_y), (body_x + body_w - 2, tailgate_y), 1)
 
         direction_angles = {
             Direction.NORTH: 0,

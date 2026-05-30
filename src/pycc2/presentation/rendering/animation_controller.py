@@ -28,10 +28,14 @@ class AnimationState(Enum):
 
 @dataclass(slots=True)
 class AnimationFrame:
-    """Single frame definition within an animation."""
+    """Single frame definition within an animation (P1-6 Enhanced)."""
     surface: pygame.Surface | None = None
     duration_ms: int = 100
     sprite_offset: tuple[int, int] = (0, 0)
+    # P1-6 Fix: New animation parameters for frame variation
+    alpha_modifier: float = 1.0       # Opacity multiplier (1.0=fully opaque)
+    scale_modifier: float = 1.0      # Size multiplier (1.0=normal size)
+    rotation_degrees: float = 0.0     # Rotation in degrees (for death animations)
 
 
 @dataclass
@@ -84,61 +88,95 @@ class AnimationController:
         self._initialize_default_animations()
 
     def _initialize_default_animations(self) -> None:
-        """Set up default placeholder animations for all states."""
-        placeholder_frame = AnimationFrame(duration_ms=self.DEFAULT_FRAME_DURATION_MS)
+        """Set up default animations with frame variation (P1-6 Fix: No longer static)."""
+        # P1-6: Create varied frames for each state (subtle position/alpha changes)
+        def make_frame(offset=(0, 0), alpha_mod=1.0, scale_mod=1.0):
+            return AnimationFrame(
+                duration_ms=self.DEFAULT_FRAME_DURATION_MS,
+                sprite_offset=offset,
+                alpha_modifier=alpha_mod,
+                scale_modifier=scale_mod
+            )
 
+        # IDLE: Slight breathing motion (2 frames)
         self._animations[AnimationState.IDLE] = AnimationDefinition(
             state=AnimationState.IDLE,
-            frames=[placeholder_frame, placeholder_frame],
+            frames=[make_frame((0, 0), 1.0), make_frame((0, -1), 0.95)],
             loop=True,
             interruptible=True,
         )
 
+        # MOVING: Walking/bouncing motion (4 frames)
         self._animations[AnimationState.MOVING] = AnimationDefinition(
             state=AnimationState.MOVING,
-            frames=[placeholder_frame] * 4,
+            frames=[
+                make_frame((0, 0), 1.0),
+                make_frame((1, -1), 0.98),
+                make_frame((0, -2), 0.96),
+                make_frame((-1, -1), 0.98),
+            ],
             loop=True,
             interruptible=True,
         )
 
+        # ATTACKING: Recoil animation (3 frames)
         self._animations[AnimationState.ATTACKING] = AnimationDefinition(
             state=AnimationState.ATTACKING,
-            frames=[placeholder_frame] * 3,
+            frames=[
+                make_frame((0, 0), 1.0),
+                make_frame((-2, 0), 0.9),   # Recoil back
+                make_frame((0, 0), 1.0),    # Return
+            ],
             loop=False,
             interruptible=False,
         )
 
+        # RELOADING: Subtle bob (2 frames)
         self._animations[AnimationState.RELOADING] = AnimationDefinition(
             state=AnimationState.RELOADING,
-            frames=[placeholder_frame] * 2,
+            frames=[
+                make_frame((0, 0), 0.95),
+                make_frame((0, -1), 0.90),
+            ],
             loop=False,
             interruptible=False,
         )
 
+        # DYING: Fall down animation (4 frames)
         self._animations[AnimationState.DYING] = AnimationDefinition(
             state=AnimationState.DYING,
-            frames=[placeholder_frame] * 4,
+            frames=[
+                make_frame((0, 0), 1.0),
+                make_frame((0, 2), 0.85),    # Start falling
+                make_frame((0, 5), 0.65),    # Falling more
+                make_frame((0, 8), 0.40),    # Almost flat
+            ],
             loop=False,
             interruptible=False,
         )
 
+        # DEAD: Static flat (1 frame)
         self._animations[AnimationState.DEAD] = AnimationDefinition(
             state=AnimationState.DEAD,
-            frames=[placeholder_frame],
+            frames=[make_frame((0, 8), 0.35)],  # Lying down, faded
             loop=False,
             interruptible=False,
         )
 
+        # SUPPRESSED: Trembling (2 frames)
         self._animations[AnimationState.SUPPRESSED] = AnimationDefinition(
             state=AnimationState.SUPPRESSED,
-            frames=[placeholder_frame] * 2,
+            frames=[
+                make_frame((0, 0), 0.88),
+                make_frame((1, 0), 0.85),
+            ],
             loop=True,
             interruptible=True,
         )
 
         self._animations[AnimationState.HIDDEN] = AnimationDefinition(
             state=AnimationState.HIDDEN,
-            frames=[placeholder_frame],
+            frames=[make_frame((0, 0), 0.5)],  # P1-6: Hidden = very faded
             loop=True,
             interruptible=True,
         )

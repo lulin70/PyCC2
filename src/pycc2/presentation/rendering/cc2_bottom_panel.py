@@ -962,6 +962,44 @@ class CC2BottomPanel:
         surface.blit(self._font_normal.render(smoke_text, True, (200, 200, 100)), (x + 8, line_y))
         line_y += line_height + 3
 
+        # AP/AT Resource Bars (Action Points / Attack Points) - CC2 style
+        ap_current = getattr(unit, 'action_points', getattr(unit, 'ap', 10))
+        ap_max = getattr(unit, 'max_action_points', getattr(unit, 'max_ap', 10))
+        at_current = getattr(unit, 'attack_points', getattr(unit, 'at', 5))
+        at_max = getattr(unit, 'max_attack_points', getattr(unit, 'max_at', 5))
+
+        # AP Bar (Green - movement resource)
+        ap_text = f"AP: {ap_current}/{ap_max}"
+        surface.blit(self._font_normal.render(ap_text, True, (100, 255, 150)), (x + 8, line_y))
+        draw.rect(surface, (40, 42, 48), Rect(x + 109, line_y + 1, bar_w + 2, 14))
+        draw.rect(surface, (60, 60, 60), Rect(x + 110, line_y + 2, bar_w, 12))
+        ap_ratio = ap_current / max(ap_max, 1)
+        # AP color: Green (full) -> Yellow (mid) -> Red (low)
+        if ap_ratio > 0.6:
+            ap_color = (80, 220, 80)
+        elif ap_ratio > 0.3:
+            ap_color = (220, 200, 50)
+        else:
+            ap_color = (220, 80, 80)
+        draw.rect(surface, ap_color, Rect(x + 110, line_y + 2, int(bar_w * ap_ratio), 12))
+        line_y += line_height + 3
+
+        # AT Bar (Orange - attack resource)
+        at_text = f"AT: {at_current}/{at_max}"
+        surface.blit(self._font_normal.render(at_text, True, (255, 180, 100)), (x + 8, line_y))
+        draw.rect(surface, (40, 42, 48), Rect(x + 109, line_y + 1, bar_w + 2, 14))
+        draw.rect(surface, (60, 60, 60), Rect(x + 110, line_y + 2, bar_w, 12))
+        at_ratio = at_current / max(at_max, 1)
+        # AT color: Orange (full) -> Yellow (mid) -> Red (low)
+        if at_ratio > 0.6:
+            at_color = (255, 180, 80)
+        elif at_ratio > 0.3:
+            at_color = (220, 180, 50)
+        else:
+            at_color = (220, 80, 80)
+        draw.rect(surface, at_color, Rect(x + 110, line_y + 2, int(bar_w * at_ratio), 12))
+        line_y += line_height + 3
+
         # Casualties
         squad_size = getattr(unit, 'squad_size', 10)
         casualties = getattr(unit, 'casualties', 0)
@@ -1321,6 +1359,10 @@ class CC2BottomPanel:
         draw.rect(surface, (30, 33, 38), Rect(x, minimap_y, size, minimap_size))
         draw.rect(surface, self.BORDER_COLOR, Rect(x, minimap_y, size, minimap_size), 1)
 
+        # Minimap title label
+        title = self._font_small.render("MAP", True, (150, 150, 150))
+        surface.blit(title, (x + 4, minimap_y + 2))
+
         # Render minimap if available
         if minimap:
             minimap.render(surface, x + 2, minimap_y + 2)
@@ -1503,7 +1545,6 @@ class CC2BottomPanel:
                 cmd_enabled = False
             # Smoke requires smoke ammunition
             elif cmd.get("needs_smoke_ammo") and selected_unit:
-                # TODO: Check if unit has smoke grenades
                 has_smoke = getattr(selected_unit, 'has_smoke_grenades', False)
                 if not has_smoke:
                     cmd_enabled = False

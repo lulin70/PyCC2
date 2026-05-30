@@ -141,9 +141,9 @@ class GameLoop:
         self._victory_manager = VictoryManager()
         self._victory_manager.initialize(self.event_bus, combat_director=self._combat_director)
 
-        # Pass attack_line_system to renderer for drawing
+        # Pass attack_line_system to renderer via DI setter (P0-2 Fix)
         if self.interaction_controller:
-            self.renderer._attack_line_system = self.interaction_controller.attack_line
+            self.renderer.set_attack_line_system(self.interaction_controller.attack_line)
 
         self.time_control = TimeControlUI()
 

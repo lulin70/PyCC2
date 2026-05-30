@@ -101,6 +101,11 @@ class SpriteRenderer:
             self.draw_surface.fill(bg_color)
 
         self._draw_terrain(game_map, camera)
+        # ============================================================
+        # ⚠️ RELEASE MODE GUARD: Debug网格线仅在 debug_mode=True 时绘制
+        # - _draw_debug_grid(): 调试网格（开发用）
+        # - 正式发布: debug_mode=False → 完全跳过
+        # ============================================================
         if debug_mode:
             self._draw_debug_grid(game_map, camera)
         self._draw_vl_flags(game_map, camera)
@@ -666,23 +671,58 @@ class SpriteRenderer:
             logging.debug(f"Turret overlay failed: {e}")
 
     def _draw_selection_ring(self, center: tuple[float, float], radius: int) -> None:
-        """CC2风格：选中单位成员轮廓 - 基于精灵轮廓的黄色描边"""
-        if self.draw_surface is None:
-            return
-        color = (255, 255, 0)
-        draw.circle(self.draw_surface, color, (int(center[0]), int(center[1])), radius + 3, 2)
+        """CC2风格：选中单位成员轮廓 - 基于时间脉动的黄色描边（P2-12优化）
 
-    def _draw_selection_outline(self, sprite: Surface, draw_pos: tuple[int, int]) -> None:
-        """CC2风格：在精灵周围绘制基于轮廓的黄色描边
-
-        实现方法：
-        1. 创建精灵的放大副本（每边扩展1px）
-        2. 将放大副本填充为黄色
-        3. 在其上绘制原始精灵
-        4. 结果：精灵轮廓周围出现1px黄色描边
+        使用sin函数控制alpha值在0.7-1.0之间周期性变化，
+        产生呼吸脉动效果，提升视觉反馈质量。
         """
         if self.draw_surface is None:
             return
+
+        # Pulsing alpha calculation using sin function (range: 0.7 - 1.0)
+        # Period: ~60 ticks (1 second at 60 FPS) for smooth breathing effect
+        pulse = math.sin(self._animation_tick * 0.105)  # 0.105 ≈ 2π/60
+        alpha = 0.85 + 0.15 * pulse  # Range: 0.7 - 1.0
+
+        base_color = (255, 255, 0)
+        color = (
+            int(base_color[0] * alpha),
+            int(base_color[1] * alpha),
+            int(base_color[2] * alpha)
+        )
+
+        # Draw pulsing selection ring
+        draw.circle(self.draw_surface, color, (int(center[0]), int(center[1])), radius + 3, 2)
+
+        # Optional: Add subtle outer glow ring (very faint, follows same pulse)
+        glow_alpha = int(40 + 30 * pulse)  # Range: 10 - 70
+        if glow_alpha > 10:
+            glow_surf = Surface((radius * 2 + 20, radius * 2 + 20), pygame.SRCALPHA)
+            glow_center = (radius + 10, radius + 10)
+            draw.circle(glow_surf, (255, 255, 0, glow_alpha), glow_center, radius + 6, 1)
+            self.draw_surface.blit(glow_surf,
+                                   (int(center[0]) - radius - 10, int(center[1]) - radius - 10))
+
+    def _draw_selection_outline(self, sprite: Surface, draw_pos: tuple[int, int]) -> None:
+        """CC2风格：在精灵周围绘制基于轮廓的黄色描边（P2-12优化：脉动效果）
+
+        实现方法：
+        1. 创建精灵的放大副本（每边扩展1px）
+        2. 将放大副本填充为脉动黄色
+        3. 在其上绘制原始精灵
+        4. 结果：精灵轮廓周围出现1px黄色描边（带呼吸脉动）
+
+        P2-12增强：
+        - 使用sin函数控制alpha值周期性变化（0.7-1.0）
+        - 脉动周期约60 ticks（1秒@60FPS）
+        - 提供平滑的视觉反馈
+        """
+        if self.draw_surface is None:
+            return
+
+        # Pulsing alpha calculation (same as _draw_selection_ring for consistency)
+        pulse = math.sin(self._animation_tick * 0.105)
+        base_alpha = int(170 + 55 * pulse)  # Range: 115 - 225 (centered around 170)
 
         w, h = sprite.get_size()
         outline_w = w + 2
@@ -700,7 +740,8 @@ class SpriteRenderer:
         mask_surface.blit(sprite, (1, 1))
 
         outline_only = Surface((outline_w, outline_h), pygame.SRCALPHA)
-        outline_only.fill((255, 255, 0, 200))
+        # Apply pulsing alpha to yellow color
+        outline_only.fill((255, 255, 0, base_alpha))
 
         pixel_array = pygame.surfarray.pixels_alpha(outline_surface)
         mask_array = pygame.surfarray.pixels_alpha(mask_surface)
