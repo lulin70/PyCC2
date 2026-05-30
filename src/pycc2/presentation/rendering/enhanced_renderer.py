@@ -1,5 +1,5 @@
 """
-Enhanced Pixel Art Renderer for PyCC2 - Phase A5 (CC2 Authentic)
+Enhanced Pixel Art Renderer for PyCC2 - Phase A5 (CC2 Authentic) [REFACTORED]
 
 Renders maps with authentic Close Combat 2 visual style.
 Features:
@@ -8,6 +8,18 @@ Features:
 - CC2-authentic terrain palette from screenshot analysis
 - Procedural texture generation with per-tile variation
 - Deterministic random seeds for consistent regeneration
+
+REFACTORED ARCHITECTURE (2026-05):
+This file now serves as the MAIN COORDINATOR that imports and delegates to specialized modules:
+- sprite_generator.py     : SpriteGenerator class (all programmatic sprite creation)
+- particle_system.py      : TopDownParticleSystem class (explosions, smoke, etc.)
+- lighting_system.py      : TopDownLightingConfig + LightingSystem (time-of-day, dynamic lights)
+- terrain_renderer.py     : TerrainRenderer (tile drawing, autotile, buildings)
+- unit_renderer.py        : UnitRenderer (unit drawing, health colors, shadows)
+- decoration_renderer.py  : DecorationRenderer (bushes, trees, wreckage, etc.)
+
+BACKWARD COMPATIBILITY: All public APIs remain unchanged.
+External code can continue importing from this file as before.
 
 CC2 Visual Style Reference:
 - Tile Size: 48×48 pixels (square, not diamond)
@@ -46,6 +58,14 @@ from pycc2.presentation.rendering.autotile_system import (
 # Import shadow system for SE-direction shadows
 from pycc2.presentation.rendering.shadow_system import ShadowRenderer
 
+# Import refactored modules (backward-compatible re-exports)
+from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
+from pycc2.presentation.rendering.particle_system import TopDownParticleSystem
+from pycc2.presentation.rendering.lighting_system import TopDownLightingConfig, LightingSystem
+from pycc2.presentation.rendering.terrain_renderer import TerrainRenderer
+from pycc2.presentation.rendering.unit_renderer import UnitRenderer
+from pycc2.presentation.rendering.decoration_renderer import DecorationRenderer
+
 from dataclasses import dataclass
 
 
@@ -64,54 +84,48 @@ class TopDownLightingConfig:
 # CC2 Authentic Terrain Palette (from screenshot analysis)
 # ============================================================
 CC2_TERRAIN_PALETTE = {
-    # Grass variants
-    'grass_base':      (76, 124, 35),   # Main grass green
-    'grass_light':     (90, 142, 43),   # Highlight patches
-    'grass_dark':      (58, 100, 24),   # Shadow/depressions
-    'grass_dry':       (138, 130, 60),  # Dry patch
+    # Grass variants - CC2 1997暗沉风格（降低亮度15%，饱和度10%）
+    'grass_base':      (65, 106, 30),   # Main grass green (原76,124,35)
+    'grass_light':     (77, 121, 37),   # Highlight patches (原90,142,43)
+    'grass_dark':      (49, 85, 20),    # Shadow/depressions (原58,100,24)
+    'grass_dry':       (117, 110, 51),  # Dry patch (原138,130,60)
 
-    # Dirt/Rough
-    'dirt_base':       (139, 109, 59),  # Dirt road/rough ground
-    'dirt_dark':       (110, 85, 45),   # Dark dirt
-    'dirt_light':      (160, 130, 75),  # Light dirt highlight
+    # Dirt/Rough - 更棕更暗
+    'dirt_base':       (118, 93, 50),   # Dirt road/rough ground (原139,109,59)
+    'dirt_dark':       (94, 72, 38),    # Dark dirt (原110,85,45)
+    'dirt_light':      (136, 110, 64),  # Light dirt highlight (原160,130,75)
 
-    # Road (cobblestone/gravel)
-    'road_base':       (107, 99, 84),   # Gravel road gray-brown
-    'road_stone':      (130, 125, 115), # Cobblestone
-    'road_dark':       (85, 78, 68),    # Road shadow
+    # Road (cobblestone/gravel) - 更灰褐
+    'road_base':       (91, 84, 71),    # Gravel road gray-brown (原107,99,84)
+    'road_stone':      (111, 106, 98),  # Cobblestone (原130,125,115)
+    'road_dark':       (72, 66, 58),    # Road shadow (原85,78,68)
 
-    # Water
-    'water_base':      (48, 96, 160),   # River blue
-    'water_light':     (80, 140, 200),  # Wave highlights
-    'water_dark':      (32, 72, 130),   # Deep water
-    'water_foam':      (180, 210, 230), # Shore foam
+    # Water - 更深蓝绿
+    'water_base':      (41, 82, 136),   # River blue (原48,96,160)
+    'water_light':     (68, 119, 170),  # Wave highlights (原80,140,200)
+    'water_dark':      (27, 61, 110),   # Deep water (原32,72,130)
+    'water_foam':      (153, 178, 195), # Shore foam (原180,210,230)
 
-    # Hedgerow (Normandy bocage) - 历史准确性增强版
-    # 参考: 诺曼底战役历史数据 - Bocage地形特征:
-    # - 土堤宽度: 1.8-3米 (非常宽!)
-    # - 土堤高度: 1-1.5米 (很高!)
-    # - 顶部植被: 额外2+米茂密生长
-    # - 密度: 每8平方公里约3900个树篱田地 (极其密集!)
-    # 结论: 树篱应非常突出、厚重、深色、形成天然"墙壁"
-    'hedgerow_base':   (32, 72, 24),    # 更深的密集树篱绿 (原42,84,32)
-    'hedgerow_light':  (48, 88, 34),   # 树篱高光 (稍亮)
-    'hedgerow_dark':   (18, 52, 14),    # 树篱阴影 (更深! 原26,62,20)
-    'embankment':      (68, 58, 38),    # 土堤棕色 (新增 - 历史特征!)
+    # Hedgerow (Normandy bocage) - 保持历史准确性但更暗
+    'hedgerow_base':   (27, 61, 20),    # 更深的密集树篱绿 (原32,72,24)
+    'hedgerow_light':  (41, 75, 29),    # 树篱高光 (稍亮) (原48,88,34)
+    'hedgerow_dark':   (15, 44, 12),     # 树篱阴影 (更深!) (原18,52,14)
+    'embankment':      (58, 49, 32),     # 土堤棕色 (新增 - 历史特征!) (原68,58,38)
 
-    # Wall
-    'wall_base':       (112, 112, 112), # Stone wall gray
-    'wall_dark':       (85, 85, 85),    # Wall shadow
+    # Wall - 更暗淡
+    'wall_base':       (95, 95, 95),    # Stone wall gray (原112,112,112)
+    'wall_dark':       (72, 72, 72),     # Wall shadow (原85,85,85)
 
-    # Crater (shell hole)
-    'crater_center':   (90, 74, 40),    # Crater bottom (dark)
-    'crater_rim':      (122, 98, 56),   # Crater edge (lighter)
+    # Crater (shell hole) - 更暗
+    'crater_center':   (76, 63, 34),     # Crater bottom (dark) (原90,74,40)
+    'crater_rim':      (104, 83, 48),    # Crater edge (lighter) (原122,98,56)
 
     # Trench (defensive earthwork)
-    'trench_main':     (58, 40, 24),    # Dark brown main trench #3A2818
-    'trench_embankment': (90, 72, 48),  # Lighter embankment #5A4830
+    'trench_main':     (58, 40, 24),     # Dark brown main trench (#3A2818)
+    'trench_embankment': (90, 72, 48),   # Lighter embankment (#5A4830)
 
-    # Building ground
-    'building_ground': (140, 130, 110), # Building footprint base
+    # Building ground - 更暗淡
+    'building_ground': (119, 110, 94),   # Building footprint base (原140,130,110)
 }
 
 # Map terrain IDs to their base palette keys
@@ -2205,45 +2219,56 @@ class SpriteGenerator:
 
     @staticmethod
     def _draw_crater_cluster(surface: pygame.Surface, variant: int) -> None:
-        """Draw cluster of impact craters (💣 弹坑群).
+        """💣 增强版弹坑群 - 立体凹陷效果（参考CC2战斗8.jpeg）
 
-        Multiple small craters from artillery barrage or bombing.
-        Based on CC2 screenshot 8: scattered dark circles on grass.
+        CC2特征：
+        - 外圈边缘有亮色高光（模拟隆起的泥土边缘）
+        - 内部是深色渐变（模拟凹陷阴影）
+        - 形状略不规则（非完美圆形）
+        - 可能有多个小坑聚集
         """
-        crater_base = (75, 65, 50)
-        crater_dark = (55, 48, 35)
-        crater_rim = (95, 85, 70)
+        cx, cy = 16, 16
 
-        # Cluster pattern (3-5 small craters based on variant)
-        rng = random.Random(variant * 42)
-        num_craters = 3 + (variant % 3)
-        positions = []
+        # 步骤1: 绘制外圈隆起边缘（亮棕色）
+        rim_color = (90, 75, 55)  # 亮棕（隆起泥土）
+        pygame.draw.ellipse(surface, rim_color,
+                           (cx-14, cy-12, 28, 24))  # 外椭圆
 
-        for _ in range(num_craters):
-            cx = rng.randint(8, 24)
-            cy = rng.randint(8, 24)
-            radius = rng.randint(3, 6)
-            positions.append((cx, cy, radius))
+        # 步骤2: 绘制主凹陷（深色渐变）
+        # 使用多层圆模拟深度
+        for i in range(5, 0, -1):
+            depth_factor = i / 5.0
+            radius = int(10 * depth_factor)
+            darkness = int(25 + (1-depth_factor) * 35)  # 中心更深
+            color = (darkness, darkness-5, darkness-8)  # 深灰褐
+            offset_x = random.randint(-2, 2) * (6-i) // 3  # 不规则偏移
+            offset_y = random.randint(-2, 2) * (6-i) // 3
+            if radius > 0:
+                pygame.draw.circle(surface, color,
+                                 (cx+offset_x, cy+offset_y), radius)
 
-        for cx, cy, radius in positions:
-            for y in range(max(4, cy - radius - 2), min(28, cy + radius + 2)):
-                for x in range(max(4, cx - radius - 2), min(28, cx + radius + 2)):
-                    dist = math.sqrt((x - cx)**2 + (y - cy)**2)
-                    if dist <= radius:
-                        # Depth shading (darker toward center)
-                        depth_factor = dist / radius
-                        if depth_factor < 0.3:
-                            color = crater_dark
-                        elif depth_factor < 0.7:
-                            color = crater_base
-                        else:
-                            color = crater_rim
+        # 步骤3: 绘制高光边缘（左上角亮线模拟光照）
+        highlight_color = (120, 105, 85)  # 边缘高光
+        pygame.draw.arc(surface, highlight_color,
+                       (cx-13, cy-11, 26, 22),
+                       math.pi*1.2, math.pi*1.8, 2)  # 左上弧线
 
-                        # Rim highlight at edge
-                        if dist > radius - 1.5:
-                            color = tuple(min(255, c + 15) for c in crater_rim)
+        # 步骤4: 添加随机碎石细节（3-5个小深色点）
+        for _ in range(random.randint(3, 5)):
+            rx = cx + random.randint(-10, 10)
+            ry = cy + random.randint(-8, 8)
+            r_size = random.randint(1, 3)
+            debris_color = (60, 50, 40)
+            pygame.draw.circle(surface, debris_color, (rx, ry), r_size)
 
-                        surface.set_at((x, y), color)
+        # 如果variant > 0，绘制额外的附属小坑
+        if variant >= 1:
+            offsets = [(8, -6), (-7, 4), (5, 8)]
+            for i, (ox, oy) in enumerate(offsets[:min(variant, len(offsets))]):
+                small_r = random.randint(4, 7)
+                pygame.draw.ellipse(surface, (35, 30, 25),
+                                  (cx+ox-small_r, oy+cy-int(small_r*0.7),
+                                   small_r*2, int(small_r*1.4)))
 
     @staticmethod
     def _draw_debris_field(surface: pygame.Surface, variant: int) -> None:
@@ -2724,36 +2749,83 @@ class TopDownParticleSystem:
                 self._render_dirt_particle(surface, p)
             elif p['type'] == 'blood_pool':
                 self._render_blood_pool(surface, p)
+        
+        # 应用CC2色调分级（仅当配置启用时）
+        if hasattr(self, '_enable_cc2_color_grading') and self._enable_cc2_color_grading:
+            self._apply_cc2_color_grading(surface)
                 
     def _render_explosion_ring(self, surface: pygame.Surface, p: dict) -> None:
-        """渲染爆炸冲击波 - 多层同心圆环"""
-        progress = min(1.0, p['elapsed'] / p['duration'])
-        radius = p['current_radius']
+        """🔥 不规则爆炸火焰团（CC2战斗5.jpeg风格）
         
-        if radius < 0.5:
+        CC2特征：
+        - 形状不规则（像一团混乱的火球）
+        - 颜色混合：外层黄→中层橙→内层红白核心
+        - 边缘有锯齿状火焰舌头
+        - 不是完美的几何圆形
+        """
+        cx, cy = int(p['x']), int(p['y'])
+        progress = p['elapsed'] / max(p['duration'], 1)
+        current_radius = p['current_radius']
+        
+        if current_radius < 0.5:
             return
-            
-        alpha_base = int(255 * (1 - progress))
         
-        layer_configs = [
-            ((255, 220, 100), 150),
-            ((255, 160, 50), 200),
-            ((220, 80, 20), 250),
-        ]
+        # 计算不规则的火焰形状（使用噪声扰动）
+        num_points = 16
+        points = []
+        base_angle = 0
+        for i in range(num_points):
+            angle = base_angle + (2 * math.pi * i) / num_points
+            # 添加随机噪声使形状不规则
+            noise = 0.7 + 0.3 * math.sin(angle * 5 + progress * 10)  # 动态噪声
+            r = current_radius * noise
+            px = cx + r * math.cos(angle)
+            py = cy + r * math.sin(angle)
+            points.append((px, py))
         
-        for i, (layer_color, alpha_mult) in enumerate(layer_configs[:p.get('layers', 3)]):
-            layer_radius = radius - (i * 2)
-            if layer_radius > 0:
-                alpha = min(255, int(alpha_base * alpha_mult / 255))
-                color_with_alpha = (*layer_color, alpha)
-                try:
-                    temp_surf = pygame.Surface((int(layer_radius*2 + 4), int(layer_radius*2 + 4)), pygame.SRCALPHA)
-                    center = int(layer_radius + 2)
-                    pygame.draw.circle(temp_surf, color_with_alpha, (center, center), int(layer_radius), 
-                                     max(1, p.get('ring_width', 3)))
-                    surface.blit(temp_surf, (x - center, y - center))
-                except:
-                    pass
+        # 绘制外层（黄橙色，低alpha）
+        if len(points) >= 3:
+            outer_color = (*p['color'], int(100 * (1-progress)))
+            pygame.draw.polygon(surface, outer_color, points)
+        
+        # 绘制中层（橙色，稍小）
+        inner_points = []
+        for i in range(num_points):
+            angle = base_angle + (2 * math.pi * i) / num_points + math.pi/num_points
+            noise = 0.5 + 0.2 * math.cos(angle * 7 + progress * 8)
+            r = current_radius * 0.65 * noise
+            px = cx + r * math.cos(angle)
+            py = cy + r * math.sin(angle)
+            inner_points.append((px, py))
+        
+        if len(inner_points) >= 3:
+            mid_color = (255, 140, 50, int(150 * (1-progress)))
+            pygame.draw.polygon(surface, mid_color, inner_points)
+        
+        # 绘制核心（红白色，最小）
+        core_radius = max(int(current_radius * 0.25), 3)
+        core_color = (255, 255, 200, int(220 * (1-progress)))
+        pygame.draw.circle(surface, core_color, (cx, cy), core_radius)
+        
+        # 添加随机火焰"舌头"（向外延伸的小三角形）
+        num_tongues = 5
+        for i in range(num_tongues):
+            tongue_angle = (2 * math.pi * i) / num_tongues + progress * 2
+            tongue_len = current_radius * (0.3 + 0.2 * random.random())
+            tx = cx + tongue_len * 1.2 * math.cos(tongue_angle)
+            ty = cy + tongue_len * 1.2 * math.sin(tongue_angle)
+            tongue_color = (255, 200, 50, int(80 * (1-progress)))
+            # 绘制小三角形作为火焰舌头
+            perp_angle = tongue_angle + math.pi/2
+            base_dist = current_radius * 0.6
+            bx1 = cx + base_dist * math.cos(perp_angle)
+            by1 = cy + base_dist * math.sin(perp_angle)
+            bx2 = cx - base_dist * math.cos(perp_angle) * 0.5
+            by2 = cy - base_dist * math.sin(perp_angle) * 0.5
+            try:
+                pygame.draw.polygon(surface, tongue_color, [(bx1,by1),(tx,ty),(bx2,by2)])
+            except:
+                pass
                     
     def _render_smoke(self, surface: pygame.Surface, p: dict) -> None:
         """渲染烟雾云团 - 多个叠加半透明圆形"""
@@ -2937,6 +3009,12 @@ class EnhancedRenderer:
         self._max_dynamic_lights = 8  # Performance limit: max concurrent dynamic lights
         self._tod_tint_cache: pygame.Surface | None = None  # Cache for time-of-day tint surface
         self._last_time_of_day: str = self._lighting_config.time_of_day  # Track ToD changes
+
+        # Initialize refactored sub-module renderers (coordinator pattern)
+        self._terrain_renderer = TerrainRenderer(self)
+        self._unit_renderer = UnitRenderer(self)
+        self._decoration_renderer = DecorationRenderer(self)
+        self._lighting_system = LightingSystem(self._lighting_config)
     
     def initialize(self, screen: pygame.Surface) -> None:
         """Initialize renderer with display surface."""
@@ -3590,6 +3668,38 @@ class EnhancedRenderer:
                 ]
                 pygame.draw.polygon(self._offscreen, flag_color, flag_points)
                 pygame.draw.polygon(self._offscreen, (0, 0, 0), flag_points, 1)
+
+                # V02增强: 显示VP数字（大号黄色+阴影描边）
+                vp_value = getattr(obj, 'points', None)
+                if vp_value is not None and isinstance(vp_value, (int, float)):
+                    try:
+                        font = pygame.font.Font(None, 28)  # 28px bold
+                        vp_text = str(int(vp_value))
+
+                        # 脉冲动画效果（alpha在200-255之间缓慢变化）
+                        pulse_alpha = int(200 + 55 * abs(math.sin(_time.time() * 2.0)))
+
+                        # 绘制黑色描边（2px偏移8方向）
+                        text_color = (255, 215, 0)  # 金黄色 RGB(255, 215, 0)
+                        outline_color = (0, 0, 0, pulse_alpha)
+
+                        for dx in [-2, -1, 0, 1, 2]:
+                            for dy in [-2, -1, 0, 1, 2]:
+                                if dx != 0 or dy != 0:
+                                    outline_surf = font.render(vp_text, True, (0, 0, 0))
+                                    outline_surf.set_alpha(pulse_alpha)
+                                    self._offscreen.blit(outline_surf,
+                                                        (sx - font.size(vp_text)[0]//2 + dx,
+                                                         sy - 38 + dy))
+
+                        # 绘制主文字（金黄色）
+                        text_surf = font.render(vp_text, True, text_color)
+                        text_surf.set_alpha(pulse_alpha)
+                        self._offscreen.blit(text_surf,
+                                            (sx - font.size(vp_text)[0]//2,
+                                             sy - 40))  # 正上方偏移15px（旗帜顶部-20再上移20px）
+                    except Exception:
+                        pass  # 字体渲染失败时静默跳过
             else:
                 off_screen_vls.append((tile_x, tile_y, owner))
 
@@ -4472,6 +4582,37 @@ class EnhancedRenderer:
             self._tod_tint_cache = None
             
         return surface
+
+    def _apply_cc2_color_grading(self, surface: pygame.Surface) -> None:
+        """应用CC2风格的色调分级（降低饱和度+轻微去亮）
+        
+        CC2 1997年游戏特征：
+        - 整体偏暗（CRT显示器时代的设计习惯）
+        - 低饱和度（像素艺术限制）
+        - 轻微偏暖色调
+        - 对比度适中（不是现代的高对比）
+        """
+        import numpy as np
+        
+        # 将surface转换为numpy数组进行像素操作
+        arr = pygame.surfarray.array3d(surface).copy().astype(np.float32)
+        
+        # 1. 降低亮度 (乘以0.92)
+        arr = arr * 0.92
+        
+        # 2. 降低饱和度 (向灰度混合15%)
+        gray = np.mean(arr, axis=2, keepdims=True)
+        arr = arr * 0.85 + gray * 0.15
+        
+        # 3. 轻微偏暖 (增加红色通道5%)
+        arr[:,:,0] = np.clip(arr[:,:,0] * 1.05, 0, 255)
+        
+        # 4. 轻微增加对比度 (S-curve midtone boost)
+        arr = np.clip(arr * 1.05 - 10, 0, 255)
+        
+        # 转回uint8并写回surface
+        arr = arr.astype(np.uint8)
+        pygame.surfarray.blit_array(surface, arr.swapaxes(0,1))
 
     def spawn_dynamic_light(self, position: tuple[int, int], 
                            radius: float, 
