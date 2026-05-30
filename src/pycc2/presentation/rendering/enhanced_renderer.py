@@ -46,6 +46,19 @@ from pycc2.presentation.rendering.autotile_system import (
 # Import shadow system for SE-direction shadows
 from pycc2.presentation.rendering.shadow_system import ShadowRenderer
 
+from dataclasses import dataclass
+
+
+@dataclass
+class TopDownLightingConfig:
+    """顶部视角光照配置 - 俯视/等距游戏专用"""
+    light_angle: float = -math.pi / 4  # 光源方向：左上45度（弧度）→ 阴影投射向右下
+    light_intensity: float = 1.0        # 全局亮度 (0.0-2.0)
+    ambient_light: float = 0.4          # 环境光比例 (0.0-1.0)
+    shadow_darkness: float = 0.6        # 阴影深度 (0.0-1.0)
+    time_of_day: str = "noon"           # dawn/noon/dusk/night
+    enable_dynamic_lights: bool = True   # 是否启用动态光源
+
 
 # ============================================================
 # CC2 Authentic Terrain Palette (from screenshot analysis)
@@ -2514,6 +2527,373 @@ class TerrainTileCache:
         return len(self._cache)
 
 
+class TopDownParticleSystem:
+    """顶部视角专用粒子特效系统
+    
+    所有粒子都是俯视角度的圆形/环形效果，
+    不是侧视角的球形/柱形粒子。
+    
+    CC2 Authentic Features:
+    - 爆炸: 黄色/橙色圆形扩散环 (不是3D火球)
+    - 烟雾: 圆形灰白色云团缓慢扩散+漂移
+    - 枪口焰: 白点闪烁 + 短光线
+    - 命中反馈: 目标位置红色闪现
+    - 泥土飞溅: 圆形放射状散射颗粒
+    - 血迹池: 持久性地面污渍
+    """
+    
+    def __init__(self, max_particles: int = 256):
+        self.particles: list[dict] = []
+        self.max_particles = max_particles
+        
+    def _add_particle(self, particle: dict) -> None:
+        """添加粒子，超出上限时移除最老的"""
+        if len(self.particles) >= self.max_particles:
+            self.particles.pop(0)
+        self.particles.append(particle)
+        
+    def spawn_explosion_ring(self, x, y, max_radius=40, duration_ms=500, 
+                             color=(255, 200, 50)):
+        """爆炸冲击波 - 圆形扩散环（不是球形爆炸！）
+        
+        CC2真实特征：黄色/橙色圆形扩散环，多层同心圆
+        """
+        self._add_particle({
+            'type': 'explosion_ring',
+            'x': x, 'y': y,
+            'current_radius': 2,
+            'max_radius': max_radius,
+            'duration': duration_ms,
+            'elapsed': 0,
+            'color': color,
+            'ring_width': 3,
+            'layers': 3,
+        })
+        
+    def spawn_smoke_cloud(self, x, y, max_radius=25, duration_ms=2000,
+                          color=(180, 180, 170)):
+        """烟雾云团 - 圆形灰白团块缓慢扩散+漂移
+        
+        CC2真实特征：圆形灰白色云团，边缘不规则湍流
+        """
+        turbulence = [(random.uniform(-5, 5), random.uniform(-5, 5)) 
+                      for _ in range(8)]
+        self._add_particle({
+            'type': 'smoke',
+            'x': x, 'y': y,
+            'current_radius': 3,
+            'max_radius': max_radius,
+            'duration': duration_ms,
+            'elapsed': 0,
+            'color': color,
+            'drift_x': random.uniform(-0.5, 0.5),
+            'drift_y': random.uniform(-0.5, 0.5),
+            'turbulence': turbulence,
+        })
+        
+    def spawn_muzzle_flash(self, x, y, direction, duration_ms=80):
+        """枪口焰 - 位置闪烁白点 + 短光线（沿射击方向）
+        
+        CC2真实特征：射击时单位位置出现小白点闪烁
+        """
+        self._add_particle({
+            'type': 'muzzle_flash',
+            'x': x, 'y': y,
+            'angle': direction,
+            'length': 12,
+            'duration': duration_ms,
+            'elapsed': 0,
+            'core_color': (255, 255, 240),
+            'outer_color': (255, 220, 150),
+        })
+        
+    def spawn_hit_marker(self, x, y, damage_type='normal', duration_ms=300):
+        """命中反馈 - 目标位置红色闪现（不同伤害类型不同颜色）
+        
+        damage_type:
+        - normal: 红色
+        - critical: 亮红色+更大
+        - armor_penetrate: 金属色(银/蓝)
+        - ricochet: 黄色(跳弹)
+        """
+        colors = {
+            'normal': (255, 80, 80),
+            'critical': (255, 50, 50),
+            'armor_penetrate': (200, 200, 255),
+            'ricochet': (255, 255, 100),
+        }
+        
+        self._add_particle({
+            'type': 'hit_marker',
+            'x': x, 'y': y,
+            'color': colors.get(damage_type, colors['normal']),
+            'size': 15 if damage_type == 'critical' else 10,
+            'duration': duration_ms,
+            'elapsed': 0,
+        })
+        
+    def spawn_dirt_splash(self, x, y, count=12, spread_radius=20):
+        """泥土飞溅 - 着点周围小颗粒向外散射（俯视圆形分布）
+        
+        俯视特征：颗粒呈圆形放射状向外散射，无重力影响
+        """
+        for i in range(count):
+            angle = (2 * math.pi * i) / count + random.uniform(-0.3, 0.3)
+            speed = random.uniform(3, 8)
+            self._add_particle({
+                'type': 'dirt_particle',
+                'x': x, 'y': y,
+                'vx': math.cos(angle) * speed,
+                'vy': math.sin(angle) * speed,
+                'size': random.randint(2, 4),
+                'color': random.choice([(139, 109, 59), (160, 130, 75), (110, 85, 45)]),
+                'gravity': 0,
+                'friction': 0.92,
+                'life_ms': random.randint(300, 600),
+                'elapsed': 0,
+            })
+            
+    def spawn_blood_pool(self, x, y, size=8):
+        """血迹池 - 红色椭圆形污渍留在地面（持久）"""
+        self._add_particle({
+            'type': 'blood_pool',
+            'x': x, 'y': y,
+            'size': size,
+            'duration': 0,
+            'elapsed': 0,
+            'persistent': True,
+            'color': (140, 20, 20),
+        })
+        
+    def update(self, dt_ms: int) -> None:
+        """更新所有粒子状态"""
+        alive = []
+        for p in self.particles:
+            p['elapsed'] += dt_ms
+            
+            if p['type'] == 'explosion_ring':
+                progress = min(1.0, p['elapsed'] / p['duration'])
+                p['current_radius'] = 2 + (p['max_radius'] - 2) * progress
+                
+            elif p['type'] == 'smoke':
+                progress = min(1.0, p['elapsed'] / p['duration'])
+                p['current_radius'] = 3 + (p['max_radius'] - 3) * progress
+                p['x'] += p['drift_x'] * dt_ms * 0.05
+                p['y'] += p['drift_y'] * dt_ms * 0.05
+                
+            elif p['type'] == 'dirt_particle':
+                p['x'] += p['vx']
+                p['y'] += p['vy']
+                p['vx'] *= p['friction']
+                p['vy'] *= p['friction']
+                
+            should_keep = (
+                p.get('persistent', False) or 
+                p['elapsed'] < p.get('duration', 0) or
+                p.get('life_ms', 0) > p['elapsed']
+            )
+            
+            if should_keep and p.get('type') != 'dirt_particle' or \
+               (p.get('type') == 'dirt_particle' and p['elapsed'] < p.get('life_ms', 0)):
+                alive.append(p)
+                
+        self.particles = alive
+        
+    def render(self, surface: pygame.Surface) -> None:
+        """渲染所有活跃粒子到目标surface"""
+        if surface is None:
+            return
+            
+        screen_rect = surface.get_rect()
+        
+        for p in self.particles:
+            x, y = int(p['x']), int(p['y'])
+            
+            if not screen_rect.collidepoint(x, y):
+                continue
+                
+            if p['type'] == 'explosion_ring':
+                self._render_explosion_ring(surface, p)
+            elif p['type'] == 'smoke':
+                self._render_smoke(surface, p)
+            elif p['type'] == 'muzzle_flash':
+                self._render_muzzle_flash(surface, p)
+            elif p['type'] == 'hit_marker':
+                self._render_hit_marker(surface, p)
+            elif p['type'] == 'dirt_particle':
+                self._render_dirt_particle(surface, p)
+            elif p['type'] == 'blood_pool':
+                self._render_blood_pool(surface, p)
+                
+    def _render_explosion_ring(self, surface: pygame.Surface, p: dict) -> None:
+        """渲染爆炸冲击波 - 多层同心圆环"""
+        progress = min(1.0, p['elapsed'] / p['duration'])
+        radius = p['current_radius']
+        
+        if radius < 0.5:
+            return
+            
+        alpha_base = int(255 * (1 - progress))
+        
+        layer_configs = [
+            ((255, 220, 100), 150),
+            ((255, 160, 50), 200),
+            ((220, 80, 20), 250),
+        ]
+        
+        for i, (layer_color, alpha_mult) in enumerate(layer_configs[:p.get('layers', 3)]):
+            layer_radius = radius - (i * 2)
+            if layer_radius > 0:
+                alpha = min(255, int(alpha_base * alpha_mult / 255))
+                color_with_alpha = (*layer_color, alpha)
+                try:
+                    temp_surf = pygame.Surface((int(layer_radius*2 + 4), int(layer_radius*2 + 4)), pygame.SRCALPHA)
+                    center = int(layer_radius + 2)
+                    pygame.draw.circle(temp_surf, color_with_alpha, (center, center), int(layer_radius), 
+                                     max(1, p.get('ring_width', 3)))
+                    surface.blit(temp_surf, (x - center, y - center))
+                except:
+                    pass
+                    
+    def _render_smoke(self, surface: pygame.Surface, p: dict) -> None:
+        """渲染烟雾云团 - 多个叠加半透明圆形"""
+        progress = min(1.0, p['elapsed'] / p['duration'])
+        radius = p['current_radius']
+        
+        if radius < 0.5:
+            return
+            
+        alpha = int(180 * (1 - progress * 0.7))
+        base_color = p['color']
+        
+        num_circles = 5
+        for i in range(num_circles):
+            offset_idx = i % len(p.get('turbulence', []))
+            turb_x, turb_y = p['turbulence'][offset_idx] if p.get('turbulence') else (0, 0)
+            
+            circle_radius = radius * (1 - i * 0.15)
+            if circle_radius < 1:
+                continue
+                
+            turb_scale = progress * 0.5
+            cx = x + int(turb_x * turb_scale)
+            cy = y + int(turb_y * turb_scale)
+            
+            shade_factor = 1 - (i / num_circles) * 0.4
+            color = tuple(int(c * shade_factor) for c in base_color)
+            
+            try:
+                temp_surf = pygame.Surface((int(circle_radius*2 + 4), int(circle_radius*2 + 4)), pygame.SRCALPHA)
+                center = int(circle_radius + 2)
+                pygame.draw.circle(temp_surf, (*color, alpha), (center, center), int(circle_radius))
+                surface.blit(temp_surf, (cx - center, cy - center))
+            except:
+                pass
+                
+    def _render_muzzle_flash(self, surface: pygame.Surface, p: dict) -> None:
+        """渲染枪口焰 - 白点 + 方向线"""
+        progress = min(1.0, p['elapsed'] / p['duration'])
+        alpha = int(255 * (1 - progress))
+        
+        if alpha < 10:
+            return
+            
+        core_color = (*p['core_color'], alpha)
+        outer_color = (*p['outer_color'], alpha // 2)
+        
+        try:
+            temp_surf = pygame.Surface((30, 30), pygame.SRCALPHA)
+            center = 15
+            
+            pygame.draw.circle(temp_surf, core_color, (center, center), 4)
+            pygame.draw.circle(temp_surf, outer_color, (center, center), 6, 2)
+            
+            end_x = center + int(math.cos(p['angle']) * p['length'])
+            end_y = center + int(math.sin(p['angle']) * p['length'])
+            pygame.draw.line(temp_surf, outer_color, (center, center), (end_x, end_y), 2)
+            
+            surface.blit(temp_surf, (x - center, y - center))
+        except:
+            pass
+            
+    def _render_hit_marker(self, surface: pygame.Surface, p: dict) -> None:
+        """渲染命中反馈 - X形或圆形标记"""
+        progress = min(1.0, p['elapsed'] / p['duration'])
+        alpha = int(255 * (1 - progress))
+        size = p['size']
+        
+        if alpha < 10 or size < 1:
+            return
+            
+        color = (*p['color'], alpha)
+        
+        try:
+            temp_surf = pygame.Surface((size*2 + 4, size*2 + 4), pygame.SRCALPHA)
+            center = size + 2
+            
+            pygame.draw.circle(temp_surf, color, (center, center), size, 2)
+            
+            cross_size = size * 0.7
+            pygame.draw.line(temp_surf, color, 
+                           (center - cross_size, center - cross_size),
+                           (center + cross_size, center + cross_size), 2)
+            pygame.draw.line(temp_surf, color,
+                           (center + cross_size, center - cross_size),
+                           (center - cross_size, center + cross_size), 2)
+                           
+            surface.blit(temp_surf, (x - center, y - center))
+        except:
+            pass
+            
+    def _render_dirt_particle(self, surface: pygame.Surface, p: dict) -> None:
+        """渲染泥土颗粒 - 小实心圆"""
+        progress = min(1.0, p['elapsed'] / p.get('life_ms', 500))
+        alpha = int(255 * (1 - progress))
+        size = p['size']
+        
+        if alpha < 10 or size < 1:
+            return
+            
+        color = (*p['color'], alpha)
+        
+        try:
+            temp_surf = pygame.Surface((size*2 + 2, size*2 + 2), pygame.SRCALPHA)
+            center = size + 1
+            pygame.draw.circle(temp_surf, color, (center, center), size)
+            surface.blit(temp_surf, (int(p['x']) - center, int(p['y']) - center))
+        except:
+            pass
+            
+    def _render_blood_pool(self, surface: pygame.Surface, p: dict) -> None:
+        """渲染血迹池 - 椭圆形污渍"""
+        size = p['size']
+        color = p['color']
+        
+        try:
+            temp_surf = pygame.Surface((size*2 + 4, size*2 + 2), pygame.SRCALPHA)
+            center_x = size + 2
+            center_y = size + 1
+            
+            pygame.draw.ellipse(temp_surf, (*color, 180), 
+                              (2, 2, size*2, size))
+                              
+            for i in range(3):
+                splash_x = center_x + random.randint(-size//2, size//2)
+                splash_y = center_y + random.randint(-size//3, size//3)
+                splash_size = random.randint(1, 3)
+                pygame.draw.circle(temp_surf, (*color, 150), 
+                                 (splash_x, splash_y), splash_size)
+                                 
+            surface.blit(temp_surf, (x - center_x, y - center_y))
+        except:
+            pass
+
+    @property
+    def active_count(self) -> int:
+        """当前活跃粒子数量"""
+        return len(self.particles)
+
+
 class EnhancedRenderer:
     """
     CC2-Authentic terrain renderer for PyCC2 maps.
@@ -2529,7 +2909,7 @@ class EnhancedRenderer:
 
     TILE_SIZE = 48  # CC2 authentic: 48×48 pixel tiles
 
-    def __init__(self, attack_line_system=None):
+    def __init__(self, attack_line_system=None, lighting_config: TopDownLightingConfig | None = None):
         self._screen: pygame.Surface | None = None
         self._offscreen: pygame.Surface | None = None  # Off-screen buffer to eliminate flicker
         self._palette_gen = PaletteGenerator()
@@ -2549,6 +2929,14 @@ class EnhancedRenderer:
         self._isometric_renderer = None  # Isometric renderer (lazy init)
         self._shadow_renderer = ShadowRenderer()  # SE-direction shadow system
         self._attack_line_system = attack_line_system  # P0-2 Fix: Dependency injection (was getattr hack)
+        self._particle_system = TopDownParticleSystem()  # Top-down particle effects system
+        
+        # Top-down lighting system configuration
+        self._lighting_config = lighting_config or TopDownLightingConfig()
+        self._dynamic_lights: list[dict] = []  # Temporary dynamic lights (explosions, muzzle flashes, etc.)
+        self._max_dynamic_lights = 8  # Performance limit: max concurrent dynamic lights
+        self._tod_tint_cache: pygame.Surface | None = None  # Cache for time-of-day tint surface
+        self._last_time_of_day: str = self._lighting_config.time_of_day  # Track ToD changes
     
     def initialize(self, screen: pygame.Surface) -> None:
         """Initialize renderer with display surface."""
@@ -2576,6 +2964,42 @@ class EnhancedRenderer:
     def set_attack_line_system(self, attack_line_system) -> None:
         """Set attack line system (dependency injection setter - P0-2 Fix)."""
         self._attack_line_system = attack_line_system
+
+    def set_time_of_day(self, tod: str) -> None:
+        """
+        Set time of day for color grading.
+        
+        Args:
+            tod: Time of day string - 'dawn'/'noon'/'dusk'/'night'
+        
+        Raises:
+            ValueError: If tod is not a valid time of day
+        """
+        valid_times = ['dawn', 'noon', 'dusk', 'night']
+        if tod not in valid_times:
+            raise ValueError(f"Invalid time of day: '{tod}'. Must be one of {valid_times}")
+        
+        self._lighting_config.time_of_day = tod
+        logger.debug(f"Lighting: Time of day set to '{tod}'")
+
+    def set_light_intensity(self, intensity: float) -> None:
+        """
+        Set global light intensity.
+        
+        Args:
+            intensity: Brightness level (0.0 = dark, 1.0 = normal, 2.0 = very bright)
+        """
+        self._lighting_config.light_intensity = max(0.0, min(2.0, intensity))
+        logger.debug(f"Lighting: Intensity set to {self._lighting_config.light_intensity:.2f}")
+
+    def get_lighting_config(self) -> TopDownLightingConfig:
+        """
+        Get current lighting configuration (read-only access).
+        
+        Returns:
+            TopDownLightingConfig: Current lighting configuration
+        """
+        return self._lighting_config
 
     def render(
         self,
@@ -2666,6 +3090,16 @@ class EnhancedRenderer:
 
         # STEP 5.6: Draw queued command lines (Shift+right-click)
         self._draw_queued_commands(units, camera)
+
+        # STEP 5.7: Render particle effects (explosions, smoke, muzzle flash, etc.)
+        self._particle_system.render(self._offscreen)
+
+        # STEP 5.8: Top-down lighting system pass (time-of-day tint + dynamic lights)
+        # Apply time-of-day color grading (dawn/noon/dusk/night)
+        self._apply_time_of_day_tint(self._offscreen)
+        
+        # Render dynamic point lights (explosions, muzzle flashes, ability effects)
+        self._render_dynamic_lights()
 
         # STEP 6: Atomic blit off-screen buffer → display surface
         self._screen.blit(self._offscreen, (0, 0))
@@ -3714,31 +4148,254 @@ class EnhancedRenderer:
                     continue
 
     def _draw_unit_shadows(self, units: list, camera: Camera) -> None:
-        """Draw small shadow dots beneath each alive unit (sun from southwest → shadow to northeast)."""
+        """
+        Draw enhanced perspective ellipse shadows beneath each alive unit.
+
+        Features:
+        - Perspective-correct elliptical shadows (wider than tall for 45° view)
+        - Soft edge falloff using multi-layer alpha blending
+        - Size scaling based on unit type (tank > infantry)
+        - Dynamic alpha based on HP (dying units have fainter shadows)
+        
+        统一阴影方向：左上45°光源（light_angle=-π/4）→ 阴影投射向右下（+x, +y）
+        与 TopDownLightingConfig 配置保持一致
+        """
         if self._offscreen is None:
             return
 
         from pycc2.domain.value_objects.vec2 import Vec2
 
-        shadow_alpha = 35
-        # Shadow offset: northeast direction (negative x, negative y in screen coords)
-        offset_x = -max(2, int(4 * camera.zoom))
-        offset_y = -max(2, int(4 * camera.zoom))
+        base_shadow_alpha = int(35 * self._lighting_config.shadow_darkness)  # Use config value
+        # Shadow offset: southeast direction (positive x, positive y in screen coords)
+        # Light from top-left (-π/4) → shadow to bottom-right (+x, +y)
+        offset_x = max(2, int(4 * camera.zoom))
+        offset_y = max(2, int(4 * camera.zoom))
 
         for unit in units:
             if not unit.is_alive:
                 continue
+
             pos = unit.position.pixel_position
             sp = camera.world_to_screen(pos)
             sx, sy = int(sp[0]) + offset_x, int(sp[1]) + offset_y
-            radius = max(3, int(5 * camera.zoom))
-            shadow_surf = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-            pygame.draw.ellipse(
-                shadow_surf,
-                (0, 0, 0, shadow_alpha),
-                (0, radius // 2, radius * 2, radius),
+
+            base_radius = max(3, int(5 * camera.zoom))
+
+            unit_type_str = "infantry"
+            if hasattr(unit, 'unit_type'):
+                unit_type_str = str(unit.unit_type).lower()
+            elif hasattr(unit, 'category'):
+                unit_type_str = str(unit.category).lower()
+
+            is_large_unit = any(t in unit_type_str for t in ["tank", "armor", "sherman", "vehicle"])
+            shadow_width = base_radius * (2.2 if is_large_unit else 1.8)
+            shadow_height = base_radius * (0.7 if is_large_unit else 0.5)
+
+            hp_ratio = 1.0
+            if hasattr(unit, 'health') and unit.health:
+                try:
+                    hp_ratio = unit.health.hp / max(unit.health.max_hp, 1)
+                except (AttributeError, ZeroDivisionError):
+                    pass
+
+            shadow_alpha = int(base_shadow_alpha * max(0.3, hp_ratio))
+
+            surf_w = int(shadow_width * 2) + 8
+            surf_h = int(shadow_height * 2) + 8
+            shadow_surf = pygame.Surface((surf_w, surf_h), pygame.SRCALPHA)
+            center_x, center_y = surf_w // 2, surf_h // 2
+
+            for layer in range(3):
+                layer_factor = 1.0 - (layer * 0.25)
+                layer_alpha = int(shadow_alpha * layer_factor)
+                layer_w = int(shadow_width * (1.0 + layer * 0.3))
+                layer_h = int(shadow_height * (1.0 + layer * 0.2))
+
+                rect = (
+                    center_x - layer_w,
+                    center_y - layer_h,
+                    layer_w * 2,
+                    layer_h * 2,
+                )
+                pygame.draw.ellipse(shadow_surf, (0, 0, 0, layer_alpha), rect)
+
+            self._offscreen.blit(shadow_surf, (sx - center_x, sy - center_y))
+
+    def _get_health_tinted_color(self, base_color: tuple, unit) -> tuple:
+        """Apply health-based color tinting to unit color.
+
+        Color gradient: Healthy (100%) → Wounded (50%) → Critical (10%)
+        - >75% HP: Normal brightness
+        - 50-75% HP: Slightly darker + yellowish tint
+        - 25-50% HP: Noticeable red-orange tint
+        - <25% HP: Deep red tone (critical)
+        """
+        color = base_color
+
+        hp_ratio = 1.0
+        if hasattr(unit, 'health') and unit.health:
+            try:
+                hp_ratio = unit.health.hp / max(unit.health.max_hp, 1)
+            except (AttributeError, ZeroDivisionError):
+                pass
+
+        if hp_ratio > 0.75:
+            pass
+        elif hp_ratio > 0.5:
+            color = (
+                min(255, int(color[0] * 1.1)),
+                color[1],
+                int(color[2] * 0.8),
             )
-            self._offscreen.blit(shadow_surf, (sx - radius, sy - radius))
+        elif hp_ratio > 0.25:
+            color = (
+                min(255, int(color[0] * 1.2)),
+                int(color[1] * 0.7),
+                int(color[2] * 0.5),
+            )
+        else:
+            color = (
+                min(255, int(color[0] * 1.3)),
+                int(color[1] * 0.4),
+                int(color[2] * 0.3),
+            )
+
+        return color
+
+    def _draw_direction_indicator(
+        self, cx: int, cy: int, radius: int, unit_color: tuple
+    ) -> None:
+        """Draw a direction arrow on top of unit showing facing direction.
+
+        Arrow length = radius * 0.6, color contrasts with unit color.
+        Uses unit.facing_direction or unit.direction, defaults to up (-π/2).
+        """
+        if self._offscreen is None:
+            return
+
+        facing = -math.pi / 2
+        if hasattr(unit, 'facing_direction'):
+            facing = unit.facing_direction
+        elif hasattr(unit, 'direction'):
+            facing = unit.direction
+
+        arrow_length = max(4, int(radius * 0.6))
+        arrow_width = max(2, arrow_length // 3)
+
+        end_x = cx + int(arrow_length * math.cos(facing))
+        end_y = cy + int(arrow_length * math.sin(facing))
+
+        brightness = sum(unit_color[:3]) / 3
+        arrow_color = (0, 0, 0) if brightness > 127 else (255, 255, 255)
+
+        pygame.draw.line(self._offscreen, arrow_color, (cx, cy), (end_x, end_y), 2)
+
+        left_angle = facing + math.pi - (math.pi / 6)
+        right_angle = facing + math.pi + (math.pi / 6)
+
+        left_x = end_x + int(arrow_width * math.cos(left_angle))
+        left_y = end_y + int(arrow_width * math.sin(left_angle))
+        right_x = end_x + int(arrow_width * math.cos(right_angle))
+        right_y = end_y + int(arrow_width * math.sin(right_angle))
+
+        pygame.draw.polygon(
+            self._offscreen,
+            arrow_color,
+            [(end_x, end_y), (left_x, left_y), (right_x, right_y)],
+        )
+
+    def _draw_movement_mode_overlay(
+        self, unit, cx: int, cy: int, radius: int, base_color: tuple
+    ) -> None:
+        """Draw visual overlay for movement mode states.
+
+        Modes:
+        - fast_move: Motion trail (semi-transparent copy offset backward)
+        - sneak: Reduced opacity + edge blur effect
+        - defend: Shield indicator ring or armor arc
+        - normal: No overlay
+        """
+        if self._offscreen is None:
+            return
+
+        movement_mode = getattr(unit, "movement_mode", "normal")
+
+        if movement_mode == "fast_move":
+            facing = -math.pi / 2
+            if hasattr(unit, "facing_direction"):
+                facing = unit.facing_direction
+            elif hasattr(unit, "direction"):
+                facing = unit.direction
+
+            offset_dist = 3
+            trail_cx = cx - int(offset_dist * math.cos(facing))
+            trail_cy = cy - int(offset_dist * math.sin(facing))
+
+            trail_size = radius * 2 + 4
+            trail_surf = pygame.Surface((trail_size, trail_size), pygame.SRCALPHA)
+            trail_center = trail_size // 2
+
+            trail_color = (*base_color[:3], 100)
+
+            trail_radius = max(3, radius - 2)
+            pygame.draw.circle(trail_surf, trail_color, (trail_center, trail_center), trail_radius)
+
+            self._offscreen.blit(
+                trail_surf,
+                (trail_cx - trail_center, trail_cy - trail_center),
+            )
+
+        elif movement_mode == "sneak":
+            alpha_surface = pygame.Surface((radius * 2 + 10, radius * 2 + 10), pygame.SRCALPHA)
+            center = radius + 5
+
+            sneak_color = (*base_color[:3], 140)
+            pygame.draw.circle(alpha_surface, sneak_color, (center, center), radius)
+
+            edge_alpha = 80
+            for i in range(3):
+                edge_r = radius + 2 + i
+                edge_color = (*base_color[:3], edge_alpha - i * 20)
+                pygame.draw.circle(alpha_surface, edge_color, (center, center), edge_r, 1)
+
+            self._offscreen.blit(alpha_surface, (cx - center, cy - center))
+
+        elif movement_mode == "defend":
+            shield_color = (100, 200, 255, 180)
+            shield_surf = pygame.Surface((radius * 2 + 20, radius * 2 + 20), pygame.SRCALPHA)
+            center = radius + 10
+
+            inner_r = radius + 4
+            outer_r = radius + 8
+
+            pygame.draw.arc(
+                shield_surf,
+                shield_color,
+                (
+                    center - outer_r,
+                    center - outer_r,
+                    outer_r * 2,
+                    outer_r * 2,
+                ),
+                math.pi * 0.75,
+                math.pi * 2.25,
+                3,
+            )
+            pygame.draw.arc(
+                shield_surf,
+                (*shield_color[:3], 120),
+                (
+                    center - inner_r,
+                    center - inner_r,
+                    inner_r * 2,
+                    inner_r * 2,
+                ),
+                math.pi * 0.75,
+                math.pi * 2.25,
+                2,
+            )
+
+            self._offscreen.blit(shield_surf, (cx - center, cy - center))
 
     def _apply_height_lighting(self, surface: pygame.Surface, height: int) -> pygame.Surface:
         """Apply lighting adjustments based on tile height (fast numpy version)."""
@@ -3760,6 +4417,170 @@ class EnhancedRenderer:
             logging.debug(f"Brightness adjustment failed: {e}")
 
         return result
+
+    def _apply_time_of_day_tint(self, surface: pygame.Surface) -> pygame.Surface:
+        """
+        Apply time-of-day color grading to the rendered scene.
+        
+        顶部视角专用 - 根据时间段调整整体色调：
+        - dawn: 暖橙色，略暗
+        - noon: 明亮（默认，不做处理）
+        - dusk: 深橙红色，较暗
+        - night: 蓝黑色调，很暗
+        
+        Performance optimization: Only re-generates tint when time_of_day changes.
+        """
+        config = self._lighting_config
+        
+        # Check if ToD changed (cache optimization)
+        if config.time_of_day == self._last_time_of_day and self._tod_tint_cache is not None:
+            # Apply cached tint
+            surface.blit(self._tod_tint_cache, (0, 0))
+            return surface
+        
+        # Update cache tracking
+        self._last_time_of_day = config.time_of_day
+        
+        # Generate new tint overlay based on time of day
+        if config.time_of_day == "dawn":
+            # 黎明：暖橙色色调，略暗
+            overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+            overlay.fill((255, 180, 120, 25))  # 暖橙
+            surface.blit(overlay, (0, 0))
+            self._tod_tint_cache = overlay
+            
+        elif config.time_of_day == "noon":
+            # 正午：明亮，轻微去饱和（不做处理或轻微提亮）
+            self._tod_tint_cache = None  # No tint needed for noon
+            
+        elif config.time_of_day == "dusk":
+            # 黄昏：深橙红色调，较暗
+            overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+            overlay.fill((200, 100, 50, 35))  # 深橙红
+            surface.blit(overlay, (0, 0))
+            self._tod_tint_cache = overlay
+            
+        elif config.time_of_day == "night":
+            # 夜晚：蓝黑色调，很暗
+            overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+            overlay.fill((20, 30, 60, 80))  # 深蓝黑
+            surface.blit(overlay, (0, 0))
+            self._tod_tint_cache = overlay
+            
+        else:
+            # Unknown time of day - no tint
+            self._tod_tint_cache = None
+            
+        return surface
+
+    def spawn_dynamic_light(self, position: tuple[int, int], 
+                           radius: float, 
+                           intensity: float,
+                           color: tuple[int, int, int] = (255, 255, 200),
+                           duration_ms: int = 200) -> None:
+        """
+        Register a dynamic point light source.
+        
+        用于临时动态光源（爆炸闪光、枪口焰、技能特效等）
+        
+        Args:
+            position: Screen coordinates (x, y) of light center
+            radius: Light radius in pixels (capped at MAX_DYNAMIC_LIGHT_RADIUS for performance)
+            intensity: Brightness factor (0.0-1.0)
+            color: RGB color tuple (default: warm white)
+            duration_ms: Lifetime in milliseconds (default: 200ms for muzzle flash)
+        """
+        if not self._lighting_config.enable_dynamic_lights:
+            return
+            
+        # Performance cap: enforce maximum concurrent lights
+        if len(self._dynamic_lights) >= self._max_dynamic_lights:
+            # Remove oldest light to make room
+            self._dynamic_lights.pop(0)
+            
+        # Cap radius to prevent huge surfaces
+        MAX_RADIUS = 200
+        capped_radius = min(radius, MAX_RADIUS)
+        
+        self._dynamic_lights.append({
+            'position': position,
+            'radius': capped_radius,
+            'intensity': max(0.0, min(1.0, intensity)),
+            'color': color,
+            'remaining_ms': duration_ms,
+            'max_duration': duration_ms,
+        })
+
+    def update_dynamic_lights(self, dt_ms: int) -> None:
+        """
+        Update dynamic light lifecycles.
+        
+        Should be called from game loop's update() method.
+        
+        Args:
+            dt_ms: Delta time in milliseconds since last frame
+        """
+        if not self._lighting_config.enable_dynamic_lights:
+            return
+            
+        expired = []
+        for light in self._dynamic_lights:
+            light['remaining_ms'] -= dt_ms
+            if light['remaining_ms'] <= 0:
+                expired.append(light)
+                
+        for light in expired:
+            self._dynamic_lights.remove(light)
+
+    def _render_dynamic_lights(self) -> None:
+        """
+        Render all active dynamic lights to offscreen buffer.
+        
+        Uses radial gradient with multiple concentric circles for smooth falloff.
+        Applies additive blending (BLEND_RGBA_ADD) for glow effect.
+        
+        Performance considerations:
+        - Max 8 concurrent lights (enforced by spawn_dynamic_light)
+        - Radius capped at 200px
+        - Uses optimized multi-layer circle rendering
+        """
+        if not self._lighting_config.enable_dynamic_lights or not self._offscreen:
+            return
+            
+        for light in self._dynamic_lights:
+            # Calculate lifecycle progress (1.0 = just spawned, 0.0 = about to expire)
+            progress = light['remaining_ms'] / light['max_duration']
+            
+            # Intensity fades over time (linear falloff)
+            current_intensity = light['intensity'] * progress
+            
+            # Radius expands then contracts (visual effect)
+            radius = int(light['radius'] * (2.0 - progress * 0.5))
+            
+            # Create surface for this light
+            light_surf = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+            
+            # Radial gradient with multiple concentric circles (4 layers)
+            # Each layer has different opacity for smooth falloff
+            for r_factor in [1.0, 0.7, 0.4, 0.2]:
+                r = int(radius * r_factor)
+                if r <= 0:
+                    continue
+                    
+                # Alpha decreases toward center (outer layers more transparent)
+                alpha = int(current_intensity * 255 * (1.0 - r_factor) * 0.5)
+                alpha = min(255, max(0, alpha))  # Clamp to valid range
+                
+                color = (*light['color'], alpha)
+                pygame.draw.circle(light_surf, color, (radius, radius), r)
+            
+            # Blit to offscreen buffer with additive blending (glow effect)
+            pos = light['position']
+            self._offscreen.blit(
+                light_surf, 
+                (pos[0] - radius, pos[1] - radius),
+                special_flags=pygame.BLEND_RGBA_ADD
+            )
     
     def _draw_decorations(self, game_map: GameMap, camera: Camera) -> None:
         """Draw decoration sprites on map."""
@@ -3907,6 +4728,8 @@ class EnhancedRenderer:
                         x = cx + int(radius * math.cos(angle))
                         y = cy + int(radius * math.sin(angle))
                         points.append((x, y))
+
+                    color = self._get_health_tinted_color(color, unit)
                     pygame.draw.polygon(self._offscreen, color, points)
                     pygame.draw.polygon(self._offscreen, (255, 255, 255), points, 3)
 
@@ -3920,6 +4743,8 @@ class EnhancedRenderer:
                         x = cx + int(radius * math.cos(angle))
                         y = cy + int(radius * math.sin(angle))
                         points.append((x, y))
+
+                    color = self._get_health_tinted_color(color, unit)
                     pygame.draw.polygon(self._offscreen, color, points)
                     pygame.draw.polygon(self._offscreen, (255, 255, 255), points, 2)
 
@@ -3934,6 +4759,8 @@ class EnhancedRenderer:
                         (cx, cy + radius),
                         (cx - half, cy),
                     ]
+
+                    color = self._get_health_tinted_color(color, unit)
                     pygame.draw.polygon(self._offscreen, color, points)
                     pygame.draw.polygon(self._offscreen, (255, 200, 255), points, 2)
 
@@ -3941,6 +4768,8 @@ class EnhancedRenderer:
                     # DEFAULT: CIRCLE for infantry (BRIGHT GREEN)
                     color = (0, 255, 80)  # Bright neon green
                     radius = base_radius
+
+                    color = self._get_health_tinted_color(color, unit)
                     pygame.draw.circle(self._offscreen, color, (cx, cy), radius)
                     pygame.draw.circle(self._offscreen, (255, 255, 255), (cx, cy), radius, 2)
 
@@ -3967,18 +4796,77 @@ class EnhancedRenderer:
                 except Exception as e:
                     logging.debug(f"Unit label rendering failed: {e}")
 
-                # STEP 6: Selection indicator (VERY OBVIOUS when selected)
+                # STEP 6: Selection indicator (ENHANCED dual-layer glow + corner markers)
                 is_selected = selected_unit_ids and unit.id in selected_unit_ids
                 if is_selected:
-                    # Pulsing yellow ring (large and obvious)
                     pulse = abs(math.sin(pygame.time.get_ticks() * 0.008)) * 8
                     select_radius = radius + 8 + int(pulse)
 
-                    # Outer glow ring
-                    pygame.draw.circle(self._offscreen, (255, 255, 0), (cx, cy), select_radius, 4)
-                    pygame.draw.circle(self._offscreen, (255, 200, 0), (cx, cy), select_radius - 3, 2)
+                    outer_glow_radius = radius + 15 + int(pulse * 0.7)
+                    glow_surf = pygame.Surface(
+                        (outer_glow_radius * 2 + 10, outer_glow_radius * 2 + 10),
+                        pygame.SRCALPHA,
+                    )
+                    glow_center = outer_glow_radius + 5
+                    pygame.draw.circle(
+                        glow_surf,
+                        (255, 255, 255, 40),
+                        (glow_center, glow_center),
+                        outer_glow_radius,
+                    )
+                    self._offscreen.blit(
+                        glow_surf,
+                        (cx - glow_center, cy - glow_center),
+                    )
 
-                # STEP 7: Damage visual effects (smoke/fire for damaged units)
+                    inner_ring_radius = radius + 5 + int(pulse)
+                    pygame.draw.circle(
+                        self._offscreen,
+                        (255, 255, 0),
+                        (cx, cy),
+                        inner_ring_radius,
+                        3,
+                    )
+                    pygame.draw.circle(
+                        self._offscreen,
+                        (0, 255, 255),
+                        (cx, cy),
+                        inner_ring_radius - 2,
+                        2,
+                    )
+
+                    corner_size = 8
+                    corner_offset = radius + 12 + int(pulse * 0.5)
+                    corner_color = (255, 255, 0)
+                    corners = [
+                        (cx - corner_offset, cy - corner_offset),  # top-left
+                        (cx + corner_offset, cy - corner_offset),  # top-right
+                        (cx - corner_offset, cy + corner_offset),  # bottom-left
+                        (cx + corner_offset, cy + corner_offset),  # bottom-right
+                    ]
+                    for corner_x, corner_y in corners:
+                        pygame.draw.line(
+                            self._offscreen,
+                            corner_color,
+                            (corner_x, corner_y),
+                            (corner_x + corner_size, corner_y),
+                            2,
+                        )
+                        pygame.draw.line(
+                            self._offscreen,
+                            corner_color,
+                            (corner_x, corner_y),
+                            (corner_x, corner_y + corner_size),
+                            2,
+                        )
+
+                # STEP 7: Direction indicator (shows unit facing)
+                self._draw_direction_indicator(cx, cy, radius, color)
+
+                # STEP 8: Movement mode overlay (fast_move/sneak/defend visualization)
+                self._draw_movement_mode_overlay(unit, cx, cy, radius, color)
+
+                # STEP 9: Damage visual effects (smoke/fire for damaged units)
                 if hasattr(unit, 'is_damaged') and unit.is_damaged:
                     self._draw_damage_vfx(unit, cx, cy)
 
@@ -4077,7 +4965,12 @@ class EnhancedRenderer:
             pygame.draw.circle(self._offscreen, select_color, (cx, cy), radius + 3, 2)
 
     def _render_building_shadows(self, game_map: GameMap, camera: Camera) -> None:
-        """Render SE-direction shadows for all buildings."""
+        """
+        Render SE-direction shadows for all buildings.
+        
+        统一阴影方向：使用 ShadowRenderer 类，阴影投射向东南（右下）
+        与 TopDownLightingConfig.light_angle = -π/4（左上光源）保持一致
+        """
         if self._offscreen is None or self._shadow_renderer is None:
             return
 
@@ -4116,7 +5009,12 @@ class EnhancedRenderer:
             logger.warning(f"Failed to render building shadows: {e}")
 
     def _render_tree_shadows(self, game_map: GameMap, camera: Camera) -> None:
-        """Render SE-direction shadows for trees/vegetation."""
+        """
+        Render SE-direction shadows for trees/vegetation.
+        
+        统一阴影方向：使用 ShadowRenderer 类，阴影投射向东南（右下）
+        与 TopDownLightingConfig.light_angle = -π/4（左上光源）保持一致
+        """
         if self._offscreen is None or self._shadow_renderer is None:
             return
 
@@ -4572,6 +5470,115 @@ class EnhancedRenderer:
             ey = y1 + dy * end_i / distance
             import pygame as pg
             pg.draw.line(self._offscreen, color, (int(sx), int(sy)), (int(ex), int(ey)), 2)
+
+    # ============================================================
+    # Particle System Convenience Methods (Top-Down VFX)
+    # ============================================================
+    
+    def update_particles(self, dt_ms: int) -> None:
+        """Update all particle effects - call from game loop.
+        
+        Args:
+            dt_ms: Delta time in milliseconds since last frame
+        """
+        self._particle_system.update(dt_ms)
+        
+    def spawn_explosion(self, position, max_radius=40, duration_ms=500, 
+                        color=(255, 200, 50)) -> None:
+        """Spawn explosion ring effect at position.
+        
+        CC2 Authentic: Yellow/orange circular expanding ring (not 3D fireball)
+        Automatically triggers dynamic light effect.
+        
+        Args:
+            position: (x, y) world coordinates or Vec2
+            max_radius: Maximum ring radius in pixels (default 40)
+            duration_ms: Animation duration (default 500ms)
+            color: Base color tuple (default yellow-orange)
+        """
+        x = position[0] if hasattr(position, '__getitem__') else position.x
+        y = position[1] if hasattr(position, '__getitem__') else position.y
+        
+        self._particle_system.spawn_explosion_ring(x, y, max_radius, duration_ms, color)
+        
+        self.spawn_dynamic_light(position, radius=60, intensity=1.5, 
+                                color=(255, 200, 100), duration_ms=duration_ms)
+                                
+    def spawn_muzzle_flash(self, position, direction) -> None:
+        """Spawn muzzle flash effect at firing unit position.
+        
+        CC2 Authentic: White dot flash + short line along fire direction
+        
+        Args:
+            position: (x, y) world coordinates or Vec2
+            direction: Firing angle in radians
+        """
+        x = position[0] if hasattr(position, '__getitem__') else position.x
+        y = position[1] if hasattr(position, '__getitem__') else position.y
+        
+        self._particle_system.spawn_muzzle_flash(x, y, direction)
+        
+    def spawn_hit_marker(self, position, damage_type='normal', duration_ms=300) -> None:
+        """Spawn hit marker effect at target position.
+        
+        Args:
+            position: (x, y) world coordinates or Vec2
+            damage_type: 'normal'|'critical'|'armor_penetrate'|'ricochet'
+            duration_ms: Marker display duration (default 300ms)
+        """
+        x = position[0] if hasattr(position, '__getitem__') else position.x
+        y = position[1] if hasattr(position, '__getitem__') else position.y
+        
+        self._particle_system.spawn_hit_marker(x, y, damage_type, duration_ms)
+        
+    def spawn_smoke_cloud(self, position, max_radius=25, duration_ms=2000,
+                          color=(180, 180, 170)) -> None:
+        """Spawn smoke cloud effect at position.
+        
+        CC2 Authentic: Circular gray-white cloud with drift and turbulence
+        
+        Args:
+            position: (x, y) world coordinates or Vec2
+            max_radius: Maximum cloud radius (default 25)
+            duration_ms: Cloud lifetime (default 2000ms)
+            color: Cloud color (default gray-white)
+        """
+        x = position[0] if hasattr(position, '__getitem__') else position.x
+        y = position[1] if hasattr(position, '__getitem__') else position.y
+        
+        self._particle_system.spawn_smoke_cloud(x, y, max_radius, duration_ms, color)
+        
+    def spawn_dirt_splash(self, position, count=12, spread_radius=20) -> None:
+        """Spawn dirt splash particles at impact point.
+        
+        Top-down feature: Particles radiate outward in circular pattern (no gravity)
+        
+        Args:
+            position: (x, y) world coordinates or Vec2
+            count: Number of dirt particles (default 12)
+            spread_radius: Spread distance (default 20)
+        """
+        x = position[0] if hasattr(position, '__getitem__') else position.x
+        y = position[1] if hasattr(position, '__getitem__') else position.y
+        
+        self._particle_system.spawn_dirt_splash(x, y, count, spread_radius)
+        
+    def spawn_blood_pool(self, position, size=8) -> None:
+        """Spawn persistent blood pool stain on ground.
+        
+        Args:
+            position: (x, y) world coordinates or Vec2
+            size: Pool size (default 8)
+        """
+        x = position[0] if hasattr(position, '__getitem__') else position.x
+        y = position[1] if hasattr(position, '__getitem__') else position.y
+        
+        self._particle_system.spawn_blood_pool(x, y, size)
+        
+    @property
+    def particle_count(self) -> int:
+        """Get current active particle count for performance monitoring."""
+        return self._particle_system.active_count
 
     def _draw_grid(self, game_map: GameMap, camera: Camera) -> None:
         """Draw grid overlay for debugging.
