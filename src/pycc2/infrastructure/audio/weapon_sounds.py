@@ -139,6 +139,61 @@ WEAPON_SOUND_PROFILES: dict[str, WeaponSoundProfile] = {
         noise_ratio=0.8,
         burst_count=1,
     ),
+    # CC2特色武器配置 - WWII坦克、反坦克和狙击武器
+    "Sherman 75mm": WeaponSoundProfile(
+        weapon_id="Sherman 75mm",
+        sound_type="tank_cannon",
+        base_frequency=55,
+        duration=0.6,
+        decay_rate=2.5,
+        noise_ratio=0.75,
+        burst_count=1,
+    ),
+    "Panzer IV 75mm": WeaponSoundProfile(
+        weapon_id="Panzer IV 75mm",
+        sound_type="tank_cannon",
+        base_frequency=50,
+        duration=0.65,
+        decay_rate=2.3,
+        noise_ratio=0.78,
+        burst_count=1,
+    ),
+    "M1 Bazooka": WeaponSoundProfile(
+        weapon_id="M1 Bazooka",
+        sound_type="at_weapon",
+        base_frequency=120,
+        duration=0.35,
+        decay_rate=6.0,
+        noise_ratio=0.65,
+        burst_count=1,
+    ),
+    "Panzerschreck": WeaponSoundProfile(
+        weapon_id="Panzerschreck",
+        sound_type="at_weapon",
+        base_frequency=110,
+        duration=0.4,
+        decay_rate=5.5,
+        noise_ratio=0.7,
+        burst_count=1,
+    ),
+    "Springfield Sniper": WeaponSoundProfile(
+        weapon_id="Springfield Sniper",
+        sound_type="sniper",
+        base_frequency=450,
+        duration=0.35,
+        decay_rate=5.0,
+        noise_ratio=0.25,
+        burst_count=1,
+    ),
+    "MP44/StG44": WeaponSoundProfile(
+        weapon_id="MP44/StG44",
+        sound_type="assault_rifle",
+        base_frequency=380,
+        duration=0.1,
+        decay_rate=18.0,
+        noise_ratio=0.35,
+        burst_count=1,
+    ),
 }
 
 # Default profile for weapons not in the dictionary
@@ -174,8 +229,10 @@ class WeaponSoundGenerator:
             "at_weapon": cls._generate_at_weapon_sound,
             "mortar": cls._generate_mortar_sound,
             "tank_gun": cls._generate_tank_gun_sound,
+            "tank_cannon": cls._generate_tank_cannon_sound,
             "flamethrower": cls._generate_flamethrower_sound,
             "pistol": cls._generate_pistol_sound,
+            "assault_rifle": cls._generate_assault_rifle_sound,
         }
         generator = dispatch.get(weapon_profile.sound_type, cls._generate_rifle_sound)
         return generator(weapon_profile)
@@ -197,13 +254,57 @@ class WeaponSoundGenerator:
         except Exception as e:
             logging.info(f"Weapon sound playback failed: {e}")
 
+    @classmethod
+    def get_weapon_profile(cls, weapon_id: str) -> WeaponSoundProfile:
+        """Get weapon profile with fuzzy matching support.
+
+        Supports case-insensitive matching and partial name matching.
+        Examples:
+            - "mg42" matches "MG42"
+            - "rifle" matches default rifle profile (unknown)
+            - "Sherman" matches "Sherman 75mm"
+
+        Args:
+            weapon_id: Weapon identifier to search for
+
+        Returns:
+            Best matching WeaponSoundProfile or default profile
+        """
+        # Exact match (case-insensitive)
+        weapon_lower = weapon_id.lower().strip()
+        for key, profile in WEAPON_SOUND_PROFILES.items():
+            if key.lower() == weapon_lower:
+                return profile
+
+        # Partial match (check if weapon_id is contained in any profile name)
+        best_match = None
+        best_score = 0
+
+        for key, profile in WEAPON_SOUND_PROFILES.items():
+            key_lower = key.lower()
+            # Check for partial match
+            if weapon_lower in key_lower or key_lower in weapon_lower:
+                score = max(len(weapon_lower), len(key_lower))
+                if score > best_score:
+                    best_score = score
+                    best_match = profile
+
+        # Check for sound_type match (e.g., "rifle", "mg", "smg")
+        if best_match is None:
+            for key, profile in WEAPON_SOUND_PROFILES.items():
+                if weapon_lower in profile.sound_type.lower():
+                    best_match = profile
+                    break
+
+        return best_match if best_match else _DEFAULT_PROFILE
+
     # ------------------------------------------------------------------
     # Weapon-specific generators
     # ------------------------------------------------------------------
 
     @classmethod
     def _generate_rifle_sound(cls, weapon_profile: WeaponSoundProfile) -> np.ndarray:
-        """Short, sharp crack – high frequency pulse + fast decay."""
+        """Short, sharp crack – high frequency pulse + fast decay + mechanical click."""
         n_samples = int(cls.SAMPLE_RATE * weapon_profile.duration)
         t = np.linspace(0, weapon_profile.duration, n_samples, dtype=np.float64)
 
@@ -213,6 +314,15 @@ class WeaponSoundGenerator:
         noise = np.random.uniform(-1, 1, n_samples) * envelope
 
         wave = (1.0 - weapon_profile.noise_ratio) * tone + weapon_profile.noise_ratio * noise
+
+        # Add mechanical click at the end (bolt action)
+        click_start = max(0, n_samples - int(cls.SAMPLE_RATE * 0.02))
+        click_len = n_samples - click_start
+        if click_len > 0:
+            click_t = np.linspace(0, 0.02, click_len, dtype=np.float64)
+            click = np.sin(2 * np.pi * 3000 * click_t) * np.exp(-click_t * 150) * 0.2
+            wave[click_start:] += click
+
         return cls._to_int16(wave)
 
     @classmethod
@@ -239,7 +349,14 @@ class WeaponSoundGenerator:
             burst = cls._to_int16(wave)
 
             bursts.append(burst)
+
+            # Add shell casing thud after each burst (except last)
             if i < weapon_profile.burst_count - 1:
+                thud_len = int(cls.SAMPLE_RATE * 0.03)
+                thud_t = np.linspace(0, 0.03, thud_len, dtype=np.float64)
+                thud = np.sin(2 * np.pi * 80 * thud_t) * np.exp(-thud_t * 50) * 0.15
+                thud_wave = cls._to_int16(thud)
+                bursts.append(thud_wave)
                 bursts.append(np.zeros(gap_samples, dtype=np.int16))
 
         return np.concatenate(bursts)
@@ -312,11 +429,22 @@ class WeaponSoundGenerator:
 
     @classmethod
     def _generate_mortar_sound(cls, weapon_profile: WeaponSoundProfile) -> np.ndarray:
-        """Low boom + delayed echo – very low freq + reverb."""
+        """Low boom + delayed echo + flight whoosh – very low freq + reverb."""
         n_samples = int(cls.SAMPLE_RATE * weapon_profile.duration)
         t = np.linspace(0, weapon_profile.duration, n_samples, dtype=np.float64)
 
         envelope = np.exp(-t * weapon_profile.decay_rate)
+
+        # Flight whoosh: mid-frequency rising then falling, 100ms before boom
+        whoosh_start = max(0, int(n_samples * 0.7))
+        whoosh_len = min(int(cls.SAMPLE_RATE * 0.1), n_samples - whoosh_start)
+        whoosh = np.zeros(n_samples, dtype=np.float64)
+        if whoosh_len > 0:
+            whoosh_t = np.linspace(0, 0.1, whoosh_len, dtype=np.float64)
+            whoosh_env = np.sin(np.pi * whoosh_t / 0.1) * 0.25
+            whoosh[whoosh_start:whoosh_start + whoosh_len] = (
+                np.random.uniform(-1, 1, whoosh_len) * whoosh_env
+            )
 
         # Very low frequency boom
         boom = np.sin(2 * np.pi * weapon_profile.base_frequency * t) * envelope
@@ -335,16 +463,23 @@ class WeaponSoundGenerator:
             (1.0 - weapon_profile.noise_ratio) * (boom + sub)
             + weapon_profile.noise_ratio * noise
             + echo
+            + whoosh
         )
         return cls._to_int16(wave)
 
     @classmethod
     def _generate_tank_gun_sound(cls, weapon_profile: WeaponSoundProfile) -> np.ndarray:
-        """Heavy boom – very low freq + long decay."""
+        """Heavy boom – very low freq + long decay + muzzle brake sharp attack."""
         n_samples = int(cls.SAMPLE_RATE * weapon_profile.duration)
         t = np.linspace(0, weapon_profile.duration, n_samples, dtype=np.float64)
 
-        envelope = np.exp(-t * weapon_profile.decay_rate)
+        # Muzzle brake effect: sharper initial attack
+        attack_samples = int(n_samples * 0.05)
+        attack = np.ones(n_samples, dtype=np.float64)
+        if attack_samples > 0:
+            attack[:attack_samples] = np.linspace(0, 1, attack_samples) ** 0.5
+
+        envelope = attack * np.exp(-t * weapon_profile.decay_rate)
 
         # Very low frequency
         boom = np.sin(2 * np.pi * weapon_profile.base_frequency * t) * envelope
@@ -388,6 +523,60 @@ class WeaponSoundGenerator:
         noise = np.random.uniform(-1, 1, n_samples) * envelope
 
         wave = (1.0 - weapon_profile.noise_ratio) * tone + weapon_profile.noise_ratio * noise
+        return cls._to_int16(wave)
+
+    @classmethod
+    def _generate_assault_rifle_sound(cls, weapon_profile: WeaponSoundProfile) -> np.ndarray:
+        """Balanced crack – between rifle and smg, medium duration, moderate noise."""
+        n_samples = int(cls.SAMPLE_RATE * weapon_profile.duration)
+        t = np.linspace(0, weapon_profile.duration, n_samples, dtype=np.float64)
+
+        envelope = np.exp(-t * weapon_profile.decay_rate)
+
+        # Medium frequency tone (between rifle's high and smg's mid-high)
+        tone = np.sin(2 * np.pi * weapon_profile.base_frequency * t) * envelope
+        # Moderate noise level
+        noise = np.random.uniform(-1, 1, n_samples) * envelope
+
+        wave = (1.0 - weapon_profile.noise_ratio) * tone + weapon_profile.noise_ratio * noise
+
+        # Add a short initial crack (sharper than smg but shorter than rifle)
+        crack_len = min(int(cls.SAMPLE_RATE * 0.008), n_samples)
+        crack = np.zeros(n_samples, dtype=np.float64)
+        crack[:crack_len] = np.sin(2 * np.pi * 1500 * t[:crack_len]) * np.exp(
+            -t[:crack_len] * 100
+        ) * 0.25
+
+        wave += crack
+        return cls._to_int16(wave)
+
+    @classmethod
+    def _generate_tank_cannon_sound(cls, weapon_profile: WeaponSoundProfile) -> np.ndarray:
+        """Tank cannon boom – deeper than tank_gun, longer decay, more powerful."""
+        n_samples = int(cls.SAMPLE_RATE * weapon_profile.duration)
+        t = np.linspace(0, weapon_profile.duration, n_samples, dtype=np.float64)
+
+        # Muzzle brake effect: very sharp initial attack for cannon
+        attack_samples = int(n_samples * 0.03)
+        attack = np.ones(n_samples, dtype=np.float64)
+        if attack_samples > 0:
+            attack[:attack_samples] = np.linspace(0, 1, attack_samples) ** 0.3
+
+        envelope = attack * np.exp(-t * weapon_profile.decay_rate)
+
+        # Very low frequency cannon boom
+        boom = np.sin(2 * np.pi * weapon_profile.base_frequency * t) * envelope
+        # Strong sub-harmonic for chest-thumping feel
+        sub = np.sin(2 * np.pi * weapon_profile.base_frequency * 0.5 * t) * envelope * 0.7
+        # Add second sub-harmonic for depth
+        sub2 = np.sin(2 * np.pi * weapon_profile.base_frequency * 0.25 * t) * envelope * 0.3
+
+        noise = np.random.uniform(-1, 1, n_samples) * envelope
+
+        wave = (
+            (1.0 - weapon_profile.noise_ratio) * (boom + sub + sub2)
+            + weapon_profile.noise_ratio * noise
+        )
         return cls._to_int16(wave)
 
     # ------------------------------------------------------------------

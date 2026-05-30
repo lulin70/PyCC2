@@ -50,6 +50,26 @@ class SoundConfig:
     sample_rate: int = 22050
 
 
+@dataclass(slots=True)
+class AudioMixerConfig:
+    max_simultaneous_sounds: int = 16
+    distance_model: str = "inverse"
+    reference_distance: float = 100.0
+    max_distance: float = 800.0
+    rolloff_factor: float = 1.0
+    doppler_enabled: bool = False
+    stereo_separation: float = 1.0
+    hrtf_approximation: bool = False
+
+
+class SoundPriority(Enum):
+    CRITICAL = 0
+    HIGH = 1
+    MEDIUM = 2
+    LOW = 3
+    BACKGROUND = 4
+
+
 class ProceduralSoundGenerator:
     SAMPLE_RATE = 22050
 
@@ -151,13 +171,25 @@ class ProceduralSoundGenerator:
 
 
 class SoundSystem:
-    def __init__(self, config: SoundConfig | None = None):
+    def __init__(self, config: SoundConfig | None = None, mixer_config: AudioMixerConfig | None = None):
         self._config = config or SoundConfig()
+        self._mixer_config = mixer_config or AudioMixerConfig()
         self._cache: dict[str, mixer.Sound] = {}
         self._initialized = False
         self._available = False
         self._channel_count = 8
-        self._mixer_channels = 1  # 1=mono, 2=stereo
+        self._mixer_channels = 1
+        self._active_sounds: dict[int, tuple[SoundType, SoundPriority]] = {}
+        self._peak_active_count = 0
+        self._dropped_sound_count = 0
+        self._category_volumes: dict[str, float] = {
+            "ui": 1.0,
+            "combat": 1.0,
+            "environment": 1.0,
+            "music": 1.0,
+        }
+        self._music_ducked = False
+        self._original_music_volume = self._config.music_volume
 
     def initialize(self) -> None:
         if self._initialized:
@@ -485,6 +517,215 @@ class SoundSystem:
     def toggle(self) -> bool:
         self._config.enabled = not self._config.enabled
         return self._config.enabled
+
+    def _calculate_distance_attenuation(self, distance: float) -> float:
+        if distance <= 0:
+            return 1.0
+        if distance >= self._mixer_config.max_distance:
+            return 0.0
+        model = self._mixer_config.distance_model
+        ref_dist = self._mixer_config.reference_distance
+        rolloff = self._mixer_config.rolloff_factor
+        max_dist = self._mixer_config.max_distance
+
+        if model == "inverse":
+            if distance <= ref_dist:
+                return 1.0
+            return ref_dist / (ref_dist + rolloff * (distance - ref_dist))
+        elif model == "linear":
+            return max(0.0, 1.0 - (distance / max_dist))
+        elif model == "exponential":
+            if distance <= ref_dist:
+                return 1.0
+            ratio = distance / ref_dist
+            return ratio ** (-rolloff)
+        else:
+            return max(0.0, 1.0 - (distance / max_dist))
+
+    def calculate_stereo_pan(
+        self,
+        source_pos: Vec2,
+        listener_pos: Vec2,
+        listener_facing: float = 0.0,
+    ) -> tuple[float, float]:
+        dx = source_pos.x - listener_pos.x
+        dy = source_pos.y - listener_pos.y
+        source_angle = np.arctan2(dy, dx)
+        relative_angle = source_angle - listener_facing
+
+        while relative_angle > np.pi:
+            relative_angle -= 2 * np.pi
+        while relative_angle < -np.pi:
+            relative_angle += 2 * np.pi
+
+        sep = self._mixer_config.stereo_separation
+        cos_a = np.cos(relative_angle)
+
+        left_vol = 1.0 + cos_a * sep * 0.5
+        right_vol = 1.0 - cos_a * sep * 0.5
+
+        back_factor = 0.8 if abs(relative_angle) > np.pi / 2 else 1.0
+        left_vol *= back_factor
+        right_vol *= back_factor
+
+        if self._mixer_config.hrtf_approximation:
+            freq_boost = 1.0 + 0.15 * abs(np.sin(relative_angle))
+            left_vol *= freq_boost
+            right_vol *= freq_boost
+
+        return (
+            max(0.0, min(1.0, left_vol)),
+            max(0.0, min(1.0, right_vol)),
+        )
+
+    def play_3d_sound(
+        self,
+        sound_type: SoundType,
+        source_pos: Vec2,
+        listener_pos: Vec2,
+        listener_facing: float = 0.0,
+        volume: float | None = None,
+    ) -> bool:
+        if not self._available or not self._config.enabled:
+            return False
+
+        distance = source_pos.distance_to(listener_pos)
+        if distance >= self._mixer_config.max_distance:
+            return False
+
+        attenuated_volume = self._calculate_distance_attenuation(distance)
+        if attenuated_volume <= 0.0:
+            return False
+
+        left_pan, right_pan = self.calculate_stereo_pan(
+            source_pos, listener_pos, listener_facing
+        )
+        avg_pan = (left_pan + right_pan) / 2.0
+        final_volume = attenuated_volume * avg_pan
+
+        if volume is not None:
+            final_volume *= volume
+
+        priority = self._get_sound_priority(sound_type)
+        return self.play_with_priority(sound_type, final_volume, priority)
+
+    def _get_sound_priority(self, sound_type: SoundType) -> SoundPriority:
+        priority_map = {
+            SoundType.UI_CLICK: SoundPriority.CRITICAL,
+            SoundType.UI_HOVER: SoundPriority.CRITICAL,
+            SoundType.UI_COMMAND: SoundPriority.CRITICAL,
+            SoundType.UI_SELECT: SoundPriority.CRITICAL,
+            SoundType.UI_CANCEL: SoundPriority.CRITICAL,
+            SoundType.UI_ERROR: SoundPriority.CRITICAL,
+            SoundType.UI_SUCCESS: SoundPriority.CRITICAL,
+            SoundType.RIFLE_SHOT: SoundPriority.HIGH,
+            SoundType.MG_BURST: SoundPriority.HIGH,
+            SoundType.PISTOL_SHOT: SoundPriority.HIGH,
+            SoundType.EXPLOSION: SoundPriority.HIGH,
+            SoundType.HIT_CONFIRM: SoundPriority.HIGH,
+            SoundType.HIT_CRITICAL: SoundPriority.CRITICAL,
+            SoundType.RICOCHET: SoundPriority.MEDIUM,
+            SoundType.UNIT_MOVE: SoundPriority.LOW,
+            SoundType.UNIT_DEATH: SoundPriority.HIGH,
+            SoundType.UNIT_PANIC: SoundPriority.MEDIUM,
+            SoundType.UNIT_SUPPRESSED: SoundPriority.MEDIUM,
+            SoundType.AMBIENT_BIRD: SoundPriority.BACKGROUND,
+            SoundType.AMBIENT_WIND: SoundPriority.BACKGROUND,
+            SoundType.FOOTSTEP_GRASS: SoundPriority.LOW,
+            SoundType.FOOTSTEP_ROAD: SoundPriority.LOW,
+            SoundType.FOOTSTEP_WOOD: SoundPriority.LOW,
+        }
+        return priority_map.get(sound_type, SoundPriority.MEDIUM)
+
+    def play_with_priority(
+        self,
+        sound_type: SoundType,
+        volume: float | None = None,
+        priority: SoundPriority = SoundPriority.MEDIUM,
+    ) -> bool:
+        active_count = len(self._active_sounds)
+        max_sounds = self._mixer_config.max_simultaneous_sounds
+
+        if active_count >= max_sounds and priority != SoundPriority.CRITICAL:
+            lowest_priority_channel = self._find_lowest_priority_channel()
+            if lowest_priority_channel is not None:
+                _, existing_priority = self._active_sounds[lowest_priority_channel]
+                if priority.value < existing_priority.value:
+                    try:
+                        ch = mixer.Channel(lowest_priority_channel)
+                        ch.stop()
+                        del self._active_sounds[lowest_priority_channel]
+                    except Exception:
+                        pass
+                else:
+                    self._dropped_sound_count += 1
+                    return False
+            else:
+                self._dropped_sound_count += 1
+                return False
+
+        result = self.play(sound_type, volume)
+        if result:
+            ch = mixer.find_channel(False)
+            if ch:
+                self._active_sounds[ch.get_id()] = (sound_type, priority)
+                current_count = len(self._active_sounds)
+                if current_count > self._peak_active_count:
+                    self._peak_active_count = current_count
+        return result
+
+    def _find_lowest_priority_channel(self) -> int | None:
+        if not self._active_sounds:
+            return None
+        lowest_channel = None
+        lowest_priority_value = -1
+        for channel_id, (_, priority) in self._active_sounds.items():
+            if priority.value > lowest_priority_value:
+                lowest_priority_value = priority.value
+                lowest_channel = channel_id
+        return lowest_channel
+
+    @property
+    def active_sound_count(self) -> int:
+        return len(self._active_sounds)
+
+    @property
+    def peak_active_count(self) -> int:
+        return self._peak_active_count
+
+    @property
+    def dropped_sound_count(self) -> int:
+        return self._dropped_sound_count
+
+    def set_category_volume(self, category: str, volume: float) -> None:
+        if category in self._category_volumes:
+            self._category_volumes[category] = max(0.0, min(1.0, volume))
+
+    def get_category_volume(self, category: str) -> float:
+        return self._category_volumes.get(category, 1.0)
+
+    def duck_music(self, duck_volume: float = 0.2, duration_ms: int = 500) -> None:
+        if self._music_ducked:
+            return
+        self._original_music_volume = self._config.music_volume
+        target_volume = duck_volume * self._category_volumes["music"]
+        steps = max(1, duration_ms // 50)
+        step_size = (self._config.music_volume - target_volume) / steps
+        for i in range(steps):
+            self._config.music_volume -= step_size
+        self._config.music_volume = target_volume
+        self._music_ducked = True
+
+    def restore_music(self, fade_ms: int = 1000) -> None:
+        if not self._music_ducked:
+            return
+        target_volume = self._original_music_volume
+        steps = max(1, fade_ms // 50)
+        step_size = (target_volume - self._config.music_volume) / steps
+        for i in range(steps):
+            self._config.music_volume += step_size
+        self._config.music_volume = target_volume
+        self._music_ducked = False
 
 
 class MusicPlayer:
