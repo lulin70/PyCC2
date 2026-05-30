@@ -299,7 +299,6 @@ class TopDownParticleSystem:
                 pass
 
     def _render_smoke(self, surface: pygame.Surface, p: dict) -> None:
-        """渲染烟雾云团 - 多个叠加半透明圆形"""
         progress = min(1.0, p['elapsed'] / p['duration'])
         radius = p['current_radius']
 
@@ -308,30 +307,30 @@ class TopDownParticleSystem:
 
         alpha = int(180 * (1 - progress * 0.7))
         base_color = p['color']
+        x, y = int(p['x']), int(p['y'])
+        turbulence = p.get('turbulence', [])
 
-        num_circles = 5
-        for i in range(num_circles):
-            offset_idx = i % len(p.get('turbulence', []))
-            turb_x, turb_y = p['turbulence'][offset_idx] if p.get('turbulence') else (0, 0)
-
+        for i in range(5):
             circle_radius = radius * (1 - i * 0.15)
             if circle_radius < 1:
                 continue
 
-            turb_scale = progress * 0.5
-            cx = x + int(turb_x * turb_scale)
-            cy = y + int(turb_y * turb_scale)
+            if turbulence:
+                offset_idx = i % len(turbulence)
+                turb_x, turb_y = turbulence[offset_idx]
+                cx = x + int(turb_x * progress * 0.5)
+                cy = y + int(turb_y * progress * 0.5)
+            else:
+                cx, cy = x, y
 
-            shade_factor = 1 - (i / num_circles) * 0.4
-            color = tuple(int(c * shade_factor) for c in base_color)
+            shade = 1 - (i / 5) * 0.4
+            color = (int(base_color[0] * shade), int(base_color[1] * shade), int(base_color[2] * shade), alpha)
 
-            try:
-                temp_surf = pygame.Surface((int(circle_radius*2 + 4), int(circle_radius*2 + 4)), pygame.SRCALPHA)
-                center = int(circle_radius + 2)
-                pygame.draw.circle(temp_surf, (*color, alpha), (center, center), int(circle_radius))
-                surface.blit(temp_surf, (cx - center, cy - center))
-            except:
-                pass
+            size = int(circle_radius * 2 + 4)
+            temp_surf = pygame.Surface((size, size), pygame.SRCALPHA)
+            center = int(circle_radius + 2)
+            pygame.draw.circle(temp_surf, color, (center, center), int(circle_radius))
+            surface.blit(temp_surf, (cx - center, cy - center))
 
     def _render_muzzle_flash(self, surface: pygame.Surface, p: dict) -> None:
         """渲染枪口焰 - 白点 + 方向线"""
