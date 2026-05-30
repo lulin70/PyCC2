@@ -43,7 +43,7 @@ from pycc2.domain.value_objects.tile_coord import TileCoord
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
-    from pycc2.services.event_bus import EventBus
+    from pycc2.domain.interfaces import IEventPublisher
 
 logger = logging.getLogger(__name__)
 
@@ -269,7 +269,7 @@ class EngineerAssaultAI(TacticalAIBase):
 
     def apply_demo_charge(
         self, position: TileCoord, game_map: GameMap,
-        event_bus: EventBus | None = None,
+        event_bus: IEventPublisher | None = None,
     ) -> list[TileCoord]:
         """Apply demo charge effects at a position.
 

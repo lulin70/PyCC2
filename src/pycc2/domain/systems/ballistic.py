@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
-    from pycc2.services.random_context import RandomContext
+    from pycc2.domain.interfaces import IRandomNumberGenerator
 
 from pycc2.domain.systems.swiss_cheese_damage import SwissCheeseEngine, SwissCheeseResult
 from pycc2.domain.value_objects.terrain_type import TerrainType
@@ -28,7 +28,7 @@ class ShotResult:
 
 @dataclass
 class BallisticEngine:
-    rng: RandomContext
+    rng: IRandomNumberGenerator
 
     _weapon_stats: dict[str, dict] = field(init=False, default_factory=dict)
 
@@ -339,7 +339,7 @@ class BallisticEngine:
         distance_factor: float,
         penetration: float,
         target_hp: int,
-        rng: RandomContext,
+        rng: IRandomNumberGenerator,
         armor_factor: float = 1.0,
     ) -> tuple[float, bool]:
         variance = rng.uniform(0.8, 1.2)
@@ -348,7 +348,7 @@ class BallisticEngine:
         is_killing = (target_hp - damage <= 0) and (rng.uniform(0.0, 1.0) < 0.15)
         return damage, is_killing
 
-    def _calc_spread(self, base_spread: float, distance: float, rng: RandomContext) -> float:
+    def _calc_spread(self, base_spread: float, distance: float, rng: IRandomNumberGenerator) -> float:
         sigma = base_spread * math.sqrt(max(1.0, distance))
         return float(rng.gaussian(0.0, sigma))
 

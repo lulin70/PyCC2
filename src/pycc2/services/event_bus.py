@@ -11,7 +11,10 @@ E = TypeVar("E")
 logger = logging.getLogger(__name__)
 
 
-class EventBus:
+from pycc2.domain.interfaces import IEventPublisher
+
+
+class EventBus(IEventPublisher):
     def __init__(self) -> None:
         self._handlers: dict[type[Any], list[Callable[[Any], None]]] = defaultdict(list)
         self._queue: list[tuple[float, Any]] = []

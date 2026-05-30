@@ -17,6 +17,7 @@ This system integrates with:
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Tuple
@@ -214,15 +215,27 @@ class MoraleSystem:
             return MoraleState.BROKEN
     
     @staticmethod
-    def _play_morale_collapse_voice(unit: "Unit", new_state: MoraleState) -> None:
-        """Play a morale collapse voice cry for the unit's faction."""
+    def _play_morale_collapse_voice(
+        unit: "Unit",
+        new_state: MoraleState,
+        voice_callback: Callable[[str, str], None] | None = None,
+    ) -> None:
+        """Play a morale collapse voice cry for the unit's faction.
+
+        Args:
+            unit: The unit whose morale collapsed
+            new_state: The new morale state (BROKEN or ROUTING)
+            voice_callback: Optional callback(state_value, faction) for voice playback.
+                           If None, voice playback is skipped.
+        """
+        if voice_callback is None:
+            return
         try:
-            from pycc2.infrastructure.audio.voice_commands import play_morale_collapse
             faction = unit.faction if hasattr(unit, 'faction') else None
             if faction is not None:
-                play_morale_collapse(new_state.value, faction)
+                voice_callback(new_state.value, faction)
         except Exception as e:
-            logging.info(f"Morale collapse voice playback unavailable: {e}")
+            logging.info(f"Morale collapse voice playback error: {e}")
 
     @staticmethod
     def apply_suppression(unit: Unit, amount: float, dt: float) -> dict:

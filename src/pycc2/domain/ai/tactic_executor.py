@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.systems.ballistic import BallisticEngine
     from pycc2.domain.systems.pathfinder import PathFinder
-    from pycc2.services.event_bus import EventBus
+    from pycc2.domain.interfaces import IEventPublisher
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 class TacticExecutor:
     def __init__(
         self,
-        event_bus: EventBus,
+        event_bus: IEventPublisher,
         pathfinder: PathFinder | None = None,
         ballistic_engine: BallisticEngine | None = None,
         game_map: GameMap | None = None,

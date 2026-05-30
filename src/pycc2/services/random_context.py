@@ -4,9 +4,11 @@ import random
 from dataclasses import dataclass, field
 from typing import Any
 
+from pycc2.domain.interfaces import IRandomNumberGenerator
+
 
 @dataclass(slots=True)
-class RandomContext:
+class RandomContext(IRandomNumberGenerator):
     _rng: random.Random = field(default_factory=random.Random)
     _seed: int | None = None
 

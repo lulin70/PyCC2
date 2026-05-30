@@ -9,18 +9,17 @@ from pycc2.domain.systems.spatial_hash import SpatialHash
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
+    from pycc2.domain.interfaces import IEventPublisher, IRandomNumberGenerator
     from pycc2.domain.systems.ballistic import BallisticEngine, ShotResult
     from pycc2.domain.systems.morale_system import MoraleCalculator
-    from pycc2.services.event_bus import EventBus
-    from pycc2.services.random_context import RandomContext
 
 
 @dataclass(slots=True)
 class CombatResolver:
     ballistic_engine: BallisticEngine
     morale_calc: MoraleCalculator
-    rng: RandomContext
-    event_bus: EventBus | None = None
+    rng: IRandomNumberGenerator
+    event_bus: IEventPublisher | None = None
 
     def resolve_attack(
         self,

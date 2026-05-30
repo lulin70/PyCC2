@@ -27,7 +27,7 @@ from pycc2.domain.entities.unit import UnitType
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
-    from pycc2.services.event_bus import EventBus
+    from pycc2.domain.interfaces import IEventPublisher
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ class MGTakeoverSystem:
 
     def __init__(
         self,
-        event_bus: EventBus,
+        event_bus: IEventPublisher,
         fallen_cache: FallenUnitCache | None = None,
     ) -> None:
         self.event_bus = event_bus

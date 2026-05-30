@@ -36,7 +36,7 @@ from pycc2.domain.entities.unit import UnitType
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
-    from pycc2.services.event_bus import EventBus
+    from pycc2.domain.interfaces import IEventPublisher
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +116,7 @@ class CommandObedienceSystem:
         obedience.tick()
     """
 
-    def __init__(self, event_bus: EventBus) -> None:
+    def __init__(self, event_bus: IEventPublisher) -> None:
         self.event_bus = event_bus
         self._delayed_orders: dict[str, DelayedOrder] = {}
         self._logger = logging.getLogger("pycc2.ai.command_obedience")
