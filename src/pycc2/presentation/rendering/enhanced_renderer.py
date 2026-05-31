@@ -2801,64 +2801,6 @@ class EnhancedRenderer:
         
         self._particle_system.spawn_muzzle_flash(x, y, direction)
         
-    def spawn_hit_marker(self, position, damage_type='normal', duration_ms=300) -> None:
-        """Spawn hit marker effect at target position.
-        
-        Args:
-            position: (x, y) world coordinates or Vec2
-            damage_type: 'normal'|'critical'|'armor_penetrate'|'ricochet'
-            duration_ms: Marker display duration (default 300ms)
-        """
-        x = position[0] if hasattr(position, '__getitem__') else position.x
-        y = position[1] if hasattr(position, '__getitem__') else position.y
-        
-        self._particle_system.spawn_hit_marker(x, y, damage_type, duration_ms)
-        
-    def spawn_smoke_cloud(self, position, max_radius=25, duration_ms=2000,
-                          color=(180, 180, 170)) -> None:
-        """Spawn smoke cloud effect at position.
-        
-        CC2 Authentic: Circular gray-white cloud with drift and turbulence
-        
-        Args:
-            position: (x, y) world coordinates or Vec2
-            max_radius: Maximum cloud radius (default 25)
-            duration_ms: Cloud lifetime (default 2000ms)
-            color: Cloud color (default gray-white)
-        """
-        x = position[0] if hasattr(position, '__getitem__') else position.x
-        y = position[1] if hasattr(position, '__getitem__') else position.y
-        
-        self._particle_system.spawn_smoke_cloud(x, y, max_radius, duration_ms, color)
-        
-    def spawn_dirt_splash(self, position, count=12, spread_radius=20) -> None:
-        """Spawn dirt splash particles at impact point.
-        
-        Top-down feature: Particles radiate outward in circular pattern (no gravity)
-        
-        Args:
-            position: (x, y) world coordinates or Vec2
-            count: Number of dirt particles (default 12)
-            spread_radius: Spread distance (default 20)
-        """
-        x = position[0] if hasattr(position, '__getitem__') else position.x
-        y = position[1] if hasattr(position, '__getitem__') else position.y
-        
-        self._particle_system.spawn_dirt_splash(x, y, count, spread_radius)
-        
-    def spawn_blood_pool(self, position, size=8) -> None:
-        """Spawn persistent blood pool stain on ground.
-        
-        Args:
-            position: (x, y) world coordinates or Vec2
-            size: Pool size (default 8)
-        """
-        x = position[0] if hasattr(position, '__getitem__') else position.x
-        y = position[1] if hasattr(position, '__getitem__') else position.y
-        
-        self._particle_system.spawn_blood_pool(x, y, size)
-        
-    @property
     def particle_count(self) -> int:
         """Get current active particle count for performance monitoring."""
         return self._particle_system.active_count
