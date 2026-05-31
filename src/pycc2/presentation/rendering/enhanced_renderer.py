@@ -58,6 +58,7 @@ from pycc2.presentation.rendering.autotile_system import (
 # Import shadow system for SE-direction shadows
 from pycc2.presentation.rendering.shadow_system import ShadowRenderer
 from pycc2.presentation.rendering.shadow_rendering_system import ShadowRenderingSystem
+from pycc2.presentation.rendering.lighting_effects import LightingEffectsSystem
 
 # Import refactored modules (backward-compatible re-exports)
 from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
@@ -124,10 +125,13 @@ class EnhancedRenderer:
         
         # Top-down lighting system configuration
         self._lighting_config = lighting_config or TopDownLightingConfig()
-        self._dynamic_lights: list[dict] = []  # Temporary dynamic lights (explosions, muzzle flashes, etc.)
-        self._max_dynamic_lights = 8  # Performance limit: max concurrent dynamic lights
-        self._tod_tint_cache: pygame.Surface | None = None  # Cache for time-of-day tint surface
-        self._last_time_of_day: str = self._lighting_config.time_of_day  # Track ToD changes
+        
+        # Initialize lighting effects system (time-of-day, CC2 grading, dynamic lights)
+        self._lighting_effects_sys = LightingEffectsSystem(
+            self._lighting_config, 
+            self.TILE_SIZE,
+            max_dynamic_lights=8
+        )
 
         # Initialize refactored sub-module renderers (coordinator pattern)
         self._terrain_renderer = TerrainRenderer(self)
@@ -306,11 +310,8 @@ class EnhancedRenderer:
         self._particle_system.render(self._offscreen)
 
         # STEP 5.8: Top-down lighting system pass (time-of-day tint + dynamic lights)
-        # Apply time-of-day color grading (dawn/noon/dusk/night)
-        self._apply_time_of_day_tint(self._offscreen)
-        
-        # Render dynamic point lights (explosions, muzzle flashes, ability effects)
-        self._render_dynamic_lights()
+        self._lighting_effects_sys.apply_time_of_day_tint(self._offscreen)
+        self._lighting_effects_sys.render_dynamic_lights(self._offscreen)
 
         # STEP 5.9: Render CC2 three-panel HUD (if enabled and attached)
         if self._hud_enabled and self._hud is not None:
@@ -1331,45 +1332,8 @@ class EnhancedRenderer:
             logging.debug(f"Vignette effect failed: {e}")
 
     def _get_health_tinted_color(self, base_color: tuple, unit) -> tuple:
-        """Apply health-based color tinting to unit color.
-
-        Color gradient: Healthy (100%) → Wounded (50%) → Critical (10%)
-        - >75% HP: Normal brightness
-        - 50-75% HP: Slightly darker + yellowish tint
-        - 25-50% HP: Noticeable red-orange tint
-        - <25% HP: Deep red tone (critical)
-        """
-        color = base_color
-
-        hp_ratio = 1.0
-        if hasattr(unit, 'health') and unit.health:
-            try:
-                hp_ratio = unit.health.hp / max(unit.health.max_hp, 1)
-            except (AttributeError, ZeroDivisionError):
-                pass
-
-        if hp_ratio > 0.75:
-            pass
-        elif hp_ratio > 0.5:
-            color = (
-                min(255, int(color[0] * 1.1)),
-                color[1],
-                int(color[2] * 0.8),
-            )
-        elif hp_ratio > 0.25:
-            color = (
-                min(255, int(color[0] * 1.2)),
-                int(color[1] * 0.7),
-                int(color[2] * 0.5),
-            )
-        else:
-            color = (
-                min(255, int(color[0] * 1.3)),
-                int(color[1] * 0.4),
-                int(color[2] * 0.3),
-            )
-
-        return color
+        """Delegate to LightingEffectsSystem for health-based color tinting."""
+        return self._lighting_effects_sys.get_health_tinted_color(base_color, unit)
 
     def _draw_direction_indicator(
         self, cx: int, cy: int, radius: int, unit_color: tuple
@@ -1507,220 +1471,34 @@ class EnhancedRenderer:
             self._offscreen.blit(shield_surf, (cx - center, cy - center))
 
     def _apply_height_lighting(self, surface: pygame.Surface, height: int) -> pygame.Surface:
-        """Apply lighting adjustments based on tile height (fast numpy version)."""
-        if height == 0:
-            return surface
-
-        result = surface.copy()
-        brightness_factor = 1.0 + (height * 0.08)
-
-        try:
-            import numpy as np
-            arr = pygame.surfarray.pixels3d(result)
-            # Convert to float first to avoid uint8 overflow during multiply
-            float_arr = arr.astype(np.float32) * brightness_factor
-            np.clip(float_arr, 0, 255, out=float_arr)
-            arr[:] = float_arr.astype(np.uint8)
-            del arr
-        except (ValueError, IndexError) as e:
-            logging.debug(f"Brightness adjustment failed: {e}")
-
-        return result
+        """Delegate to LightingEffectsSystem for height-based lighting."""
+        return self._lighting_effects_sys.apply_height_lighting(surface, height)
 
     def _apply_time_of_day_tint(self, surface: pygame.Surface) -> pygame.Surface:
-        """
-        Apply time-of-day color grading to the rendered scene.
-        
-        顶部视角专用 - 根据时间段调整整体色调：
-        - dawn: 暖橙色，略暗
-        - noon: 明亮（默认，不做处理）
-        - dusk: 深橙红色，较暗
-        - night: 蓝黑色调，很暗
-        
-        Performance optimization: Only re-generates tint when time_of_day changes.
-        """
-        config = self._lighting_config
-        
-        # Check if ToD changed (cache optimization)
-        if config.time_of_day == self._last_time_of_day and self._tod_tint_cache is not None:
-            # Apply cached tint
-            surface.blit(self._tod_tint_cache, (0, 0))
-            return surface
-        
-        # Update cache tracking
-        self._last_time_of_day = config.time_of_day
-        
-        # Generate new tint overlay based on time of day
-        if config.time_of_day == "dawn":
-            # 黎明：暖橙色色调，略暗
-            overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
-            overlay.fill((255, 180, 120, 25))  # 暖橙
-            surface.blit(overlay, (0, 0))
-            self._tod_tint_cache = overlay
-            
-        elif config.time_of_day == "noon":
-            # 正午：明亮，轻微去饱和（不做处理或轻微提亮）
-            self._tod_tint_cache = None  # No tint needed for noon
-            
-        elif config.time_of_day == "dusk":
-            # 黄昏：深橙红色调，较暗
-            overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
-            overlay.fill((200, 100, 50, 35))  # 深橙红
-            surface.blit(overlay, (0, 0))
-            self._tod_tint_cache = overlay
-            
-        elif config.time_of_day == "night":
-            # 夜晚：蓝黑色调，很暗
-            overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
-            overlay.fill((20, 30, 60, 80))  # 深蓝黑
-            surface.blit(overlay, (0, 0))
-            self._tod_tint_cache = overlay
-            
-        else:
-            # Unknown time of day - no tint
-            self._tod_tint_cache = None
-            
-        return surface
+        """Delegate to LightingEffectsSystem for time-of-day color grading."""
+        return self._lighting_effects_sys.apply_time_of_day_tint(surface)
 
     def _apply_cc2_color_grading(self, surface: pygame.Surface) -> None:
-        """应用CC2风格的色调分级（降低饱和度+轻微去亮）
-        
-        CC2 1997年游戏特征：
-        - 整体偏暗（CRT显示器时代的设计习惯）
-        - 低饱和度（像素艺术限制）
-        - 轻微偏暖色调
-        - 对比度适中（不是现代的高对比）
-        """
-        import numpy as np
-        
-        # 将surface转换为numpy数组进行像素操作
-        arr = pygame.surfarray.array3d(surface).copy().astype(np.float32)
-        
-        # 1. 降低亮度 (乘以0.92)
-        arr = arr * 0.92
-        
-        # 2. 降低饱和度 (向灰度混合15%)
-        gray = np.mean(arr, axis=2, keepdims=True)
-        arr = arr * 0.85 + gray * 0.15
-        
-        # 3. 轻微偏暖 (增加红色通道5%)
-        arr[:,:,0] = np.clip(arr[:,:,0] * 1.05, 0, 255)
-        
-        # 4. 轻微增加对比度 (S-curve midtone boost)
-        arr = np.clip(arr * 1.05 - 10, 0, 255)
-        
-        # 转回uint8并写回surface
-        arr = arr.astype(np.uint8)
-        pygame.surfarray.blit_array(surface, arr.swapaxes(0,1))
+        """Delegate to LightingEffectsSystem for CC2-style color grading."""
+        self._lighting_effects_sys.apply_cc2_color_grading(surface)
 
     def spawn_dynamic_light(self, position: tuple[int, int], 
                            radius: float, 
                            intensity: float,
                            color: tuple[int, int, int] = (255, 255, 200),
                            duration_ms: int = 200) -> None:
-        """
-        Register a dynamic point light source.
-        
-        用于临时动态光源（爆炸闪光、枪口焰、技能特效等）
-        
-        Args:
-            position: Screen coordinates (x, y) of light center
-            radius: Light radius in pixels (capped at MAX_DYNAMIC_LIGHT_RADIUS for performance)
-            intensity: Brightness factor (0.0-1.0)
-            color: RGB color tuple (default: warm white)
-            duration_ms: Lifetime in milliseconds (default: 200ms for muzzle flash)
-        """
-        if not self._lighting_config.enable_dynamic_lights:
-            return
-            
-        # Performance cap: enforce maximum concurrent lights
-        if len(self._dynamic_lights) >= self._max_dynamic_lights:
-            # Remove oldest light to make room
-            self._dynamic_lights.pop(0)
-            
-        # Cap radius to prevent huge surfaces
-        MAX_RADIUS = 200
-        capped_radius = min(radius, MAX_RADIUS)
-        
-        self._dynamic_lights.append({
-            'position': position,
-            'radius': capped_radius,
-            'intensity': max(0.0, min(1.0, intensity)),
-            'color': color,
-            'remaining_ms': duration_ms,
-            'max_duration': duration_ms,
-        })
+        """Delegate to LightingEffectsSystem for dynamic light registration."""
+        self._lighting_effects_sys.spawn_dynamic_light(
+            position, radius, intensity, color, duration_ms
+        )
 
     def update_dynamic_lights(self, dt_ms: int) -> None:
-        """
-        Update dynamic light lifecycles.
-        
-        Should be called from game loop's update() method.
-        
-        Args:
-            dt_ms: Delta time in milliseconds since last frame
-        """
-        if not self._lighting_config.enable_dynamic_lights:
-            return
-            
-        expired = []
-        for light in self._dynamic_lights:
-            light['remaining_ms'] -= dt_ms
-            if light['remaining_ms'] <= 0:
-                expired.append(light)
-                
-        for light in expired:
-            self._dynamic_lights.remove(light)
+        """Delegate to LightingEffectsSystem for dynamic light lifecycle update."""
+        self._lighting_effects_sys.update_dynamic_lights(dt_ms)
 
     def _render_dynamic_lights(self) -> None:
-        """
-        Render all active dynamic lights to offscreen buffer.
-        
-        Uses radial gradient with multiple concentric circles for smooth falloff.
-        Applies additive blending (BLEND_RGBA_ADD) for glow effect.
-        
-        Performance considerations:
-        - Max 8 concurrent lights (enforced by spawn_dynamic_light)
-        - Radius capped at 200px
-        - Uses optimized multi-layer circle rendering
-        """
-        if not self._lighting_config.enable_dynamic_lights or not self._offscreen:
-            return
-            
-        for light in self._dynamic_lights:
-            # Calculate lifecycle progress (1.0 = just spawned, 0.0 = about to expire)
-            progress = light['remaining_ms'] / light['max_duration']
-            
-            # Intensity fades over time (linear falloff)
-            current_intensity = light['intensity'] * progress
-            
-            # Radius expands then contracts (visual effect)
-            radius = int(light['radius'] * (2.0 - progress * 0.5))
-            
-            # Create surface for this light
-            light_surf = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-            
-            # Radial gradient with multiple concentric circles (4 layers)
-            # Each layer has different opacity for smooth falloff
-            for r_factor in [1.0, 0.7, 0.4, 0.2]:
-                r = int(radius * r_factor)
-                if r <= 0:
-                    continue
-                    
-                # Alpha decreases toward center (outer layers more transparent)
-                alpha = int(current_intensity * 255 * (1.0 - r_factor) * 0.5)
-                alpha = min(255, max(0, alpha))  # Clamp to valid range
-                
-                color = (*light['color'], alpha)
-                pygame.draw.circle(light_surf, color, (radius, radius), r)
-            
-            # Blit to offscreen buffer with additive blending (glow effect)
-            pos = light['position']
-            self._offscreen.blit(
-                light_surf, 
-                (pos[0] - radius, pos[1] - radius),
-                special_flags=pygame.BLEND_RGBA_ADD
-            )
+        """Delegate to LightingEffectsSystem for dynamic light rendering (legacy API)."""
+        self._lighting_effects_sys.render_dynamic_lights(self._offscreen)
     
     def _draw_decorations(self, game_map: GameMap, camera: Camera) -> None:
         """Draw decoration sprites on map."""
