@@ -1,12 +1,12 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.3.0 | Alpha Release | May 27, 2026**
+**v0.3.2 | Alpha Release | May 30, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
 <img src="https://img.shields.io/badge/Tests-3372%20passed-brightgreen.svg" alt="Tests" />
-<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC90%25-yellow.svg" alt="CC2 Fidelity" />
+<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC91%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Alpha-yellow.svg" alt="Status" />
 </p>
 
@@ -19,9 +19,24 @@
 
 ---
 
-## What's New in v0.3.0
+## What's New in v0.3.2
 
-### ✨ Major Features Added
+### ✨ v0.3.1 — Visual Fidelity Sprint (V01-V05)
+
+- **V01: CC2 Three-Panel HUD** (25%/45%/30% layout) matching original CC2 interface
+- **V02: VP Number Display** with golden bold font + pulse animation
+- **V03: Crater Depth Enhancement** with 5-layer gradient rendering + debris particles
+- **V04: Irregular Explosion Fireball** with flame tongues (not perfect circles)
+- **V05: CC2 Dark Color Tone Grading** (-15% brightness, warm shift)
+
+### 🏗️ v0.3.2 — Architecture Refactoring
+
+- **A1: Renderer Split** — 5500-line monolith → 8 focused modules (sprite/particle/lighting/terrain/unit/decoration)
+- **A2: DDD Dependency Inversion** — 9 domain layer violations fixed (IEventPublisher + IRandomNumberGenerator interfaces)
+- **A3: Naming Convention Audit** — Passed (unit_id/is_alive/can_act patterns consistent)
+- **A4: Performance Optimization** — Particle system +16.8% FPS (1082→1263), _render_smoke bugfix
+
+### 📊 v0.3.0 Major Features (Previous Release)
 
 - **CC2-Authentic Victory Conditions**: Instant VL capture, 20-minute battle timer, point-based scoring
 - **7 Command Hotkeys**: Z (Move Fast) / X (Sneak) / S (Fire) / C (Smoke) / V (Move) / D (Defend) / H (Hide)
@@ -50,7 +65,7 @@
 | **AI Behaviors** | 6 tactical AI types (flanking, suppression, VP, etc.) |
 | **Code Files** | 200+ Python modules |
 | **Class Definitions** | 286 classes |
-| **CC2 Fidelity** | ~90% (Visual: 88%, Mechanics: 92%) ⚠️ | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for details |
+| **CC2 Fidelity** | ~91% (Visual: 91%, Mechanics: 92%) ⚠️ | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for details |
 
 ---
 
@@ -310,7 +325,7 @@ pytest tests/e2e/test_e2e_full_coverage.py -v
 | **Weapon System** | ~50 weapons | **69 weapons** with authentic stats | ✅ Complete |
 | **Unit Diversity** | 130+ unit types | **277 templates** with sprite rendering | ✅ Complete |
 | **AI Tactics** | Mature behavior trees | **6 AI types** with BT framework | ✅ Functional |
-| **Visual Quality** | CC2 pixel art | Sprites, terrain, buildings, shadows | ✅ ~90% |
+| **Visual Quality** | CC2 pixel art | Sprites, terrain, buildings, shadows, 3-panel HUD, VP display, color grading | ✅ ~91% |
 | **Combat Mechanics** | Suppression + morale | Swiss Cheese model, 6 levels | ✅ Complete |
 | **Command System** | 7 commands | **All 7 commands** with hotkeys + queue | ✅ Complete |
 | **Victory Conditions** | CC2-authentic | Instant VL, 20min timer, points | ✅ Complete |
@@ -318,7 +333,7 @@ pytest tests/e2e/test_e2e_full_coverage.py -v
 | **Bridge Destruction** | Engineer demos | Engineers destroy bridges | ✅ Complete |
 | **Audio** | Full soundscape | Weapons, ambient, music | 🟡 ~85% |
 
-**Overall Fidelity: ~90%** (Visual: 88%, Mechanics: 92%) ⚠️ See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for TOP5 visual gaps (UI panel/VP style/craters/explosions/color tone)
+**Overall Fidelity: ~91%** (Visual: 91%, Mechanics: 92%) ⚠️ See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for remaining gaps
 
 ---
 
@@ -331,19 +346,26 @@ pytest tests/e2e/test_e2e_full_coverage.py -v
 
 ### Current Phase: M3 — Polish & Visual Fidelity
 
+- [x] ~~CC2 Three-Panel HUD~~ ✅ v0.3.1-V01
+- [x] ~~VP Number Display (golden bold + pulse)~~ ✅ v0.3.1-V02
+- [x] ~~Crater Depth Enhancement (5-layer gradient)~~ ✅ v0.3.1-V03
+- [x] ~~Irregular Explosion Fireball~~ ✅ v0.3.1-V04
+- [x] ~~CC2 Dark Color Tone Grading~~ ✅ v0.3.1-V05
 - [ ] Command queue UI (visual waypoint display)
 - [ ] Vehicle damage visual feedback (smoke, fire, immobilized)
-- [ ] Smoke particle effects improvement
 - [ ] Save/Load full UI integration
 - [ ] Audio mixing balance pass
 
 ### Future Phases
 
-**M4: Architecture Improvements** (v0.5)
+**M4: Architecture Improvements** (v0.5) — **PARTIALLY COMPLETE (v0.3.2)**
+- [x] ~~Split large files (enhanced_renderer 5500→8 modules)~~ ✅ v0.3.2-A1
+- [x] ~~Domain layer dependency inversion (9 violations fixed)~~ ✅ v0.3.2-A2
+- [x] ~~Naming convention unification (audit passed)~~ ✅ v0.3.2-A3
+- [x] ~~Performance profiling (+16.8% FPS)~~ ✅ v0.3.2-A4
 - [ ] Domain layer slimdown (75.4% → <50%)
-- [ ] Split large files (8 files >1000 lines)
 - [ ] Unify unit definition system (4 sets → 1)
-- [ ] Clean up technical debt (bare except, duplicate modules)
+- [ ] Clean up technical debt (30 bare except → specific exceptions)
 
 **M5: Quality & Sustainability** (v0.6)
 - [ ] CI/CD enhancement (4-stage pipeline)
@@ -432,4 +454,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Generated on 2026-05-30 | v0.3.0 (7-dimension review, honest assessment edition) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
+<p align="center"><sub>Generated on 2026-05-30 | v0.3.2 (7-dimension review v2, post-refactor) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
