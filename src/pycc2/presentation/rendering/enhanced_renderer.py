@@ -2858,11 +2858,7 @@ class TopDownParticleSystem:
                 self._render_dirt_particle(surface, p)
             elif p['type'] == 'blood_pool':
                 self._render_blood_pool(surface, p)
-        
-        # 应用CC2色调分级（仅当配置启用时）
-        if hasattr(self, '_enable_cc2_color_grading') and self._enable_cc2_color_grading:
-            self._apply_cc2_color_grading(surface)
-                
+
     def _render_explosion_ring(self, surface: pygame.Surface, p: dict) -> None:
         """🔥 不规则爆炸火焰团（CC2战斗5.jpeg风格）
         
@@ -3124,6 +3120,10 @@ class EnhancedRenderer:
         self._unit_renderer = UnitRenderer(self)
         self._decoration_renderer = DecorationRenderer(self)
         self._lighting_system = LightingSystem(self._lighting_config)
+
+        self._enable_cc2_color_grading: bool = True
+        self._hud = None
+        self._hud_enabled: bool = True
     
     def initialize(self, screen: pygame.Surface) -> None:
         """Initialize renderer with display surface."""
@@ -3187,6 +3187,16 @@ class EnhancedRenderer:
             TopDownLightingConfig: Current lighting configuration
         """
         return self._lighting_config
+
+    def set_cc2_color_grading(self, enable: bool) -> None:
+        self._enable_cc2_color_grading = enable
+        logger.debug(f"CC2 color grading: {'enabled' if enable else 'disabled'}")
+
+    def set_hud(self, hud) -> None:
+        self._hud = hud
+
+    def enable_hud(self, enabled: bool = True) -> None:
+        self._hud_enabled = enabled
 
     def render(
         self,
@@ -3287,6 +3297,10 @@ class EnhancedRenderer:
         
         # Render dynamic point lights (explosions, muzzle flashes, ability effects)
         self._render_dynamic_lights()
+
+        # STEP 5.9: Render CC2 three-panel HUD (if enabled and attached)
+        if self._hud_enabled and self._hud is not None:
+            self._hud.render(self._offscreen)
 
         # STEP 6: Atomic blit off-screen buffer → display surface
         self._screen.blit(self._offscreen, (0, 0))

@@ -1,12 +1,12 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.3.2 | Alpha Release | May 30, 2026**
+**v0.3.4 | Alpha Release | May 30, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
 <img src="https://img.shields.io/badge/Tests-3372%20passed-brightgreen.svg" alt="Tests" />
-<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC91%25-yellow.svg" alt="CC2 Fidelity" />
+<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC85%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Alpha-yellow.svg" alt="Status" />
 </p>
 
@@ -19,7 +19,14 @@
 
 ---
 
-## What's New in v0.3.2
+## What's New in v0.3.4
+
+### 🛠️ v0.3.4 — Ghost Feature Fix (DevSquad Review)
+- **P0-1**: Integrated CC2 three-panel HUD into render pipeline (STEP 5.9)
+- **P0-2**: Enabled CC2 dark color grading by default (removed hasattr guard)
+- **Bugfix**: Removed erroneous color grading code from TopDownParticleSystem.render()
+- Added `set_hud()`, `enable_hud()`, `set_cc2_color_grading()` APIs to EnhancedRenderer
+- E2E: 14/14 visual tests passing
 
 ### ✨ v0.3.1 — Visual Fidelity Sprint (V01-V05)
 
@@ -65,7 +72,7 @@
 | **AI Behaviors** | 6 tactical AI types (flanking, suppression, VP, etc.) |
 | **Code Files** | 200+ Python modules |
 | **Class Definitions** | 286 classes |
-| **CC2 Fidelity** | ~91% (Visual: 91%, Mechanics: 92%) ⚠️ | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for details |
+| **CC2 Fidelity** | ~88% (Visual: 85%, Mechanics: 92%) ⚠️ | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for details |
 
 ---
 
@@ -325,7 +332,7 @@ pytest tests/e2e/test_e2e_full_coverage.py -v
 | **Weapon System** | ~50 weapons | **69 weapons** with authentic stats | ✅ Complete |
 | **Unit Diversity** | 130+ unit types | **277 templates** with sprite rendering | ✅ Complete |
 | **AI Tactics** | Mature behavior trees | **6 AI types** with BT framework | ✅ Functional |
-| **Visual Quality** | CC2 pixel art | Sprites, terrain, buildings, shadows, 3-panel HUD, VP display, color grading | ✅ ~91% |
+| **Visual Quality** | CC2 pixel art | Sprites, terrain, buildings, shadows, 3-panel HUD, VP display, color grading | ✅ ~85% |
 | **Combat Mechanics** | Suppression + morale | Swiss Cheese model, 6 levels | ✅ Complete |
 | **Command System** | 7 commands | **All 7 commands** with hotkeys + queue | ✅ Complete |
 | **Victory Conditions** | CC2-authentic | Instant VL, 20min timer, points | ✅ Complete |
@@ -333,7 +340,7 @@ pytest tests/e2e/test_e2e_full_coverage.py -v
 | **Bridge Destruction** | Engineer demos | Engineers destroy bridges | ✅ Complete |
 | **Audio** | Full soundscape | Weapons, ambient, music | 🟡 ~85% |
 
-**Overall Fidelity: ~91%** (Visual: 91%, Mechanics: 92%) ⚠️ See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for remaining gaps
+**Overall Fidelity: ~88%** (Visual: 85%, Mechanics: 92%) ⚠️ See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for remaining gaps
 
 ---
 
@@ -454,4 +461,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Generated on 2026-05-30 | v0.3.2 (7-dimension review v2, post-refactor) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
+<p align="center"><sub>Generated on 2026-05-30 | v0.3.4 (Ghost Feature Fix, post-DevSquad review) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
