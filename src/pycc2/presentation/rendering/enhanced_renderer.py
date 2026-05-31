@@ -2223,67 +2223,6 @@ class EnhancedRenderer:
                 (int(end_pos[0]), int(end_pos[1])), 1
             )
     
-    def _apply_post_processing(self) -> None:
-        """Apply minimal post-processing effects for performance.
-
-        DISABLED heavy effects (color grading, film grain) that cause flickering.
-        Only keep subtle vignette for cinematic feel, applied very infrequently.
-        """
-        if self._screen is None:
-            return
-
-        # ONLY apply vignette every 10 frames to prevent flickering
-        if self._frame_count % 10 != 0:
-            return
-
-        w, h = self._screen.get_size()
-
-        # Simple vignette only - no color grading or film grain
-        overlay = pygame.Surface((w, h), pygame.SRCALPHA)
-        cx, cy = w // 2, h // 2
-        max_dist = math.sqrt(cx**2 + cy**2)
-
-        # Very sparse sampling for performance
-        for y in range(0, h, 8):
-            for x in range(0, w, 8):
-                dist = math.sqrt((x - cx)**2 + (y - cy)**2) / max_dist
-                if dist > 0.7:
-                    alpha = int((dist - 0.7) * 20)  # Very subtle
-                    if alpha > 0:
-                        overlay.set_at((x, y), (15, 12, 8, alpha))
-
-        self._offscreen.blit(overlay, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
-
-        # DISABLED: Color grading (causes flickering on some systems)
-        # DISABLED: Film grain (causes visual noise)
-        # DISABLED: Contrast enhancement (causes brightness oscillation)
-    
-    def _detect_building_clusters(self, game_map: GameMap) -> list[list[tuple[int, int]]]:
-        """Find groups of adjacent building tiles using flood-fill/BFS.
-        
-        Returns list of clusters, each cluster is list of (x,y) coords.
-        Building tiles are terrain IDs 4 (BUILDING_ENTERABLE) and 5 (BUILDING_SOLID).
-        
-        This method caches results to avoid recomputation during rendering.
-        
-        Args:
-            game_map: Game map instance
-            
-        Returns:
-            list: List of building clusters, each containing (x, y) coordinate tuples
-        """
-        # Use cached result if available
-        if self._building_clusters is not None:
-            return self._building_clusters
-        
-        # Compute and cache building clusters
-        self._building_clusters = detect_building_clusters(game_map)
-        return self._building_clusters
-    
-    def invalidate_building_cluster_cache(self) -> None:
-        """Invalidate the building cluster cache (call when map changes)."""
-        self._building_clusters = None
-
     def shutdown(self) -> None:
         """Clean up renderer resources."""
         self._texture_cache.clear()
