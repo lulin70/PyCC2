@@ -196,7 +196,7 @@ class EnhancedSoundSystem:
         try:
             mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
             self._initialized = True
-            print("[EnhancedAudio] Initialized with real file support")
+            logger.info("Initialized with real file support")
             
             # Pre-load available sound files
             self._preload_sounds()
@@ -204,14 +204,14 @@ class EnhancedSoundSystem:
             return True
             
         except Exception as e:
-            print(f"[EnhancedAudio] Init failed: {e}")
+            logger.warning("Init failed: %s", e)
             try:
                 mixer.init(frequency=44100, size=-16, channels=1, buffer=512)
                 self._initialized = True
-                print("[EnhancedAudio] Fallback to mono")
+                logger.info("Fallback to mono")
                 return True
             except Exception as e2:
-                print(f"[EnhancedAudio] Mono also failed: {e2}")
+                logger.warning("Mono also failed: %s", e2)
                 return False
 
     def _preload_sounds(self) -> None:
@@ -224,9 +224,9 @@ class EnhancedSoundSystem:
                     sound = mixer.Sound(str(full_path))
                     sound.set_volume(mapping.volume * self._sfx_volume)
                     self._cache_sound(event.name, sound)
-                    print(f"[EnhancedAudio] Loaded: {mapping.file_path}")
+                    logger.info("Loaded: %s", mapping.file_path)
                 except Exception as e:
-                    print(f"[EnhancedAudio] Failed to load {mapping.file_path}: {e}")
+                    logger.warning("Failed to load %s: %s", mapping.file_path, e)
 
     def _cache_sound(self, key: str, sound: mixer.Sound) -> None:
         self._sound_cache[key] = sound
@@ -247,7 +247,7 @@ class EnhancedSoundSystem:
                     sound.set_volume(mapping.volume * self._sfx_volume)
                     self._cache_sound(mapping.event.name, sound)
                 except Exception as e:
-                    print(f"[EnhancedAudio] Failed to load {mapping.file_path}: {e}")
+                    logger.warning("Failed to load %s: %s", mapping.file_path, e)
 
     def play_combat_event(
         self,
@@ -352,7 +352,7 @@ class EnhancedSoundSystem:
                     return sound
 
         except Exception as e:
-            print(f"[EnhancedAudio] CC2 combat fallback failed for {event.name}: {e}")
+            logger.warning("CC2 combat fallback failed for %s: %s", event.name, e)
 
         return None
 
@@ -791,7 +791,7 @@ class EnhancedSoundSystem:
                 return sound
                 
         except Exception as e:
-            print(f"[EnhancedAudio] Procedural fallback failed for {event.name}: {e}")
+            logger.warning("Procedural fallback failed for %s: %s", event.name, e)
             
         return None
 
@@ -889,7 +889,7 @@ class EnhancedSoundSystem:
                 channel.play(sound)
                 return True
         except Exception as e:
-            print(f"[EnhancedAudio] Suppression fire failed: {e}")
+            logger.warning("Suppression fire failed: %s", e)
 
         return False
 

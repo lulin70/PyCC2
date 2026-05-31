@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 import numpy as np
 from pygame import mixer
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.value_objects.vec2 import Vec2
@@ -205,9 +208,9 @@ class SoundSystem:
             self._channel_count = 8
             self._initialized = True
             self._available = True
-            print("[Audio] Initialized stereo mixer (2 channels)")
+            logger.info("Initialized stereo mixer (2 channels)")
         except Exception as stereo_err:
-            print(f"[Audio] Stereo init failed: {stereo_err}, trying mono fallback...")
+            logger.info("Stereo init failed: %s, trying mono fallback...", stereo_err)
             try:
                 mixer.quit()
                 mixer.init(
@@ -220,10 +223,10 @@ class SoundSystem:
                 self._channel_count = 4
                 self._initialized = True
                 self._available = True
-                print("[Audio] Fallback to mono mixer (1 channel)")
+                logger.info("Fallback to mono mixer (1 channel)")
             except Exception as mono_err:
-                print(f"[Audio] Mono init also failed: {mono_err}")
-                print("[Audio] Audio system disabled - game will run without sound")
+                logger.warning("Mono init also failed: %s", mono_err)
+                logger.warning("Audio system disabled - game will run without sound")
                 self._available = False
                 self._config.enabled = False
                 return
@@ -232,8 +235,8 @@ class SoundSystem:
             try:
                 self._pregenerate_common_sounds()
             except Exception as sound_err:
-                print(f"[Audio] Warning: Sound pregeneration failed: {sound_err}")
-                print("[Audio] Individual sounds will be generated on-demand")
+                logger.warning("Warning: Sound pregeneration failed: %s", sound_err)
+                logger.info("Individual sounds will be generated on-demand")
 
     def shutdown(self) -> None:
         if self._initialized:
@@ -463,7 +466,7 @@ class SoundSystem:
             if ch:
                 ch.play(sound)
         except Exception as e:
-            print(f"[Audio] Victory sound generation failed: {e}")
+            logger.warning("Victory sound generation failed: %s", e)
             self.play(SoundType.UI_SUCCESS)
 
     def play_defeat(self) -> None:
@@ -493,7 +496,7 @@ class SoundSystem:
             if ch:
                 ch.play(sound)
         except Exception as e:
-            print(f"[Audio] Defeat sound generation failed: {e}")
+            logger.warning("Defeat sound generation failed: %s", e)
             self.play(SoundType.UI_ERROR)
 
     @property

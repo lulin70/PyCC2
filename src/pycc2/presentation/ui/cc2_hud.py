@@ -146,7 +146,7 @@ class CC2HUD:
             self._font_title = font.SysFont('consolas', 14, bold=True)
             self._font_normal = font.SysFont('consolas', 11)
             self._font_small = font.SysFont('consolas', 9)
-        except Exception as e:
+        except (OSError, ValueError, RuntimeError) as e:
             logger.debug(f"Font initialization fallback: {e}")
             self._font_title = font.Font(None, 18)
             self._font_normal = font.Font(None, 14)
@@ -829,7 +829,7 @@ class CC2HUD:
                 return self.STATUS_CRITICAL
             else:
                 return self.STATUS_DEAD
-        except Exception:
+        except (TypeError, AttributeError, ZeroDivisionError):
             return self.STATUS_HEALTHY
 
     def _get_morale_color(self, value: int) -> tuple[int, int, int]:

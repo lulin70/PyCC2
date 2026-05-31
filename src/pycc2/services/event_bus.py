@@ -44,7 +44,7 @@ class EventBus(IEventPublisher):
             )
             if required:
                 return required
-        except Exception as e:
+        except (ValueError, TypeError, KeyError) as e:
             logging.warning(f"TypedDict required keys introspection failed: {e}")
         rk = getattr(typed_dict_cls, "__required_keys__", None)
         return rk if rk is not None else frozenset()
@@ -73,7 +73,7 @@ class EventBus(IEventPublisher):
         for handler in handlers:
             try:
                 handler(event)
-            except Exception as e:
+            except (ValueError, TypeError, KeyError, RuntimeError, AttributeError) as e:
                 self._error_count += 1
                 logger.error(
                     "Handler error for %s: %s",

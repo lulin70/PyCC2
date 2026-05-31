@@ -298,7 +298,7 @@ class ProceduralTextureGenerator:
                     new_b = max(0, min(255, b + offset))
                     pixels[x, y] = (new_r, new_g, new_b)
             del pixels
-        except Exception as e:
+        except (ValueError, IndexError) as e:
             pass  # Fallback: just use base color
 
     @staticmethod
@@ -626,7 +626,7 @@ class ProceduralTextureGenerator:
                 sx = rng.randint(tile_sz // 10, tile_sz - tile_sz // 10)
                 sy = rng.randint(int(0.7 * tile_sz), tile_sz - 1)
                 pixels[sx, sy] = (28, 45, 20)
-        except Exception as e:
+        except (ValueError, IndexError) as e:
             # Fallback: just use base color if numpy operations fail
             pass
         finally:
@@ -1496,9 +1496,9 @@ class ProceduralTextureGenerator:
                             rim_color = (158, 130, 72)  # #9E8248
                             brightness_factor = 1.0 - (norm_dist - 0.85) / 0.15  # Fade at outer edge
                             pixels[x, y] = (
-                                min(255, int(rim_color[0] * brightness_factor + rng.randint(-10, 10))),
-                                min(255, int(rim_color[1] * brightness_factor + rng.randint(-8, 8))),
-                                min(255, int(rim_color[2] * brightness_factor + rng.randint(-12, 12)))
+                                max(0, min(255, int(rim_color[0] * brightness_factor + rng.randint(-10, 10)))),
+                                max(0, min(255, int(rim_color[1] * brightness_factor + rng.randint(-8, 8)))),
+                                max(0, min(255, int(rim_color[2] * brightness_factor + rng.randint(-12, 12))))
                             )
 
             # Add scattered small rocks around rim for realism
@@ -1531,7 +1531,7 @@ class ProceduralTextureGenerator:
                                 )
 
             del pixels
-        except Exception as e:
+        except (ValueError, IndexError) as e:
             logging.debug(f"Texture generation failed: {e}")
 
     @staticmethod
@@ -1897,47 +1897,156 @@ class SpriteGenerator:
     
     @staticmethod
     def _draw_crater_small(surface: pygame.Surface, variant: int) -> None:
-        """Draw small shell crater (ellipse with shadow)."""
-        # Dark interior
+        """Draw small shell crater with multi-layer depth and irregular shape."""
+        import math
         cx, cy = 16, 20
-        for y in range(16, 26):
-            for x in range(10, 22):
-                norm_dist = ((x-cx)/6)**2 + ((y-cy)/4)**2
-                if norm_dist < 1:
-                    shade = int(40 + norm_dist * 30)
-                    surface.set_at((x, y), (shade, shade-5, shade-10))
-        
-        # Raised rim (lighter)
-        rim_color = (140, 135, 130)
-        for angle in range(0, 360, 20):
-            rad = math.radians(angle)
-            rx = int(cx + 7 * math.cos(rad))
-            ry = int(cy + 5 * math.sin(rad))
-            if 0 <= rx < 32 and 0 <= ry < 32:
-                surface.set_at((rx, ry), rim_color)
+        rng = random.Random(variant * 137 + 42)
+
+        num_points = 16
+
+        def generate_irregular_shape(base_radius, noise_strength=0.15):
+            points = []
+            for i in range(num_points):
+                angle = 2 * math.pi * i / num_points
+                noise = noise_strength + noise_strength * math.sin(angle * 3 + variant)
+                r = base_radius * noise
+                px = cx + r * math.cos(angle)
+                py = cy + r * math.sin(angle)
+                points.append((px, py))
+            return points
+
+        layer_configs = [
+            (7.0, (70, 65, 58), 0.15),
+            (5.5, (50, 48, 42), 0.12),
+            (4.0, (35, 33, 28), 0.10),
+            (2.5, (25, 24, 20), 0.08),
+            (1.0, (90, 85, 75), 0.05),
+        ]
+
+        for idx, (radius, color, noise) in enumerate(layer_configs):
+            if idx == 4:
+                highlight_angle = math.pi * 1.25
+                hx = cx + radius * 0.7 * math.cos(highlight_angle)
+                hy = cy + radius * 0.7 * math.sin(highlight_angle)
+                pygame.draw.circle(surface, color, (int(hx), int(hy)), max(1, int(radius * 0.6)))
+            else:
+                points = generate_irregular_shape(radius, noise)
+                int_points = [(int(x), int(y)) for x, y in points]
+                if len(int_points) >= 3:
+                    pygame.draw.polygon(surface, color, int_points)
+
+        shadow_angle = math.pi * 0.25
+        shadow_points = []
+        for i in range(8):
+            angle = shadow_angle + (i - 4) * 0.15
+            r = 3.0 + abs(i - 4) * 0.3
+            sx = cx + r * math.cos(angle)
+            sy = cy + r * math.sin(angle)
+            shadow_points.append((sx, sy))
+        if len(shadow_points) >= 3:
+            int_shadow = [(int(x), int(y)) for x, y in shadow_points]
+            pygame.draw.polygon(surface, (20, 18, 15), int_shadow)
+
+        for _ in range(rng.randint(6, 10)):
+            debris_angle = rng.uniform(0, 2 * math.pi)
+            debris_dist = rng.uniform(6.5, 8.5)
+            dx = int(cx + debris_dist * math.cos(debris_angle))
+            dy = int(cy + debris_dist * math.sin(debris_angle))
+            if 0 <= dx < 32 and 0 <= dy < 32:
+                debris_size = rng.randint(2, 3)
+                debris_color = (
+                    rng.randint(55, 75),
+                    rng.randint(50, 68),
+                    rng.randint(45, 60)
+                )
+                pygame.draw.circle(surface, debris_color, (dx, dy), debris_size)
+
+        center_dark_radius = 2
+        for r in range(center_dark_radius, 0, -1):
+            darkness = 22 + (center_dark_radius - r) * 5
+            pygame.draw.circle(surface, (darkness, darkness-3, darkness-5), (cx, cy), r)
     
     @staticmethod
     def _draw_crater_large(surface: pygame.Surface, variant: int) -> None:
-        """Draw large bomb crater."""
-        # Dark center
+        """Draw large bomb crater with multi-layer depth and realistic depression."""
+        import math
         cx, cy = 16, 18
-        for y in range(8, 28):
-            for x in range(4, 28):
-                norm_dist = ((x-cx)/12)**2 + ((y-cy)/8)**2
-                if norm_dist < 1:
-                    shade = int(35 + norm_dist * 40)
-                    surface.set_at((x, y), (shade, shade-8, shade-15))
-        
-        # Rim
-        rim_color = (130, 125, 120)
-        for angle in range(0, 360, 12):
-            rad = math.radians(angle)
-            rx = int(cx + 13 * math.cos(rad))
-            ry = int(cy + 10 * math.sin(rad))
-            if 0 <= rx < 32 and 0 <= ry < 32:
-                surface.set_at((rx, ry), rim_color)
-                if 0 <= rx+1 < 32:
-                    surface.set_at((rx+1, ry), rim_color)
+        rng = random.Random(variant * 137 + 99)
+
+        num_points = 20
+
+        def generate_irregular_shape(base_radius, noise_strength=0.12):
+            points = []
+            for i in range(num_points):
+                angle = 2 * math.pi * i / num_points
+                noise = noise_strength + noise_strength * math.sin(angle * 4 + variant * 1.5)
+                r = base_radius * noise
+                px = cx + r * math.cos(angle)
+                py = cy + r * math.sin(angle)
+                points.append((px, py))
+            return points
+
+        layer_configs = [
+            (13.0, (70, 65, 58), 0.14),
+            (10.5, (50, 48, 42), 0.11),
+            (8.0, (35, 33, 28), 0.09),
+            (5.0, (25, 24, 20), 0.07),
+            (2.0, (90, 85, 75), 0.05),
+        ]
+
+        for idx, (radius, color, noise) in enumerate(layer_configs):
+            if idx == 4:
+                highlight_angle = math.pi * 1.25
+                hx = cx + radius * 0.6 * math.cos(highlight_angle)
+                hy = cy + radius * 0.6 * math.sin(highlight_angle)
+                pygame.draw.circle(surface, color, (int(hx), int(hy)), max(1, int(radius * 0.7)))
+            else:
+                points = generate_irregular_shape(radius, noise)
+                int_points = [(int(x), int(y)) for x, y in points]
+                if len(int_points) >= 3:
+                    pygame.draw.polygon(surface, color, int_points)
+
+        shadow_angle = math.pi * 0.35
+        shadow_points = []
+        for i in range(12):
+            angle = shadow_angle + (i - 6) * 0.12
+            r = 5.0 + abs(i - 6) * 0.4
+            sx = cx + r * math.cos(angle)
+            sy = cy + r * math.sin(angle)
+            shadow_points.append((sx, sy))
+        if len(shadow_points) >= 3:
+            int_shadow = [(int(x), int(y)) for x, y in shadow_points]
+            pygame.draw.polygon(surface, (18, 16, 13), int_shadow)
+
+        for _ in range(rng.randint(12, 18)):
+            debris_angle = rng.uniform(0, 2 * math.pi)
+            debris_dist = rng.uniform(12.0, 15.0)
+            dx = int(cx + debris_dist * math.cos(debris_angle))
+            dy = int(cy + debris_dist * math.sin(debris_angle))
+            if 0 <= dx < 32 and 0 <= dy < 32:
+                debris_size = rng.randint(2, 3)
+                debris_color = (
+                    rng.randint(50, 70),
+                    rng.randint(45, 65),
+                    rng.randint(40, 55)
+                )
+                pygame.draw.circle(surface, debris_color, (dx, dy), debris_size)
+
+        center_dark_radius = 3
+        for r in range(center_dark_radius, 0, -1):
+            darkness = 20 + (center_dark_radius - r) * 6
+            pygame.draw.circle(surface, (darkness, darkness-4, darkness-6), (cx, cy), r)
+
+        rim_thickness = 2
+        for t in range(rim_thickness):
+            rim_radius = 13.5 + t * 0.3
+            rim_noise = 0.08 - t * 0.02
+            rim_points = generate_irregular_shape(rim_radius, rim_noise)
+            int_rim = [(int(x), int(y)) for x, y in rim_points]
+            if len(int_rim) >= 3:
+                brightness = 125 - t * 15
+                rim_color = (brightness, brightness-5, brightness-10)
+                pygame.draw.polygon(surface, rim_color, int_rim)
     
     @staticmethod
     def _draw_trench(surface: pygame.Surface, variant: int) -> None:
@@ -2479,7 +2588,7 @@ class TerrainTileCache:
                 self._apply_edge_smoothing(texture, terrain_type, autotile_mask)
 
             return texture
-        except Exception as e:
+        except (ValueError, pygame.error) as e:
             logging.debug(f"Tile texture creation failed: {e}")
             return None
 
@@ -3033,8 +3142,8 @@ class EnhancedRenderer:
             from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
             self._sprite_renderer = SpriteRenderer()
             self._sprite_renderer.initialize(screen)
-            print("[EnhancedRenderer] ✅ SpriteRenderer initialized with PNG support")
-        except Exception as e:
+            logger.info("✅ SpriteRenderer initialized with PNG support")
+        except RuntimeError as e:
             import warnings
             warnings.warn(f"SpriteRenderer initialization failed: {e}")
             self._sprite_renderer = None
@@ -3121,7 +3230,7 @@ class EnhancedRenderer:
         # STEP 2: Draw terrain — use enhanced texturing with simple fallback
         try:
             self._draw_enhanced_terrain(game_map, camera, debug_mode)
-        except Exception as e:
+        except RuntimeError as e:
             logger.warning(f"Enhanced terrain failed, falling back to simple: {e}")
             self._draw_simple_terrain(game_map, camera)
 
@@ -3275,7 +3384,7 @@ class EnhancedRenderer:
                     )
                     pygame.draw.rect(self._offscreen, color, rect)
 
-                except Exception as e:
+                except (AttributeError, ValueError) as e:
                     # Skip this tile on any error to prevent crash
                     continue
     
@@ -3669,36 +3778,43 @@ class EnhancedRenderer:
                 pygame.draw.polygon(self._offscreen, flag_color, flag_points)
                 pygame.draw.polygon(self._offscreen, (0, 0, 0), flag_points, 1)
 
-                # V02增强: 显示VP数字（大号黄色+阴影描边）
+                # V02增强: 显示VP数字（大号黄色+阴影描边+缩放动画）
                 vp_value = getattr(obj, 'points', None)
                 if vp_value is not None and isinstance(vp_value, (int, float)):
                     try:
-                        font = pygame.font.Font(None, 28)  # 28px bold
+                        font = pygame.font.Font(None, 38)  # 38px bold (原28→38)
                         vp_text = str(int(vp_value))
 
-                        # 脉冲动画效果（alpha在200-255之间缓慢变化）
+                        # 脉冲动画效果（缩放+透明度双重效果）
+                        pulse_scale = math.sin(_time.time() * 3.0) * 0.05 + 1.0  # 缩放因子 0.95~1.05
                         pulse_alpha = int(200 + 55 * abs(math.sin(_time.time() * 2.0)))
 
-                        # 绘制黑色描边（2px偏移8方向）
-                        text_color = (255, 215, 0)  # 金黄色 RGB(255, 215, 0)
-                        outline_color = (0, 0, 0, pulse_alpha)
+                        # 绘制黑色描边（4方向1px偏移，更清晰锐利）
+                        text_color = (255, 220, 100)  # 亮金黄色 RGB(255, 220, 100)
 
-                        for dx in [-2, -1, 0, 1, 2]:
-                            for dy in [-2, -1, 0, 1, 2]:
-                                if dx != 0 or dy != 0:
-                                    outline_surf = font.render(vp_text, True, (0, 0, 0))
-                                    outline_surf.set_alpha(pulse_alpha)
-                                    self._offscreen.blit(outline_surf,
-                                                        (sx - font.size(vp_text)[0]//2 + dx,
-                                                         sy - 38 + dy))
+                        base_x = sx - font.size(vp_text)[0] // 2
+                        base_y = sy - 40
 
-                        # 绘制主文字（金黄色）
+                        for dx, dy in [(-1, -1), (1, -1), (-1, 1), (1, 1)]:
+                            outline_surf = font.render(vp_text, True, (0, 0, 0))
+                            outline_surf.set_alpha(pulse_alpha)
+                            offset_x = int(base_x + dx * pulse_scale)
+                            offset_y = int(base_y + dy * pulse_scale)
+                            self._offscreen.blit(outline_surf, (offset_x, offset_y))
+
+                        # 绘制主文字（亮金黄色+缩放动画）
                         text_surf = font.render(vp_text, True, text_color)
                         text_surf.set_alpha(pulse_alpha)
-                        self._offscreen.blit(text_surf,
-                                            (sx - font.size(vp_text)[0]//2,
-                                             sy - 40))  # 正上方偏移15px（旗帜顶部-20再上移20px）
-                    except Exception:
+
+                        if pulse_scale != 1.0:
+                            new_w = int(text_surf.get_width() * pulse_scale)
+                            new_h = int(text_surf.get_height() * pulse_scale)
+                            text_surf = pygame.transform.scale(text_surf, (new_w, new_h))
+
+                        final_x = int(base_x - (text_surf.get_width() - font.size(vp_text)[0]) // 2)
+                        final_y = int(base_y - (text_surf.get_height() - font.size(vp_text)[1]) // 2)
+                        self._offscreen.blit(text_surf, (final_x, final_y))
+                    except (AttributeError, ValueError):
                         pass  # 字体渲染失败时静默跳过
             else:
                 off_screen_vls.append((tile_x, tile_y, owner))
@@ -3836,7 +3952,7 @@ class EnhancedRenderer:
             current_map_hash = hash((game_map.width, game_map.height, id(game_map)))
             if current_map_hash != self._last_map_hash:
                 self._transition_cache.clear()
-        except Exception:
+        except (ValueError, TypeError):
             pass
 
         # P2-11: Slightly wider transition strips for smoother blending
@@ -4004,7 +4120,7 @@ class EnhancedRenderer:
                 self._terrain_tile_cache.invalidate()  # Invalidate tile cache when map changes
                 self._last_map_hash = current_map_hash
                 self._edge_smooth_dirty = False
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             logging.debug(f"Map hash/cache update failed: {e}")
 
         # Autotile terrains that handle their own edges (skip these)
@@ -4058,7 +4174,7 @@ class EnhancedRenderer:
                             (color1[2] + color2[2]) // 2,
                             45,
                         )
-                    except Exception as e:
+                    except (ValueError, TypeError) as e:
                         logging.debug(f"Edge color blending failed: {e}")
                         blend_color = (80, 80, 80, 45)
 
@@ -4165,7 +4281,7 @@ class EnhancedRenderer:
             warm_overlay = pygame.Surface((screen_w, screen_h), pygame.SRCALPHA)
             warm_overlay.fill((255, 220, 160, 12))  # Very subtle warm tint
             self._offscreen.blit(warm_overlay, (0, 0))
-        except Exception as e:
+        except (ValueError, pygame.error) as e:
             logging.debug(f"Warm tint overlay failed: {e}")
 
         # 4. Vignette effect (darker edges)
@@ -4193,7 +4309,7 @@ class EnhancedRenderer:
                 x = screen_w - 1 - i
                 pygame.draw.line(vignette, (0, 0, 0, alpha), (x, 0), (x, screen_h))
             self._offscreen.blit(vignette, (0, 0))
-        except Exception as e:
+        except (ValueError, pygame.error) as e:
             logging.debug(f"Vignette effect failed: {e}")
 
     def _draw_building_shadows(self, game_map: GameMap, camera: Camera) -> None:
@@ -4253,7 +4369,7 @@ class EnhancedRenderer:
                         shadow_surf2,
                         (sx - shadow_offset, sy - shadow_offset),
                     )
-                except Exception as e:
+                except (ValueError, pygame.error) as e:
                     logging.debug(f"Building shadow draw failed: {e}")
                     continue
 
@@ -4523,7 +4639,7 @@ class EnhancedRenderer:
             np.clip(float_arr, 0, 255, out=float_arr)
             arr[:] = float_arr.astype(np.uint8)
             del arr
-        except Exception as e:
+        except (ValueError, IndexError) as e:
             logging.debug(f"Brightness adjustment failed: {e}")
 
         return result
@@ -4811,7 +4927,7 @@ class EnhancedRenderer:
                         try:
                             pos = camera.world_to_screen(unit.position.pixel_position)
                             cx, cy = int(pos[0]), int(pos[1])
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             logging.debug(f"Unit pixel_position conversion failed: {e}")
 
                 # Strategy B: Use tile_position as fallback
@@ -4825,7 +4941,7 @@ class EnhancedRenderer:
                                 world_pos = Vec2(tile_x * 16, tile_y * 16)
                                 pos = camera.world_to_screen(world_pos)
                                 cx, cy = int(pos[0]), int(pos[1])
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             logging.debug(f"Unit tile_position conversion failed: {e}")
 
                 # Strategy C: Last resort - use index-based positioning (grid layout)
@@ -4934,7 +5050,7 @@ class EnhancedRenderer:
 
                     # Blit text
                     self._offscreen.blit(label_surf, (label_x, label_y))
-                except Exception as e:
+                except (ValueError, pygame.error) as e:
                     logging.debug(f"Unit label rendering failed: {e}")
 
                 # STEP 6: Selection indicator (ENHANCED dual-layer glow + corner markers)
@@ -5011,9 +5127,9 @@ class EnhancedRenderer:
                 if hasattr(unit, 'is_damaged') and unit.is_damaged:
                     self._draw_damage_vfx(unit, cx, cy)
 
-            except Exception as e:
+            except (AttributeError, ValueError) as e:
                 # CRITICAL: NEVER crash on a single unit - just skip it
-                print(f"[WARN] Failed to render unit {idx}: {e}")
+                logger.warning("Failed to render unit %s: %s", idx, e)
                 continue
 
     def _draw_damage_vfx(self, unit: Unit, cx: int, cy: int) -> None:
@@ -5146,7 +5262,7 @@ class EnhancedRenderer:
 
             if buildings_found > 0:
                 logger.debug(f"Rendered {buildings_found} building shadows")
-        except Exception as e:
+        except RuntimeError as e:
             logger.warning(f"Failed to render building shadows: {e}")
 
     def _render_tree_shadows(self, game_map: GameMap, camera: Camera) -> None:
@@ -5196,7 +5312,7 @@ class EnhancedRenderer:
 
             if trees_found > 0:
                 logger.debug(f"Rendered {trees_found} tree shadows")
-        except Exception as e:
+        except RuntimeError as e:
             logger.warning(f"Failed to render tree shadows: {e}")
 
     def _render_unit_shadows(self, units: list[Unit], camera: Camera) -> None:
@@ -5219,7 +5335,7 @@ class EnhancedRenderer:
                         try:
                             pos = camera.world_to_screen(unit.position.pixel_position)
                             cx, cy = int(pos[0]), int(pos[1])
-                        except Exception:
+                        except (AttributeError, ValueError):
                             pass
 
                     # Fallback to tile position
@@ -5271,7 +5387,7 @@ class EnhancedRenderer:
                         is_hidden=is_hidden
                     )
 
-        except Exception as e:
+        except RuntimeError as e:
             logger.warning(f"Failed to render unit shadows: {e}")
 
     def _debug_render_shadow_bounds(self, game_map: GameMap, camera: Camera) -> None:
@@ -5367,7 +5483,7 @@ class EnhancedRenderer:
 
             logger.debug("Debug shadow bounds rendered (red=buildings, green=trees)")
 
-        except Exception as e:
+        except (ValueError, pygame.error) as e:
             logger.warning(f"Failed to debug render shadow bounds: {e}")
 
     def _draw_attack_lines(self, camera: Camera) -> None:

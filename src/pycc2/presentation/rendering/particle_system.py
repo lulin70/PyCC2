@@ -295,7 +295,7 @@ class TopDownParticleSystem:
             by2 = cy - base_dist * math.sin(perp_angle) * 0.5
             try:
                 pygame.draw.polygon(surface, tongue_color, [(bx1,by1),(tx,ty),(bx2,by2)])
-            except:
+            except (ValueError, TypeError):
                 pass
 
     def _render_smoke(self, surface: pygame.Surface, p: dict) -> None:
@@ -355,7 +355,7 @@ class TopDownParticleSystem:
             pygame.draw.line(temp_surf, outer_color, (center, center), (end_x, end_y), 2)
 
             surface.blit(temp_surf, (x - center, y - center))
-        except:
+        except (ValueError, TypeError):
             pass
 
     def _render_hit_marker(self, surface: pygame.Surface, p: dict) -> None:
@@ -384,7 +384,7 @@ class TopDownParticleSystem:
                            (center - cross_size, center + cross_size), 2)
 
             surface.blit(temp_surf, (x - center, y - center))
-        except:
+        except (ValueError, TypeError):
             pass
 
     def _render_dirt_particle(self, surface: pygame.Surface, p: dict) -> None:
@@ -403,7 +403,7 @@ class TopDownParticleSystem:
             center = size + 1
             pygame.draw.circle(temp_surf, color, (center, center), size)
             surface.blit(temp_surf, (int(p['x']) - center, int(p['y']) - center))
-        except:
+        except (ValueError, TypeError):
             pass
 
     def _render_blood_pool(self, surface: pygame.Surface, p: dict) -> None:
@@ -427,7 +427,7 @@ class TopDownParticleSystem:
                                  (splash_x, splash_y), splash_size)
 
             surface.blit(temp_surf, (x - center_x, y - center_y))
-        except:
+        except (ValueError, TypeError):
             pass
 
     @property
