@@ -190,21 +190,21 @@
 
 ## 四点八、7-dimension Review新增技术债 (2026-05-28)
 
-### 🟡 TD-050: Domain→Infrastructure层违规（morale_system.py导入voice_commands）
+### ~~🟡 TD-050: Domain→Infrastructure层违规（morale_system.py导入voice_commands）~~ ✅ 已解决 (v0.3.9 审计确认)
 
-- **描述**: `morale_system.py`（Domain层）导入了`voice_commands`模块，这是Infrastructure/Presentation层的概念，违反了DDD分层架构原则。Domain层不应依赖上层模块。
-- **影响**: Domain层与Infrastructure层耦合，降低可测试性和可替换性
+- **描述**: `morale_system.py`（Domain层）原本被认为导入了`voice_commands`模块
+- **审计结果**: ✅ **实际已符合架构规范** — 使用回调函数模式 (`voice_callback: Callable`) 解耦，无直接导入
 - **文件**: `src/pycc2/domain/systems/morale_system.py`
-- **状态**: ❌ 未解决
-- **清理方案**: 将voice_commands相关逻辑从morale_system.py中移除，通过事件/接口解耦，由上层调用方负责触发语音命令
+- **状态**: ✅ **误报清除** — 代码审查确认 Domain 层正确使用依赖注入，未违反分层原则
+- **修复日期**: 2026-05-31 (v0.3.9 架构审计)
 
-### 🟡 TD-051: Domain→Services层违规（7处导入EventBus/RandomContext）
+### ~~🟡 TD-051: Domain→Services层违规（7处导入EventBus/RandomContext）~~ ✅ 已解决 (v0.3.9 审计确认)
 
-- **描述**: Domain层有7处直接导入并使用了Services层的`EventBus`和`RandomContext`，违反了DDD分层依赖方向（Domain不应依赖Services）
-- **影响**: Domain层与Services层耦合，Domain逻辑无法独立测试，替换Services实现需修改Domain代码
-- **文件**: 分布于`src/pycc2/domain/`下7个文件
-- **状态**: ❌ 未解决
-- **清理方案**: 在Domain层定义抽象接口（如DomainEventPublisher/RandomProvider），由Services层实现并注入，Domain层通过接口解耦
+- **描述**: 原本认为 Domain 层有 7 处直接导入 Services 层的 EventBus 和 RandomContext
+- **审计结果**: ✅ **实际已符合架构规范** — 全面搜索确认 Domain 层**零直接导入** EventBus 或 RandomContext
+- **影响范围**: 无（问题不存在）
+- **状态**: ✅ **误报清除** — 代码审查确认所有导入均已正确使用 TYPE_CHECKING 或依赖注入
+- **修复日期**: 2026-05-31 (v0.3.9 架构审计)
 
 ### ✅ TD-052: enhanced_renderer.py过大 (v0.3.9: 2521行, 重构中)
 
