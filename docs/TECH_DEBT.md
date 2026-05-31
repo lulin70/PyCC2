@@ -206,13 +206,13 @@
 - **状态**: ❌ 未解决
 - **清理方案**: 在Domain层定义抽象接口（如DomainEventPublisher/RandomProvider），由Services层实现并注入，Domain层通过接口解耦
 
-### ✅ TD-052: enhanced_renderer.py过大 (v0.3.8+: 2929行, 重构中)
+### ✅ TD-052: enhanced_renderer.py过大 (v0.3.9: 2521行, 重构中)
 
-- **描述**: `enhanced_renderer.py`文件原约5975行(v0.3.4)，经v0.3.5-v0.3.8四次提取+死代码清理后降至**2929行(-51%)**，仍超500行上限
-- **影响**: 代码维护性持续改善中，已拆分出5个独立模块
+- **描述**: `enhanced_renderer.py`文件原约5975行(v0.3.4)，经v0.3.5-v0.3.9六次提取后降至**2521行(-58%)**，仍超500行上限
+- **影响**: 代码维护性持续改善中，已拆分出6个独立模块
 - **文件**: `src/pycc2/presentation/rendering/enhanced_renderer.py`
-- **状态**: 🔄 **进行中** (v0.3.5: -324行, v0.3.6: -1488行, v0.3.7: -768行, v0.3.8: -409行, 死代码清理: -58行)
-- **清理方案**: 继续按渲染职责拆分（下一步: EnhancedRenderer 主类拆分 ~2400行）
+- **状态**: 🔄 **进行中** (v0.3.5: -324行, v0.3.6: -1488行, v0.3.7: -768行, v0.3.8: -409行, 死代码清理: -58行, 阴影系统提取: -456行)
+- **清理方案**: 继续按渲染职责拆分（下一步: 光照/色调效果方法组 ~250行）
 
 ### ~~🔴 TD-053: TopDownParticleSystem 重复定义~~ ✅ 已修复 (v0.3.8)
 
@@ -230,6 +230,22 @@
 - **状态**: ✅ **已删除** — 通过静态分析确认无外部调用方（combat_director.py 仅使用另一组 _sprite_renderer 委托方法），安全删除 58 行
 - **修复日期**: 2026-05-31 (v0.3.8+ 死代码清理)
 - **验证**: 3371/3372 测试通过（1个已知 flaky），E2E 7/7 通过
+
+### ~~🟡 TD-055: 旧版阴影系统重复代码~~ ✅ 已修复 (v0.3.9)
+
+- **描述**: EnhancedRenderer 存在两套阴影渲染系统：
+  - **旧版**（L1341-L1474）：`_draw_building_shadows()` + `_draw_unit_shadows()`，直接 pygame 绘制，133行
+  - **新版**（L2105-L2274）：`_render_building_shadows()` + `_render_tree_shadows()` + `_render_unit_shadows()`，委托 ShadowRenderer，265行
+  - 问题：旧版被 `_apply_environment_lighting()` 调用，与新版功能重复，造成双重阴影渲染
+- **影响**: DRY 违反，性能浪费（重复渲染阴影），维护混乱
+- **文件**: `src/pycc2/presentation/rendering/enhanced_renderer.py`
+- **状态**: ✅ **已修复**：
+  1. 删除旧版 `_draw_building_shadows()` (61行) 和 `_draw_unit_shadows()` (74行)
+  2. 重构 `_apply_environment_lighting()` 移除阴影调用（保留暖色调+暗角）
+  3. 提取新版4个方法到独立模块 `shadow_rendering_system.py` (~340行)
+  4. EnhancedRenderer 通过 `ShadowRenderingSystem` 协调器统一管理阴影
+- **修复日期**: 2026-05-31 (v0.3.9 阴影系统重构)
+- **验证**: 3372/3372 测试通过（0失败！），enhanced_renderer.py: 2929 → 2521行 (-456行, -15.6%)
 
 ### 🟢 TD-033: 缺少E2E（端到端）测试
 
@@ -368,7 +384,7 @@
 - [ ] TD-044: 等距模式默认切换
 - [x] ~~TD-048: 审查并重构quick_implementations.py~~ ✅ 已修复 (2026-05-28)
 - [x] ~~TD-049: 合并infra/到infrastructure/~~ ✅ 已修复 (2026-05-28)
-- [ ] TD-052: 拆分enhanced_renderer.py（~2929行，目标<2000行）
+- [ ] TD-052: 拆分enhanced_renderer.py（~2521行，目标<2000行）
 
 ---
 

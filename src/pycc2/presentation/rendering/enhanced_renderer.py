@@ -57,6 +57,7 @@ from pycc2.presentation.rendering.autotile_system import (
 
 # Import shadow system for SE-direction shadows
 from pycc2.presentation.rendering.shadow_system import ShadowRenderer
+from pycc2.presentation.rendering.shadow_rendering_system import ShadowRenderingSystem
 
 # Import refactored modules (backward-compatible re-exports)
 from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
@@ -117,6 +118,7 @@ class EnhancedRenderer:
         self._sprite_renderer = None  # 延迟初始化，等待display ready
         self._isometric_renderer = None  # Isometric renderer (lazy init)
         self._shadow_renderer = ShadowRenderer()  # SE-direction shadow system
+        self._shadow_rendering_sys = ShadowRenderingSystem(self._shadow_renderer, self.TILE_SIZE)  # Unified shadow coordinator
         self._attack_line_system = attack_line_system  # P0-2 Fix: Dependency injection (was getattr hack)
         self._particle_system = TopDownParticleSystem()  # Top-down particle effects system
         
@@ -270,8 +272,8 @@ class EnhancedRenderer:
         self._draw_decorations(game_map, camera)
 
         # STEP 4.0: Draw ALL shadows FIRST (under everything - correct Z-order)
-        self._render_building_shadows(game_map, camera)  # Building shadows BEFORE roofs
-        self._render_tree_shadows(game_map, camera)      # Tree shadows BEFORE trees
+        self._shadow_rendering_sys.render_building_shadows(self._offscreen, game_map, camera)  # Building shadows BEFORE roofs
+        self._shadow_rendering_sys.render_tree_shadows(self._offscreen, game_map, camera)      # Tree shadows BEFORE trees
 
         # STEP 4.4: Draw building roofs (CC2 top-down view — covers side-view terrain texture)
         self._draw_building_roofs(game_map, camera)
@@ -292,7 +294,7 @@ class EnhancedRenderer:
         self._draw_units(units, camera, selected_unit_ids)
 
         # STEP 5.1: Draw unit and vehicle shadows (AFTER units rendered)
-        self._render_unit_shadows(units, camera)
+        self._shadow_rendering_sys.render_unit_shadows(self._offscreen, units, camera)
 
         # STEP 5.5: Draw attack lines (CC2-style)
         self._draw_attack_lines(camera)
@@ -1285,24 +1287,19 @@ class EnhancedRenderer:
         """Apply environment lighting effects to the offscreen buffer.
 
         Adds:
-        - Subtle shadow offset on northeast side of buildings (sun from southwest)
         - Slight warm tint to the overall scene
         - Slightly darker edges (vignette effect)
-        - Unit shadow dots (small dark circles beneath each unit)
+
+        Note: Shadow rendering has been moved to dedicated _render_* methods
+              (_render_building_shadows, _render_tree_shadows, _render_unit_shadows)
+              which are called separately in the main render pipeline for correct Z-order.
         """
         if self._offscreen is None:
             return
 
         screen_w, screen_h = self._offscreen.get_size()
 
-        # 1. Building shadows (northeast offset, sun from southwest)
-        self._draw_building_shadows(game_map, camera)
-
-        # 2. Unit shadow dots (sun from southwest → shadow offset to northeast)
-        if units:
-            self._draw_unit_shadows(units, camera)
-
-        # 3. Warm tint overlay (subtle orange-gold tint)
+        # 1. Warm tint overlay (subtle orange-gold tint)
         try:
             warm_overlay = pygame.Surface((screen_w, screen_h), pygame.SRCALPHA)
             warm_overlay.fill((255, 220, 160, 12))  # Very subtle warm tint
@@ -1310,26 +1307,21 @@ class EnhancedRenderer:
         except (ValueError, pygame.error) as e:
             logging.debug(f"Warm tint overlay failed: {e}")
 
-        # 4. Vignette effect (darker edges)
+        # 2. Vignette effect (darker edges)
         try:
             vignette = pygame.Surface((screen_w, screen_h), pygame.SRCALPHA)
-            # Draw semi-transparent dark borders that fade toward center
             edge_width = max(30, screen_w // 8)
             edge_height = max(30, screen_h // 8)
-            # Top edge
             for i in range(edge_height):
                 alpha = int(40 * (1.0 - i / edge_height))
                 pygame.draw.line(vignette, (0, 0, 0, alpha), (0, i), (screen_w, i))
-            # Bottom edge
             for i in range(edge_height):
                 alpha = int(40 * (1.0 - i / edge_height))
                 y = screen_h - 1 - i
                 pygame.draw.line(vignette, (0, 0, 0, alpha), (0, y), (screen_w, y))
-            # Left edge
             for i in range(edge_width):
                 alpha = int(40 * (1.0 - i / edge_width))
                 pygame.draw.line(vignette, (0, 0, 0, alpha), (i, 0), (i, screen_h))
-            # Right edge
             for i in range(edge_width):
                 alpha = int(40 * (1.0 - i / edge_width))
                 x = screen_w - 1 - i
@@ -1337,141 +1329,6 @@ class EnhancedRenderer:
             self._offscreen.blit(vignette, (0, 0))
         except (ValueError, pygame.error) as e:
             logging.debug(f"Vignette effect failed: {e}")
-
-    def _draw_building_shadows(self, game_map: GameMap, camera: Camera) -> None:
-        """Draw shadow strips on the northeast side of buildings (sun from southwest)."""
-        if self._offscreen is None:
-            return
-
-        from pycc2.domain.value_objects.vec2 import Vec2
-
-        bounds = camera.view_bounds
-        start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
-        end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
-        start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
-        end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
-
-        shadow_offset = max(3, int(self.TILE_SIZE * camera.zoom * 0.12))
-        shadow_alpha = 35  # Semi-transparent dark overlay (alpha ~30-40)
-
-        for ty in range(start_y, end_y):
-            for tx in range(start_x, end_x):
-                try:
-                    etile = self._get_enhanced_tile(game_map, tx, ty)
-                    if etile is not None:
-                        terrain_val = etile.base_terrain
-                    else:
-                        terrain_val = int(game_map.tile_grid[ty, tx])
-
-                    # Only add shadows for building tiles (4, 5)
-                    if terrain_val not in (4, 5):
-                        continue
-
-                    world_x = tx * self.TILE_SIZE
-                    world_y = ty * self.TILE_SIZE
-                    sp = camera.world_to_screen(Vec2(world_x, world_y))
-                    sx, sy = int(sp[0]), int(sp[1])
-                    tile_screen_size = int(self.TILE_SIZE * camera.zoom)
-
-                    # Shadow on northeast side (offset left and up — sun from southwest)
-                    # Vertical shadow strip on the left side
-                    shadow_surf = pygame.Surface(
-                        (shadow_offset, tile_screen_size + shadow_offset),
-                        pygame.SRCALPHA,
-                    )
-                    shadow_surf.fill((0, 0, 0, shadow_alpha))
-                    self._offscreen.blit(
-                        shadow_surf,
-                        (sx - shadow_offset, sy - shadow_offset),
-                    )
-
-                    # Horizontal shadow strip on the top side
-                    shadow_surf2 = pygame.Surface(
-                        (tile_screen_size + shadow_offset, shadow_offset),
-                        pygame.SRCALPHA,
-                    )
-                    shadow_surf2.fill((0, 0, 0, shadow_alpha))
-                    self._offscreen.blit(
-                        shadow_surf2,
-                        (sx - shadow_offset, sy - shadow_offset),
-                    )
-                except (ValueError, pygame.error) as e:
-                    logging.debug(f"Building shadow draw failed: {e}")
-                    continue
-
-    def _draw_unit_shadows(self, units: list, camera: Camera) -> None:
-        """
-        Draw enhanced perspective ellipse shadows beneath each alive unit.
-
-        Features:
-        - Perspective-correct elliptical shadows (wider than tall for 45° view)
-        - Soft edge falloff using multi-layer alpha blending
-        - Size scaling based on unit type (tank > infantry)
-        - Dynamic alpha based on HP (dying units have fainter shadows)
-        
-        统一阴影方向：左上45°光源（light_angle=-π/4）→ 阴影投射向右下（+x, +y）
-        与 TopDownLightingConfig 配置保持一致
-        """
-        if self._offscreen is None:
-            return
-
-        from pycc2.domain.value_objects.vec2 import Vec2
-
-        base_shadow_alpha = int(35 * self._lighting_config.shadow_darkness)  # Use config value
-        # Shadow offset: southeast direction (positive x, positive y in screen coords)
-        # Light from top-left (-π/4) → shadow to bottom-right (+x, +y)
-        offset_x = max(2, int(4 * camera.zoom))
-        offset_y = max(2, int(4 * camera.zoom))
-
-        for unit in units:
-            if not unit.is_alive:
-                continue
-
-            pos = unit.position.pixel_position
-            sp = camera.world_to_screen(pos)
-            sx, sy = int(sp[0]) + offset_x, int(sp[1]) + offset_y
-
-            base_radius = max(3, int(5 * camera.zoom))
-
-            unit_type_str = "infantry"
-            if hasattr(unit, 'unit_type'):
-                unit_type_str = str(unit.unit_type).lower()
-            elif hasattr(unit, 'category'):
-                unit_type_str = str(unit.category).lower()
-
-            is_large_unit = any(t in unit_type_str for t in ["tank", "armor", "sherman", "vehicle"])
-            shadow_width = base_radius * (2.2 if is_large_unit else 1.8)
-            shadow_height = base_radius * (0.7 if is_large_unit else 0.5)
-
-            hp_ratio = 1.0
-            if hasattr(unit, 'health') and unit.health:
-                try:
-                    hp_ratio = unit.health.hp / max(unit.health.max_hp, 1)
-                except (AttributeError, ZeroDivisionError):
-                    pass
-
-            shadow_alpha = int(base_shadow_alpha * max(0.3, hp_ratio))
-
-            surf_w = int(shadow_width * 2) + 8
-            surf_h = int(shadow_height * 2) + 8
-            shadow_surf = pygame.Surface((surf_w, surf_h), pygame.SRCALPHA)
-            center_x, center_y = surf_w // 2, surf_h // 2
-
-            for layer in range(3):
-                layer_factor = 1.0 - (layer * 0.25)
-                layer_alpha = int(shadow_alpha * layer_factor)
-                layer_w = int(shadow_width * (1.0 + layer * 0.3))
-                layer_h = int(shadow_height * (1.0 + layer * 0.2))
-
-                rect = (
-                    center_x - layer_w,
-                    center_y - layer_h,
-                    layer_w * 2,
-                    layer_h * 2,
-                )
-                pygame.draw.ellipse(shadow_surf, (0, 0, 0, layer_alpha), rect)
-
-            self._offscreen.blit(shadow_surf, (sx - center_x, sy - center_y))
 
     def _get_health_tinted_color(self, base_color: tuple, unit) -> tuple:
         """Apply health-based color tinting to unit color.
@@ -2246,271 +2103,6 @@ class EnhancedRenderer:
         if selected:
             select_color = (255, 255, 0)
             pygame.draw.circle(self._offscreen, select_color, (cx, cy), radius + 3, 2)
-
-    def _render_building_shadows(self, game_map: GameMap, camera: Camera) -> None:
-        """
-        Render SE-direction shadows for all buildings.
-        
-        统一阴影方向：使用 ShadowRenderer 类，阴影投射向东南（右下）
-        与 TopDownLightingConfig.light_angle = -π/4（左上光源）保持一致
-        """
-        if self._offscreen is None or self._shadow_renderer is None:
-            return
-
-        try:
-            # Iterate through map tiles to find buildings
-            # FIXED: Use game_map.tile_grid[y, x] which returns integer terrain type
-            # TerrainType: 4=BUILDING_ENTERABLE, 5=BUILDING_SOLID
-            buildings_found = 0
-            for y in range(game_map.height):
-                for x in range(game_map.width):
-                    # Get terrain type as integer from tile_grid
-                    terrain_int = int(game_map.tile_grid[y, x])
-
-                    # Check if this is a building tile (4 or 5)
-                    has_building = terrain_int in (4, 5)  # BUILDING_ENTERABLE or BUILDING_SOLID
-
-                    if has_building:
-                        # Convert tile position to screen coordinates
-                        from pycc2.domain.value_objects.vec2 import Vec2
-                        world_pos = Vec2(x * self.TILE_SIZE, y * self.TILE_SIZE)
-                        screen_pos = camera.world_to_screen(world_pos)
-                        sx, sy = int(screen_pos[0]), int(screen_pos[1])
-
-                        # Render building shadow (offset southeast)
-                        self._shadow_renderer.render_building_shadow(
-                            self._offscreen,
-                            sx, sy,
-                            self.TILE_SIZE,  # Building width ≈ tile size
-                            self.TILE_SIZE // 2  # Approximate building height
-                        )
-                        buildings_found += 1
-
-            if buildings_found > 0:
-                logger.debug(f"Rendered {buildings_found} building shadows")
-        except RuntimeError as e:
-            logger.warning(f"Failed to render building shadows: {e}")
-
-    def _render_tree_shadows(self, game_map: GameMap, camera: Camera) -> None:
-        """
-        Render SE-direction shadows for trees/vegetation.
-        
-        统一阴影方向：使用 ShadowRenderer 类，阴影投射向东南（右下）
-        与 TopDownLightingConfig.light_angle = -π/4（左上光源）保持一致
-        """
-        if self._offscreen is None or self._shadow_renderer is None:
-            return
-
-        try:
-            # Iterate through map tiles to find trees
-            # FIXED: Use game_map.tile_grid[y, x] which returns integer terrain type
-            # TerrainType: 3=WOODS, 7=HEDGE
-            trees_found = 0
-            for y in range(game_map.height):
-                for x in range(game_map.width):
-                    # Get terrain type as integer from tile_grid
-                    terrain_int = int(game_map.tile_grid[y, x])
-
-                    # Check if this is a tree/vegetation tile (3 or 7)
-                    is_tree = terrain_int in (3, 7)  # WOODS or HEDGE
-
-                    if is_tree:
-                        # Convert tile position to screen coordinates
-                        from pycc2.domain.value_objects.vec2 import Vec2
-                        world_pos = Vec2(x * self.TILE_SIZE, y * self.TILE_SIZE)
-                        screen_pos = camera.world_to_screen(world_pos)
-                        sx, sy = int(screen_pos[0]), int(screen_pos[1])
-
-                        # Determine tree size based on terrain type
-                        tree_size = "medium"
-                        if terrain_int == 3:  # WOODS - larger forest areas
-                            tree_size = "large"
-                        elif terrain_int == 7:  # HEDGE - smaller individual hedges
-                            tree_size = "small"
-
-                        # Render tree shadow
-                        self._shadow_renderer.render_tree_shadow(
-                            self._offscreen,
-                            sx, sy,
-                            tree_size
-                        )
-                        trees_found += 1
-
-            if trees_found > 0:
-                logger.debug(f"Rendered {trees_found} tree shadows")
-        except RuntimeError as e:
-            logger.warning(f"Failed to render tree shadows: {e}")
-
-    def _render_unit_shadows(self, units: list[Unit], camera: Camera) -> None:
-        """Render SE-direction shadows for all units and vehicles."""
-        if self._offscreen is None or self._shadow_renderer is None:
-            return
-
-        if len(units) == 0:
-            return
-
-        try:
-            for unit in units:
-                # Get unit position with defensive coding
-                cx, cy = None, None
-                unit_w, unit_h = 16, 16  # Default unit size
-
-                # Try to get pixel position
-                if hasattr(unit, 'position') and unit.position is not None:
-                    if hasattr(unit.position, 'pixel_position'):
-                        try:
-                            pos = camera.world_to_screen(unit.position.pixel_position)
-                            cx, cy = int(pos[0]), int(pos[1])
-                        except (AttributeError, ValueError):
-                            pass
-
-                    # Fallback to tile position
-                    if (cx is None or cy is None) and hasattr(unit.position, 'tile_x'):
-                        try:
-                            tile_x = getattr(unit.position, 'tile_x', None)
-                            tile_y = getattr(unit.position, 'tile_y', None)
-                            if tile_x is not None and tile_y is not None:
-                                from pycc2.domain.value_objects.vec2 import Vec2
-                                world_pos = Vec2(tile_x * 16, tile_y * 16)
-                                pos = camera.world_to_screen(world_pos)
-                                cx, cy = int(pos[0]), int(pos[1])
-                        except Exception:
-                            pass
-
-                if cx is None or cy is None:
-                    continue
-
-                # Determine unit type and size
-                unit_type = getattr(unit, 'unit_type', 'infantry')
-                unit_type_str = str(unit_type).lower()
-
-                # Check if unit is hidden/sneaking
-                is_hidden = getattr(unit, 'is_hidden', False) or \
-                           getattr(unit, 'is_sneaking', False)
-
-                # Detect vehicle vs infantry by type name or size
-                is_vehicle = any(v in unit_type_str for v in 
-                               ['tank', 'vehicle', 'halftrack', 'jeep', 'truck'])
-
-                if is_vehicle:
-                    # Get vehicle dimensions
-                    unit_w = getattr(unit, 'width', 24) or 24
-                    unit_h = getattr(unit, 'height', 16) or 16
-                    
-                    # Render vehicle shadow
-                    self._shadow_renderer.render_vehicle_shadow(
-                        self._offscreen,
-                        cx, cy,
-                        unit_w, unit_h,
-                        is_hidden=is_hidden
-                    )
-                else:
-                    # Render infantry shadow
-                    self._shadow_renderer.render_unit_shadow(
-                        self._offscreen,
-                        cx, cy,
-                        unit_type=unit_type_str,
-                        is_hidden=is_hidden
-                    )
-
-        except RuntimeError as e:
-            logger.warning(f"Failed to render unit shadows: {e}")
-
-    def _debug_render_shadow_bounds(self, game_map: GameMap, camera: Camera) -> None:
-        """Draw red rectangles showing where shadows WOULD be rendered (debug visualization).
-
-        This helps verify shadow positions without relying on subtle alpha.
-        Call this from render() when debug_mode=True to see shadow placement.
-        """
-        if self._offscreen is None:
-            return
-
-        import pygame as pg
-
-        try:
-            # Debug colors for different shadow types
-            BUILDING_DEBUG_COLOR = (255, 0, 0)      # Red for buildings
-            TREE_DEBUG_COLOR = (0, 255, 0)           # Green for trees
-            UNIT_DEBUG_COLOR = (0, 0, 255)           # Blue for units
-
-            # Draw building shadow bounds
-            for y in range(game_map.height):
-                for x in range(game_map.width):
-                    tile = game_map.get_tile(x, y)
-                    if tile is None:
-                        continue
-
-                    # Same detection logic as _render_building_shadows
-                    has_building = (
-                        hasattr(tile, 'building') and tile.building is not None
-                    ) or (
-                        hasattr(tile, 'terrain_type') and
-                        str(tile.terrain_type).lower() in ['building', 'house', 'barn', 'church']
-                    )
-
-                    if not has_building:
-                        try:
-                            tt = getattr(tile, 'terrain_type', None)
-                            if tt is not None:
-                                tt_val = int(tt) if isinstance(tt, (int, float)) else -1
-                                if tt_val >= 20:
-                                    has_building = True
-                        except (ValueError, TypeError):
-                            pass
-
-                    if not has_building:
-                        tile_name = str(getattr(tile, 'name', '')).lower()
-                        if any(w in tile_name for w in ['build', 'house', 'church', 'barn', 'factory']):
-                            has_building = True
-
-                    if has_building:
-                        world_pos = (x * self.TILE_SIZE, y * self.TILE_SIZE)
-                        screen_pos = camera.world_to_screen(world_pos)
-                        sx, sy = int(screen_pos[0]), int(screen_pos[1])
-
-                        # Draw red rectangle where building shadow would appear
-                        shadow_rect = pg.Rect(sx + 6, sy + self.TILE_SIZE // 2 + 3,
-                                             max(24, int(self.TILE_SIZE * 0.9)), 6)
-                        pg.draw.rect(self._offscreen, BUILDING_DEBUG_COLOR, shadow_rect, 2)
-
-            # Draw tree shadow bounds
-            for y in range(game_map.height):
-                for x in range(game_map.width):
-                    tile = game_map.get_tile(x, y)
-                    if tile is None:
-                        continue
-
-                    terrain_str = str(getattr(tile, 'terrain_type', '')).lower()
-                    is_tree = any(t in terrain_str for t in ['tree', 'forest', 'woods', 'hedgerow', 'orchard'])
-
-                    if not is_tree:
-                        try:
-                            tt = getattr(tile, 'terrain_type', None)
-                            if tt is not None:
-                                tt_val = int(tt) if isinstance(tt, (int, float)) else -1
-                                if 3 <= tt_val <= 7:
-                                    is_tree = True
-                        except (ValueError, TypeError):
-                            pass
-
-                    if not is_tree:
-                        tile_name = str(getattr(tile, 'name', '')).lower()
-                        if any(w in tile_name for w in ['tree', 'forest', 'wood', 'hedge', 'bush', 'orchard']):
-                            is_tree = True
-
-                    if is_tree:
-                        world_pos = (x * self.TILE_SIZE, y * self.TILE_SIZE)
-                        screen_pos = camera.world_to_screen(world_pos)
-                        sx, sy = int(screen_pos[0]), int(screen_pos[1])
-
-                        # Draw green rectangle where tree shadow would appear
-                        shadow_rect = pg.Rect(sx + 5, sy + 3, 18, 8)
-                        pg.draw.rect(self._offscreen, TREE_DEBUG_COLOR, shadow_rect, 2)
-
-            logger.debug("Debug shadow bounds rendered (red=buildings, green=trees)")
-
-        except (ValueError, pygame.error) as e:
-            logger.warning(f"Failed to debug render shadow bounds: {e}")
 
     def _draw_attack_lines(self, camera: Camera) -> None:
         """Draw CC2-style attack lines with color coding.
