@@ -100,19 +100,19 @@
 - **状态**: ✅ 已修复 — 添加_make_sound()方法自动mono→stereo转换，添加距离衰减
 - **修复日期**: 2026-05-24
 
-### 🟡 TD-031: POLISH阵营被排除在友军列表外
+### ~~🟡 TD-031: POLISH阵营被排除在友军列表外~~ ✅ 已解决 (v0.3.7)
 
 - **描述**: POLISH阵营（波兰第1独立伞兵旅）被错误地排除在友军列表外
 - **影响**: 波兰单位在战役中无法获得友军支援，不符合历史事实
-- **状态**: ❌ 未解决
-- **清理方案**: 将POLISH添加到ALLIES友军阵营列表
+- **状态**: ✅ **已解决** — `skirmish_generator.py:445` 已包含 `Faction.POLISH` 在 `_allied_factions()` 中；`hud_manager.py:355` 也正确识别 POLISH 为友军
+- **修复日期**: 2026-05-31 (v0.3.7 技术债清理)
 
-### 🟡 TD-032: GameSettings类型注解未导入
+### ~~🟡 TD-032: GameSettings类型注解未导入~~ ✅ 已解决 (v0.3.7)
 
 - **描述**: GameSettings相关模块使用了类型注解但未正确导入，导致类型检查失败
 - **影响**: 类型安全受损，IDE提示不正确，可能隐藏运行时错误
-- **状态**: ❌ 未解决
-- **清理方案**: 补充缺失的类型注解导入
+- **状态**: ✅ **已解决** — `game_settings.py` 正确使用 `TYPE_CHECKING` 模式（L20, L22-L26），所有类型注解导入均在 `if TYPE_CHECKING:` 块内
+- **修复日期**: 2026-05-31 (v0.3.7 审计确认)
 
 ---
 
@@ -206,13 +206,21 @@
 - **状态**: ❌ 未解决
 - **清理方案**: 在Domain层定义抽象接口（如DomainEventPublisher/RandomProvider），由Services层实现并注入，Domain层通过接口解耦
 
-### 🟢 TD-052: enhanced_renderer.py过大（~3700行）
+### ✅ TD-052: enhanced_renderer.py过大 (v0.3.8: 2987行, 重构中)
 
-- **描述**: `enhanced_renderer.py`文件约3700行，远超500行上限，承担了过多渲染职责，违反单一职责原则
-- **影响**: 代码难以维护和理解，修改风险高，合并冲突频繁
+- **描述**: `enhanced_renderer.py`文件原约5975行(v0.3.4)，经v0.3.5-v0.3.8四次提取后降至2987行(-50%)，仍超500行上限
+- **影响**: 代码维护性持续改善中，已拆分出5个独立模块
 - **文件**: `src/pycc2/presentation/rendering/enhanced_renderer.py`
-- **状态**: ❌ 未解决
-- **清理方案**: 按渲染职责拆分为多个子渲染器（如TerrainRenderer/UnitRenderer/EffectRenderer/HUDRenderer等），每个控制在500行以内
+- **状态**: 🔄 **进行中** (v0.3.5: -324行, v0.3.6: -1488行, v0.3.7: -768行, v0.3.8: -409行)
+- **清理方案**: 继续按渲染职责拆分（下一步: EnhancedRenderer 主类拆分 ~2400行）
+
+### ~~🔴 TD-053: TopDownParticleSystem 重复定义~~ ✅ 已修复 (v0.3.8)
+
+- **描述**: `enhanced_renderer.py` L85-L493 重复定义了已存在于 `particle_system.py` 的 `TopDownParticleSystem` 类（436行），与 v0.3.5 TopDownLightingConfig 重复定义问题完全相同模式
+- **影响**: DRY 违反，修改 particle_system.py 可能不生效，维护风险高
+- **文件**: `src/pycc2/presentation/rendering/enhanced_renderer.py`
+- **状态**: ✅ **已修复** — 删除 L85-L494 重复定义（410行），保留 L63 import 语句，2987行 (-12%)
+- **修复日期**: 2026-05-31 (v0.3.8)
 
 ### 🟢 TD-033: 缺少E2E（端到端）测试
 
@@ -325,10 +333,10 @@
 - [ ] TD-026: 拆分29个超500行文件
 - [ ] TD-027: 明确infra/infrastructure职责
 - [x] ~~TD-028: 添加集成测试~~ ✅ 已修复 (2026-05-24, 6个集成测试文件)
-- [ ] TD-029: 合并4个视觉优化文档
+- [ ] TD-029: 合并4个视觉优化文档（暂缓：文档用途不同，风险较高）
 - [x] ~~TD-030: 修复音频stereo预生成~~ ✅ 已修复 (2026-05-24)
-- [ ] TD-031: POLISH阵营加入友军列表
-- [ ] TD-032: 补充GameSettings类型注解导入
+- [x] ~~TD-031: POLISH阵营加入友军列表~~ ✅ 已解决 (v0.3.7)
+- [x] ~~TD-032: 补充GameSettings类型注解导入~~ ✅ 已解决 (v0.3.7)
 - [x] ~~TD-045: 修复Domain→Presentation层违规（BUILDING_WINDOWS）~~ ✅ 已修复 (2026-05-28)
 - [x] ~~TD-046: 合并重复士气模块（morale_sys.py vs morale_system.py）~~ ✅ 已修复 (2026-05-28)
 - [x] ~~TD-047: 修复68个bare except块~~ ✅ 已修复 (2026-05-28)
