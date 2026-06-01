@@ -116,7 +116,7 @@ class TestDeploymentE2E:
 
         state = dm.get_state()
         assert state is not None
-        assert len(state.available_units) > 0, "Force pool should have units"
+        assert len(state.available_units) >= 6, f"Force pool should have at least 6 units, got {len(state.available_units)}"
 
         # Verify unit categories exist
         unit_types = {u.unit_type for u in state.available_units}
@@ -256,7 +256,7 @@ class TestDeploymentE2E:
         assert result is not None
 
         # Verify units were created
-        assert len(state.units) > 0, "Should have created units from deployment"
+        assert len(state.units) >= 1, f"Should have created at least 1 unit from deployment, got {len(state.units)}"
 
         # Verify pending orders were included in result
         # Note: pending_orders are included in begin_battle() result,
@@ -266,7 +266,7 @@ class TestDeploymentE2E:
         # Pending orders may be empty after apply (cleared by apply_pending_orders)
         # The real test is that units have move targets set
         units_with_targets = [u for u in state.units if u.move_target is not None]
-        assert len(units_with_targets) > 0, "At least one unit should have a move target from pending orders"
+        assert len(units_with_targets) >= 1, f"At least one unit should have a move target from pending orders, got {len(units_with_targets)}"
 
     def test_11_verify_deployed_units_in_game_state(self):
         """Step 11: Verify deployed units exist in the game state after complete()."""

@@ -203,7 +203,7 @@ class TestCalculateSuppressionFromAttack:
         result = calculate_suppression_from_attack(
             weapon_suppress_ability=0.5, hit_success=False, damage_amount=0
         )
-        assert result > 0
+        assert result > 0.0, f"Basic suppression should be positive, got {result}"
 
     def test_hit_causes_more_suppression_than_miss(self):
         miss = calculate_suppression_from_attack(0.5, hit_success=False, damage_amount=0)
@@ -217,7 +217,7 @@ class TestCalculateSuppressionFromAttack:
 
     def test_near_miss_still_suppresses(self):
         result = calculate_suppression_from_attack(0.5, hit_success=False, damage_amount=0, is_near_miss=True)
-        assert result > 0
+        assert result > 0.0, f"Near-miss suppression should be positive, got {result}"
 
     def test_capped_at_25(self):
         result = calculate_suppression_from_attack(

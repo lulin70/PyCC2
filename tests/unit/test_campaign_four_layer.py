@@ -339,7 +339,7 @@ class TestCreateMarketGardenCampaign:
         arnhem = campaign.sectors[0]
         for op in arnhem.operations:
             for battle in op.battles:
-                assert len(battle.victory_locations) > 0
+                assert len(battle.victory_locations) >= 1, f"Battle {battle.battle_id} should have at least 1 victory location"
 
     def test_daily_supply_points(self, campaign):
         assert campaign.daily_supply_points == 100

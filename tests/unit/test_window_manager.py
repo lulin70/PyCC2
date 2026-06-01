@@ -37,7 +37,7 @@ class TestDetectDpi:
         manager = WindowManager()
         dpi = manager.detect_dpi()
         assert isinstance(dpi, float)
-        assert dpi > 0
+        assert dpi > 0.0, f"DPI should be positive, got {dpi}"
 
     @patch("platform.system", return_value="Darwin")
     @patch.dict(os.environ, {}, clear=True)
@@ -47,7 +47,7 @@ class TestDetectDpi:
             try:
                 result = manager.detect_dpi()
                 assert isinstance(result, float)
-                assert result > 0
+                assert result > 0.0, f"macOS fallback DPI should be positive, got {result}"
             except Exception:
                 pass
 

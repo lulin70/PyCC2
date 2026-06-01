@@ -143,7 +143,7 @@ class TestSpritesheetParser:
         # May fail in test environment without display
         if result:
             assert parser.is_loaded
-            assert parser.frame_count > 0
+            assert parser.frame_count >= 1, f"Loaded spritesheet should have at least 1 frame, got {parser.frame_count}"
             print(f"\n✅ Loaded {parser.frame_count} frames from real spritesheet")
             print(f"   Directions found: {parser.directions_found}")
             print(f"   Sprite size: {parser.sprite_size}")
@@ -397,13 +397,13 @@ class TestAmmoTypeSystem:
     def test_ap_ammo_has_limited_count(self):
         """Test AP ammo starts with limited quantity."""
         count = self.ammo_sys.get_ammo_count(AmmoType.AP)
-        assert count > 0
+        assert count >= 1, f"AP ammo should have at least 1 round, got {count}"
         assert count < 999
 
     def test_he_ammo_has_limited_count(self):
         """Test HE ammo starts with limited quantity."""
         count = self.ammo_sys.get_ammo_count(AmmoType.HE)
-        assert count > 0
+        assert count >= 1, f"HE ammo should have at least 1 round, got {count}"
         assert count < 999
 
     def test_smoke_ammo_has_limited_count(self):
@@ -514,12 +514,12 @@ class TestAmmoTypeSystem:
         """Test smoke clouds persist until duration expires."""
         self.ammo_sys.set_ammo_type(AmmoType.SMOKE)
         self.ammo_sys.deploy_smoke((5, 10))
-        
-        assert len(self.ammo_sys._smoke_clouds) > 0
+
+        assert len(self.ammo_sys._smoke_clouds) >= 1, f"After deploying smoke, should have at least 1 cloud, got {len(self.ammo_sys._smoke_clouds)}"
         
         # Update shouldn't remove immediately
         self.ammo_sys.update_smoke_clouds(turn_increment=1)
-        assert len(self.ammo_sys._smoke_clouds) > 0
+        assert len(self.ammo_sys._smoke_clouds) >= 1, f"Smoke cloud should persist after 1 update, got {len(self.ammo_sys._smoke_clouds)}"
 
     def test_position_in_smoke_detection(self):
         """Test detecting if position is within smoke cloud."""
@@ -615,8 +615,8 @@ class TestVehicleCrewSystem:
     def test_apply_damage_kills_crew_member(self):
         """Test applying lethal damage kills crew member."""
         result = self.crew.apply_damage(damage=200)
-        
-        assert result["damage_dealt"] > 0
+
+        assert result["damage_dealt"] >= 1.0, f"200 damage should deal at least 1.0, got {result['damage_dealt']}"
         assert result["member_hit"] is not None
         
         if result["was_kill"]:
@@ -720,7 +720,7 @@ class TestVehicleCrewSystem:
         if self.crew.is_crew_alive:
             evacuated = self.crew.evacuate_crew()
             
-            assert len(evacuated) > 0
+            assert len(evacuated) >= 1, f"Evacuation should return at least 1 crew member when alive, got {len(evacuated)}"
             assert self.crew.alive_count == 0
 
     def test_crew_ratio_calculation(self):

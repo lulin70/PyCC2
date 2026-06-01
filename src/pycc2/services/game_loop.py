@@ -590,6 +590,7 @@ class GameLoop:
         return self._campaign_ui
 
     def shutdown(self) -> None:
+        self.state.running = False
         if self.sound_system is not None:
             self.sound_system.shutdown()
         if self.ai_service is not None:

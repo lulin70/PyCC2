@@ -267,7 +267,8 @@ class TestShortcutKeys:
             sample_units[0].position.pixel_position
         )
         interaction_controller.handle_left_click(screen, sample_units)
-        assert len(interaction_controller.selected_unit_ids) > 0
+        assert len(interaction_controller.selected_unit_ids) == 1, \
+            "Should have exactly 1 unit selected after clicking on unit u1"
         interaction_controller.handle_shortcut_key(pygame.K_ESCAPE)
         assert len(interaction_controller.selected_unit_ids) == 0
         assert interaction_controller.mode == InteractionMode.SELECT
@@ -280,7 +281,8 @@ class TestShortcutKeys:
         )
         interaction_controller.handle_left_click(screen, sample_units)
         interaction_controller.handle_shortcut_key(pygame.K_z)
-        assert len(interaction_controller.selected_unit_ids) > 0
+        assert len(interaction_controller.selected_unit_ids) == 1, \
+            "Selection should be preserved after mode change to MOVE"
 
 
 class TestCallbacks:
@@ -291,7 +293,8 @@ class TestCallbacks:
             sample_units[0].position.pixel_position
         )
         interaction_controller.handle_left_click(screen, sample_units)
-        assert len(received) >= 1
+        assert len(received) == 1, \
+            "Selection callback should fire exactly once after selecting a unit"
 
     def test_on_deselect_callback_fires_on_esc(self, interaction_controller):
         import pygame
@@ -317,7 +320,8 @@ class TestEdgeCases:
             sample_units[0].position.pixel_position
         )
         interaction_controller.handle_left_click(screen, sample_units)
-        assert len(interaction_controller.selected_unit_ids) > 0
+        assert len(interaction_controller.selected_unit_ids) == 1, \
+            "Should have exactly 1 unit selected before clearing"
         interaction_controller.clear_selection()
         assert len(interaction_controller.selected_unit_ids) == 0
         assert interaction_controller.mode == InteractionMode.SELECT

@@ -191,5 +191,5 @@ def test_ai_tick_performance():
 
     elapsed_ms = (time.perf_counter() - start) * 1000
 
-    assert len(ticking) > 0
+    assert len(ticking) >= 1, f"At least 1 unit should be scheduled to tick, got {len(ticking)}"
     assert elapsed_ms < 10, f"AI tick took {elapsed_ms:.2f}ms (limit: 10ms)"

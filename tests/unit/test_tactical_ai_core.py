@@ -143,10 +143,10 @@ def _make_context(
 class TestFlankSide:
 
     def test_has_left(self):
-        assert FlankSide.LEFT is not None
+        assert FlankSide.LEFT == FlankSide.LEFT, "FlankSide.LEFT should be defined and equal to itself"
 
     def test_has_right(self):
-        assert FlankSide.RIGHT is not None
+        assert FlankSide.RIGHT == FlankSide.RIGHT, "FlankSide.RIGHT should be defined and equal to itself"
 
     def test_two_values(self):
         assert len(FlankSide) == 2
@@ -162,7 +162,7 @@ class TestThreatScore:
         unit = _make_mock_unit(unit_type=UnitType.MACHINE_GUN_SQUAD, x=10, y=10)
         ref = TileCoord(10, 10)
         score = _threat_score(unit, ref)
-        assert score > 0
+        assert score >= 1.0, f"MG squad at same position should have high threat score (>= 1.0), got {score}"
 
     def test_tank_highest_weight(self):
         tank = _make_mock_unit(unit_type=UnitType.TANK, x=10, y=10)
@@ -174,7 +174,9 @@ class TestThreatScore:
         medic = _make_mock_unit(unit_type=UnitType.MEDIC_TEAM, x=10, y=10)
         ref = TileCoord(10, 10)
         score = _threat_score(medic, ref)
-        assert score > 0  # Still positive, just low
+        assert 0 < score < 1.0, (
+            f"Medic should have low but positive threat score (0 < score < 1.0), got {score}"
+        )
 
     def test_distance_reduces_score(self):
         unit_near = _make_mock_unit(unit_type=UnitType.INFANTRY_SQUAD, x=11, y=10)
@@ -193,7 +195,10 @@ class TestThreatScore:
         unit = _make_mock_unit(unit_type=UnitType.INFANTRY_SQUAD, x=5, y=5)
         ref = TileCoord(5, 5)
         score = _threat_score(unit, ref)
-        assert score > 0
+        assert score >= 1.0, (
+            f"Infantry squad at same position should have threat score >= 1.0 "
+            f"(distance clamped to 1), got {score}"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -323,8 +328,11 @@ class TestFlankingAI:
             game_map=gmap,
         )
         intents = ai.execute(ctx)
-        assert len(intents) > 0
-        assert all(isinstance(i, TacticIntent) for i in intents)
+        assert len(intents) >= 2, (
+            f"FlankingAI with 4 mobile units and 1 enemy should produce at least 2 intents "
+            f"(pinning + flanking), got {len(intents)}"
+        )
+        assert all(isinstance(i, TacticIntent) for i in intents), "All intents should be TacticIntent instances"
 
     def test_execute_no_enemies_returns_empty(self):
         ai = FlankingAI()
@@ -348,7 +356,10 @@ class TestFlankingAI:
         intents = ai.execute(ctx)
         suppress_intents = [i for i in intents if i.tactic_type == TacticType.SUPPRESS_FIRE]
         flank_intents = [i for i in intents if i.tactic_type == TacticType.FLANKING]
-        assert len(suppress_intents) > 0  # Pinning force
+        assert len(suppress_intents) >= 1, (
+            f"With 6 units, FlankingAI should produce at least 1 suppress intent for pinning force, "
+            f"got {len(suppress_intents)}"
+        )
         # Flank intents may or may not appear depending on map validation
 
 
@@ -412,8 +423,13 @@ class TestSuppressionAI:
             enemies=[_make_mock_unit(uid="e1", faction=Faction.AXIS, x=15, y=5)],
         )
         intents = ai.execute(ctx)
-        assert len(intents) > 0
-        assert all(i.tactic_type == TacticType.SUPPRESS_FIRE for i in intents)
+        assert len(intents) >= 1, (
+            f"SuppressionAI with MG unit and enemy should produce at least 1 suppress intent, "
+            f"got {len(intents)}"
+        )
+        assert all(i.tactic_type == TacticType.SUPPRESS_FIRE for i in intents), (
+            "All SuppressionAI intents should be of type SUPPRESS_FIRE"
+        )
 
     def test_execute_no_mg_returns_empty(self):
         ai = SuppressionAI()

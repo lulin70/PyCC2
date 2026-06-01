@@ -135,7 +135,7 @@ class TestDeploymentComplete:
         deployment_manager.start(map_data=map_data, faction="ally")
         self._add_placement(deployment_manager)
         deployment_manager.complete(ai_service=mock_ai_service, state=game_state)
-        assert len(game_state.units) > 0
+        assert len(game_state.units) >= 1, f"complete() should create at least 1 unit in game state, got {len(game_state.units)}"
 
     def _add_placement(self, dm: DeploymentManager) -> None:
         """Inject a player placement into the DeploymentUI for testing."""

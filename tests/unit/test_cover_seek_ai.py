@@ -356,7 +356,8 @@ class TestCoverScoringSystem:
             # Verify sorted in descending order
             candidates_sorted = sorted(candidates, key=lambda c: c.score, reverse=True)
             for i in range(len(candidates_sorted) - 1):
-                assert candidates_sorted[i].score >= candidates_sorted[i+1].score
+                assert candidates_sorted[i].score >= candidates_sorted[i+1].score, \
+                    f"Candidate at index {i} should have score >= candidate at index {i+1}"
 
 
 # ===========================================================================
@@ -440,7 +441,8 @@ class TestCoverSeekAI:
 
         # Should generate intent for the suppressed unit
         suppressed_intents = [i for i in intents if i.unit_id == mock_suppressed_unit.id]
-        assert len(suppressed_intents) > 0
+        assert len(suppressed_intents) == 1, \
+            "Should generate exactly 1 move intent for the suppressed unit"
 
         intent = suppressed_intents[0]
         assert isinstance(intent, TacticIntent)
@@ -577,7 +579,8 @@ class TestCoverSeekIntegration:
 
         # Execute
         intents = ai.execute(context)
-        assert len(intents) > 0, "Should generate move intent"
+        assert len(intents) >= 1, \
+            "Should generate at least 1 move intent for suppressed unit seeking cover"
 
         intent = intents[0]
         assert intent.tactic_type == TacticType.MOVE_TO
@@ -656,7 +659,8 @@ class TestCoverSeekPerformance:
 
         # Should complete within reasonable time (< 100ms)
         assert elapsed < 0.1, f"Cover search took {elapsed:.3f}s, too slow"
-        assert len(candidates) > 0
+        assert len(candidates) >= 1, \
+            "Large search area should return at least 1 cover candidate"
 
 
 if __name__ == "__main__":

@@ -400,7 +400,7 @@ class TestFullUserJourney:
             # Get available units
             available = deployment_ui.state.available_units
             print(f"  Available units: {len(available)}")
-            assert len(available) > 0, "No units available for deployment"
+            assert len(available) >= 6, f"Expected at least 6 available units for deployment, got {len(available)}"
 
             # Find unplaced units
             unplaced_indices = [i for i, u in enumerate(available) if not u.is_placed]
@@ -505,7 +505,7 @@ class TestFullUserJourney:
 
             # Find a player unit to select
             player_units = [u for u in game_loop.state.units if u.faction == Faction.ALLIES]
-            assert len(player_units) > 0, "No player units to command"
+            assert len(player_units) >= 1, f"Should have at least 1 player unit to command, got {len(player_units)}"
 
             target_unit = player_units[0]
             print(f"  Selecting unit: {target_unit.name} (id={target_unit.id})")
@@ -829,7 +829,7 @@ class TestFullUserJourney:
         # Find an unplaced unit and click it in the roster
         available = deployment_ui.state.available_units
         unplaced = [(i, u) for i, u in enumerate(available) if not u.is_placed]
-        assert len(unplaced) > 0, "No unplaced units"
+        assert len(unplaced) >= 3, f"Need at least 3 unplaced units for deployment click flow test, got {len(unplaced)}"
 
         unit_idx, unit = unplaced[0]
 

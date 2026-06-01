@@ -166,7 +166,7 @@ class TestTutorialStepsContent:
         content = TutorialOverlay.STEPS[TutorialStep.WELCOME]
         assert "title" in content
         assert "lines" in content
-        assert len(content["lines"]) > 0
+        assert len(content["lines"]) >= 1, f"WELCOME step should have at least 1 line, got {len(content['lines'])}"
         assert content["title"] == "Welcome to PyCC2"
 
     def test_select_unit_content_valid(self):
@@ -200,7 +200,7 @@ class TestTutorialStepsContent:
             assert step in TutorialOverlay.STEPS
             assert "title" in TutorialOverlay.STEPS[step]
             assert "lines" in TutorialOverlay.STEPS[step]
-            assert len(TutorialOverlay.STEPS[step]["lines"]) > 0
+            assert len(TutorialOverlay.STEPS[step]["lines"]) >= 1, f"Step {step} should have at least 1 line"
 
 
 class TestFadeAnimation:
@@ -301,7 +301,7 @@ class TestHintLifecycle:
 class TestHintsDict:
 
     def test_hints_dict_not_empty(self):
-        assert len(HINTS) > 0
+        assert len(HINTS) >= 6, f"HINTS dict should have at least 6 entries (first_select, right_click_move, etc.), got {len(HINTS)}"
 
     def test_contains_expected_keys(self):
         expected_keys = {

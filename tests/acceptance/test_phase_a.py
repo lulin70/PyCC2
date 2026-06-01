@@ -87,14 +87,14 @@ class TestA1AudioSystem:
         click = ProceduralSoundGenerator.generate_click()
         assert isinstance(click, np.ndarray)
         assert click.dtype == np.int16
-        assert len(click) > 0
+        assert len(click) >= 1000, f"Click sound should be at least 1000 samples, got {len(click)}"
 
         rifle_shot = ProceduralSoundGenerator.generate_rifle_shot()
         assert isinstance(rifle_shot, np.ndarray)
         assert rifle_shot.dtype == np.int16
 
         explosion = ProceduralSoundGenerator.generate_explosion()
-        assert len(explosion) > len(rifle_shot)  # Explosions longer
+        assert len(explosion) >= len(rifle_shot) * 2, f"Explosion should be at least 2x longer than rifle shot (explosion={len(explosion)}, rifle={len(rifle_shot)})"
 
     def test_play_sound_returns_true_when_initialized(self):
         """play() should return True when audio is working."""
@@ -391,8 +391,8 @@ class TestA4ContextMenu:
         menu = ContextMenu()
 
         for item in menu._items:
-            assert len(item.shortcut) > 0, f"{item.action} missing shortcut"
-            assert len(item.icon_char) > 0, f"{item.action} missing icon"
+            assert len(item.shortcut) >= 1, f"{item.action} missing shortcut"
+            assert len(item.icon_char) >= 1, f"{item.action} missing icon"
 
     def test_menu_show_and_hide(self):
         """Menu visibility should toggle correctly."""

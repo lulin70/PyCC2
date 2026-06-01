@@ -306,7 +306,7 @@ class TestStageADisplayAndInitialization:
     def test_a09_varied_terrain_map_has_multiple_types(self, game_map):
         grid = game_map.tile_grid
         unique_types = set(grid.flatten())
-        assert len(unique_types) > 1
+        assert len(unique_types) >= 3, f"Varied terrain map should have at least 3 terrain types, got {len(unique_types)}: {unique_types}"
 
     def test_a10_enhanced_renderer_initializes(self, screen):
         renderer = EnhancedRenderer()
@@ -341,7 +341,7 @@ class TestStageBUnitDeployment:
         ui = DeploymentUI(width=1280, height=720)
         map_data = {"width": 20, "height": 20, "tiles": [[0] * 20 for _ in range(20)]}
         ui.start_deployment(map_data, faction="ally")
-        assert len(ui.state.available_units) > 0
+        assert len(ui.state.available_units) >= 6, f"Expected at least 6 units in force pool, got {len(ui.state.available_units)}"
 
     def test_b03_units_can_be_placed_on_map(self):
         ui = DeploymentUI(width=1280, height=720)
@@ -429,7 +429,7 @@ class TestStageCUnitSelectionAndDisplay:
         units = [ally_unit]
         sp = ic.camera.world_to_screen(ally_unit.position.pixel_position)
         ic.handle_left_click(sp, units)
-        assert len(ic.selected_unit_ids) > 0
+        assert len(ic.selected_unit_ids) == 1, f"Expected exactly 1 selected unit after click, got {len(ic.selected_unit_ids)}"
         ic.handle_left_click((700.0, 700.0), units)
         assert len(ic.selected_unit_ids) == 0
 
@@ -437,7 +437,7 @@ class TestStageCUnitSelectionAndDisplay:
         units = [ally_unit]
         sp = ic.camera.world_to_screen(ally_unit.position.pixel_position)
         ic.handle_left_click(sp, units)
-        assert len(ic.selected_unit_ids) > 0
+        assert len(ic.selected_unit_ids) == 1, f"Expected exactly 1 selected unit after click, got {len(ic.selected_unit_ids)}"
         ic.handle_shortcut_key(pygame.K_ESCAPE)
         assert len(ic.selected_unit_ids) == 0
         assert ic.mode == InteractionMode.SELECT
@@ -1126,7 +1126,8 @@ class TestStageIUIDetailCheck:
     def test_i16_unit_display_name_attribute(self, ally_unit):
         name = getattr(ally_unit, 'display_name', None) or ally_unit.name
         assert name is not None
-        assert len(name) > 0
+        assert isinstance(name, str), f"Expected string name, got {type(name)}"
+        assert len(name) >= 3, f"Unit name should be at least 3 characters, got '{name}' (len={len(name)})"
 
 
 # ========================================================================

@@ -83,7 +83,7 @@ class TestHmacKeyFallbackToFile:
     def test_get_hmac_key_returns_bytes_even_without_file(self):
         key = SecureSaveManager._get_hmac_key()
         assert isinstance(key, bytes)
-        assert len(key) > 0
+        assert len(key) >= 1, f"HMAC key should have at least 1 byte, got {len(key)}"
 
 
 class TestHmacKeyDefaultWithWarning:
@@ -104,7 +104,7 @@ class TestHmacKeyDefaultWithWarning:
     def test_get_hmac_key_static_method_returns_bytes(self):
         key = SecureSaveManager._get_hmac_key()
         assert isinstance(key, bytes)
-        assert len(key) > 0
+        assert len(key) >= 1, f"HMAC key (static) should have at least 1 byte, got {len(key)}"
 
 
 class TestScreenToTileClamping:

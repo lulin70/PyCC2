@@ -19,7 +19,7 @@ class TestProceduralSoundGeneratorClick:
         result = ProceduralSoundGenerator.generate_click()
         assert isinstance(result, np.ndarray)
         assert result.dtype == np.int16
-        assert len(result) > 0
+        assert len(result) >= 1, f"Click sound should have at least 1 sample, got {len(result)}"
 
     def test_generate_click_has_correct_duration(self):
         duration_ms = 50
@@ -63,7 +63,7 @@ class TestProceduralSoundGeneratorMGBurst:
         burst = ProceduralSoundGenerator.generate_mg_burst(burst_count=3)
         assert isinstance(burst, np.ndarray)
         assert burst.dtype == np.int16
-        assert len(burst) > 0
+        assert len(burst) >= 1, f"MG burst should have at least 1 sample, got {len(burst)}"
         single_shot = ProceduralSoundGenerator.generate_rifle_shot()
         assert len(burst) >= len(single_shot)
 
@@ -73,7 +73,7 @@ class TestProceduralSoundGeneratorHitConfirm:
         result = ProceduralSoundGenerator.generate_hit_confirm()
         assert isinstance(result, np.ndarray)
         assert result.dtype == np.int16
-        assert len(result) > 0
+        assert len(result) >= 1, f"Hit confirm should have at least 1 sample, got {len(result)}"
         assert len(result) < len(ProceduralSoundGenerator.generate_rifle_shot())
 
 
@@ -82,7 +82,7 @@ class TestProceduralSoundGeneratorDeathCry:
         result = ProceduralSoundGenerator.generate_death_cry()
         assert isinstance(result, np.ndarray)
         assert result.dtype == np.int16
-        assert len(result) > 0
+        assert len(result) >= 1, f"Death cry should have at least 1 sample, got {len(result)}"
         first_half = result[: len(result) // 2]
         second_half = result[len(result) // 2 :]
         assert abs(float(np.mean(np.abs(first_half)))) >= abs(float(np.mean(np.abs(second_half))))

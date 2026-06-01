@@ -255,7 +255,7 @@ class TestSearchlightIllumination:
     def test_illuminated_tiles_list_non_empty_when_active(self):
         sl = Searchlight(position_x=10, position_y=10)
         tiles = sl.get_illuminated_tiles()
-        assert len(tiles) > 0
+        assert len(tiles) >= 1, f"Active searchlight should illuminate at least 1 tile (center), got {len(tiles)}"
 
     def test_illuminated_tiles_empty_when_inactive(self):
         sl = Searchlight(position_x=10, position_y=10, is_active=False)

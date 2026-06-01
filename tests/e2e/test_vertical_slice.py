@@ -142,7 +142,7 @@ class TestVerticalSlice01_InitChain:
 
     def test_vs01_shutdown_completes(self, full_system):
         full_system["game_loop"].shutdown()
-        assert True
+        assert full_system["state"].running is False, "Game should not be running after shutdown"
 
 
 class TestVerticalSlice02_MapLoading:

@@ -286,7 +286,7 @@ class TestOptionsPerTab:
             menu._active_tab = tab
             options = menu._get_options_for_tab()
             assert isinstance(options, list)
-            assert len(options) > 0
+            assert len(options) >= 1, f"Tab {tab} should have at least 1 option, got {len(options)}"
             for opt_name, opt_val, opt_type in options:
                 assert isinstance(opt_name, str)
                 assert opt_type in ("enum", "bool", "slider", "info", "toggle")

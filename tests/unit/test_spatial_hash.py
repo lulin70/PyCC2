@@ -250,7 +250,7 @@ class TestClear:
     def test_clear_empties_hash(self):
         sh = _make_sh()
         _populate_basic(sh)
-        assert sh.unit_count() > 0
+        assert sh.unit_count() >= 4, f"After populating 4 units, count should be >= 4, got {sh.unit_count()}"
         sh.clear()
         assert sh.unit_count() == 0
         assert sh.query_radius(TileCoord(0, 0), 1000) == []
@@ -320,7 +320,7 @@ class TestEdgeCases:
         for i in range(50):
             sh.insert(f"u{i}", TileCoord(i, i), Faction.ALLIES)
         result = sh.query_radius(TileCoord(25, 25), 30)
-        assert len(result) > 0
+        assert len(result) >= 1, f"Query near populated area should return at least 1 unit, got {len(result)}"
         assert all(uid.startswith("u") for uid in result)
 
 

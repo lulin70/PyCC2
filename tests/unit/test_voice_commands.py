@@ -35,7 +35,7 @@ class TestVoiceCommandEnum:
     def test_command_values_are_strings(self):
         for cmd in VoiceCommand:
             assert isinstance(cmd.value, str)
-            assert len(cmd.value) > 0
+            assert len(cmd.value) >= 1, f"Command {cmd.name} value should be non-empty string"
 
     def test_fire_command_value(self):
         assert VoiceCommand.FIRE.value == "Fire!"
@@ -117,7 +117,7 @@ class TestSoundGeneration:
         result = VoiceCommandGenerator.generate_command(
             VoiceCommand.MOVE_OUT, Faction.ALLIES
         )
-        assert len(result) > 0
+        assert len(result) >= 1, f"Generated command should have at least 1 sample, got {len(result)}"
         assert np.any(result != 0)
 
     def test_generate_command_sample_count(self):

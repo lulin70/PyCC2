@@ -166,8 +166,10 @@ class TestIsometricRendererRender:
         renderer = IsometricRenderer()
         renderer._get_terrain_tile(0)
         renderer._get_building_surface(4, 2, 0)
-        assert len(renderer._tile_cache) > 0
-        assert len(renderer._building_cache) > 0
+        assert len(renderer._tile_cache) >= 1, \
+            "Should have at least 1 terrain tile cached after generating tile 0"
+        assert len(renderer._building_cache) == 1, \
+            "Should have exactly 1 building surface cached after generating surface (4,2,0)"
 
         renderer.shutdown()
         assert len(renderer._tile_cache) == 0

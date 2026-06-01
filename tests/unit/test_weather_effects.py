@@ -239,7 +239,7 @@ class TestWeatherTransitionTable:
         rng = random.Random(99)
         for weather in WeatherType:
             duration = WeatherTransitionTable.generate_weather_duration(weather, rng)
-            assert duration > 0
+            assert duration >= 1, f"Weather {weather.name} duration should be at least 1 turn, got {duration}"
 
     def test_snow_longer_than_fog_typically(self):
         rng = random.Random(42)

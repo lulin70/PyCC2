@@ -638,8 +638,8 @@ class TestInitializeAndShutdown:
         renderer = SpriteRenderer()
         _init_renderer_with_screen(renderer)
         assert renderer._screen is not None
-        assert len(renderer._sprite_cache) > 0
-        assert len(renderer._terrain_cache) > 0
+        assert len(renderer._sprite_cache) >= 48, f"Sprite cache should have at least 48 entries (2 factions × 3 types × 8 dirs), got {len(renderer._sprite_cache)}"
+        assert len(renderer._terrain_cache) >= 12, f"Terrain cache should have at least 12 entries (one per TerrainType), got {len(renderer._terrain_cache)}"
         renderer.shutdown()
         assert renderer._screen is None
         assert len(renderer._sprite_cache) == 0

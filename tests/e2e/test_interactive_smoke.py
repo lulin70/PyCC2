@@ -226,7 +226,7 @@ class TestInteractiveSmoke:
         # ---- Step 3: Simulate user selecting & placing units ----
         # Find an unplaced infantry unit in the roster
         available = deployment_ui.state.available_units
-        assert len(available) > 0, "Should have available units in roster"
+        assert len(available) >= 6, f"Should have at least 6 available units in roster, got {len(available)}"
 
         # Find first unplaced infantry unit
         inf_idx = None
@@ -260,7 +260,7 @@ class TestInteractiveSmoke:
         # Now place the unit on a friendly zone tile
         # Find a valid placement position in friendly zone
         friendly_zone = deployment_ui.state.friendly_zone
-        assert len(friendly_zone) > 0, "Should have friendly zone tiles"
+        assert len(friendly_zone) >= 10, f"Should have at least 10 friendly zone tiles, got {len(friendly_zone)}"
 
         placed = False
         for tile_x, tile_y in friendly_zone[:20]:  # Try first 20 tiles
@@ -465,7 +465,7 @@ class TestInteractiveSmoke:
         dui.start_deployment(map_data=map_data, faction="ally")
 
         # Verify roster was built
-        assert len(dui.state.available_units) > 0, "Should have units in roster"
+        assert len(dui.state.available_units) >= 6, f"Should have at least 6 units in roster, got {len(dui.state.available_units)}"
 
         # Find first infantry unit index
         inf_idx = None

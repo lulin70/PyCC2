@@ -370,7 +370,7 @@ class TestVictoryConditionEvaluator:
         )
         u = _make_unit(id="a1", faction=Faction.ALLIES, tile_x=5, tile_y=5)
         ev.evaluate([u], tick=0)
-        assert len(ev._vl_owner) > 0
+        assert len(ev._vl_owner) >= 1, f"VL owner dict should have at least 1 entry after capture, got {len(ev._vl_owner)}"
         ev.reset()
         assert len(ev._vl_owner) == 0
 

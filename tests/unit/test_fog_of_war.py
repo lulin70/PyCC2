@@ -110,7 +110,7 @@ class TestFowBasic:
             game_map=m,
         )
         cleared = fow.clear_current_visibility()
-        assert len(cleared) > 0
+        assert len(cleared) >= 1, f"Clearing visibility should return at least 1 tile, got {len(cleared)}"
         for c in cleared:
             assert fow.is_explored(c)
             assert not fow.is_visible(c)
@@ -129,7 +129,7 @@ class TestFowRay:
             game_map=m,
         )
         visible = fow.get_visible_tiles()
-        assert len(visible) > 20
+        assert len(visible) >= 21, f"36-ray full-circle vision should reveal at least 21 tiles (center + ~20 in radius 6), got {len(visible)}"
 
     def test_ray_blocked_by_wall(self):
         fow = _make_fow(20, 20)

@@ -78,7 +78,8 @@ class TestBEHit:
         result = engine.calculate_shot(atk, tgt, game_map=None)
         dist = atk.position.tile_coord.octile_distance(tgt.position.tile_coord)
         assert dist < engine._weapon_stats["rifle"]["effective_range"]
-        assert result.actual_accuracy > 0.6 or result.hit is True or result.hit is False
+        assert 0.0 <= result.actual_accuracy <= 1.0, f"actual_accuracy should be in [0,1], got {result.actual_accuracy}"
+        assert isinstance(result.hit, bool), f"hit should be bool, got {type(result.hit)}"
 
     def test_hit_02_low_accuracy_at_max_range(self, engine):
         atk = make_unit("A", Faction.ALLIES, TileCoord(0, 0))
@@ -154,8 +155,8 @@ class TestBEDamage:
             r = ei.calculate_shot(atk, tgt, game_map=None)
             if r.hit:
                 results.append(r.damage_dealt)
-        assert len(results) > 0
-        assert all(d > 0 for d in results)
+        assert len(results) >= 1, f"Expected at least 1 hit in 50 shots, got {len(results)} hits"
+        assert all(d > 0 for d in results), "All hit damages should be positive"
 
     def test_dmg_02_damageDecreasesWithDistance(self):
         close_hits = []
@@ -256,7 +257,7 @@ class TestBEDamage:
             r = ei.calculate_shot(atk, tgt, game_map=None)
             if r.is_killing_blow:
                 killing_blows += 1
-        assert killing_blows > 0
+        assert killing_blows >= 1, f"Expected at least 1 killing blow in 500 shots on 10-HP target, got {killing_blows}"
 
 
 class TestBESpread:

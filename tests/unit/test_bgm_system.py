@@ -70,34 +70,40 @@ class TestBGMGeneration:
         result = BGMGenerator.generate_mood_music(MusicMood.MENU, duration=2.0)
         assert isinstance(result, np.ndarray)
         assert result.dtype == np.int16
-        assert len(result) > 0
-        assert np.any(result != 0)
+        expected_samples = int(SAMPLE_RATE * 2.0)
+        assert len(result) == expected_samples, f"MENU music should have {expected_samples} samples for 2.0s duration, got {len(result)}"
+        assert np.any(result != 0), "MENU music should contain non-zero audio data"
 
     def test_battle_light_non_empty(self):
         result = BGMGenerator.generate_mood_music(MusicMood.BATTLE_LIGHT, duration=2.0)
-        assert len(result) > 0
-        assert np.any(result != 0)
+        expected_samples = int(SAMPLE_RATE * 2.0)
+        assert len(result) == expected_samples, f"BATTLE_LIGHT should have {expected_samples} samples for 2.0s duration, got {len(result)}"
+        assert np.any(result != 0), "BATTLE_LIGHT music should contain non-zero audio data"
 
     def test_battle_intense_non_empty(self):
         result = BGMGenerator.generate_mood_music(MusicMood.BATTLE_INTENSE, duration=2.0)
-        assert len(result) > 0
-        assert np.any(result != 0)
+        expected_samples = int(SAMPLE_RATE * 2.0)
+        assert len(result) == expected_samples, f"BATTLE_INTENSE should have {expected_samples} samples for 2.0s duration, got {len(result)}"
+        assert np.any(result != 0), "BATTLE_INTENSE music should contain non-zero audio data"
 
     def test_victory_non_empty(self):
         result = BGMGenerator.generate_mood_music(MusicMood.VICTORY, duration=2.0)
-        assert len(result) > 0
-        assert np.any(result != 0)
+        expected_samples = int(SAMPLE_RATE * 2.0)
+        assert len(result) == expected_samples, f"VICTORY should have {expected_samples} samples for 2.0s duration, got {len(result)}"
+        assert np.any(result != 0), "VICTORY music should contain non-zero audio data"
 
     def test_defeat_non_empty(self):
         result = BGMGenerator.generate_mood_music(MusicMood.DEFEAT, duration=2.0)
-        assert len(result) > 0
-        assert np.any(result != 0)
+        expected_samples = int(SAMPLE_RATE * 2.0)
+        assert len(result) == expected_samples, f"DEFEAT should have {expected_samples} samples for 2.0s duration, got {len(result)}"
+        assert np.any(result != 0), "DEFEAT music should contain non-zero audio data"
 
     def test_ambient_uses_wind(self):
         result = BGMGenerator.generate_mood_music(MusicMood.AMBIENT, duration=2.0)
         assert isinstance(result, np.ndarray)
         assert result.dtype == np.int16
-        assert len(result) > 0
+        expected_samples = int(SAMPLE_RATE * 2.0)
+        assert len(result) == expected_samples, f"AMBIENT should have {expected_samples} samples for 2.0s duration, got {len(result)}"
 
     def test_sample_count_matches_duration(self):
         duration = 3.0
@@ -119,18 +125,21 @@ class TestBGMGeneration:
 class TestDrumComponents:
     def test_kick_non_empty(self):
         kick = BGMGenerator._make_kick(0.1)
-        assert len(kick) > 0
-        assert np.any(kick != 0)
+        expected_samples = int(SAMPLE_RATE * 0.1)
+        assert len(kick) == expected_samples, f"Kick should have {expected_samples} samples for 0.1s duration, got {len(kick)}"
+        assert np.any(kick != 0), "Kick drum should contain non-zero audio data"
 
     def test_snare_non_empty(self):
         snare = BGMGenerator._make_snare(0.1)
-        assert len(snare) > 0
-        assert np.any(snare != 0)
+        expected_samples = int(SAMPLE_RATE * 0.1)
+        assert len(snare) == expected_samples, f"Snare should have {expected_samples} samples for 0.1s duration, got {len(snare)}"
+        assert np.any(snare != 0), "Snare drum should contain non-zero audio data"
 
     def test_hihat_non_empty(self):
         hihat = BGMGenerator._make_hihat(0.05)
-        assert len(hihat) > 0
-        assert np.any(hihat != 0)
+        expected_samples = int(SAMPLE_RATE * 0.05)
+        assert len(hihat) == expected_samples, f"Hi-hat should have {expected_samples} samples for 0.05s duration, got {len(hihat)}"
+        assert np.any(hihat != 0), "Hi-hat should contain non-zero audio data"
 
     def test_kick_is_low_frequency(self):
         kick = BGMGenerator._make_kick(0.15)
@@ -154,8 +163,9 @@ class TestWindGeneration:
         result = AmbientSoundGenerator.generate_wind(intensity=0.5, duration=2.0)
         assert isinstance(result, np.ndarray)
         assert result.dtype == np.int16
-        assert len(result) > 0
-        assert np.any(result != 0)
+        expected_samples = int(SAMPLE_RATE * 2.0)
+        assert len(result) == expected_samples, f"Wind should have {expected_samples} samples for 2.0s duration, got {len(result)}"
+        assert np.any(result != 0), "Wind should contain non-zero audio data"
 
     def test_wind_sample_count(self):
         duration = 3.0
@@ -170,9 +180,16 @@ class TestWindGeneration:
     def test_wind_high_intensity_louder_than_low(self):
         low = AmbientSoundGenerator.generate_wind(intensity=0.1, duration=2.0)
         high = AmbientSoundGenerator.generate_wind(intensity=0.9, duration=2.0)
-        # Use same RNG seed by regenerating – both use default numpy RNG
-        # Just check high intensity has non-zero output
-        assert np.max(np.abs(high)) > 0
+        # Both should produce non-zero audio output
+        assert np.any(high != 0), "High intensity wind should produce non-zero audio"
+        assert np.any(low != 0), "Low intensity wind should produce non-zero audio"
+        # High intensity should have greater or equal max absolute amplitude
+        high_max = np.max(np.abs(high))
+        low_max = np.max(np.abs(low))
+        assert high_max >= low_max, (
+            f"High intensity wind (max amp: {high_max}) should have amplitude >= "
+            f"low intensity wind (max amp: {low_max})"
+        )
 
 
 class TestRainGeneration:
@@ -180,8 +197,9 @@ class TestRainGeneration:
         result = AmbientSoundGenerator.generate_rain(intensity=0.5, duration=2.0)
         assert isinstance(result, np.ndarray)
         assert result.dtype == np.int16
-        assert len(result) > 0
-        assert np.any(result != 0)
+        expected_samples = int(SAMPLE_RATE * 2.0)
+        assert len(result) == expected_samples, f"Rain should have {expected_samples} samples for 2.0s duration, got {len(result)}"
+        assert np.any(result != 0), "Rain should contain non-zero audio data"
 
     def test_rain_sample_count(self):
         duration = 3.0
@@ -199,7 +217,8 @@ class TestDistantGunfire:
         result = AmbientSoundGenerator.generate_distant_gunfire(duration=5.0)
         assert isinstance(result, np.ndarray)
         assert result.dtype == np.int16
-        assert len(result) > 0
+        expected_samples = int(SAMPLE_RATE * 5.0)
+        assert len(result) == expected_samples, f"Distant gunfire should have {expected_samples} samples for 5.0s duration, got {len(result)}"
 
     def test_gunfire_sample_count(self):
         duration = 4.0
@@ -211,4 +230,7 @@ class TestDistantGunfire:
         result = AmbientSoundGenerator.generate_distant_gunfire(duration=5.0)
         # Most samples should be zero (silent between shots)
         zero_ratio = np.sum(result == 0) / len(result)
-        assert zero_ratio > 0.5, "Distant gunfire should have mostly silent gaps"
+        assert zero_ratio > 0.9, (
+            f"Distant gunfire should have mostly silent gaps (>90% zeros), "
+            f"but got {zero_ratio:.2%} zeros"
+        )

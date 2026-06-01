@@ -65,13 +65,18 @@ class TestMediumHouseIntact:
     def test_has_wall_faces(self):
         surface = render_cc2_building(CC2BuildingType.MEDIUM_HOUSE)
         roof_color = CC2_ROOF_COLORS[CC2BuildingType.MEDIUM_HOUSE]
-        # Fix 0.1: 墙面从5px减至2px，调整检查位置
-        bottom_pixel = surface.get_at((48, 95))[:3]  # South wall (bottom 2px)
-        right_pixel = surface.get_at((95, 48))[:3]   # East wall (right 2px)
-        # Wall faces should be darker than roof (multiplier 0.55)
-        assert bottom_pixel[0] < roof_color[0], "South wall should be darker"
-        assert bottom_pixel[1] < roof_color[1], "South wall should be darker"
-        assert right_pixel[0] < roof_color[0], "East wall should be darker"
+        # Sample multiple wall pixels for robustness against color variants
+        bottom_pixels = [surface.get_at((x, 95))[:3] for x in range(46, 50)]
+        right_pixels = [surface.get_at((95, y))[:3] for y in range(46, 50)]
+        # At least 75% of sampled wall pixels should be darker than roof
+        darker_bottom = sum(1 for p in bottom_pixels if p[0] < roof_color[0] and p[1] < roof_color[1])
+        darker_right = sum(1 for p in right_pixels if p[0] < roof_color[0])
+        assert darker_bottom >= len(bottom_pixels) * 0.75, (
+            f"South wall should be darker than roof: {darker_bottom}/{len(bottom_pixels)} pixels darker"
+        )
+        assert darker_right >= len(right_pixels) * 0.75, (
+            f"East wall should be darker than roof: {darker_right}/{len(right_pixels)} pixels darker"
+        )
 
 
 class TestLargeBuildingWithNumber:

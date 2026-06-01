@@ -263,7 +263,7 @@ class TestDecorationLibrary:
 
     def test_library_has_definitions(self):
         lib = DecorationLibrary()
-        assert len(lib.definitions) > 0
+        assert len(lib.definitions) >= 12, f"Decoration library should have at least 12 definitions (one per major decoration type), got {len(lib.definitions)}"
 
     def test_library_get_definition_existing(self):
         lib = DecorationLibrary()
