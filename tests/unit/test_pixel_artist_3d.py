@@ -48,13 +48,13 @@ class TestPixelArtist3DInitialization:
 
     def test_cc2_palette_exists(self):
         """Test that CC2_PALETTE contains both factions"""
-        from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+        from pycc2.presentation.rendering.pixel_artist_color_palette import CC2_PALETTE
 
-        assert "allies" in PixelArtist3D.CC2_PALETTE
-        assert "axis" in PixelArtist3D.CC2_PALETTE
+        assert "allies" in CC2_PALETTE
+        assert "axis" in CC2_PALETTE
 
-        allies_palette = PixelArtist3D.CC2_PALETTE["allies"]
-        axis_palette = PixelArtist3D.CC2_PALETTE["axis"]
+        allies_palette = CC2_PALETTE["allies"]
+        axis_palette = CC2_PALETTE["axis"]
 
         # Check required color keys exist
         required_keys = ['uniform', 'helmet', 'weapon', 'boots',
@@ -599,22 +599,22 @@ class TestColorPaletteCorrectness:
 
     def test_allies_uniform_color(self):
         """Test Allies uniform is CC2-accurate OD Green.
-        
+
         CC2 spec (UI_REALISTIC_PIXEL_SPEC.md): Allied uniform #4B5320 = (75, 83, 32)
         This is the authentic WWII Olive Drab shade used in CC2.
         """
-        from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+        from pycc2.presentation.rendering.pixel_artist_color_palette import CC2_PALETTE
 
-        allies_uniform = PixelArtist3D.CC2_PALETTE['allies']['uniform']
+        allies_uniform = CC2_PALETTE['allies']['uniform']
         assert 65 <= allies_uniform[0] <= 90, f"Allies uniform R out of OD green range: {allies_uniform}"
         assert 70 <= allies_uniform[1] <= 95, f"Allies uniform G out of OD green range: {allies_uniform}"
         assert 20 <= allies_uniform[2] <= 45, f"Allies uniform B out of OD green range: {allies_uniform}"
 
     def test_axis_uniform_color(self):
         """Test Axis uniform is Field gray"""
-        from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+        from pycc2.presentation.rendering.pixel_artist_color_palette import CC2_PALETTE
 
-        axis_uniform = PixelArtist3D.CC2_PALETTE['axis']['uniform']
+        axis_uniform = CC2_PALETTE['axis']['uniform']
         # Should be gray-green: values close together, mid-range
         assert 75 <= axis_uniform[0] <= 95, f"Axis uniform R out of range: {axis_uniform}"
         assert 80 <= axis_uniform[1] <= 100, f"Axis uniform G out of range: {axis_uniform}"
@@ -622,10 +622,10 @@ class TestColorPaletteCorrectness:
 
     def test_helmet_color_reasonable(self):
         """Test helmet color is reasonable military steel color"""
-        from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+        from pycc2.presentation.rendering.pixel_artist_color_palette import CC2_PALETTE
 
         for faction in ['allies', 'axis']:
-            helmet = PixelArtist3D.CC2_PALETTE[faction]['helmet']
+            helmet = CC2_PALETTE[faction]['helmet']
             # Helmet should be gray-green steel: mid range RGB
             assert 50 <= helmet[0] <= 80, f"{faction} helmet R out of range: {helmet}"
             assert 50 <= helmet[1] <= 80, f"{faction} helmet G out of range: {helmet}"

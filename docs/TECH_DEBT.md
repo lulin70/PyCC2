@@ -87,12 +87,15 @@
 - **状态**: ✅ 已修复 — 新增6个集成测试文件(LOS/部署/命令/渲染/胜负/战斗循环)，总计3020+测试通过
 - **修复日期**: 2026-05-24
 
-### 🟡 TD-029: 视觉优化文档4个重叠
+### ✅ TD-029: 视觉优化文档4个重叠 ✅ **已解决** (2026-06-01)
 
 - **描述**: 存在4个视觉优化相关文档，内容重叠，缺乏统一规划
 - **影响**: 视觉优化工作缺乏明确方向，可能重复劳动
-- **状态**: ❌ 未解决
-- **清理方案**: 合并为1个统一的视觉优化文档
+- **状态**: ✅ **已解决** — 已合并为统一的 `VISUAL_OPTIMIZATION_UNIFIED.md` 文档
+  - 整合来源: CC2_VISUAL_STANDARDS.md + VISUAL_GAP_CONSENSUS.md + VISUAL_ROUTE_CORRECTION.md + VISUAL_SPEC.md
+  - 新文档结构: 5大章节 + 6个附录, 消除内容重叠, 保留所有关键技术细节
+  - 包含: 视觉目标与原则、差距分析、技术路线图、已完成清单、优先级矩阵
+- **修复日期**: 2026-06-01 (视觉优化文档合并)
 
 ### ~~🟡 TD-030: 音频stereo预生成失败~~ ✅ 已修复 (2026-05-24)
 
@@ -423,7 +426,7 @@
 - [ ] TD-026: 拆分29个超500行文件
 - [ ] TD-027: 明确infra/infrastructure职责
 - [x] ~~TD-028: 添加集成测试~~ ✅ 已修复 (2026-05-24, 6个集成测试文件)
-- [ ] TD-029: 合并4个视觉优化文档（暂缓：文档用途不同，风险较高）
+- [x] TD-029: 合并4个视觉优化文档 ✅ **已解决** (2026-06-01) — 创建 VISUAL_OPTIMIZATION_UNIFIED.md
 - [x] ~~TD-030: 修复音频stereo预生成~~ ✅ 已修复 (2026-05-24)
 - [x] ~~TD-031: POLISH阵营加入友军列表~~ ✅ 已解决 (v0.3.7)
 - [x] ~~TD-032: 补充GameSettings类型注解导入~~ ✅ 已解决 (v0.3.7)
@@ -470,19 +473,23 @@
 
 - **描述**: enhanced_renderer.py 仍有 59 个方法，远超 SRP 推荐的 <20 方法上限
 - **影响**: 修改风险高，测试困难，新开发者理解成本大
-- **文件**: `src/pycc2/presentation/rendering/enhanced_renderer.py` (~2244行)
+- **文件**: `src/pycc2/presentation/rendering/enhanced_renderer.py` (~2250行)
 - **优先级**: P1
 - **状态**: ❌ 未解决
 - **清理方案**: 提取 particle_effects_renderer.py, unit_renderer.py, environment_renderer.py
 
-### 🟢 TD-062: Surface对象池无LRU淘汰机制
+### ✅ TD-062: Surface对象池无LRU淘汰机制 ✅ **已修复** (2026-06-01)
 
 - **描述**: PERF-001 实现的 Surface 对象池 (`_surface_pool: dict`) 在窗口 resize 时仅清空，不会淘汰旧 size 的条目，长期运行可能导致内存泄漏
 - **影响**: 长时间游戏会话可能内存持续增长
 - **文件**: `src/pycc2/presentation/rendering/enhanced_renderer.py`
-- **优先级**: P2
-- **状态**: ❌ 未解决
-- **清理方案**: 实现 LRU 淘汰策略（max_size=50, 超出时淘汰最久未使用）
+- **状态**: ✅ **已修复** — 实现 LRU 淘汰策略 (OrderedDict, max_size=50, move_to_end追踪)
+- **修复日期**: 2026-06-01 (v0.3.15 技术债清理)
+- **技术细节**:
+  - 使用 `collections.OrderedDict` 替代 `dict` 跟踪访问顺序
+  - `_get_pooled_surface()` 调用 `move_to_end()` 标记最近使用
+  - 超出 `MAX_SURFACE_POOL_SIZE=50` 时 `popitem(last=False)` 淘汰最久未使用
+  - 显式 `del evicted_surf` 释放内存
 
 ---
 

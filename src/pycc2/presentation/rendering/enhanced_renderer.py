@@ -32,6 +32,7 @@ from __future__ import annotations
 import logging
 import math
 import random
+from collections import OrderedDict
 from typing import TYPE_CHECKING, Any
 
 import pygame
@@ -76,6 +77,10 @@ from pycc2.presentation.rendering.terrain_tile_cache import (
 from pycc2.presentation.rendering.palette_generator import PaletteGenerator
 from pycc2.presentation.rendering.procedural_texture_generator import ProceduralTextureGenerator
 from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
+
+# Import extracted sub-modules (SRP refactoring)
+from pycc2.presentation.rendering.particle_effects_renderer import ParticleEffectsRenderer
+from pycc2.presentation.rendering.environment_renderer import EnvironmentRenderer
 
 from dataclasses import dataclass
 
@@ -137,7 +142,7 @@ class EnhancedRenderer:
         self._isometric_renderer = None  # Isometric renderer (lazy init)
         self._shadow_renderer = ShadowRenderer()  # SE-direction shadow system
         self._shadow_rendering_sys = ShadowRenderingSystem(self._shadow_renderer, self.TILE_SIZE)  # Unified shadow coordinator
-        self._attack_line_system = attack_line_system  # P0-2 Fix: Dependency injection (was getattr hack)
+        self._attack_line_system = attack_line_system  # Dependency injection for attack line system
         self._particle_system = TopDownParticleSystem()  # Top-down particle effects system
         
         # Top-down lighting system configuration
@@ -154,7 +159,9 @@ class EnhancedRenderer:
         self._terrain_rendering_sys = TerrainRenderingSystem(self, self.TILE_SIZE)
 
         # Surface object pool - eliminate per-frame allocation (PERF-001)
-        self._surface_pool: dict[tuple[int, int], pygame.Surface] = {}
+        # LRU eviction strategy: max 50 surfaces, evict least recently used
+        self._surface_pool: OrderedDict[tuple[int, int], pygame.Surface] = OrderedDict()
+        self._MAX_SURFACE_POOL_SIZE = 50
         self._cached_screen_size: tuple[int, int] | None = None
         self._cached_warm_overlay: pygame.Surface | None = None
         self._cached_vignette: pygame.Surface | None = None
@@ -164,6 +171,10 @@ class EnhancedRenderer:
         self._unit_renderer = UnitRenderer(self)
         self._decoration_renderer = DecorationRenderer(self)
         self._lighting_system = LightingSystem(self._lighting_config)
+
+        # Initialize extracted SRP modules (delegate pattern for backward compatibility)
+        self._particle_effects = ParticleEffectsRenderer()
+        self._environment = EnvironmentRenderer()
 
         self._enable_cc2_color_grading: bool = True
         self._hud = None
@@ -192,6 +203,20 @@ class EnhancedRenderer:
             warnings.warn(f"SpriteRenderer initialization failed: {e}")
             self._sprite_renderer = None
 
+        # Configure extracted sub-modules with dependencies (delegate pattern)
+        self._particle_effects.set_dependencies(
+            sprite_renderer=self._sprite_renderer,
+            particle_system=self._particle_system,
+            offscreen=self._offscreen,
+            surface_pool_fn=self._get_pooled_surface,
+        )
+        
+        self._environment.set_dependencies(
+            lighting_effects_sys=self._lighting_effects_sys,
+            lighting_config=self._lighting_config,
+            offscreen=self._offscreen,
+        )
+
     def set_attack_line_system(self, attack_line_system) -> None:
         """Set attack line system (dependency injection setter - P0-2 Fix)."""
         self._attack_line_system = attack_line_system
@@ -206,12 +231,7 @@ class EnhancedRenderer:
         Raises:
             ValueError: If tod is not a valid time of day
         """
-        valid_times = ['dawn', 'noon', 'dusk', 'night']
-        if tod not in valid_times:
-            raise ValueError(f"Invalid time of day: '{tod}'. Must be one of {valid_times}")
-        
-        self._lighting_config.time_of_day = tod
-        logger.debug(f"Lighting: Time of day set to '{tod}'")
+        self._environment.set_time_of_day(tod)
 
     def set_light_intensity(self, intensity: float) -> None:
         """
@@ -220,8 +240,7 @@ class EnhancedRenderer:
         Args:
             intensity: Brightness level (0.0 = dark, 1.0 = normal, 2.0 = very bright)
         """
-        self._lighting_config.light_intensity = max(0.0, min(2.0, intensity))
-        logger.debug(f"Lighting: Intensity set to {self._lighting_config.light_intensity:.2f}")
+        self._environment.set_light_intensity(intensity)
 
     def get_lighting_config(self) -> TopDownLightingConfig:
         """
@@ -230,7 +249,7 @@ class EnhancedRenderer:
         Returns:
             TopDownLightingConfig: Current lighting configuration
         """
-        return self._lighting_config
+        return self._environment.get_lighting_config()
 
     def set_cc2_color_grading(self, enable: bool) -> None:
         self._enable_cc2_color_grading = enable
@@ -243,17 +262,26 @@ class EnhancedRenderer:
         self._hud_enabled = enabled
 
     def _get_pooled_surface(self, size: tuple[int, int]) -> pygame.Surface:
-        """Get or create a surface from the object pool (PERF-001).
-        
+        """Get or create a surface from the object pool with LRU eviction (PERF-001).
+
         Reuses existing surfaces to avoid per-frame allocation overhead.
+        Implements LRU (Least Recently Used) eviction when pool exceeds max size.
         Surfaces are cleared before return for safe reuse.
         """
         if size in self._surface_pool:
+            # Move to end (most recently used)
+            self._surface_pool.move_to_end(size)
             surf = self._surface_pool[size]
             surf.fill(self.TRANSPARENT_BLACK)  # Clear for reuse
             return surf
-        
+
         new_surf = pygame.Surface(size, pygame.SRCALPHA)
+
+        # LRU eviction: remove oldest entry if at capacity
+        if len(self._surface_pool) >= self._MAX_SURFACE_POOL_SIZE:
+            evicted_size, evicted_surf = self._surface_pool.popitem(last=False)
+            del evicted_surf  # Explicitly release memory
+
         self._surface_pool[size] = new_surf
         return new_surf
 
@@ -265,33 +293,8 @@ class EnhancedRenderer:
         self._cached_screen_size = None
 
     def _get_screen_overlays(self, screen_size: tuple[int, int]) -> tuple[pygame.Surface, pygame.Surface]:
-        """Get cached full-screen overlay surfaces (PERF-001).
-        
-        Returns:
-            Tuple of (warm_overlay, vignette) surfaces, cached across frames.
-        """
-        if self._cached_screen_size != screen_size:
-            self._invalidate_surface_cache()
-            self._cached_screen_size = screen_size
-            
-            # Pre-create warm overlay (subtle orange-gold tint)
-            self._cached_warm_overlay = pygame.Surface(screen_size, pygame.SRCALPHA)
-            self._cached_warm_overlay.fill(self.WARM_OVERLAY_COLOR)
-            
-            # Pre-create vignette (darker edges)
-            self._cached_vignette = pygame.Surface(screen_size, pygame.SRCALPHA)
-            screen_w, screen_h = screen_size
-            edge_width = max(self.VIGNETTE_MIN_EDGE, screen_w // 8)
-            edge_height = max(self.VIGNETTE_MIN_EDGE, screen_h // 8)
-            for i in range(edge_height):
-                alpha = int(self.VIGNETTE_MAX_ALPHA * (1.0 - i / edge_height))
-                pygame.draw.line(self._cached_vignette, (0, 0, 0, alpha), (0, i), (screen_w, i))
-            for i in range(edge_height):
-                alpha = int(self.VIGNETTE_MAX_ALPHA * (1.0 - i / edge_height))
-                y = screen_h - 1 - i
-                pygame.draw.line(self._cached_vignette, (0, 0, 0, alpha), (0, y), (screen_w, y))
-        
-        return self._cached_warm_overlay, self._cached_vignette
+        """Delegate to EnvironmentRenderer for cached overlay surfaces."""
+        return self._environment._get_screen_overlays(screen_size)
 
     def render(
         self,
@@ -1303,38 +1306,12 @@ class EnhancedRenderer:
                     )
     
     def _apply_environment_lighting(self, game_map: GameMap, camera: Camera, units: list | None = None) -> None:
-        """Apply environment lighting effects to the offscreen buffer.
-
-        Adds:
-        - Slight warm tint to the overall scene
-        - Slightly darker edges (vignette effect)
-
-        Note: Shadow rendering has been moved to dedicated _render_* methods
-              (_render_building_shadows, _render_tree_shadows, _render_unit_shadows)
-              which are called separately in the main render pipeline for correct Z-order.
-        """
-        if self._offscreen is None:
-            return
-
-        screen_w, screen_h = self._offscreen.get_size()
-
-        # 1. Warm tint overlay (cached - PERF-001)
-        try:
-            warm_overlay, vignette = self._get_screen_overlays((screen_w, screen_h))
-            self._offscreen.blit(warm_overlay, (0, 0))
-        except (ValueError, pygame.error) as e:
-            logging.debug(f"Warm tint overlay failed: {e}")
-
-        # 2. Vignette effect (cached - PERF-001)
-        try:
-            # Reuse cached vignette from _get_screen_overlays()
-            self._offscreen.blit(vignette, (0, 0))
-        except (ValueError, pygame.error) as e:
-            logging.debug(f"Vignette effect failed: {e}")
+        """Delegate to EnvironmentRenderer for environment lighting effects."""
+        self._environment._apply_environment_lighting(game_map, camera, units)
 
     def _get_health_tinted_color(self, base_color: tuple, unit) -> tuple:
-        """Delegate to LightingEffectsSystem for health-based color tinting."""
-        return self._lighting_effects_sys.get_health_tinted_color(base_color, unit)
+        """Delegate to EnvironmentRenderer for health-based color tinting."""
+        return self._environment._get_health_tinted_color(base_color, unit)
 
     def _draw_direction_indicator(
         self, cx: int, cy: int, radius: int, unit_color: tuple
@@ -1472,34 +1449,34 @@ class EnhancedRenderer:
             self._offscreen.blit(shield_surf, (cx - center, cy - center))
 
     def _apply_height_lighting(self, surface: pygame.Surface, height: int) -> pygame.Surface:
-        """Delegate to LightingEffectsSystem for height-based lighting."""
-        return self._lighting_effects_sys.apply_height_lighting(surface, height)
+        """Delegate to EnvironmentRenderer for height-based lighting."""
+        return self._environment._apply_height_lighting(surface, height)
 
     def _apply_time_of_day_tint(self, surface: pygame.Surface) -> pygame.Surface:
-        """Delegate to LightingEffectsSystem for time-of-day color grading."""
-        return self._lighting_effects_sys.apply_time_of_day_tint(surface)
+        """Delegate to EnvironmentRenderer for time-of-day color grading."""
+        return self._environment._apply_time_of_day_tint(surface)
 
     def _apply_cc2_color_grading(self, surface: pygame.Surface) -> None:
-        """Delegate to LightingEffectsSystem for CC2-style color grading."""
-        self._lighting_effects_sys.apply_cc2_color_grading(surface)
+        """Delegate to EnvironmentRenderer for CC2-style color grading."""
+        self._environment._apply_cc2_color_grading(surface)
 
     def spawn_dynamic_light(self, position: tuple[int, int], 
                            radius: float, 
                            intensity: float,
                            color: tuple[int, int, int] = (255, 255, 200),
                            duration_ms: int = 200) -> None:
-        """Delegate to LightingEffectsSystem for dynamic light registration."""
-        self._lighting_effects_sys.spawn_dynamic_light(
+        """Delegate to EnvironmentRenderer for dynamic light registration."""
+        self._environment.spawn_dynamic_light(
             position, radius, intensity, color, duration_ms
         )
 
     def update_dynamic_lights(self, dt_ms: int) -> None:
-        """Delegate to LightingEffectsSystem for dynamic light lifecycle update."""
-        self._lighting_effects_sys.update_dynamic_lights(dt_ms)
+        """Delegate to EnvironmentRenderer for dynamic light lifecycle update."""
+        self._environment.update_dynamic_lights(dt_ms)
 
     def _render_dynamic_lights(self) -> None:
-        """Delegate to LightingEffectsSystem for dynamic light rendering (legacy API)."""
-        self._lighting_effects_sys.render_dynamic_lights(self._offscreen)
+        """Delegate to EnvironmentRenderer for dynamic light rendering (legacy API)."""
+        self._environment._render_dynamic_lights()
     
     def _draw_decorations(self, game_map: GameMap, camera: Camera) -> None:
         """Draw decoration sprites on map."""
@@ -1562,7 +1539,7 @@ class EnhancedRenderer:
 
         # 如果SpriteRenderer已初始化，使用它（支持PNG精灵）
         if self._sprite_renderer is not None:
-            # 设置SpriteRenderer绘制到offscreen buffer（消除临时替换hack）
+            # Route SpriteRenderer output to offscreen buffer for compositing
             self._sprite_renderer._target_surface = self._offscreen
             
             # 使用SpriteRenderer绘制单位（会加载PNG）
@@ -2025,31 +2002,31 @@ class EnhancedRenderer:
         cam_y = int(camera.offset_y) if hasattr(camera, 'offset_y') else 0
         surface.blit(overlay, (-cam_x, -cam_y))
 
-    # ====== Combat effect proxy methods (forward to SpriteRenderer) ======
+    # ====== Combat effect proxy methods (forward to ParticleEffectsRenderer) ======
 
     def spawn_hit_flash(self, unit_id: str) -> None:
-        if self._sprite_renderer:
-            self._sprite_renderer.spawn_hit_flash(unit_id)
+        """Delegate to ParticleEffectsRenderer."""
+        self._particle_effects.spawn_hit_flash(unit_id)
 
     def spawn_damage_number(self, position, damage: int, is_kill: bool = False) -> None:
-        if self._sprite_renderer:
-            self._sprite_renderer.spawn_damage_number(position, damage, is_kill)
+        """Delegate to ParticleEffectsRenderer."""
+        self._particle_effects.spawn_damage_number(position, damage, is_kill)
 
     def spawn_muzzle_flash(self, position, direction: float) -> None:
-        if self._sprite_renderer:
-            self._sprite_renderer.spawn_muzzle_flash(position, direction)
+        """Delegate to ParticleEffectsRenderer (SpriteRenderer version)."""
+        self._particle_effects.spawn_muzzle_flash(position, direction)
 
     def spawn_death_effect(self, unit_id: str, position) -> None:
-        if self._sprite_renderer:
-            self._sprite_renderer.spawn_death_effect(unit_id, position)
+        """Delegate to ParticleEffectsRenderer."""
+        self._particle_effects.spawn_death_effect(unit_id, position)
 
     def spawn_explosion(self, position, size: str = "medium") -> None:
-        if self._sprite_renderer:
-            self._sprite_renderer.spawn_explosion(position, size)
+        """Delegate to ParticleEffectsRenderer (SpriteRenderer version)."""
+        self._particle_effects.spawn_explosion_sprite(position, size)
 
     def spawn_smoke_screen(self, position, radius: float = 64.0) -> None:
-        if self._sprite_renderer:
-            self._sprite_renderer.spawn_smoke_screen(position, radius)
+        """Delegate to ParticleEffectsRenderer."""
+        self._particle_effects.spawn_smoke_screen(position, radius)
 
     def _draw_queued_commands(self, units: list, camera: Camera) -> None:
         """Draw dashed lines for queued commands (Shift+right-click).
@@ -2126,55 +2103,29 @@ class EnhancedRenderer:
             pg.draw.line(self._offscreen, color, (int(sx), int(sy)), (int(ex), int(ey)), 2)
 
     # ============================================================
-    # Particle System Convenience Methods (Top-Down VFX)
+    # Particle System Convenience Methods (Top-Down VFX) - Delegated
     # ============================================================
     
     def update_particles(self, dt_ms: int) -> None:
-        """Update all particle effects - call from game loop.
-        
-        Args:
-            dt_ms: Delta time in milliseconds since last frame
-        """
-        self._particle_system.update(dt_ms)
+        """Delegate to ParticleEffectsRenderer for particle updates."""
+        self._particle_effects.update_particles(dt_ms)
         
     def spawn_explosion(self, position, max_radius=40, duration_ms=500, 
                         color=(255, 200, 50)) -> None:
-        """Spawn explosion ring effect at position.
-        
-        CC2 Authentic: Yellow/orange circular expanding ring (not 3D fireball)
-        Automatically triggers dynamic light effect.
-        
-        Args:
-            position: (x, y) world coordinates or Vec2
-            max_radius: Maximum ring radius in pixels (default 40)
-            duration_ms: Animation duration (default 500ms)
-            color: Base color tuple (default yellow-orange)
-        """
-        x = position[0] if hasattr(position, '__getitem__') else position.x
-        y = position[1] if hasattr(position, '__getitem__') else position.y
-        
-        self._particle_system.spawn_explosion_ring(x, y, max_radius, duration_ms, color)
-        
+        """Delegate to ParticleEffectsRenderer for explosion ring effect."""
+        self._particle_effects.spawn_explosion_ring(
+            position, max_radius, duration_ms, color
+        )
         self.spawn_dynamic_light(position, radius=60, intensity=1.5, 
                                 color=(255, 200, 100), duration_ms=duration_ms)
                                 
     def spawn_muzzle_flash(self, position, direction) -> None:
-        """Spawn muzzle flash effect at firing unit position.
-        
-        CC2 Authentic: White dot flash + short line along fire direction
-        
-        Args:
-            position: (x, y) world coordinates or Vec2
-            direction: Firing angle in radians
-        """
-        x = position[0] if hasattr(position, '__getitem__') else position.x
-        y = position[1] if hasattr(position, '__getitem__') else position.y
-        
-        self._particle_system.spawn_muzzle_flash(x, y, direction)
+        """Delegate to ParticleEffectsRenderer for muzzle flash (ParticleSystem version)."""
+        self._particle_effects.spawn_muzzle_flash_particle(position, direction)
         
     def particle_count(self) -> int:
-        """Get current active particle count for performance monitoring."""
-        return self._particle_system.active_count
+        """Delegate to ParticleEffectsRenderer for particle count."""
+        return self._particle_effects.particle_count()
 
     def _draw_grid(self, game_map: GameMap, camera: Camera) -> None:
         """Draw grid overlay for debugging.
