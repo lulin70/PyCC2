@@ -2235,5 +2235,10 @@ class EnhancedRenderer:
         self._building_clusters = None  # Clear cluster cache
 
     def resize(self, width: int, height: int) -> None:
-        """Handle window resize."""
-        pass
+        """Handle window resize - reinitialize offscreen buffer."""
+        if self._screen is not None:
+            try:
+                self._offscreen = pygame.Surface((width, height), pygame.SRCALPHA)
+                self._invalidate_surface_cache()
+            except (pygame.error, ValueError):
+                logger.warning(f"Failed to resize offscreen buffer to {width}x{height}")

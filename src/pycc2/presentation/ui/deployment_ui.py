@@ -22,11 +22,62 @@ from __future__ import annotations
 
 import logging
 import math
-from dataclasses import dataclass, field
-from enum import Enum, auto
+from dataclasses import field
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+# Import extracted models and constants
+from pycc2.presentation.ui.deployment_models import (
+    DeploymentPhase,
+    DeploymentState,
+    DeploymentUnit,
+    UnitCategory,
+    ZoneType,
+    # Constants (backward compatible aliases)
+    TERRAIN_OPEN,
+    TERRAIN_ROAD,
+    TERRAIN_GRASS,
+    TERRAIN_WOODS,
+    TERRAIN_BUILDING_ENTERABLE,
+    TERRAIN_BUILDING_SOLID,
+    TERRAIN_WATER,
+    TERRAIN_HEDGE,
+    TERRAIN_WALL,
+    TERRAIN_ROUGH,
+    TERRAIN_SHALLOW,
+    TERRAIN_BRIDGE,
+    TERRAIN_CRATER,
+    TERRAIN_SWAMP,
+    BUILDING_TERRAINS,
+    DEEP_WATER_TERRAINS,
+    SHALLOW_WATER_TERRAINS,
+    IMPASSABLE_TERRAINS,
+    ZONE_COLORS as _ZONE_COLORS,
+    ZONE_BORDER_COLORS as _ZONE_BORDER_COLORS,
+    VALID_PLACEMENT_COLOR,
+    INVALID_PLACEMENT_COLOR,
+    SELECTED_UNIT_HIGHLIGHT,
+    ROSTER_BG as _ROSTER_BG,
+    ROSTER_BORDER as _ROSTER_BORDER,
+    ROSTER_TEXT as _ROSTER_TEXT,
+    ROSTER_TEXT_DIM as _ROSTER_TEXT_DIM,
+    ROSTER_SELECTED_BG as _ROSTER_SELECTED_BG,
+    ROSTER_PLACED_BG as _ROSTER_PLACED_BG,
+    ROSTER_CATEGORY_BG as _ROSTER_CATEGORY_BG,
+    ROSTER_CATEGORY_TEXT as _ROSTER_CATEGORY_TEXT,
+    BUTTON_BG_NORMAL as _BUTTON_BG_NORMAL,
+    BUTTON_BG_HOVER as _BUTTON_BG_HOVER,
+    BUTTON_BG_DISABLED as _BUTTON_BG_DISABLED,
+    BUTTON_BORDER as _BUTTON_BORDER,
+    BUTTON_TEXT as _BUTTON_TEXT,
+    BUTTON_TEXT_DISABLED as _BUTTON_TEXT_DISABLED,
+    BUTTON_ACTIVE_BG as _BUTTON_ACTIVE_BG,
+    RP_COLOR as _RP_COLOR,
+    RP_SPENT_COLOR as _RP_SPENT_COLOR,
+    CATEGORY_INFO as _CATEGORY_INFO,
+    UNIT_TYPE_TO_CATEGORY as _UNIT_TYPE_TO_CATEGORY,
+)
 
 # ---------------------------------------------------------------------------
 # Pygame – imported lazily so the module can be imported in headless tests
@@ -38,148 +89,6 @@ try:
     _pygame_available = True
 except ImportError:
     pygame = None  # type: ignore[assignment]
-
-
-# ========================================================================
-# ENUMS & DATA CLASSES
-# ========================================================================
-
-
-class DeploymentPhase(Enum):
-    """Phases of the deployment workflow."""
-
-    PLANNING = auto()
-    DEPLOYING = auto()
-    READY = auto()
-    ACTIVE = auto()
-
-
-class ZoneType(Enum):
-    """Map zone classification during deployment."""
-
-    FRIENDLY = auto()
-    NO_MANS_LAND = auto()
-    ENEMY_CONTROLLED = auto()
-
-
-# Unit category for roster grouping
-class UnitCategory(Enum):
-    INFANTRY = "infantry"
-    SUPPORT = "support"
-    ARMOR = "vehicle"
-    RECON = "recon"
-
-
-# Category display labels and icons
-_CATEGORY_INFO: dict[UnitCategory, tuple[str, str]] = {
-    UnitCategory.INFANTRY: ("INFANTRY", "♟"),
-    UnitCategory.SUPPORT: ("SUPPORT (MG/AT)", "⚔"),
-    UnitCategory.ARMOR: ("ARMOR", "▣"),
-    UnitCategory.RECON: ("RECON", "◉"),
-}
-
-# Mapping from unit_type string to UnitCategory
-_UNIT_TYPE_TO_CATEGORY: dict[str, UnitCategory] = {
-    "infantry": UnitCategory.INFANTRY,
-    "support": UnitCategory.SUPPORT,
-    "vehicle": UnitCategory.ARMOR,
-    "recon": UnitCategory.RECON,
-}
-
-
-# Terrain type constants (mirrors TerrainType int values for standalone use)
-TERRAIN_OPEN = 0
-TERRAIN_ROAD = 1
-TERRAIN_GRASS = 2
-TERRAIN_WOODS = 3
-TERRAIN_BUILDING_ENTERABLE = 4
-TERRAIN_BUILDING_SOLID = 5
-TERRAIN_WATER = 6
-TERRAIN_HEDGE = 7
-TERRAIN_WALL = 8
-TERRAIN_ROUGH = 9
-TERRAIN_SHALLOW = 10
-TERRAIN_BRIDGE = 11
-TERRAIN_CRATER = 12
-TERRAIN_SWAMP = 13
-
-_BUILDING_TERRAINS = {TERRAIN_BUILDING_ENTERABLE, TERRAIN_BUILDING_SOLID}
-_DEEP_WATER_TERRAINS = {TERRAIN_WATER}
-_SHALLOW_WATER_TERRAINS = {TERRAIN_SHALLOW}
-_IMPASSABLE_TERRAINS = {TERRAIN_BUILDING_SOLID, TERRAIN_WATER, TERRAIN_WALL}
-
-
-@dataclass
-class DeploymentUnit:
-    """A single deployable unit entry in the roster."""
-
-    unit_template_id: str
-    display_name: str
-    unit_type: str  # 'infantry', 'support', 'vehicle', 'recon'
-    deployment_cost: int
-    position: tuple[int, int] | None = None  # None = not yet placed
-    is_placed: bool = False
-
-    @property
-    def category(self) -> UnitCategory:
-        return _UNIT_TYPE_TO_CATEGORY.get(self.unit_type, UnitCategory.INFANTRY)
-
-
-@dataclass
-class DeploymentState:
-    """Full state of the deployment phase for one player."""
-
-    phase: DeploymentPhase = DeploymentPhase.PLANNING
-    available_units: list[DeploymentUnit] = field(default_factory=list)
-    placed_units: list[DeploymentUnit] = field(default_factory=list)
-    max_infantry: int = 15  # Increased from 9 for better gameplay
-    max_support: int = 10  # Increased from 6 for better gameplay
-    requisition_points: int = 0
-    requisition_points_spent: int = 0
-    friendly_zone: list[tuple[int, int]] = field(default_factory=list)
-    enemy_zone: list[tuple[int, int]] = field(default_factory=list)
-    no_mans_land: list[tuple[int, int]] = field(default_factory=list)
-
-
-# ========================================================================
-# ZONE OVERLAY COLOURS (R, G, B, A)
-# ========================================================================
-
-_ZONE_COLORS: dict[ZoneType, tuple[int, int, int, int]] = {
-    ZoneType.FRIENDLY: (0, 0, 0, 0),            # No shading (normal map appearance)
-    ZoneType.NO_MANS_LAND: (120, 120, 120, 60),  # Light grey semi-transparent
-    ZoneType.ENEMY_CONTROLLED: (60, 60, 60, 100), # Dark grey semi-transparent
-}
-
-_ZONE_BORDER_COLORS: dict[ZoneType, tuple[int, int, int]] = {
-    ZoneType.FRIENDLY: (0, 180, 0),             # Subtle green border for deployable area
-    ZoneType.NO_MANS_LAND: (160, 160, 160),
-    ZoneType.ENEMY_CONTROLLED: (160, 60, 60),
-}
-
-_VALID_PLACEMENT_COLOR = (0, 255, 100, 70)
-_INVALID_PLACEMENT_COLOR = (255, 60, 60, 50)
-_SELECTED_UNIT_HIGHLIGHT = (255, 255, 0)
-
-_ROSTER_BG = (30, 34, 42, 230)
-_ROSTER_BORDER = (80, 84, 92)
-_ROSTER_TEXT = (230, 230, 230)
-_ROSTER_TEXT_DIM = (150, 150, 150)
-_ROSTER_SELECTED_BG = (60, 90, 140, 200)
-_ROSTER_PLACED_BG = (40, 70, 40, 180)
-_ROSTER_CATEGORY_BG = (45, 50, 60, 200)
-_ROSTER_CATEGORY_TEXT = (180, 170, 130)
-
-_BUTTON_BG_NORMAL = (70, 74, 82)
-_BUTTON_BG_HOVER = (90, 94, 102)
-_BUTTON_BG_DISABLED = (45, 48, 55)
-_BUTTON_BORDER = (100, 104, 112)
-_BUTTON_TEXT = (220, 220, 220)
-_BUTTON_TEXT_DISABLED = (120, 120, 120)
-_BUTTON_ACTIVE_BG = (40, 120, 40)
-
-_RP_COLOR = (200, 180, 100)
-_RP_SPENT_COLOR = (180, 100, 100)
 
 
 # ========================================================================
@@ -1269,7 +1178,7 @@ class DeploymentUI:
                 check_y = int(src_y + (dst_y - src_y) * t)
                 terrain = self._get_terrain_at(check_x, check_y)
 
-                if terrain in _BUILDING_TERRAINS:
+                if terrain in BUILDING_TERRAINS:
                     block_penalty += 0.3  # Buildings block heavily
                 elif terrain == TERRAIN_WOODS:
                     block_penalty += 0.15  # Woods partially block
@@ -2415,7 +2324,7 @@ class DeploymentUI:
                             # Check terrain is passable
                             if tile_grid is not None:
                                 terrain = int(tile_grid[ny][nx])
-                                if terrain in _IMPASSABLE_TERRAINS:
+                                if terrain in IMPASSABLE_TERRAINS:
                                     continue
                             enemy_positions.append((nx, ny))
 
@@ -2426,7 +2335,7 @@ class DeploymentUI:
                 for x in range(map_width - third, map_width):
                     if tile_grid is not None:
                         terrain = int(tile_grid[y][x])
-                        if terrain not in _IMPASSABLE_TERRAINS:
+                        if terrain not in IMPASSABLE_TERRAINS:
                             enemy_positions.append((x, y))
                     else:
                         enemy_positions.append((x, y))

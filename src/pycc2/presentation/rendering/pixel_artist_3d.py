@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 import math
+import random
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
@@ -1135,7 +1136,7 @@ class PixelArtist3D:
 
         pygame.draw.rect(hull_temp, tp['body_base'], (hull_x, hull_y, hull_w, hull_h))
 
-        camo_rng = __import__('random').Random(42)
+        camo_rng = random.Random(42)
         if camo_rng.random() > 0.5:
             for stripe_y in range(hull_y + 4, hull_y + hull_h - 4, 3):
                 stripe_start = camo_rng.randint(hull_x + 2, hull_x + hull_w // 2)
@@ -1286,7 +1287,7 @@ class PixelArtist3D:
         for vy in range(hull_y + hull_h - engine_h + 1, hull_y + hull_h - 1, 2):
             pygame.draw.line(hull_temp, tiger_seam, (hull_x + 4, vy), (hull_x + hull_w - 4, vy), 1)
 
-        primer_rng = __import__('random').Random(77)
+        primer_rng = random.Random(77)
         if primer_rng.random() > 0.6:
             primer_x = primer_rng.randint(hull_x + 3, hull_x + hull_w - 5)
             primer_y = primer_rng.randint(hull_y + 10, hull_y + hull_h - 10)
@@ -1970,7 +1971,7 @@ class PixelArtist3D:
         import math
         points = []
         num_points = 36  # 每10度一个点
-        rng_edge = __import__('random').Random(variant * 73 + 11)
+        rng_edge = random.Random(variant * 73 + 11)
 
         for i in range(num_points):
             angle = 2 * math.pi * i / num_points
@@ -1987,7 +1988,7 @@ class PixelArtist3D:
         pygame.draw.circle(surface, base_canopy, (cx, cy), canopy_radius - 1)
 
         # *** 3. 强调绿色1 (散布15-20个中等亮度点) ***
-        rng_accent1 = __import__('random').Random(variant * 41 + 3)
+        rng_accent1 = random.Random(variant * 41 + 3)
         accent1_count = rng_accent1.randint(15, 20)
         for _ in range(accent1_count):
             angle = rng_accent1.uniform(0, 2 * math.pi)
@@ -1998,7 +1999,7 @@ class PixelArtist3D:
                 surface.set_at((ax, ay), accent_light)
 
         # *** 4. 高光点 (左上角5-8个点 - 光源模拟) ***
-        rng_highlight = __import__('random').Random(variant * 59 + 7)
+        rng_highlight = random.Random(variant * 59 + 7)
         highlight_count = rng_highlight.randint(5, 8)
         for _ in range(highlight_count):
             # 偏向左上象限 (-135° 到 -45°)
@@ -2010,7 +2011,7 @@ class PixelArtist3D:
                 surface.set_at((hx, hy), highlight)
 
         # *** 5. 阴影点 (右下角8-10个点 - 背光面) ***
-        rng_shadow = __import__('random').Random(variant * 83 + 13)
+        rng_shadow = random.Random(variant * 83 + 13)
         shadow_count = rng_shadow.randint(8, 10)
         for _ in range(shadow_count):
             # 偏向右下象限 (45° 到 135°)

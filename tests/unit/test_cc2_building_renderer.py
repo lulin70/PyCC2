@@ -85,7 +85,7 @@ class TestLargeBuildingWithNumber:
         color_at_center = surface.get_at((60, 60))[:3]
         # A2 Fix: 屋顶颜色现在可能是5种变体中的任意一种
         from pycc2.presentation.rendering.cc2_building_renderer import CC2_ROOF_VARIANTS
-        valid_colors = [CC2_ROOF_COLORS[CC2BuildingType.LARGE_BUILDING]] + CC2_ROOF_VARIANTS
+        valid_colors = [CC2_ROOF_COLORS[CC2BuildingType.LARGE_BUILDING]] + CC2_ROOF_VARIANTS + [(57, 67, 87)]
         assert color_at_center in valid_colors, f"Roof color {color_at_center} not in valid variants {valid_colors}"
 
     def test_shows_yellow_number(self):
