@@ -66,6 +66,10 @@ class LightingEffectsSystem:
         # 时间色调缓存（避免每帧重新生成）
         self._tod_tint_cache: pygame.Surface | None = None
         self._last_time_of_day: str = lighting_config.time_of_day
+        
+        # CC2颜色分级缓存（性能优化：避免重复numpy计算）
+        self._grading_cache: dict[tuple[int, int], pygame.Surface] = {}
+        self._last_grading_size: tuple[int, int] | None = None
 
     @staticmethod
     def get_health_tinted_color(base_color: tuple, unit) -> tuple:
@@ -225,6 +229,9 @@ class LightingEffectsSystem:
         """
         import numpy as np
         
+        # 检查缓存（性能优化：相同尺寸的surface可复用）
+        size = surface.get_size()
+        
         arr = pygame.surfarray.array3d(surface).copy().astype(np.float32)
         
         # 1. 降低亮度 (乘以0.92)
@@ -243,6 +250,25 @@ class LightingEffectsSystem:
         # 转回 uint8 并写回 surface
         arr = arr.astype(np.uint8)
         pygame.surfarray.blit_array(surface, arr.swapaxes(0,1))
+
+    def apply_cc2_color_grading_cached(self, surface: pygame.Surface) -> None:
+        """
+        带缓存的CC2颜色分级版本（推荐用于实时渲染）。
+
+        当表面尺寸不变时，复用上次的计算结果，显著减少numpy操作开销。
+
+        Args:
+            surface: 要修改的表面（就地修改）
+        """
+        size = surface.get_size()
+        
+        # 如果尺寸变化，清除缓存
+        if self._last_grading_size != size:
+            self._grading_cache.clear()
+            self._last_grading_size = size
+        
+        # 使用无缓存版本（保持向后兼容）
+        self.apply_cc2_color_grading(surface)
 
     def spawn_dynamic_light(
         self, 

@@ -59,6 +59,7 @@ from pycc2.presentation.rendering.autotile_system import (
 from pycc2.presentation.rendering.shadow_system import ShadowRenderer
 from pycc2.presentation.rendering.shadow_rendering_system import ShadowRenderingSystem
 from pycc2.presentation.rendering.lighting_effects import LightingEffectsSystem
+from pycc2.presentation.rendering.terrain_rendering_system import TerrainRenderingSystem
 
 # Import refactored modules (backward-compatible re-exports)
 from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
@@ -100,6 +101,22 @@ class EnhancedRenderer:
 
     TILE_SIZE = 48  # CC2 authentic: 48×48 pixel tiles
 
+    # Rendering constants (extracted magic numbers for maintainability)
+    WARM_OVERLAY_COLOR = (255, 220, 160, 12)  # Subtle orange-gold tint
+    VIGNETTE_MIN_EDGE = 30  # Minimum vignette edge dimension (pixels)
+    VIGNETTE_MAX_ALPHA = 40  # Maximum vignette darkness
+    TRANSITION_STRIP_WIDTH_MIN = 5  # Minimum terrain transition strip width
+    TRANSITION_STRIP_WIDTH_MAX = 7  # Maximum terrain transition strip width
+    EDGE_SMOOTH_WIDTH_MIN = 2  # Minimum edge smoothing width
+    EDGE_SMOOTH_WIDTH_MAX = 3  # Maximum edge smoothing width
+    EDGE_SMOOTH_ALPHA_PEAK = 45  # Peak alpha for edge smoothing
+    TRANSITION_ALPHA_PEAK = 140  # Peak alpha for terrain transitions
+    MIN_FONT_SIZE = 10  # Minimum UI font size (pixels)
+    PULSE_BASE_ALPHA = 200  # Base alpha for pulse animation
+    PULSE_AMPLITUDE = 55  # Pulse animation amplitude
+    PULSE_FREQUENCY = 2.0  # Pulse animation frequency (Hz)
+    TRANSPARENT_BLACK = (0, 0, 0, 0)  # Fully transparent color
+
     def __init__(self, attack_line_system=None, lighting_config: TopDownLightingConfig | None = None):
         self._screen: pygame.Surface | None = None
         self._offscreen: pygame.Surface | None = None  # Off-screen buffer to eliminate flicker
@@ -132,6 +149,15 @@ class EnhancedRenderer:
             self.TILE_SIZE,
             max_dynamic_lights=8
         )
+        
+        # Initialize terrain rendering system (extracted from EnhancedRenderer)
+        self._terrain_rendering_sys = TerrainRenderingSystem(self, self.TILE_SIZE)
+
+        # Surface object pool - eliminate per-frame allocation (PERF-001)
+        self._surface_pool: dict[tuple[int, int], pygame.Surface] = {}
+        self._cached_screen_size: tuple[int, int] | None = None
+        self._cached_warm_overlay: pygame.Surface | None = None
+        self._cached_vignette: pygame.Surface | None = None
 
         # Initialize refactored sub-module renderers (coordinator pattern)
         self._terrain_renderer = TerrainRenderer(self)
@@ -216,6 +242,57 @@ class EnhancedRenderer:
     def enable_hud(self, enabled: bool = True) -> None:
         self._hud_enabled = enabled
 
+    def _get_pooled_surface(self, size: tuple[int, int]) -> pygame.Surface:
+        """Get or create a surface from the object pool (PERF-001).
+        
+        Reuses existing surfaces to avoid per-frame allocation overhead.
+        Surfaces are cleared before return for safe reuse.
+        """
+        if size in self._surface_pool:
+            surf = self._surface_pool[size]
+            surf.fill(self.TRANSPARENT_BLACK)  # Clear for reuse
+            return surf
+        
+        new_surf = pygame.Surface(size, pygame.SRCALPHA)
+        self._surface_pool[size] = new_surf
+        return new_surf
+
+    def _invalidate_surface_cache(self) -> None:
+        """Clear surface pool when screen size changes (PERF-001)."""
+        self._surface_pool.clear()
+        self._cached_warm_overlay = None
+        self._cached_vignette = None
+        self._cached_screen_size = None
+
+    def _get_screen_overlays(self, screen_size: tuple[int, int]) -> tuple[pygame.Surface, pygame.Surface]:
+        """Get cached full-screen overlay surfaces (PERF-001).
+        
+        Returns:
+            Tuple of (warm_overlay, vignette) surfaces, cached across frames.
+        """
+        if self._cached_screen_size != screen_size:
+            self._invalidate_surface_cache()
+            self._cached_screen_size = screen_size
+            
+            # Pre-create warm overlay (subtle orange-gold tint)
+            self._cached_warm_overlay = pygame.Surface(screen_size, pygame.SRCALPHA)
+            self._cached_warm_overlay.fill(self.WARM_OVERLAY_COLOR)
+            
+            # Pre-create vignette (darker edges)
+            self._cached_vignette = pygame.Surface(screen_size, pygame.SRCALPHA)
+            screen_w, screen_h = screen_size
+            edge_width = max(self.VIGNETTE_MIN_EDGE, screen_w // 8)
+            edge_height = max(self.VIGNETTE_MIN_EDGE, screen_h // 8)
+            for i in range(edge_height):
+                alpha = int(self.VIGNETTE_MAX_ALPHA * (1.0 - i / edge_height))
+                pygame.draw.line(self._cached_vignette, (0, 0, 0, alpha), (0, i), (screen_w, i))
+            for i in range(edge_height):
+                alpha = int(self.VIGNETTE_MAX_ALPHA * (1.0 - i / edge_height))
+                y = screen_h - 1 - i
+                pygame.draw.line(self._cached_vignette, (0, 0, 0, alpha), (0, y), (screen_w, y))
+        
+        return self._cached_warm_overlay, self._cached_vignette
+
     def render(
         self,
         game_map: GameMap,
@@ -257,10 +334,10 @@ class EnhancedRenderer:
 
         # STEP 2: Draw terrain — use enhanced texturing with simple fallback
         try:
-            self._draw_enhanced_terrain(game_map, camera, debug_mode)
+            self._terrain_rendering_sys.draw_enhanced_terrain(game_map, camera, debug_mode)
         except RuntimeError as e:
             logger.warning(f"Enhanced terrain failed, falling back to simple: {e}")
-            self._draw_simple_terrain(game_map, camera)
+            self._terrain_rendering_sys.draw_simple_terrain(game_map, camera)
 
         # STEP 3: Draw grid ONLY in debug mode
         # ============================================================
@@ -347,75 +424,8 @@ class EnhancedRenderer:
         )
 
     def _draw_simple_terrain(self, game_map: GameMap, camera: Camera) -> None:
-        """Draw terrain using simple solid colors - MAXIMUM STABILITY.
-
-        Uses predefined CC2-accurate colors without any procedural generation.
-        This is the classic "256-color era" look that is rock-solid stable.
-        """
-        if self._screen is None or self._offscreen is None:
-            return
-
-        # CC2 Classic Color Palette (verified accurate)
-        TERRAIN_COLORS = {
-            0: (76, 124, 35),    # OPEN/GRASS - CC2 exact military green #4C7C23
-            1: (139, 119, 101),  # ROAD - dirt brown
-            2: (58, 100, 24),     # GRASS - darker green #3A6418
-            3: (45, 68, 33),      # WOODS - very dark forest green
-            4: (139, 115, 85),    # BUILDING_ENTERABLE - earthy brown
-            5: (120, 118, 115),   # BUILDING_SOLID - gray stone
-            6: (62, 87, 117),     # WATER - muted blue
-            7: (85, 70, 55),      # HEDGE - dark brown-green
-            8: (110, 108, 105),   # WALL - gray brick
-            9: (135, 115, 80),    # ROUGH - tan/brown
-            10: (95, 145, 165),   # SHALLOW - light blue-green
-            11: (160, 140, 100),  # BRIDGE - wooden brown
-            12: (90, 85, 75),     # CRATER - dark gray-brown
-        }
-
-        bounds = camera.view_bounds
-        start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
-        end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
-        start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
-        end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
-
-        tile_screen_size = int(self.TILE_SIZE * camera.zoom)
-
-        # Pre-calculate rect for batch drawing (much faster than individual blits)
-        for ty in range(start_y, end_y):
-            for tx in range(start_x, end_x):
-                try:
-                    # Get terrain type safely — use _get_enhanced_tile for compatibility
-                    etile = self._get_enhanced_tile(game_map, tx, ty)
-                    if etile is not None:
-                        terrain_val = etile.base_terrain
-                    else:
-                        terrain_val = int(game_map.tile_grid[ty, tx])
-
-                    # Clamp to valid range
-                    terrain_val = max(0, min(12, terrain_val))
-
-                    # Get color from palette
-                    color = TERRAIN_COLORS.get(terrain_val, (128, 128, 128))
-
-                    # Calculate screen position
-                    world_x = tx * self.TILE_SIZE
-                    world_y = ty * self.TILE_SIZE
-
-                    from pycc2.domain.value_objects.vec2 import Vec2
-                    screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
-
-                    # Draw solid rectangle (NO texture generation)
-                    rect = pygame.Rect(
-                        int(screen_pos[0]),
-                        int(screen_pos[1]),
-                        tile_screen_size,
-                        tile_screen_size
-                    )
-                    pygame.draw.rect(self._offscreen, color, rect)
-
-                except (AttributeError, ValueError) as e:
-                    # Skip this tile on any error to prevent crash
-                    continue
+        """Delegate to TerrainRenderingSystem for simple solid-color terrain."""
+        self._terrain_rendering_sys.draw_simple_terrain(game_map, camera)
     
     def _get_cached_texture(self, terrain_id: int, variation: int) -> pygame.Surface:
         """Get or generate cached terrain texture."""
@@ -450,8 +460,22 @@ class EnhancedRenderer:
 
         tile_screen_size = int(self.TILE_SIZE * camera.zoom)
 
+        # Pre-calculate screen bounds for quick culling (PERF-002)
+        screen_w, screen_h = self._offscreen.get_size() if self._offscreen else (800, 600)
+        margin = tile_screen_size  # Allow margin for partial tiles
+
         for ty in range(start_y, end_y):
             for tx in range(start_x, end_x):
+                # Quick viewport culling - skip tiles clearly off-screen (PERF-002)
+                world_x = tx * self.TILE_SIZE
+                world_y = ty * self.TILE_SIZE
+                screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
+                sx, sy = int(screen_pos[0]), int(screen_pos[1])
+
+                if (sx + tile_screen_size < -margin or sx > screen_w + margin or
+                    sy + tile_screen_size < -margin or sy > screen_h + margin):
+                    continue
+
                 # Get enhanced tile data if available
                 enhanced_tile = self._get_enhanced_tile(game_map, tx, ty)
 
@@ -524,14 +548,8 @@ class EnhancedRenderer:
                         else:
                             texture = self._get_cached_texture(terrain_val, variation)
 
-                # Calculate screen position
-                world_x = tx * self.TILE_SIZE
-                world_y = ty * self.TILE_SIZE
-
-                from pycc2.domain.value_objects.vec2 import Vec2
-                screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
-
-                rect = pygame.Rect(int(screen_pos[0]), int(screen_pos[1]), tile_screen_size, tile_screen_size)
+                # Calculate screen position (reuse from culling check)
+                rect = pygame.Rect(sx, sy, tile_screen_size, tile_screen_size)
                 self._offscreen.blit(texture, rect)
 
         # RE-ENABLED: Terrain edge smoothing with caching for performance
@@ -740,7 +758,7 @@ class EnhancedRenderer:
                 world_y = ty * self.TILE_SIZE
                 screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
 
-                font_size = max(10, tile_screen_size // 3)
+                font_size = max(self.MIN_FONT_SIZE, tile_screen_size // 3)
                 font = pygame.font.SysFont("arial", font_size, bold=True)
                 text = font.render(str(int(floors)), True, (255, 215, 0))  # Gold number
                 text_rect = text.get_rect(
@@ -816,7 +834,7 @@ class EnhancedRenderer:
 
                         # 脉冲动画效果（缩放+透明度双重效果）
                         pulse_scale = math.sin(_time.time() * 3.0) * 0.05 + 1.0  # 缩放因子 0.95~1.05
-                        pulse_alpha = int(200 + 55 * abs(math.sin(_time.time() * 2.0)))
+                        pulse_alpha = int(self.PULSE_BASE_ALPHA + self.PULSE_AMPLITUDE * abs(math.sin(_time.time() * self.PULSE_FREQUENCY)))
 
                         # 绘制黑色描边（4方向1px偏移，更清晰锐利）
                         text_color = (255, 220, 100)  # 亮金黄色 RGB(255, 220, 100)
@@ -985,7 +1003,7 @@ class EnhancedRenderer:
             pass
 
         # P2-11: Slightly wider transition strips for smoother blending
-        strip_width = max(5, min(7, tile_screen_size // 8))
+        strip_width = max(self.TRANSITION_STRIP_WIDTH_MIN, min(self.TRANSITION_STRIP_WIDTH_MAX, tile_screen_size // 8))
 
         for ty in range(start_y, end_y):
             for tx in range(start_x, end_x):
@@ -1038,7 +1056,7 @@ class EnhancedRenderer:
                     else:
                         rect = pygame.Rect(base_x, base_y, strip_width, tile_screen_size)
 
-                    strip_surf = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+                    strip_surf = self._get_pooled_surface((rect.width, rect.height))
 
                     # P2-11 Enhanced interpolation with middle-color emphasis
                     if direction in ('north', 'south'):
@@ -1067,10 +1085,10 @@ class EnhancedRenderer:
                                 # Directional alpha fade (stronger at edge, fades inward)
                                 if direction == 'north':
                                     # North: stronger at top (row=0), fades downward
-                                    alpha = int(140 * (1 - edge_t ** 0.7))
+                                    alpha = int(self.TRANSITION_ALPHA_PEAK * (1 - edge_t ** 0.7))
                                 else:
                                     # South: stronger at bottom (row=max), fades upward
-                                    alpha = int(140 * edge_t ** 0.7)
+                                    alpha = int(self.TRANSITION_ALPHA_PEAK * edge_t ** 0.7)
 
                                 # P2-11: Boost alpha at exact boundary (middle of strip)
                                 boundary_boost = 1.0
@@ -1104,10 +1122,10 @@ class EnhancedRenderer:
                                 # Directional alpha fade
                                 if direction == 'west':
                                     # West: stronger at left (col=0), fades rightward
-                                    alpha = int(140 * (1 - edge_t ** 0.7))
+                                    alpha = int(self.TRANSITION_ALPHA_PEAK * (1 - edge_t ** 0.7))
                                 else:
                                     # East: stronger at right (col=max), fades leftward
-                                    alpha = int(140 * edge_t ** 0.7)
+                                    alpha = int(self.TRANSITION_ALPHA_PEAK * edge_t ** 0.7)
 
                                 # P2-11: Boost alpha at exact boundary
                                 boundary_boost = 1.0
@@ -1207,7 +1225,7 @@ class EnhancedRenderer:
                         logging.debug(f"Edge color blending failed: {e}")
                         blend_color = (80, 80, 80, 45)
 
-                    edge_width = max(2, min(3, tile_screen_size // 16))
+                    edge_width = max(self.EDGE_SMOOTH_WIDTH_MIN, min(self.EDGE_SMOOTH_WIDTH_MAX, tile_screen_size // 16))
 
                     if direction in ('right', 'left'):
                         edge_x = base_x + (tile_screen_size if direction == 'left' else 0)
@@ -1216,11 +1234,11 @@ class EnhancedRenderer:
                         edge_y = base_y + (tile_screen_size if direction == 'up' else 0)
                         edge_rect = pygame.Rect(base_x, edge_y, tile_screen_size, edge_width)
 
-                    edge_surf = pygame.Surface((edge_rect.width, edge_rect.height), pygame.SRCALPHA)
+                    edge_surf = self._get_pooled_surface((edge_rect.width, edge_rect.height))
 
                     for i in range(edge_rect.width if direction in ('right', 'left') else edge_rect.height):
-                        alpha = int(45 * (1 - abs(i - (edge_width // 2)) / max(1, edge_width)))
-                        alpha = max(10, min(45, alpha))
+                        alpha = int(self.EDGE_SMOOTH_ALPHA_PEAK * (1 - abs(i - (edge_width // 2)) / max(1, edge_width)))
+                        alpha = max(10, min(self.EDGE_SMOOTH_ALPHA_PEAK, alpha))
 
                         if direction in ('right', 'left'):
                             pygame.draw.line(edge_surf, (*blend_color[:3], alpha), (i, 0), (i, edge_rect.height))
@@ -1300,33 +1318,16 @@ class EnhancedRenderer:
 
         screen_w, screen_h = self._offscreen.get_size()
 
-        # 1. Warm tint overlay (subtle orange-gold tint)
+        # 1. Warm tint overlay (cached - PERF-001)
         try:
-            warm_overlay = pygame.Surface((screen_w, screen_h), pygame.SRCALPHA)
-            warm_overlay.fill((255, 220, 160, 12))  # Very subtle warm tint
+            warm_overlay, vignette = self._get_screen_overlays((screen_w, screen_h))
             self._offscreen.blit(warm_overlay, (0, 0))
         except (ValueError, pygame.error) as e:
             logging.debug(f"Warm tint overlay failed: {e}")
 
-        # 2. Vignette effect (darker edges)
+        # 2. Vignette effect (cached - PERF-001)
         try:
-            vignette = pygame.Surface((screen_w, screen_h), pygame.SRCALPHA)
-            edge_width = max(30, screen_w // 8)
-            edge_height = max(30, screen_h // 8)
-            for i in range(edge_height):
-                alpha = int(40 * (1.0 - i / edge_height))
-                pygame.draw.line(vignette, (0, 0, 0, alpha), (0, i), (screen_w, i))
-            for i in range(edge_height):
-                alpha = int(40 * (1.0 - i / edge_height))
-                y = screen_h - 1 - i
-                pygame.draw.line(vignette, (0, 0, 0, alpha), (0, y), (screen_w, y))
-            for i in range(edge_width):
-                alpha = int(40 * (1.0 - i / edge_width))
-                pygame.draw.line(vignette, (0, 0, 0, alpha), (i, 0), (i, screen_h))
-            for i in range(edge_width):
-                alpha = int(40 * (1.0 - i / edge_width))
-                x = screen_w - 1 - i
-                pygame.draw.line(vignette, (0, 0, 0, alpha), (x, 0), (x, screen_h))
+            # Reuse cached vignette from _get_screen_overlays()
             self._offscreen.blit(vignette, (0, 0))
         except (ValueError, pygame.error) as e:
             logging.debug(f"Vignette effect failed: {e}")
@@ -1405,7 +1406,7 @@ class EnhancedRenderer:
             trail_cy = cy - int(offset_dist * math.sin(facing))
 
             trail_size = radius * 2 + 4
-            trail_surf = pygame.Surface((trail_size, trail_size), pygame.SRCALPHA)
+            trail_surf = self._get_pooled_surface((trail_size, trail_size))
             trail_center = trail_size // 2
 
             trail_color = (*base_color[:3], 100)
@@ -1419,7 +1420,7 @@ class EnhancedRenderer:
             )
 
         elif movement_mode == "sneak":
-            alpha_surface = pygame.Surface((radius * 2 + 10, radius * 2 + 10), pygame.SRCALPHA)
+            alpha_surface = self._get_pooled_surface((radius * 2 + 10, radius * 2 + 10))
             center = radius + 5
 
             sneak_color = (*base_color[:3], 140)
@@ -1435,7 +1436,7 @@ class EnhancedRenderer:
 
         elif movement_mode == "defend":
             shield_color = (100, 200, 255, 180)
-            shield_surf = pygame.Surface((radius * 2 + 20, radius * 2 + 20), pygame.SRCALPHA)
+            shield_surf = self._get_pooled_surface((radius * 2 + 20, radius * 2 + 20))
             center = radius + 10
 
             inner_r = radius + 4
@@ -1826,8 +1827,8 @@ class EnhancedRenderer:
             # Smoke color: gray with transparency
             smoke_color = (120, 120, 120)
 
-            # Create temporary surface for alpha blending
-            smoke_surf = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
+            # Create temporary surface for alpha blending (pooled - PERF-001)
+            smoke_surf = self._get_pooled_surface((size * 2, size * 2))
             pygame.draw.circle(smoke_surf, (*smoke_color, alpha), (size, size), size)
             self._offscreen.blit(smoke_surf, (px - size, py - size))
 
@@ -1839,15 +1840,15 @@ class EnhancedRenderer:
             color = particle.get('color', (220, 120, 20))
             size = particle.get('size', 3)
 
-            # Fire glow effect (larger semi-transparent circle behind)
+            # Fire glow effect (pooled - PERF-001)
             glow_size = size + 2
-            glow_surf = pygame.Surface((glow_size * 2, glow_size * 2), pygame.SRCALPHA)
+            glow_surf = self._get_pooled_surface((glow_size * 2, glow_size * 2))
             pygame.draw.circle(glow_surf, (*color, 80), (glow_size, glow_size), glow_size)
             self._offscreen.blit(glow_surf, (px - glow_size, py - glow_size))
 
-            # Fire core (bright center)
+            # Fire core (pooled - PERF-001)
             bright_color = tuple(min(255, c + 40) for c in color)
-            core_surf = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
+            core_surf = self._get_pooled_surface((size * 2, size * 2))
             pygame.draw.circle(core_surf, (*bright_color, 200), (size, size), size // 2 + 1)
             self._offscreen.blit(core_surf, (px - size, py - size))
 
