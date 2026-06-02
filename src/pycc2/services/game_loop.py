@@ -208,6 +208,7 @@ class GameLoop:
         achievement_mgr = AchievementManager()
         for ach in create_default_achievements():
             achievement_mgr.register(ach)
+        achievement_mgr.load()
         self._achievement_bridge = AchievementEventBridge(achievement_mgr)
         self._achievement_bridge.subscribe(self.event_bus)
 
@@ -703,6 +704,8 @@ class GameLoop:
 
     def shutdown(self) -> None:
         self.state.running = False
+        if self._achievement_bridge is not None:
+            self._achievement_bridge._manager.save()
         if self.sound_system is not None:
             self.sound_system.shutdown()
         if self.ai_service is not None:

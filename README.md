@@ -1,33 +1,43 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.3.13 | Beta Candidate | June 1, 2026**
+**v0.3.21 | Pre-Release | June 2, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-3370%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/Tests-3657%20passed-brightgreen.svg" alt="Tests" />
 <img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%8885%25-yellow.svg" alt="CC2 Fidelity" />
-<img src="https://img.shields.io/badge/Status-Beta%20Candidate-blue.svg" alt="Status" />
+<img src="https://img.shields.io/badge/Status-Pre--Release-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
 </p>
 
 <p align="center">
-<em>A Python recreation of Atomic Games' legendary WWII tactical wargame — Beta Candidate with hardened test suite</em>
+<em>A Python recreation of Atomic Games' legendary WWII tactical wargame — Pre-Release with cinematic effects and achievement system</em>
 </p>
 
-> 🟢 **Beta Candidate Status**: Core gameplay fully functional + critical audit completed (v0.3.13). Test assertions strengthened (121 weak assertions fixed), security hardening applied, documentation synchronized.
-> See [Current Status](#current-status) for detailed feature matrix.
+> 🟢 **Pre-Release Status**: Core gameplay + cinematic camera effects + achievement system + dynamic shadows + projectile trails fully integrated. 3657 tests passing (100%). 17-phase E2E user journey validated.
 
 ---
 
-## What's New in v0.3.13
+## What's New in v0.3.21
 
-### 🔍 v0.3.13 — Critical Audit & Test Hardening (June 1, 2026)
-- **Test Quality Revolution**: Fixed **121 weak assertions** across 45+ test files (from `assert > 0` to exact value verification)
-- **Security Fix**: Replaced 6× `__import__('random')` dynamic imports with static imports (pixel_artist_3d.py)
-- **SRP Improvement**: Extracted `pixel_artist_enums.py` (5 enum classes, -40 lines from monolith)
-- **Bug Discovery**: Found and fixed `shutdown()` not setting `state.running = False` (hidden by `assert True` NOOP)
-- **Flaky Test Elimination**: Multi-point sampling strategy for random color variant tests
+### 🎬 v0.3.17-v0.3.21 — Cinematic Effects & Deep Integration (June 2, 2026)
+- **Camera Effects System**: EffectStack with 5 effect types (shake/zoom/slow-motion/push-pull/freeze) + 6 easing functions
+- **Achievement System**: 11 achievements across 4 categories (combat/campaign/survival/special) with JSON persistence
+- **Dynamic Shadow System**: Time-of-day aware shadow rendering for buildings, trees, and units
+- **Projectile Trail System**: 4 trail types (bullet/shell/rocket/mortar) with particle rendering
+- **Deep Integration**: All 4 modules wired into GameLoop + EnhancedRenderer + EventBus
+- **EventBus Named Channel**: subscribe_to()/publish_named() for game event routing
+- **Surface Pool Optimization**: ProjectileTrail and DynamicShadow use cached surfaces (eliminates per-frame allocation)
+- **Explosion Events**: CombatDirector now publishes Explosion named events for camera effects
+- **Achievement Persistence**: Auto-load on startup, auto-save on shutdown
+- **17-Phase E2E Validation**: Full user journey from faction selection to victory/defeat
+
+### 🔍 v0.3.13-v0.3.16 — Critical Audit & Architecture (June 1, 2026)
+- **Test Quality Revolution**: Fixed 121 weak assertions across 45+ test files
+- **God Class Split**: Extracted particle_effects_renderer.py + environment_renderer.py from EnhancedRenderer
+- **Surface Pool LRU**: OrderedDict with LRU eviction (max_size=50)
+- **4 Flaky Tests Fixed**: Semantic property verification instead of exact pixel matching
 - **Maturity Score**: Critically assessed at **7.3/10** (down from self-assessed 8.7, but more honest)
 
 ### 🔒 v0.3.12 — Security & Stability (May 31, 2026)
@@ -101,7 +111,7 @@
 | **Code Quality** | 8/10 | EnhancedRenderer -63.6%, 8 files still >1500 lines |
 | **Performance** | 7.5/10 | Surface pool + viewport culling, LRU eviction pending |
 | **Security** | 9/10 ✅ | Dynamic imports removed, HMAC saves, no injection vectors |
-| **Documentation** | 8.5/10 ✅ | Fully synchronized to v0.3.13 |
+| **Documentation** | 8.5/10 ✅ | Fully synchronized to v0.3.21 |
 | **Maintainability** | 8/10 | Clear patterns, good logging, 47 TODO markers remain |
 | **Overall Health** | **8.2/10** | **Beta Candidate (Verified)** ✅ |
 
@@ -492,4 +502,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Generated on 2026-05-30 | v0.3.4 (Ghost Feature Fix, post-DevSquad review) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
+<p align="center"><sub>Generated on 2026-06-02 | v0.3.21 (Pre-Release) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>

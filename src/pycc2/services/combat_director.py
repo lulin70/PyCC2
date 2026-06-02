@@ -414,6 +414,14 @@ class CombatDirector:
                     renderer.spawn_explosion(effect["position"], "large")
                     if camera and hasattr(camera, "shake"):
                         camera.shake(3.0, 0.15)
+                    self.event_bus.publish_named("Explosion", {
+                        "intensity": 4.0,
+                        "position": (
+                            effect["position"].x if hasattr(effect["position"], "x") else 0,
+                            effect["position"].y if hasattr(effect["position"], "y") else 0,
+                        ),
+                        "weapon_id": weapon_id,
+                    })
                 else:
                     renderer.spawn_explosion(effect["position"], "small")
                     if camera and hasattr(camera, "shake"):

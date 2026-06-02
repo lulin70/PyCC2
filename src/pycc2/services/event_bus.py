@@ -109,6 +109,20 @@ class EventBus(IEventPublisher):
                         e,
                         exc_info=True,
                     )
+        elif isinstance(event, dict) and self._named_handlers:
+            for key in event.keys():
+                if isinstance(key, str) and key in self._named_handlers:
+                    for handler in self._named_handlers[key]:
+                        try:
+                            handler(event)
+                        except (ValueError, TypeError, KeyError, RuntimeError, AttributeError) as e:
+                            self._error_count += 1
+                            logger.error(
+                                "Named handler error for dict key %s: %s",
+                                key,
+                                e,
+                                exc_info=True,
+                            )
 
         if self._total_published > 0 and self._error_count / self._total_published > 0.05:
             logger.warning(

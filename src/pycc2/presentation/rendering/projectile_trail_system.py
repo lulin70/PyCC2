@@ -21,6 +21,8 @@ import pygame
 class ProjectileTrail:
     """A single projectile trail with position, velocity, and visual properties."""
 
+    _surface_cache: dict[int, pygame.Surface] = {}
+
     def __init__(
         self,
         start_x: float,
@@ -120,7 +122,12 @@ class ProjectileTrail:
                 except (IndexError, TypeError):
                     pass
             else:
-                trail_surf = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
+                diameter = size * 2
+                trail_surf = ProjectileTrail._surface_cache.get(diameter)
+                if trail_surf is None:
+                    trail_surf = pygame.Surface((diameter, diameter), pygame.SRCALPHA)
+                    ProjectileTrail._surface_cache[diameter] = trail_surf
+                trail_surf.fill((0, 0, 0, 0))
                 pygame.draw.circle(trail_surf, color, (size, size), size)
                 surface.blit(trail_surf, (x - size, y - size))
 

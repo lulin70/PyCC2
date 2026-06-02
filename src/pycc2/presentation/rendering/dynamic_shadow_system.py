@@ -36,6 +36,19 @@ class DynamicShadowSystem:
         self._time_of_day: float = 0.5
         self._shadow_surface: Optional[pygame.Surface] = None
         self._cached_size: Optional[Tuple[int, int]] = None
+        self._surface_pool: dict[Tuple[int, int], pygame.Surface] = {}
+
+    def _get_pooled_surface(self, w: int, h: int) -> pygame.Surface:
+        key = (w, h)
+        surf = self._surface_pool.get(key)
+        if surf is None:
+            surf = pygame.Surface((w, h), pygame.SRCALPHA)
+            self._surface_pool[key] = surf
+            if len(self._surface_pool) > 20:
+                oldest_key = next(iter(self._surface_pool))
+                del self._surface_pool[oldest_key]
+        surf.fill((0, 0, 0, 0))
+        return surf
 
     def set_time_of_day(self, tod: float) -> None:
         """Set time of day (0.0=midnight, 0.25=dawn, 0.5=noon, 0.75=dusk)."""
@@ -89,7 +102,7 @@ class DynamicShadowSystem:
         if shadow_w <= 0 or shadow_h <= 0:
             return
 
-        shadow_surf = pygame.Surface((shadow_w, shadow_h), pygame.SRCALPHA)
+        shadow_surf = self._get_pooled_surface(shadow_w, shadow_h)
         shadow_color = (0, 0, 0, alpha)
         pygame.draw.polygon(
             shadow_surf,
@@ -128,7 +141,7 @@ class DynamicShadowSystem:
         if ellipse_w <= 0 or ellipse_h <= 0:
             return
 
-        shadow_surf = pygame.Surface((ellipse_w, ellipse_h), pygame.SRCALPHA)
+        shadow_surf = self._get_pooled_surface(ellipse_w, ellipse_h)
         pygame.draw.ellipse(shadow_surf, (0, 0, 0, alpha), (0, 0, ellipse_w, ellipse_h))
         surface.blit(shadow_surf, (screen_x + offset_x - ellipse_w // 2, screen_y + offset_y - ellipse_h // 2))
 
@@ -160,6 +173,6 @@ class DynamicShadowSystem:
         if shadow_w <= 0 or shadow_h <= 0:
             return
 
-        shadow_surf = pygame.Surface((shadow_w, shadow_h), pygame.SRCALPHA)
+        shadow_surf = self._get_pooled_surface(shadow_w, shadow_h)
         pygame.draw.ellipse(shadow_surf, (0, 0, 0, alpha), (0, 0, shadow_w, shadow_h))
         surface.blit(shadow_surf, (screen_x + offset_x, screen_y + offset_y))
