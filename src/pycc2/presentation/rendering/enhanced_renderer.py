@@ -221,6 +221,14 @@ class EnhancedRenderer:
         """Set attack line system (dependency injection setter - P0-2 Fix)."""
         self._attack_line_system = attack_line_system
 
+    def set_projectile_trail_system(self, trail_system) -> None:
+        """Set projectile trail system (dependency injection setter)."""
+        self._projectile_trail_sys = trail_system
+
+    def set_dynamic_shadow_system(self, shadow_system) -> None:
+        """Set dynamic shadow system (dependency injection setter)."""
+        self._dynamic_shadow_sys = shadow_system
+
     def set_time_of_day(self, tod: str) -> None:
         """
         Set time of day for color grading.
@@ -359,6 +367,10 @@ class EnhancedRenderer:
         self._shadow_rendering_sys.render_building_shadows(self._offscreen, game_map, camera)  # Building shadows BEFORE roofs
         self._shadow_rendering_sys.render_tree_shadows(self._offscreen, game_map, camera)      # Tree shadows BEFORE trees
 
+        # STEP 4.0-DYN: Dynamic shadow overlay (time-of-day aware, augments existing shadows)
+        if hasattr(self, '_dynamic_shadow_sys') and self._dynamic_shadow_sys is not None:
+            self._render_dynamic_shadows(game_map, camera)
+
         # STEP 4.4: Draw building roofs (CC2 top-down view — covers side-view terrain texture)
         self._draw_building_roofs(game_map, camera)
 
@@ -388,6 +400,10 @@ class EnhancedRenderer:
 
         # STEP 5.7: Render particle effects (explosions, smoke, muzzle flash, etc.)
         self._particle_system.render(self._offscreen)
+
+        # STEP 5.7-TRAIL: Render projectile trails (bullet/shell/rocket/mortar)
+        if hasattr(self, '_projectile_trail_sys') and self._projectile_trail_sys is not None:
+            self._projectile_trail_sys.render(self._offscreen)
 
         # STEP 5.8: Top-down lighting system pass (time-of-day tint + dynamic lights)
         self._lighting_effects_sys.apply_time_of_day_tint(self._offscreen)
@@ -1305,6 +1321,38 @@ class EnhancedRenderer:
                         (sx + tile_screen_size, sy + tile_screen_size), 1
                     )
     
+    def _render_dynamic_shadows(self, game_map: GameMap, camera: Camera) -> None:
+        """Render dynamic time-of-day shadows for buildings and trees."""
+        shadow_sys = self._dynamic_shadow_sys
+        if shadow_sys is None:
+            return
+
+        view_tl, view_br = camera.view_bounds
+        ts = self.TILE_SIZE
+        start_col = max(0, int(view_tl.x / ts) - 1)
+        end_col = min(game_map.width, int(view_br.x / ts) + 2)
+        start_row = max(0, int(view_tl.y / ts) - 1)
+        end_row = min(game_map.height, int(view_br.y / ts) + 2)
+
+        for row in range(start_row, end_row):
+            for col in range(start_col, end_col):
+                tile_val = game_map.tile_grid[row, col]
+                wx = col * ts + ts // 2
+                wy = row * ts + ts // 2
+                sx, sy = camera.world_to_screen(
+                    type('V', (), {'x': wx, 'y': wy})()
+                )
+                sx, sy = int(sx), int(sy)
+
+                if tile_val == 3:
+                    shadow_sys.render_building_shadow(
+                        self._offscreen, sx, sy, ts, ts
+                    )
+                elif tile_val == 5:
+                    shadow_sys.render_tree_shadow(
+                        self._offscreen, sx, sy, tree_radius=12
+                    )
+
     def _apply_environment_lighting(self, game_map: GameMap, camera: Camera, units: list | None = None) -> None:
         """Delegate to EnvironmentRenderer for environment lighting effects."""
         self._environment._apply_environment_lighting(game_map, camera, units)

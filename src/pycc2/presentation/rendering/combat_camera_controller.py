@@ -46,10 +46,10 @@ class CombatCameraController:
 
     def subscribe(self, event_bus: "EventBus") -> None:
         """Subscribe to combat events from EventBus."""
-        event_bus.subscribe("UnitAttacked", self._on_unit_attacked)
-        event_bus.subscribe("UnitKilled", self._on_unit_killed)
-        event_bus.subscribe("BattleWon", self._on_battle_won)
-        event_bus.subscribe("Explosion", self._on_explosion)
+        event_bus.subscribe_to("UnitAttacked", self._on_unit_attacked)
+        event_bus.subscribe_to("UnitKilled", self._on_unit_killed)
+        event_bus.subscribe_to("BattleWon", self._on_battle_won)
+        event_bus.subscribe_to("Explosion", self._on_explosion)
 
     def _push(self, effect: Any) -> None:
         if not self._enabled or self._effect_stack is None:

@@ -88,6 +88,10 @@ class GameLoop:
     _campaign_ui: object | None = field(init=False, default=None)
     time_control: TimeControlUI | None = field(init=False, default=None)
     _popup_manager: CombatPopupManager = field(init=False, default=None)
+    _effect_stack: object | None = field(init=False, default=None)
+    _combat_camera: object | None = field(init=False, default=None)
+    _achievement_bridge: object | None = field(init=False, default=None)
+    _projectile_trail_sys: object | None = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         from pycc2.presentation.audio.sound_system import SoundSystem as SS
@@ -188,6 +192,46 @@ class GameLoop:
             complete_deployment_fn=self.complete_deployment,
         )
 
+        # -- Cinematic camera effects system --
+        from pycc2.presentation.rendering.camera_effects import EffectStack
+        from pycc2.presentation.rendering.combat_camera_controller import CombatCameraController
+
+        self._effect_stack = EffectStack()
+        self._combat_camera = CombatCameraController(camera=self.state.camera)
+        self._combat_camera.set_effect_stack(self._effect_stack)
+        self._combat_camera.subscribe(self.event_bus)
+
+        # -- Achievement system --
+        from pycc2.domain.systems.achievement_system import AchievementManager, create_default_achievements
+        from pycc2.domain.systems.achievement_event_bridge import AchievementEventBridge
+
+        achievement_mgr = AchievementManager()
+        for ach in create_default_achievements():
+            achievement_mgr.register(ach)
+        self._achievement_bridge = AchievementEventBridge(achievement_mgr)
+        self._achievement_bridge.subscribe(self.event_bus)
+
+        # -- Projectile trail system --
+        from pycc2.presentation.rendering.projectile_trail_system import ProjectileTrailSystem
+
+        self._projectile_trail_sys = ProjectileTrailSystem()
+
+        # -- Dynamic shadow system --
+        from pycc2.presentation.rendering.dynamic_shadow_system import DynamicShadowSystem
+
+        self._dynamic_shadow_sys = DynamicShadowSystem(
+            tile_size=self.renderer.TILE_SIZE if isinstance(self.renderer.TILE_SIZE, int) else 48
+        )
+
+        # Wire trail and shadow systems into renderer
+        if hasattr(self.renderer, 'set_projectile_trail_system'):
+            self.renderer.set_projectile_trail_system(self._projectile_trail_sys)
+        if hasattr(self.renderer, 'set_dynamic_shadow_system'):
+            self.renderer.set_dynamic_shadow_system(self._dynamic_shadow_sys)
+
+        # Subscribe to ProjectileFired events for trail rendering
+        self.event_bus.subscribe_to("ProjectileFired", self._on_projectile_fired)
+
     # -- Backward-compatible properties delegating to DeploymentManager --
 
     @property
@@ -244,6 +288,23 @@ class GameLoop:
             map_w = self.state.game_map.width * tile_size
             map_h = self.state.game_map.height * tile_size
             self.state.camera.constrain_to_map(map_w, map_h)
+
+            # Apply cinematic camera effects (shake, zoom, push-pull)
+            camera_offset = (0.0, 0.0)
+            if self._effect_stack is not None and not self._effect_stack.is_empty():
+                camera_offset = self._effect_stack.get_total_offset()
+                if camera_offset != (0.0, 0.0):
+                    from pycc2.domain.value_objects.vec2 import Vec2
+                    self.state.camera.position = Vec2(
+                        self.state.camera.position.x + camera_offset[0],
+                        self.state.camera.position.y + camera_offset[1],
+                    )
+
+            # Apply slow-motion time scale from EffectStack
+            if self._effect_stack is not None and not self._effect_stack.is_empty():
+                time_scale = self._effect_stack.get_time_scale()
+                if time_scale < 1.0:
+                    time_speed *= time_scale
 
             self._render_pipeline.update_fps(self._fps)
 
@@ -358,6 +419,14 @@ class GameLoop:
             if self._pause_menu.is_active and screen:
                 self._pause_menu.render(screen)
 
+            # Restore camera position after cinematic effects
+            if camera_offset != (0.0, 0.0):
+                from pycc2.domain.value_objects.vec2 import Vec2
+                self.state.camera.position = Vec2(
+                    self.state.camera.position.x - camera_offset[0],
+                    self.state.camera.position.y - camera_offset[1],
+                )
+
             pygame.display.flip()
             self.window_manager.tick(TARGET_FPS)
             self._fps = self.window_manager.fps
@@ -446,6 +515,22 @@ class GameLoop:
         # 更新相机屏幕震动
         self.state.camera.update_shake(dt)
 
+        # Update cinematic camera effect stack
+        if self._effect_stack is not None:
+            self._effect_stack.update(dt)
+
+        # Update projectile trail system
+        if self._projectile_trail_sys is not None:
+            self._projectile_trail_sys.update(dt)
+
+        # Update dynamic shadow time-of-day
+        if hasattr(self, '_dynamic_shadow_sys') and self._dynamic_shadow_sys is not None:
+            if hasattr(self, '_day_night_time') and self._day_night_time is not None:
+                self._dynamic_shadow_sys.set_time_of_day(self._day_night_time)
+            elif hasattr(self, '_day_night_cycle') and self._day_night_cycle is not None:
+                tod = getattr(self._day_night_cycle, 'time_of_day', 0.5)
+                self._dynamic_shadow_sys.set_time_of_day(tod)
+
         if self.ai_service is not None and self.ai_service.managed_unit_count > 0:
             self._ai_tick_counter += 1
             if self._ai_tick_counter >= self._ai_update_interval:
@@ -463,6 +548,14 @@ class GameLoop:
         if victory_outcome is not None:
             result, reason = victory_outcome
             self.state.paused = True
+
+            # Publish BattleWon named event for camera effects and achievement tracking
+            self.event_bus.publish_named("BattleWon", {
+                "result": result.name,
+                "reason": reason,
+                "duration_seconds": self.state.tick * LOGIC_DT,
+            })
+
             if self.sound_system:
                 from pycc2.presentation.audio.sound_system import SoundType
 
@@ -489,6 +582,25 @@ class GameLoop:
 
     def _on_unit_attacked_for_stats(self, data: dict) -> None:
         self._combat_director.record_stats(data, self.state.units, self._victory_manager.battle_stats)
+
+    def _on_projectile_fired(self, data: dict) -> None:
+        """Handle ProjectileFired event — add trail to ProjectileTrailSystem."""
+        if self._projectile_trail_sys is None:
+            return
+        weapon_type = data.get("weapon_type", "bullet")
+        sx = data.get("start_x", 0.0)
+        sy = data.get("start_y", 0.0)
+        ex = data.get("end_x", 0.0)
+        ey = data.get("end_y", 0.0)
+
+        if weapon_type == "shell":
+            self._projectile_trail_sys.add_shell_trail(sx, sy, ex, ey)
+        elif weapon_type == "rocket":
+            self._projectile_trail_sys.add_rocket_trail(sx, sy, ex, ey)
+        elif weapon_type == "mortar":
+            self._projectile_trail_sys.add_mortar_trail(sx, sy, ex, ey)
+        else:
+            self._projectile_trail_sys.add_bullet_trail(sx, sy, ex, ey)
 
     def _process_combat_popups(self) -> None:
         """Scan units for combat events and trigger floating popups."""

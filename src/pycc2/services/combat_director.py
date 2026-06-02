@@ -276,6 +276,41 @@ class CombatDirector:
             )
         )
 
+        # Publish named UnitAttacked event for camera effects and achievement tracking
+        self.event_bus.publish_named("UnitAttacked", {
+            "attacker_id": attacker.id,
+            "target_id": target.id,
+            "damage": result.damage_dealt if result else 0,
+            "is_hit": result.hit if result else False,
+            "target_faction": target.faction.name if hasattr(target.faction, 'name') else str(target.faction),
+        })
+
+        # Publish named event for camera effects and projectile trails
+        weapon_type = "bullet"
+        weapon_id = attacker.weapon.primary_weapon_id or ""
+        if any(k in weapon_id.lower() for k in ("mg", "machine")):
+            weapon_type = "bullet"
+        elif any(k in weapon_id.lower() for k in ("tank", "at", "cannon", "gun_")):
+            weapon_type = "shell"
+        elif any(k in weapon_id.lower() for k in ("bazooka", "piat", "panzer", "rocket")):
+            weapon_type = "rocket"
+        elif any(k in weapon_id.lower() for k in ("mortar", "howitzer", "artillery")):
+            weapon_type = "mortar"
+
+        attacker_pos = attacker.position.pixel_position
+        target_pos = target.position.pixel_position
+        self.event_bus.publish_named("ProjectileFired", {
+            "attacker_id": attacker.id,
+            "target_id": target.id,
+            "weapon_type": weapon_type,
+            "start_x": attacker_pos.x,
+            "start_y": attacker_pos.y,
+            "end_x": target_pos.x,
+            "end_y": target_pos.y,
+            "damage": result.damage_dealt if result else 0,
+            "is_hit": result.hit if result else False,
+        })
+
         if result and result.hit:
             target.take_damage(int(result.damage_dealt))
             self._pending_effects.append(
@@ -295,6 +330,19 @@ class CombatDirector:
                     "direction": attacker.position.facing_rad,
                 }
             )
+
+            if result.is_killing_blow or not target.is_alive:
+                self.event_bus.publish_named("UnitKilled", {
+                    "unit_id": target.id,
+                    "faction": target.faction.name if hasattr(target.faction, 'name') else str(target.faction),
+                    "attacker_id": attacker.id,
+                    "attacker_role": getattr(attacker, 'role', ''),
+                    "unit_type": getattr(target, 'unit_type', ''),
+                    "position": (
+                        target.position.tile_coord.x,
+                        target.position.tile_coord.y,
+                    ),
+                })
 
     def on_unit_attacked(self, data: dict) -> None:
         target_id = data.get("target_id")

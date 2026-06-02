@@ -17,6 +17,7 @@ from pycc2.domain.interfaces import IEventPublisher
 class EventBus(IEventPublisher):
     def __init__(self) -> None:
         self._handlers: dict[type[Any], list[Callable[[Any], None]]] = defaultdict(list)
+        self._named_handlers: dict[str, list[Callable[[dict], None]]] = defaultdict(list)
         self._queue: list[tuple[float, Any]] = []
         self._error_count: int = 0
         self._total_published: int = 0
@@ -31,6 +32,18 @@ class EventBus(IEventPublisher):
         """取消注册，返回是否成功找到"""
         try:
             self._handlers[event_type].remove(handler)
+            return True
+        except (ValueError, KeyError):
+            return False
+
+    def subscribe_to(self, event_name: str, handler: Callable[[dict], None]) -> None:
+        """注册字符串命名事件处理器（游戏事件通道）"""
+        self._named_handlers[event_name].append(handler)
+
+    def unsubscribe_from(self, event_name: str, handler: Callable[[dict], None]) -> bool:
+        """取消注册命名事件处理器"""
+        try:
+            self._named_handlers[event_name].remove(handler)
             return True
         except (ValueError, KeyError):
             return False
@@ -82,6 +95,21 @@ class EventBus(IEventPublisher):
                     exc_info=True,
                 )
 
+        if event_type is not dict and hasattr(event_type, "__name__"):
+            type_name = event_type.__name__
+            named = self._named_handlers.get(type_name, [])
+            for handler in named:
+                try:
+                    handler(event if isinstance(event, dict) else dict(event) if hasattr(event, "__iter__") else {"data": event})
+                except (ValueError, TypeError, KeyError, RuntimeError, AttributeError) as e:
+                    self._error_count += 1
+                    logger.error(
+                        "Named handler error for %s: %s",
+                        type_name,
+                        e,
+                        exc_info=True,
+                    )
+
         if self._total_published > 0 and self._error_count / self._total_published > 0.05:
             logger.warning(
                 "EventBus error rate %.2f%% (%d/%d)",
@@ -89,6 +117,22 @@ class EventBus(IEventPublisher):
                 self._error_count,
                 self._total_published,
             )
+
+    def publish_named(self, event_name: str, data: dict) -> None:
+        """发布字符串命名事件（游戏事件通道）"""
+        self._total_published += 1
+        named = self._named_handlers.get(event_name, [])
+        for handler in named:
+            try:
+                handler(data)
+            except (ValueError, TypeError, KeyError, RuntimeError, AttributeError) as e:
+                self._error_count += 1
+                logger.error(
+                    "Named handler error for %s: %s",
+                    event_name,
+                    e,
+                    exc_info=True,
+                )
 
     def enqueue(self, event: Any) -> None:
         """将事件加入队列(延迟处理)，自动附加timestamp"""
@@ -109,7 +153,7 @@ class EventBus(IEventPublisher):
     @property
     def handler_count(self) -> int:
         """已注册的handler总数"""
-        return sum(len(hs) for hs in self._handlers.values())
+        return sum(len(hs) for hs in self._handlers.values()) + sum(len(hs) for hs in self._named_handlers.values())
 
     @property
     def queue_size(self) -> int:

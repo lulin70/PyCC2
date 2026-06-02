@@ -36,10 +36,10 @@ class AchievementEventBridge:
 
     def subscribe(self, event_bus: "EventBus") -> None:
         """Subscribe to game events from EventBus."""
-        event_bus.subscribe("UnitAttacked", self._on_unit_attacked)
-        event_bus.subscribe("UnitKilled", self._on_unit_killed)
-        event_bus.subscribe("BattleWon", self._on_battle_won)
-        event_bus.subscribe("CampaignComplete", self._on_campaign_complete)
+        event_bus.subscribe_to("UnitAttacked", self._on_unit_attacked)
+        event_bus.subscribe_to("UnitKilled", self._on_unit_killed)
+        event_bus.subscribe_to("BattleWon", self._on_battle_won)
+        event_bus.subscribe_to("CampaignComplete", self._on_campaign_complete)
 
     def _on_unit_attacked(self, event: dict) -> None:
         """Track damage taken by player units."""
