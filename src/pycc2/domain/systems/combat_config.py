@@ -4,6 +4,8 @@ Based on OpenCombat (buxx/OpenCombat) battle-tested values and CC2 original mech
 Reference: https://github.com/buxx/OpenCombat
 """
 
+# PLANNED: Not yet wired into game loop — reserved for future feature
+
 from dataclasses import dataclass, field
 from enum import Enum, auto
 

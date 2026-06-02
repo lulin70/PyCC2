@@ -7,6 +7,8 @@ regular intervals so that an entire battle can be played back with
 pause, step, speed control, and seek.
 """
 
+# PLANNED: Not yet wired into game loop — reserved for future feature
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

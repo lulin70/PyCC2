@@ -14,8 +14,9 @@ This file now serves as the MAIN COORDINATOR that imports and delegates to speci
 - sprite_generator.py     : SpriteGenerator class (all programmatic sprite creation)
 - particle_system.py      : TopDownParticleSystem class (explosions, smoke, etc.)
 - lighting_system.py      : TopDownLightingConfig + LightingSystem (time-of-day, dynamic lights)
-- terrain_renderer.py     : TerrainRenderer (tile drawing, autotile, buildings)
-- unit_renderer.py        : UnitRenderer (unit drawing, health colors, shadows)
+- terrain_renderer.py     : TerrainRenderer (enhanced terrain, transitions, edge smoothing)
+- building_renderer.py    : BuildingRenderer (roofs, interiors, floor numbers)
+- unit_renderer.py        : UnitRenderer (unit drawing, damage VFX)
 - decoration_renderer.py  : DecorationRenderer (bushes, trees, wreckage, etc.)
 
 BACKWARD COMPATIBILITY: All public APIs remain unchanged.
@@ -68,6 +69,7 @@ from pycc2.presentation.rendering.particle_system import TopDownParticleSystem
 from pycc2.presentation.rendering.lighting_system import TopDownLightingConfig, LightingSystem
 from pycc2.presentation.rendering.terrain_renderer import TerrainRenderer
 from pycc2.presentation.rendering.unit_renderer import UnitRenderer
+from pycc2.presentation.rendering.building_renderer import BuildingRenderer
 from pycc2.presentation.rendering.decoration_renderer import DecorationRenderer
 from pycc2.presentation.rendering.terrain_tile_cache import (
     TerrainTileCache,
@@ -77,6 +79,7 @@ from pycc2.presentation.rendering.terrain_tile_cache import (
 from pycc2.presentation.rendering.palette_generator import PaletteGenerator
 from pycc2.presentation.rendering.procedural_texture_generator import ProceduralTextureGenerator
 from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
+from pycc2.presentation.rendering.rendering_utils import draw_dashed_line
 
 # Import extracted sub-modules (SRP refactoring)
 from pycc2.presentation.rendering.particle_effects_renderer import ParticleEffectsRenderer
@@ -133,10 +136,6 @@ class EnhancedRenderer:
         self._autotile_cache = AutotileCache()  # Cache for autotile variants
         self._terrain_tile_cache = TerrainTileCache(self.TILE_SIZE)  # Pre-computed terrain tile cache with edge smoothing
         self._building_clusters: list[list[tuple[int, int]]] | None = None  # Cached building clusters
-        self._edge_smooth_cache: dict[tuple[int, int], pygame.Surface] = {}  # Cached edge smoothing surfaces
-        self._edge_smooth_dirty: bool = True  # Flag to indicate cache needs rebuild
-        self._transition_cache: dict[tuple[int, int, int, int, str], tuple[pygame.Surface, pygame.Rect]] = {}  # Cached terrain transition strips
-        self._last_map_hash: int = 0  # Track map changes for cache invalidation
         self._frame_count = 0
         self._sprite_renderer = None  # 延迟初始化，等待display ready
         self._isometric_renderer = None  # Isometric renderer (lazy init)
@@ -169,6 +168,7 @@ class EnhancedRenderer:
         # Initialize refactored sub-module renderers (coordinator pattern)
         self._terrain_renderer = TerrainRenderer(self)
         self._unit_renderer = UnitRenderer(self)
+        self._building_renderer = BuildingRenderer(self)
         self._decoration_renderer = DecorationRenderer(self)
         self._lighting_system = LightingSystem(self._lighting_config)
 
@@ -463,328 +463,26 @@ class EnhancedRenderer:
         return self._sprite_cache[key]
     
     def _draw_enhanced_terrain(self, game_map: GameMap, camera: Camera, debug_mode: bool = False) -> None:
-        """Draw terrain tiles with texturing and height-based lighting, with autotile support."""
-        if self._screen is None:
-            return
-
-        # Update building clusters cache if needed
-        if self._building_clusters is None:
-            self._building_clusters = detect_building_clusters(game_map)
-
-        bounds = camera.view_bounds
-        start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
-        end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
-        start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
-        end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
-
-        tile_screen_size = int(self.TILE_SIZE * camera.zoom)
-
-        # Pre-calculate screen bounds for quick culling (PERF-002)
-        screen_w, screen_h = self._offscreen.get_size() if self._offscreen else (800, 600)
-        margin = tile_screen_size  # Allow margin for partial tiles
-
-        for ty in range(start_y, end_y):
-            for tx in range(start_x, end_x):
-                # Quick viewport culling - skip tiles clearly off-screen (PERF-002)
-                world_x = tx * self.TILE_SIZE
-                world_y = ty * self.TILE_SIZE
-                screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
-                sx, sy = int(screen_pos[0]), int(screen_pos[1])
-
-                if (sx + tile_screen_size < -margin or sx > screen_w + margin or
-                    sy + tile_screen_size < -margin or sy > screen_h + margin):
-                    continue
-
-                # Get enhanced tile data if available
-                enhanced_tile = self._get_enhanced_tile(game_map, tx, ty)
-
-                if enhanced_tile:
-                    terrain_val = enhanced_tile.base_terrain
-                    variation = enhanced_tile.variation
-                    height = enhanced_tile.height
-                else:
-                    # Fallback to legacy integer
-                    terrain_val = int(game_map.tile_grid[ty, tx])
-                    variation = 0
-                    height = 0
-
-                # Calculate autotile bitmask for continuous terrains
-                bitmask = 0
-                if is_autotile_terrain(terrain_val):
-                    bitmask = get_neighbor_bitmap(game_map, tx, ty, terrain_val)
-
-                # Use TerrainTileCache for pre-computed tiles with edge smoothing
-                texture = self._terrain_tile_cache.get_tile(
-                    terrain_type=terrain_val,
-                    autotile_mask=bitmask,
-                    variation=variation,
-                    height=height,
-                    tile_screen_size=tile_screen_size,
-                    renderer=self,
-                    enhanced_tile=enhanced_tile,
-                    tile_x=tx,
-                    tile_y=ty,
-                )
-
-                # Fallback to original rendering if cache miss without renderer
-                if texture is None:
-                    if bitmask != 0:
-                        cache_key = (terrain_val, variation, bitmask)
-                        if cache_key not in self._autotile_cache._cache:
-                            texture = self._generate_cc2_style_tile(terrain_val, tx, ty, bitmask)
-                            self._autotile_cache.set_variant(terrain_val, bitmask, variation, texture)
-                        else:
-                            texture = self._autotile_cache.get_variant(terrain_val, bitmask, variation)
-
-                        if tile_screen_size != self.TILE_SIZE:
-                            scale_key = (terrain_val, variation, bitmask, tile_screen_size)
-                            if scale_key not in self._scaled_texture_cache:
-                                base_texture = self._autotile_cache.get_variant(terrain_val, bitmask, variation)
-                                if base_texture:
-                                    self._scaled_texture_cache[scale_key] = pygame.transform.scale(
-                                        base_texture, (tile_screen_size, tile_screen_size)
-                                    )
-                            texture = self._scaled_texture_cache.get(scale_key, texture)
-                    elif height != 0:
-                        cache_key = (terrain_val, variation, height, tile_screen_size)
-                        if cache_key in self._height_lit_cache:
-                            texture = self._height_lit_cache[cache_key]
-                        else:
-                            base_texture = self._get_cached_texture(terrain_val, variation)
-                            texture = self._apply_height_lighting(base_texture, height)
-                            if tile_screen_size != self.TILE_SIZE:
-                                texture = pygame.transform.scale(texture, (tile_screen_size, tile_screen_size))
-                            self._height_lit_cache[cache_key] = texture
-                    else:
-                        if tile_screen_size != self.TILE_SIZE:
-                            scale_key = (terrain_val, variation, tile_screen_size)
-                            if scale_key not in self._scaled_texture_cache:
-                                base_texture = self._get_cached_texture(terrain_val, variation)
-                                self._scaled_texture_cache[scale_key] = pygame.transform.scale(
-                                    base_texture, (tile_screen_size, tile_screen_size)
-                                )
-                            texture = self._scaled_texture_cache[scale_key]
-                        else:
-                            texture = self._get_cached_texture(terrain_val, variation)
-
-                # Calculate screen position (reuse from culling check)
-                rect = pygame.Rect(sx, sy, tile_screen_size, tile_screen_size)
-                self._offscreen.blit(texture, rect)
-
-        # RE-ENABLED: Terrain edge smoothing with caching for performance
-        # Only rebuilds cache when map changes, not every frame
-        if not debug_mode and tile_screen_size >= 16:
-            self._apply_terrain_edge_smoothing(game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size)
-
-        # Terrain transition blending between different terrain types
-        if not debug_mode and tile_screen_size >= 16:
-            self._render_terrain_transitions(game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size)
-
-        # Draw terrain borders ONLY in debug mode (Issue 4: remove harsh grid lines in normal mode)
-        # ============================================================
-        # ⚠️ RELEASE MODE GUARD: 地形边界线仅在 debug_mode=True 时绘制
-        # - _draw_terrain_borders(): 不同地形类型间的边界线
-        # - 性能影响: O(visible_tiles) 边界检查/帧
-        # - 正式发布: debug_mode=False → 完全跳过，零开销
-        # ============================================================
-        if debug_mode:
-            self._draw_terrain_borders(game_map, camera, start_x, end_x, start_y, end_y)
+        """Delegate to TerrainRenderer for enhanced terrain drawing."""
+        self._terrain_renderer.draw_enhanced_terrain(game_map, camera, debug_mode)
 
     def _draw_building_roofs(
         self, game_map: GameMap, camera: Camera,
     ) -> None:
-        """Draw CC2-style top-down building roofs over all building tiles.
-
-        This covers the side-view terrain texture with the correct CC2
-        orthographic roof view (colored rectangle + pseudo-3D shadow strips).
-        When units are inside, _draw_building_interiors will override with
-        the interior view in the next step.
-        """
-        if self._offscreen is None:
-            return
-
-        from pycc2.presentation.rendering.cc2_building_renderer import (
-            render_cc2_building,
-            floors_to_building_type,
-            DamageLevel,
-        )
-
-        bounds = camera.view_bounds
-        start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
-        end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
-        start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
-        end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
-
-        for ty in range(start_y, end_y):
-            for tx in range(start_x, end_x):
-                terrain_val = self._get_terrain_at(game_map, tx, ty)
-                if terrain_val != 4:  # Only BUILDING_ENTERABLE
-                    continue
-
-                # Determine building type from floor count
-                enhanced = game_map.get_enhanced_tile(tx, ty) if hasattr(game_map, 'get_enhanced_tile') else None
-                floors = 1
-                if enhanced and isinstance(enhanced, dict):
-                    floors = int(enhanced.get("building_floors", 1))
-                elif enhanced and hasattr(enhanced, 'building_floors'):
-                    floors = int(getattr(enhanced, 'building_floors', 1))
-
-                building_type = floors_to_building_type(floors)
-
-                # Render roof (default mode = roof, not interior)
-                roof_surface = render_cc2_building(
-                    building_type=building_type,
-                    damage=DamageLevel.INTACT,
-                    tile_size=self.TILE_SIZE,
-                    interior_mode=False,
-                )
-
-                # Scale if zoomed
-                tile_screen_size = int(self.TILE_SIZE * camera.zoom)
-                if tile_screen_size != self.TILE_SIZE:
-                    tw, th = roof_surface.get_size()
-                    target_w = int(tw * camera.zoom)
-                    target_h = int(th * camera.zoom)
-                    if target_w > 0 and target_h > 0:
-                        roof_surface = pygame.transform.scale(
-                            roof_surface, (target_w, target_h),
-                        )
-
-                # Blit roof at screen position
-                from pycc2.domain.value_objects.vec2 import Vec2
-                world_x = tx * self.TILE_SIZE
-                world_y = ty * self.TILE_SIZE
-                screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
-
-                self._offscreen.blit(roof_surface, (int(screen_pos[0]), int(screen_pos[1])))
+        """Delegate to BuildingRenderer for CC2-style building roofs."""
+        self._building_renderer.draw_building_roofs(game_map, camera)
 
     def _draw_building_interiors(
         self, game_map: GameMap, units: list[Unit], camera: Camera,
     ) -> None:
-        """Overlay building interior view when units are inside a building.
-
-        CC2 mechanism: when a unit enters a building tile, the building
-        renderer automatically switches to interior mode (showing floor +
-        windows instead of roof). When all units leave, it reverts to roof.
-        """
-        if self._screen is None or self._offscreen is None:
-            return
-        if not units:
-            return
-
-        from pycc2.presentation.rendering.cc2_building_renderer import (
-            should_show_interior,
-            render_cc2_building,
-            floors_to_building_type,
-            DamageLevel,
-        )
-
-        bounds = camera.view_bounds
-        start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
-        end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
-        start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
-        end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
-
-        tile_screen_size = int(self.TILE_SIZE * camera.zoom)
-
-        for ty in range(start_y, end_y):
-            for tx in range(start_x, end_x):
-                # Only process building_enterable tiles (terrain ID 4)
-                terrain_val = self._get_terrain_at(game_map, tx, ty)
-                if terrain_val != 4:
-                    continue
-
-                # Check if any unit is inside this building tile
-                if not should_show_interior((tx, ty), units, self.TILE_SIZE):
-                    continue
-
-                # Determine building type from floor count in enhanced tile data
-                enhanced = game_map.get_enhanced_tile(tx, ty) if hasattr(game_map, 'get_enhanced_tile') else None
-                floors = 1
-                if enhanced and isinstance(enhanced, dict):
-                    floors = int(enhanced.get("building_floors", 1))
-                elif enhanced and hasattr(enhanced, 'building_floors'):
-                    floors = int(getattr(enhanced, 'building_floors', 1))
-
-                building_type = floors_to_building_type(floors)
-
-                # Render interior view
-                interior_surface = render_cc2_building(
-                    building_type=building_type,
-                    damage=DamageLevel.INTACT,
-                    tile_size=self.TILE_SIZE,
-                    interior_mode=True,
-                    occupant_positions=[],
-                )
-
-                # Scale to screen size if needed
-                if tile_screen_size != self.TILE_SIZE:
-                    tw, th = interior_surface.get_size()
-                    target_w = int(tw * camera.zoom)
-                    target_h = int(th * camera.zoom)
-                    if target_w > 0 and target_h > 0:
-                        interior_surface = pygame.transform.scale(
-                            interior_surface, (target_w, target_h),
-                        )
-
-                # Blit interior surface at screen position
-                from pycc2.domain.value_objects.vec2 import Vec2
-                world_x = tx * self.TILE_SIZE
-                world_y = ty * self.TILE_SIZE
-                screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
-
-                self._offscreen.blit(interior_surface, (int(screen_pos[0]), int(screen_pos[1])))
+        """Delegate to BuildingRenderer for building interior view."""
+        self._building_renderer.draw_building_interiors(game_map, units, camera)
 
     def _draw_building_floor_numbers(
         self, game_map: GameMap, camera: Camera,
     ) -> None:
-        """Draw floor count numbers on building roof tiles.
-
-        The number displayed matches the `building_floors` data from the
-        map tile, which also drives the LOS visibility bonus.
-        """
-        if self._screen is None or self._offscreen is None:
-            return
-
-        bounds = camera.view_bounds
-        start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
-        end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
-        start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
-        end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
-
-        tile_screen_size = int(self.TILE_SIZE * camera.zoom)
-
-        for ty in range(start_y, end_y):
-            for tx in range(start_x, end_x):
-                terrain_val = self._get_terrain_at(game_map, tx, ty)
-                if terrain_val != 4:  # Only building_enterable
-                    continue
-
-                # Read building_floors from enhanced tile data
-                enhanced = game_map.get_enhanced_tile(tx, ty) if hasattr(game_map, 'get_enhanced_tile') else None
-                floors = None
-                if enhanced and isinstance(enhanced, dict):
-                    floors = enhanced.get("building_floors")
-                elif enhanced and hasattr(enhanced, 'building_floors'):
-                    floors = getattr(enhanced, 'building_floors', None)
-
-                if floors is None or int(floors) <= 1:
-                    continue  # Don't show number for single-floor buildings
-
-                # Draw floor number on the roof
-                from pycc2.domain.value_objects.vec2 import Vec2
-                world_x = tx * self.TILE_SIZE
-                world_y = ty * self.TILE_SIZE
-                screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
-
-                font_size = max(self.MIN_FONT_SIZE, tile_screen_size // 3)
-                font = pygame.font.SysFont("arial", font_size, bold=True)
-                text = font.render(str(int(floors)), True, (255, 215, 0))  # Gold number
-                text_rect = text.get_rect(
-                    center=(int(screen_pos[0]) + tile_screen_size // 2,
-                            int(screen_pos[1]) + tile_screen_size // 2),
-                )
-                self._offscreen.blit(text, text_rect)
+        """Delegate to BuildingRenderer for floor count numbers."""
+        self._building_renderer.draw_building_floor_numbers(game_map, camera)
 
     def _draw_vl_flags(self, game_map: GameMap, camera: Camera) -> None:
         """Draw Victory Location flags and edge arrows on the map.
@@ -972,300 +670,25 @@ class EnhancedRenderer:
             bitmask=bitmask
         )
 
-    TERRAIN_BASE_COLORS = {
-        0: (76, 112, 52),
-        1: (139, 119, 101),
-        2: (68, 105, 48),
-        3: (45, 68, 33),
-        4: (139, 115, 85),
-        5: (120, 118, 115),
-        6: (62, 87, 117),
-        7: (85, 70, 55),
-        8: (110, 108, 105),
-        9: (135, 115, 80),
-        10: (95, 145, 165),
-        11: (160, 140, 100),
-        12: (90, 85, 75),
-    }
-
     def _render_terrain_transitions(
         self, game_map: GameMap, camera: Camera,
         start_x: int, end_x: int, start_y: int, end_y: int,
         tile_screen_size: int
     ) -> None:
-        """Render gradient transition strips between adjacent tiles of different terrain types.
-
-        P2-11 Enhanced Version:
-        - Smooth color interpolation (linear blend from current to neighbor color)
-        - Middle-color edge pixels (average of two terrain colors at boundary)
-        - Directional alpha fading (softer transitions toward tile center)
-        - Enhanced caching for performance
-
-        For each tile, checks 4 neighbors (N/S/E/W). When a neighbor has a
-        different terrain type, draws a 4-6px gradient strip on the shared edge
-        that blends from the current tile's base color to the neighbor's base
-        color, creating smooth visual transitions (e.g. grass→road, grass→water).
-
-        Uses caching keyed by (tx, ty, current_terrain, neighbor_terrain, direction)
-        to avoid per-frame recalculation. Cache is invalidated when the map changes.
-        """
-        if self._screen is None or self._offscreen is None or tile_screen_size < 8:
-            return
-
-        from pycc2.domain.value_objects.vec2 import Vec2
-
-        try:
-            current_map_hash = hash((game_map.width, game_map.height, id(game_map)))
-            if current_map_hash != self._last_map_hash:
-                self._transition_cache.clear()
-        except (ValueError, TypeError):
-            pass
-
-        # P2-11: Slightly wider transition strips for smoother blending
-        strip_width = max(self.TRANSITION_STRIP_WIDTH_MIN, min(self.TRANSITION_STRIP_WIDTH_MAX, tile_screen_size // 8))
-
-        for ty in range(start_y, end_y):
-            for tx in range(start_x, end_x):
-                current = self._get_terrain_at(game_map, tx, ty)
-                if current < 0:
-                    continue
-
-                neighbors = [
-                    (tx, ty - 1, 'north'),
-                    (tx, ty + 1, 'south'),
-                    (tx + 1, ty, 'east'),
-                    (tx - 1, ty, 'west'),
-                ]
-
-                for nx, ny, direction in neighbors:
-                    if nx < 0 or ny < 0 or nx >= game_map.width or ny >= game_map.height:
-                        continue
-                    neighbor = self._get_terrain_at(game_map, nx, ny)
-                    if neighbor < 0 or neighbor == current:
-                        continue
-
-                    cache_key = (tx, ty, current, neighbor, direction)
-                    if cache_key in self._transition_cache:
-                        cached_surf, cached_rect = self._transition_cache[cache_key]
-                        self._offscreen.blit(cached_surf, cached_rect)
-                        continue
-
-                    color_from = self.TERRAIN_BASE_COLORS.get(current, (128, 128, 128))
-                    color_to = self.TERRAIN_BASE_COLORS.get(neighbor, (128, 128, 128))
-
-                    # P2-11 Enhancement: Calculate middle color (average of two terrain colors)
-                    middle_color = (
-                        (color_from[0] + color_to[0]) // 2,
-                        (color_from[1] + color_to[1]) // 2,
-                        (color_from[2] + color_to[2]) // 2,
-                    )
-
-                    world_x = tx * self.TILE_SIZE
-                    world_y = ty * self.TILE_SIZE
-                    screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
-                    base_x = int(screen_pos[0])
-                    base_y = int(screen_pos[1])
-
-                    if direction == 'north':
-                        rect = pygame.Rect(base_x, base_y, tile_screen_size, strip_width)
-                    elif direction == 'south':
-                        rect = pygame.Rect(base_x, base_y + tile_screen_size - strip_width, tile_screen_size, strip_width)
-                    elif direction == 'east':
-                        rect = pygame.Rect(base_x + tile_screen_size - strip_width, base_y, strip_width, tile_screen_size)
-                    else:
-                        rect = pygame.Rect(base_x, base_y, strip_width, tile_screen_size)
-
-                    strip_surf = self._get_pooled_surface((rect.width, rect.height))
-
-                    # P2-11 Enhanced interpolation with middle-color emphasis
-                    if direction in ('north', 'south'):
-                        for col in range(rect.width):
-                            t = col / max(1, rect.width - 1)  # 0.0 (from) → 1.0 (to)
-
-                            # Smooth interpolation with sinusoidal easing for natural look
-                            smooth_t = 0.5 * (1 - math.cos(t * math.pi))  # Ease in-out
-
-                            # Color interpolation: from → middle → to
-                            if t < 0.5:
-                                # First half: blend from color_from to middle_color
-                                local_t = t * 2  # 0.0 → 1.0
-                                r = int(color_from[0] * (1 - local_t) + middle_color[0] * local_t)
-                                g = int(color_from[1] * (1 - local_t) + middle_color[1] * local_t)
-                                b = int(color_from[2] * (1 - local_t) + middle_color[2] * local_t)
-                            else:
-                                # Second half: blend from middle_color to color_to
-                                local_t = (t - 0.5) * 2  # 0.0 → 1.0
-                                r = int(middle_color[0] * (1 - local_t) + color_to[0] * local_t)
-                                g = int(middle_color[1] * (1 - local_t) + color_to[1] * local_t)
-                                b = int(middle_color[2] * (1 - local_t) + color_to[2] * local_t)
-
-                            for row in range(rect.height):
-                                edge_t = row / max(1, rect.height - 1)
-                                # Directional alpha fade (stronger at edge, fades inward)
-                                if direction == 'north':
-                                    # North: stronger at top (row=0), fades downward
-                                    alpha = int(self.TRANSITION_ALPHA_PEAK * (1 - edge_t ** 0.7))
-                                else:
-                                    # South: stronger at bottom (row=max), fades upward
-                                    alpha = int(self.TRANSITION_ALPHA_PEAK * edge_t ** 0.7)
-
-                                # P2-11: Boost alpha at exact boundary (middle of strip)
-                                boundary_boost = 1.0
-                                if 0.4 <= edge_t <= 0.6:
-                                    boundary_boost = 1.3  # 30% brighter at boundary
-
-                                alpha = int(min(255, alpha * boundary_boost))
-                                alpha = max(0, min(255, alpha))
-                                strip_surf.set_at((col, row), (r, g, b, alpha))
-                    else:
-                        for row in range(rect.height):
-                            t = row / max(1, rect.height - 1)  # 0.0 (from) → 1.0 (to)
-
-                            # Smooth interpolation with sinusoidal easing
-                            smooth_t = 0.5 * (1 - math.cos(t * math.pi))
-
-                            # Color interpolation: from → middle → to
-                            if t < 0.5:
-                                local_t = t * 2
-                                r = int(color_from[0] * (1 - local_t) + middle_color[0] * local_t)
-                                g = int(color_from[1] * (1 - local_t) + middle_color[1] * local_t)
-                                b = int(color_from[2] * (1 - local_t) + middle_color[2] * local_t)
-                            else:
-                                local_t = (t - 0.5) * 2
-                                r = int(middle_color[0] * (1 - local_t) + color_to[0] * local_t)
-                                g = int(middle_color[1] * (1 - local_t) + color_to[1] * local_t)
-                                b = int(middle_color[2] * (1 - local_t) + color_to[2] * local_t)
-
-                            for col in range(rect.width):
-                                edge_t = col / max(1, rect.width - 1)
-                                # Directional alpha fade
-                                if direction == 'west':
-                                    # West: stronger at left (col=0), fades rightward
-                                    alpha = int(self.TRANSITION_ALPHA_PEAK * (1 - edge_t ** 0.7))
-                                else:
-                                    # East: stronger at right (col=max), fades leftward
-                                    alpha = int(self.TRANSITION_ALPHA_PEAK * edge_t ** 0.7)
-
-                                # P2-11: Boost alpha at exact boundary
-                                boundary_boost = 1.0
-                                if 0.4 <= edge_t <= 0.6:
-                                    boundary_boost = 1.3
-
-                                alpha = int(min(255, alpha * boundary_boost))
-                                alpha = max(0, min(255, alpha))
-                                strip_surf.set_at((col, row), (r, g, b, alpha))
-
-                    self._transition_cache[cache_key] = (strip_surf, rect)
-                    self._offscreen.blit(strip_surf, rect)
+        """Delegate to TerrainRenderer for terrain transition strips."""
+        self._terrain_renderer.render_terrain_transitions(
+            game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size
+        )
 
     def _apply_terrain_edge_smoothing(
         self, game_map: GameMap, camera: Camera,
         start_x: int, end_x: int, start_y: int, end_y: int,
         tile_screen_size: int
     ) -> None:
-        """Apply subtle edge smoothing between different terrain types for CC2-like natural look.
-
-        Creates 2-3 pixel wide semi-transparent overlays at terrain boundaries
-        to soften harsh edges. Uses caching to avoid per-frame recalculation.
-
-        Performance optimizations:
-        - Only processes non-autotile terrain boundaries (grass-dirt, grass-road)
-        - Caches smoothed edges and only rebuilds when map changes
-        - Skips tiles where all neighbors are same terrain type
-        """
-        if self._screen is None or self._offscreen is None or tile_screen_size < 8:
-            return
-
-        from pycc2.domain.value_objects.vec2 import Vec2
-
-        # Check if cache needs rebuild (simple hash-based dirty check)
-        try:
-            current_map_hash = hash((game_map.width, game_map.height, id(game_map)))
-            if current_map_hash != self._last_map_hash or self._edge_smooth_dirty:
-                self._edge_smooth_cache.clear()
-                self._terrain_tile_cache.invalidate()  # Invalidate tile cache when map changes
-                self._last_map_hash = current_map_hash
-                self._edge_smooth_dirty = False
-        except (ValueError, TypeError) as e:
-            logging.debug(f"Map hash/cache update failed: {e}")
-
-        # Autotile terrains that handle their own edges (skip these)
-        autotile_terrains = {5, 6, 7}
-        # Non-autotile terrain transitions that benefit from smoothing
-        smoothable_pairs = {
-            (0, 1), (1, 0), (0, 2), (2, 0), (1, 2), (2, 1),
-            (0, 3), (3, 0), (1, 3), (3, 1),
-        }
-
-        for ty in range(start_y, end_y):
-            for tx in range(start_x, end_x):
-                current = self._get_terrain_at(game_map, tx, ty)
-                if current < 0 or current in autotile_terrains:
-                    continue
-
-                neighbors = [
-                    (tx + 1, ty, 'right'), (tx - 1, ty, 'left'),
-                    (tx, ty + 1, 'down'), (tx, ty - 1, 'up'),
-                ]
-
-                for nx, ny, direction in neighbors:
-                    if nx < start_x or nx >= end_x or ny < start_y or ny >= end_y:
-                        continue
-
-                    neighbor = self._get_terrain_at(game_map, nx, ny)
-                    if neighbor < 0 or neighbor == current or neighbor in autotile_terrains:
-                        continue
-                    if (current, neighbor) not in smoothable_pairs:
-                        continue
-
-                    cache_key = (min(tx, nx), min(ty, ny), max(tx, nx), max(ty, ny))
-                    if cache_key in self._edge_smooth_cache:
-                        cached_surf, cached_rect = self._edge_smooth_cache[cache_key]
-                        self._offscreen.blit(cached_surf, cached_rect, special_flags=pygame.BLEND_RGBA_ADD)
-                        continue
-
-                    world_x = tx * self.TILE_SIZE
-                    world_y = ty * self.TILE_SIZE
-                    screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
-                    base_x = int(screen_pos[0])
-                    base_y = int(screen_pos[1])
-
-                    try:
-                        pal = self._palette_gen
-                        color1 = pal.get_color(current, 4)
-                        color2 = pal.get_color(neighbor, 4)
-                        blend_color = (
-                            (color1[0] + color2[0]) // 2,
-                            (color1[1] + color2[1]) // 2,
-                            (color1[2] + color2[2]) // 2,
-                            45,
-                        )
-                    except (ValueError, TypeError) as e:
-                        logging.debug(f"Edge color blending failed: {e}")
-                        blend_color = (80, 80, 80, 45)
-
-                    edge_width = max(self.EDGE_SMOOTH_WIDTH_MIN, min(self.EDGE_SMOOTH_WIDTH_MAX, tile_screen_size // 16))
-
-                    if direction in ('right', 'left'):
-                        edge_x = base_x + (tile_screen_size if direction == 'left' else 0)
-                        edge_rect = pygame.Rect(edge_x, base_y, edge_width, tile_screen_size)
-                    else:
-                        edge_y = base_y + (tile_screen_size if direction == 'up' else 0)
-                        edge_rect = pygame.Rect(base_x, edge_y, tile_screen_size, edge_width)
-
-                    edge_surf = self._get_pooled_surface((edge_rect.width, edge_rect.height))
-
-                    for i in range(edge_rect.width if direction in ('right', 'left') else edge_rect.height):
-                        alpha = int(self.EDGE_SMOOTH_ALPHA_PEAK * (1 - abs(i - (edge_width // 2)) / max(1, edge_width)))
-                        alpha = max(10, min(self.EDGE_SMOOTH_ALPHA_PEAK, alpha))
-
-                        if direction in ('right', 'left'):
-                            pygame.draw.line(edge_surf, (*blend_color[:3], alpha), (i, 0), (i, edge_rect.height))
-                        else:
-                            pygame.draw.line(edge_surf, (*blend_color[:3], alpha), (0, i), (edge_rect.width, i))
-
-                    self._edge_smooth_cache[cache_key] = (edge_surf, edge_rect)
-                    self._offscreen.blit(edge_surf, edge_rect, special_flags=pygame.BLEND_RGBA_ADD)
+        """Delegate to TerrainRenderer for terrain edge smoothing."""
+        self._terrain_renderer.apply_terrain_edge_smoothing(
+            game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size
+        )
 
     def _draw_terrain_borders(
         self, game_map: GameMap, camera: Camera,
@@ -1578,304 +1001,12 @@ class EnhancedRenderer:
                     self._offscreen.blit(sprite, rect)
     
     def _draw_units(self, units: list[Unit], camera: Camera, selected_unit_ids: set[str] | None = None) -> None:
-        """Draw units using SpriteRenderer with PNG support, fallback to simple shapes."""
-        if self._screen is None or self._offscreen is None:
-            return
-
-        if len(units) == 0:
-            return
-
-        # 如果SpriteRenderer已初始化，使用它（支持PNG精灵）
-        if self._sprite_renderer is not None:
-            # Route SpriteRenderer output to offscreen buffer for compositing
-            self._sprite_renderer._target_surface = self._offscreen
-            
-            # 使用SpriteRenderer绘制单位（会加载PNG）
-            self._sprite_renderer._draw_units(units, camera, selected_unit_ids)
-            
-            # 恢复默认绘制目标
-            self._sprite_renderer._target_surface = None
-            return
-        else:
-            logger.warning("[EnhancedRenderer] SpriteRenderer is None! Using fallback shapes (no PNG sprites)")
-        
-        # Fallback: 如果SpriteRenderer未初始化，使用简单形状
-        screen_w, screen_h = self._screen.get_size()
-
-        # Draw each unit with EXTREME defensive coding
-        for idx, unit in enumerate(units):
-            try:
-                # STEP 1: Get unit position (with multiple fallback strategies)
-                cx, cy = None, None
-
-                # Strategy A: Use pixel_position if available
-                if hasattr(unit, 'position') and unit.position is not None:
-                    if hasattr(unit.position, 'pixel_position'):
-                        try:
-                            pos = camera.world_to_screen(unit.position.pixel_position)
-                            cx, cy = int(pos[0]), int(pos[1])
-                        except (ValueError, TypeError) as e:
-                            logging.debug(f"Unit pixel_position conversion failed: {e}")
-
-                # Strategy B: Use tile_position as fallback
-                if (cx is None or cy is None) and hasattr(unit, 'position') and unit.position is not None:
-                    if hasattr(unit.position, 'tile_position') or hasattr(unit.position, 'tile_x'):
-                        try:
-                            tile_x = getattr(unit.position, 'tile_x', None)
-                            tile_y = getattr(unit.position, 'tile_y', None)
-                            if tile_x is not None and tile_y is not None:
-                                from pycc2.domain.value_objects.vec2 import Vec2
-                                world_pos = Vec2(tile_x * 16, tile_y * 16)
-                                pos = camera.world_to_screen(world_pos)
-                                cx, cy = int(pos[0]), int(pos[1])
-                        except (ValueError, TypeError) as e:
-                            logging.debug(f"Unit tile_position conversion failed: {e}")
-
-                # Strategy C: Last resort - use index-based positioning (grid layout)
-                if cx is None or cy is None:
-                    # Place units in a visible grid pattern as emergency fallback
-                    grid_x = (idx % 10) * 60 + 100  # Spread across screen
-                    grid_y = (idx // 10) * 60 + 100
-                    cx, cy = grid_x, grid_y
-
-                # STEP 2: Skip if way off-screen (but be generous with bounds)
-                if cx < -50 or cx > screen_w + 50 or cy < -50 or cy > screen_h + 50:
-                    continue  # Unit is off-screen, skip it
-
-                # STEP 3: Determine unit type for visual styling
-                unit_name = ""
-                unit_type_str = "infantry"  # Default
-
-                if hasattr(unit, 'display_name'):
-                    unit_name = str(unit.display_name)[:4]
-                elif hasattr(unit, 'name'):
-                    unit_name = str(unit.name)[:4]
-                else:
-                    unit_name = f"U{idx}"  # Fallback: use index
-
-                if hasattr(unit, 'unit_type'):
-                    unit_type_str = str(unit.unit_type).lower()
-                elif hasattr(unit, 'category'):
-                    unit_type_str = str(unit.category).lower()
-
-                # STEP 4: Draw shape based on type (SIMPLE and RELIABLE)
-                base_radius = max(12, int(15 * camera.zoom))
-
-                # Make colors BRIGHT and VISIBLE (no subtle tones!)
-                if "tank" in unit_type_str or "armor" in unit_type_str or "sherman" in unit_type_str or "vehicle" in unit_type_str:
-                    # HEXAGON for tanks (BRIGHT YELLOW-ORANGE)
-                    color = (255, 200, 0)  # Very bright yellow
-                    radius = base_radius + 6
-                    points = []
-                    for i in range(6):
-                        angle = math.pi / 3 * i
-                        x = cx + int(radius * math.cos(angle))
-                        y = cy + int(radius * math.sin(angle))
-                        points.append((x, y))
-
-                    color = self._get_health_tinted_color(color, unit)
-                    pygame.draw.polygon(self._offscreen, color, points)
-                    pygame.draw.polygon(self._offscreen, (255, 255, 255), points, 3)
-
-                elif "mg" in unit_type_str or "machine" in unit_type_str or "at" in unit_type_str or "support" in unit_type_str:
-                    # TRIANGLE for support (BRIGHT CYAN-BLUE)
-                    color = (0, 220, 255)  # Bright cyan
-                    radius = base_radius + 3
-                    points = []
-                    for i in range(3):
-                        angle = math.pi / 3 * 2 * i - math.pi / 2
-                        x = cx + int(radius * math.cos(angle))
-                        y = cy + int(radius * math.sin(angle))
-                        points.append((x, y))
-
-                    color = self._get_health_tinted_color(color, unit)
-                    pygame.draw.polygon(self._offscreen, color, points)
-                    pygame.draw.polygon(self._offscreen, (255, 255, 255), points, 2)
-
-                elif "sniper" in unit_type_str or "recon" in unit_type_str or "scout" in unit_type_str:
-                    # DIAMOND for recon (BRIGHT MAGENTA-PURPLE)
-                    color = (255, 0, 255)  # Bright magenta
-                    radius = base_radius - 2
-                    half = radius // 2
-                    points = [
-                        (cx, cy - radius),
-                        (cx + half, cy),
-                        (cx, cy + radius),
-                        (cx - half, cy),
-                    ]
-
-                    color = self._get_health_tinted_color(color, unit)
-                    pygame.draw.polygon(self._offscreen, color, points)
-                    pygame.draw.polygon(self._offscreen, (255, 200, 255), points, 2)
-
-                else:
-                    # DEFAULT: CIRCLE for infantry (BRIGHT GREEN)
-                    color = (0, 255, 80)  # Bright neon green
-                    radius = base_radius
-
-                    color = self._get_health_tinted_color(color, unit)
-                    pygame.draw.circle(self._offscreen, color, (cx, cy), radius)
-                    pygame.draw.circle(self._offscreen, (255, 255, 255), (cx, cy), radius, 2)
-
-                # STEP 5: Draw label (CRITICAL for identification)
-                try:
-                    font = pygame.font.Font(None, max(16, int(18 * camera.zoom)))
-                    label_surf = font.render(unit_name, True, (255, 255, 255))  # White text
-                    label_x = cx - label_surf.get_width() // 2
-                    label_y = cy + radius + 3
-
-                    # Black background for readability
-                    bg_padding = 3
-                    bg_rect = pygame.Rect(
-                        label_x - bg_padding,
-                        label_y - bg_padding,
-                        label_surf.get_width() + 2 * bg_padding,
-                        label_surf.get_height() + 2 * bg_padding
-                    )
-                    pygame.draw.rect(self._offscreen, (0, 0, 0), bg_rect, border_radius=3)
-                    pygame.draw.rect(self._offscreen, (100, 100, 100), bg_rect, width=1, border_radius=3)
-
-                    # Blit text
-                    self._offscreen.blit(label_surf, (label_x, label_y))
-                except (ValueError, pygame.error) as e:
-                    logging.debug(f"Unit label rendering failed: {e}")
-
-                # STEP 6: Selection indicator (ENHANCED dual-layer glow + corner markers)
-                is_selected = selected_unit_ids and unit.id in selected_unit_ids
-                if is_selected:
-                    pulse = abs(math.sin(pygame.time.get_ticks() * 0.008)) * 8
-                    select_radius = radius + 8 + int(pulse)
-
-                    outer_glow_radius = radius + 15 + int(pulse * 0.7)
-                    glow_surf = pygame.Surface(
-                        (outer_glow_radius * 2 + 10, outer_glow_radius * 2 + 10),
-                        pygame.SRCALPHA,
-                    )
-                    glow_center = outer_glow_radius + 5
-                    pygame.draw.circle(
-                        glow_surf,
-                        (255, 255, 255, 40),
-                        (glow_center, glow_center),
-                        outer_glow_radius,
-                    )
-                    self._offscreen.blit(
-                        glow_surf,
-                        (cx - glow_center, cy - glow_center),
-                    )
-
-                    inner_ring_radius = radius + 5 + int(pulse)
-                    pygame.draw.circle(
-                        self._offscreen,
-                        (255, 255, 0),
-                        (cx, cy),
-                        inner_ring_radius,
-                        3,
-                    )
-                    pygame.draw.circle(
-                        self._offscreen,
-                        (0, 255, 255),
-                        (cx, cy),
-                        inner_ring_radius - 2,
-                        2,
-                    )
-
-                    corner_size = 8
-                    corner_offset = radius + 12 + int(pulse * 0.5)
-                    corner_color = (255, 255, 0)
-                    corners = [
-                        (cx - corner_offset, cy - corner_offset),  # top-left
-                        (cx + corner_offset, cy - corner_offset),  # top-right
-                        (cx - corner_offset, cy + corner_offset),  # bottom-left
-                        (cx + corner_offset, cy + corner_offset),  # bottom-right
-                    ]
-                    for corner_x, corner_y in corners:
-                        pygame.draw.line(
-                            self._offscreen,
-                            corner_color,
-                            (corner_x, corner_y),
-                            (corner_x + corner_size, corner_y),
-                            2,
-                        )
-                        pygame.draw.line(
-                            self._offscreen,
-                            corner_color,
-                            (corner_x, corner_y),
-                            (corner_x, corner_y + corner_size),
-                            2,
-                        )
-
-                # STEP 7: Direction indicator (shows unit facing)
-                self._draw_direction_indicator(cx, cy, radius, color)
-
-                # STEP 8: Movement mode overlay (fast_move/sneak/defend visualization)
-                self._draw_movement_mode_overlay(unit, cx, cy, radius, color)
-
-                # STEP 9: Damage visual effects (smoke/fire for damaged units)
-                if hasattr(unit, 'is_damaged') and unit.is_damaged:
-                    self._draw_damage_vfx(unit, cx, cy)
-
-            except (AttributeError, ValueError) as e:
-                # CRITICAL: NEVER crash on a single unit - just skip it
-                logger.warning("Failed to render unit %s: %s", idx, e)
-                continue
+        """Delegate to UnitRenderer for unit drawing."""
+        self._unit_renderer.draw_units(units, camera, selected_unit_ids)
 
     def _draw_damage_vfx(self, unit: Unit, cx: int, cy: int) -> None:
-        """STEP A-2: Render damage visual effects (smoke/fire) for damaged units.
-
-        Based on unit.damage_state:
-        - undamaged: No effects
-        - light: Light gray smoke wisps (2-3 particles)
-        - moderate: Thicker smoke (4-5 particles)
-        - heavy: Thick smoke + orange fire glow (6+ particles)
-        destroyed: Intense fire + thick black smoke
-        """
-        if not hasattr(unit, 'damage_state'):
-            return
-
-        state = unit.damage_state
-        if state == "undamaged":
-            return
-
-        # Ensure VFX particles are generated
-        if hasattr(unit, 'update_damage_vfx'):
-            if not getattr(unit, '_smoke_particles', None):
-                unit.update_damage_vfx()
-
-        # Draw smoke particles
-        smoke_particles = getattr(unit, '_smoke_particles', [])
-        for particle in smoke_particles[:8]:  # Limit to 8 for performance
-            px = cx + particle.get('x', 0)
-            py = cy + particle.get('y', 0)
-            alpha = particle.get('alpha', 100)
-            size = particle.get('size', 3)
-
-            # Smoke color: gray with transparency
-            smoke_color = (120, 120, 120)
-
-            # Create temporary surface for alpha blending (pooled - PERF-001)
-            smoke_surf = self._get_pooled_surface((size * 2, size * 2))
-            pygame.draw.circle(smoke_surf, (*smoke_color, alpha), (size, size), size)
-            self._offscreen.blit(smoke_surf, (px - size, py - size))
-
-        # Draw fire particles (for heavy/destroyed)
-        fire_particles = getattr(unit, '_fire_particles', [])
-        for particle in fire_particles[:6]:  # Limit to 6 for performance
-            px = cx + particle.get('x', 0)
-            py = cy + particle.get('y', 0)
-            color = particle.get('color', (220, 120, 20))
-            size = particle.get('size', 3)
-
-            # Fire glow effect (pooled - PERF-001)
-            glow_size = size + 2
-            glow_surf = self._get_pooled_surface((glow_size * 2, glow_size * 2))
-            pygame.draw.circle(glow_surf, (*color, 80), (glow_size, glow_size), glow_size)
-            self._offscreen.blit(glow_surf, (px - glow_size, py - glow_size))
-
-            # Fire core (pooled - PERF-001)
-            bright_color = tuple(min(255, c + 40) for c in color)
-            core_surf = self._get_pooled_surface((size * 2, size * 2))
-            pygame.draw.circle(core_surf, (*bright_color, 200), (size, size), size // 2 + 1)
-            self._offscreen.blit(core_surf, (px - size, py - size))
+        """Delegate to UnitRenderer for damage visual effects."""
+        self._unit_renderer.draw_damage_vfx(unit, cx, cy)
 
     def _draw_hexagon(
         self, cx: int, cy: int, radius: int, color: tuple[int, int, int],
@@ -2128,27 +1259,7 @@ class EnhancedRenderer:
         color: tuple[int, int, int],
         dash_len: int = 8,
     ) -> None:
-        """Draw a dashed line."""
-        import math as _math
-        x1, y1 = start
-        x2, y2 = end
-        dx = x2 - x1
-        dy = y2 - y1
-        distance = _math.sqrt(dx*dx + dy*dy)
-
-        if distance == 0:
-            return
-
-        dashes = int(distance / dash_len)
-        for i in range(0, dashes, 2):
-            start_i = i * dash_len
-            end_i = min((i + 1) * dash_len, int(distance))
-            sx = x1 + dx * start_i / distance
-            sy = y1 + dy * start_i / distance
-            ex = x1 + dx * end_i / distance
-            ey = y1 + dy * end_i / distance
-            import pygame as pg
-            pg.draw.line(self._offscreen, color, (int(sx), int(sy)), (int(ex), int(ey)), 2)
+        draw_dashed_line(self._offscreen, color, start, end, dash_length=dash_len, gap_length=dash_len)
 
     # ============================================================
     # Particle System Convenience Methods (Top-Down VFX) - Delegated
@@ -2231,7 +1342,11 @@ class EnhancedRenderer:
         self._sprite_cache.clear()
         self._autotile_cache.clear()
         self._terrain_tile_cache.clear()
-        self._building_clusters = None  # Clear cluster cache
+        self._building_clusters = None
+        if hasattr(self._terrain_renderer, '_transition_cache'):
+            self._terrain_renderer._transition_cache.clear()
+        if hasattr(self._terrain_renderer, '_edge_smooth_cache'):
+            self._terrain_renderer._edge_smooth_cache.clear()
 
     def resize(self, width: int, height: int) -> None:
         """Handle window resize - reinitialize offscreen buffer."""

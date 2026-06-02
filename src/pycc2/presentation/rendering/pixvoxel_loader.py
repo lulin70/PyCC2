@@ -46,6 +46,8 @@
 ===============================================
 """
 
+# PLANNED: Not yet wired into game loop — reserved for future feature
+
 from __future__ import annotations
 
 import json

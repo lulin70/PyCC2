@@ -14,6 +14,9 @@ class ParticlePool:
         for _ in range(preallocate):
             self._pool.append(self._new_particle())
 
+        self._dict_pool: list[dict] = []
+        self._dict_active_count: int = 0
+
     def _new_particle(self):
         from .animation_system import ParticleEmitter
 
@@ -42,6 +45,19 @@ class ParticlePool:
         particle.life = 0
         self._pool.append(particle)
 
+    def acquire_dict(self) -> dict:
+        if self._dict_pool:
+            d = self._dict_pool.pop()
+        else:
+            d = {}
+        self._dict_active_count += 1
+        return d
+
+    def release_dict(self, d: dict) -> None:
+        self._dict_active_count -= 1
+        d.clear()
+        self._dict_pool.append(d)
+
     def update(self, emitter: ParticleEmitter) -> None:
         alive = []
         for p in emitter.particles:
@@ -65,3 +81,11 @@ class ParticlePool:
     @property
     def pool_size(self) -> int:
         return len(self._pool)
+
+    @property
+    def dict_active_count(self) -> int:
+        return self._dict_active_count
+
+    @property
+    def dict_pool_size(self) -> int:
+        return len(self._dict_pool)

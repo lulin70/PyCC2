@@ -27,39 +27,12 @@ from typing import TYPE_CHECKING
 
 import pygame
 
+from pycc2.presentation.rendering.pixel_artist_enums import Direction, Faction, InfantryType
+
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     pass
-
-
-class Direction(Enum):
-    """8方向枚举"""
-    NORTH = 0
-    NORTHEAST = 1
-    EAST = 2
-    SOUTHEAST = 3
-    SOUTH = 4
-    SOUTHWEST = 5
-    WEST = 6
-    NORTHWEST = 7
-
-
-class Faction(Enum):
-    """阵营枚举"""
-    ALLIES = "allies"
-    AXIS = "axis"
-
-
-class InfantryType(Enum):
-    """步兵类型枚举"""
-    RIFLEMAN = "rifleman"
-    MG = "mg"
-    AT = "at"
-    OFFICER = "officer"
-    SNIPER = "sniper"
-    MEDIC = "medic"
-    ENGINEER = "engineer"
 
 
 class InfantryAnimationState(Enum):

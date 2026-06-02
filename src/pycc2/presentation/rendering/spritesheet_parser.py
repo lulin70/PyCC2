@@ -7,6 +7,8 @@ Supports multiple layout formats:
 - Auto-detect: Analyzes transparency to determine layout
 """
 
+# PLANNED: Not yet wired into game loop — reserved for future feature
+
 from __future__ import annotations
 
 import math

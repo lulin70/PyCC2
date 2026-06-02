@@ -22,6 +22,9 @@ class UnitAttacked(TypedDict, total=False):
 class UnitKilled(TypedDict, total=False):
     unit_id: Required[str]
     killer_id: NotRequired[str]
+    attacker_id: NotRequired[str]
+    attacker_role: NotRequired[str]
+    unit_type: NotRequired[str]
     position: Required[tuple[int, int]]
     faction: Required[str]
     timestamp: float

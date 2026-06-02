@@ -13,6 +13,7 @@ CC2 Authentic Features:
 
 from __future__ import annotations
 
+import logging
 import math
 import random
 from typing import TYPE_CHECKING
@@ -20,7 +21,9 @@ from typing import TYPE_CHECKING
 import pygame
 
 if TYPE_CHECKING:
-    pass
+    from .particle_pool import ParticlePool
+
+logger = logging.getLogger(__name__)
 
 
 class TopDownParticleSystem:
@@ -38,15 +41,31 @@ class TopDownParticleSystem:
     - 血迹池: 持久性地面污渍
     """
 
-    def __init__(self, max_particles: int = 256):
+    def __init__(self, max_particles: int = 256, pool: ParticlePool | None = None):
         self.particles: list[dict] = []
         self.max_particles = max_particles
+        self._pool: ParticlePool | None = pool
+        if self._pool is None:
+            try:
+                from .particle_pool import ParticlePool as _PP
+                self._pool = _PP(preallocate=max_particles)
+            except Exception:
+                logger.debug("ParticlePool creation failed, running without pool")
+                self._pool = None
 
     def _add_particle(self, particle: dict) -> None:
         """添加粒子，超出上限时移除最老的"""
         if len(self.particles) >= self.max_particles:
-            self.particles.pop(0)
-        self.particles.append(particle)
+            oldest = self.particles.pop(0)
+            if self._pool is not None:
+                self._pool.release_dict(oldest)
+
+        if self._pool is not None:
+            pooled = self._pool.acquire_dict()
+            pooled.update(particle)
+            self.particles.append(pooled)
+        else:
+            self.particles.append(particle)
 
     def spawn_explosion_ring(self, x, y, max_radius=40, duration_ms=500,
                              color=(255, 200, 50)):
@@ -192,6 +211,8 @@ class TopDownParticleSystem:
             if should_keep and p.get('type') != 'dirt_particle' or \
                (p.get('type') == 'dirt_particle' and p['elapsed'] < p.get('life_ms', 0)):
                 alive.append(p)
+            elif self._pool is not None:
+                self._pool.release_dict(p)
 
         self.particles = alive
 

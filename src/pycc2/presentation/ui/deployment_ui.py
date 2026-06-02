@@ -78,6 +78,7 @@ from pycc2.presentation.ui.deployment_models import (
     CATEGORY_INFO as _CATEGORY_INFO,
     UNIT_TYPE_TO_CATEGORY as _UNIT_TYPE_TO_CATEGORY,
 )
+from pycc2.presentation.rendering.rendering_utils import draw_dashed_line
 
 # ---------------------------------------------------------------------------
 # Pygame – imported lazily so the module can be imported in headless tests
@@ -1214,31 +1215,7 @@ class DeploymentUI:
         dash_length: int = 6,
         gap_length: int = 4,
     ) -> None:
-        """Draw a dashed line between two points."""
-        dx = end[0] - start[0]
-        dy = end[1] - start[1]
-        dist = (dx * dx + dy * dy) ** 0.5
-        if dist < 1:
-            return
-
-        # Normalize direction
-        nx, ny = dx / dist, dy / dist
-        drawn = 0.0
-        drawing = True
-
-        while drawn < dist:
-            seg_len = dash_length if drawing else gap_length
-            seg_len = min(seg_len, dist - drawn)
-
-            if drawing:
-                sx = start[0] + nx * drawn
-                sy = start[1] + ny * drawn
-                ex = start[0] + nx * (drawn + seg_len)
-                ey = start[1] + ny * (drawn + seg_len)
-                pygame.draw.line(surface, color[:3], (int(sx), int(sy)), (int(ex), int(ey)), 2)
-
-            drawn += seg_len
-            drawing = not drawing
+        draw_dashed_line(surface, color, start, end, dash_length=dash_length, gap_length=gap_length)
 
     @staticmethod
     def _draw_arrowhead(

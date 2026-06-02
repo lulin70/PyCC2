@@ -52,10 +52,23 @@ class SpriteRenderer:
         self._screen_shake = ScreenShake()
         self._particle_emitter = ParticleEmitter()
         self._font_cache: dict[int, Font] = {}
-        self._asset_loader: AssetLoader = AssetLoader()  # 新增资产加载器
+        self._asset_loader: AssetLoader = AssetLoader()
+        self._surface_pool: dict[tuple[int, int], pygame.Surface] = {}
 
         self._generate_all_sprites()
         self._generate_terrain_tiles()
+
+    def _get_pooled_surface(self, w: int, h: int) -> pygame.Surface:
+        key = (w, h)
+        surf = self._surface_pool.get(key)
+        if surf is None:
+            surf = pygame.Surface((w, h), pygame.SRCALPHA)
+            self._surface_pool[key] = surf
+            if len(self._surface_pool) > 30:
+                oldest_key = next(iter(self._surface_pool))
+                del self._surface_pool[oldest_key]
+        surf.fill((0, 0, 0, 0))
+        return surf
 
     def initialize(self, screen: Surface) -> None:
         self._screen = screen
@@ -380,7 +393,7 @@ class SpriteRenderer:
         # Pulsing glow for active capture
         if 0 < capture_progress < 1.0:
             alpha = int(128 + 127 * math.sin(time.time() * 6))
-            glow_surf = pygame.Surface((24, 24), pygame.SRCALPHA)
+            glow_surf = self._get_pooled_surface(24, 24)
             pygame.draw.circle(glow_surf, (255, 255, 100, alpha // 3), (12, 12), 12)
             surface.blit(glow_surf, (x - 12, y - 22))
 
@@ -508,7 +521,7 @@ class SpriteRenderer:
             if 'TANK' in utype or 'VEHICLE' in utype:
                 color = (80, 80, 80)
                 if in_building:
-                    s = Surface((r*2, r*2), pygame.SRCALPHA)
+                    s = self._get_pooled_surface(r*2, r*2)
                     s.fill((*color, 160))
                     self.draw_surface.blit(s, (int(sp[0])-r, int(sp[1])-r))
                 else:
@@ -522,7 +535,7 @@ class SpriteRenderer:
                     (int(sp[0])+r, int(sp[1])+r)
                 ]
                 if in_building:
-                    s = Surface((r*2+2, r*2+2), pygame.SRCALPHA)
+                    s = self._get_pooled_surface(r*2+2, r*2+2)
                     local_pts = [(p[0] - int(sp[0]) + r + 1, p[1] - int(sp[1]) + r + 1) for p in points]
                     draw.polygon(s, (*color, 160), local_pts)
                     self.draw_surface.blit(s, (int(sp[0])-r-1, int(sp[1])-r-1))
@@ -531,7 +544,7 @@ class SpriteRenderer:
             else:
                 color = (74, 144, 217) if faction == "allies" else (217, 74, 74)
                 if in_building:
-                    s = Surface((r*2+2, r*2+2), pygame.SRCALPHA)
+                    s = self._get_pooled_surface(r*2+2, r*2+2)
                     draw.circle(s, (*color, 160), (r+1, r+1), r)
                     self.draw_surface.blit(s, (int(sp[0])-r-1, int(sp[1])-r-1))
                 else:
@@ -613,7 +626,7 @@ class SpriteRenderer:
         self._draw_movement_mode_indicator(unit, sp, zoom)
 
         if unit.id in self._flash_units:
-            flash_surf = Surface((sz, sz), pygame.SRCALPHA)
+            flash_surf = self._get_pooled_surface(sz, sz)
             flash_surf.fill((255, 255, 255, 150))
             self.draw_surface.blit(flash_surf, (int(sp[0]) - offset, int(sp[1]) - offset))
 
@@ -697,7 +710,7 @@ class SpriteRenderer:
         # Optional: Add subtle outer glow ring (very faint, follows same pulse)
         glow_alpha = int(40 + 30 * pulse)  # Range: 10 - 70
         if glow_alpha > 10:
-            glow_surf = Surface((radius * 2 + 20, radius * 2 + 20), pygame.SRCALPHA)
+            glow_surf = self._get_pooled_surface(radius * 2 + 20, radius * 2 + 20)
             glow_center = (radius + 10, radius + 10)
             draw.circle(glow_surf, (255, 255, 0, glow_alpha), glow_center, radius + 6, 1)
             self.draw_surface.blit(glow_surf,
@@ -904,7 +917,7 @@ class SpriteRenderer:
         ring_radius = int(icon_size + 4 * pulse * zoom)
         
         # Draw outer pulsing ring
-        ring_surf = Surface((ring_radius * 2 + 4, ring_radius * 2 + 4), pygame.SRCALPHA)
+        ring_surf = self._get_pooled_surface(ring_radius * 2 + 4, ring_radius * 2 + 4)
         draw.circle(ring_surf, (255, 220, 50, ring_alpha), 
                    (ring_radius + 2, ring_radius + 2), ring_radius, 2)
         self.draw_surface.blit(ring_surf, (x - ring_radius - 2, y - ring_radius - 2))
@@ -936,7 +949,7 @@ class SpriteRenderer:
         ]
         
         # Glow effect
-        glow_surf = Surface((icon_size * 2 + 8, icon_size * 2 + 8), pygame.SRCALPHA)
+        glow_surf = self._get_pooled_surface(icon_size * 2 + 8, icon_size * 2 + 8)
         glow_center = (icon_size + 4, icon_size + 4)
         adjusted_points = [
             (glow_center[0] + p[0] - x, glow_center[1] + p[1] - y) 
@@ -985,7 +998,7 @@ class SpriteRenderer:
         alpha = int(180 + 75 * pulse)
         
         # Draw arrow on transparent surface
-        arrow_surf = Surface((arrow_length * 2 + 10, arrow_length * 2 + 10), pygame.SRCALPHA)
+        arrow_surf = self._get_pooled_surface(arrow_length * 2 + 10, arrow_length * 2 + 10)
         center = (arrow_length + 5, arrow_length + 5)
         
         # Offset all points to surface center
@@ -1013,7 +1026,7 @@ class SpriteRenderer:
         alpha = int(80 + 60 * pulse)  # Subtle: 80-140
         
         # Small yellow dot with soft glow
-        surf = Surface((icon_size * 3, icon_size * 3), pygame.SRCALPHA)
+        surf = self._get_pooled_surface(icon_size * 3, icon_size * 3)
         center = (icon_size * 1.5, icon_size * 1.5)
         
         # Outer glow
@@ -1088,7 +1101,7 @@ class SpriteRenderer:
         line_length = max(15, int(25 * zoom))
         
         # Draw 3 horizontal speed lines to the left (showing forward motion)
-        surf = Surface((line_length + 10, 30), pygame.SRCALPHA)
+        surf = self._get_pooled_surface(line_length + 10, 30)
         
         for i in range(3):
             offset_y = i * 10 - 10
@@ -1113,7 +1126,7 @@ class SpriteRenderer:
         alpha = int(120 + 80 * pulse)
         
         # Ghostly circle with semi-transparency
-        surf = Surface((size * 2, size * 2), pygame.SRCALPHA)
+        surf = self._get_pooled_surface(size * 2, size * 2)
         center = (size, size)
         
         # Outer glow (purple/stealth color)
@@ -1237,7 +1250,7 @@ class SpriteRenderer:
         if sprite is not None:
             scaled = transform.scale(sprite, (sz, sz))
         else:
-            scaled = Surface((sz, sz), pygame.SRCALPHA)
+            scaled = self._get_pooled_surface(sz, sz)
             color = (74, 144, 217) if faction == "allies" else (217, 74, 74)
             draw.circle(scaled, color, (sz // 2, sz // 2), sz // 2)
 
@@ -1305,22 +1318,22 @@ class SpriteRenderer:
                     smoke_sz = int(sz * expand)
                     smoke_alpha = int(alpha * (1.0 - p.progress * 0.7))
                     if smoke_sz > 0 and smoke_alpha > 0:
-                        surf = pygame.Surface((smoke_sz * 2, smoke_sz * 2), pygame.SRCALPHA)
+                        surf = self._get_pooled_surface(smoke_sz * 2, smoke_sz * 2)
                         draw.circle(surf, (*p.color, min(255, smoke_alpha)), (smoke_sz, smoke_sz), smoke_sz)
                         self.draw_surface.blit(surf, (int(sp[0]) - smoke_sz, int(sp[1]) - smoke_sz))
                 else:
-                    surf = pygame.Surface((sz * 2, sz * 2), pygame.SRCALPHA)
+                    surf = self._get_pooled_surface(sz * 2, sz * 2)
                     draw.circle(surf, color, (sz, sz), sz)
                     self.draw_surface.blit(surf, (int(sp[0]) - sz, int(sp[1]) - sz))
             elif p.type == ParticleEmitter.ParticleType.EXPLOSION_CORE:
                 core_sz = int(sz * (1.0 + p.progress * 2.0))
                 core_alpha = int(alpha * (1.0 - p.progress))
                 if core_sz > 0 and core_alpha > 0:
-                    surf = pygame.Surface((core_sz * 2, core_sz * 2), pygame.SRCALPHA)
+                    surf = self._get_pooled_surface(core_sz * 2, core_sz * 2)
                     draw.circle(surf, (*p.color, min(255, core_alpha)), (core_sz, core_sz), core_sz)
                     self.draw_surface.blit(surf, (int(sp[0]) - core_sz, int(sp[1]) - core_sz))
             elif p.type in (ParticleEmitter.ParticleType.DEBRIS,):
-                rect_surf = pygame.Surface((sz, sz), pygame.SRCALPHA)
+                rect_surf = self._get_pooled_surface(sz, sz)
                 rect_surf.fill(color)
                 rotated = pygame.transform.rotate(rect_surf, p.rotation)
                 self.draw_surface.blit(
@@ -1468,5 +1481,6 @@ class SpriteRenderer:
         self._terrain_cache.clear()
         self._tile_cache.invalidate()
         self._unit_animators.clear()
+        self._surface_pool.clear()
         if hasattr(self, "_particle_emitter"):
             self._particle_emitter.clear()

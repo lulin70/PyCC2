@@ -7,6 +7,8 @@ position-based statistics during battle, then generates a detailed
 report with MVP scoring and heatmap data.
 """
 
+# PLANNED: Not yet wired into game loop — reserved for future feature
+
 from __future__ import annotations
 
 import math

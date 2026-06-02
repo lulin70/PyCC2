@@ -17,6 +17,8 @@ Usage:
     enhanced_map = generator.enhance_map(map_data)
 """
 
+# PLANNED: Not yet wired into game loop — reserved for future feature
+
 from __future__ import annotations
 
 import json
@@ -24,6 +26,7 @@ import math
 import random
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from pathlib import Path
 from typing import Any
 
 from .enhanced_tile import (
@@ -535,8 +538,6 @@ def batch_enhance_maps(
     Returns:
         Summary statistics of enhancement process
     """
-    from pathlib import Path
-    
     in_path = Path(input_dir)
     out_path = Path(output_dir) if output_dir else in_path
     
@@ -580,7 +581,7 @@ if __name__ == '__main__':
     import json as json_module
     
     # Default: enhance all maps in data/maps directory
-    default_input = '/Users/lin/trae_projects/PyCC2/data/maps'
+    default_input = str(Path(__file__).resolve().parent.parent.parent.parent / "data" / "maps")
     
     print("=" * 80)
     print("🎨 PYCC2 TERRAIN DETAIL GENERATOR - PHASE A3")

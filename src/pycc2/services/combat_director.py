@@ -231,7 +231,7 @@ class CombatDirector:
                     logger.warning(f"[SMOKE] {unit.name or uid} has no weapon system")
 
     def execute_attack(self, attacker, target) -> None:
-        from pycc2.services.event_protocol import UnitAttacked
+        from pycc2.services.event_protocol import UnitAttacked, UnitKilled
 
         if self.ballistic_engine is None:
             return
@@ -276,16 +276,6 @@ class CombatDirector:
             )
         )
 
-        # Publish named UnitAttacked event for camera effects and achievement tracking
-        self.event_bus.publish_named("UnitAttacked", {
-            "attacker_id": attacker.id,
-            "target_id": target.id,
-            "damage": result.damage_dealt if result else 0,
-            "is_hit": result.hit if result else False,
-            "target_faction": target.faction.name if hasattr(target.faction, 'name') else str(target.faction),
-        })
-
-        # Publish named event for camera effects and projectile trails
         weapon_type = "bullet"
         weapon_id = attacker.weapon.primary_weapon_id or ""
         if any(k in weapon_id.lower() for k in ("mg", "machine")):
@@ -332,17 +322,19 @@ class CombatDirector:
             )
 
             if result.is_killing_blow or not target.is_alive:
-                self.event_bus.publish_named("UnitKilled", {
-                    "unit_id": target.id,
-                    "faction": target.faction.name if hasattr(target.faction, 'name') else str(target.faction),
-                    "attacker_id": attacker.id,
-                    "attacker_role": getattr(attacker, 'role', ''),
-                    "unit_type": getattr(target, 'unit_type', ''),
-                    "position": (
-                        target.position.tile_coord.x,
-                        target.position.tile_coord.y,
-                    ),
-                })
+                self.event_bus.publish(
+                    UnitKilled(
+                        unit_id=target.id,
+                        faction=target.faction.name if hasattr(target.faction, 'name') else str(target.faction),
+                        attacker_id=attacker.id,
+                        attacker_role=getattr(attacker, 'role', ''),
+                        unit_type=getattr(target, 'unit_type', ''),
+                        position=(
+                            target.position.tile_coord.x,
+                            target.position.tile_coord.y,
+                        ),
+                    )
+                )
 
     def on_unit_attacked(self, data: dict) -> None:
         target_id = data.get("target_id")
