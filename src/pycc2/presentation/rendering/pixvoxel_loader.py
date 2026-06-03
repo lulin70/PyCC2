@@ -619,11 +619,9 @@ class PixVoxelLoader:
 
         # Fallback: 使用 PixelArtist3D
         try:
-            from pycc2.presentation.rendering.pixel_artist_3d import (
-                Direction,
-                Faction,
-                PixelArtist3D,
-            )
+            from pycc2.domain.value_objects.direction import Direction
+            from pycc2.domain.entities.unit import Faction
+            from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
 
             dir_enum = list(Direction)[direction] if direction < 8 else Direction.SOUTH
             fac_enum = Faction.ALLIES if faction.startswith("allies") else Faction(faction)

@@ -18,6 +18,8 @@ from typing import TYPE_CHECKING
 
 import pygame
 
+from pycc2.domain.value_objects.vec2 import Vec2
+
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.presentation.rendering.camera import Camera
@@ -92,6 +94,21 @@ class TerrainRenderingSystem:
         self._scaled_texture_cache = getattr(renderer, '_scaled_texture_cache', {})
         self._terrain_tile_cache = getattr(renderer, '_terrain_tile_cache', None)
         self._transition_cache = getattr(renderer, '_transition_cache', {})
+        self._overlay_surface_pool: dict[tuple[int, int], pygame.Surface] = {}
+        self._MAX_OVERLAY_SURFACE_POOL = 30
+
+    def _get_overlay_surface(self, w: int, h: int) -> pygame.Surface:
+        key = (w, h)
+        if key in self._overlay_surface_pool:
+            surf = self._overlay_surface_pool.pop(key)
+            self._overlay_surface_pool[key] = surf
+            surf.fill((0, 0, 0, 0))
+            return surf
+        surf = pygame.Surface((w, h), pygame.SRCALPHA)
+        if len(self._overlay_surface_pool) >= self._MAX_OVERLAY_SURFACE_POOL:
+            self._overlay_surface_pool.pop(next(iter(self._overlay_surface_pool)))
+        self._overlay_surface_pool[key] = surf
+        return surf
 
     def draw_simple_terrain(
         self, 
@@ -137,7 +154,6 @@ class TerrainRenderingSystem:
                     world_x = tx * self.TILE_SIZE
                     world_y = ty * self.TILE_SIZE
 
-                    from pycc2.domain.value_objects.vec2 import Vec2
                     screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
 
                     rect = pygame.Rect(
@@ -299,7 +315,6 @@ class TerrainRenderingSystem:
                         world_x = tx * self.TILE_SIZE
                         world_y = ty * self.TILE_SIZE
 
-                        from pycc2.domain.value_objects.vec2 import Vec2
                         screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
                         sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
@@ -453,7 +468,6 @@ class TerrainRenderingSystem:
 
                     world_x = tx * self.TILE_SIZE
                     world_y = ty * self.TILE_SIZE
-                    from pycc2.domain.value_objects.vec2 import Vec2
                     screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
                     sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
@@ -535,12 +549,11 @@ class TerrainRenderingSystem:
 
                         world_x = tx * self.TILE_SIZE
                         world_y = ty * self.TILE_SIZE
-                        from pycc2.domain.value_objects.vec2 import Vec2
                         screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
                         sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
                         edge_width = max(2, tile_screen_size // 16)
-                        overlay = pygame.Surface((edge_width, tile_screen_size), pygame.SRCALPHA)
+                        overlay = self._get_overlay_surface(edge_width, tile_screen_size)
                         overlay.fill((255, 255, 255, 30))
 
                         if dx == 1:
@@ -550,12 +563,12 @@ class TerrainRenderingSystem:
                             target_surface.blit(overlay, (sx, sy),
                                                special_flags=pygame.BLEND_RGBA_MULT)
                         elif dy == 1:
-                            overlay = pygame.Surface((tile_screen_size, edge_width), pygame.SRCALPHA)
+                            overlay = self._get_overlay_surface(tile_screen_size, edge_width)
                             overlay.fill((255, 255, 255, 30))
                             target_surface.blit(overlay, (sx, sy + tile_screen_size - edge_width),
                                                special_flags=pygame.BLEND_RGBA_MULT)
                         else:
-                            overlay = pygame.Surface((tile_screen_size, edge_width), pygame.SRCALPHA)
+                            overlay = self._get_overlay_surface(tile_screen_size, edge_width)
                             overlay.fill((255, 255, 255, 30))
                             target_surface.blit(overlay, (sx, sy),
                                                special_flags=pygame.BLEND_RGBA_MULT)
@@ -601,7 +614,6 @@ class TerrainRenderingSystem:
 
                 world_x = tx * self.TILE_SIZE
                 world_y = ty * self.TILE_SIZE
-                from pycc2.domain.value_objects.vec2 import Vec2
                 screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
                 sx, sy = int(screen_pos[0]), int(screen_pos[1])
 

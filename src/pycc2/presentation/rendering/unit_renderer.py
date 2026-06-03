@@ -1,12 +1,11 @@
 """
 Unit Renderer Sub-Module for CC2-Style Games
 
-Extracted from EnhancedRenderer via DELEGATE PATTERN.
 Handles unit-specific rendering operations:
 - Unit drawing with SpriteRenderer (PNG) and fallback shapes
 - Damage visual effects (smoke/fire particles)
 
-Dependencies are injected via parent_renderer reference.
+Dependencies are injected via RenderContext.
 """
 
 from __future__ import annotations
@@ -17,6 +16,9 @@ from typing import TYPE_CHECKING
 
 import pygame
 
+from pycc2.domain.value_objects.vec2 import Vec2
+from pycc2.presentation.rendering.render_context import RenderContext
+
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -25,7 +27,7 @@ if TYPE_CHECKING:
 
 
 class UnitRenderer:
-    """Handles all unit rendering operations (delegate pattern).
+    """Handles all unit rendering operations.
 
     Manages:
     - Drawing units with SpriteRenderer (PNG support) or fallback shapes
@@ -35,25 +37,25 @@ class UnitRenderer:
     - Selection highlighting
     """
 
-    def __init__(self, parent_renderer):
-        self._parent = parent_renderer
+    def __init__(self, ctx: RenderContext):
+        self._ctx = ctx
 
     def draw_units(self, units: list[Unit], camera: Camera, selected_unit_ids: set[str] | None = None) -> None:
-        if self._parent._screen is None or self._parent._offscreen is None:
+        if self._ctx.screen is None or self._ctx.offscreen is None:
             return
 
         if len(units) == 0:
             return
 
-        if self._parent._sprite_renderer is not None:
-            self._parent._sprite_renderer._target_surface = self._parent._offscreen
-            self._parent._sprite_renderer._draw_units(units, camera, selected_unit_ids)
-            self._parent._sprite_renderer._target_surface = None
+        if self._ctx.sprite_renderer is not None:
+            self._ctx.sprite_renderer._target_surface = self._ctx.offscreen
+            self._ctx.sprite_renderer._draw_units(units, camera, selected_unit_ids)
+            self._ctx.sprite_renderer._target_surface = None
             return
         else:
             logger.warning("[EnhancedRenderer] SpriteRenderer is None! Using fallback shapes (no PNG sprites)")
 
-        screen_w, screen_h = self._parent._screen.get_size()
+        screen_w, screen_h = self._ctx.screen.get_size()
 
         for idx, unit in enumerate(units):
             try:
@@ -73,7 +75,6 @@ class UnitRenderer:
                             tile_x = getattr(unit.position, 'tile_x', None)
                             tile_y = getattr(unit.position, 'tile_y', None)
                             if tile_x is not None and tile_y is not None:
-                                from pycc2.domain.value_objects.vec2 import Vec2
                                 world_pos = Vec2(tile_x * 16, tile_y * 16)
                                 pos = camera.world_to_screen(world_pos)
                                 cx, cy = int(pos[0]), int(pos[1])
@@ -105,6 +106,9 @@ class UnitRenderer:
 
                 base_radius = max(12, int(15 * camera.zoom))
 
+                get_health_tinted = self._ctx.get_health_tinted_color
+                offscreen = self._ctx.offscreen
+
                 if "tank" in unit_type_str or "armor" in unit_type_str or "sherman" in unit_type_str or "vehicle" in unit_type_str:
                     color = (255, 200, 0)
                     radius = base_radius + 6
@@ -115,9 +119,9 @@ class UnitRenderer:
                         y = cy + int(radius * math.sin(angle))
                         points.append((x, y))
 
-                    color = self._parent._get_health_tinted_color(color, unit)
-                    pygame.draw.polygon(self._parent._offscreen, color, points)
-                    pygame.draw.polygon(self._parent._offscreen, (255, 255, 255), points, 3)
+                    color = get_health_tinted(color, unit) if get_health_tinted else color
+                    pygame.draw.polygon(offscreen, color, points)
+                    pygame.draw.polygon(offscreen, (255, 255, 255), points, 3)
 
                 elif "mg" in unit_type_str or "machine" in unit_type_str or "at" in unit_type_str or "support" in unit_type_str:
                     color = (0, 220, 255)
@@ -129,9 +133,9 @@ class UnitRenderer:
                         y = cy + int(radius * math.sin(angle))
                         points.append((x, y))
 
-                    color = self._parent._get_health_tinted_color(color, unit)
-                    pygame.draw.polygon(self._parent._offscreen, color, points)
-                    pygame.draw.polygon(self._parent._offscreen, (255, 255, 255), points, 2)
+                    color = get_health_tinted(color, unit) if get_health_tinted else color
+                    pygame.draw.polygon(offscreen, color, points)
+                    pygame.draw.polygon(offscreen, (255, 255, 255), points, 2)
 
                 elif "sniper" in unit_type_str or "recon" in unit_type_str or "scout" in unit_type_str:
                     color = (255, 0, 255)
@@ -144,17 +148,17 @@ class UnitRenderer:
                         (cx - half, cy),
                     ]
 
-                    color = self._parent._get_health_tinted_color(color, unit)
-                    pygame.draw.polygon(self._parent._offscreen, color, points)
-                    pygame.draw.polygon(self._parent._offscreen, (255, 200, 255), points, 2)
+                    color = get_health_tinted(color, unit) if get_health_tinted else color
+                    pygame.draw.polygon(offscreen, color, points)
+                    pygame.draw.polygon(offscreen, (255, 200, 255), points, 2)
 
                 else:
                     color = (0, 255, 80)
                     radius = base_radius
 
-                    color = self._parent._get_health_tinted_color(color, unit)
-                    pygame.draw.circle(self._parent._offscreen, color, (cx, cy), radius)
-                    pygame.draw.circle(self._parent._offscreen, (255, 255, 255), (cx, cy), radius, 2)
+                    color = get_health_tinted(color, unit) if get_health_tinted else color
+                    pygame.draw.circle(offscreen, color, (cx, cy), radius)
+                    pygame.draw.circle(offscreen, (255, 255, 255), (cx, cy), radius, 2)
 
                 try:
                     font = pygame.font.Font(None, max(16, int(18 * camera.zoom)))
@@ -169,10 +173,10 @@ class UnitRenderer:
                         label_surf.get_width() + 2 * bg_padding,
                         label_surf.get_height() + 2 * bg_padding
                     )
-                    pygame.draw.rect(self._parent._offscreen, (0, 0, 0), bg_rect, border_radius=3)
-                    pygame.draw.rect(self._parent._offscreen, (100, 100, 100), bg_rect, width=1, border_radius=3)
+                    pygame.draw.rect(offscreen, (0, 0, 0), bg_rect, border_radius=3)
+                    pygame.draw.rect(offscreen, (100, 100, 100), bg_rect, width=1, border_radius=3)
 
-                    self._parent._offscreen.blit(label_surf, (label_x, label_y))
+                    offscreen.blit(label_surf, (label_x, label_y))
                 except (ValueError, pygame.error) as e:
                     logging.debug(f"Unit label rendering failed: {e}")
 
@@ -193,21 +197,21 @@ class UnitRenderer:
                         (glow_center, glow_center),
                         outer_glow_radius,
                     )
-                    self._parent._offscreen.blit(
+                    offscreen.blit(
                         glow_surf,
                         (cx - glow_center, cy - glow_center),
                     )
 
                     inner_ring_radius = radius + 5 + int(pulse)
                     pygame.draw.circle(
-                        self._parent._offscreen,
+                        offscreen,
                         (255, 255, 0),
                         (cx, cy),
                         inner_ring_radius,
                         3,
                     )
                     pygame.draw.circle(
-                        self._parent._offscreen,
+                        offscreen,
                         (0, 255, 255),
                         (cx, cy),
                         inner_ring_radius - 2,
@@ -225,23 +229,25 @@ class UnitRenderer:
                     ]
                     for corner_x, corner_y in corners:
                         pygame.draw.line(
-                            self._parent._offscreen,
+                            offscreen,
                             corner_color,
                             (corner_x, corner_y),
                             (corner_x + corner_size, corner_y),
                             2,
                         )
                         pygame.draw.line(
-                            self._parent._offscreen,
+                            offscreen,
                             corner_color,
                             (corner_x, corner_y),
                             (corner_x, corner_y + corner_size),
                             2,
                         )
 
-                self._parent._draw_direction_indicator(cx, cy, radius, color)
+                if self._ctx.draw_direction_indicator:
+                    self._ctx.draw_direction_indicator(cx, cy, radius, color)
 
-                self._parent._draw_movement_mode_overlay(unit, cx, cy, radius, color)
+                if self._ctx.draw_movement_mode_overlay:
+                    self._ctx.draw_movement_mode_overlay(unit, cx, cy, radius, color)
 
                 if hasattr(unit, 'is_damaged') and unit.is_damaged:
                     self.draw_damage_vfx(unit, cx, cy)
@@ -262,6 +268,9 @@ class UnitRenderer:
             if not getattr(unit, '_smoke_particles', None):
                 unit.update_damage_vfx()
 
+        get_pooled = self._ctx.get_pooled_surface
+        offscreen = self._ctx.offscreen
+
         smoke_particles = getattr(unit, '_smoke_particles', [])
         for particle in smoke_particles[:8]:
             px = cx + particle.get('x', 0)
@@ -271,9 +280,12 @@ class UnitRenderer:
 
             smoke_color = (120, 120, 120)
 
-            smoke_surf = self._parent._get_pooled_surface((size * 2, size * 2))
+            if get_pooled:
+                smoke_surf = get_pooled((size * 2, size * 2))
+            else:
+                smoke_surf = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
             pygame.draw.circle(smoke_surf, (*smoke_color, alpha), (size, size), size)
-            self._parent._offscreen.blit(smoke_surf, (px - size, py - size))
+            offscreen.blit(smoke_surf, (px - size, py - size))
 
         fire_particles = getattr(unit, '_fire_particles', [])
         for particle in fire_particles[:6]:
@@ -283,11 +295,17 @@ class UnitRenderer:
             size = particle.get('size', 3)
 
             glow_size = size + 2
-            glow_surf = self._parent._get_pooled_surface((glow_size * 2, glow_size * 2))
+            if get_pooled:
+                glow_surf = get_pooled((glow_size * 2, glow_size * 2))
+            else:
+                glow_surf = pygame.Surface((glow_size * 2, glow_size * 2), pygame.SRCALPHA)
             pygame.draw.circle(glow_surf, (*color, 80), (glow_size, glow_size), glow_size)
-            self._parent._offscreen.blit(glow_surf, (px - glow_size, py - glow_size))
+            offscreen.blit(glow_surf, (px - glow_size, py - glow_size))
 
             bright_color = tuple(min(255, c + 40) for c in color)
-            core_surf = self._parent._get_pooled_surface((size * 2, size * 2))
+            if get_pooled:
+                core_surf = get_pooled((size * 2, size * 2))
+            else:
+                core_surf = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
             pygame.draw.circle(core_surf, (*bright_color, 200), (size, size), size // 2 + 1)
-            self._parent._offscreen.blit(core_surf, (px - size, py - size))
+            offscreen.blit(core_surf, (px - size, py - size))

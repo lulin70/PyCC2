@@ -9,23 +9,8 @@ from __future__ import annotations
 
 from enum import Enum, auto
 
-
-class Direction(Enum):
-    """8方向枚举"""
-    NORTH = 0
-    NORTHEAST = 1
-    EAST = 2
-    SOUTHEAST = 3
-    SOUTH = 4
-    SOUTHWEST = 5
-    WEST = 6
-    NORTHWEST = 7
-
-
-class Faction(Enum):
-    """阵营枚举"""
-    ALLIES = "allies"
-    AXIS = "axis"
+from pycc2.domain.value_objects.direction import Direction
+from pycc2.domain.entities.unit import Faction
 
 
 class InfantryType(Enum):

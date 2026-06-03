@@ -10,6 +10,8 @@ All tests follow top-down/isometric view constraints (NO facial features, NO sid
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import sys
 import time
 import math

@@ -174,7 +174,9 @@ class SpriteRenderer:
 
         # 优先使用新的CC2写实像素艺术生成器
         try:
-            from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D, Direction, Faction
+            from pycc2.domain.value_objects.direction import Direction
+            from pycc2.domain.entities.unit import Faction
+            from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
 
             dir_enum = list(Direction)[direction] if direction < 8 else Direction.SOUTH
             # POLISH使用ALLIES的视觉风格（同属盟军）
@@ -652,7 +654,10 @@ class SpriteRenderer:
         实现炮塔平滑旋转而非8方向离散跳变。
         """
         try:
-            from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D, Direction, Faction, TankType
+            from pycc2.domain.value_objects.direction import Direction
+            from pycc2.domain.entities.unit import Faction
+            from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+            from pycc2.presentation.rendering.pixel_artist_enums import TankType
 
             fac_enum = Faction.ALLIES if faction in ("allies", "polish") else Faction.AXIS
             tank_type = TankType.SHERMAN_M4 if fac_enum == Faction.ALLIES else TankType.PANTHER_AUSFG

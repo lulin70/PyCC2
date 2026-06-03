@@ -17,9 +17,12 @@ Achievement categories:
 from enum import Enum, auto
 from dataclasses import dataclass, field
 import json
+import logging
 import os
 import time
 from typing import Any, Callable, Dict, List, Optional, Set
+
+logger = logging.getLogger(__name__)
 
 
 class AchievementCategory(Enum):
@@ -121,8 +124,8 @@ class AchievementManager:
             for listener in self._listeners:
                 try:
                     listener(definition)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("Achievement listener failed: %s", e)
             return True
 
         return False
@@ -148,8 +151,8 @@ class AchievementManager:
             for listener in self._listeners:
                 try:
                     listener(definition)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("Achievement listener failed: %s", e)
             return True
 
         return False

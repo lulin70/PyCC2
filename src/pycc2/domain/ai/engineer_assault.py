@@ -305,7 +305,7 @@ class EngineerAssaultAI(TacticalAIBase):
                         f"({tc.x}, {tc.y})"
                     )
                     if event_bus is not None:
-                        event_bus.publish({
+                        event_bus.publish_named("BridgeDestroyed", {
                             "event_type": "BridgeDestroyed",
                             "position": (tc.x, tc.y),
                             "message": "Bridge Destroyed",

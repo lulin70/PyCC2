@@ -9,21 +9,23 @@ from typing import Optional
 
 
 class Direction(Enum):
-    """
-    8-directional compass for grid-based navigation.
+    N = 0
+    NE = 1
+    E = 2
+    SE = 3
+    S = 4
+    SW = 5
+    W = 6
+    NW = 7
 
-    Each direction has associated offset vectors for movement
-    and angle values for rotation calculations.
-    """
-
-    N = auto()
-    NE = auto()
-    E = auto()
-    SE = auto()
-    S = auto()
-    SW = auto()
-    W = auto()
-    NW = auto()
+    NORTH = N
+    NORTHEAST = NE
+    EAST = E
+    SOUTHEAST = SE
+    SOUTH = S
+    SOUTHWEST = SW
+    WEST = W
+    NORTHWEST = NW
 
     @property
     def offset(self) -> tuple[int, int]:
@@ -121,6 +123,22 @@ class Direction(Enum):
                 best_dir = direction
 
         return best_dir
+
+    def to_angle(self) -> float:
+        angles = {
+            Direction.E: 0.0,
+            Direction.SE: 45.0,
+            Direction.S: 90.0,
+            Direction.SW: 135.0,
+            Direction.W: 180.0,
+            Direction.NW: 225.0,
+            Direction.N: 270.0,
+            Direction.NE: 315.0,
+        }
+        return angles[self]
+
+    def to_unit_facing(self) -> float:
+        return self.to_angle()
 
     @classmethod
     def get_cardinals(cls) -> list:

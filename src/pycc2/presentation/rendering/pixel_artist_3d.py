@@ -18,9 +18,9 @@ from typing import TYPE_CHECKING
 logger = logging.getLogger(__name__)
 
 # Import extracted enums
+from pycc2.domain.value_objects.direction import Direction
+from pycc2.domain.entities.unit import Faction
 from pycc2.presentation.rendering.pixel_artist_enums import (
-    Direction,
-    Faction,
     InfantryAnimState,
     InfantryType,
     TankType,
@@ -78,7 +78,8 @@ class PixelArtist3D:
         surface = pygame.Surface((24, 24), pygame.SRCALPHA)
         surface.fill((0, 0, 0, 0))
 
-        palette = CC2_PALETTE[faction.value]
+        faction_key = faction.name.lower() if hasattr(faction, 'name') else str(faction.value)
+        palette = CC2_PALETTE.get(faction_key, CC2_PALETTE.get("allies"))
         body_color = palette['uniform']
         body_dark = palette['uniform_dark']
         helmet_color = palette['helmet']

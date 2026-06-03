@@ -56,6 +56,7 @@ from pycc2.presentation.rendering.autotile_system import (
     get_edge_transition_width,
     AutotileCache,
 )
+from pycc2.presentation.rendering.camera import ProjectionMode
 
 # Import shadow system for SE-direction shadows
 from pycc2.presentation.rendering.shadow_system import ShadowRenderer
@@ -80,6 +81,7 @@ from pycc2.presentation.rendering.palette_generator import PaletteGenerator
 from pycc2.presentation.rendering.procedural_texture_generator import ProceduralTextureGenerator
 from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
 from pycc2.presentation.rendering.rendering_utils import draw_dashed_line
+from pycc2.presentation.rendering.render_context import RenderContext
 
 # Import extracted sub-modules (SRP refactoring)
 from pycc2.presentation.rendering.particle_effects_renderer import ParticleEffectsRenderer
@@ -165,11 +167,36 @@ class EnhancedRenderer:
         self._cached_warm_overlay: pygame.Surface | None = None
         self._cached_vignette: pygame.Surface | None = None
 
-        # Initialize refactored sub-module renderers (coordinator pattern)
-        self._terrain_renderer = TerrainRenderer(self)
-        self._unit_renderer = UnitRenderer(self)
-        self._building_renderer = BuildingRenderer(self)
-        self._decoration_renderer = DecorationRenderer(self)
+        # Initialize refactored sub-module renderers via RenderContext (DI pattern)
+        self._render_ctx = RenderContext(
+            tile_size=self.TILE_SIZE,
+            screen=self._screen,
+            offscreen=self._offscreen,
+            sprite_renderer=self._sprite_renderer,
+            palette_gen=self._palette_gen,
+            texture_cache=self._texture_cache,
+            scaled_texture_cache=self._scaled_texture_cache,
+            height_lit_cache=self._height_lit_cache,
+            autotile_cache=self._autotile_cache,
+            terrain_tile_cache=self._terrain_tile_cache,
+            building_clusters=self._building_clusters,
+            sprite_cache=self._sprite_cache,
+            get_pooled_surface=self._get_pooled_surface,
+            get_cached_texture=self._get_cached_texture,
+            get_enhanced_tile=self._get_enhanced_tile,
+            get_terrain_at=self._get_terrain_at,
+            generate_cc2_style_tile=self._generate_cc2_style_tile,
+            apply_height_lighting=self._apply_height_lighting,
+            get_health_tinted_color=self._get_health_tinted_color,
+            draw_direction_indicator=self._draw_direction_indicator,
+            draw_movement_mode_overlay=self._draw_movement_mode_overlay,
+            draw_terrain_borders=self._draw_terrain_borders,
+            draw_decorations=self._draw_decorations,
+        )
+        self._terrain_renderer = TerrainRenderer(self._render_ctx)
+        self._unit_renderer = UnitRenderer(self._render_ctx)
+        self._building_renderer = BuildingRenderer(self._render_ctx)
+        self._decoration_renderer = DecorationRenderer(self._render_ctx)
         self._lighting_system = LightingSystem(self._lighting_config)
 
         # Initialize extracted SRP modules (delegate pattern for backward compatibility)
@@ -216,6 +243,10 @@ class EnhancedRenderer:
             lighting_config=self._lighting_config,
             offscreen=self._offscreen,
         )
+
+        # Update RenderContext with initialized surfaces
+        self._render_ctx.update_surfaces(self._screen, self._offscreen)
+        self._render_ctx.sprite_renderer = self._sprite_renderer
 
     def set_attack_line_system(self, attack_line_system) -> None:
         """Set attack line system (dependency injection setter - P0-2 Fix)."""
@@ -326,7 +357,6 @@ class EnhancedRenderer:
             return
 
         # Isometric rendering branch
-        from pycc2.presentation.rendering.camera import ProjectionMode
         if camera.projection == ProjectionMode.ISOMETRIC:
             self._render_isometric(game_map, units, camera, selected_unit_ids, debug_mode)
             return
@@ -339,6 +369,7 @@ class EnhancedRenderer:
         if self._offscreen is None or self._offscreen.get_size() != (screen_w, screen_h):
             # FIXED: Use SRCALPHA to support transparent shadows
             self._offscreen = pygame.Surface((screen_w, screen_h), pygame.SRCALPHA)
+            self._render_ctx.update_surfaces(self._screen, self._offscreen)
 
         # STEP 1: Clear off-screen buffer
         self._offscreen.fill((34, 40, 48))  # Dark blue-gray background

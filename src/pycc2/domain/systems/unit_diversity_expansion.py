@@ -25,7 +25,8 @@ from dataclasses import replace
 from typing import Any
 
 from pycc2.domain.systems.cc2_authentic_units import CC2UnitTemplate, get_cc2_units
-from pycc2.domain.systems.cc2_authentic_weapons import Faction, InfantryRole, VehicleType
+from pycc2.domain.entities.unit import Faction
+from pycc2.domain.systems.cc2_authentic_weapons import InfantryRole, VehicleType
 from pycc2.domain.systems.game_settings import ExperienceLevel
 
 # ========================================================================

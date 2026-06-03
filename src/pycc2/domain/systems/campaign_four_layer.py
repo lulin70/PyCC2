@@ -25,7 +25,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 from pycc2.domain.entities.squad import MemberState
-from pycc2.domain.systems.cc2_authentic_weapons import Faction
+from pycc2.domain.entities.unit import Faction
 
 # ========================================================================
 # Layer 1 — Battle: Single engagement on one map

@@ -21,6 +21,8 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any
 
+from pycc2.domain.entities.unit import Faction
+
 
 # ========================================================================
 # ENUMERATIONS
@@ -45,14 +47,6 @@ class WeaponType(Enum):
     TANK_CANNON_MEDIUM = auto()      # 75mm class
     TANK_CANNON_HEAVY = auto()       # 88mm+ (Tiger, Firefly 17pdr)
     VEHICLE_MOUNTED_MG = auto()
-
-
-class Faction(Enum):
-    """CC2's four distinct forces."""
-    AMERICAN = auto()                # 82nd / 101st Airborne
-    BRITISH = auto()                 # 1st Airborne / XXX Corps
-    POLISH = auto()                  # 1st Independent Parachute Brigade
-    GERMAN = auto()                  # 15th Army / 9th & 10th SS Panzer
 
 
 class InfantryRole(Enum):

@@ -330,8 +330,8 @@ class ShadowRenderingSystem:
                         world_pos = Vec2(tile_x * 16, tile_y * 16)
                         pos = camera.world_to_screen(world_pos)
                         cx, cy = int(pos[0]), int(pos[1])
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("Unit position lookup failed: %s", e)
 
         return cx, cy
 

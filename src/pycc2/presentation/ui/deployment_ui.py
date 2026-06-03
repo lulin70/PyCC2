@@ -23,7 +23,6 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import field
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +78,8 @@ from pycc2.presentation.ui.deployment_models import (
     UNIT_TYPE_TO_CATEGORY as _UNIT_TYPE_TO_CATEGORY,
 )
 from pycc2.presentation.rendering.rendering_utils import draw_dashed_line
+from pycc2.presentation.rendering.camera import Camera
+from pycc2.domain.entities.game_map import GameMap
 
 # ---------------------------------------------------------------------------
 # Pygame – imported lazily so the module can be imported in headless tests
@@ -138,12 +139,12 @@ class DeploymentUI:
         self._button_hovered: bool = False
 
         # Pygame font cache
-        self._font_small: Any = None
-        self._font_normal: Any = None
-        self._font_large: Any = None
+        self._font_small: pygame.font.Font | None = None
+        self._font_normal: pygame.font.Font | None = None
+        self._font_large: pygame.font.Font | None = None
 
         # Overlay surface cache (rebuilt when zones change)
-        self._overlay_cache: Any = None
+        self._overlay_cache: dict[str, pygame.Surface] | None = None
         self._overlay_tile_size: int = 0
 
         # Roster layout cache (rebuilt when units change)
@@ -155,12 +156,13 @@ class DeploymentUI:
         self._dragging_unit_index: int | None = None
         self._drag_start_pos: tuple[int, int] | None = None
         self._drag_current_pos: tuple[int, int] | None = None
-        self._ghost_surface: Any = None  # Pre-rendered ghost sprite
+        self._ghost_surface: pygame.Surface | None = None  # Pre-rendered ghost sprite
         self._is_dragging: bool = False
 
         # === Pre-battle orders (GAP-8) ===
         self._pending_orders: dict[str, tuple[int, int]] = {}  # unit_template_id -> (target_x, target_y)
         self._selected_placed_unit: DeploymentUnit | None = None  # For setting orders
+        self._highlight_surface_cache: dict[int, pygame.Surface] = {}
 
     # ------------------------------------------------------------------
     # Public API
@@ -623,8 +625,8 @@ class DeploymentUI:
 
     def render(
         self,
-        screen: Any,
-        font: Any,
+        screen: pygame.Surface,
+        font: pygame.font.Font,
         map_offset_x: int = 0,
         map_offset_y: int = 0,
         tile_size: int = 16,
@@ -694,9 +696,9 @@ class DeploymentUI:
 
     def render_deployment_zones(
         self,
-        surface: Any,
-        camera: Any,
-        game_map: Any,
+        surface: pygame.Surface,
+        camera: Camera,
+        game_map: GameMap,
         tile_size: int = 48,
     ) -> None:
         """Render deployment zone overlays on the map using camera/game_map objects.
@@ -742,9 +744,9 @@ class DeploymentUI:
 
     def handle_deployment_drag(
         self,
-        event: Any,
-        camera: Any,
-        game_map: Any,
+        event: pygame.event.Event,
+        camera: Camera,
+        game_map: GameMap,
         tile_size: int = 48,
     ) -> None:
         """Handle drag-drop deployment interaction using pygame events directly.
@@ -811,7 +813,7 @@ class DeploymentUI:
 
     def _render_zone_overlays(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         ox: int,
         oy: int,
         ts: int,
@@ -851,7 +853,7 @@ class DeploymentUI:
 
     def _render_placement_highlights(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         ox: int,
         oy: int,
         ts: int,
@@ -889,7 +891,7 @@ class DeploymentUI:
 
     def _render_placed_units(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         ox: int,
         oy: int,
         ts: int,
@@ -983,7 +985,7 @@ class DeploymentUI:
 
     def _render_pending_orders(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         ox: int,
         oy: int,
         ts: int,
@@ -1037,7 +1039,7 @@ class DeploymentUI:
 
     def _render_los_preview(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         ox: int,
         oy: int,
         ts: int,
@@ -1208,7 +1210,7 @@ class DeploymentUI:
 
     @staticmethod
     def _draw_dashed_line(
-        surface: Any,
+        surface: pygame.Surface,
         color: tuple[int, int, int, int],
         start: tuple[int, int],
         end: tuple[int, int],
@@ -1219,7 +1221,7 @@ class DeploymentUI:
 
     @staticmethod
     def _draw_arrowhead(
-        surface: Any,
+        surface: pygame.Surface,
         color: tuple[int, int, int],
         start: tuple[int, int],
         end: tuple[int, int],
@@ -1274,7 +1276,7 @@ class DeploymentUI:
             for idx in indices:
                 self._roster_layout.append(("unit", idx))
 
-    def _render_roster(self, screen: Any) -> None:
+    def _render_roster(self, screen: pygame.Surface) -> None:
         roster_h = self.height
 
         # Background
@@ -1365,7 +1367,7 @@ class DeploymentUI:
     # Internal – requisition points HEADER with progress bar (Issue 2)
     # ------------------------------------------------------------------
 
-    def _render_rp_header(self, panel_surf: Any) -> None:
+    def _render_rp_header(self, panel_surf: pygame.Surface) -> None:
         """Render prominent requisition points display with visual progress bar."""
         if not _pygame_available or panel_surf is None:
             return
@@ -1482,7 +1484,7 @@ class DeploymentUI:
     # Internal – requisition points (original simple version, now supplemental)
     # ------------------------------------------------------------------
 
-    def _render_requisition_points(self, screen: Any) -> None:
+    def _render_requisition_points(self, screen: pygame.Surface) -> None:
         """Render a prominent RP counter at the top of the screen (above roster panel)."""
         if not _pygame_available or screen is None:
             return
@@ -1539,7 +1541,7 @@ class DeploymentUI:
     # Internal – unit counts
     # ------------------------------------------------------------------
 
-    def _render_unit_counts(self, screen: Any) -> None:
+    def _render_unit_counts(self, screen: pygame.Surface) -> None:
         infantry_count = sum(
             1 for u in self._state.placed_units if u.unit_type == "infantry"
         )
@@ -1567,7 +1569,7 @@ class DeploymentUI:
     # Internal – Start Battle button
     # ------------------------------------------------------------------
 
-    def _render_start_battle_button(self, screen: Any) -> None:
+    def _render_start_battle_button(self, screen: pygame.Surface) -> None:
         """Render prominent START BATTLE button - make it VERY visible and accessible."""
         btn_w = self._roster_width - 2 * self._roster_padding
         btn_h = 52  # Extra tall for visibility
@@ -1863,7 +1865,7 @@ class DeploymentUI:
         self._is_dragging = False
         # Don't clear selection - let user click again if needed
 
-    def _create_ghost_surface(self, unit: DeploymentUnit) -> Any:
+    def _create_ghost_surface(self, unit: DeploymentUnit) -> pygame.Surface | None:
         """Create a semi-transparent ghost sprite for dragged unit."""
         if not _pygame_available:
             return None
@@ -1909,7 +1911,7 @@ class DeploymentUI:
             logging.debug(f"Ghost surface rendering failed: {e}")
             return None
 
-    def _render_unit_details_panel(self, screen: Any) -> None:
+    def _render_unit_details_panel(self, screen: pygame.Surface) -> None:
         """Render detailed unit information panel on the RIGHT side of screen."""
         if self._selected_unit_index is None or self._selected_unit_index >= len(self._state.available_units):
             return
@@ -2012,7 +2014,7 @@ class DeploymentUI:
 
     def _render_drag_feedback(
         self,
-        screen: Any,
+        screen: pygame.Surface,
         map_offset_x: int = 0,
         map_offset_y: int = 0,
         tile_size: int = 16,
@@ -2052,18 +2054,19 @@ class DeploymentUI:
                 tile_screen_y = map_offset_y + map_y * tile_size
 
                 if is_valid:
-                    # Green glow for valid placement
-                    highlight = pygame.Surface((tile_size, tile_size), pygame.SRCALPHA)
+                    if tile_size not in self._highlight_surface_cache:
+                        self._highlight_surface_cache[tile_size] = pygame.Surface((tile_size, tile_size), pygame.SRCALPHA)
+                    highlight = self._highlight_surface_cache[tile_size]
                     highlight.fill((0, 255, 100, 70))
                     screen.blit(highlight, (tile_screen_x, tile_screen_y))
 
-                    # Bright green border
                     pygame.draw.rect(screen, (0, 255, 100), (
                         tile_screen_x, tile_screen_y, tile_size, tile_size
                     ), 2)
                 else:
-                    # Red glow for invalid placement
-                    highlight = pygame.Surface((tile_size, tile_size), pygame.SRCALPHA)
+                    if tile_size not in self._highlight_surface_cache:
+                        self._highlight_surface_cache[tile_size] = pygame.Surface((tile_size, tile_size), pygame.SRCALPHA)
+                    highlight = self._highlight_surface_cache[tile_size]
                     highlight.fill((255, 60, 60, 50))
                     screen.blit(highlight, (tile_screen_x, tile_screen_y))
 
@@ -2162,7 +2165,7 @@ class DeploymentUI:
 
         return None
 
-    def _ensure_fonts(self, font: Any) -> None:
+    def _ensure_fonts(self, font: pygame.font.Font) -> None:
         """Initialise font objects if not already done."""
         if not _pygame_available:
             return

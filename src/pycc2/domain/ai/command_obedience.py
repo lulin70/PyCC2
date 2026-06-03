@@ -302,7 +302,7 @@ class CommandObedienceSystem:
         reason: str,
     ) -> None:
         """Publish an event when a unit refuses an order."""
-        self.event_bus.publish({
+        self.event_bus.publish_named("OrderRefused", {
             "action": "order_refused",
             "unit_id": unit.id,
             "tactic_type": intent.tactic_type.name,

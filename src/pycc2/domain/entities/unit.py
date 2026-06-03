@@ -35,8 +35,11 @@ if TYPE_CHECKING:
 
 class Faction(Enum):
     ALLIES = auto()
+    AMERICAN = auto()
+    BRITISH = auto()
     POLISH = auto()
     AXIS = auto()
+    GERMAN = auto()
 
 
 class UnitType(Enum):

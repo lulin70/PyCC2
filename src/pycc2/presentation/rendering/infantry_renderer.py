@@ -27,7 +27,9 @@ from typing import TYPE_CHECKING
 
 import pygame
 
-from pycc2.presentation.rendering.pixel_artist_enums import Direction, Faction, InfantryType
+from pycc2.domain.value_objects.direction import Direction
+from pycc2.domain.entities.unit import Faction
+from pycc2.presentation.rendering.pixel_artist_enums import InfantryType
 
 logger = logging.getLogger(__name__)
 

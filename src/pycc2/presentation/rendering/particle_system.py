@@ -41,17 +41,33 @@ class TopDownParticleSystem:
     - 血迹池: 持久性地面污渍
     """
 
+    _MAX_RENDER_SURFACE_POOL = 30
+
     def __init__(self, max_particles: int = 256, pool: ParticlePool | None = None):
         self.particles: list[dict] = []
         self.max_particles = max_particles
         self._pool: ParticlePool | None = pool
+        self._render_surface_pool: dict[tuple[int, int], pygame.Surface] = {}
         if self._pool is None:
             try:
                 from .particle_pool import ParticlePool as _PP
                 self._pool = _PP(preallocate=max_particles)
-            except Exception:
-                logger.debug("ParticlePool creation failed, running without pool")
+            except Exception as e:
+                logger.warning("ParticlePool creation failed: %s", e)
                 self._pool = None
+
+    def _get_render_surface(self, w: int, h: int) -> pygame.Surface:
+        key = (w, h)
+        if key in self._render_surface_pool:
+            surf = self._render_surface_pool.pop(key)
+            self._render_surface_pool[key] = surf
+            surf.fill((0, 0, 0, 0))
+            return surf
+        surf = pygame.Surface((w, h), pygame.SRCALPHA)
+        if len(self._render_surface_pool) >= self._MAX_RENDER_SURFACE_POOL:
+            self._render_surface_pool.pop(next(iter(self._render_surface_pool)))
+        self._render_surface_pool[key] = surf
+        return surf
 
     def _add_particle(self, particle: dict) -> None:
         """添加粒子，超出上限时移除最老的"""
@@ -348,7 +364,7 @@ class TopDownParticleSystem:
             color = (int(base_color[0] * shade), int(base_color[1] * shade), int(base_color[2] * shade), alpha)
 
             size = int(circle_radius * 2 + 4)
-            temp_surf = pygame.Surface((size, size), pygame.SRCALPHA)
+            temp_surf = self._get_render_surface(size, size)
             center = int(circle_radius + 2)
             pygame.draw.circle(temp_surf, color, (center, center), int(circle_radius))
             surface.blit(temp_surf, (cx - center, cy - center))
@@ -365,7 +381,7 @@ class TopDownParticleSystem:
         outer_color = (*p['outer_color'], alpha // 2)
 
         try:
-            temp_surf = pygame.Surface((30, 30), pygame.SRCALPHA)
+            temp_surf = self._get_render_surface(30, 30)
             center = 15
 
             pygame.draw.circle(temp_surf, core_color, (center, center), 4)
@@ -391,7 +407,7 @@ class TopDownParticleSystem:
         color = (*p['color'], alpha)
 
         try:
-            temp_surf = pygame.Surface((size*2 + 4, size*2 + 4), pygame.SRCALPHA)
+            temp_surf = self._get_render_surface(size*2 + 4, size*2 + 4)
             center = size + 2
 
             pygame.draw.circle(temp_surf, color, (center, center), size, 2)
@@ -420,7 +436,7 @@ class TopDownParticleSystem:
         color = (*p['color'], alpha)
 
         try:
-            temp_surf = pygame.Surface((size*2 + 2, size*2 + 2), pygame.SRCALPHA)
+            temp_surf = self._get_render_surface(size*2 + 2, size*2 + 2)
             center = size + 1
             pygame.draw.circle(temp_surf, color, (center, center), size)
             surface.blit(temp_surf, (int(p['x']) - center, int(p['y']) - center))
@@ -433,7 +449,7 @@ class TopDownParticleSystem:
         color = p['color']
 
         try:
-            temp_surf = pygame.Surface((size*2 + 4, size*2 + 2), pygame.SRCALPHA)
+            temp_surf = self._get_render_surface(size*2 + 4, size*2 + 2)
             center_x = size + 2
             center_y = size + 1
 

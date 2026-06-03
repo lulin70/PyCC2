@@ -1,13 +1,12 @@
 """
 Building Renderer Sub-Module for CC2-Style Maps
 
-Extracted from EnhancedRenderer via DELEGATE PATTERN.
 Handles building-specific rendering operations:
 - Building roofs (CC2 top-down view)
 - Building interiors (auto-switch when units inside)
 - Building floor numbers on roof
 
-Dependencies are injected via parent_renderer reference.
+Dependencies are injected via RenderContext.
 """
 
 from __future__ import annotations
@@ -17,12 +16,14 @@ from typing import TYPE_CHECKING
 
 import pygame
 
+from pycc2.domain.value_objects.vec2 import Vec2
 from pycc2.presentation.rendering.cc2_building_renderer import (
     DamageLevel,
     floors_to_building_type,
     render_cc2_building,
     should_show_interior,
 )
+from pycc2.presentation.rendering.render_context import RenderContext
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ if TYPE_CHECKING:
 
 
 class BuildingRenderer:
-    """Handles all building-related rendering operations (delegate pattern).
+    """Handles all building-related rendering operations.
 
     Manages:
     - CC2-style top-down building roofs
@@ -43,23 +44,25 @@ class BuildingRenderer:
 
     MIN_FONT_SIZE = 10
 
-    def __init__(self, parent_renderer):
-        self._parent = parent_renderer
+    def __init__(self, ctx: RenderContext):
+        self._ctx = ctx
 
     def draw_building_roofs(self, game_map: GameMap, camera: Camera) -> None:
-        if self._parent._offscreen is None:
+        if self._ctx.offscreen is None:
             return
 
-        tile_size = self._parent.TILE_SIZE
+        tile_size = self._ctx.tile_size
         bounds = camera.view_bounds
         start_x = max(0, int(bounds[0].x // tile_size))
         end_x = min(game_map.width, int((bounds[1].x // tile_size) + 2))
         start_y = max(0, int(bounds[0].y // tile_size))
         end_y = min(game_map.height, int((bounds[1].y // tile_size) + 2))
 
+        get_terrain = self._ctx.get_terrain_at
+
         for ty in range(start_y, end_y):
             for tx in range(start_x, end_x):
-                terrain_val = self._parent._get_terrain_at(game_map, tx, ty)
+                terrain_val = get_terrain(game_map, tx, ty) if get_terrain else -1
                 if terrain_val != 4:
                     continue
 
@@ -89,22 +92,21 @@ class BuildingRenderer:
                             roof_surface, (target_w, target_h),
                         )
 
-                from pycc2.domain.value_objects.vec2 import Vec2
                 world_x = tx * tile_size
                 world_y = ty * tile_size
                 screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
 
-                self._parent._offscreen.blit(roof_surface, (int(screen_pos[0]), int(screen_pos[1])))
+                self._ctx.offscreen.blit(roof_surface, (int(screen_pos[0]), int(screen_pos[1])))
 
     def draw_building_interiors(
         self, game_map: GameMap, units: list[Unit], camera: Camera,
     ) -> None:
-        if self._parent._screen is None or self._parent._offscreen is None:
+        if self._ctx.screen is None or self._ctx.offscreen is None:
             return
         if not units:
             return
 
-        tile_size = self._parent.TILE_SIZE
+        tile_size = self._ctx.tile_size
         bounds = camera.view_bounds
         start_x = max(0, int(bounds[0].x // tile_size))
         end_x = min(game_map.width, int((bounds[1].x // tile_size) + 2))
@@ -112,10 +114,11 @@ class BuildingRenderer:
         end_y = min(game_map.height, int((bounds[1].y // tile_size) + 2))
 
         tile_screen_size = int(tile_size * camera.zoom)
+        get_terrain = self._ctx.get_terrain_at
 
         for ty in range(start_y, end_y):
             for tx in range(start_x, end_x):
-                terrain_val = self._parent._get_terrain_at(game_map, tx, ty)
+                terrain_val = get_terrain(game_map, tx, ty) if get_terrain else -1
                 if terrain_val != 4:
                     continue
 
@@ -148,20 +151,19 @@ class BuildingRenderer:
                             interior_surface, (target_w, target_h),
                         )
 
-                from pycc2.domain.value_objects.vec2 import Vec2
                 world_x = tx * tile_size
                 world_y = ty * tile_size
                 screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
 
-                self._parent._offscreen.blit(interior_surface, (int(screen_pos[0]), int(screen_pos[1])))
+                self._ctx.offscreen.blit(interior_surface, (int(screen_pos[0]), int(screen_pos[1])))
 
     def draw_building_floor_numbers(
         self, game_map: GameMap, camera: Camera,
     ) -> None:
-        if self._parent._screen is None or self._parent._offscreen is None:
+        if self._ctx.screen is None or self._ctx.offscreen is None:
             return
 
-        tile_size = self._parent.TILE_SIZE
+        tile_size = self._ctx.tile_size
         bounds = camera.view_bounds
         start_x = max(0, int(bounds[0].x // tile_size))
         end_x = min(game_map.width, int((bounds[1].x // tile_size) + 2))
@@ -169,10 +171,11 @@ class BuildingRenderer:
         end_y = min(game_map.height, int((bounds[1].y // tile_size) + 2))
 
         tile_screen_size = int(tile_size * camera.zoom)
+        get_terrain = self._ctx.get_terrain_at
 
         for ty in range(start_y, end_y):
             for tx in range(start_x, end_x):
-                terrain_val = self._parent._get_terrain_at(game_map, tx, ty)
+                terrain_val = get_terrain(game_map, tx, ty) if get_terrain else -1
                 if terrain_val != 4:
                     continue
 
@@ -186,7 +189,6 @@ class BuildingRenderer:
                 if floors is None or int(floors) <= 1:
                     continue
 
-                from pycc2.domain.value_objects.vec2 import Vec2
                 world_x = tx * tile_size
                 world_y = ty * tile_size
                 screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
@@ -198,4 +200,4 @@ class BuildingRenderer:
                     center=(int(screen_pos[0]) + tile_screen_size // 2,
                             int(screen_pos[1]) + tile_screen_size // 2),
                 )
-                self._parent._offscreen.blit(text, text_rect)
+                self._ctx.offscreen.blit(text, text_rect)

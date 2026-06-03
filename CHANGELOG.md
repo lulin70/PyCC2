@@ -2,6 +2,46 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.24] - 2026-06-03
+
+### Fixed
+- **[P0-1]** Eliminated 94 `self._parent._` penetration couplings — introduced RenderContext DI container
+- **[P0-2]** Completed render-path Surface pooling: particle_system (5), lighting_effects (1), deployment_ui (2), terrain_rendering_system (3)
+- **[P0-3]** Migrated 11 bare dict `publish({...})` calls to TypedDict or `publish_named()`
+- **[P1-3]** Consolidated Direction enum (3→1 definition) and Faction enum (3→1 definition)
+- **[P1-5]** Added logging to 6 bare `except Exception:` handlers
+- **[P1-6]** Fixed reinforcement_evasion_bgm.py syntax error and removed MagicMock from production code
+- **[P2-4]** Moved 6 loop-internal imports to module top level
+- **[P2-5]** Replaced 4 hardcoded absolute paths with Path-based relative detection
+- **[P2-2]** Replaced 26 `Any` type annotations in deployment_ui.py with proper types
+- **[P1-4]** E2E test: crash tolerance reduced from 3 to 0, extracted deployment helper
+
+### Changed
+- **[Docs]** Deleted 12 outdated documentation files, version sync to 0.3.24
+
+## [0.3.23] - 2026-06-02
+
+### Changed
+- **[OPT-01]** EventBus unification: removed redundant publish_named calls
+- **[OPT-02]** EnhancedRenderer God Class split: 2243→1377 lines, 3 sub-modules extracted
+- **[OPT-03]** SpriteRenderer Surface pooling: 17 allocations replaced
+- **[OPT-04]** ParticlePool activation: dual-mode pool (dataclass + dict)
+- **[OPT-05]** Orphan module marking: 8 modules marked PLANNED
+- **[OPT-06]** Duplicate code elimination: shared rendering_utils.py, enum import consolidation
+- **[OPT-07]** Hardcoded path fix: absolute path → relative
+
+## [0.3.22] - 2026-06-02
+
+### Fixed
+- **[P0]** EventBus dual-channel bridge: publish() auto-bridges TypedDict events to named handlers
+- **[P0]** Surface pooling: _get_pooled_surface() with LRU eviction
+- **[P1]** Achievement persistence: load() on startup, save() on shutdown
+- **[P1]** Explosion event: published in CombatDirector
+- **[P1]** pyproject.toml version: 0.3.0 → 0.3.21
+
+### Changed
+- Created CHANGELOG.md, deleted 9 outdated docs
+
 ## [0.3.21] - 2026-06-02
 
 ### Fixed

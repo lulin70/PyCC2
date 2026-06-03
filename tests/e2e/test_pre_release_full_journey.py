@@ -39,6 +39,28 @@ MAX_FRAME_TIME_MS = 100.0
 BATTLE_TICKS = 900
 
 
+def _deploy_infantry(deployment_ui, count=1):
+    """Deploy infantry units from available units."""
+    deployed = []
+    available = deployment_ui.state.available_units
+    for i, u in enumerate(available):
+        if len(deployed) >= count:
+            break
+        if u.unit_type == "infantry" and not u.is_placed:
+            for tile_x, tile_y in deployment_ui.state.friendly_zone[:20]:
+                terrain = deployment_ui._get_terrain_at(tile_x, tile_y)
+                if deployment_ui.can_place_at(u, tile_x, tile_y, terrain):
+                    occupied = any(
+                        pu.position == (tile_x, tile_y)
+                        for pu in deployment_ui.state.placed_units
+                    )
+                    if not occupied:
+                        deployment_ui.place_unit(i, tile_x, tile_y)
+                        deployed.append(u)
+                        break
+    return deployed
+
+
 def _find_map_path() -> Path:
     map_dir = Path(__file__).resolve().parent.parent.parent / "data" / "maps"
     for candidate in sorted(map_dir.glob("*.json")):
@@ -174,36 +196,14 @@ class TestPreReleaseFullJourney:
         available = deployment_ui.state.available_units
         assert len(available) >= 6, f"Need at least 6 units, got {len(available)}"
 
-        inf_idx = None
-        for i, u in enumerate(available):
-            if u.unit_type == "infantry" and not u.is_placed:
-                inf_idx = i
-                break
-        assert inf_idx is not None
-
         result = deployment_ui.handle_click_full(
             screen_x=50, screen_y=50,
             map_offset_x=0, map_offset_y=0,
             tile_size=16,
         )
 
-        friendly_zone = deployment_ui.state.friendly_zone
-        placed_count = 0
-        for tile_x, tile_y in friendly_zone[:30]:
-            terrain = deployment_ui._get_terrain_at(tile_x, tile_y)
-            unit = available[inf_idx]
-            if deployment_ui.can_place_at(unit, tile_x, tile_y, terrain):
-                occupied = any(
-                    pu.position == (tile_x, tile_y)
-                    for pu in deployment_ui.state.placed_units
-                )
-                if not occupied:
-                    deployment_ui.place_unit(inf_idx, tile_x, tile_y)
-                    placed_count += 1
-                    if placed_count >= 3:
-                        break
-
-        assert placed_count >= 1, "Should place at least 1 unit"
+        deployed = _deploy_infantry(deployment_ui, count=3)
+        assert len(deployed) >= 1, "Should place at least 1 unit"
 
         game_loop.renderer.render(
             game_map=game_map,
@@ -234,21 +234,7 @@ class TestPreReleaseFullJourney:
         game_loop.start_deployment(map_data=map_data, faction="allied")
         deployment_ui = game_loop.deployment_ui
 
-        available = deployment_ui.state.available_units
-        placed = 0
-        for i, u in enumerate(available):
-            if u.unit_type == "infantry" and not u.is_placed and placed < 3:
-                for tile_x, tile_y in deployment_ui.state.friendly_zone[:20]:
-                    terrain = deployment_ui._get_terrain_at(tile_x, tile_y)
-                    if deployment_ui.can_place_at(u, tile_x, tile_y, terrain):
-                        occupied = any(
-                            pu.position == (tile_x, tile_y)
-                            for pu in deployment_ui.state.placed_units
-                        )
-                        if not occupied:
-                            deployment_ui.place_unit(i, tile_x, tile_y)
-                            placed += 1
-                            break
+        _deploy_infantry(deployment_ui, count=3)
 
         result = game_loop.complete_deployment()
         assert result is not None, "complete_deployment should return result"
@@ -271,19 +257,7 @@ class TestPreReleaseFullJourney:
         game_loop.start_deployment(map_data=map_data, faction="allied")
         deployment_ui = game_loop.deployment_ui
 
-        available = deployment_ui.state.available_units
-        for i, u in enumerate(available):
-            if u.unit_type == "infantry" and not u.is_placed:
-                for tile_x, tile_y in deployment_ui.state.friendly_zone[:20]:
-                    terrain = deployment_ui._get_terrain_at(tile_x, tile_y)
-                    if deployment_ui.can_place_at(u, tile_x, tile_y, terrain):
-                        occupied = any(
-                            pu.position == (tile_x, tile_y)
-                            for pu in deployment_ui.state.placed_units
-                        )
-                        if not occupied:
-                            deployment_ui.place_unit(i, tile_x, tile_y)
-                            break
+        _deploy_infantry(deployment_ui)
 
         game_loop.complete_deployment()
         state = game_loop.state
@@ -314,19 +288,7 @@ class TestPreReleaseFullJourney:
         game_loop.start_deployment(map_data=map_data, faction="allied")
         deployment_ui = game_loop.deployment_ui
 
-        available = deployment_ui.state.available_units
-        for i, u in enumerate(available):
-            if u.unit_type == "infantry" and not u.is_placed:
-                for tile_x, tile_y in deployment_ui.state.friendly_zone[:20]:
-                    terrain = deployment_ui._get_terrain_at(tile_x, tile_y)
-                    if deployment_ui.can_place_at(u, tile_x, tile_y, terrain):
-                        occupied = any(
-                            pu.position == (tile_x, tile_y)
-                            for pu in deployment_ui.state.placed_units
-                        )
-                        if not occupied:
-                            deployment_ui.place_unit(i, tile_x, tile_y)
-                            break
+        _deploy_infantry(deployment_ui)
 
         game_loop.complete_deployment()
         state = game_loop.state
@@ -361,19 +323,7 @@ class TestPreReleaseFullJourney:
         game_loop.start_deployment(map_data=map_data, faction="allied")
         deployment_ui = game_loop.deployment_ui
 
-        available = deployment_ui.state.available_units
-        for i, u in enumerate(available):
-            if u.unit_type == "infantry" and not u.is_placed:
-                for tile_x, tile_y in deployment_ui.state.friendly_zone[:20]:
-                    terrain = deployment_ui._get_terrain_at(tile_x, tile_y)
-                    if deployment_ui.can_place_at(u, tile_x, tile_y, terrain):
-                        occupied = any(
-                            pu.position == (tile_x, tile_y)
-                            for pu in deployment_ui.state.placed_units
-                        )
-                        if not occupied:
-                            deployment_ui.place_unit(i, tile_x, tile_y)
-                            break
+        _deploy_infantry(deployment_ui)
 
         game_loop.complete_deployment()
 
@@ -499,24 +449,11 @@ class TestPreReleaseFullJourney:
         game_loop.start_deployment(map_data=map_data, faction="allied")
         deployment_ui = game_loop.deployment_ui
 
-        available = deployment_ui.state.available_units
-        for i, u in enumerate(available):
-            if u.unit_type == "infantry" and not u.is_placed:
-                for tile_x, tile_y in deployment_ui.state.friendly_zone[:20]:
-                    terrain = deployment_ui._get_terrain_at(tile_x, tile_y)
-                    if deployment_ui.can_place_at(u, tile_x, tile_y, terrain):
-                        occupied = any(
-                            pu.position == (tile_x, tile_y)
-                            for pu in deployment_ui.state.placed_units
-                        )
-                        if not occupied:
-                            deployment_ui.place_unit(i, tile_x, tile_y)
-                            break
+        _deploy_infantry(deployment_ui)
 
         game_loop.complete_deployment()
         state = game_loop.state
 
-        crash_count = 0
         for tick in range(BATTLE_TICKS):
             try:
                 game_loop._update_logic(1.0 / 30.0)
@@ -529,11 +466,7 @@ class TestPreReleaseFullJourney:
                         camera=state.camera,
                     )
             except Exception as e:
-                crash_count += 1
-                if crash_count > 3:
-                    pytest.fail(f"Too many crashes at tick {tick}: {e}")
-
-        assert crash_count == 0, f"Battle had {crash_count} crashes"
+                pytest.fail(f"Game crashed during 900-tick battle: {e}")
 
     # ====================================================================
     # PHASE 8: Victory/Defeat Detection + Post-Battle
@@ -689,19 +622,7 @@ class TestPreReleaseFullJourney:
         game_loop.start_deployment(map_data=map_data, faction="axis")
         deployment_ui = game_loop.deployment_ui
 
-        available = deployment_ui.state.available_units
-        for i, u in enumerate(available):
-            if u.unit_type == "infantry" and not u.is_placed:
-                for tile_x, tile_y in deployment_ui.state.friendly_zone[:20]:
-                    terrain = deployment_ui._get_terrain_at(tile_x, tile_y)
-                    if deployment_ui.can_place_at(u, tile_x, tile_y, terrain):
-                        occupied = any(
-                            pu.position == (tile_x, tile_y)
-                            for pu in deployment_ui.state.placed_units
-                        )
-                        if not occupied:
-                            deployment_ui.place_unit(i, tile_x, tile_y)
-                            break
+        _deploy_infantry(deployment_ui)
 
         result = game_loop.complete_deployment()
         assert result is not None
@@ -819,19 +740,7 @@ class TestPreReleaseFullJourney:
         game_loop.start_deployment(map_data=map_data, faction="allied")
         deployment_ui = game_loop.deployment_ui
 
-        available = deployment_ui.state.available_units
-        for i, u in enumerate(available):
-            if u.unit_type == "infantry" and not u.is_placed:
-                for tile_x, tile_y in deployment_ui.state.friendly_zone[:20]:
-                    terrain = deployment_ui._get_terrain_at(tile_x, tile_y)
-                    if deployment_ui.can_place_at(u, tile_x, tile_y, terrain):
-                        occupied = any(
-                            pu.position == (tile_x, tile_y)
-                            for pu in deployment_ui.state.placed_units
-                        )
-                        if not occupied:
-                            deployment_ui.place_unit(i, tile_x, tile_y)
-                            break
+        _deploy_infantry(deployment_ui)
 
         game_loop.complete_deployment()
         state = game_loop.state

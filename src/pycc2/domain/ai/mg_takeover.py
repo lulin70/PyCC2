@@ -223,7 +223,7 @@ class MGTakeoverSystem:
         """Register the MG as abandoned in the FallenUnitCache."""
         self._fallen_cache.register(dead_gunner, current_tick)
 
-        self.event_bus.publish({
+        self.event_bus.publish_named("MGAbandoned", {
             "action": "mg_abandoned",
             "unit_id": dead_gunner.id,
             "position": (
@@ -266,7 +266,7 @@ class MGTakeoverSystem:
         replacement.unit_type = UnitType.MACHINE_GUN_SQUAD
 
         # Publish takeover event
-        self.event_bus.publish({
+        self.event_bus.publish_named("MGTakeover", {
             "action": "mg_takeover",
             "replacement_id": replacement.id,
             "dead_gunner_id": record.dead_gunner_id,

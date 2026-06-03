@@ -7,7 +7,7 @@
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
 <img src="https://img.shields.io/badge/Tests-3657%20passed-brightgreen.svg" alt="Tests" />
 <img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%8885%25-yellow.svg" alt="CC2 Fidelity" />
-<img src="https://img.shields.io/badge/Status-Pre--Release-blue.svg" alt="Status" />
+<img src="https://img.shields.io/badge/Status-Alpha-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
 </p>
 
@@ -19,7 +19,37 @@
 
 ---
 
-## What's New in v0.3.21
+## What's New in v0.3.24
+
+### 🏗️ v0.3.24 — Critical Architecture Fix (June 3, 2026)
+- **[P0-1]** Eliminated 94 `self._parent._` penetration couplings — introduced RenderContext DI container
+- **[P0-2]** Completed render-path Surface pooling: particle_system (5), lighting_effects (1), deployment_ui (2), terrain_rendering_system (3)
+- **[P0-3]** Migrated 11 bare dict `publish({...})` calls to TypedDict or `publish_named()`
+- **[P1-3]** Consolidated Direction enum (3→1) and Faction enum (3→1)
+- **[P1-5]** Added logging to 6 bare `except Exception:` handlers
+- **[P1-6]** Fixed reinforcement_evasion_bgm.py syntax error, removed MagicMock from production
+- **[P2-4]** Moved 6 loop-internal imports to module top level
+- **[P2-5]** Replaced 4 hardcoded absolute paths with Path-based relative detection
+- **[P2-2]** Replaced 26 `Any` type annotations in deployment_ui.py with proper types
+- **[P1-4]** E2E test: crash tolerance reduced from 3 to 0, extracted deployment helper
+- **[Docs]** Deleted 12 outdated documentation files, version sync to 0.3.24
+
+### 🚀 v0.3.23 — Optimization Round 1 (June 2, 2026)
+- **[OPT-01]** EventBus unification: removed redundant publish_named calls
+- **[OPT-02]** EnhancedRenderer God Class split: 2243→1377 lines, 3 sub-modules extracted
+- **[OPT-03]** SpriteRenderer Surface pooling: 17 allocations replaced
+- **[OPT-04]** ParticlePool activation: dual-mode pool (dataclass + dict)
+- **[OPT-05]** Orphan module marking: 8 modules marked PLANNED
+- **[OPT-06]** Duplicate code elimination: shared rendering_utils.py, enum import consolidation
+- **[OPT-07]** Hardcoded path fix: absolute path → relative
+
+### 🔧 v0.3.22 — Critical Bug Fixes (June 2, 2026)
+- **[P0]** EventBus dual-channel bridge: publish() auto-bridges TypedDict events to named handlers
+- **[P0]** Surface pooling: _get_pooled_surface() with LRU eviction
+- **[P1]** Achievement persistence: load() on startup, save() on shutdown
+- **[P1]** Explosion event: published in CombatDirector
+- **[P1]** pyproject.toml version: 0.3.0 → 0.3.21
+- **[Docs]** Created CHANGELOG.md, deleted 9 outdated docs
 
 ### 🎬 v0.3.17-v0.3.21 — Cinematic Effects & Deep Integration (June 2, 2026)
 - **Camera Effects System**: EffectStack with 5 effect types (shake/zoom/slow-motion/push-pull/freeze) + 6 easing functions

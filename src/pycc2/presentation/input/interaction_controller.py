@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 
 import pygame
 
+from pycc2.services.event_protocol import PlayerCommand
+
 from pycc2.presentation.ui.cursor_manager import CursorManager, CursorType
 from pycc2.presentation.ui.radial_menu import RadialMenu, RadialCommand
 
@@ -319,7 +321,7 @@ class InteractionController:
                             if self._on_move_command:  # Reuse for ground attack
                                 self._on_move_command(self._selected_ids, target.position)
 
-                        self._event_bus.publish({
+                        self._event_bus.publish_named("AttackCommand", {
                             "command": "attack",
                             "unit_ids": list(self._selected_ids),
                             "target_id": target.unit_id,
@@ -652,33 +654,33 @@ class InteractionController:
                 self._on_move_command(self._selected_ids, result.world_position)
                 # Set movement mode
                 if cmd_name == "fast_move":
-                    self._event_bus.publish({"command": "fast_move", "unit_ids": list(self._selected_ids)})
+                    self._event_bus.publish(PlayerCommand(command="fast_move", unit_ids=list(self._selected_ids)))
                 elif cmd_name == "sneak":
-                    self._event_bus.publish({"command": "sneak", "unit_ids": list(self._selected_ids)})
-            self._event_bus.publish({
-                "command": cmd_name,
-                "unit_ids": list(self._selected_ids),
-                "target": (
+                    self._event_bus.publish(PlayerCommand(command="sneak", unit_ids=list(self._selected_ids)))
+            self._event_bus.publish(PlayerCommand(
+                command=cmd_name,
+                unit_ids=list(self._selected_ids),
+                target=(
                     result.world_position.x if result.world_position else 0,
                     result.world_position.y if result.world_position else 0,
                 ),
-            })
+            ))
         elif cmd_name == "attack":
             # Attack command: target is the unit at release position
             result = self.hit_test(screen_pos, units)
             if result.is_unit_click and result.hit_unit and self._on_attack_command:
                 self._on_attack_command(self._selected_ids, result.hit_unit.id)
-            self._event_bus.publish({
-                "command": "attack",
-                "unit_ids": list(self._selected_ids),
-                "target_id": result.hit_unit.id if result.is_unit_click and result.hit_unit else None,
-            })
+            self._event_bus.publish(PlayerCommand(
+                command="attack",
+                unit_ids=list(self._selected_ids),
+                target_id=result.hit_unit.id if result.is_unit_click and result.hit_unit else None,
+            ))
         else:
             # Instant commands (smoke, defend, hide) - no target needed
-            self._event_bus.publish({
-                "command": cmd_name,
-                "unit_ids": list(self._selected_ids),
-            })
+            self._event_bus.publish(PlayerCommand(
+                command=cmd_name,
+                unit_ids=list(self._selected_ids),
+            ))
 
     # ====== Ctrl-key LOS visualization ======
 

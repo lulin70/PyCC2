@@ -658,8 +658,8 @@ class SoundSystem:
                         ch = mixer.Channel(lowest_priority_channel)
                         ch.stop()
                         del self._active_sounds[lowest_priority_channel]
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.warning("Channel stop failed: %s", e)
                 else:
                     self._dropped_sound_count += 1
                     return False

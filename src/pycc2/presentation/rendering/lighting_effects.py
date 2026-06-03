@@ -70,6 +70,8 @@ class LightingEffectsSystem:
         # CC2颜色分级缓存（性能优化：避免重复numpy计算）
         self._grading_cache: dict[tuple[int, int], pygame.Surface] = {}
         self._last_grading_size: tuple[int, int] | None = None
+        self._light_surface_pool: dict[tuple[int, int], pygame.Surface] = {}
+        self._MAX_LIGHT_SURFACE_POOL = 30
 
     @staticmethod
     def get_health_tinted_color(base_color: tuple, unit) -> tuple:
@@ -331,6 +333,19 @@ class LightingEffectsSystem:
         for light in expired:
             self._dynamic_lights.remove(light)
 
+    def _get_light_surface(self, w: int, h: int) -> pygame.Surface:
+        key = (w, h)
+        if key in self._light_surface_pool:
+            surf = self._light_surface_pool.pop(key)
+            self._light_surface_pool[key] = surf
+            surf.fill((0, 0, 0, 0))
+            return surf
+        surf = pygame.Surface((w, h), pygame.SRCALPHA)
+        if len(self._light_surface_pool) >= self._MAX_LIGHT_SURFACE_POOL:
+            self._light_surface_pool.pop(next(iter(self._light_surface_pool)))
+        self._light_surface_pool[key] = surf
+        return surf
+
     def render_dynamic_lights(self, surface: pygame.Surface) -> None:
         """
         渲染所有活跃的动态光源到目标表面。
@@ -360,7 +375,7 @@ class LightingEffectsSystem:
             radius = int(light['radius'] * (2.0 - progress * 0.5))
             
             # 为此光源创建表面
-            light_surf = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+            light_surf = self._get_light_surface(radius * 2, radius * 2)
             
             # 径向渐变使用多层同心圆（4 层）
             # 每层有不同的透明度以实现平滑衰减

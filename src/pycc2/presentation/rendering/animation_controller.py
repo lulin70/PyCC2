@@ -11,7 +11,8 @@ import pygame
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
-    from pycc2.presentation.rendering.direction_sprite import Direction, DirectionSpriteSet
+    from pycc2.domain.value_objects.direction import Direction
+    from pycc2.presentation.rendering.direction_sprite import DirectionSpriteSet
 
 
 class AnimationState(Enum):
@@ -199,7 +200,7 @@ class AnimationController:
         if not self._sprite_set:
             return
 
-        from pycc2.presentation.rendering.direction_sprite import Direction
+        from pycc2.domain.value_objects.direction import Direction
 
         for state, anim_def in self._animations.items():
             new_frames = []
@@ -307,7 +308,7 @@ class AnimationController:
             # 使用新的CC2写实像素生成器
             cache_key = (
                 unit.unit_type.value,
-                unit.faction.value if hasattr(unit, 'faction') else 'allies',
+                unit.faction.name if hasattr(unit, 'faction') else 'ALLIES',
                 unit.direction.value if hasattr(unit, 'direction') else 0,
                 unit.state if hasattr(unit, 'state') else 'idle',
                 self._animation_frame
@@ -315,10 +316,12 @@ class AnimationController:
 
             if cache_key not in self._sprite_cache:
                 try:
-                    from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D, Direction, Faction
+                    from pycc2.domain.value_objects.direction import Direction
+                    from pycc2.domain.entities.unit import Faction
+                    from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
 
                     direction = Direction(unit.direction.value) if hasattr(unit, 'direction') else Direction.SOUTH
-                    faction = Faction(unit.faction.value.lower()) if hasattr(unit, 'faction') else Faction.ALLIES
+                    faction = unit.faction if hasattr(unit, 'faction') and isinstance(unit.faction, Faction) else Faction.ALLIES
                     state = unit.state if hasattr(unit, 'state') else 'idle'
 
                     sprite = PixelArtist3D.create_infantry_sprite(
@@ -373,7 +376,7 @@ class AnimationController:
             return frame.surface
 
         if self._sprite_set:
-            from pycc2.presentation.rendering.direction_sprite import Direction
+            from pycc2.domain.value_objects.direction import Direction
             direction = Direction.from_angle(self._current_direction)
             return self._sprite_set.get_sprite(
                 direction,

@@ -7,11 +7,14 @@ Includes time-of-day effects, dynamic lights, and CC2-authentic color grading.
 
 from __future__ import annotations
 
+import logging
 import math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import pygame
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     pass
@@ -276,5 +279,5 @@ class LightingSystem:
                 # Blit onto main surface
                 surface.blit(light_surf, (cx - center, cy - center),
                            special_flags=pygame.BLEND_RGBA_ADD)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("Dynamic light rendering failed: %s", e)

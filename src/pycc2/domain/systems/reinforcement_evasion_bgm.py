@@ -45,16 +45,20 @@ class ReinforcementEvent:
         return units
     
     def _create_single_unit(self, pos: tuple[float, float], index: int):
-        """Create a single unit (mock implementation)."""
-        from unittest.mock import MagicMock
-        
-        unit = MagicMock()
-        unit.name = f"{self.reinforcement_type.value}_{self.faction}_{index}"
-        unit.position_component = MagicMock()
-        unit.position_component.x = pos[0] + random.uniform(-1, 1)
-        unit.position_component.y = pos[1] + random.uniform(-1, 1)
-        unit.faction = self.faction
-        
+        """Create a single unit (stub implementation)."""
+        @dataclass
+        class _StubUnit:
+            name: str
+            faction: str
+            x: float = 0.0
+            y: float = 0.0
+
+        unit = _StubUnit(
+            name=f"{self.reinforcement_type.value}_{self.faction}_{index}",
+            faction=self.faction,
+            x=pos[0] + random.uniform(-1, 1),
+            y=pos[1] + random.uniform(-1, 1),
+        )
         return unit
 
 
@@ -350,6 +354,5 @@ class DynamicBGMSystem:
         return self._current_intensity
     
     @property
-    is_crossfading: bool
-    def get_func():
-        return lambda self: self._crossfading
+    def is_crossfading(self) -> bool:
+        return self._crossfading

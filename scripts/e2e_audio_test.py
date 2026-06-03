@@ -19,7 +19,7 @@ import numpy as np
 import pytest
 
 # Add project root to path for imports
-sys.path.insert(0, "/Users/lin/trae_projects/PyCC2")
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Import all audio modules
 from pycc2.infrastructure.audio.weapon_sounds import (

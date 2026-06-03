@@ -5,8 +5,9 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass, field
-from enum import Enum, auto
 from typing import TYPE_CHECKING
+
+from pycc2.domain.value_objects.direction import Direction
 
 logger = logging.getLogger(__name__)
 
@@ -14,69 +15,6 @@ import pygame
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
-
-
-class Direction(Enum):
-    """8 compass directions for unit facing."""
-    NORTH = 0
-    NORTHEAST = 1
-    EAST = 2
-    SOUTHEAST = 3
-    SOUTH = 4
-    SOUTHWEST = 5
-    WEST = 6
-    NORTHWEST = 7
-
-    @classmethod
-    def from_angle(cls, angle: float) -> "Direction":
-        """
-        Convert angle in degrees to Direction.
-
-        Args:
-            angle: Angle in degrees (0=East, 90=South, 180=West, 270=North)
-
-        Returns:
-            Nearest Direction enum value
-        """
-        normalized = (angle + 360) % 360
-
-        sector_size = 45.0 / 2.0
-        adjusted = (normalized + sector_size) % 360
-        index = int(adjusted / 45.0) % 8
-
-        direction_map = {
-            0: Direction.EAST,
-            1: Direction.SOUTHEAST,
-            2: Direction.SOUTH,
-            3: Direction.SOUTHWEST,
-            4: Direction.WEST,
-            5: Direction.NORTHWEST,
-            6: Direction.NORTH,
-            7: Direction.NORTHEAST,
-        }
-        return direction_map[index]
-
-    def to_angle(self) -> float:
-        """Convert Direction to angle in degrees (CC2 convention: 0=East, 90=South)."""
-        angles = {
-            Direction.EAST: 0.0,
-            Direction.SOUTHEAST: 45.0,
-            Direction.SOUTH: 90.0,
-            Direction.SOUTHWEST: 135.0,
-            Direction.WEST: 180.0,
-            Direction.NORTHWEST: 225.0,
-            Direction.NORTH: 270.0,
-            Direction.NORTHEAST: 315.0,
-        }
-        return angles[self]
-
-    def to_unit_facing(self) -> float:
-        """
-        Convert to unit facing angle (CC2 convention).
-
-        0=East, 90=South, 180=West, 270=North
-        """
-        return self.to_angle()
 
 
 @dataclass(slots=True)

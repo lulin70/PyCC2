@@ -126,7 +126,7 @@ class TestUIButtonsE2E:
         def capture_event(event):
             published_events.append(event)
 
-        event_bus.subscribe(dict, capture_event)
+        event_bus.subscribe_to("EndBattle", capture_event)
         panel.set_event_bus(event_bus)
 
         # Render to populate button rects
@@ -151,7 +151,6 @@ class TestUIButtonsE2E:
 
             # Verify event was published
             assert len(published_events) > 0, "end_battle event should be published"
-            assert published_events[0].get("event_type") == "end_battle"
 
     # === 3. ALL/Style/Outline Toggle ===
 

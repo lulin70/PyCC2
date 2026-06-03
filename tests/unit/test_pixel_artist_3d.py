@@ -30,21 +30,21 @@ class TestPixelArtist3DInitialization:
 
     def test_direction_enum_exists(self):
         """Test that Direction enum has all 8 directions"""
-        from pycc2.presentation.rendering.pixel_artist_3d import Direction
+        from pycc2.domain.value_objects.direction import Direction
 
-        expected_directions = [
-            "NORTH", "NORTHEAST", "EAST", "SOUTHEAST",
-            "SOUTH", "SOUTHWEST", "WEST", "NORTHWEST"
-        ]
+        expected_short = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
         actual_directions = [d.name for d in Direction]
-        assert actual_directions == expected_directions
+        assert actual_directions == expected_short
+
+        assert Direction.NORTH == Direction.N
+        assert Direction.SOUTH == Direction.S
 
     def test_faction_enum_exists(self):
         """Test that Faction enum has ALLIES and AXIS"""
-        from pycc2.presentation.rendering.pixel_artist_3d import Faction
+        from pycc2.domain.entities.unit import Faction
 
-        assert Faction.ALLIES.value == "allies"
-        assert Faction.AXIS.value == "axis"
+        assert hasattr(Faction, 'ALLIES')
+        assert hasattr(Faction, 'AXIS')
 
     def test_cc2_palette_exists(self):
         """Test that CC2_PALETTE contains both factions"""

@@ -20,7 +20,7 @@ import numpy as np
 import pygame
 
 if TYPE_CHECKING:
-    from pycc2.presentation.rendering.direction_sprite import Direction
+    from pycc2.domain.value_objects.direction import Direction
 
 
 class SpritesheetLayout(Enum):
@@ -473,7 +473,8 @@ def create_direction_sprite_set_from_spritesheet(
     Returns:
         Populated DirectionSpriteSet ready for use
     """
-    from pycc2.presentation.rendering.direction_sprite import Direction, DirectionSpriteSet
+    from pycc2.domain.value_objects.direction import Direction
+    from pycc2.presentation.rendering.direction_sprite import DirectionSpriteSet
     
     config = SpritesheetConfig()
     
