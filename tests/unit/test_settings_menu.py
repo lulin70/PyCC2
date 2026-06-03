@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from pycc2.presentation.rendering.display_config import DisplayConfig
+from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.presentation.ui.settings_menu import (
     SettingsMenu,
     SettingsState,

@@ -4,17 +4,18 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from pycc2.domain.interfaces import IAIService
+
 import pygame
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.presentation.rendering.camera import Camera
-    from pycc2.presentation.rendering.display_config import DisplayConfig
+    from pycc2.domain.interfaces.display_config import DisplayConfig
     from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
     from pycc2.presentation.rendering.window_config import WindowManager
     from pycc2.presentation.rendering.weather_system import WeatherRenderer
-    from pycc2.services.ai_service import AIService
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ class RenderPipeline:
     command_bar: object | None = None
     unit_panel: object | None = None
     minimap: object | None = None
-    ai_service: AIService | None = None
+    ai_service: IAIService | None = None
     use_full_hud: bool = True
     weather_renderer: WeatherRenderer | None = None
 

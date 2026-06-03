@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 from pygame import mixer
 
+from pycc2.presentation.audio.sound_effects import SoundEffectsMixin
+
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -173,7 +175,7 @@ class ProceduralSoundGenerator:
         return (wave * 18000).astype(np.int16)
 
 
-class SoundSystem:
+class SoundSystem(SoundEffectsMixin):
     def __init__(self, config: SoundConfig | None = None, mixer_config: AudioMixerConfig | None = None):
         self._config = config or SoundConfig()
         self._mixer_config = mixer_config or AudioMixerConfig()
@@ -353,151 +355,6 @@ class SoundSystem:
         if ch is None:
             ch = mixer.Channel(0)
         ch.play(sound)
-
-    def play_ui_click(self) -> None:
-        if not self._available:
-            return
-        self.play(SoundType.UI_CLICK)
-
-    def play_ui_command(self) -> None:
-        if not self._available:
-            return
-        self.play(SoundType.UI_COMMAND if hasattr(SoundType, 'UI_COMMAND') else SoundType.UI_CLICK)
-
-    def play_ui_hover(self) -> None:
-        if not self._available:
-            return
-        self.play(SoundType.UI_HOVER)
-
-    def play_shot(self, weapon_type: str = "rifle") -> None:
-        if not self._available:
-            return
-        if weapon_type == "mg":
-            self.play(SoundType.MG_BURST)
-        elif weapon_type == "pistol":
-            self.play(SoundType.PISTOL_SHOT)
-        else:
-            self.play(SoundType.RIFLE_SHOT)
-
-    def play_hit(self, is_critical: bool = False) -> None:
-        if not self._available:
-            return
-        self.play(SoundType.HIT_CRITICAL if is_critical else SoundType.HIT_CONFIRM)
-
-    def play_explosion(self) -> None:
-        if not self._available:
-            return
-        self.play(SoundType.EXPLOSION)
-
-    def play_death(self) -> None:
-        if not self._available:
-            return
-        self.play(SoundType.UNIT_DEATH)
-
-    def play_footstep(self, terrain: str = "grass") -> None:
-        if not self._available:
-            return
-        mapping = {
-            "grass": SoundType.FOOTSTEP_GRASS,
-            "road": SoundType.FOOTSTEP_ROAD,
-            "wood": SoundType.FOOTSTEP_WOOD,
-        }
-        st = mapping.get(terrain, SoundType.FOOTSTEP_GRASS)
-        self.play(st)
-
-    def play_morale_change(self, old_state: str, new_state: str) -> None:
-        """Play sound effect for morale state changes."""
-        if not self._available:
-            return
-
-        # Map morale states to appropriate sound types
-        warning_states = {'pinned', 'suppressed', 'shaken'}
-        panic_states = {'broken', 'routing', 'fleeing'}
-
-        if new_state.lower() in panic_states:
-            self.play(SoundType.UNIT_PANIC)
-        elif new_state.lower() in warning_states:
-            self.play(SoundType.UNIT_SUPPRESSED)
-        elif old_state and new_state == 'normal' or new_state == 'steady':
-            self.play(SoundType.UI_SUCCESS)
-
-    def play_command_confirm(self, command_type: str = "move") -> None:
-        """Play command confirmation sound based on command type."""
-        if not self._available:
-            return
-        self.play(SoundType.UI_COMMAND)
-
-    def play_unit_select(self) -> None:
-        """Play unit selection sound."""
-        if not self._available:
-            return
-        self.play(SoundType.UI_SELECT)
-
-    def play_unit_died(self) -> None:
-        """Play unit death sound effect."""
-        if not self._available:
-            return
-        self.play(SoundType.UNIT_DEATH)
-
-    def play_victory(self) -> None:
-        """Play victory fanfare."""
-        if not self._available:
-            return
-        # Victory: ascending tone sequence
-        try:
-            n_samples = int(ProceduralSoundGenerator.SAMPLE_RATE * 0.8)
-            t = np.linspace(0, 0.8, n_samples, dtype=np.float32)
-            
-            # Ascending major chord arpeggio
-            freqs = [523.25, 659.25, 783.99, 1046.50]  # C5, E5, G5, C6
-            wave = np.zeros(n_samples, dtype=np.float32)
-            
-            for i, freq in enumerate(freqs):
-                start = int(i * n_samples / len(freqs))
-                end = min(start + int(n_samples / len(freqs)), n_samples)
-                segment = t[start:end] - t[start]
-                envelope = np.exp(-segment * 3)
-                wave[start:end] += np.sin(2 * np.pi * freq * segment) * envelope * 0.3
-            
-            wave = (wave / max(np.abs(wave).max(), 1) * 28000).astype(np.int16)
-            sound = self._make_sound(wave)
-            sound.set_volume(self._config.sfx_volume * self._config.master_volume)
-            ch = mixer.find_channel(True)
-            if ch:
-                ch.play(sound)
-        except Exception as e:
-            logger.warning("Victory sound generation failed: %s", e)
-            self.play(SoundType.UI_SUCCESS)
-
-    def play_defeat(self) -> None:
-        """Play defeat sound effect."""
-        if not self._available:
-            return
-        # Defeat: descending minor tone
-        try:
-            n_samples = int(ProceduralSoundGenerator.SAMPLE_RATE * 1.0)
-            t = np.linspace(0, 1.0, n_samples, dtype=np.float32)
-            
-            # Descending minor chord
-            freqs = [440.00, 349.23, 293.66, 220.00]  # A4, F4, D4, A3
-            wave = np.zeros(n_samples, dtype=np.float32)
-            
-            for i, freq in enumerate(freqs):
-                start = int(i * n_samples / len(freqs))
-                end = min(start + int(n_samples / len(freqs)), n_samples)
-                segment = t[start:end] - t[start]
-                envelope = np.exp(-segment * 2.5)
-                wave[start:end] += np.sin(2 * np.pi * freq * segment) * envelope * 0.25
-            
-            wave = (wave / max(np.abs(wave).max(), 1) * 25000).astype(np.int16)
-            sound = self._make_sound(wave)
-            sound.set_volume(self._config.sfx_volume * self._config.master_volume)
-            ch = mixer.find_channel(True)
-            if ch:
-                ch.play(sound)
-        except Exception as e:
-            logger.warning("Defeat sound generation failed: %s", e)
-            self.play(SoundType.UI_ERROR)
 
     @property
     def config(self) -> SoundConfig:

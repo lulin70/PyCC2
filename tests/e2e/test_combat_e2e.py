@@ -131,7 +131,7 @@ def enemy_commander() -> Unit:
 
 @pytest.fixture
 def display_config():
-    from pycc2.presentation.rendering.display_config import DisplayConfig
+    from pycc2.domain.interfaces.display_config import DisplayConfig
 
     return DisplayConfig()
 

@@ -403,7 +403,7 @@ class TestBattleTransition:
             InteractionMode,
         )
         from pycc2.services.combat_director import CombatDirector
-        from pycc2.presentation.rendering.display_config import DisplayConfig
+        from pycc2.domain.interfaces.display_config import DisplayConfig
 
         ic = InteractionController(camera=camera, game_map=game_map, event_bus=event_bus)
 

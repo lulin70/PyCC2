@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from pycc2.presentation.rendering.display_config import DisplayConfig
+from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.presentation.ui.hint_manager import ActiveHint, HintManager, HINTS
 from pycc2.presentation.ui.tutorial_system import (
     TutorialOverlay,

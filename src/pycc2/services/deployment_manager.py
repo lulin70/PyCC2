@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
-    from pycc2.presentation.rendering.display_config import DisplayConfig
+    from pycc2.domain.interfaces.display_config import DisplayConfig
     from pycc2.presentation.ui.deployment_ui import DeploymentUI
     from pycc2.services.ai_service import AIService
 

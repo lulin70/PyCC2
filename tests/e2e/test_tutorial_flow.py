@@ -7,7 +7,7 @@ import pygame
 import pytest
 
 from pycc2.presentation.ui.tutorial_system import TutorialOverlay, TutorialStep, TutorialState
-from pycc2.presentation.rendering.display_config import DisplayConfig
+from pycc2.domain.interfaces.display_config import DisplayConfig
 
 
 @pytest.fixture(scope="module")

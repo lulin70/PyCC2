@@ -399,7 +399,7 @@ class MedicAI(TacticalAIBase):
                 continue
             enemy_pos = enemy.position.tile_coord
             # Check if enemy can see the midpoint
-            if hasattr(context.game_map, 'has_line_of_sight'):
+            if hasattr(context.game_map, 'has_line_of_sight') and callable(context.game_map.has_line_of_sight):
                 if context.game_map.has_line_of_sight(enemy_pos, mid):
                     return False
             else:

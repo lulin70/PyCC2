@@ -9,8 +9,6 @@ import pygame
 
 from pycc2.domain.entities.unit import UnitState
 
-from pycc2.presentation.ui.combat_popup import CombatPopupManager
-
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
@@ -18,7 +16,7 @@ if TYPE_CHECKING:
     from pycc2.presentation.input.handler import PygameInputHandler
     from pycc2.presentation.input.interaction_controller import InteractionController
     from pycc2.presentation.rendering.camera import Camera
-    from pycc2.presentation.rendering.display_config import DisplayConfig
+    from pycc2.domain.interfaces.display_config import DisplayConfig
     from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
     from pycc2.presentation.rendering.window_config import WindowManager
     from pycc2.presentation.ui.deployment_ui import DeploymentUI
@@ -87,7 +85,7 @@ class GameLoop:
     _event_dispatcher: EventDispatcher = field(init=False, default=None)
     _campaign_ui: object | None = field(init=False, default=None)
     time_control: TimeControlUI | None = field(init=False, default=None)
-    _popup_manager: CombatPopupManager = field(init=False, default=None)
+    _popup_manager: object | None = field(init=False, default=None)
     _effect_stack: object | None = field(init=False, default=None)
     _combat_camera: object | None = field(init=False, default=None)
     _achievement_bridge: object | None = field(init=False, default=None)
@@ -96,7 +94,7 @@ class GameLoop:
     def __post_init__(self) -> None:
         from pycc2.presentation.audio.sound_system import SoundSystem as SS
         from pycc2.presentation.input.input_router import InputRouter
-        from pycc2.presentation.rendering.display_config import DisplayConfig as DC
+        from pycc2.domain.interfaces.display_config import DisplayConfig as DC
         from pycc2.presentation.rendering.render_pipeline import RenderPipeline
         from pycc2.presentation.ui.time_control import TimeControlUI
         from pycc2.services.combat_director import CombatDirector
@@ -152,6 +150,7 @@ class GameLoop:
         self.time_control = TimeControlUI()
 
         # Combat popup manager (CC2-style floating text)
+        from pycc2.presentation.ui.combat_popup import CombatPopupManager
         self._popup_manager = CombatPopupManager()
 
         if self.use_full_hud:
@@ -203,7 +202,7 @@ class GameLoop:
 
         # -- Achievement system --
         from pycc2.domain.systems.achievement_system import AchievementManager, create_default_achievements
-        from pycc2.domain.systems.achievement_event_bridge import AchievementEventBridge
+        from pycc2.services.achievement_event_bridge import AchievementEventBridge
 
         achievement_mgr = AchievementManager()
         for ach in create_default_achievements():

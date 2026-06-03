@@ -1100,7 +1100,7 @@ class E2EAdvancedGameTest:
         self.logger.info("=" * 70)
         try:
             from pycc2.presentation.rendering.minimap import Minimap
-            from pycc2.presentation.rendering.display_config import DisplayConfig
+            from pycc2.domain.interfaces.display_config import DisplayConfig
 
             # 初始化Minimap (160x160默认)
             dc = DisplayConfig()

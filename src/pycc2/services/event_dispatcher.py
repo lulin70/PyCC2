@@ -15,7 +15,7 @@ import pygame
 
 if TYPE_CHECKING:
     from pycc2.presentation.audio.sound_system import SoundSystem
-    from pycc2.presentation.rendering.display_config import DisplayConfig
+    from pycc2.domain.interfaces.display_config import DisplayConfig
     from pycc2.presentation.rendering.window_config import WindowManager
     from pycc2.presentation.input.input_router import InputRouter
     from pycc2.presentation.ui.time_control import TimeControlUI

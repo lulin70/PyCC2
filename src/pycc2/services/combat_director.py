@@ -5,11 +5,12 @@ import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from pycc2.domain.interfaces import ISoundSystem
+
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
-    from pycc2.presentation.audio.sound_system import SoundSystem
-    from pycc2.presentation.rendering.display_config import DisplayConfig
+    from pycc2.domain.interfaces import DisplayConfig
     from pycc2.services.event_bus import EventBus
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 class CombatDirector:
     event_bus: EventBus
     display_config: DisplayConfig
-    sound_system: SoundSystem | None = None
+    sound_system: ISoundSystem | None = None
     ballistic_engine: object | None = None
     pathfinder: object | None = None
 

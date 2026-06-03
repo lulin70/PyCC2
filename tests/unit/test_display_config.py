@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pycc2.presentation.rendering.display_config import (
+from pycc2.domain.interfaces.display_config import (
     DisplayConfig,
     QualityPreset,
 )

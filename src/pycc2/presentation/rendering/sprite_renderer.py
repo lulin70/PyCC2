@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.presentation.rendering.camera import Camera
-    from pycc2.presentation.rendering.display_config import DisplayConfig
+    from pycc2.domain.interfaces.display_config import DisplayConfig
 
     from ..domain.value_objects.vec2 import Vec2
 
@@ -32,7 +32,7 @@ class SpriteRenderer:
     SPRITE_SIZE: int = 32  # CC2-style units (scaled up for 48px tiles)
 
     def __init__(self, display_config: DisplayConfig | None = None):
-        from pycc2.presentation.rendering.display_config import DisplayConfig as DC
+        from pycc2.domain.interfaces.display_config import DisplayConfig as DC
         from pycc2.presentation.rendering.asset_loader import AssetLoader
 
         self._display_config: DisplayConfig = display_config or DC()

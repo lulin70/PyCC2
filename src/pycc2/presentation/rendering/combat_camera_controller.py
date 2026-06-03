@@ -12,6 +12,7 @@ Integration points:
 
 from typing import Any, Optional, TYPE_CHECKING
 
+from pycc2.domain.interfaces import IEventPublisher
 from pycc2.presentation.rendering.camera_effects import (
     EffectStack,
     create_shake,
@@ -22,7 +23,6 @@ from pycc2.presentation.rendering.camera_effects import (
 )
 
 if TYPE_CHECKING:
-    from pycc2.services.event_bus import EventBus
     from pycc2.presentation.rendering.camera import Camera
 
 
@@ -44,7 +44,7 @@ class CombatCameraController:
     def set_enabled(self, enabled: bool) -> None:
         self._enabled = enabled
 
-    def subscribe(self, event_bus: "EventBus") -> None:
+    def subscribe(self, event_bus: IEventPublisher) -> None:
         """Subscribe to combat events from EventBus."""
         event_bus.subscribe_to("UnitAttacked", self._on_unit_attacked)
         event_bus.subscribe_to("UnitKilled", self._on_unit_killed)

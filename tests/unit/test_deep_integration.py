@@ -21,7 +21,7 @@ from pycc2.presentation.rendering.combat_camera_controller import CombatCameraCo
 from pycc2.domain.systems.achievement_system import (
     AchievementManager, Achievement, AchievementCategory, create_default_achievements,
 )
-from pycc2.domain.systems.achievement_event_bridge import AchievementEventBridge
+from pycc2.services.achievement_event_bridge import AchievementEventBridge
 from pycc2.presentation.rendering.projectile_trail_system import ProjectileTrailSystem
 from pycc2.presentation.rendering.dynamic_shadow_system import DynamicShadowSystem
 

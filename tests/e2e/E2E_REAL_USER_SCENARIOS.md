@@ -2130,7 +2130,7 @@ print(f"快捷键提示: {keybinds}")
 
 ```python
 from pycc2.presentation.ui.settings_menu import SettingsMenu
-from pycc2.presentation.rendering.display_config import DisplayConfig
+from pycc2.domain.interfaces.display_config import DisplayConfig
 
 dc = DisplayConfig()
 settings = SettingsMenu(dc, keybind_manager=KeybindManager())

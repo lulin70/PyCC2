@@ -74,7 +74,7 @@ from pycc2.presentation.input.interaction_controller import (
 )
 from pycc2.presentation.rendering.camera import Camera
 from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
-from pycc2.presentation.rendering.display_config import DisplayConfig
+from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 from pycc2.presentation.rendering.minimap import Minimap
 from pycc2.presentation.ui.deployment_ui import DeploymentUI, DeploymentPhase

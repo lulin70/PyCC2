@@ -154,12 +154,7 @@ class DebugCommand(TypedDict, total=False):
     timestamp: float
 
 
-class PlayerCommand(TypedDict, total=False):
-    command: Required[str]
-    unit_ids: Required[list[str]]
-    target_id: NotRequired[str]
-    target: NotRequired[tuple[int, int]]
-    timestamp: float
+from pycc2.domain.interfaces.event_types import PlayerCommand  # noqa: F401 — re-export for backward compatibility
 
 
 __all__ = [

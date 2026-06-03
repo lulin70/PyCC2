@@ -53,7 +53,7 @@ class WindowManager:
         return self._screen
 
     def initialize_with_config(self, display_config) -> pygame.Surface:
-        from pycc2.presentation.rendering.display_config import DisplayConfig as DC
+        from pycc2.domain.interfaces.display_config import DisplayConfig as DC
 
         if not isinstance(display_config, DC):
             return self.initialize()

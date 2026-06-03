@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING
 
 import pygame
 
-from pycc2.services.event_protocol import PlayerCommand
+from pycc2.domain.interfaces import IEventPublisher
+from pycc2.domain.interfaces.event_types import PlayerCommand
 
 from pycc2.presentation.ui.cursor_manager import CursorManager, CursorType
 from pycc2.presentation.ui.radial_menu import RadialMenu, RadialCommand
@@ -21,7 +22,6 @@ if TYPE_CHECKING:
     from pycc2.domain.value_objects.tile_coord import TileCoord
     from pycc2.domain.value_objects.vec2 import Vec2
     from pycc2.presentation.rendering.camera import Camera
-    from pycc2.services.event_bus import EventBus
     from pycc2.presentation.input.attack_line_system import AttackLineSystem
 
 
@@ -46,7 +46,7 @@ class InteractionController:
         self,
         camera: Camera,
         game_map: GameMap,
-        event_bus: EventBus,
+        event_bus: IEventPublisher,
     ) -> None:
         self._camera = camera
         self._game_map = game_map

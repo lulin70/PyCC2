@@ -12,7 +12,7 @@ from pygame import Rect, Surface, draw
 from pygame.font import Font
 
 from pycc2.domain.entities.unit import Unit
-from pycc2.presentation.rendering.display_config import DisplayConfig
+from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.presentation.rendering.visual_spec import VisualSpec
 
 

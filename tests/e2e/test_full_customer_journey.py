@@ -261,7 +261,7 @@ class TestFullCustomerJourney:
     def test_10_settings_menu_works(self):
         """User can access settings."""
         from pycc2.presentation.ui.settings_menu import SettingsMenu
-        from pycc2.presentation.rendering.display_config import DisplayConfig
+        from pycc2.domain.interfaces.display_config import DisplayConfig
         from pycc2.presentation.ui.keybind_manager import KeybindManager
 
         dc = DisplayConfig()

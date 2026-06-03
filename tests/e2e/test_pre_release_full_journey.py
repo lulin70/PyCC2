@@ -91,7 +91,7 @@ class TestPreReleaseFullJourney:
         from pycc2.services.ai_service import AIService
         from pycc2.services.event_bus import EventBus
         from pycc2.services.game_loop import GameLoop, GameState
-        from pycc2.presentation.rendering.display_config import DisplayConfig as DC
+        from pycc2.domain.interfaces.display_config import DisplayConfig as DC
         from pycc2.presentation.ui.hint_manager import HintManager
         from pycc2.presentation.ui.keybind_manager import KeybindManager
         from pycc2.presentation.ui.settings_menu import SettingsMenu

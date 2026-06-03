@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from pycc2.presentation.input.interaction_controller import InteractionController
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
-    from pycc2.presentation.rendering.display_config import DisplayConfig
+    from pycc2.domain.interfaces.display_config import DisplayConfig
     from pycc2.presentation.rendering.minimap import Minimap
     from pycc2.presentation.rendering.render_pipeline import RenderPipeline
     from pycc2.presentation.rendering.window_config import WindowManager

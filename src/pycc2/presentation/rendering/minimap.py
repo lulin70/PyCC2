@@ -10,7 +10,7 @@ import pygame
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit
 from pycc2.domain.value_objects.tile_coord import TileCoord
-from pycc2.presentation.rendering.display_config import DisplayConfig
+from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.presentation.rendering.visual_spec import VisualSpec
 
 

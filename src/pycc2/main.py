@@ -139,7 +139,7 @@ def main() -> int:
             )
 
             # Create UI systems (PS-10, PS-11)
-            from pycc2.presentation.rendering.display_config import DisplayConfig as DC
+            from pycc2.domain.interfaces.display_config import DisplayConfig as DC
             from pycc2.presentation.ui.hint_manager import HintManager
             from pycc2.presentation.ui.keybind_manager import KeybindManager
             from pycc2.presentation.ui.settings_menu import SettingsMenu
@@ -277,7 +277,7 @@ def main() -> int:
         )
 
         # Create UI systems (PS-10, PS-11)
-        from pycc2.presentation.rendering.display_config import DisplayConfig as DC
+        from pycc2.domain.interfaces.display_config import DisplayConfig as DC
         from pycc2.presentation.ui.hint_manager import HintManager
         from pycc2.presentation.ui.keybind_manager import KeybindManager
         from pycc2.presentation.ui.settings_menu import SettingsMenu

@@ -4,7 +4,7 @@ import logging
 import time
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Required, TypeVar, get_type_hints
+from typing import Any, Required, TypeVar, get_type_hints, overload
 
 E = TypeVar("E")
 
@@ -16,20 +16,30 @@ from pycc2.domain.interfaces import IEventPublisher
 
 class EventBus(IEventPublisher):
     def __init__(self) -> None:
-        self._handlers: dict[type[Any], list[Callable[[Any], None]]] = defaultdict(list)
+        self._handlers: dict[type, list[Callable]] = defaultdict(list)
         self._named_handlers: dict[str, list[Callable[[dict], None]]] = defaultdict(list)
-        self._queue: list[tuple[float, Any]] = []
+        self._queue: list[tuple[float, dict | object]] = []
         self._error_count: int = 0
         self._total_published: int = 0
-        self._registered_types: set[type[Any]] = set()
+        self._registered_types: set[type] = set()
 
-    def subscribe(self, event_type: type[E], handler: Callable[[E], None]) -> None:
-        """注册事件处理器"""
+    @overload
+    def subscribe(self, event_type: type[E], handler: Callable[[E], None]) -> None: ...
+
+    @overload
+    def subscribe(self, event_type: type, handler: Callable[[Any], None]) -> None: ...
+
+    def subscribe(self, event_type: type, handler: Callable) -> None:
         self._registered_types.add(event_type)
         self._handlers[event_type].append(handler)
 
-    def unsubscribe(self, event_type: type[E], handler: Callable[[E], None]) -> bool:
-        """取消注册，返回是否成功找到"""
+    @overload
+    def unsubscribe(self, event_type: type[E], handler: Callable[[E], None]) -> bool: ...
+
+    @overload
+    def unsubscribe(self, event_type: type, handler: Callable[[Any], None]) -> bool: ...
+
+    def unsubscribe(self, event_type: type, handler: Callable) -> bool:
         try:
             self._handlers[event_type].remove(handler)
             return True
@@ -37,11 +47,9 @@ class EventBus(IEventPublisher):
             return False
 
     def subscribe_to(self, event_name: str, handler: Callable[[dict], None]) -> None:
-        """注册字符串命名事件处理器（游戏事件通道）"""
         self._named_handlers[event_name].append(handler)
 
     def unsubscribe_from(self, event_name: str, handler: Callable[[dict], None]) -> bool:
-        """取消注册命名事件处理器"""
         try:
             self._named_handlers[event_name].remove(handler)
             return True
@@ -63,7 +71,7 @@ class EventBus(IEventPublisher):
         return rk if rk is not None else frozenset()
 
     @staticmethod
-    def _match_typed_dict(event: dict[Any, Any], registered: set[type[Any]]) -> type | None:
+    def _match_typed_dict(event: dict, registered: set[type]) -> type | None:
         best_match: type | None = None
         best_count = -1
         for rt in registered:
@@ -73,8 +81,13 @@ class EventBus(IEventPublisher):
                 best_count = len(required)
         return best_match
 
-    def publish(self, event: Any) -> None:
-        """立即同步发布事件到所有订阅者"""
+    @overload
+    def publish(self, event: dict) -> None: ...
+
+    @overload
+    def publish(self, event: object) -> None: ...
+
+    def publish(self, event: dict | object) -> None:
         event_type = type(event)
         if event_type is dict and self._registered_types:
             matched = self._match_typed_dict(event, self._registered_types)
@@ -100,7 +113,12 @@ class EventBus(IEventPublisher):
             named = self._named_handlers.get(type_name, [])
             for handler in named:
                 try:
-                    handler(event if isinstance(event, dict) else dict(event) if hasattr(event, "__iter__") else {"data": event})
+                    if isinstance(event, dict):
+                        handler(event)
+                    elif hasattr(event, "__iter__"):
+                        handler(dict(event))
+                    else:
+                        handler({"data": event})
                 except (ValueError, TypeError, KeyError, RuntimeError, AttributeError) as e:
                     self._error_count += 1
                     logger.error(
@@ -109,20 +127,6 @@ class EventBus(IEventPublisher):
                         e,
                         exc_info=True,
                     )
-        elif isinstance(event, dict) and self._named_handlers:
-            for key in event.keys():
-                if isinstance(key, str) and key in self._named_handlers:
-                    for handler in self._named_handlers[key]:
-                        try:
-                            handler(event)
-                        except (ValueError, TypeError, KeyError, RuntimeError, AttributeError) as e:
-                            self._error_count += 1
-                            logger.error(
-                                "Named handler error for dict key %s: %s",
-                                key,
-                                e,
-                                exc_info=True,
-                            )
 
         if self._total_published > 0 and self._error_count / self._total_published > 0.05:
             logger.warning(
@@ -133,7 +137,6 @@ class EventBus(IEventPublisher):
             )
 
     def publish_named(self, event_name: str, data: dict) -> None:
-        """发布字符串命名事件（游戏事件通道）"""
         self._total_published += 1
         named = self._named_handlers.get(event_name, [])
         for handler in named:
@@ -148,12 +151,16 @@ class EventBus(IEventPublisher):
                     exc_info=True,
                 )
 
-    def enqueue(self, event: Any) -> None:
-        """将事件加入队列(延迟处理)，自动附加timestamp"""
+    @overload
+    def enqueue(self, event: dict) -> None: ...
+
+    @overload
+    def enqueue(self, event: object) -> None: ...
+
+    def enqueue(self, event: dict | object) -> None:
         self._queue.append((time.time(), event))
 
     def process_queue(self) -> int:
-        """处理队列中所有事件，返回处理数量"""
         count = len(self._queue)
         for _, event in self._queue:
             self.publish(event)
@@ -161,12 +168,10 @@ class EventBus(IEventPublisher):
         return count
 
     def clear_queue(self) -> None:
-        """清空队列"""
         self._queue.clear()
 
     @property
     def handler_count(self) -> int:
-        """已注册的handler总数"""
         return sum(len(hs) for hs in self._handlers.values()) + sum(len(hs) for hs in self._named_handlers.values())
 
     @property
@@ -175,14 +180,11 @@ class EventBus(IEventPublisher):
 
     @property
     def error_rate(self) -> float:
-        """异常率 = _error_count / max(1, _total_published)"""
         return self._error_count / max(1, self._total_published)
 
-    def get_handlers_for(self, event_type: type[E]) -> list[Callable[[E], None]]:
-        """获取某事件类型的所有handler(用于调试)"""
+    def get_handlers_for(self, event_type: type) -> list[Callable]:
         return list(self._handlers.get(event_type, []))
 
     def reset_stats(self) -> None:
-        """重置统计计数器"""
         self._error_count = 0
         self._total_published = 0

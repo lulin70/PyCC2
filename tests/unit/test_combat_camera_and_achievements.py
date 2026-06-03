@@ -110,14 +110,14 @@ class TestCombatCameraController:
 class TestAchievementEventBridge:
     def test_init(self):
         from pycc2.domain.systems.achievement_system import AchievementManager
-        from pycc2.domain.systems.achievement_event_bridge import AchievementEventBridge
+        from pycc2.services.achievement_event_bridge import AchievementEventBridge
         mgr = AchievementManager()
         bridge = AchievementEventBridge(mgr)
         assert bridge._battle_kills == 0
 
     def test_on_unit_killed_axis_triggers_first_blood(self):
         from pycc2.domain.systems.achievement_system import AchievementManager, Achievement, AchievementCategory
-        from pycc2.domain.systems.achievement_event_bridge import AchievementEventBridge
+        from pycc2.services.achievement_event_bridge import AchievementEventBridge
         mgr = AchievementManager()
         mgr.register(Achievement(
             achievement_id="first_blood", name="First Blood",
@@ -129,7 +129,7 @@ class TestAchievementEventBridge:
 
     def test_on_unit_killed_tracks_sniper(self):
         from pycc2.domain.systems.achievement_system import AchievementManager, Achievement, AchievementCategory
-        from pycc2.domain.systems.achievement_event_bridge import AchievementEventBridge
+        from pycc2.services.achievement_event_bridge import AchievementEventBridge
         mgr = AchievementManager()
         mgr.register(Achievement(
             achievement_id="sharpshooter", name="Sharpshooter",
@@ -141,7 +141,7 @@ class TestAchievementEventBridge:
 
     def test_on_unit_killed_tracks_tank(self):
         from pycc2.domain.systems.achievement_system import AchievementManager, Achievement, AchievementCategory
-        from pycc2.domain.systems.achievement_event_bridge import AchievementEventBridge
+        from pycc2.services.achievement_event_bridge import AchievementEventBridge
         mgr = AchievementManager()
         mgr.register(Achievement(
             achievement_id="tank_buster", name="Tank Buster",
@@ -153,7 +153,7 @@ class TestAchievementEventBridge:
 
     def test_on_battle_won_tracks_commander(self):
         from pycc2.domain.systems.achievement_system import AchievementManager, Achievement, AchievementCategory
-        from pycc2.domain.systems.achievement_event_bridge import AchievementEventBridge
+        from pycc2.services.achievement_event_bridge import AchievementEventBridge
         mgr = AchievementManager()
         mgr.register(Achievement(
             achievement_id="commander", name="Commander",
@@ -165,7 +165,7 @@ class TestAchievementEventBridge:
 
     def test_on_battle_won_zero_casualties(self):
         from pycc2.domain.systems.achievement_system import AchievementManager, Achievement, AchievementCategory
-        from pycc2.domain.systems.achievement_event_bridge import AchievementEventBridge
+        from pycc2.services.achievement_event_bridge import AchievementEventBridge
         mgr = AchievementManager()
         mgr.register(Achievement(
             achievement_id="zero_casualties", name="Zero Casualties",
@@ -177,7 +177,7 @@ class TestAchievementEventBridge:
 
     def test_on_campaign_complete(self):
         from pycc2.domain.systems.achievement_system import AchievementManager, Achievement, AchievementCategory
-        from pycc2.domain.systems.achievement_event_bridge import AchievementEventBridge
+        from pycc2.services.achievement_event_bridge import AchievementEventBridge
         mgr = AchievementManager()
         mgr.register(Achievement(
             achievement_id="market_garden", name="Market Garden",
@@ -189,7 +189,7 @@ class TestAchievementEventBridge:
 
     def test_reset_battle_stats(self):
         from pycc2.domain.systems.achievement_system import AchievementManager
-        from pycc2.domain.systems.achievement_event_bridge import AchievementEventBridge
+        from pycc2.services.achievement_event_bridge import AchievementEventBridge
         mgr = AchievementManager()
         bridge = AchievementEventBridge(mgr)
         bridge._battle_kills = 10
