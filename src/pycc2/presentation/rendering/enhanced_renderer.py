@@ -86,6 +86,7 @@ from pycc2.presentation.rendering.render_context import RenderContext
 # Import extracted sub-modules (SRP refactoring)
 from pycc2.presentation.rendering.particle_effects_renderer import ParticleEffectsRenderer
 from pycc2.presentation.rendering.environment_renderer import EnvironmentRenderer
+from pycc2.presentation.rendering.ui_overlay_renderer import UIOverlayRenderer
 
 from dataclasses import dataclass
 
@@ -122,9 +123,6 @@ class EnhancedRenderer:
     EDGE_SMOOTH_ALPHA_PEAK = 45  # Peak alpha for edge smoothing
     TRANSITION_ALPHA_PEAK = 140  # Peak alpha for terrain transitions
     MIN_FONT_SIZE = 10  # Minimum UI font size (pixels)
-    PULSE_BASE_ALPHA = 200  # Base alpha for pulse animation
-    PULSE_AMPLITUDE = 55  # Pulse animation amplitude
-    PULSE_FREQUENCY = 2.0  # Pulse animation frequency (Hz)
     TRANSPARENT_BLACK = (0, 0, 0, 0)  # Fully transparent color
 
     def __init__(self, attack_line_system=None, lighting_config: TopDownLightingConfig | None = None):
@@ -202,6 +200,7 @@ class EnhancedRenderer:
         # Initialize extracted SRP modules (delegate pattern for backward compatibility)
         self._particle_effects = ParticleEffectsRenderer()
         self._environment = EnvironmentRenderer()
+        self._ui_overlay = UIOverlayRenderer(self._render_ctx)
 
         self._enable_cc2_color_grading: bool = True
         self._hud = None
@@ -251,6 +250,7 @@ class EnhancedRenderer:
     def set_attack_line_system(self, attack_line_system) -> None:
         """Set attack line system (dependency injection setter - P0-2 Fix)."""
         self._attack_line_system = attack_line_system
+        self._ui_overlay.set_attack_line_system(attack_line_system)
 
     def set_projectile_trail_system(self, trail_system) -> None:
         """Set projectile trail system (dependency injection setter)."""
@@ -516,125 +516,8 @@ class EnhancedRenderer:
         self._building_renderer.draw_building_floor_numbers(game_map, camera)
 
     def _draw_vl_flags(self, game_map: GameMap, camera: Camera) -> None:
-        """Draw Victory Location flags and edge arrows on the map.
-
-        Delegates to SpriteRenderer if available, otherwise draws directly.
-        """
-        if self._offscreen is None:
-            return
-
-        # Delegate to SpriteRenderer which has the VL flag drawing methods
-        if self._sprite_renderer is not None:
-            # Point SpriteRenderer at our offscreen buffer temporarily
-            original_target = self._sprite_renderer._target_surface
-            self._sprite_renderer._target_surface = self._offscreen
-            try:
-                self._sprite_renderer._draw_vl_flags(game_map, camera)
-            finally:
-                self._sprite_renderer._target_surface = original_target
-            return
-
-        # Fallback: simple direct drawing if no SpriteRenderer
-        import math
-        import time as _time
-        from pycc2.domain.value_objects.vec2 import Vec2
-
-        objectives = getattr(game_map, 'objectives', [])
-        if not objectives:
-            return
-
-        screen_w = self._offscreen.get_width()
-        screen_h = self._offscreen.get_height()
-        off_screen_vls: list[tuple[int, int, str]] = []
-
-        for obj in objectives:
-            tile_x = obj.position.x * self.TILE_SIZE + self.TILE_SIZE // 2
-            tile_y = obj.position.y * self.TILE_SIZE + self.TILE_SIZE // 2
-            sp = camera.world_to_screen(Vec2(tile_x, tile_y))
-            sx, sy = int(sp[0]), int(sp[1])
-
-            owner = getattr(obj, 'owner', None) or 'neutral'
-            margin = 60
-            on_screen = (-margin < sx < screen_w + margin and -margin < sy < screen_h + margin)
-
-            if on_screen:
-                # Simple flag drawing
-                pygame.draw.line(self._offscreen, (80, 80, 80), (sx, sy), (sx, sy - 20), 2)
-                if owner == 'allies':
-                    flag_color = (60, 100, 200)
-                elif owner == 'axis':
-                    flag_color = (200, 60, 60)
-                else:
-                    flag_color = (200, 200, 200)
-                flag_points = [
-                    (sx + 1, sy - 20), (sx + 14, sy - 17),
-                    (sx + 13, sy - 10), (sx + 1, sy - 13),
-                ]
-                pygame.draw.polygon(self._offscreen, flag_color, flag_points)
-                pygame.draw.polygon(self._offscreen, (0, 0, 0), flag_points, 1)
-
-                # V02增强: 显示VP数字（大号黄色+阴影描边+缩放动画）
-                vp_value = getattr(obj, 'points', None)
-                if vp_value is not None and isinstance(vp_value, (int, float)):
-                    try:
-                        font = pygame.font.Font(None, 38)  # 38px bold (原28→38)
-                        vp_text = str(int(vp_value))
-
-                        # 脉冲动画效果（缩放+透明度双重效果）
-                        pulse_scale = math.sin(_time.time() * 3.0) * 0.05 + 1.0  # 缩放因子 0.95~1.05
-                        pulse_alpha = int(self.PULSE_BASE_ALPHA + self.PULSE_AMPLITUDE * abs(math.sin(_time.time() * self.PULSE_FREQUENCY)))
-
-                        # 绘制黑色描边（4方向1px偏移，更清晰锐利）
-                        text_color = (255, 220, 100)  # 亮金黄色 RGB(255, 220, 100)
-
-                        base_x = sx - font.size(vp_text)[0] // 2
-                        base_y = sy - 40
-
-                        for dx, dy in [(-1, -1), (1, -1), (-1, 1), (1, 1)]:
-                            outline_surf = font.render(vp_text, True, (0, 0, 0))
-                            outline_surf.set_alpha(pulse_alpha)
-                            offset_x = int(base_x + dx * pulse_scale)
-                            offset_y = int(base_y + dy * pulse_scale)
-                            self._offscreen.blit(outline_surf, (offset_x, offset_y))
-
-                        # 绘制主文字（亮金黄色+缩放动画）
-                        text_surf = font.render(vp_text, True, text_color)
-                        text_surf.set_alpha(pulse_alpha)
-
-                        if pulse_scale != 1.0:
-                            new_w = int(text_surf.get_width() * pulse_scale)
-                            new_h = int(text_surf.get_height() * pulse_scale)
-                            text_surf = pygame.transform.scale(text_surf, (new_w, new_h))
-
-                        final_x = int(base_x - (text_surf.get_width() - font.size(vp_text)[0]) // 2)
-                        final_y = int(base_y - (text_surf.get_height() - font.size(vp_text)[1]) // 2)
-                        self._offscreen.blit(text_surf, (final_x, final_y))
-                    except (AttributeError, ValueError):
-                        pass  # 字体渲染失败时静默跳过
-            else:
-                off_screen_vls.append((tile_x, tile_y, owner))
-
-        # Edge arrows for off-screen VLs
-        arrow_margin = 30
-        for wx, wy, owner in off_screen_vls:
-            sp = camera.world_to_screen(Vec2(wx, wy))
-            sx, sy = sp[0], sp[1]
-            cx = max(arrow_margin, min(screen_w - arrow_margin, sx))
-            cy = max(arrow_margin, min(screen_h - arrow_margin, sy))
-            color = (60, 100, 200) if owner == 'allies' else (200, 60, 60) if owner == 'axis' else (200, 200, 200)
-            angle = math.atan2(sy - cy, sx - cx)
-            arrow_size = 10
-            tip_x = cx + arrow_size * math.cos(angle)
-            tip_y = cy + arrow_size * math.sin(angle)
-            left_x = cx + arrow_size * math.cos(angle + 2.5)
-            left_y = cy + arrow_size * math.sin(angle + 2.5)
-            right_x = cx + arrow_size * math.cos(angle - 2.5)
-            right_y = cy + arrow_size * math.sin(angle - 2.5)
-            pygame.draw.polygon(self._offscreen, color, [
-                (int(tip_x), int(tip_y)),
-                (int(left_x), int(left_y)),
-                (int(right_x), int(right_y)),
-            ])
+        """Delegate to UIOverlayRenderer for VL flags and edge arrows."""
+        self._ui_overlay.draw_vl_flags(game_map, camera)
 
     def _get_enhanced_tile(self, game_map: GameMap, x: int, y: int):
         """Try to get enhanced tile data from map."""
@@ -818,137 +701,16 @@ class EnhancedRenderer:
     def _draw_direction_indicator(
         self, cx: int, cy: int, radius: int, unit_color: tuple
     ) -> None:
-        """Draw a direction arrow on top of unit showing facing direction.
-
-        Arrow length = radius * 0.6, color contrasts with unit color.
-        Uses unit.facing_direction or unit.direction, defaults to up (-π/2).
-        """
-        if self._offscreen is None:
-            return
-
-        facing = -math.pi / 2
-        if hasattr(unit, 'facing_direction'):
-            facing = unit.facing_direction
-        elif hasattr(unit, 'direction'):
-            facing = unit.direction
-
-        arrow_length = max(4, int(radius * 0.6))
-        arrow_width = max(2, arrow_length // 3)
-
-        end_x = cx + int(arrow_length * math.cos(facing))
-        end_y = cy + int(arrow_length * math.sin(facing))
-
-        brightness = sum(unit_color[:3]) / 3
-        arrow_color = (0, 0, 0) if brightness > 127 else (255, 255, 255)
-
-        pygame.draw.line(self._offscreen, arrow_color, (cx, cy), (end_x, end_y), 2)
-
-        left_angle = facing + math.pi - (math.pi / 6)
-        right_angle = facing + math.pi + (math.pi / 6)
-
-        left_x = end_x + int(arrow_width * math.cos(left_angle))
-        left_y = end_y + int(arrow_width * math.sin(left_angle))
-        right_x = end_x + int(arrow_width * math.cos(right_angle))
-        right_y = end_y + int(arrow_width * math.sin(right_angle))
-
-        pygame.draw.polygon(
-            self._offscreen,
-            arrow_color,
-            [(end_x, end_y), (left_x, left_y), (right_x, right_y)],
-        )
+        """Delegate to UnitRenderer for direction arrow drawing."""
+        # NOTE: unit param is resolved via closure in original callback context.
+        # For direct calls, use self._unit_renderer.draw_direction_indicator(cx, cy, radius, color, unit).
+        self._unit_renderer.draw_direction_indicator(cx, cy, radius, unit_color, unit)  # type: ignore[arg-type]
 
     def _draw_movement_mode_overlay(
         self, unit, cx: int, cy: int, radius: int, base_color: tuple
     ) -> None:
-        """Draw visual overlay for movement mode states.
-
-        Modes:
-        - fast_move: Motion trail (semi-transparent copy offset backward)
-        - sneak: Reduced opacity + edge blur effect
-        - defend: Shield indicator ring or armor arc
-        - normal: No overlay
-        """
-        if self._offscreen is None:
-            return
-
-        movement_mode = getattr(unit, "movement_mode", "normal")
-
-        if movement_mode == "fast_move":
-            facing = -math.pi / 2
-            if hasattr(unit, "facing_direction"):
-                facing = unit.facing_direction
-            elif hasattr(unit, "direction"):
-                facing = unit.direction
-
-            offset_dist = 3
-            trail_cx = cx - int(offset_dist * math.cos(facing))
-            trail_cy = cy - int(offset_dist * math.sin(facing))
-
-            trail_size = radius * 2 + 4
-            trail_surf = self._get_pooled_surface((trail_size, trail_size))
-            trail_center = trail_size // 2
-
-            trail_color = (*base_color[:3], 100)
-
-            trail_radius = max(3, radius - 2)
-            pygame.draw.circle(trail_surf, trail_color, (trail_center, trail_center), trail_radius)
-
-            self._offscreen.blit(
-                trail_surf,
-                (trail_cx - trail_center, trail_cy - trail_center),
-            )
-
-        elif movement_mode == "sneak":
-            alpha_surface = self._get_pooled_surface((radius * 2 + 10, radius * 2 + 10))
-            center = radius + 5
-
-            sneak_color = (*base_color[:3], 140)
-            pygame.draw.circle(alpha_surface, sneak_color, (center, center), radius)
-
-            edge_alpha = 80
-            for i in range(3):
-                edge_r = radius + 2 + i
-                edge_color = (*base_color[:3], edge_alpha - i * 20)
-                pygame.draw.circle(alpha_surface, edge_color, (center, center), edge_r, 1)
-
-            self._offscreen.blit(alpha_surface, (cx - center, cy - center))
-
-        elif movement_mode == "defend":
-            shield_color = (100, 200, 255, 180)
-            shield_surf = self._get_pooled_surface((radius * 2 + 20, radius * 2 + 20))
-            center = radius + 10
-
-            inner_r = radius + 4
-            outer_r = radius + 8
-
-            pygame.draw.arc(
-                shield_surf,
-                shield_color,
-                (
-                    center - outer_r,
-                    center - outer_r,
-                    outer_r * 2,
-                    outer_r * 2,
-                ),
-                math.pi * 0.75,
-                math.pi * 2.25,
-                3,
-            )
-            pygame.draw.arc(
-                shield_surf,
-                (*shield_color[:3], 120),
-                (
-                    center - inner_r,
-                    center - inner_r,
-                    inner_r * 2,
-                    inner_r * 2,
-                ),
-                math.pi * 0.75,
-                math.pi * 2.25,
-                2,
-            )
-
-            self._offscreen.blit(shield_surf, (cx - center, cy - center))
+        """Delegate to UnitRenderer for movement mode overlay."""
+        self._unit_renderer.draw_movement_mode_overlay(unit, cx, cy, radius, base_color)
 
     def _apply_height_lighting(self, surface: pygame.Surface, height: int) -> pygame.Surface:
         """Delegate to EnvironmentRenderer for height-based lighting."""
@@ -1043,174 +805,16 @@ class EnhancedRenderer:
         self, cx: int, cy: int, radius: int, color: tuple[int, int, int],
         selected: bool = False
     ) -> None:
-        """Draw a hexagon-shaped unit (mimics CC2 style)."""
-        if self._screen is None:
-            return
-        
-        points = []
-        for i in range(6):
-            angle = math.pi / 3 * i - math.pi / 6
-            x = cx + int(radius * math.cos(angle))
-            y = cy + int(radius * math.sin(angle))
-            points.append((x, y))
-        
-        # Fill
-        pygame.draw.polygon(self._offscreen, color, points)
-        
-        # Outline (darker)
-        outline_color = (
-            max(0, color[0] - 50),
-            max(0, color[1] - 50),
-            max(0, color[2] - 50)
-        )
-        pygame.draw.polygon(self._offscreen, outline_color, points, 2)
-        
-        # Selection indicator
-        if selected:
-            select_color = (255, 255, 0)
-            pygame.draw.circle(self._offscreen, select_color, (cx, cy), radius + 3, 2)
+        """Delegate to UnitRenderer for hexagon-shaped unit drawing."""
+        self._unit_renderer.draw_hexagon(cx, cy, radius, color, selected)
 
     def _draw_attack_lines(self, camera: Camera) -> None:
-        """Draw CC2-style attack lines with color coding.
-
-        Green line = Can attack (in range, clear LOS)
-        Red/Orange line = Cannot attack (out of range or blocked)
-        Yellow dashed = Tracking unit target
-        """
-        if self._offscreen is None:
-            return
-
-        # Get attack line system from game state or global
-        import pygame as pg
-        from pycc2.presentation.input.attack_line_system import AttackLineSystem, AttackLineStatus
-
-        # Get attack line system (injected via constructor - P0-2 Fix)
-        import pygame as pg
-        from pycc2.presentation.input.attack_line_system import AttackLineSystem, AttackLineStatus
-
-        attack_line = self._attack_line_system
-        if not attack_line:
-            return
-
-        # Draw active attack line (while in ATTACK mode)
-        if attack_line.state.active and attack_line.state.source_position:
-            source = attack_line.state.source_position
-            target_state = attack_line.state.target
-
-            if target_state:
-                # Convert world to screen coordinates
-                src_screen = camera.world_to_screen(source)
-                tgt_screen = camera.world_to_screen(target_state.position)
-
-                # Get color based on status
-                status = target_state.status
-                color = attack_line.get_line_color(status)
-
-                # Draw line
-                start_pos = (int(src_screen[0]), int(src_screen[1]))
-                end_pos = (int(tgt_screen[0]), int(tgt_screen[1]))
-
-                if status == AttackLineStatus.CAN_ATTACK:
-                    # Solid green line
-                    pg.draw.line(self._offscreen, color[:3], start_pos, end_pos, 2)
-                    # Draw circle at target
-                    pg.draw.circle(self._offscreen, (0, 255, 0), end_pos, 6, 2)
-                elif status == AttackLineStatus.OUT_OF_RANGE:
-                    # Dashed red line
-                    self._draw_dashed_line(start_pos, end_pos, (255, 50, 50), dash_len=8)
-                    # X mark at target
-                    size = 6
-                    pg.draw.line(self._offscreen, (255, 50, 50),
-                                (end_pos[0]-size, end_pos[1]-size),
-                                (end_pos[0]+size, end_pos[1]+size), 2)
-                    pg.draw.line(self._offscreen, (255, 50, 50),
-                                (end_pos[0]-size, end_pos[1]+size),
-                                (end_pos[0]+size, end_pos[1]-size), 2)
-                elif status == AttackLineStatus.BLOCKED:
-                    # Orange dashed line
-                    self._draw_dashed_line(start_pos, end_pos, (255, 140, 0), dash_len=8)
-                    # Block icon at target
-                    pg.draw.circle(self._offscreen, (255, 140, 0), end_pos, 8, 2)
-                    pg.draw.line(self._offscreen, (255, 140, 0),
-                                (end_pos[0]-4, end_pos[1]),
-                                (end_pos[0]+4, end_pos[1]), 2)
-
-                # Draw range circle around source
-                if hasattr(attack_line, 'COLOR_CAN_ATTACK'):
-                    pass  # Already used above
-
-        # Draw confirmed attacks (tracking lines)
-        for unit_id, confirmed_target in attack_line._confirmed_attacks.items():
-            if not confirmed_target.unit_id:
-                continue  # Only draw tracking lines for unit targets
-
-            # Source: attacker position (from _active_source or confirmed_target)
-            source_pos = getattr(attack_line, '_active_source', None)
-            if source_pos is not None:
-                source_screen = camera.world_to_screen(source_pos)
-            else:
-                # Fallback: use confirmed_target position (may be slightly off)
-                source_screen = camera.world_to_screen(confirmed_target.position)
-            # Target position is updated by update_tracking()
-            target_screen = camera.world_to_screen(confirmed_target.position)
-
-            # Red solid line for confirmed attacks (CC2 uses solid red)
-            pg.draw.line(
-                self._offscreen,
-                (255, 50, 50),
-                (int(source_screen[0]), int(source_screen[1])),
-                (int(target_screen[0]), int(target_screen[1])),
-                2,
-            )
+        """Delegate to UIOverlayRenderer for CC2-style attack lines."""
+        self._ui_overlay.draw_attack_lines(camera)
 
     def render_los_overlay(self, surface: pygame.Surface, unit, game_map, camera) -> None:
-        """Render line-of-sight visualization for the selected unit.
-
-        Called when Ctrl key is held down. Shows visible/hidden areas.
-        """
-        if unit is None or game_map is None:
-            return
-
-        from pycc2.domain.systems.los_system import Lossystem
-        from pycc2.domain.value_objects.tile_coord import TileCoord
-
-        los = Lossystem(game_map)
-        ux = unit.position.tile_coord.x
-        uy = unit.position.tile_coord.y
-        tile_size = self.TILE_SIZE
-
-        # Create a semi-transparent overlay
-        overlay = pygame.Surface(
-            (game_map.width * tile_size, game_map.height * tile_size),
-            pygame.SRCALPHA,
-        )
-
-        # Check LOS from unit to each tile in range
-        vision_range = getattr(unit, 'vision', None)
-        max_range = vision_range.range if vision_range else 10
-
-        for ty in range(max(0, uy - max_range), min(game_map.height, uy + max_range + 1)):
-            for tx in range(max(0, ux - max_range), min(game_map.width, ux + max_range + 1)):
-                if tx == ux and ty == uy:
-                    continue
-
-                from_coord = TileCoord(ux, uy)
-                to_coord = TileCoord(tx, ty)
-                can_see, _ = los.check_los(from_coord, to_coord, max_range)
-                screen_x = tx * tile_size
-                screen_y = ty * tile_size
-
-                if can_see:
-                    # Visible - light green tint
-                    pygame.draw.rect(overlay, (0, 255, 0, 25), (screen_x, screen_y, tile_size, tile_size))
-                else:
-                    # Blocked - dark red tint
-                    pygame.draw.rect(overlay, (255, 0, 0, 40), (screen_x, screen_y, tile_size, tile_size))
-
-        # Blit overlay offset by camera
-        cam_x = int(camera.offset_x) if hasattr(camera, 'offset_x') else 0
-        cam_y = int(camera.offset_y) if hasattr(camera, 'offset_y') else 0
-        surface.blit(overlay, (-cam_x, -cam_y))
+        """Delegate to UIOverlayRenderer for LOS visualization."""
+        self._ui_overlay.render_los_overlay(surface, unit, game_map, camera)
 
     # ====== Combat effect proxy methods (forward to ParticleEffectsRenderer) ======
 
@@ -1222,75 +826,25 @@ class EnhancedRenderer:
         """Delegate to ParticleEffectsRenderer."""
         self._particle_effects.spawn_damage_number(position, damage, is_kill)
 
-    def spawn_muzzle_flash(self, position, direction: float) -> None:
-        """Delegate to ParticleEffectsRenderer (SpriteRenderer version)."""
-        self._particle_effects.spawn_muzzle_flash(position, direction)
+    # NOTE: spawn_muzzle_flash (ParticleSystem version) defined below at L1308.
+    # The SpriteRenderer-only version was removed — ParticleSystem version is strictly more capable.
 
     def spawn_death_effect(self, unit_id: str, position) -> None:
         """Delegate to ParticleEffectsRenderer."""
         self._particle_effects.spawn_death_effect(unit_id, position)
 
-    def spawn_explosion(self, position, size: str = "medium") -> None:
-        """Delegate to ParticleEffectsRenderer (SpriteRenderer version)."""
-        self._particle_effects.spawn_explosion_sprite(position, size)
+    # NOTE: spawn_explosion (ring+dynamic light version) defined below at L1299.
+    # The sprite-only version was removed — ring version is strictly more capable.
 
     def spawn_smoke_screen(self, position, radius: float = 64.0) -> None:
         """Delegate to ParticleEffectsRenderer."""
         self._particle_effects.spawn_smoke_screen(position, radius)
 
     def _draw_queued_commands(self, units: list, camera: Camera) -> None:
-        """Draw dashed lines for queued commands (Shift+right-click).
+        """Delegate to UIOverlayRenderer for queued command lines."""
+        self._ui_overlay.draw_queued_commands(units, camera)
 
-        Cyan dashed lines show queued move waypoints.
-        Orange dashed lines show queued attack targets.
-        """
-        if self._offscreen is None:
-            return
-
-        from pycc2.domain.value_objects.vec2 import Vec2
-
-        for unit in units:
-            if not hasattr(unit, 'has_queued_commands') or not unit.has_queued_commands:
-                continue
-
-            # Get unit screen position
-            upos = unit.position.pixel_position if hasattr(unit.position, 'pixel_position') else None
-            if upos is None:
-                continue
-
-            prev_screen = camera.world_to_screen(upos)
-
-            for cmd in unit._command_queue:
-                tx = cmd.get('target_x', 0)
-                ty = cmd.get('target_y', 0)
-                target_world = Vec2(tx * 32, ty * 32)  # tile to pixel
-                target_screen = camera.world_to_screen(target_world)
-
-                start_pos = (int(prev_screen[0]), int(prev_screen[1]))
-                end_pos = (int(target_screen[0]), int(target_screen[1]))
-
-                cmd_type = cmd.get('type', 'move')
-                if cmd_type == 'attack':
-                    # Orange dashed for queued attacks
-                    self._draw_dashed_line(start_pos, end_pos, (255, 165, 0), dash_len=6)
-                else:
-                    # Cyan dashed for queued moves
-                    self._draw_dashed_line(start_pos, end_pos, (0, 220, 220), dash_len=6)
-
-                # Draw small waypoint circle
-                import pygame as pg
-                pg.draw.circle(self._offscreen, (0, 220, 220), end_pos, 4, 1)
-
-                prev_screen = target_screen
-
-    def _draw_dashed_line(
-        self,
-        start: tuple[int, int],
-        end: tuple[int, int],
-        color: tuple[int, int, int],
-        dash_len: int = 8,
-    ) -> None:
-        draw_dashed_line(self._offscreen, color, start, end, dash_length=dash_len, gap_length=dash_len)
+    # _draw_dashed_line moved to UIOverlayRenderer._draw_dashed_line()
 
     # ============================================================
     # Particle System Convenience Methods (Top-Down VFX) - Delegated

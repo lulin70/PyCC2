@@ -239,9 +239,12 @@ class TestAttackLineRendering:
         enhanced_renderer._draw_attack_lines(camera)
 
     def test_draw_dashed_line_method_exists(self, enhanced_renderer):
-        """EnhancedRenderer should have _draw_dashed_line method."""
-        assert hasattr(enhanced_renderer, "_draw_dashed_line")
-        assert callable(enhanced_renderer._draw_dashed_line)
+        """UIOverlayRenderer should have _draw_dashed_line method (extracted from EnhancedRenderer in v0.3.28)."""
+        from pycc2.presentation.rendering.ui_overlay_renderer import UIOverlayRenderer
+        ui_overlay = enhanced_renderer._ui_overlay
+        assert isinstance(ui_overlay, UIOverlayRenderer)
+        assert hasattr(ui_overlay, "_draw_dashed_line")
+        assert callable(ui_overlay._draw_dashed_line)
 
 
 @pytest.mark.integration

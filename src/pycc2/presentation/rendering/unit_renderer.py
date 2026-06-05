@@ -244,10 +244,10 @@ class UnitRenderer:
                         )
 
                 if self._ctx.draw_direction_indicator:
-                    self._ctx.draw_direction_indicator(cx, cy, radius, color)
+                    self.draw_direction_indicator(cx, cy, radius, color, unit)
 
                 if self._ctx.draw_movement_mode_overlay:
-                    self._ctx.draw_movement_mode_overlay(unit, cx, cy, radius, color)
+                    self.draw_movement_mode_overlay(unit, cx, cy, radius, color)
 
                 if hasattr(unit, 'is_damaged') and unit.is_damaged:
                     self.draw_damage_vfx(unit, cx, cy)
@@ -309,3 +309,180 @@ class UnitRenderer:
                 core_surf = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
             pygame.draw.circle(core_surf, (*bright_color, 200), (size, size), size // 2 + 1)
             offscreen.blit(core_surf, (px - size, py - size))
+
+    # ------------------------------------------------------------------ #
+    #  Unit Shape & Overlay Helpers
+    # ------------------------------------------------------------------ #
+
+    def draw_hexagon(
+        self, cx: int, cy: int, radius: int, color: tuple[int, int, int],
+        selected: bool = False
+    ) -> None:
+        """Draw a hexagon-shaped unit (mimics CC2 style)."""
+        offscreen = self._ctx.offscreen
+        if offscreen is None:
+            return
+
+        points = []
+        for i in range(6):
+            angle = math.pi / 3 * i - math.pi / 6
+            x = cx + int(radius * math.cos(angle))
+            y = cy + int(radius * math.sin(angle))
+            points.append((x, y))
+
+        pygame.draw.polygon(offscreen, color, points)
+
+        outline_color = (
+            max(0, color[0] - 50),
+            max(0, color[1] - 50),
+            max(0, color[2] - 50)
+        )
+        pygame.draw.polygon(offscreen, outline_color, points, 2)
+
+        if selected:
+            select_color = (255, 255, 0)
+            pygame.draw.circle(offscreen, select_color, (cx, cy), radius + 3, 2)
+
+    def draw_direction_indicator(
+        self, cx: int, cy: int, radius: int, unit_color: tuple, unit
+    ) -> None:
+        """Draw a direction arrow on top of unit showing facing direction.
+
+        Arrow length = radius * 0.6, color contrasts with unit color.
+        Uses unit.facing_direction or unit.direction, defaults to up (-π/2).
+        """
+        offscreen = self._ctx.offscreen
+        if offscreen is None:
+            return
+
+        facing = -math.pi / 2
+        if hasattr(unit, 'facing_direction'):
+            facing = unit.facing_direction
+        elif hasattr(unit, 'direction'):
+            facing = unit.direction
+
+        arrow_length = max(4, int(radius * 0.6))
+        arrow_width = max(2, arrow_length // 3)
+
+        end_x = cx + int(arrow_length * math.cos(facing))
+        end_y = cy + int(arrow_length * math.sin(facing))
+
+        brightness = sum(unit_color[:3]) / 3
+        arrow_color = (0, 0, 0) if brightness > 127 else (255, 255, 255)
+
+        pygame.draw.line(offscreen, arrow_color, (cx, cy), (end_x, end_y), 2)
+
+        left_angle = facing + math.pi - (math.pi / 6)
+        right_angle = facing + math.pi + (math.pi / 6)
+
+        left_x = end_x + int(arrow_width * math.cos(left_angle))
+        left_y = end_y + int(arrow_width * math.sin(left_angle))
+        right_x = end_x + int(arrow_width * math.cos(right_angle))
+        right_y = end_y + int(arrow_width * math.sin(right_angle))
+
+        pygame.draw.polygon(
+            offscreen,
+            arrow_color,
+            [(end_x, end_y), (left_x, left_y), (right_x, right_y)],
+        )
+
+    def draw_movement_mode_overlay(
+        self, unit, cx: int, cy: int, radius: int, base_color: tuple
+    ) -> None:
+        """Draw visual overlay for movement mode states.
+
+        Modes:
+        - fast_move: Motion trail (semi-transparent copy offset backward)
+        - sneak: Reduced opacity + edge blur effect
+        - defend: Shield indicator ring or armor arc
+        - normal: No overlay
+        """
+        offscreen = self._ctx.offscreen
+        get_pooled = self._ctx.get_pooled_surface
+        if offscreen is None:
+            return
+
+        movement_mode = getattr(unit, "movement_mode", "normal")
+
+        if movement_mode == "fast_move":
+            facing = -math.pi / 2
+            if hasattr(unit, "facing_direction"):
+                facing = unit.facing_direction
+            elif hasattr(unit, "direction"):
+                facing = unit.direction
+
+            offset_dist = 3
+            trail_cx = cx - int(offset_dist * math.cos(facing))
+            trail_cy = cy - int(offset_dist * math.sin(facing))
+
+            trail_size = radius * 2 + 4
+            if get_pooled:
+                trail_surf = get_pooled((trail_size, trail_size))
+            else:
+                trail_surf = pygame.Surface((trail_size, trail_size), pygame.SRCALPHA)
+            trail_center = trail_size // 2
+
+            trail_color = (*base_color[:3], 100)
+
+            trail_radius = max(3, radius - 2)
+            pygame.draw.circle(trail_surf, trail_color, (trail_center, trail_center), trail_radius)
+
+            offscreen.blit(trail_surf, (trail_cx - trail_center, trail_cy - trail_center))
+
+        elif movement_mode == "sneak":
+            if get_pooled:
+                alpha_surface = get_pooled((radius * 2 + 10, radius * 2 + 10))
+            else:
+                alpha_surface = pygame.Surface((radius * 2 + 10, radius * 2 + 10), pygame.SRCALPHA)
+            center = radius + 5
+
+            sneak_color = (*base_color[:3], 140)
+            pygame.draw.circle(alpha_surface, sneak_color, (center, center), radius)
+
+            edge_alpha = 80
+            for i in range(3):
+                edge_r = radius + 2 + i
+                edge_color = (*base_color[:3], edge_alpha - i * 20)
+                pygame.draw.circle(alpha_surface, edge_color, (center, center), edge_r, 1)
+
+            offscreen.blit(alpha_surface, (cx - center, cy - center))
+
+        elif movement_mode == "defend":
+            shield_color = (100, 200, 255, 180)
+            if get_pooled:
+                shield_surf = get_pooled((radius * 2 + 20, radius * 2 + 20))
+            else:
+                shield_surf = pygame.Surface((radius * 2 + 20, radius * 2 + 20), pygame.SRCALPHA)
+            center = radius + 10
+
+            inner_r = radius + 4
+            outer_r = radius + 8
+
+            pygame.draw.arc(
+                shield_surf,
+                shield_color,
+                (
+                    center - outer_r,
+                    center - outer_r,
+                    outer_r * 2,
+                    outer_r * 2,
+                ),
+                math.pi * 0.75,
+                math.pi * 2.25,
+                3,
+            )
+            pygame.draw.arc(
+                shield_surf,
+                (*shield_color[:3], 120),
+                (
+                    center - inner_r,
+                    center - inner_r,
+                    inner_r * 2,
+                    inner_r * 2,
+                ),
+                math.pi * 0.75,
+                math.pi * 2.25,
+                2,
+            )
+
+            offscreen.blit(shield_surf, (cx - center, cy - center))
