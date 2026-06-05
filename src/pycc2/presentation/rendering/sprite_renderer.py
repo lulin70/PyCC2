@@ -79,9 +79,9 @@ class SpriteRenderer:
             for key, sprite_surface in self._asset_loader._sprite_cache.items():
                 self._sprite_cache[key] = sprite_surface
                 png_count += 1
-            print(f"[SpriteRenderer] ✅ 已将 {png_count} 个PNG精灵加载到缓存")
+            logger.debug("Copied %d PNG sprites from AssetLoader cache", png_count)
         else:
-            print("[SpriteRenderer] ⚠️  AssetLoader没有_sprite_cache属性，使用程序化精灵")
+            logger.warning("AssetLoader has no _sprite_cache, using procedural sprites")
 
     @property
     def draw_surface(self) -> Surface | None:

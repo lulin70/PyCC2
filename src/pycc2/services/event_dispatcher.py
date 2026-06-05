@@ -292,13 +292,6 @@ class EventDispatcher:
                 self.hud_manager.minimap.handle_click(mouse_pos, self.state.camera)
                 return
 
-        # DEBUG: Log ALL mouse events in battle mode
-        if not self.deployment_manager.is_active:
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                logger.info(f"[BATTLE MODE] Mouse button {event.button} down at {event.pos}")
-            elif event.type == pygame.MOUSEBUTTONUP:
-                logger.info(f"[BATTLE MODE] Mouse button {event.button} up at {event.pos}")
-
         # Route to input router
         try:
             result = self.input_router.route_input(event)

@@ -154,9 +154,6 @@ class InteractionController:
                 is_unit_click=False,
             )
 
-        # DEBUG: Log hit test call
-        print(f"[HIT_TEST] Testing click at {screen_pos} against {len(units)} units")
-
         world_vec = self._camera.screen_to_world(screen_pos)
         tile_coord = self.screen_to_tile(screen_pos)
 
@@ -247,14 +244,8 @@ class InteractionController:
 
             except Exception as e:
                 # CRITICAL: Never crash on a single unit - just skip it
-                print(f"[WARN] hit_test failed for unit {idx}: {e}")
+                logger.warning("hit_test failed for unit %d: %s", idx, e)
                 continue
-
-        # DEBUG: Log result
-        if hit_unit:
-            print(f"[HIT_TEST] ✓ HIT unit: {getattr(hit_unit, 'display_name', hit_unit.id)}")
-        else:
-            print(f"[HIT_TEST] ✗ No unit hit (min_dist_sq={min_dist_sq:.1f})")
 
         return ClickResult(
             hit_unit=hit_unit,

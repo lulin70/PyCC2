@@ -139,7 +139,7 @@ class AssetLoader:
                 try:
                     # 加载图像 - 不使用convert_alpha()以避免需要display初始化
                     surface = pygame.image.load(str(sprite_path))
-                    print(f"[AssetLoader] ✅ 找到PNG: {sprite_path.name}")
+                    logger.debug("Loaded PNG: %s", sprite_path.name)
                     
                     # 缩放到目标尺寸
                     if surface.get_width() != size or surface.get_height() != size:
@@ -149,14 +149,14 @@ class AssetLoader:
                     # 旋转由SpriteRenderer在渲染时处理
                     
                     self._sprite_cache[cache_key] = surface
-                    print(f"[AssetLoader] ✅ 缓存PNG: {cache_key}")
+                    logger.debug("Cached PNG: %s", cache_key)
                     return surface
                 except Exception as e:
-                    print(f"[AssetLoader] ❌ 加载失败 {sprite_path}: {e}")
+                    logger.debug("Failed to load PNG %s: %s", sprite_path, e)
                     continue
         
         # 所有路径都不存在，返回None让调用者使用程序化生成
-        print(f"[AssetLoader] ⚠️  未找到PNG: {faction}/{unit_type}/d{direction}")
+        logger.debug("No PNG found: %s/%s/d%d", faction, unit_type, direction)
         return None
 
     def load_cc2_sprite(
@@ -197,11 +197,11 @@ class AssetLoader:
             )
 
             self._sprite_cache[cache_key] = sprite
-            print(f"[AssetLoader] ✅ Generated CC2 sprite: {cache_key}")
+            logger.debug("Generated CC2 sprite: %s", cache_key)
             return sprite
 
         except Exception as e:
-            print(f"[AssetLoader] ❌ CC2 sprite generation failed: {e}, using fallback")
+            logger.warning("CC2 sprite generation failed for %s: %s, using fallback", cache_key, e)
             return self.load_fallback_sprite(unit_type)
 
     def load_fallback_sprite(self, unit_type: str) -> pygame.Surface | None:
@@ -215,7 +215,7 @@ class AssetLoader:
         pygame.draw.circle(surface, color, (12, 12), 8)
         pygame.draw.circle(surface, (255, 255, 255), (12, 12), 8, 1)
 
-        print(f"[AssetLoader] ⚠️  Using fallback circle sprite for: {unit_type}")
+        logger.debug("Using fallback circle sprite for: %s", unit_type)
         return surface
     
     def load_terrain_tile(self, tile_id: int, size: int = 32) -> Surface | None:
@@ -245,7 +245,7 @@ class AssetLoader:
                 self._terrain_cache[cache_key] = surface
                 return surface
             except Exception as e:
-                print(f"[AssetLoader] 加载地形失败 {tile_path}: {e}")
+                logger.error("Failed to load terrain tile %s: %s", tile_path, e)
         
         return None
     

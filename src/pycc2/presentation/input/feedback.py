@@ -8,9 +8,10 @@ Shows confirmation messages, warnings, errors, etc.
 import time
 from collections.abc import Callable
 from enum import Enum, auto
+from dataclasses import dataclass, field
 
 import pygame
-from pygame import Font, Surface
+from pygame import font as Font, Surface
 
 
 class FeedbackType(Enum):

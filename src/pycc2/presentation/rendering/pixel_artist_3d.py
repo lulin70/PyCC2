@@ -2331,8 +2331,10 @@ if __name__ == "__main__":
     building_sprite = PixelArtist3D.create_building_sprite(building_type="house")
     test_surface.blit(building_sprite, (180, 200))
 
-    pygame.image.save(test_surface, "/tmp/cc2_style_preview.png")
-    print("✅ Preview saved to /tmp/cc2_style_preview.png")
+    import tempfile as _tf
+    _preview_path = str(_tf.gettempdir() / "cc2_style_preview.png")
+    pygame.image.save(test_surface, _preview_path)
+    print(f"Preview saved to {_preview_path}")
     print(f"   Generated {len(directions)} infantry sprites + tank + tree + building")
 
     pygame.quit()

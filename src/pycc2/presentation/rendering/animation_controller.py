@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Callable
@@ -254,7 +257,7 @@ class AnimationController:
             try:
                 cb(old_state, new_state)
             except Exception as e:
-                print(f"[AnimCtrl] State change callback error: {e}")
+                logger.warning("State change callback error: %s", e)
 
         return True
 
@@ -331,9 +334,9 @@ class AnimationController:
                         frame=self._animation_frame
                     )
                     self._sprite_cache[cache_key] = sprite
-                    print(f"[AnimCtrl] ✅ Generated CC2 sprite: {cache_key}")
+                    logger.debug("Generated CC2 sprite: %s", cache_key)
                 except Exception as e:
-                    print(f"[AnimCtrl] ❌ CC2 sprite generation failed: {e}, using fallback")
+                    logger.warning("CC2 sprite generation failed for %s: %s, using fallback", cache_key, e)
                     return self._get_legacy_frame(unit)
 
             return self._sprite_cache[cache_key]
@@ -357,7 +360,7 @@ class AnimationController:
                     try:
                         anim_def.on_complete()
                     except Exception as e:
-                        print(f"[AnimCtrl] Complete callback error: {e}")
+                        logger.warning("Complete callback error: %s", e)
                 self._current_frame_index = min(
                     next_index, len(anim_def.frames) - 1
                 )

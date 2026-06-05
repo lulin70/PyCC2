@@ -76,8 +76,7 @@ class InputRouter:
                 # Get units from game_state for hit testing
                 units = getattr(self.game_state, 'units', [])
 
-                # DEBUG: Log selection attempt
-                logger.debug(f"[BATTLE CLICK] Left click at {input_event.position}, units count: {len(units)}")
+                logger.debug("Left click at %s, units count: %d", input_event.position, len(units))
 
                 if units:
                     new_selection = self.interaction_controller.handle_left_click(
@@ -85,8 +84,7 @@ class InputRouter:
                     )
                     self.game_state.selected_unit_ids = new_selection
 
-                    # DEBUG: Log result
-                    logger.info(f"[BATTLE CLICK] Selected {len(new_selection)} unit(s): {new_selection}")
+                    logger.info("Selected %d unit(s): %s", len(new_selection), new_selection)
                 else:
                     logger.warning("[BATTLE CLICK] No units in game_state.units - cannot select!")
 
