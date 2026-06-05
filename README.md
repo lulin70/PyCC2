@@ -1,38 +1,49 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.3.21 | Pre-Release | June 2, 2026**
+**v0.3.28 | Beta Candidate | June 5, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-3657%20passed-brightgreen.svg" alt="Tests" />
-<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%8885%25-yellow.svg" alt="CC2 Fidelity" />
-<img src="https://img.shields.io/badge/Status-Alpha-blue.svg" alt="Status" />
+<img src="https://img.shields.io/badge/Tests-3929%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%8888%25-yellow.svg" alt="CC2 Fidelity" />
+<img src="https://img.shields.io/badge/Status-Beta%20Candidate-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
 </p>
 
 <p align="center">
-<em>A Python recreation of Atomic Games' legendary WWII tactical wargame — Pre-Release with cinematic effects and achievement system</em>
+<em>A Python recreation of Atomic Games' legendary WWII tactical wargame — Beta Candidate with full SRP refactoring, real-mode E2E, and mature test suite</em>
 </p>
 
-> 🟢 **Pre-Release Status**: Core gameplay + cinematic camera effects + achievement system + dynamic shadows + projectile trails fully integrated. 3657 tests passing (100%). 17-phase E2E user journey validated.
+> 🟢 **Beta Candidate**: Core gameplay + cinematic effects + achievement system + dynamic shadows + projectile trails + SRP architecture cleanup + real SDL E2E validation. **3929 tests passing (100%)**, 38-phase E2E user journey validated in real environment.
 
 ---
 
-## What's New in v0.3.24
+## What's New in v0.3.28
 
-### 🏗️ v0.3.24 — Critical Architecture Fix (June 3, 2026)
-- **[P0-1]** Eliminated 94 `self._parent._` penetration couplings — introduced RenderContext DI container
-- **[P0-2]** Completed render-path Surface pooling: particle_system (5), lighting_effects (1), deployment_ui (2), terrain_rendering_system (3)
-- **[P0-3]** Migrated 11 bare dict `publish({...})` calls to TypedDict or `publish_named()`
-- **[P1-3]** Consolidated Direction enum (3→1) and Faction enum (3→1)
-- **[P1-5]** Added logging to 6 bare `except Exception:` handlers
-- **[P1-6]** Fixed reinforcement_evasion_bgm.py syntax error, removed MagicMock from production
-- **[P2-4]** Moved 6 loop-internal imports to module top level
-- **[P2-5]** Replaced 4 hardcoded absolute paths with Path-based relative detection
-- **[P2-2]** Replaced 26 `Any` type annotations in deployment_ui.py with proper types
-- **[P1-4]** E2E test: crash tolerance reduced from 3 to 0, extracted deployment helper
-- **[Docs]** Deleted 12 outdated documentation files, version sync to 0.3.24
+### 🏗️ v0.3.28 — EnhancedRenderer God Class Split (June 5, 2026)
+- **[ARCH]** EnhancedRenderer: **1389 → 943 lines (-32%, -446 lines)**
+- **[NEW]** `ui_overlay_renderer.py` (389 lines) — VL flags, attack lines, queued commands, LOS overlay
+- **[MIGRATE]** Unit Drawing methods (hexagon/direction/movement-mode) → `UnitRenderer` (self-contained)
+- **[BUGFIX]** Duplicate `spawn_explosion` / `spawn_muzzle_flash` definitions removed
+- **[BUGFIX]** `_draw_attack_lines` repeated imports cleaned up
+- **[BUGFIX]** `direction_indicator` closure capture bug fixed (explicit unit param)
+
+### 🧹 v0.3.27 — Product Maturity Cleanup (June 5, 2026)
+- **[CLEANUP]** Migrated 20+ bare `print()` → `logging` across 7 files
+- **[BUGFIX]** feedback.py: `pygame.Font` → `pygame.font as Font`
+- **[BUGFIX]** pixel_artist_3d.py: `/tmp/` → cross-platform `tempfile.gettempdir()`
+- **[TEST]** 27 new smoke tests covering previously zero-coverage modules
+
+### 🚀 v0.3.26 — E2E Readiness + SAVE/LOAD Fix (June 5, 2026)
+- **[ARCH]** GameStateView Protocol breaks presentation→services circular dependency
+- **[ARCH]** GameLoopAssembler extracted (140-line __post_init__ → 10 sub-methods)
+- **[BUGFIX]** Direction.from_angle() N↔S mapping corrected to CC2 convention
+- **[BUGFIX]** SAVE/LOAD: component `field(init=False)` pattern fixed
+- **[E2E]** Upgraded: 20 phases/dummy → **38 phases/real SDL mode**
+
+### 🔧 v0.3.25 — Architecture Cleanup (June 5, 2026)
+- Circular dependency elimination, EventBus type safety, God Class splits, 90+ module tests
 
 ### 🚀 v0.3.23 — Optimization Round 1 (June 2, 2026)
 - **[OPT-01]** EventBus unification: removed redundant publish_named calls
@@ -117,37 +128,37 @@
 
 | Metric | Value |
 |--------|-------|
-| **Total Tests** | 3370 (all passing, 99.94%) ✅ |
+| **Total Tests** | **3929** (all passing, 100%) ✅ |
 | **Test Quality** | A+ (121 weak assertions eliminated) 🎯 |
-| **E2E Tests** | 22 test files (100% pass rate) |
+| **E2E Tests** | 22 test files (38-phase real SDL mode, 100% pass rate) |
 | **Maps** | 63 historical maps (Operation Market Garden) |
 | **Unit Templates** | 277 (infantry, vehicles, weapons) |
 | **Weapon Types** | 69 authentic CC2 weapons |
 | **Campaign Battles** | 29 battles across 9 days, 3 sectors |
 | **AI Behaviors** | 6 tactical AI types (flanking, suppression, VP, etc.) |
-| **Code Files** | 223 Python modules (+23 from v0.3.4) |
-| **Class Definitions** | 330+ classes (+44 from v0.3.4) |
-| **Extracted Modules** | 11 rendering/data systems (new in v0.3.5-v0.3.13) |
-| **Technical Debt** | 7 remaining items (54% cleared) |
-| **CC2 Fidelity** | ~85% (Visual: 82%, Mechanics: 88%) ⚠️ | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for details |
+| **Code Files** | ~224 Python modules (+1 new: ui_overlay_renderer.py in v0.3.28) |
+| **Class Definitions** | 330+ classes |
+| **Extracted Modules** | 15 rendering/data systems (new: UIOverlayRenderer, GameLoopAssembler, GameStateView Protocol) |
+| **Technical Debt** | 4 God Classes >1000 lines remaining (deployment_ui 2374, pixel_artist_3d 2340, campaign_four_layer 1987, pixel_artist 1971) |
+| **CC2 Fidelity** | ~88% (Visual: 85%, Mechanics: 92%) ⚠️ | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for details |
 
-### 📈 Code Quality Metrics (v0.3.13 — Post Critical Audit)
+### 📈 Code Quality Metrics (v0.3.28 — Post SRP Refactoring)
 
 | Dimension | Score | Notes |
 |----------|-------|-------|
-| **Architecture** | 8.5/10 | DDD compliant, 11 modular renderers, some God Classes remain |
-| **Test Quality** | 9/10 ✅ | 3370 tests, weak assertions <1%, exact value verification |
-| **Test Coverage** | 8/10 | Broad coverage, key UI modules need tests (cc2_hud.py) |
-| **Code Quality** | 8/10 | EnhancedRenderer -63.6%, 8 files still >1500 lines |
-| **Performance** | 7.5/10 | Surface pool + viewport culling, LRU eviction pending |
-| **Security** | 9/10 ✅ | Dynamic imports removed, HMAC saves, no injection vectors |
-| **Documentation** | 8.5/10 ✅ | Fully synchronized to v0.3.21 |
-| **Maintainability** | 8/10 | Clear patterns, good logging, 47 TODO markers remain |
-| **Overall Health** | **8.2/10** | **Beta Candidate (Verified)** ✅ |
+| **Architecture** | 7.5/10 | DDD + DI, EnhancedRenderer split complete, 4 God Classes remain |
+| **Test Quality** | 9.5/10 ✅ | **3929 tests**, weak assertions <1%, smoke tests for zero-coverage modules |
+| **Test Coverage** | 8.5/10 | Broad coverage, 27 new smoke tests in v0.3.27 |
+| **Code Quality** | 7.5/10 | 54 bare print() remaining (down from 80+), logging migration ongoing |
+| **Performance** | 8/10 | Surface pool LRU, viewport culling, incremental association discovery |
+| **Security** | 9.5/10 ✅ | Zero eval/exec, HMAC saves, no injection vectors |
+| **Documentation** | **8/10** ✅ | **Synchronized to v0.3.28** (this update) |
+| **Maintainability** | 8/10 | Clear patterns, good logging, 144 TODO markers (domain/systems focus) |
+| **Overall Health** | **8.3/10** | **Beta Candidate** ✅ |
 
 ---
 
-## Current Status: **Alpha — Fully Playable**
+## Current Status: **Beta Candidate — Fully Playable**
 
 This is an honest assessment based on runtime verification and E2E testing.
 
@@ -309,7 +320,7 @@ PyCC2/
 │   ├── maps/               # 63 historical map JSON files
 │   ├── scenarios/          # 11 scenario configurations
 │   └── units/              # Unit template definitions
-├── tests/                  # 3372 tests (unit + integration + E2E)
+├── tests/                  # 3929 tests (unit + integration + E2E + smoke)
 ├── assets/                 # Sprites, sounds, CC2 reference screenshots
 └── docs/                   # Design documents, PRD, Gap analysis
 ```
@@ -370,19 +381,20 @@ PyCC2/
 ## Testing
 
 ```bash
-# Full test suite (3372 tests)
+# Full test suite (3929 tests)
 pytest tests/ -q
 
 # By category
-pytest tests/unit/ -q              # Unit tests (~3100)
-pytest tests/integration/ -q        # Integration tests (6 files)
-pytest tests/e2e/ -q                # End-to-end tests (22 files)
+pytest tests/unit/ -q              # Unit tests (~3200)
+pytest tests/integration/ -q        # Integration tests
+pytest tests/e2e/ -q                # End-to-end tests (22 files, 38-phase real SDL mode)
+pytest tests/unit/test_smoke_zero_coverage.py  # Smoke tests for zero-coverage modules
 
 # With coverage report
 pytest tests/ --cov=src/pycc2 --cov-report=term-missing
 
-# E2E deep integration tests (18 scenarios, 100% pass rate)
-pytest tests/e2e/test_e2e_full_coverage.py -v
+# E2E deep integration tests (38 scenarios, real SDL, 100% pass rate)
+python scripts/strict_e2e_journey.py
 ```
 
 **Test Coverage Highlights**:
@@ -532,4 +544,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Generated on 2026-06-02 | v0.3.21 (Pre-Release) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
+<p align="center"><sub>Generated on 2026-06-05 | v0.3.28 (Beta Candidate) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>

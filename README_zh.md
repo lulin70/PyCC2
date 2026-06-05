@@ -1,17 +1,17 @@
 # 🎮 PyCC2 — 近距离作战2：遥远的桥梁 (Python重制版)
 
-**v0.3.4 | Alpha 可玩版本 | 2026年5月30日**
+**v0.3.28 | Beta 候选版本 | 2026年6月5日**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/测试-3372%20通过-brightgreen.svg" alt="Tests" />
-<img src="https://img.shields.io/badge/CC2还原度-%E2%88%BC85%25-yellow.svg" alt="CC2 Fidelity" />
-<img src="https://img.shields.io/badge/状态-Alpha-yellow.svg" alt="Status" />
+<img src="https://img.shields.io/badge/测试-3929%20通过-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/CC2还原度-%E2%88%8888%25-yellow.svg" alt="CC2 Fidelity" />
+<img src="https://img.shields.io/badge/状态-Beta%20Candidate-blue.svg" alt="Status" />
 </p>
 
 <p align="center">
-<em>基于 Python 的二战实时战术战斗模拟器 — Alpha可玩版本，完整战斗循环已就绪</em>
+<em>基于 Python 的二战实时战术战斗模拟器 — Beta候选版本，完整战斗循环+SRP重构+真实SDL E2E验证</em>
 </p>
 
 > 🟡 **Alpha 状态**: 核心游戏玩法完全可用 —— 部署、战斗、AI、战役、CC2原版胜利条件全部正常工作。

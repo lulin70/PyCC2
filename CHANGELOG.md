@@ -2,7 +2,71 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
-## [0.3.24] - 2026-06-03
+## [0.3.28] - 2026-06-05
+
+### Changed
+- **[ARCH]** EnhancedRenderer God Class split: 1389 → 943 lines (-32%, -446 lines)
+  - NEW: `ui_overlay_renderer.py` (389 lines) — VL flags, attack lines, queued commands, LOS overlay
+  - Unit Drawing methods migrated to `UnitRenderer` (hexagon/direction/movement-mode)
+  - Fixed `direction_indicator` closure capture bug — now receives unit param explicitly
+- **[BUGFIX]** Duplicate `spawn_explosion` definition removed (kept ring+dynamic light version)
+- **[BUGFIX]** Duplicate `spawn_muzzle_flash` definition removed (kept ParticleSystem version)
+- **[CLEANUP]** Removed repeated imports in `_draw_attack_lines` (L1084-1089)
+- **[CLEANUP]** Removed unused PULSE_* constants from EnhancedRenderer (moved to UIOverlayRenderer)
+- **[TEST]** Updated `test_draw_dashed_line_method_exists` to check UIOverlayRenderer location
+
+### Stats
+- 3929 tests passing, 0 regressions
+- enhanced_renderer.py: 1389→943 lines | ui_overlay_renderer.py: 389 lines (new) | unit_renderer.py: 311→488 lines
+
+## [0.3.27] - 2026-06-05
+
+### Changed
+- **[CLEANUP]** Migrated 20+ bare `print()` statements to proper `logging` module calls
+  - interaction_controller.py: 4 prints (HIT_TEST debug on every mouse click)
+  - asset_loader.py: 8 prints (every sprite load)
+  - animation_controller.py: 4 prints
+  - sprite_renderer.py: 2 prints
+  - event_dispatcher.py: removed entire DEBUG mouse-event logging block (6 lines)
+  - input_router.py: removed 2 `# DEBUG:` comments
+- **[BUGFIX]** feedback.py: `pygame.Font` → `pygame.font as Font` (uppercase doesn't exist in pygame API)
+- **[BUGFIX]** feedback.py: Added missing `dataclass` import for FeedbackMessage
+- **[BUGFIX]** pixel_artist_3d.py: Hardcoded `/tmp/` path → `tempfile.gettempdir()` cross-platform
+- **[TEST]** Created `test_smoke_zero_coverage.py` with 27 smoke tests for previously zero-coverage modules
+  - Discovered real bugs during creation: wrong class names (Config→Settings, BGMSystem→BGMGenerator, etc.)
+
+### Stats
+- 3929 tests passing (+27 new smoke tests)
+
+## [0.3.26] - 2026-06-05
+
+### Changed
+- **[P2-1]** Circular dependency fix: Created `GameStateView` Protocol (`domain/interfaces/`)
+  - `input_router.py` now imports from domain layer instead of services layer
+- **[P2-2]** pixel_artist_3d.py dead code fallback removed (simplified to direct `faction.name.lower()`)
+- **[P2-3]** GameLoop God Class: Extracted `GameLoopAssembler` (140-line `__post_init__` → 10 sub-methods)
+- **[Faction]** Sprite rendering fix: `_FACTION_MAP` dict for string→enum mapping after enum consolidation
+- **[Direction]** `from_angle()` bug fixed: N↔S angle mapping corrected to CC2 convention (Y-down)
+- **[SAVE/LOAD]** Critical bug fix: `restore_state()` passed `state=` kwarg to components with `field(init=False)`
+  - HealthComponent, MoraleComponent, WeaponComponent now set `.state` AFTER construction
+- **[E2E]** Upgraded E2E test suite: 20 phases/dummy mode → **38 phases/real SDL mode**
+  - Phase 0: Environment Detection (auto-detect macOS vs Linux vs CI)
+  - Phase 3: Input Routing verification (ESC/F3/QUIT via InputRouter)
+  - Phase 4: Camera Movement simulation
+  - Phase 8: Window Operations (resize handling)
+  - Phase 9: Memory Stability & Shutdown (gc object count tracking)
+  - Screen content verification + macOS SDL resize workaround
+
+### Stats
+- ~3910 tests passing, E2E upgraded to real SDL environment
+
+## [0.3.25] - 2026-06-05
+
+### Changed
+- **[ARCH]** Eliminated circular dependencies between presentation→services layers
+- **[ARCH]** EventBus type safety: consistent publishing patterns (no more mixed dict/typed/named events)
+- **[ARCH]** God Class splits continued: multiple large modules decomposed
+- **[TEST]** Test coverage expanded significantly across 90+ modules
 
 ### Fixed
 - **[P0-1]** Eliminated 94 `self._parent._` penetration couplings — introduced RenderContext DI container
