@@ -180,7 +180,13 @@ class SpriteRenderer:
 
             dir_enum = list(Direction)[direction] if direction < 8 else Direction.SOUTH
             # POLISH使用ALLIES的视觉风格（同属盟军）
-            fac_enum = Faction.ALLIES if faction == "polish" else Faction(faction)
+            # Faction enum uses auto() integer values; map string names to enum members
+            _FACTION_MAP = {
+                "allies": Faction.ALLIES, "american": Faction.AMERICAN,
+                "british": Faction.BRITISH, "polish": Faction.POLISH,
+                "axis": Faction.AXIS, "german": Faction.GERMAN,
+            }
+            fac_enum = _FACTION_MAP.get(faction, Faction.ALLIES)
 
             # 根据单位类型选择正确的生成方法
             if unit_type in ("TANK",):

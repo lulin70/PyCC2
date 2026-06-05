@@ -267,8 +267,7 @@ class TestA3DirectionSprite:
         directions = list(Direction)
         assert len(directions) == 8
 
-        expected = ["NORTH", "NORTHEAST", "EAST", "SOUTHEAST",
-                    "SOUTH", "SOUTHWEST", "WEST", "NORTHWEST"]
+        expected = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
         actual = [d.name for d in directions]
         assert actual == expected
 

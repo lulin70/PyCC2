@@ -173,16 +173,18 @@ class SaveController:
                 health = HealthComponent(
                     hp=hp_data.get("hp", 100),
                     max_hp=hp_data.get("max_hp", 100),
-                    state=HealthState[hp_data.get("state", "HEALTHY")],
                 )
+                # state is init=False — set after construction
+                health.state = HealthState[hp_data.get("state", "HEALTHY")]
 
                 morale_data = ud.get("morale", {})
                 morale = MoraleComponent(
                     value=morale_data.get("value", 85),
                     panic_threshold=morale_data.get("panic_threshold", 20),
                     suppression=morale_data.get("suppression", 0),
-                    state=MoraleState[morale_data.get("state", "RALLIED")],
                 )
+                # state is init=False — set after construction
+                morale.state = MoraleState[morale_data.get("state", "RALLIED")]
 
                 weapon_data = ud.get("weapon", {})
                 weapon = WeaponComponent(
@@ -190,8 +192,9 @@ class SaveController:
                     ammo_remaining=weapon_data.get("ammo_remaining", 10),
                     max_ammo=weapon_data.get("max_ammo", 10),
                     reload_ticks_left=weapon_data.get("reload_ticks_left", 0),
-                    state=WeaponState[weapon_data.get("state", "READY")],
                 )
+                # state is init=False — set after construction
+                weapon.state = WeaponState[weapon_data.get("state", "READY")]
 
                 pos_data = ud.get("position", {})
                 tc = pos_data.get("tile_coord", {"x": 0, "y": 0})

@@ -102,10 +102,10 @@ for tank_type in TankType:
             )
             if sprite:
                 scaled = pygame.transform.scale(sprite, (sprite.get_width() * 3, sprite.get_height() * 3))
-                pygame.image.save(scaled, os.path.join(OUT, 'units', f'tank_{tank_type.value}_{faction.value}.png'))
-                print(f"  OK: tank_{tank_type.value}_{faction.value}")
+                pygame.image.save(scaled, os.path.join(OUT, 'units', f'tank_{tank_type.value}_{faction.name.lower()}.png'))
+                print(f"  OK: tank_{tank_type.value}_{faction.name.lower()}")
         except Exception as e:
-            print(f"  ERROR: tank {tank_type.value} {faction.value}: {e}")
+            print(f"  ERROR: tank {tank_type.value} {faction.name.lower()}: {e}")
 
 # Halftrack
 print("\n=== Halftrack Sprite ===")

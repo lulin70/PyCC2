@@ -194,7 +194,7 @@ class SquadCoordinator:
 
     def _should_defensive_line(self, friendly_units: list[Unit], game_map: GameMap) -> bool:
         for obj in game_map.objectives:
-            if obj.owner is None or obj.owner != friendly_units[0].faction.value:
+            if obj.owner is None or obj.owner != friendly_units[0].faction.name.lower():
                 for unit in friendly_units:
                     if unit.position.tile_coord.chebyshev_distance(obj.position) <= 5:
                         return True
@@ -276,7 +276,7 @@ class SquadCoordinator:
         if not friendly_units:
             return None
         for obj in game_map.objectives:
-            if obj.owner is None or obj.owner != friendly_units[0].faction.value:
+            if obj.owner is None or obj.owner != friendly_units[0].faction.name.lower():
                 return SquadOrder(
                     squad_id=squad_id,
                     tactic=SquadTactic.DEFENSIVE_LINE,

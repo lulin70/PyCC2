@@ -78,7 +78,7 @@ class PixelArtist3D:
         surface = pygame.Surface((24, 24), pygame.SRCALPHA)
         surface.fill((0, 0, 0, 0))
 
-        faction_key = faction.name.lower() if hasattr(faction, 'name') else str(faction.value)
+        faction_key = faction.name.lower()  # Faction is Enum — always has .name
         palette = CC2_PALETTE.get(faction_key, CC2_PALETTE.get("allies"))
         body_color = palette['uniform']
         body_dark = palette['uniform_dark']

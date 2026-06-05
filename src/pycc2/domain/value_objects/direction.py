@@ -72,13 +72,13 @@ class Direction(Enum):
         """Get angle in degrees (0° = East, 90° = North)."""
         angles = {
             Direction.E: 0.0,
-            Direction.NE: 45.0,
-            Direction.N: 90.0,
-            Direction.NW: 135.0,
+            Direction.SE: 45.0,
+            Direction.S: 90.0,
+            Direction.SW: 135.0,
             Direction.W: 180.0,
-            Direction.SW: 225.0,
-            Direction.S: 270.0,
-            Direction.SE: 315.0,
+            Direction.NW: 225.0,
+            Direction.N: 270.0,
+            Direction.NE: 315.0,
         }
         return angles[self]
 
@@ -99,17 +99,20 @@ class Direction(Enum):
 
     @classmethod
     def from_angle(cls, degrees: float) -> "Direction":
-        """Get nearest direction from angle in degrees."""
+        """Get nearest direction from angle in degrees.
+
+        CC2 convention: 0°=East, 90°=South (Y-axis down).
+        """
         normalized = degrees % 360
         angles = {
             Direction.E: 0.0,
-            Direction.NE: 45.0,
-            Direction.N: 90.0,
-            Direction.NW: 135.0,
+            Direction.SE: 45.0,
+            Direction.S: 90.0,
+            Direction.SW: 135.0,
             Direction.W: 180.0,
-            Direction.SW: 225.0,
-            Direction.S: 270.0,
-            Direction.SE: 315.0,
+            Direction.NW: 225.0,
+            Direction.N: 270.0,
+            Direction.NE: 315.0,
         }
 
         best_dir = Direction.E

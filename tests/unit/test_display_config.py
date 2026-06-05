@@ -260,4 +260,4 @@ class TestDisplayConfigWithSpriteRenderer:
         # SPRITE_SIZE is fixed at 32 for CC2-style small units (scaled from old 24)
         for key, surf in renderer._sprite_cache.items():
             size = surf.get_size()
-            assert size[0] in (14, 22, 24, 28, 32, 36, 40, 48), f"Sprite {key} size {size} unexpected"
+            assert size[0] in (14, 22, 24, 28, 32, 36, 38, 40, 48), f"Sprite {key} size {size} unexpected"

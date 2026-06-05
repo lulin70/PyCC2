@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from pycc2.presentation.input.handler import PygameInputHandler
     from pycc2.presentation.input.interaction_controller import InteractionController
     from pycc2.presentation.rendering.camera import Camera
-    from pycc2.services.game_loop import GameState
+    from pycc2.domain.interfaces.game_state_view import GameStateView
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class InputRouter:
     interaction_controller: InteractionController | None = None
     command_bar: object | None = None
     camera: Camera | None = None
-    game_state: GameState | None = None
+    game_state: GameStateView | None = None
     show_post_battle: bool = False
 
     def route_input(self, event: pygame.event.EventType) -> bool:
