@@ -8,6 +8,7 @@ Renders buildings in CC2's authentic OBLIQUE projection view with:
 This matches CC2 screenshot analysis exactly.
 """
 
+import hashlib
 import pygame
 import random
 from enum import Enum
@@ -20,6 +21,16 @@ class DamageLevel(Enum):
     LIGHT_DAMAGE = 1
     HEAVY_DAMAGE = 2
     DESTROYED = 3
+
+
+def _deterministic_seed(key: str) -> int:
+    """Deterministic RNG seed, immune to PYTHONHASHSEED randomization.
+
+    Python's built-in _deterministic_seed() is randomized per-process since Python 3.3+.
+    Using _deterministic_seed() for seeding caused flaky tests because crack positions
+    changed across process invocations. hashlib.sha256 is always deterministic.
+    """
+    return int(hashlib.sha256(key.encode()).hexdigest(), 16) % (2**32)
 
 
 CC2_ROOF_COLORS = {
@@ -235,7 +246,7 @@ def render_cc2_building(
     # A2 Fix: 为标准建筑应用颜色变体（基于位置hash实现多样性）
     if building_type in [CC2BuildingType.SMALL_HOUSE, CC2BuildingType.MEDIUM_HOUSE, CC2BuildingType.LARGE_BUILDING]:
         import random as _rnd
-        variant_seed = hash((building_type.name, tile_x if 'tile_x' in dir() else 0, tile_y if 'tile_y' in dir() else 0))
+        variant_seed = _deterministic_seed(str((building_type.name, tile_x if 'tile_x' in dir() else 0, tile_y if 'tile_y' in dir() else 0)))
         variant_idx = _rnd.Random(variant_seed).randint(0, len(CC2_ROOF_VARIANTS) - 1)
         roof_color = CC2_ROOF_VARIANTS[variant_idx]
 
@@ -260,7 +271,7 @@ def render_cc2_building(
     pygame.draw.rect(surface, ROOF_TRIM_COLOR, roof_rect, 2)
 
     # 3. Stipple texture on roof (~15% density)
-    stipple_rng = random.Random(hash(str(building_type) + "stipple"))
+    stipple_rng = random.Random(_deterministic_seed(str(building_type) + "stipple"))
     for _ in range((w * h) // 15):
         sx = stipple_rng.randint(2, w - wall_width - 3)
         sy = stipple_rng.randint(2, h - wall_height - 3)
@@ -270,7 +281,7 @@ def render_cc2_building(
 
     # 4. Window dots (dark rectangles, 2-6 depending on size)
     window_color = tuple(int(c * 0.5) for c in roof_color)  # roof_color * 0.5
-    win_rng = random.Random(hash(str(building_type) + "roof_windows"))
+    win_rng = random.Random(_deterministic_seed(str(building_type) + "roof_windows"))
     if building_type in [CC2BuildingType.SMALL_HOUSE, CC2BuildingType.WALL]:
         num_windows = 2
     elif building_type in [CC2BuildingType.MEDIUM_HOUSE]:
@@ -329,7 +340,7 @@ def render_cc2_building(
                 pass
 
     # 6. Chimney (some building types)
-    chimney_rng = random.Random(hash(str(building_type) + "chimney"))
+    chimney_rng = random.Random(_deterministic_seed(str(building_type) + "chimney"))
     should_have_chimney = building_type in [
         CC2BuildingType.SMALL_HOUSE,
         CC2BuildingType.MEDIUM_HOUSE,
@@ -360,7 +371,7 @@ def render_cc2_building(
 
     if damage.value >= DamageLevel.LIGHT_DAMAGE.value:
         crack_color = (40, 36, 32)
-        rng = random.Random(hash(str(building_type) + str(damage)))
+        rng = random.Random(_deterministic_seed(str(building_type) + str(damage)))
         num_cracks = damage.value * 2
         for _ in range(num_cracks):
             x1 = rng.randint(5, w - 5)
@@ -444,7 +455,7 @@ def _render_normandy_farmhouse(
     pygame.draw.rect(surface, ROOF_TRIM_COLOR, inner_roof, 2)
 
     # 3. Roof texture (tile lines)
-    tile_rng = random.Random(hash("normandy_rooftop_tiles"))
+    tile_rng = random.Random(_deterministic_seed("normandy_rooftop_tiles"))
     for ty in range(inner_roof[1] + 4, inner_roof[1] + inner_roof[3] - 2, tile_rng.randint(4, 6)):
         pygame.draw.line(surface, red_tile_dark,
                         (inner_roof[0] + 2, ty),
@@ -477,7 +488,7 @@ def _render_normandy_farmhouse(
                      (chimney_x - 1, chimney_y - 1, chimney_w + 2, 3), 1)
 
     # 6. Skylight (optional)
-    if random.Random(hash("skylight")).random() > 0.4:
+    if random.Random(_deterministic_seed("skylight")).random() > 0.4:
         sky_w = max(10, tile_size // 4)
         sky_h = max(8, tile_size // 5)
         sky_x = cx - (w - wall_width) // 5
@@ -509,7 +520,7 @@ def _render_normandy_farmhouse(
 
     if damage.value >= DamageLevel.LIGHT_DAMAGE.value:
         crack_color = (40, 36, 32)
-        rng = random.Random(hash(str(damage) + "farmhouse"))
+        rng = random.Random(_deterministic_seed(str(damage) + "farmhouse"))
         num_cracks = damage.value * 3
         for _ in range(num_cracks):
             x1 = rng.randint(inner_roof[0] + 5, inner_roof[0] + inner_roof[2] - 5)
@@ -584,7 +595,7 @@ def _render_normandy_barn(
     pygame.draw.rect(surface, barn_wood_roof, roof_rect)
 
     # *** 2. 屋顶纹理 (木板线条 - 谷仓通常是纵向木板!) ***
-    wood_rng = random.Random(hash("barn_wood_grain"))
+    wood_rng = random.Random(_deterministic_seed("barn_wood_grain"))
     # 纵向木纹线（每隔5-8px一条）
     for wx in range(roof_margin + 5, w - roof_margin - 2, wood_rng.randint(5, 8)):
         pygame.draw.line(surface, barn_wood_dark,
@@ -644,7 +655,7 @@ def _render_normandy_barn(
     # *** 7. 损坏效果 (屋顶破洞/木板缺失!) ***
     if damage.value >= DamageLevel.LIGHT_DAMAGE.value:
         crack_color = (42, 36, 30)
-        rng = random.Random(hash(str(damage) + "barn"))
+        rng = random.Random(_deterministic_seed(str(damage) + "barn"))
         num_cracks = damage.value * 3
         for _ in range(num_cracks):
             x1 = rng.randint(roof_margin + 5, w - roof_margin - 5)
@@ -734,7 +745,7 @@ def _render_building_interior(
     if building_type in [CC2BuildingType.NORMANDY_BARN, CC2BuildingType.BARN]:
         # 谷仓: 纯木质地板（纵向木板）
         surface.fill(floor_wood)
-        wood_rng = random.Random(hash("interior_wood_floor"))
+        wood_rng = random.Random(_deterministic_seed("interior_wood_floor"))
         for wx in range(check_size // 2, w, wood_rng.randint(6, 10)):
             pygame.draw.line(surface,
                            tuple(max(0, c - 20) for c in floor_wood),
@@ -773,7 +784,7 @@ def _render_building_interior(
     window_w = max(12, tile_size // 3)
     window_h = max(8, tile_size // 5)
 
-    win_rng = random.Random(hash(f"interior_windows_{building_type.name}"))
+    win_rng = random.Random(_deterministic_seed(f"interior_windows_{building_type.name}"))
     for i in range(num_windows):
         # 窗户位置（分布在四周墙壁上）
         if i % 4 == 0:  # 上墙窗户
@@ -827,7 +838,7 @@ def _render_building_interior(
     # === 6. 损坏效果（室内损坏：地板裂缝/破洞）===
     if damage.value >= DamageLevel.LIGHT_DAMAGE.value:
         crack_color = (50, 45, 40)
-        dmg_rng = random.Random(hash(f"interior_damage_{damage.value}"))
+        dmg_rng = random.Random(_deterministic_seed(f"interior_damage_{damage.value}"))
         num_cracks = damage.value * 4
         for _ in range(num_cracks):
             x1 = dmg_rng.randint(wall_thickness + 10, w - wall_thickness - 10)
@@ -888,7 +899,7 @@ def _render_church(
     body_rect = (roof_margin, roof_margin, w - 2 * roof_margin, h - 2 * roof_margin)
     pygame.draw.rect(surface, church_roof, body_rect)
 
-    tile_rng = random.Random(hash("church_roof_tiles"))
+    tile_rng = random.Random(_deterministic_seed("church_roof_tiles"))
     for ty in range(body_rect[1] + 4, body_rect[1] + body_rect[3] - 2, tile_rng.randint(4, 6)):
         pygame.draw.line(surface, church_roof_dark,
                         (body_rect[0] + 2, ty),
@@ -922,7 +933,7 @@ def _render_church(
 
     if damage.value >= DamageLevel.LIGHT_DAMAGE.value:
         crack_color = (40, 36, 32)
-        rng = random.Random(hash(str(damage) + "church"))
+        rng = random.Random(_deterministic_seed(str(damage) + "church"))
         num_cracks = damage.value * 3
         for _ in range(num_cracks):
             x1 = rng.randint(roof_margin + 5, w - roof_margin - 5)
@@ -985,7 +996,7 @@ def _render_wall(
     wall_thickness = 3
     wall_y = h // 2 - wall_thickness // 2
 
-    rng_gaps = random.Random(hash(str(damage) + "wall_topdown"))
+    rng_gaps = random.Random(_deterministic_seed(str(damage) + "wall_topdown"))
     gaps = []
     if damage.value >= DamageLevel.LIGHT_DAMAGE.value:
         for _ in range(damage.value):
@@ -1007,7 +1018,7 @@ def _render_wall(
     for seg_x, seg_w in segments:
         pygame.draw.rect(surface, wall_stone, (seg_x, wall_y, seg_w, wall_thickness))
 
-    stone_rng = random.Random(hash("wall_stone_topdown"))
+    stone_rng = random.Random(_deterministic_seed("wall_stone_topdown"))
     for seg_x, seg_w in segments:
         sx = seg_x
         while sx < seg_x + seg_w:
@@ -1091,7 +1102,7 @@ def _render_barn(
 
     if damage.value >= DamageLevel.LIGHT_DAMAGE.value:
         crack_color = (40, 36, 32)
-        rng = random.Random(hash(str(damage) + "barn"))
+        rng = random.Random(_deterministic_seed(str(damage) + "barn"))
         num_cracks = damage.value * 2
         for _ in range(num_cracks):
             x1 = rng.randint(5, w - 5)

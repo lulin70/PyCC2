@@ -67,11 +67,9 @@ class HUDManager:
         window_manager: WindowManager,
         render_pipeline: RenderPipeline,
         input_router: object,
+        minimap: object | None = None,
+        cc2_panel: object | None = None,
     ) -> None:
-        from pycc2.presentation.rendering.minimap import Minimap
-
-        from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
-
         dc = display_config
 
         # Store references
@@ -81,11 +79,20 @@ class HUDManager:
         self._event_bus = event_bus
 
         # === CC2统一UI系统（唯一UI） ===
-        # 旧的分散式UI已弃用，不再创建
-        self._minimap = Minimap(display_config=dc, size=int(140 * dc.ui_scale))
+        # minimap 和 cc2_panel 由调用方（Assembler）注入，避免 service→presentation 耦合
+        if minimap is not None:
+            self._minimap = minimap
+        else:
+            from pycc2.presentation.rendering.minimap import Minimap  # fallback for backward compat
 
-        # CC2-style bottom panel (唯一的HUD渲染器)
-        self._cc2_panel = CC2BottomPanel()
+            self._minimap = Minimap(display_config=dc, size=int(140 * dc.ui_scale))
+
+        if cc2_panel is not None:
+            self._cc2_panel = cc2_panel
+        else:
+            from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel  # fallback
+
+            self._cc2_panel = CC2BottomPanel()
         self._cc2_panel.initialize()  # 初始化字体
 
         state.camera.viewport_width = dc.window_width
@@ -125,7 +132,7 @@ class HUDManager:
     # ------------------------------------------------------------------
 
     def _bind_command_callbacks(self) -> None:
-        from pycc2.presentation.audio.sound_system import SoundType
+        from pycc2.domain.value_objects.audio_enums import SoundType
         from pycc2.services.event_protocol import PlayerCommand
 
         if not self._cc2_panel:
@@ -140,7 +147,7 @@ class HUDManager:
             if sound_system:
                 sound_system.play_ui_command()
             if interaction_controller:
-                from pycc2.presentation.input.interaction_controller import InteractionMode
+                from pycc2.domain.value_objects.audio_enums import InteractionMode
 
                 interaction_controller.set_mode(InteractionMode.MOVE)
 
@@ -148,7 +155,7 @@ class HUDManager:
             if sound_system:
                 sound_system.play_ui_command()
             if interaction_controller:
-                from pycc2.presentation.input.interaction_controller import InteractionMode
+                from pycc2.domain.value_objects.audio_enums import InteractionMode
 
                 interaction_controller.set_mode(InteractionMode.ATTACK)
 
@@ -195,7 +202,7 @@ class HUDManager:
             if sound_system:
                 sound_system.play_ui_command()
             if interaction_controller:
-                from pycc2.presentation.input.interaction_controller import InteractionMode
+                from pycc2.domain.value_objects.audio_enums import InteractionMode
                 interaction_controller.set_mode(InteractionMode.MOVE, fast=True)
                 logger.info("[COMMAND] Fast Move activated")
 
@@ -203,7 +210,7 @@ class HUDManager:
             if sound_system:
                 sound_system.play_ui_command()
             if interaction_controller:
-                from pycc2.presentation.input.interaction_controller import InteractionMode
+                from pycc2.domain.value_objects.audio_enums import InteractionMode
                 interaction_controller.set_mode(InteractionMode.MOVE, sneak=True)
                 logger.info("[COMMAND] Sneak Move activated")
 

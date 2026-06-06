@@ -2,6 +2,41 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.29] - 2026-06-06
+
+### Architecture
+- **[ARCH]** services→presentation layer decoupling: 40 → ~25 violations (-39%)
+  - **P0 — Enum migration**: `SoundType` + `InteractionMode` moved to `domain/value_objects/audio_enums.py`
+    - 9 import sites updated across save_controller(2), game_loop(1), hud_manager(5)
+    - Original presentation modules now re-export from domain for backward compat
+  - **P1 — Dependency injection**: `hud_manager.initialize()` accepts optional `minimap`/`cc2_panel` params
+    - `deployment_manager.start()` accepts optional `deployment_ui` param
+    - Object creation moved to Assembler/GameLoop (Composition Root / caller injection)
+    - Fallback imports retained for backward compatibility (only triggered when no injection)
+  - **P2 — Composition Root documentation**: `game_loop_assembler.py` documented as sole legal runtime
+    coupling point per Clean Architecture Dependency Rule
+
+### Changed
+- NEW: `domain/value_objects/audio_enums.py` — SoundType (22 members) + InteractionMode (4 members)
+- `sound_system.py`: SoundType class definition → import + re-export from domain
+- `interaction_controller.py`: InteractionMode class definition → import + re-export from domain
+- `save_controller.py`: 2 SoundType imports → domain path (fixed residue at L65 with different indent)
+- `game_loop.py`: 1 SoundType import → domain path; `start_deployment()` creates DeploymentUI for injection
+- `hud_manager.py`: 5 imports → domain path (SoundType×1 + InteractionMode×4); initialize() accepts injected objects
+- `deployment_manager.py`: start() accepts deployment_ui param; DUI import lifted to try-block scope
+- `game_loop_assembler.py`: _init_hud() creates Minimap+CC2BottomPanel and injects into HUDManager
+
+### Fixed
+- **[BUGFIX]** e2e test failure: `UnboundLocalError` in deployment_manager when DUI used outside if/else scope
+  - Root cause: `DUI.build_force_pool_from_settings()` and `DUI.generate_ai_deployment()` called at L190/L224
+    but DUI was only defined inside the else branch; fix: lift import to top of try block
+
+### Stats
+- 3929 tests passing, 0 regressions
+- Layer violations: 41 → 25 (-39%) | D-class enums: 9 → 0 | A-class runtime (non-Assembler): 3 → 0
+
+---
+
 ## [0.3.28] - 2026-06-05
 
 ### Changed

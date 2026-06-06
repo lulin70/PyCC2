@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 import pygame
@@ -23,13 +22,7 @@ if TYPE_CHECKING:
     from pycc2.domain.value_objects.vec2 import Vec2
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.input.attack_line_system import AttackLineSystem
-
-
-class InteractionMode(Enum):
-    SELECT = auto()
-    MOVE = auto()
-    ATTACK = auto()
-    PAN_ONLY = auto()
+from pycc2.domain.value_objects.audio_enums import InteractionMode  # noqa: F401 — re-exported for backward compat
 
 
 @dataclass(slots=True)

@@ -26,6 +26,14 @@ from dataclasses import field
 
 logger = logging.getLogger(__name__)
 
+# Import extracted modules (SRP refactoring v0.3.29)
+from pycc2.presentation.ui.deployment_factory import (
+    build_default_roster,
+    build_force_pool_from_settings,
+    generate_ai_deployment,
+)
+from pycc2.presentation.ui.deployment_los import DeploymentLOSSystem
+
 # Import extracted models and constants
 from pycc2.presentation.ui.deployment_models import (
     DeploymentPhase,
@@ -163,6 +171,15 @@ class DeploymentUI:
         self._pending_orders: dict[str, tuple[int, int]] = {}  # unit_template_id -> (target_x, target_y)
         self._selected_placed_unit: DeploymentUnit | None = None  # For setting orders
         self._highlight_surface_cache: dict[int, pygame.Surface] = {}
+
+        # Extracted subsystems (SRP v0.3.29)
+        self._los_system = DeploymentLOSSystem(
+            get_tile_grid=lambda: self._tile_grid,
+            get_terrain_at=self._get_terrain_at,
+            get_victory_locations=lambda: self._victory_locations,
+            get_state=lambda: self._state,
+            get_selected_index=lambda: self._selected_unit_index,
+        )
 
     # ------------------------------------------------------------------
     # Public API
@@ -1037,95 +1054,9 @@ class DeploymentUI:
     _LOS_COLOR_IMPOSSIBLE: tuple[int, int, int, int] = (0, 0, 0, 160)   # Black (0-9% hit)
     _LOS_DEFAULT_RANGE: int = 15  # Default visual range in tiles
 
-    def _render_los_preview(
-        self,
-        screen: pygame.Surface,
-        ox: int,
-        oy: int,
-        ts: int,
-    ) -> None:
-        """Render LOS preview lines from placed/selected units to VLs.
-
-        When a unit is placed or selected during deployment, draw thin
-        lines from that unit to each Victory Location.  The line color
-        indicates estimated hit probability from that position, using
-        the same 4-color scheme as the attack line system:
-          - Green:  high hit chance (60-100%)
-          - Yellow: moderate hit chance (30-59%)
-          - Red:    low hit chance (10-29%)
-          - Black:  impossible / blocked (0-9%)
-
-        This gives the player visual feedback about whether their
-        deployment position has good firing angles toward key objectives.
-        """
-        if not _pygame_available or screen is None:
-            return
-
-        if not self._victory_locations:
-            return
-
-        # Collect units to show LOS for: placed units + currently selected unit
-        units_to_preview: list[DeploymentUnit] = []
-
-        # Add all placed units
-        for pu in self._state.placed_units:
-            if pu.position is not None:
-                units_to_preview.append(pu)
-
-        # Also add the currently selected unit if it's placed
-        if self._selected_unit_index is not None:
-            sel_unit = self._state.available_units[self._selected_unit_index]
-            if sel_unit.is_placed and sel_unit.position is not None:
-                if sel_unit not in units_to_preview:
-                    units_to_preview.append(sel_unit)
-
-        if not units_to_preview:
-            return
-
-        # For each placed unit, draw LOS lines to each VL
-        for pu in units_to_preview:
-            if pu.position is None:
-                continue
-            src_x, src_y = pu.position
-            sx = ox + src_x * ts + ts // 2
-            sy = oy + src_y * ts + ts // 2
-
-            for vl in self._victory_locations:
-                vl_pos = vl.get("position")
-                if vl_pos is None:
-                    continue
-
-                # Handle both tuple and list position formats
-                if isinstance(vl_pos, (list, tuple)) and len(vl_pos) >= 2:
-                    dst_x, dst_y = int(vl_pos[0]), int(vl_pos[1])
-                else:
-                    continue
-
-                # Calculate distance
-                dx_tiles = abs(dst_x - src_x)
-                dy_tiles = abs(dst_y - src_y)
-                distance = (dx_tiles * dx_tiles + dy_tiles * dy_tiles) ** 0.5
-
-                # Estimate hit probability based on distance and terrain
-                hit_prob = self._estimate_deployment_hit_probability(
-                    src_x, src_y, dst_x, dst_y, distance, pu
-                )
-
-                # Choose color based on hit probability
-                line_color = self._hit_probability_to_los_color(hit_prob)
-
-                # Destination center
-                dx_screen = ox + dst_x * ts + ts // 2
-                dy_screen = oy + dst_y * ts + ts // 2
-
-                # Draw thin dashed line from unit to VL
-                self._draw_dashed_line(
-                    screen, line_color, (sx, sy), (dx_screen, dy_screen),
-                    dash_length=4, gap_length=3,
-                )
-
-                # Draw small dot at VL end
-                pygame.draw.circle(screen, line_color[:3], (dx_screen, dy_screen), 3)
+    def _render_los_preview(self, screen, ox: int, oy: int, ts: int) -> None:
+        """Delegate to DeploymentLOSSystem for LOS preview rendering."""
+        self._los_system.render_los_preview(screen, ox, oy, ts)
 
     def _estimate_deployment_hit_probability(
         self,
@@ -1136,121 +1067,39 @@ class DeploymentUI:
         distance: float,
         unit: DeploymentUnit,
     ) -> float:
-        """Estimate hit probability from a deployment position to a VL.
-
-        Simplified calculation for deployment preview purposes:
-        - Uses distance ratio against effective range
-        - Checks terrain blocking along the line
-        - Considers unit type (vehicles have longer range)
-        - Does NOT factor in fatigue/morale/weather (not in battle yet)
-
-        Returns a float 0.0-1.0.
-        """
-        # Effective range by unit type
-        type_ranges = {
-            "vehicle": 20,
-            "support": 18,
-            "recon": 16,
-            "infantry": 15,
-        }
-        effective_range = type_ranges.get(unit.unit_type, self._LOS_DEFAULT_RANGE)
-
-        # Distance ratio
-        if effective_range <= 0:
-            return 0.0
-        distance_ratio = min(distance / effective_range, 1.5)
-
-        # Out of range entirely
-        if distance_ratio > 1.0:
-            return 0.05
-
-        # Base probability from distance (same curve as AttackLineSystem)
-        if distance_ratio <= 0.3:
-            base_prob = 0.9
-        else:
-            base_prob = 0.9 - 0.7 * ((distance_ratio - 0.3) / 0.7)
-        base_prob = max(base_prob, 0.05)
-
-        # Terrain blocking check: walk the line and check for blocking terrain
-        block_penalty = 0.0
-        if self._tile_grid is not None:
-            steps = max(int(distance), 1)
-            for step in range(1, steps):
-                t = step / steps
-                check_x = int(src_x + (dst_x - src_x) * t)
-                check_y = int(src_y + (dst_y - src_y) * t)
-                terrain = self._get_terrain_at(check_x, check_y)
-
-                if terrain in BUILDING_TERRAINS:
-                    block_penalty += 0.3  # Buildings block heavily
-                elif terrain == TERRAIN_WOODS:
-                    block_penalty += 0.15  # Woods partially block
-                elif terrain == TERRAIN_HEDGE:
-                    block_penalty += 0.1   # Hedges slight block
-                elif terrain == TERRAIN_WALL:
-                    block_penalty += 0.4   # Walls block heavily
-
-        # If fully blocked, return very low
-        if block_penalty >= 0.5:
-            return 0.05
-
-        hit_prob = base_prob - block_penalty
-        return max(0.0, min(hit_prob, 1.0))
+        """Delegate to DeploymentLOSSystem for hit probability estimation."""
+        return DeploymentLOSSystem.estimate_hit_probability(
+            src_x, src_y, dst_x, dst_y, distance, unit,
+            self._tile_grid, self._get_terrain_at,
+        )
 
     def _hit_probability_to_los_color(self, hit_prob: float) -> tuple[int, int, int, int]:
-        """Map hit probability to LOS preview line color (4-color CC2 scheme)."""
-        if hit_prob >= 0.60:
-            return self._LOS_COLOR_HIGH
-        elif hit_prob >= 0.30:
-            return self._LOS_COLOR_MODERATE
-        elif hit_prob >= 0.10:
-            return self._LOS_COLOR_LOW
-        else:
-            return self._LOS_COLOR_IMPOSSIBLE
+        """Delegate to DeploymentLOSSystem for probability→color mapping."""
+        return DeploymentLOSSystem.hit_probability_to_color(hit_prob)
 
     @staticmethod
     def _draw_dashed_line(
-        surface: pygame.Surface,
+        surface,
         color: tuple[int, int, int, int],
         start: tuple[int, int],
         end: tuple[int, int],
         dash_length: int = 6,
         gap_length: int = 4,
     ) -> None:
+        """Delegate to DeploymentLOSSystem.draw_dashed_line (via rendering_utils)."""
+        from pycc2.presentation.rendering.rendering_utils import draw_dashed_line
         draw_dashed_line(surface, color, start, end, dash_length=dash_length, gap_length=gap_length)
 
     @staticmethod
     def _draw_arrowhead(
-        surface: pygame.Surface,
+        surface,
         color: tuple[int, int, int],
         start: tuple[int, int],
         end: tuple[int, int],
         size: int = 8,
     ) -> None:
-        """Draw an arrowhead at the end point pointing from start to end."""
-        import math as _math
-
-        dx = end[0] - start[0]
-        dy = end[1] - start[1]
-        dist = (dx * dx + dy * dy) ** 0.5
-        if dist < 1:
-            return
-
-        # Angle of the line
-        angle = _math.atan2(dy, dx)
-
-        # Arrowhead points
-        p1 = (end[0], end[1])
-        p2 = (
-            int(end[0] - size * _math.cos(angle - _math.pi / 6)),
-            int(end[1] - size * _math.sin(angle - _math.pi / 6)),
-        )
-        p3 = (
-            int(end[0] - size * _math.cos(angle + _math.pi / 6)),
-            int(end[1] - size * _math.sin(angle + _math.pi / 6)),
-        )
-
-        pygame.draw.polygon(surface, color, [p1, p2, p3])
+        """Delegate to DeploymentLOSSystem.draw_arrowhead."""
+        DeploymentLOSSystem.draw_arrowhead(surface, color, start, end, size)
 
     # ------------------------------------------------------------------
     # Internal – force pool panel (LEFT side)
@@ -2195,81 +2044,16 @@ class DeploymentUI:
 
     @staticmethod
     def _build_default_roster() -> list[DeploymentUnit]:
-        """Build a default unit roster for demonstration purposes."""
-        return [
-            # Infantry
-            DeploymentUnit("us_rifle_squad", "Rifle Squad", "infantry", 120),
-            DeploymentUnit("us_rifle_squad", "Rifle Squad", "infantry", 120),
-            DeploymentUnit("us_rifle_squad", "Rifle Squad", "infantry", 120),
-            DeploymentUnit("us_assault_squad", "Assault Squad", "infantry", 145),
-            DeploymentUnit("us_engineer_team", "Engineer Squad", "infantry", 140),
-            # Support (MG/AT)
-            DeploymentUnit("us_machine_gun_team", "MG Team (M1919A4)", "support", 160),
-            DeploymentUnit("us_at_team", "AT Team (Bazooka)", "support", 150),
-            DeploymentUnit("us_mortar_light", "Light Mortar (60mm)", "support", 140),
-            DeploymentUnit("us_mortar_heavy", "Heavy Mortar (81mm)", "support", 175),
-            DeploymentUnit("us_officer", "Officer / Commander", "support", 180),
-            # Armor
-            DeploymentUnit("us_sherman_m4", "M4 Sherman", "vehicle", 350),
-            DeploymentUnit("us_stuart_m5", "M5 Stuart", "vehicle", 220),
-            # Recon
-            DeploymentUnit("us_scout_team", "Scout Team", "recon", 110),
-            DeploymentUnit("us_sniper_team", "Sniper Team", "recon", 140),
-        ]
+        """Delegate to deployment_factory.build_default_roster."""
+        return build_default_roster()
 
     @staticmethod
     def build_force_pool_from_settings(
         faction: str = "allied",
         requisition_points: int = 2000,
     ) -> list[DeploymentUnit]:
-        """Build a force pool based on faction and requisition points.
-
-        Returns a list of DeploymentUnit entries that the player can
-        choose from during deployment.  The cost of each unit counts
-        against the player's requisition point budget.
-        """
-        if faction in ("allied", "ally"):
-            return [
-                # Infantry
-                DeploymentUnit("us_rifle_squad", "Rifle Squad", "infantry", 120),
-                DeploymentUnit("us_rifle_squad", "Rifle Squad", "infantry", 120),
-                DeploymentUnit("us_rifle_squad", "Rifle Squad", "infantry", 120),
-                DeploymentUnit("us_assault_squad", "Assault Squad", "infantry", 145),
-                DeploymentUnit("us_engineer_team", "Engineer Squad", "infantry", 140),
-                # Support (MG/AT)
-                DeploymentUnit("us_machine_gun_team", "MG Team (M1919A4)", "support", 160),
-                DeploymentUnit("us_at_team", "AT Team (Bazooka)", "support", 150),
-                DeploymentUnit("us_mortar_light", "Light Mortar (60mm)", "support", 140),
-                DeploymentUnit("us_mortar_heavy", "Heavy Mortar (81mm)", "support", 175),
-                DeploymentUnit("us_officer", "Officer / Commander", "support", 180),
-                # Armor
-                DeploymentUnit("us_sherman_m4", "M4 Sherman", "vehicle", 350),
-                DeploymentUnit("us_stuart_m5", "M5 Stuart", "vehicle", 220),
-                # Recon
-                DeploymentUnit("us_scout_team", "Scout Team", "recon", 110),
-                DeploymentUnit("us_sniper_team", "Sniper Team", "recon", 140),
-            ]
-        else:
-            return [
-                # Infantry
-                DeploymentUnit("ger_rifle_squad", "Rifle Squad", "infantry", 120),
-                DeploymentUnit("ger_rifle_squad", "Rifle Squad", "infantry", 120),
-                DeploymentUnit("ger_rifle_squad", "Rifle Squad", "infantry", 120),
-                DeploymentUnit("ger_assault_squad", "Sturm Squad", "infantry", 145),
-                DeploymentUnit("ger_pioneer_team", "Pioneer Squad", "infantry", 140),
-                # Support (MG/AT)
-                DeploymentUnit("ger_mg42_team", "MG42 Team", "support", 170),
-                DeploymentUnit("ger_at_team", "AT Team (Panzerschreck)", "support", 155),
-                DeploymentUnit("ger_mortar_light", "Light Mortar (50mm)", "support", 130),
-                DeploymentUnit("ger_mortar_heavy", "Heavy Mortar (81mm)", "support", 175),
-                DeploymentUnit("ger_officer", "Officer / Commander", "support", 180),
-                # Armor
-                DeploymentUnit("ger_panther", "Panther", "vehicle", 400),
-                DeploymentUnit("ger_stug", "StuG III", "vehicle", 280),
-                # Recon
-                DeploymentUnit("ger_scout_team", "Scout Team", "recon", 110),
-                DeploymentUnit("ger_sniper_team", "Sniper Team", "recon", 140),
-            ]
+        """Delegate to deployment_factory.build_force_pool_from_settings."""
+        return build_force_pool_from_settings(faction, requisition_points)
 
     @staticmethod
     def generate_ai_deployment(
@@ -2277,95 +2061,8 @@ class DeploymentUI:
         faction: str = "axis",
         requisition_points: int = 1500,
     ) -> list[dict]:
-        """Generate AI deployment placements for the enemy side.
-
-        Returns a list of placement dicts:
-          {"unit_template_id": str, "display_name": str,
-           "unit_type": str, "position": (x, y)}
-        """
-        map_width = map_data.get("width", 50)
-        map_height = map_data.get("height", 42)
-        tile_grid = map_data.get("tiles")
-
-        # Determine enemy zone
-        spawn_points = map_data.get("spawn_points", [])
-        enemy_positions: list[tuple[int, int]] = []
-
-        side_key = "axis" if faction == "axis" else "allies"
-
-        for sp in spawn_points:
-            if sp.get("side") == side_key:
-                sp_x, sp_y = sp["position"]
-                # Generate positions around the spawn point
-                for dy in range(-2, 3):
-                    for dx in range(-2, 3):
-                        nx, ny = sp_x + dx, sp_y + dy
-                        if 0 <= nx < map_width and 0 <= ny < map_height:
-                            # Check terrain is passable
-                            if tile_grid is not None:
-                                terrain = int(tile_grid[ny][nx])
-                                if terrain in IMPASSABLE_TERRAINS:
-                                    continue
-                            enemy_positions.append((nx, ny))
-
-        # If no spawn points, use right third of map
-        if not enemy_positions:
-            third = map_width // 3
-            for y in range(map_height):
-                for x in range(map_width - third, map_width):
-                    if tile_grid is not None:
-                        terrain = int(tile_grid[y][x])
-                        if terrain not in IMPASSABLE_TERRAINS:
-                            enemy_positions.append((x, y))
-                    else:
-                        enemy_positions.append((x, y))
-
-        # Build AI force pool
-        if faction in ("axis",):
-            ai_units = [
-                ("ger_rifle_squad", "Rifle Squad", "infantry", 120),
-                ("ger_rifle_squad", "Rifle Squad", "infantry", 120),
-                ("ger_rifle_squad", "Rifle Squad", "infantry", 120),
-                ("ger_mg42_team", "MG42 Team", "support", 170),
-                ("ger_at_team", "AT Team (Panzerschreck)", "support", 155),
-                ("ger_mortar_heavy", "Heavy Mortar (81mm)", "support", 175),
-                ("ger_officer", "Officer / Commander", "support", 180),
-                ("ger_panther", "Panther", "vehicle", 400),
-            ]
-        else:
-            ai_units = [
-                ("us_rifle_squad", "Rifle Squad", "infantry", 120),
-                ("us_rifle_squad", "Rifle Squad", "infantry", 120),
-                ("us_rifle_squad", "Rifle Squad", "infantry", 120),
-                ("us_machine_gun_team", "MG Team (M1919A4)", "support", 160),
-                ("us_at_team", "AT Team (Bazooka)", "support", 150),
-                ("us_mortar_heavy", "Heavy Mortar (81mm)", "support", 175),
-                ("us_officer", "Officer / Commander", "support", 180),
-                ("us_sherman_m4", "M4 Sherman", "vehicle", 350),
-            ]
-
-        # Place AI units within budget
-        placements: list[dict] = []
-        spent = 0
-        used_positions: set[tuple[int, int]] = set()
-
-        for template_id, name, utype, cost in ai_units:
-            if spent + cost > requisition_points:
-                continue
-            # Find a free position
-            for pos in enemy_positions:
-                if pos not in used_positions:
-                    used_positions.add(pos)
-                    placements.append({
-                        "unit_template_id": template_id,
-                        "display_name": name,
-                        "unit_type": utype,
-                        "position": pos,
-                    })
-                    spent += cost
-                    break
-
-        return placements
+        """Delegate to deployment_factory.generate_ai_deployment."""
+        return generate_ai_deployment(map_data, faction, requisition_points)
 
     def update_button_hover(self, mouse_x: int, mouse_y: int) -> None:
         """Update the Start Battle button hover state based on mouse position."""

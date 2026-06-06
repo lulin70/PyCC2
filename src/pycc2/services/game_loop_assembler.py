@@ -5,6 +5,21 @@ assembled 15+ subsystems.  This module moves that assembly into a dedicated
 class so ``GameLoop`` can focus on the game-loop *logic* (update, render,
 event handling) rather than *wiring*.
 
+**Architecture Note — Composition Root**
+This module is the **Composition Root** for PyCC2.  It is the *only* place
+where services layer code may reference presentation layer concrete classes
+for instantiation.  All 9 ``from pycc2.presentation.*`` imports below are:
+
+1. **Local (method-level) lazy imports** — never triggered at module load time
+2. **Single responsibility** — each ``_init_*()`` method creates exactly one
+   or two related objects and injects them into ``GameLoop``
+3. **Not propagating** — no other service file imports from presentation at
+   runtime; they receive objects via constructor/setter injection
+
+This follows the `Dependency Rule` of Clean Architecture: the Composition Root
+is the outermost shell that knows about all inner layers and wires them together.
+See: https://blog.ploeh.dk/2011/07/28/CompositionRoot/
+
 Usage inside ``GameLoop.__post_init__``::
 
     GameLoopAssembler(self).assemble()
@@ -120,10 +135,18 @@ class GameLoopAssembler:
             return
         from pycc2.services.hud_manager import HUDManager as HM
 
+        from pycc2.presentation.rendering.minimap import Minimap
+        from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
+
         self._loop._hud_manager = HM()
+        dc = self._loop.display_config
+        # Create presentation objects here (Composition Root) and inject into service
+        minimap = Minimap(display_config=dc, size=int(140 * dc.ui_scale))
+        cc2_panel = CC2BottomPanel()
+        cc2_panel.initialize()
         self._loop._hud_manager.initialize(
             state=self._loop.state,
-            display_config=self._loop.display_config,
+            display_config=dc,
             sound_system=self._loop.sound_system,
             interaction_controller=self._loop.interaction_controller,
             event_bus=self._loop.event_bus,
@@ -131,6 +154,8 @@ class GameLoopAssembler:
             window_manager=self._loop.window_manager,
             render_pipeline=self._loop._render_pipeline,
             input_router=self._loop._input_router,
+            minimap=minimap,
+            cc2_panel=cc2_panel,
         )
 
     def _init_event_dispatcher(self) -> None:

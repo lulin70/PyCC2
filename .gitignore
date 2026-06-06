@@ -150,6 +150,7 @@ cython_debug/
 *.save
 logs/
 *.log
+tmp/  # Process/download cache (e.g., pixvoxel_download)
 
 # Generated screenshots
 screenshots/

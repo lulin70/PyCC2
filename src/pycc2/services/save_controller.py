@@ -46,7 +46,7 @@ class SaveController:
         state_dict, meta, status = self.save_manager.load_game(slot)
         if status.name not in ("OK", "INCOMPATIBLE") or state_dict is None:
             if game_loop.sound_system:
-                from pycc2.presentation.audio.sound_system import SoundType
+                from pycc2.domain.value_objects.audio_enums import SoundType
 
                 game_loop.sound_system.play(SoundType.UI_CANCEL)
             return False
@@ -62,7 +62,7 @@ class SaveController:
             logger.error("Failed to restore game state from slot %d: %s", slot, e, exc_info=True)
 
         if game_loop.sound_system:
-            from pycc2.presentation.audio.sound_system import SoundType
+            from pycc2.domain.value_objects.audio_enums import SoundType
 
             game_loop.sound_system.play(SoundType.UI_CANCEL)
         return False

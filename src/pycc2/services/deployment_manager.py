@@ -130,8 +130,9 @@ class DeploymentManager:
         faction: str = "ally",
         game_settings: object | None = None,
         display_config: DisplayConfig | None = None,
+        deployment_ui: object | None = None,
     ) -> None:
-        """Create a DeploymentUI and activate the deployment phase.
+        """Activate the deployment phase.
 
         Parameters
         ----------
@@ -143,15 +144,21 @@ class DeploymentManager:
             If provided, used to calculate requisition points and force pool.
         display_config : DisplayConfig | None
             Display configuration for window dimensions.
+        deployment_ui : object | None
+            Pre-created DeploymentUI instance (injected by caller to avoid
+            service→presentation coupling). If None, created internally.
         """
         try:
             from pycc2.domain.systems.game_settings import SUPPLY_EFFECTS
-            from pycc2.presentation.ui.deployment_ui import DeploymentUI as DUI
+            from pycc2.presentation.ui.deployment_ui import DeploymentUI as DUI  # needed for class-method calls below
 
-            width = display_config.window_width if display_config else 800
-            height = display_config.window_height if display_config else 600
+            if deployment_ui is not None:
+                self.deployment_ui = deployment_ui
+            else:
+                width = display_config.window_width if display_config else 800
+                height = display_config.window_height if display_config else 600
 
-            self.deployment_ui = DUI(width=width, height=height)
+                self.deployment_ui = DUI(width=width, height=height)
 
             # Determine attacker faction from scenario data (G6)
             self.attacker_faction = self._detect_attacker_faction(map_data, faction)

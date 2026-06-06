@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 import logging
 from dataclasses import dataclass
-from enum import Enum, auto
+from enum import Enum
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -17,33 +17,7 @@ if TYPE_CHECKING:
     from pycc2.domain.value_objects.vec2 import Vec2
 
 
-class SoundType(Enum):
-    UI_CLICK = auto()
-    UI_HOVER = auto()
-    UI_COMMAND = auto()
-    UI_SELECT = auto()
-    UI_CANCEL = auto()
-    UI_ERROR = auto()
-    UI_SUCCESS = auto()
-
-    RIFLE_SHOT = auto()
-    MG_BURST = auto()
-    PISTOL_SHOT = auto()
-    EXPLOSION = auto()
-    HIT_CONFIRM = auto()
-    HIT_CRITICAL = auto()
-    RICOCHET = auto()
-
-    UNIT_MOVE = auto()
-    UNIT_DEATH = auto()
-    UNIT_PANIC = auto()
-    UNIT_SUPPRESSED = auto()
-
-    AMBIENT_BIRD = auto()
-    AMBIENT_WIND = auto()
-    FOOTSTEP_GRASS = auto()
-    FOOTSTEP_ROAD = auto()
-    FOOTSTEP_WOOD = auto()
+from pycc2.domain.value_objects.audio_enums import SoundType  # noqa: F401 — re-exported for backward compat
 
 
 @dataclass(slots=True)

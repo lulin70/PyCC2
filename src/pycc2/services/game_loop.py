@@ -421,7 +421,7 @@ class GameLoop:
             })
 
             if self.sound_system:
-                from pycc2.presentation.audio.sound_system import SoundType
+                from pycc2.domain.value_objects.audio_enums import SoundType
 
                 if result.name == "ALLIES_VICTORY":
                     self.sound_system.play(SoundType.UI_COMMAND)
@@ -526,11 +526,18 @@ class GameLoop:
 
         Delegates to DeploymentManager.start().
         """
+        from pycc2.presentation.ui.deployment_ui import DeploymentUI as DUI
+
+        dc = self.display_config
+        width = dc.window_width if dc else 800
+        height = dc.window_height if dc else 600
+        deployment_ui = DUI(width=width, height=height)
         self._deployment_manager.start(
             map_data=map_data,
             faction=faction,
             game_settings=game_settings,
             display_config=self.display_config,
+            deployment_ui=deployment_ui,
         )
 
     def complete_deployment(self) -> dict | None:
