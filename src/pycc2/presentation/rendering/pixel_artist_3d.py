@@ -2296,8 +2296,8 @@ if __name__ == "__main__":
 
     pygame.init()
 
-    print("CC2 45° Isometric Pixel Artist - Test Generation")
-    print("=" * 50)
+    logger.info("CC2 45° Isometric Pixel Artist - Test Generation")
+    logger.info("=" * 50)
 
     test_surface = pygame.Surface((400, 300), pygame.SRCALPHA)
     test_surface.fill((40, 80, 28))
@@ -2334,7 +2334,7 @@ if __name__ == "__main__":
     import tempfile as _tf
     _preview_path = str(_tf.gettempdir() / "cc2_style_preview.png")
     pygame.image.save(test_surface, _preview_path)
-    print(f"Preview saved to {_preview_path}")
-    print(f"   Generated {len(directions)} infantry sprites + tank + tree + building")
+    logger.info("Preview saved to %s", _preview_path)
+    logger.info("   Generated %d infantry sprites + tank + tree + building", len(directions))
 
     pygame.quit()

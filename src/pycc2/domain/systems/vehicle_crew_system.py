@@ -6,10 +6,13 @@ and efficiency penalties based on crew casualties.
 
 from __future__ import annotations
 
+import logging
 import random
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
@@ -200,7 +203,7 @@ class VehicleCrew:
             self._alive_count -= 1
             result["was_kill"] = True
             
-            print(f"[Crew] {target.name} ({target.role.value}) killed!")
+            logger.warning("[Crew] %s (%s) killed!", target.name, target.role.value)
             
             # Apply penalties
             new_penalties = self._apply_crew_death_penalty(target)
@@ -215,7 +218,7 @@ class VehicleCrew:
                 if self._vehicle is not None and hasattr(self._vehicle, 'health'):
                     self._vehicle.health.current_hp = 0
                     
-                print("[Crew] All crew members dead! Vehicle disabled.")
+                logger.warning("[Crew] All crew members dead! Vehicle disabled.")
         else:
             # Wound the member
             if target.hp < target.max_hp * 0.3:
@@ -289,8 +292,8 @@ class VehicleCrew:
             
         self._penalties_applied.update(penalties)
         
-        print(f"[Crew] Penalties applied: {penalties}")
-        print(f"[Crew] Overall efficiency: {self._vehicle_efficiency:.1%}")
+        logger.info("[Crew] Penalties applied: %s", penalties)
+        logger.info("[Crew] Overall efficiency: %.1f%%", self._vehicle_efficiency * 100)
         
         return penalties
 
@@ -367,7 +370,7 @@ class VehicleCrew:
         # Recalculate efficiency
         self._vehicle_efficiency = max(0.2, self.crew_ratio)
         
-        print(f"[Crew] {role.value} replaced with {replacement.name}")
+        logger.info("[Crew] %s replaced with %s", role.value, replacement.name)
         return True
 
     def evacuate_crew(self) -> list[CrewMember]:
@@ -385,7 +388,7 @@ class VehicleCrew:
         self._alive_count = 0
         self._vehicle_efficiency = 0.0
         
-        print(f"[Crew] Evacuated {len(surviving)} crew members")
+        logger.info("[Crew] Evacuated %d crew members", len(surviving))
         return surviving
 
     def get_status_display(self) -> dict:

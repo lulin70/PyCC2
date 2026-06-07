@@ -234,9 +234,7 @@ def main() -> int:
             faction = "allied" if player_side == "allied" else "axis"
             logger.info(f"Settings loaded: {player_side} side")
         except Exception as e:
-            logger.error(f"Failed to get game settings: {e}")
-            import traceback
-            traceback.print_exc()
+            logger.error("Failed to get game settings: %s", e, exc_info=True)
             return 1
 
         # Create camera centered on map
@@ -365,9 +363,7 @@ def main() -> int:
                 game_settings=game_settings,
             )
         except Exception as e:
-            logger.error(f"Failed to start deployment: {e}")
-            import traceback
-            traceback.print_exc()
+            logger.error("Failed to start deployment: %s", e, exc_info=True)
             return 1
 
         logger.info("Game initialized, entering main loop...")
@@ -375,18 +371,14 @@ def main() -> int:
             exit_code = game_loop.run()
             return exit_code
         except Exception as e:
-            logger.error(f"Game loop crashed: {e}")
-            import traceback
-            traceback.print_exc()
+            logger.error("Game loop crashed: %s", e, exc_info=True)
             return 1
 
     except KeyboardInterrupt:
         logger.info("Game interrupted by user")
         return 130
     except Exception as e:
-        logger.critical(f"Fatal error: {e}", exc_info=True)
-        import traceback
-        traceback.print_exc()
+        logger.critical("Fatal error: %s", e, exc_info=True)
         return 1
     finally:
         try:

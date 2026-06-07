@@ -129,7 +129,8 @@ class Casualty:
             "timestamp": time.perf_counter(),
         }
         
-        print(f"[Casualty] ⚠️ {self._unit.name} is WOUNDED! Rescue in {self.rescue_timeout:.0f}s or they will die!")
+        logger.warning("[Casualty] ⚠️ %s is WOUNDED! Rescue in %.0fs or they will die!",
+                       self._unit.name, self.rescue_timeout)
         
         return {**event, "success": True}
 
@@ -209,7 +210,7 @@ class Casualty:
             "timestamp": time.perf_counter(),
         }
         
-        print(f"[Casualty] 🏥 {medic_unit.name} started dragging {self._unit.name}")
+        logger.info("[Casualty] 🏥 %s started dragging %s", medic_unit.name, self._unit.name)
         
         return {**event, "success": True}
 
@@ -248,7 +249,7 @@ class Casualty:
             "estimated_time": self._config.evac_complete_time,
         }
         
-        print(f"[Casualualty] 🚑 Evacuating {self._unit.name}...")
+        logger.info("[Casualty] 🚑 Evacuating %s...", self._unit.name)
         
         return {**event, "success": True}
 
@@ -275,7 +276,8 @@ class Casualty:
             "morale_bonus": self._config.morale_rescue_bonus,
         }
         
-        print(f"[Casualty] ✅ {self._unit.name} evacuated successfully! Squad morale +{self._config.morale_rescue_bonus}")
+        logger.info("[Casualty] ✅ %s evacuated successfully! Squad morale +%d",
+                   self._unit.name, self._config.morale_rescue_bonus)
         
         return {**event, "success": True}
 
@@ -305,7 +307,8 @@ class Casualty:
             "morale_penalty": morale_penalty,
         }
         
-        print(f"[Casualty] 💀 {self._unit.name} DIED from wounds! Squad morale {morale_penalty}")
+        logger.warning("[Casualty] 💀 %s DIED from wounds! Squad morale %d",
+                       self._unit.name, morale_penalty)
         
         return event
 

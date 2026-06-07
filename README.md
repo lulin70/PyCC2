@@ -1,6 +1,6 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.3.28 | Beta Candidate | June 5, 2026**
+**v0.3.29 | Beta Candidate | June 6, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
@@ -19,7 +19,15 @@
 
 ---
 
-## What's New in v0.3.28
+## What's New in v0.3.29
+
+### 🏗️ v0.3.29 — Layer Decoupling + God Class Split (June 6, 2026)
+- **[ARCH]** services→presentation layer violations: **41 → 25 (-39%)**
+- **[MIGRATE]** `SoundType` + `InteractionMode` enums → `domain/value_objects/audio_enums.py`
+- **[DI]** HUDManager/DeploymentManager accept injected objects (Minimap, CC2BottomPanel, DeploymentUI)
+- **[SPLIT]** deployment_ui.py: **2374 → 2071 lines** — extracted factory(185) + LOS(221) sub-modules
+- **[DOC]** GameLoopAssembler documented as Composition Root per Clean Architecture
+- **[BUGFIX]** e2e test: UnboundLocalError in deployment_manager DUI scope bug
 
 ### 🏗️ v0.3.28 — EnhancedRenderer God Class Split (June 5, 2026)
 - **[ARCH]** EnhancedRenderer: **1389 → 943 lines (-32%, -446 lines)**
@@ -136,25 +144,26 @@
 | **Weapon Types** | 69 authentic CC2 weapons |
 | **Campaign Battles** | 29 battles across 9 days, 3 sectors |
 | **AI Behaviors** | 6 tactical AI types (flanking, suppression, VP, etc.) |
-| **Code Files** | ~224 Python modules (+1 new: ui_overlay_renderer.py in v0.3.28) |
+| **Code Files** | ~226 Python modules (+2 new: audio_enums.py, deployment_factory.py + deployment_los.py in v0.3.29) |
 | **Class Definitions** | 330+ classes |
-| **Extracted Modules** | 15 rendering/data systems (new: UIOverlayRenderer, GameLoopAssembler, GameStateView Protocol) |
-| **Technical Debt** | 4 God Classes >1000 lines remaining (deployment_ui 2374, pixel_artist_3d 2340, campaign_four_layer 1987, pixel_artist 1971) |
+| **Extracted Modules** | 17 rendering/data systems (new: UIOverlayRenderer, GameLoopAssembler, GameStateView Protocol, DeploymentFactory, DeploymentLOSSystem, AudioEnums) |
+| **Technical Debt** | 4 God Classes >1000 lines remaining (deployment_ui 2071↓, pixel_artist_3d 2340, campaign_four_layer 1987, pixel_artist 1971) |
+| **Layer Violations** | ~25 (down from 41 in v0.3.29, -39%) |
 | **CC2 Fidelity** | ~88% (Visual: 85%, Mechanics: 92%) ⚠️ | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for details |
 
-### 📈 Code Quality Metrics (v0.3.28 — Post SRP Refactoring)
+### 📈 Code Quality Metrics (v0.3.29 — Post Layer Decoupling)
 
 | Dimension | Score | Notes |
 |----------|-------|-------|
-| **Architecture** | 7.5/10 | DDD + DI, EnhancedRenderer split complete, 4 God Classes remain |
+| **Architecture** | 7.5/10 | DDD + DI, EnhancedRenderer split complete, 4 God Classes remain, layer violations -39% |
 | **Test Quality** | 9.5/10 ✅ | **3929 tests**, weak assertions <1%, smoke tests for zero-coverage modules |
 | **Test Coverage** | 8.5/10 | Broad coverage, 27 new smoke tests in v0.3.27 |
-| **Code Quality** | 7.5/10 | 54 bare print() remaining (down from 80+), logging migration ongoing |
+| **Code Quality** | 6.5/10 | **144 bare print() remaining** (down from 200+), logging migration ongoing |
 | **Performance** | 8/10 | Surface pool LRU, viewport culling, incremental association discovery |
 | **Security** | 9.5/10 ✅ | Zero eval/exec, HMAC saves, no injection vectors |
-| **Documentation** | **8/10** ✅ | **Synchronized to v0.3.28** (this update) |
+| **Documentation** | **8.5/10** ✅ | **Synchronized to v0.3.29** (this update) |
 | **Maintainability** | 8/10 | Clear patterns, good logging, 144 TODO markers (domain/systems focus) |
-| **Overall Health** | **8.3/10** | **Beta Candidate** ✅ |
+| **Overall Health** | **8.0/10** | **Beta Candidate** ✅ |
 
 ---
 

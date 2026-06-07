@@ -22,12 +22,15 @@ Usage:
 from __future__ import annotations
 
 import json
+import logging
 import math
 import random
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from .enhanced_tile import (
     EnhancedTile,
@@ -107,7 +110,8 @@ class TerrainDetailGenerator:
         width = map_data['width']
         height = map_data['height']
         
-        print(f"🎨 Generating terrain details for {map_data['id']} ({width}×{height})")
+        logger.info("🎨 Generating terrain details for %s (%d×%d)",
+                    map_data['id'], width, height)
         
         # Convert to enhanced tile format if needed
         if 'tiles_enhanced' not in map_data:
@@ -125,16 +129,16 @@ class TerrainDetailGenerator:
         # Phase 1: Height map generation
         if self.config.enable_height:
             self._generate_height_map(enhanced_tiles, width, height, biome_map)
-            print("  ✓ Height map generated")
+            logger.debug("  ✓ Height map generated")
         
         # Phase 2: Visual variation assignment
         if self.config.enable_variations:
             self._assign_visual_variations(enhanced_tiles, width, height)
-            print("  ✓ Visual variations assigned")
+            logger.debug("  ✓ Visual variations assigned")
         
         # Phase 3: Decoration placement (main detail pass)
         deco_count = self._place_decorations(enhanced_tiles, width, height, biome_map)
-        print(f"  ✓ {deco_count} decorations placed")
+        logger.debug("  ✓ %s decorations placed", deco_count)
         
         # Phase 4: Tactical feature generation
         tactical_count = 0
@@ -142,7 +146,7 @@ class TerrainDetailGenerator:
             tactical_count += self._generate_tactical_covers(enhanced_tiles, width, height)
         if self.config.generate_concealment_zones:
             tactical_count += self._generate_concealment_zones(enhanced_tiles, width, height)
-        print(f"  ✓ {tactical_count} tactical features added")
+        logger.debug("  ✓ %s tactical features added", tactical_count)
         
         # Update map data with enhanced tiles
         map_data['tiles_enhanced'] = [
@@ -153,7 +157,8 @@ class TerrainDetailGenerator:
         map_data['_generation_seed'] = self.seed
         map_data['_decoration_count'] = deco_count + tactical_count
         
-        print(f"✅ Enhancement complete: {deco_count + tactical_count} total details added")
+        logger.info("✅ Enhancement complete: %s total details added",
+                    deco_count + tactical_count)
         
         return map_data
     
@@ -571,7 +576,7 @@ def batch_enhance_maps(
             }
             
         except Exception as e:
-            print(f"❌ Error processing {map_file.name}: {e}")
+            logger.error("❌ Error processing %s: %s", map_file.name, e)
             results['maps'][map_file.stem] = {'error': str(e)}
     
     return results
@@ -583,17 +588,18 @@ if __name__ == '__main__':
     # Default: enhance all maps in data/maps directory
     default_input = str(Path(__file__).resolve().parent.parent.parent.parent / "data" / "maps")
     
-    print("=" * 80)
-    print("🎨 PYCC2 TERRAIN DETAIL GENERATOR - PHASE A3")
-    print("   Procedurally generating battlefield details")
-    print("=" * 80)
-    print()
+    logger.debug("=" * 80)
+    logger.debug("🎨 PYCC2 TERRAIN DETAIL GENERATOR - PHASE A3")
+    logger.debug("   Procedurally generating battlefield details")
+    logger.debug("=" * 80)
+    logger.debug("")
     
     results = batch_enhance_maps(default_input)
-    
-    print()
-    print("=" * 80)
-    print(f"🎉 BATCH ENHANCEMENT COMPLETE")
-    print(f"   Maps processed: {results['processed']}")
-    print(f"   Total decorations generated: {results['total_decorations']:,}")
-    print("=" * 80)
+
+    logger.debug("")
+    logger.debug("=" * 80)
+    logger.debug("🎉 BATCH ENHANCEMENT COMPLETE")
+    logger.debug("   Maps processed: %s", results['processed'])
+    logger.debug("   Total decorations generated: %s",
+                 results['total_decorations'])
+    logger.debug("=" * 80)

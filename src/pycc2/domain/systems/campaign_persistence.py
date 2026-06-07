@@ -198,11 +198,11 @@ class CampaignPersistenceManager:
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(data, f, default=str, indent=2, ensure_ascii=False)
 
-            print(f"[Campaign] Saved progress for {campaign_id}")
+            logger.info("[Campaign] Saved progress for %s", campaign_id)
             return True
 
         except Exception as e:
-            print(f"[Campaign] Error saving campaign: {e}")
+            logger.error("[Campaign] Error saving campaign: %s", e)
             return False
 
     def load_campaign_progress(
@@ -221,7 +221,7 @@ class CampaignPersistenceManager:
         filepath = self._campaign_dir / f"campaign_{campaign_id}.json"
 
         if not filepath.exists():
-            print(f"[Campaign] No saved progress for {campaign_id}")
+            logger.info("[Campaign] No saved progress for %s", campaign_id)
             return None
 
         try:
@@ -230,7 +230,7 @@ class CampaignPersistenceManager:
 
             version = data.get("version", "0.0")
             if version != self.VERSION:
-                print(f"[Campaign] Version mismatch: {version} != {self.VERSION}")
+                logger.warning("[Campaign] Version mismatch: %s != %s", version, self.VERSION)
 
             progress_dict = data.get("progress", {})
             progress = CampaignProgress(**{
@@ -251,12 +251,12 @@ class CampaignPersistenceManager:
                 results.append(BattleResult(**br_copy))
             progress.battle_results = results
 
-            print(f"[Campaign] Loaded progress for {campaign_id} "
-                  f"({progress.total_battles_completed} battles)")
+            logger.info("[Campaign] Loaded progress for %s (%d battles)",
+                        campaign_id, progress.total_battles_completed)
             return progress
 
         except Exception as e:
-            print(f"[Campaign] Error loading campaign: {e}")
+            logger.error("[Campaign] Error loading campaign: %s", e)
             return None
 
     def apply_inheritance_to_units(
@@ -318,7 +318,7 @@ class CampaignPersistenceManager:
                     from pycc2.domain.entities.unit import UnitState
                     unit.state_machine.force_state(UnitState.DEAD)
 
-        print(f"[Campaign] Applied inheritance to {inherited_count}/{len(current_units)} units")
+        logger.info("[Campaign] Applied inheritance to %d/%d units", inherited_count, len(current_units))
         return current_units
 
     def list_saved_campaigns(self) -> list[dict]:
@@ -358,7 +358,7 @@ class CampaignPersistenceManager:
 
         if filepath.exists():
             filepath.unlink()
-            print(f"[Campaign] Deleted save for {campaign_id}")
+            logger.info("[Campaign] Deleted save for %s", campaign_id)
             return True
 
         return False

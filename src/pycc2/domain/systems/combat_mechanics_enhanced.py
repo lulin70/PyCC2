@@ -21,9 +21,12 @@ deep, tactical combat that surpasses original CC2.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 # ========================================================================
@@ -587,14 +590,14 @@ class CombatState:
 
 def demo_combat_systems():
     """Demonstrate the enhanced combat mechanics."""
-    print("=" * 80)
-    print("⚔️  ENHANCED COMBAT MECHANICS DEMO")
-    print("   Suppression + Concealment Systems")
-    print("=" * 80)
-    print()
+    logger.debug("=" * 80)
+    logger.debug("⚔️  ENHANCED COMBAT MECHANICS DEMO")
+    logger.debug("   Suppression + Concealment Systems")
+    logger.debug("=" * 80)
+    logger.debug("")
     
     # Create a unit's combat state
-    print("🎖️ Creating Rifle Squad Combat State...")
+    logger.debug("🎖️ Creating Rifle Squad Combat State...")
     state = CombatState()
     
     # Set up initial conditions
@@ -602,15 +605,19 @@ def demo_combat_systems():
     state.concealment.set_stance(Stance.PRONE)
     state.suppression.current_suppression = 10.0  # Slightly stressed
     
-    print(f"\n📊 Initial State:")
-    print(f"   Suppression: {state.suppression.current_suppression:.1f}/100 "
-          f"({state.suppression.get_current_effect().name})")
-    print(f"   Concealment: {state.concealment.calculate_total_concealment():.2f}")
-    print(f"   Accuracy Penalty: {(1-state.suppression.get_accuracy_penalty())*100:.0f}%")
-    print(f"   Movement Penalty: {(1-state.suppression.get_movement_penalty())*100:.0f}%")
+    logger.debug("\n📊 Initial State:")
+    logger.debug("   Suppression: %s/100 (%s)",
+                 state.suppression.current_suppression,
+                 state.suppression.get_current_effect().name)
+    logger.debug("   Concealment: %.2f",
+                 state.concealment.calculate_total_concealment())
+    logger.debug("   Accuracy Penalty: %.0f%%",
+                 (1 - state.suppression.get_accuracy_penalty()) * 100)
+    logger.debug("   Movement Penalty: %.0f%%",
+                 (1 - state.suppression.get_movement_penalty()) * 100)
     
     # Simulate coming under heavy MG fire
-    print("\n💥 SIMULATION: Under MG42 Fire (High Suppress Weapon)")
+    logger.debug("\n💥 SIMULATION: Under MG42 Fire (High Suppress Weapon)")
     
     mg42_suppress = 0.9  # MG42 has very high suppress ability
     for i in range(4):  # 4 bursts
@@ -619,28 +626,31 @@ def demo_combat_systems():
             hit=(i % 2 == 0),  # Alternating hits/misses
             damage=25.0 if (i % 2 == 0) else 0,
         )
-        print(f"   Burst {i+1}: Suppression → {result['current_suppression']:.1f} "
-              f"({result['suppression_effect']}) | "
-              f"Accuracy: {result['accuracy_penalty']*100:.0f}% | "
-              f"Can Act: {'YES' if result['can_act'] else 'NO - PINNED'}")
+        logger.debug(
+            "   Burst %s: Suppression → %.1f (%s) | Accuracy: %.0f%% | Can Act: %s",
+            i + 1, result['current_suppression'], result['suppression_effect'],
+            result['accuracy_penalty'] * 100,
+            'YES' if result['can_act'] else 'NO - PINNED')
     
     # Simulate recovery
-    print("\n😤 RECOVERY: Turn Ends (In Cover)")
+    logger.debug("\n😤 RECOVERY: Turn Ends (In Cover)")
     recovery = state.process_turn_start()
-    print(f"   After Recovery: {recovery['recovered_suppression']:.1f} "
-          f"({recovery['new_suppression_effect']})")
+    logger.debug("   After Recovery: %.1f (%s)",
+                 recovery['recovered_suppression'],
+                 recovery['new_suppression_effect'])
     
     # Show concealment effects
-    print("\n👁️ CONCEALMENT SYSTEM TEST:")
+    logger.debug("\n👁️ CONCEALMENT SYSTEM TEST:")
     for stance in Stance:
         state.concealment.set_stance(stance)
         conc = state.concealment.calculate_total_concealment()
         vis = state.vision.attempt_detection(conc, distance=5)[1]
-        print(f"   {stance.name:12s}: Concealment={conc:.2f} | Visibility={vis.name}")
+        logger.debug("   %s: Concealment=%.2f | Visibility=%s",
+                     stance.name, conc, vis.name)
     
-    print("\n" + "=" * 80)
-    print("✅ Demo Complete - Systems Ready for Integration!")
-    print("=" * 80)
+    logger.debug("\n" + "=" * 80)
+    logger.debug("✅ Demo Complete - Systems Ready for Integration!")
+    logger.debug("=" * 80)
 
 
 if __name__ == '__main__':

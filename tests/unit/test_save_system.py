@@ -297,11 +297,11 @@ class TestExportState:
 
         loop = MagicMock()
         loop.state = state
-        loop._victory_manager = MagicMock()
-        loop._victory_manager.battle_stats = MagicMock()
-        loop._victory_manager.battle_stats.allies_kills = 3
-        loop._victory_manager.battle_stats.axis_kills = 1
-        loop._victory_manager.battle_stats.ticks_elapsed = 5678
+        loop.victory_manager = MagicMock()
+        loop.victory_manager.battle_stats = MagicMock()
+        loop.victory_manager.battle_stats.allies_kills = 3
+        loop.victory_manager.battle_stats.axis_kills = 1
+        loop.victory_manager.battle_stats.ticks_elapsed = 5678
         return loop
 
     def test_export_produces_valid_dict(self, manager, mock_game_loop):
@@ -330,6 +330,6 @@ class TestExportState:
         assert exported["tick"] == 5678
 
     def test_export_handles_no_battle_stats(self, manager, mock_game_loop):
-        mock_game_loop._victory_manager = None
+        mock_game_loop.victory_manager = None
         exported = manager.export_state_from_game_loop(mock_game_loop)
         assert exported["battle_stats"] == {}

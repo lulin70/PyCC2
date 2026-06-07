@@ -13,9 +13,12 @@ Architecture:
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 class DecorationType(Enum):
@@ -532,10 +535,11 @@ def enhance_map(map_path: str, output_path: str | None = None) -> dict[str, Any]
     with open(out_path, 'w') as f:
         json.dump(enhanced_data, f, indent=2)
     
-    print(f"✅ Enhanced map saved: {out_path}")
-    print(f"   Size: {legacy_data['width']}×{legacy_data['height']} → "
-          f"{enhanced_data['width']}×{enhanced_data['height']}")
-    print(f"   Format: legacy → enhanced_v1")
+    logger.info("✅ Enhanced map saved: %s", out_path)
+    logger.info("   Size: %dx%d → %dx%d",
+                legacy_data['width'], legacy_data['height'],
+                enhanced_data['width'], enhanced_data['height'])
+    logger.info("   Format: legacy → enhanced_v1")
     
     return enhanced_data
 
@@ -544,7 +548,7 @@ if __name__ == '__main__':
     import sys
     
     if len(sys.argv) < 2:
-        print("Usage: python enhanced_tile.py <map_file.json> [output_file.json]")
+        logger.info("Usage: python enhanced_tile.py <map_file.json> [output_file.json]")
         sys.exit(1)
     
     enhance_map(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)

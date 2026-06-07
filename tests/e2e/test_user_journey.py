@@ -672,8 +672,8 @@ class TestBattleEndAndSettlement:
         assert result == GameResult.ALLIES_VICTORY
         assert "destroyed" in reason.lower() or "eliminated" in reason.lower()
 
-    def test_victory_when_all_enemies_dead(self) -> None:
-        """敌方全灭判定胜利。"""
+    def test_victory_when_all_enemies_eliminated(self) -> None:
+        """敌方全灭判定胜利（多单位场景）。"""
         evaluator = VictoryConditionEvaluator(
             conditions=[VictoryConditionType.ELIMINATE_ALL_ENEMIES],
         )

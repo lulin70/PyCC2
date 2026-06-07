@@ -17,8 +17,11 @@ from __future__ import annotations
 import os
 import sys
 import traceback
+import logging
 
 import pytest
+
+logger = logging.getLogger(__name__)
 
 # Set SDL dummy drivers BEFORE any pygame import.
 # This must happen at module level so that even transitive imports
@@ -45,17 +48,17 @@ def pygame_display():
     try:
         # Try to create a display surface
         screen = pygame.display.set_mode((800, 600))
-        logger = pytest.config.getoption("verbose") if hasattr(pytest.config, "getoption") else False
-        if logger:
-            print("[conftest] Pygame display initialized successfully (800x600)")
+        verbose = pytest.config.getoption("verbose") if hasattr(pytest.config, "getoption") else False
+        if verbose:
+            logger.info("Pygame display initialized successfully (800x600)")
     except Exception as e:
         # Some environments may still fail; provide a fallback surface
-        print(f"[conftest] Warning: Could not create pygame display: {e}")
-        print("[conftest] Using fallback Surface instead")
+        logger.warning("Could not create pygame display: %s", e)
+        logger.info("Using fallback Surface instead")
         try:
             screen = pygame.Surface((800, 600), pygame.SRCALPHA)
         except Exception as e2:
-            print(f"[conftest] Error: Even fallback Surface failed: {e2}")
+            logger.error("Even fallback Surface failed: %s", e2)
             screen = None
 
     yield screen
@@ -90,7 +93,7 @@ def mock_font(pygame_display):
             font = pygame.font.Font(None, 16)
             test_surface = font.render("test", True, (255, 255, 255))
         except Exception as e2:
-            print(f"[conftest] Warning: Font initialization failed: {e2}")
+            logger.warning("Font initialization failed: %s", e2)
             font = None
     return font
 
@@ -130,7 +133,7 @@ def can_render(pygame_display):
         del surf, font, test_text
         return True
     except Exception as e:
-        print(f"[conftest] Render check failed: {e}")
+        logger.debug("Render check failed: %s", e)
         return False
 
 
@@ -224,13 +227,13 @@ def game_instance(pygame_display):
         try:
             game.shutdown()
         except Exception as e:
-            print(f"[conftest] Warning: Game shutdown failed: {e}")
+            logger.warning("Game shutdown failed: %s", e)
 
     except ImportError as e:
         pytest.skip(f"Required module not available: {e}")
     except Exception as e:
-        print(f"[conftest] Error creating game instance:")
-        traceback.print_exc()
+        logger.error("Error creating game instance:")
+        logger.debug("Game instance creation traceback:", exc_info=True)
         pytest.skip(f"Could not create game instance: {e}")
 
 
@@ -256,7 +259,7 @@ def pixel_artist_3d_fixture(pygame_display, can_render):
 
 def pytest_configure(config):
     """Pytest hook - called before test collection."""
-    print("\n[conftest] PyCC2 Test Suite Configuration")
-    print(f"[conftest] Python version: {sys.version}")
-    print(f"[conftest] SDL_VIDEODRIVER: {os.environ.get('SDL_VIDEODRIVER', 'not set')}")
-    print(f"[conftest] SDL_AUDIODRIVER: {os.environ.get('SDL_AUDIODRIVER', 'not set')}")
+    logger.info("PyCC2 Test Suite Configuration")
+    logger.info("Python version: %s", sys.version)
+    logger.info("SDL_VIDEODRIVER: %s", os.environ.get('SDL_VIDEODRIVER', 'not set'))
+    logger.info("SDL_AUDIODRIVER: %s", os.environ.get('SDL_AUDIODRIVER', 'not set'))

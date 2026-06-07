@@ -98,7 +98,7 @@ class DirectionSpriteSet:
             return self.is_loaded
 
         except Exception as e:
-            print(f"[DirectionSprite] Error loading {filepath}: {e}")
+            logger.error("[DirectionSprite] Error loading %s: %e", filepath, e)
             return False
 
     def generate_procedural_variants(

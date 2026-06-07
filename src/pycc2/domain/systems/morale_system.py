@@ -659,24 +659,21 @@ class MoraleSystem:
 
 def demo_morale_system():
     """Demonstrate the morale system functionality."""
-    print("=" * 80)
-    print("🎖️  MORALE SYSTEM DEMO — CC2 Authentic State Machine")
-    print("=" * 80)
-    print()
-    
+    logger.info("=" * 80)
+    logger.info("🎖️  MORALE SYSTEM DEMO — CC2 Authentic State Machine")
+    logger.info("=" * 80)
+
     # Test state mapping
-    print("📊 State Mapping Tests:")
+    logger.info("📊 State Mapping Tests:")
     test_values = [85, 72, 55, 30, 15]
     for val in test_values:
         state = MoraleSystem.get_state(val)
         acc_mod = MoraleSystem.get_accuracy_modifier(state)
         move_mod = MoraleSystem.get_movement_modifier(state)
-        print(f"   Morale {val:3d} → {state.value:10s} | "
-              f"Accuracy: {acc_mod:.2f}x | Movement: {move_mod:.2f}x")
-    
-    print()
-    print("✅ Morale System Ready for Integration!")
-    print()
+        logger.info("   Morale %3d → %-10s | Accuracy: %.2fx | Movement: %.2fx",
+                    val, state.value, acc_mod, move_mod)
+
+    logger.info("✅ Morale System Ready for Integration!")
 
 
 if __name__ == '__main__':

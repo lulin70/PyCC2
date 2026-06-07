@@ -6,9 +6,12 @@ for anti-vehicle, anti-infantry, and tactical smoke deployment.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
@@ -151,7 +154,7 @@ class AmmoInventory:
                 self._current_type = next_type
                 self._last_type_change = current_time
                 
-                print(f"[Ammo] {self._unit.name}: Switched to {next_type.value}")
+                logger.info("[Ammo] %s: Switched to %s", self._unit.name, next_type.value)
                 return next_type
                 
         return self._current_type
@@ -266,7 +269,8 @@ class AmmoInventory:
         
         self._smoke_clouds.append(smoke_cloud)
         
-        print(f"[Smoke] Deployed at {position}, radius={effects.smoke_radius}, duration={effects.smoke_duration} turns")
+        logger.info("[Smoke] Deployed at %s, radius=%.1f, duration=%d turns",
+                   position, effects.smoke_radius, effects.smoke_duration)
         
         return smoke_cloud
 

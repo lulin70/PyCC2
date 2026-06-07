@@ -28,10 +28,13 @@ evacuation — medics from both sides treated wounded under white flag.
 
 from __future__ import annotations
 
+import logging
 import random
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
@@ -535,46 +538,47 @@ class RetreatSystem:
 # ========================================================================
 
 if __name__ == '__main__':
-    print("=" * 80)
-    print("CEASEFIRE & RETREAT MECHANISM — CC2-Authentic")
-    print("=" * 80)
+    logger.debug("=" * 80)
+    logger.debug("CEASEFIRE & RETREAT MECHANISM — CC2-Authentic")
+    logger.debug("=" * 80)
 
     # --- Ceasefire demo ---
     cs = CeasefireSystem()
-    print(f"\n[Ceasefire] Initial state: {cs.state.name}")
+    logger.debug("\n[Ceasefire] Initial state: %s", cs.state.name)
 
     # Player requests 2-hour ceasefire
     ok = cs.request_ceasefire(ticks=120, requested_by='player', current_tick=100)
-    print(f"[Ceasefire] Request 2hr ceasefire: {'Granted' if ok else 'Denied'}")
-    print(f"[Ceasefire] State: {cs.state.name}")
+    logger.debug("[Ceasefire] Request 2hr ceasefire: %s",
+                 'Granted' if ok else 'Denied')
+    logger.debug("[Ceasefire] State: %s", cs.state.name)
 
     # AI ceasefire decision
     agree = cs.ai_should_agree_to_ceasefire(force_ratio=0.4, avg_morale=25, hours_offered=2)
-    print(f"[Ceasefire] AI agrees (fr=0.4, morale=25, 2hr): {agree}")
+    logger.debug("[Ceasefire] AI agrees (fr=0.4, morale=25, 2hr): %s", agree)
 
     request = cs.ai_should_request_ceasefire(force_ratio=0.25, losing_vls=True)
-    print(f"[Ceasefire] AI requests (fr=0.25, losing VLs): {request}")
+    logger.debug("[Ceasefire] AI requests (fr=0.25, losing VLs): %s", request)
 
     # Ceasefire broken
     broken = cs.on_unit_fired("unit_42")
-    print(f"[Ceasefire] Unit fires -> ceasefire broken: {broken}")
-    print(f"[Ceasefire] State: {cs.state.name}")
+    logger.debug("[Ceasefire] Unit fires -> ceasefire broken: %s", broken)
+    logger.debug("[Ceasefire] State: %s", cs.state.name)
 
     # --- Retreat demo ---
     rs = RetreatSystem()
-    print(f"\n[Retreat] Initial state: {rs.state.name}")
-    print(f"[Retreat] Can retreat at tick 50: {rs.can_order_retreat(50)}")
-    print(f"[Retreat] Can retreat at tick 100: {rs.can_order_retreat(100)}")
+    logger.debug("\n[Retreat] Initial state: %s", rs.state.name)
+    logger.debug("[Retreat] Can retreat at tick 50: %s", rs.can_order_retreat(50))
+    logger.debug("[Retreat] Can retreat at tick 100: %s", rs.can_order_retreat(100))
 
     # AI retreat decision
     should = rs.ai_should_retreat(force_ratio=0.2, holds_vls=False, avg_morale=15)
-    print(f"[Retreat] AI should retreat (fr=0.2, no VLs, morale=15): {should}")
+    logger.debug("[Retreat] AI should retreat (fr=0.2, no VLs, morale=15): %s", should)
 
     # Retreat outcome
     rs._state = RetreatState.COMPLETED
     rs._captured_unit_ids = ['unit_1', 'unit_3']
     rs._survivor_unit_ids = ['unit_2', 'unit_4', 'unit_5']
     outcome = rs.get_retreat_outcome()
-    print(f"[Retreat] Outcome: {outcome}")
+    logger.debug("[Retreat] Outcome: %s", outcome)
 
-    print("\n✅ Ceasefire & Retreat systems ready for integration!")
+    logger.debug("\n✅ Ceasefire & Retreat systems ready for integration!")

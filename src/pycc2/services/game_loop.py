@@ -572,6 +572,11 @@ class GameLoop:
         """Return the current CampaignUI, if any."""
         return self._campaign_ui
 
+    @property
+    def victory_manager(self):
+        """Public access to victory manager for save/export operations."""
+        return self._victory_manager
+
     def shutdown(self) -> None:
         self.state.running = False
         if self._achievement_bridge is not None:

@@ -17,11 +17,14 @@ Total authentic units modeled: 80+ (approaching CC2's 130+ with vehicle variants
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any
 
 from pycc2.domain.entities.unit import Faction
+
+logger = logging.getLogger(__name__)
 
 
 # ========================================================================
@@ -926,34 +929,32 @@ def get_weapons_for_faction(faction: Faction) -> list[WeaponProfile]:
 # Quick demo
 if __name__ == '__main__':
     db = get_cc2_weapons()
-    
-    print("=" * 90)
-    print("🔫 CLOSE COMBAT 2 - AUTHENTIC WEAPON DATABASE")
-    print(f"   Total Weapons: {len(db)} | Matching CC2's ~130 units + vehicles")
-    print("=" * 90)
-    print()
-    
+
+    logger.info("=" * 90)
+    logger.info("🔫 CLOSE COMBAT 2 - AUTHENTIC WEAPON DATABASE")
+    logger.info("   Total Weapons: %d | Matching CC2's ~130 units + vehicles", len(db))
+    logger.info("=" * 90)
+
     for faction in Faction:
         weapons = get_weapons_for_faction(faction)
-        print(f"{'─' * 90}")
-        print(f"🏴 {faction.name:10s} ARSENAL ({len(weapons)} weapons)")
-        print(f"{'─' * 90}")
-        
+        logger.info("%s", "─" * 90)
+        logger.info("🏴 %-10s ARSENAL (%d weapons)", faction.name, len(weapons))
+        logger.info("%s", "─" * 90)
+
         for w in sorted(weapons, key=lambda x: x.weapon_type.name):
             suppr_icon = '💥' if w.suppress_power > 0.7 else '🔫' if w.suppress_power > 0.3 else '🔪'
             ap_icon = '🛡️' if w.can_penetrate else ''
             area_icon = '💣' if w.area_effect else ''
             flame_icon = '🔥' if w.incendiary else ''
-            
-            print(f"  {suppr_icon} {w.name:30s} | {w.weapon_type.name:20s} | "
-                  f"Range {w.range_short}-{w.range_max} | "
-                  f"Acc {int(w.accuracy_short*100)}%/{int(w.accuracy_long*100)}% | "
-                  f"Supp {w.suppress_power:.2f} {ap_icon}{area_icon}{flame_icon}")
-        print()
-    
-    # Highlight the TWO MG types user mentioned
-    print("⚠️  USER-MENTIONED WEAPONS VERIFIED:")
-    print(f"   ✅ US M1919 (M34): {db.get('us_m1919').name} - {db.get('us_m1919').notes[:60]}")
-    print(f"   ✅ US M1919A4 (M42): {db.get('us_m1919a4').name} - {db.get('us_m1919a4').notes[:60]}")
-    print(f"   ✅ DE MG34: {db.get('de_mg34').name} - {db.get('de_mg34').notes[:60]}")
-    print(f"   ✅ DE MG42: {db.get('de_mg42').name} - {db.get('de_mg42').notes[:60]}")
+
+            logger.info("  %s %-30s | %-20s | Range %d-%d | Acc %d%%/%d%% | Supp %.2f %s%s%s",
+                        suppr_icon, w.name, w.weapon_type.name,
+                        w.range_short, w.range_max,
+                        int(w.accuracy_short*100), int(w.accuracy_long*100),
+                        w.suppress_power, ap_icon, area_icon, flame_icon)
+
+    logger.info("⚠️  USER-MENTIONED WEAPONS VERIFIED:")
+    logger.info("   ✅ US M1919 (M34): %s - %s", db.get('us_m1919').name, db.get('us_m1919').notes[:60])
+    logger.info("   ✅ US M1919A4 (M42): %s - %s", db.get('us_m1919a4').name, db.get('us_m1919a4').notes[:60])
+    logger.info("   ✅ DE MG34: %s - %s", db.get('de_mg34').name, db.get('de_mg34').notes[:60])
+    logger.info("   ✅ DE MG42: %s - %s", db.get('de_mg42').name, db.get('de_mg42').notes[:60])

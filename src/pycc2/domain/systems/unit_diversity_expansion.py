@@ -21,6 +21,7 @@ Experience level effects (matching game_settings.py ExperienceLevel):
 
 from __future__ import annotations
 
+import logging
 from dataclasses import replace
 from typing import Any
 
@@ -28,6 +29,8 @@ from pycc2.domain.systems.cc2_authentic_units import CC2UnitTemplate, get_cc2_un
 from pycc2.domain.entities.unit import Faction
 from pycc2.domain.systems.cc2_authentic_weapons import InfantryRole, VehicleType
 from pycc2.domain.systems.game_settings import ExperienceLevel
+
+logger = logging.getLogger(__name__)
 
 # ========================================================================
 # Experience-level stat modifiers
@@ -864,29 +867,29 @@ def get_expanded_unit_database() -> dict[str, CC2UnitTemplate]:
 # ========================================================================
 
 if __name__ == '__main__':
-    print("=" * 90)
-    print("UNIT DIVERSITY EXPANSION — CC2-Authentic Roster Generator")
-    print("=" * 90)
+    logger.info("=" * 90)
+    logger.info("UNIT DIVERSITY EXPANSION — CC2-Authentic Roster Generator")
+    logger.info("=" * 90)
 
     base_db = get_cc2_units()
     base_list = list(base_db.values())
-    print(f"\nBase templates: {len(base_list)}")
+    logger.info("Base templates: %d", len(base_list))
 
     gen = UnitDiversityGenerator()
     all_units = gen.generate_variants(base_list)
 
-    print(f"Expanded templates: {gen.count_total_units()}")
-    print()
+    logger.info("Expanded templates: %d", gen.count_total_units())
 
     for faction in Faction:
         faction_units = gen.get_units_by_faction(faction)
         inf_count = sum(1 for u in faction_units if isinstance(u.role, InfantryRole))
         veh_count = sum(1 for u in faction_units if isinstance(u.role, VehicleType))
 
-        print(f"--- {faction.name} ({len(faction_units)} units: {inf_count} infantry + {veh_count} vehicles) ---")
+        logger.info("--- %s (%d units: %d infantry + %d vehicles) ---",
+                     faction.name, len(faction_units), inf_count, veh_count)
         for u in sorted(faction_units, key=lambda x: (type(x.role).__name__, x.template_id)):
             exp_label = ['Conscript', 'Regular', 'Veteran', 'Elite'][u.experience_level]
-            print(f"  [{u.role.name:15s}] {u.display_name:40s} | Exp:{exp_label:9s} | Cost:{u.deployment_cost}")
-        print()
+            logger.info("  [%-15s] %-40s | Exp:%-9s | Cost:%d",
+                        u.role.name, u.display_name, exp_label, u.deployment_cost)
 
-    print(f"✅ Total unique unit templates: {gen.count_total_units()}")
+    logger.info("✅ Total unique unit templates: %d", gen.count_total_units())

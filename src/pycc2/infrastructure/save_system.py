@@ -66,7 +66,7 @@ class SecureSaveManager:
         if env_key:
             try:
                 return env_key.encode("utf-8")
-            except Exception as e:
+            except (AttributeError, UnicodeEncodeError) as e:
                 logging.info(f"HMAC key from env failed: {e}")
         config_path = Path(__file__).resolve().parent.parent / "config" / "secrets.toml"
         if config_path.exists():
@@ -154,8 +154,7 @@ class SecureSaveManager:
                 f.write(final_json)
 
             return True
-        except Exception as e:
-            logging.info(f"Save game failed: {e}")
+        except (OSError, TypeError, ValueError) as e:
             return False
 
     def load_game(self, slot: int) -> tuple[dict | None, SaveMetaData | None, SaveSlotStatus]:
@@ -285,8 +284,8 @@ class SecureSaveManager:
 
     def _extract_battle_stats(self, game_loop) -> dict:
         battle_stats = None
-        if hasattr(game_loop, "_victory_manager") and game_loop._victory_manager is not None:
-            battle_stats = game_loop._victory_manager.battle_stats
+        if hasattr(game_loop, "victory_manager") and game_loop.victory_manager is not None:
+            battle_stats = game_loop.victory_manager.battle_stats
         if battle_stats is not None:
             return {
                 "allies_kills": battle_stats.allies_kills,

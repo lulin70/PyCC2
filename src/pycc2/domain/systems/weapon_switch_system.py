@@ -153,7 +153,7 @@ class WeaponSwitchSystem:
         self._switch_start_time = self._last_switch_time
         self._is_switching = True
         
-        print(f"[WeaponSwitch] {self._unit.name}: {old_slot.value} → {target_slot.value}")
+        logger.info("[WeaponSwitch] %s: %s → %s", self._unit.name, old_slot.value, target_slot.value)
         
         return True
 

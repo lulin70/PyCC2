@@ -11,6 +11,7 @@ Supports multiple layout formats:
 
 from __future__ import annotations
 
+import logging
 import math
 from dataclasses import dataclass, field
 from enum import Enum, auto
@@ -18,6 +19,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pygame
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.value_objects.direction import Direction
@@ -91,15 +94,15 @@ class SpritesheetParser:
             self._extract_all_frames()
             self._is_loaded = len(self._frames) > 0
             
-            print(f"[SpritesheetParser] Loaded {image_path}")
-            print(f"   Size: {self._image.get_size()}")
-            print(f"   Detected {len(self._frames)} frames")
-            print(f"   Layout: {self.config.layout.name}")
+            logger.info("[SpritesheetParser] Loaded %s", image_path)
+            logger.info("   Size: %s", self._image.get_size())
+            logger.info("   Detected %d frames", len(self._frames))
+            logger.info("   Layout: %s", self.config.layout.name)
             
             return self._is_loaded
             
         except Exception as e:
-            print(f"[SpritesheetParser] Error loading {image_path}: {e}")
+            logger.error("[SpritesheetParser] Error loading %s: %s", image_path, e)
             return False
 
     def _auto_detect_layout(self) -> None:

@@ -14,9 +14,12 @@ Total unit types modeled: 80+ (matching CC2's 130+ with vehicle variants)
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from pycc2.domain.systems.cc2_authentic_weapons import (
     WeaponProfile, Faction, InfantryRole, VehicleType,
@@ -1746,24 +1749,25 @@ def create_default_deployment_config(map_width: int, map_height: int) -> Deploym
 
 # Demo
 if __name__ == '__main__':
-    print("=" * 90)
-    print("🎖️  CLOSE COMBAT 2 - AUTHENTIC UNIT DATABASE & DEPLOYMENT SYSTEM")
-    print("=" * 90)
-    print()
-    
+    logger.debug("=" * 90)
+    logger.debug("🎖️  CLOSE COMBAT 2 - AUTHENTIC UNIT DATABASE & DEPLOYMENT SYSTEM")
+    logger.debug("=" * 90)
+    logger.debug("")
+
     # Show unit counts
     db = get_cc2_units()
-    print(f"📊 TOTAL UNIT TEMPLATES: {len(db)}")
-    print()
+    logger.debug("📊 TOTAL UNIT TEMPLATES: %s", len(db))
+    logger.debug("")
     
     for faction in Faction:
         units = get_units_for_faction(faction)
         inf_count = sum(1 for u in units if isinstance(u.role, InfantryRole))
         veh_count = sum(1 for u in units if isinstance(u.role, VehicleType))
         
-        print(f"{'─' * 70}")
-        print(f"🏴 {faction.name:10s} ({len(units)} units: {inf_count} infantry + {veh_count} vehicles)")
-        print(f"{'─' * 70}")
+        logger.debug("─" * 70)
+        logger.debug("🏴 %s (%s units: %s infantry + %s vehicles)",
+                     faction.name, len(units), inf_count, veh_count)
+        logger.debug("─" * 70)
         
         for u in sorted(units, key=lambda x: (type(x.role).__name__, x.template_id)):
             weapon = u.get_weapon()
@@ -1772,15 +1776,16 @@ if __name__ == '__main__':
             fanatic_icon = '😤' if u.is_fanatic else ''
             cmd_icon = '⭐' if u.is_command_unit else ''
             
-            print(f"  [{u.role.name:15s}] {u.display_name:30s} | "
-                  f"{u.squad_size:2d} men | {wname:20s} | "
-                  f"Exp:{u.experience_level} {suppr_icon}{fanatic_icon}{cmd_icon}")
-        print()
+            logger.debug(
+                "  [%s] %s | %d men | %s | Exp:%s %s%s%s",
+                u.role.name, u.display_name, u.squad_size, wname,
+                u.experience_level, suppr_icon, fanatic_icon, cmd_icon)
+        logger.debug("")
     
     # Demonstrate deployment system
-    print("=" * 90)
-    print("🗺️  DEPLOYMENT PHASE DEMO")
-    print("=" * 90)
+    logger.debug("=" * 90)
+    logger.debug("🗺️  DEPLOYMENT PHASE DEMO")
+    logger.debug("=" * 90)
     
     config = create_default_deployment_config(50, 42)  # Arnhem-sized map
     deployment = DeploymentPhase(config)
@@ -1795,11 +1800,12 @@ if __name__ == '__main__':
         ('us_officer', 5, 21),
     ]
     
-    print(f"\n📍 Placing American units on 50×42 map...")
+    logger.debug("\n📍 Placing American units on 50×42 map...")
     for uid, x, y in test_placements:
         success = deployment.place_unit(uid, x, y)
         status = '✅' if success else '❌'
-        print(f"   {status} {uid:30s} → ({x}, {y})")
-    
-    print(f"\n📦 Deployed {len(deployment.get_deployed_positions(Faction.AMERICAN))} units")
-    print("\n✅ System ready for integration!")
+        logger.debug("   %s %s → (%s, %s)", status, uid, x, y)
+
+    logger.debug("\n📦 Deployed %s units",
+                 len(deployment.get_deployed_positions(Faction.AMERICAN)))
+    logger.debug("\n✅ System ready for integration!")

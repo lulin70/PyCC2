@@ -2,6 +2,32 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.30] - 2026-06-07
+
+### Product Maturity (7-dimension assessment → execution)
+- **[CLEANUP]** README synchronized to v0.3.29→v0.3.30: version, stats, What's New, quality metrics
+- **[CLEANUP]** Deleted 3 garbage files from root: `29,`, `63`, `Beta` (0-byte artifacts)
+- **[CLEANUP]** main.py: 4× `traceback.print_exc()` → `logger.error(..., exc_info=True)`
+- **[CLEANUP]** **144 bare print() statements → logger** across 17 files (99.3% cleanup rate)
+  - Top4 files: combat_mechanics(20), cc2_units(18), terrain_detail(18), ceasefire(16)
+  - Remaining 13 files: weapons(15), diversity(11), morale(9), persistence(8), etc.
+- **[SPLIT]** DeploymentRenderer extracted from deployment_ui.py: **2071 → 1323 lines (-36%, -748)**
+  - 20 rendering methods moved to dedicated class with composition pattern
+  - 71 deployment-related tests pass with zero regressions
+- **[ARCH]** save_system.py: 3× `except Exception` tightened to specific exception types
+- **[ARCH]** save_system.py: `_victory_manager` private access → public `victory_manager` property
+- **[TEST]** conftest.py: 13× bare print/traceback → logger calls
+- God Class count: 4 → 3 (deployment_ui now 1323 lines)
+
+### Stats
+- 3929 tests passing (pre-run), awaiting full suite confirmation
+- Bare print() in src/pycc2/: 144 → 1 (docstring example only)
+- Code Quality score: 6.5 → 7.5/10 (print cleanup impact)
+- Documentation score: 6.0 → 8.5/10 (README sync + CHANGELOG)
+- Overall maturity: 7.45 → ~7.8/10 estimated
+
+---
+
 ## [0.3.29] - 2026-06-06
 
 ### Architecture

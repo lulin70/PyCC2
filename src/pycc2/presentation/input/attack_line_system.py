@@ -211,7 +211,7 @@ class AttackLineSystem:
                 if not can_see:
                     return AttackLineStatus.BLOCKED
             except Exception as e:
-                print(f"[AttackLine] LOS check failed: {e}, assuming clear")
+                logger.warning("[AttackLine] LOS check failed: %s, assuming clear", e)
 
         # Calculate hit probability for 4-color system
         hit_prob = self.calculate_hit_probability(attacker, target, game_map)
