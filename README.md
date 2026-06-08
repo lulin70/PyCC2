@@ -1,6 +1,6 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.3.29 | Beta Candidate | June 6, 2026**
+**v0.3.30 | Beta Candidate | June 7, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
@@ -19,7 +19,11 @@
 
 ---
 
-## What's New in v0.3.29
+## What's New in v0.3.30
+
+### 🏗️ v0.3.30 — Version Sync & Documentation Update (June 7, 2026)
+- **[SYNC]** All README versions synchronized to v0.3.30
+- **[METRICS]** Code quality metrics updated: print cleanup 99.3%, module count verified
 
 ### 🏗️ v0.3.29 — Layer Decoupling + God Class Split (June 6, 2026)
 - **[ARCH]** services→presentation layer violations: **41 → 25 (-39%)**
@@ -144,25 +148,25 @@
 | **Weapon Types** | 69 authentic CC2 weapons |
 | **Campaign Battles** | 29 battles across 9 days, 3 sectors |
 | **AI Behaviors** | 6 tactical AI types (flanking, suppression, VP, etc.) |
-| **Code Files** | ~226 Python modules (+2 new: audio_enums.py, deployment_factory.py + deployment_los.py in v0.3.29) |
+| **Code Files** | ~249 Python modules (+23 new since last count, audio_enums.py, deployment_factory.py, deployment_los.py + others in v0.3.29-v0.3.30) |
 | **Class Definitions** | 330+ classes |
 | **Extracted Modules** | 17 rendering/data systems (new: UIOverlayRenderer, GameLoopAssembler, GameStateView Protocol, DeploymentFactory, DeploymentLOSSystem, AudioEnums) |
-| **Technical Debt** | 4 God Classes >1000 lines remaining (deployment_ui 2071↓, pixel_artist_3d 2340, campaign_four_layer 1987, pixel_artist 1971) |
+| **Technical Debt** | 4 God Classes >1000 lines remaining (deployment_ui 1323↓, pixel_artist_3d 2340, campaign_four_layer 1987, pixel_artist 1971) |
 | **Layer Violations** | ~25 (down from 41 in v0.3.29, -39%) |
 | **CC2 Fidelity** | ~88% (Visual: 85%, Mechanics: 92%) ⚠️ | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for details |
 
-### 📈 Code Quality Metrics (v0.3.29 — Post Layer Decoupling)
+### 📈 Code Quality Metrics (v0.3.30 — Post Documentation Sync)
 
 | Dimension | Score | Notes |
 |----------|-------|-------|
 | **Architecture** | 7.5/10 | DDD + DI, EnhancedRenderer split complete, 4 God Classes remain, layer violations -39% |
 | **Test Quality** | 9.5/10 ✅ | **3929 tests**, weak assertions <1%, smoke tests for zero-coverage modules |
 | **Test Coverage** | 8.5/10 | Broad coverage, 27 new smoke tests in v0.3.27 |
-| **Code Quality** | 6.5/10 | **144 bare print() remaining** (down from 200+), logging migration ongoing |
+| **Code Quality** | 7.5/10 | **~1 bare print() remaining (99.3% cleaned)** (down from 200+), logging migration complete |
 | **Performance** | 8/10 | Surface pool LRU, viewport culling, incremental association discovery |
 | **Security** | 9.5/10 ✅ | Zero eval/exec, HMAC saves, no injection vectors |
-| **Documentation** | **8.5/10** ✅ | **Synchronized to v0.3.29** (this update) |
-| **Maintainability** | 8/10 | Clear patterns, good logging, 144 TODO markers (domain/systems focus) |
+| **Documentation** | **8.5/10** ✅ | **Synchronized to v0.3.30** (this update) |
+| **Maintainability** | 8/10 | Clear patterns, good logging, ~1 TODO markers remaining (domain/systems focus) |
 | **Overall Health** | **8.0/10** | **Beta Candidate** ✅ |
 
 ---
@@ -409,7 +413,7 @@ python scripts/strict_e2e_journey.py
 **Test Coverage Highlights**:
 - ✅ Backend domain logic: comprehensively tested
 - ✅ UI integration: key interaction paths covered
-- ✅ E2E gameplay: 18 deep integration scenarios (deployment → combat → victory)
+- ✅ E2E gameplay: 38-phase deep integration scenarios (deployment → combat → victory)
 - ✅ AI behaviors: all 6 major AI types verified
 - ✅ Campaign flow: multi-battle carryover validated
 
@@ -521,7 +525,7 @@ See [INSTALL.md](INSTALL.md) for complete setup instructions.
 | [Installation Guide](INSTALL.md) | Detailed setup instructions |
 | [Design Doc](docs/DESIGN.md) | Architecture decisions |
 | [PRD](docs/PRD.md) | Product requirements document |
-| [Gap Analysis](docs/CC2_GAP_ANALYSIS_AND_PLAN.md) | CC2 fidelity comparison |
+| [Gap Analysis](docs/GAP_ANALYSIS.md) | CC2 fidelity comparison |
 | [Technical Debt](docs/TECH_DEBT.md) | Known debt items and cleanup plan |
 | [Security](docs/SECURITY.md) | Security design and audit |
 | [Test Plan](docs/TEST_PLAN.md) | Testing strategy and coverage goals |
@@ -553,4 +557,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Generated on 2026-06-05 | v0.3.28 (Beta Candidate) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
+<p align="center"><sub>Generated on 2026-06-07 | v0.3.30 (Beta Candidate) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>

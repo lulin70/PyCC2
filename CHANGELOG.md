@@ -20,11 +20,21 @@ All notable changes to PyCC2 will be documented in this file.
 - God Class count: 4 → 3 (deployment_ui now 1323 lines)
 
 ### Stats
-- 3929 tests passing (pre-run), awaiting full suite confirmation
-- Bare print() in src/pycc2/: 144 → 1 (docstring example only)
+- **3933 tests passed, 0 failed** (16m36s full suite) — +4 from test quality fixes
+- Bare print() in src/pycc2/: 144 → 1 (docstring example only, 99.3% cleanup rate)
 - Code Quality score: 6.5 → 7.5/10 (print cleanup impact)
-- Documentation score: 6.0 → 8.5/10 (README sync + CHANGELOG)
-- Overall maturity: 7.45 → ~7.8/10 estimated
+- Documentation score: 6.5 → **8.5/10** (README×3 sync + LICENSE created + process docs deleted)
+- Overall maturity: 7.45 → **7.55/10** (DevSquad 7-dimension re-assessment)
+
+### Additional Fixes (post-assessment)
+- **[DOC]** README.md: version v0.3.29→v0.3.30, stats updated (God Class 4→3, print 144→1, quality 6.5→7.5)
+- **[DOC]** README_zh.md: v0.3.28→v0.3.30, tests 3372→3929, Alpha→Beta Candidate (10 items fixed)
+- **[DOC]** README_ja.md: v0.3.28→v0.3.30, tests 1377→3929, GitHub URL corrected (4 items fixed)
+- **[DOC]** Created LICENSE file (MIT, was missing despite pyproject.toml declaration)
+- **[TEST]** Fixed `assert True` anti-pattern in test_tutorial_flow.py::test_render_complete_shows_finish_message
+- **[TEST]** Fixed duplicate method name in test_user_journey.py (test_victory_when_all_enemies_dead → _eliminated)
+- **[CLEANUP]** Deleted P0_BUG_INVESTIGATION_REPORT.md and PROJECT_STATUS_REPORT.md (process artifacts)
+- Integration tests: **132/132 passed** | E2E tests: **448/440+ passed** (DevSquad audit confirmed)
 
 ---
 
