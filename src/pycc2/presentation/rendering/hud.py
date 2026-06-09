@@ -11,6 +11,7 @@ from pygame.font import Font
 
 from pycc2.domain.entities.unit import Unit
 from pycc2.domain.interfaces.display_config import DisplayConfig
+from pycc2.presentation.rendering.minimap import Minimap
 from pycc2.presentation.rendering.visual_spec import VisualSpec
 
 
@@ -27,6 +28,7 @@ class HUDManager:
         self._fps: float = 0.0
         self._game_time: str = "00:00"
         self._turn_number: int = 1
+        self._minimap = Minimap(display_config)
 
     def initialize(self) -> None:
         """Initialize fonts and resources."""
@@ -106,19 +108,16 @@ class HUDManager:
             surface.blit(text_surface, (panel_x + pad, panel_y + pad + i * line_h))
 
     def _render_minimap_placeholder(self, surface: Surface) -> None:
-        """Render minimap placeholder area."""
+        """Render minimap using real Minimap component."""
         minimap_size = int(150 * self._dc.ui_scale)
         minimap_x = surface.get_width() - minimap_size - int(10 * self._dc.ui_scale)
         minimap_y = surface.get_height() - minimap_size - int(40 * self._dc.ui_scale)
-        minimap_rect = Rect(minimap_x, minimap_y, minimap_size, minimap_size)
-        pygame.draw.rect(surface, self.spec.minimap_background_color, minimap_rect)
-        pygame.draw.rect(surface, self.spec.minimap_border_color, minimap_rect, 1)
+        self._minimap.render(surface, minimap_x, minimap_y)
 
-        if self._font_small:
-            label = self._font_small.render("MINIMAP", True, self.spec.hud_text_color)
-            surface.blit(
-                label, (minimap_x + minimap_size // 2 - 30, minimap_y + minimap_size // 2 - 7)
-            )
+    @property
+    def minimap(self) -> Minimap:
+        """Expose minimap for external configuration (set_map, update_units, etc.)."""
+        return self._minimap
 
     def shutdown(self) -> None:
         """Clean up resources."""

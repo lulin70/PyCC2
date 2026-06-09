@@ -2,8 +2,8 @@
 
 Renders buildings in CC2's authentic OBLIQUE projection view with:
 - Roof plane (top surface with texture)
-- South wall face (bottom edge, darker, 4-6px tall)
-- East wall face (right edge, darker, 4-6px wide)
+- South wall face (bottom edge, darker, 1-2px tall)
+- East wall face (right edge, darker, 1-2px wide)
 - Roof edge trim (orange-brown border)
 This matches CC2 screenshot analysis exactly.
 """

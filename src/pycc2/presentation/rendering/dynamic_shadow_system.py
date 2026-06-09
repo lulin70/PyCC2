@@ -15,6 +15,7 @@ import math
 from typing import Any, Optional, Tuple, TYPE_CHECKING
 
 import pygame
+from pycc2.presentation.rendering.surface_pool import SurfacePool
 
 if TYPE_CHECKING:
     from pycc2.presentation.rendering.camera import Camera
@@ -36,17 +37,10 @@ class DynamicShadowSystem:
         self._time_of_day: float = 0.5
         self._shadow_surface: Optional[pygame.Surface] = None
         self._cached_size: Optional[Tuple[int, int]] = None
-        self._surface_pool: dict[Tuple[int, int], pygame.Surface] = {}
+        self._surface_pool = SurfacePool(max_size=20)
 
     def _get_pooled_surface(self, w: int, h: int) -> pygame.Surface:
-        key = (w, h)
-        surf = self._surface_pool.get(key)
-        if surf is None:
-            surf = pygame.Surface((w, h), pygame.SRCALPHA)
-            self._surface_pool[key] = surf
-            if len(self._surface_pool) > 20:
-                oldest_key = next(iter(self._surface_pool))
-                del self._surface_pool[oldest_key]
+        surf = self._surface_pool.get((w, h))
         surf.fill((0, 0, 0, 0))
         return surf
 

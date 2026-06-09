@@ -19,6 +19,7 @@ import random
 from typing import TYPE_CHECKING
 
 import pygame
+from pycc2.presentation.rendering.surface_pool import SurfacePool
 
 if TYPE_CHECKING:
     from .particle_pool import ParticlePool
@@ -47,7 +48,7 @@ class TopDownParticleSystem:
         self.particles: list[dict] = []
         self.max_particles = max_particles
         self._pool: ParticlePool | None = pool
-        self._render_surface_pool: dict[tuple[int, int], pygame.Surface] = {}
+        self._render_surface_pool = SurfacePool(max_size=self._MAX_RENDER_SURFACE_POOL)
         if self._pool is None:
             try:
                 from .particle_pool import ParticlePool as _PP
@@ -57,16 +58,8 @@ class TopDownParticleSystem:
                 self._pool = None
 
     def _get_render_surface(self, w: int, h: int) -> pygame.Surface:
-        key = (w, h)
-        if key in self._render_surface_pool:
-            surf = self._render_surface_pool.pop(key)
-            self._render_surface_pool[key] = surf
-            surf.fill((0, 0, 0, 0))
-            return surf
-        surf = pygame.Surface((w, h), pygame.SRCALPHA)
-        if len(self._render_surface_pool) >= self._MAX_RENDER_SURFACE_POOL:
-            self._render_surface_pool.pop(next(iter(self._render_surface_pool)))
-        self._render_surface_pool[key] = surf
+        surf = self._render_surface_pool.get((w, h))
+        surf.fill((0, 0, 0, 0))
         return surf
 
     def _add_particle(self, particle: dict) -> None:

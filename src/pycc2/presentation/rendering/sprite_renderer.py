@@ -25,6 +25,7 @@ from pycc2.presentation.rendering.animation_system import (
     UnitAnimator,
 )
 from pycc2.presentation.rendering.tile_cache import TileCache
+from pycc2.presentation.rendering.surface_pool import SurfacePool
 
 
 class SpriteRenderer:
@@ -53,20 +54,13 @@ class SpriteRenderer:
         self._particle_emitter = ParticleEmitter()
         self._font_cache: dict[int, Font] = {}
         self._asset_loader: AssetLoader = AssetLoader()
-        self._surface_pool: dict[tuple[int, int], pygame.Surface] = {}
+        self._surface_pool = SurfacePool(max_size=30)
 
         self._generate_all_sprites()
         self._generate_terrain_tiles()
 
     def _get_pooled_surface(self, w: int, h: int) -> pygame.Surface:
-        key = (w, h)
-        surf = self._surface_pool.get(key)
-        if surf is None:
-            surf = pygame.Surface((w, h), pygame.SRCALPHA)
-            self._surface_pool[key] = surf
-            if len(self._surface_pool) > 30:
-                oldest_key = next(iter(self._surface_pool))
-                del self._surface_pool[oldest_key]
+        surf = self._surface_pool.get((w, h))
         surf.fill((0, 0, 0, 0))
         return surf
 

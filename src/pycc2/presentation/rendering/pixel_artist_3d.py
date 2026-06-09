@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import math
 import random
-from typing import TYPE_CHECKING
+from typing import Dict, TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +48,63 @@ class PixelArtist3D:
     - 身体宽度根据视角调整
     - 武器角度明确区分各方向
     - 阴影偏移增强立体感
+
+    旋转预缓存系统 (P0-4):
+    - 所有 pygame.transform.rotate() 结果缓存在 _rotation_cache 中
+    - 缓存 key: (surface_id, angle_rounded)
+    - 预缓存常用角度: 每15°一个, 共24个方向
+    - 避免大单位场景中实时旋转造成的微卡顿
     """
 
     ISOMETRIC_ANGLE = 30
     PIXEL_SCALE = 1
+
+    # ===== 旋转预缓存 (P0-4) =====
+    _rotation_cache: Dict[tuple, 'pygame.Surface'] = {}
+    _PRECACHE_ANGLES = [i * 15 for i in range(24)]  # 0°, 15°, 30°, ..., 345°
+
+    @classmethod
+    def _get_rotated_surface(cls, base: 'pygame.Surface', angle: float) -> 'pygame.Surface':
+        """带缓存的旋转操作，避免重复计算相同旋转。
+
+        Args:
+            base: 原始Surface（未旋转的基准图像）
+            angle: 旋转角度（度）
+
+        Returns:
+            旋转后的Surface（从缓存或新计算）
+        """
+        cache_key = (id(base), round(angle, 1))
+        if cache_key not in cls._rotation_cache:
+            import pygame
+            cls._rotation_cache[cache_key] = pygame.transform.rotate(base, angle)
+        return cls._rotation_cache[cache_key]
+
+    @classmethod
+    def precache_tank_rotations(cls):
+        """预缓存所有坦克类型的常用旋转角度。
+        在游戏初始化时调用一次，提前生成24方向的旋转结果。
+        """
+        import pygame
+        from pycc2.presentation.rendering.pixel_artist_enums import TankType
+        from pycc2.presentation.rendering.pixel_artist_color_palette import TANK_PALETTES, TANK_SIZES
+
+        for tank_type in TankType:
+            tank_w, tank_h = TANK_SIZES[tank_type]
+            size = max(tank_w, tank_h)
+
+            # 创建一个空白基准surface用于触发预缓存
+            dummy = pygame.Surface((size, size), pygame.SRCALPHA)
+            dummy.fill((0, 0, 0, 0))
+
+            for angle in cls._PRECACHE_ANGLES:
+                if angle != 0:
+                    cls._get_rotated_surface(dummy, angle)
+
+    @classmethod
+    def clear_rotation_cache(cls):
+        """清空旋转缓存。在切换关卡或大量资源释放时调用。"""
+        cls._rotation_cache.clear()
 
     @staticmethod
     def create_infantry_sprite(
@@ -110,6 +163,9 @@ class PixelArtist3D:
         else:
             offset = 0
 
+        # ===== P1-1: 获取方向特定参数，增强8方向差异化 =====
+        dp = PixelArtist3D._get_direction_params(direction)
+
         dir_angles = {
             Direction.NORTH: 270,
             Direction.NORTHEAST: 315,
@@ -120,27 +176,42 @@ class PixelArtist3D:
             Direction.WEST: 180,
             Direction.NORTHWEST: 225,
         }
-        angle = math.radians(dir_angles.get(direction, 0))
+        base_angle = math.radians(dir_angles.get(direction, 0))
 
-        helmet_r = 3
-        hx = cx + int(math.cos(angle + math.pi / 2) * offset * 0.3)
-        hy = cy - 2 + int(math.sin(angle + math.pi / 2) * offset * 0.3)
+        # --- 头盔: 应用方向特定尺寸和高光偏移 ---
+        helmet_r = 3 + dp['helmet_size_mod']
+        hx = cx + int(math.cos(base_angle + math.pi / 2) * offset * 0.3)
+        hy = cy - 2 + int(math.sin(base_angle + math.pi / 2) * offset * 0.3)
         pygame.draw.circle(surface, helmet_color, (hx, hy), helmet_r)
 
+        # 头盔高光位置根据方向偏移（N偏上, S偏下, E偏右, W偏左）
         hl_color = palette.get('helmet_highlight', tuple(min(255, c + 40) for c in helmet_color))
-        pygame.draw.circle(surface, hl_color, (hx - 1, hy - 1), 1)
+        hl_dx, hl_dy = dp['helmet_highlight_offset']
+        pygame.draw.circle(surface, hl_color, (hx + hl_dx, hy + hl_dy), 1)
 
-        body_w, body_h = 8, 5
-        bx = cx - body_w // 2 + int(math.cos(angle + math.pi / 2) * offset * 0.5)
-        by = cy + int(math.sin(angle + math.pi / 2) * offset * 0.5)
+        # --- 身体: 应用方向特定宽度/高度修正 ---
+        body_w = 8 + dp['body_width_mod']   # N/S: 6px(窄), E/W: 8px(宽), 斜向: 7px
+        body_h = 5 + dp['body_height_mod']
+        bx = cx - body_w // 2 + int(math.cos(base_angle + math.pi / 2) * offset * 0.5)
+        by = cy + int(math.sin(base_angle + math.pi / 2) * offset * 0.5)
         pygame.draw.ellipse(surface, body_color, (bx, by, body_w, body_h))
-        pygame.draw.ellipse(surface, body_dark, (bx + 1, by + 1, body_w - 2, body_h - 2))
+        if body_w > 2 and body_h > 2:
+            pygame.draw.ellipse(surface, body_dark, (bx + 1, by + 1, body_w - 2, body_h - 2))
 
+        # --- 武器: 应用方向角度修正和手持侧差异 ---
+        weapon_angle_rad = base_angle + math.radians(dp['weapon_angle_mod'])
         weapon_len = 10
-        wx = cx + int(math.cos(angle) * weapon_len)
-        wy = cy + int(math.sin(angle) * weapon_len)
+        wx = cx + int(math.cos(weapon_angle_rad) * weapon_len)
+        wy = cy + int(math.sin(weapon_angle_rad) * weapon_len)
         weapon_width = 2 if infantry_type in [InfantryType.MG, InfantryType.AT] else 1
         pygame.draw.line(surface, weapon_color, (cx, cy), (wx, wy), weapon_width)
+
+        # --- 装备/背包: 仅背面方向(S/SW)可见 ---
+        equip_color = palette.get('equipment', tuple(max(0, c - 20) for c in body_color))
+        if dp['equipment_visibility'] > 0.8:
+            pack_x = cx + int(math.cos(weapon_angle_rad) * (-3))
+            pack_y = cy + int(math.sin(weapon_angle_rad) * (-3))
+            pygame.draw.ellipse(surface, equip_color, (pack_x - 2, pack_y - 1, 4, 3))
 
         if infantry_type == InfantryType.MG:
             mid_x = (cx + wx) // 2
@@ -148,32 +219,39 @@ class PixelArtist3D:
             pygame.draw.line(surface, weapon_metal, (mid_x - 1, mid_y), (mid_x + 1, mid_y), 1)
         elif infantry_type == InfantryType.OFFICER:
             pistol_len = 5
-            px = cx + int(math.cos(angle) * pistol_len)
-            py = cy + int(math.sin(angle) * pistol_len)
+            px = cx + int(math.cos(base_angle) * pistol_len)
+            py = cy + int(math.sin(base_angle) * pistol_len)
             pygame.draw.line(surface, weapon_color, (cx, cy), (px, py), 1)
         elif infantry_type == InfantryType.MEDIC:
             red_cross = (220, 40, 40)
-            perp_angle = angle + math.pi / 2
+            perp_angle = base_angle + math.pi / 2
             rx = cx + int(math.cos(perp_angle) * 3)
             ry = cy + int(math.sin(perp_angle) * 3)
             pygame.draw.line(surface, red_cross, (rx, ry - 1), (rx, ry + 1), 1)
             pygame.draw.line(surface, red_cross, (rx - 1, ry), (rx + 1, ry), 1)
 
+        # --- 腿部: 应用方向特定腿部张开程度 ---
         leg_len = 4
-        lx1 = cx + int(math.cos(angle + math.pi) * leg_len)
-        ly1 = cy + int(math.sin(angle + math.pi) * leg_len)
-        lx2 = cx + int(math.cos(angle + math.pi + 0.4) * leg_len * 0.7)
-        ly2 = cy + int(math.sin(angle + math.pi + 0.4) * leg_len * 0.7)
+        spread = dp['leg_spread_mod']  # N/S: 宽(3), 斜向: 中(1), E/W: 窄(0)
+        # 腿部方向性: 正面(N)双腿左右分开, 侧面(E/W)前后排列
+        back_angle = base_angle + math.pi
+        perp_leg = base_angle + math.pi / 2
+        lx1 = cx + int(math.cos(back_angle) * leg_len) + int(math.cos(perp_leg) * spread)
+        ly1 = cy + int(math.sin(back_angle) * leg_len) + int(math.sin(perp_leg) * spread)
+        lx2 = cx + int(math.cos(back_angle + 0.4) * leg_len * 0.7) - int(math.cos(perp_leg) * spread)
+        ly2 = cy + int(math.sin(back_angle + 0.4) * leg_len * 0.7) - int(math.sin(perp_leg) * spread)
         pygame.draw.circle(surface, boots_color, (lx1, ly1), 1)
         pygame.draw.circle(surface, boots_color, (lx2, ly2), 1)
 
         shadow_surface = pygame.Surface((24, 24), pygame.SRCALPHA)
-        pygame.draw.ellipse(shadow_surface, (0, 0, 0, 35), (cx - 4, cy + 5, 8, 3))
+        shadow_ox, shadow_oy = dp['shadow_offset']
+        pygame.draw.ellipse(shadow_surface, (0, 0, 0, 35),
+                           (cx - 4 + shadow_ox, cy + 5 + shadow_oy, 8, 3))
         surface.blit(shadow_surface, (0, 0))
 
         if state == "shoot" and frame == 1:
-            flash_x = wx + int(math.cos(angle) * 2)
-            flash_y = wy + int(math.sin(angle) * 2)
+            flash_x = wx + int(math.cos(weapon_angle_rad) * 2)
+            flash_y = wy + int(math.sin(weapon_angle_rad) * 2)
             pygame.draw.ellipse(surface, (255, 255, 100), (flash_x - 2, flash_y - 1, 4, 3))
 
         if state == "hit":
@@ -831,7 +909,7 @@ class PixelArtist3D:
         }
         angle = direction_angles.get(turret_direction, 0)
         if angle != 0:
-            surface = pygame.transform.rotate(surface, angle)
+            surface = PixelArtist3D._get_rotated_surface(surface, angle)
 
         return surface
 
@@ -918,9 +996,9 @@ class PixelArtist3D:
         turret_angle = direction_angles.get(turret_direction, 0)
 
         if hull_angle != 0:
-            hull_temp = pygame.transform.rotate(hull_temp, hull_angle)
+            hull_temp = PixelArtist3D._get_rotated_surface(hull_temp, hull_angle)
         if turret_angle != 0:
-            turret_temp = pygame.transform.rotate(turret_temp, turret_angle)
+            turret_temp = PixelArtist3D._get_rotated_surface(turret_temp, turret_angle)
 
         hull_rect = hull_temp.get_rect(center=(cx, cy))
         surface.blit(hull_temp, hull_rect)
@@ -1058,9 +1136,9 @@ class PixelArtist3D:
         turret_angle = direction_angles.get(turret_direction, 0)
 
         if hull_angle != 0:
-            hull_temp = pygame.transform.rotate(hull_temp, hull_angle)
+            hull_temp = PixelArtist3D._get_rotated_surface(hull_temp, hull_angle)
         if turret_angle != 0:
-            turret_temp = pygame.transform.rotate(turret_temp, turret_angle)
+            turret_temp = PixelArtist3D._get_rotated_surface(turret_temp, turret_angle)
 
         hull_rect = hull_temp.get_rect(center=(cx, cy))
         surface.blit(hull_temp, hull_rect)
@@ -1194,9 +1272,9 @@ class PixelArtist3D:
         turret_angle = direction_angles.get(turret_direction, 0)
 
         if hull_angle != 0:
-            hull_temp = pygame.transform.rotate(hull_temp, hull_angle)
+            hull_temp = PixelArtist3D._get_rotated_surface(hull_temp, hull_angle)
         if turret_angle != 0:
-            turret_temp = pygame.transform.rotate(turret_temp, turret_angle)
+            turret_temp = PixelArtist3D._get_rotated_surface(turret_temp, turret_angle)
 
         hull_rect = hull_temp.get_rect(center=(cx, cy))
         surface.blit(hull_temp, hull_rect)
@@ -1425,7 +1503,7 @@ class PixelArtist3D:
         }
         angle = direction_angles.get(direction, 0)
         if angle != 0:
-            temp = pygame.transform.rotate(temp, angle)
+            temp = PixelArtist3D._get_rotated_surface(temp, angle)
 
         rect = temp.get_rect(center=(cx, cy))
         surface.blit(temp, rect)
@@ -1562,7 +1640,7 @@ class PixelArtist3D:
         }
         angle = direction_angles.get(direction, 0)
         if angle != 0:
-            temp = pygame.transform.rotate(temp, angle)
+            temp = PixelArtist3D._get_rotated_surface(temp, angle)
 
         rect = temp.get_rect(center=(cx, cy))
         surface.blit(temp, rect)
@@ -1636,7 +1714,7 @@ class PixelArtist3D:
         }
         angle = direction_angles.get(direction, 0)
         if angle != 0:
-            temp = pygame.transform.rotate(temp, angle)
+            temp = PixelArtist3D._get_rotated_surface(temp, angle)
 
         rect = temp.get_rect(center=(cx, cy))
         surface.blit(temp, rect)

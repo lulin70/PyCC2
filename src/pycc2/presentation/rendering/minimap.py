@@ -10,6 +10,7 @@ import pygame
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit
 from pycc2.domain.value_objects.tile_coord import TileCoord
+from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.presentation.rendering.visual_spec import VisualSpec
 
@@ -81,7 +82,14 @@ class Minimap:
             self._draw_terrain_orthographic()
 
     def _draw_terrain_orthographic(self) -> None:
-        """Draw simplified terrain on minimap (orthographic/square tiles)."""
+        """Draw simplified terrain on minimap (orthographic/square tiles).
+
+        P1-5: 增加道路、建筑、水域、树林等特殊地形的视觉区分：
+        - 道路/桥梁：棕灰色 + 细线纹理
+        - 建筑：深褐色矩形 + 浅色边框轮廓
+        - 水域：深蓝色
+        - 树林：深绿色 + 散点模拟树木
+        """
         if not self._game_map or not self._surface:
             return
         map_width = self._game_map.width
@@ -89,12 +97,77 @@ class Minimap:
         tile_w = self.size / map_width
         tile_h = self.size / map_height
 
+        # P1-5: 特殊地形类型集合，用于增强显示
+        road_types = {TerrainType.ROAD, TerrainType.BRIDGE}
+        building_types = {TerrainType.BUILDING_ENTERABLE, TerrainType.BUILDING_SOLID}
+
         for y in range(map_height):
             for x in range(map_width):
                 terrain = self._game_map.get_terrain(TileCoord(x, y))
-                color = self.spec.get_terrain_color(terrain)
+                base_color = self.spec.get_terrain_color(terrain)
                 rect = Rect(int(x * tile_w), int(y * tile_h), int(tile_w) + 1, int(tile_h) + 1)
-                draw.rect(self._surface, color, rect)
+
+                # P1-5: 特殊地形增强渲染
+                if terrain in road_types:
+                    # 道路用土路棕灰色（比普通地面稍亮，便于辨识）
+                    color = (120, 110, 90)
+                    draw.rect(self._surface, color, rect)
+                    # 绘制道路中心线：连接相邻道路tile的细线
+                    line_color = (100, 90, 70)
+                    cx = rect.centerx
+                    cy = rect.centery
+                    # 水平方向连接
+                    if x + 1 < map_width:
+                        neighbor_e = self._game_map.get_terrain(TileCoord(x + 1, y))
+                        if neighbor_e in road_types:
+                            draw.line(self._surface, line_color,
+                                      (rect.right, cy), (rect.right + int(tile_w), cy), 1)
+                    # 垂直方向连接
+                    if y + 1 < map_height:
+                        neighbor_s = self._game_map.get_terrain(TileCoord(x, y + 1))
+                        if neighbor_s in road_types:
+                            draw.line(self._surface, line_color,
+                                      (cx, rect.bottom), (cx, rect.bottom + int(tile_h)), 1)
+
+                elif terrain in building_types:
+                    # 建筑用深褐色 + 浅色边框轮廓（比普通tile略小，留出间隙）
+                    color = (60, 55, 45)
+                    inner_margin = max(1, int(min(tile_w, tile_h) * 0.1))
+                    inner_rect = Rect(
+                        rect.left + inner_margin,
+                        rect.top + inner_margin,
+                        max(1, rect.width - inner_margin * 2),
+                        max(1, rect.height - inner_margin * 2),
+                    )
+                    draw.rect(self._surface, color, inner_rect)
+                    # 建筑轮廓边框（浅色）
+                    border_color = (100, 95, 80)
+                    draw.rect(self._surface, border_color, inner_rect, 1)
+
+                elif terrain == TerrainType.WATER:
+                    # 水域用深蓝色
+                    color = (40, 70, 120)
+                    draw.rect(self._surface, color, rect)
+
+                elif terrain == TerrainType.WOODS:
+                    # 树林用深绿 + 散点模拟树木
+                    color = (30, 65, 25)
+                    draw.rect(self._surface, color, rect)
+                    # 在tile内绘制几个绿色散点模拟树木
+                    dot_color = (45, 85, 35)
+                    cx, cy = rect.centerx, rect.centery
+                    dot_r = max(1, min(rect.width, rect.height) // 6)
+                    # 中心点 + 基于位置的确定性散点
+                    draw.circle(self._surface, dot_color, (cx, cy), dot_r)
+                    seed_offset_x = ((x * 7 + y * 13) % 5) - 2
+                    seed_offset_y = ((x * 11 + y * 17) % 5) - 2
+                    dx = max(rect.left + 1, min(rect.right - 1, cx + seed_offset_x * dot_r))
+                    dy = max(rect.top + 1, min(rect.bottom - 1, cy + seed_offset_y * dot_r))
+                    draw.circle(self._surface, dot_color, (int(dx), int(dy)), max(1, dot_r - 1))
+
+                else:
+                    # 普通地形：保持原有颜色映射不变
+                    draw.rect(self._surface, base_color, rect)
 
     def _draw_terrain_isometric(self) -> None:
         """Draw simplified terrain on minimap (isometric/diamond tiles)."""

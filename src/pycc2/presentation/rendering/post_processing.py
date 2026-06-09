@@ -6,6 +6,7 @@ from __future__ import annotations
 import math
 import logging
 
+import numpy as np
 import pygame
 from pygame import Surface
 
@@ -85,9 +86,19 @@ class PostProcessingEffects:
         return result
 
     def _apply_desaturation(self, surface: Surface, amount: float):
-        """降低饱和度"""
-        # 注意：这是简化版本，实际应用中可能需要使用shader
-        pass
+        """降低饱和度，模拟CC2灰暗战争氛围。
+
+        Args:
+            surface: 目标Surface
+            amount: 去饱和度程度 0.0(原色) ~ 1.0(完全灰度)，推荐值 0.3-0.5
+        """
+        pixels = pygame.surfarray.pixels3d(surface)
+        # 使用人眼感知加权灰度公式
+        gray = 0.299 * pixels[:,:,0] + 0.587 * pixels[:,:,1] + 0.114 * pixels[:,:,2]
+        # 按amount混合原色和灰色
+        result = pixels * (1 - amount) + gray[:,:,np.newaxis] * amount
+        pixels[:] = np.clip(result, 0, 255).astype(np.uint8)
+        del pixels  # 释放锁
 
     def _apply_color_tint(self, surface: Surface, tint: tuple[int, int, int]):
         """应用色调"""

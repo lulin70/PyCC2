@@ -97,6 +97,12 @@ class TerrainRenderingSystem:
         self._overlay_surface_pool: dict[tuple[int, int], pygame.Surface] = {}
         self._MAX_OVERLAY_SURFACE_POOL = 30
 
+        # P1-2: 地形静态层缓存 — 将所有可见地形tile合成一张大图
+        # 当相机不动且地形未修改时，直接blit缓存的大图，避免每帧逐tile绘制
+        self._terrain_bg: pygame.Surface | None = None
+        self._terrain_dirty: bool = True
+        self._terrain_cache_key: tuple | None = None  # (viewport_tl, viewport_size, map_version)
+
     def _get_overlay_surface(self, w: int, h: int) -> pygame.Surface:
         key = (w, h)
         if key in self._overlay_surface_pool:
@@ -109,6 +115,165 @@ class TerrainRenderingSystem:
             self._overlay_surface_pool.pop(next(iter(self._overlay_surface_pool)))
         self._overlay_surface_pool[key] = surf
         return surf
+
+    def _ensure_terrain_cache(
+        self,
+        game_map: 'GameMap',
+        camera: 'Camera',
+    ) -> pygame.Surface | None:
+        """获取或重建地形静态层缓存。
+
+        当 _terrain_dirty=False 且视口未变化时，直接返回已缓存的 Surface。
+        否则将所有可见地形 tile 绘制到一张大 offscreen Surface 上。
+
+        Returns:
+            缓存的地形背景 Surface，或 None（无法创建时）
+        """
+        target_surface = self._renderer._offscreen
+        if target_surface is None:
+            return None
+
+        bounds = camera.view_bounds
+        start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
+        end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
+        start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
+        end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
+        tile_screen_size = int(self.TILE_SIZE * camera.zoom)
+
+        # 计算当前缓存的 key
+        map_version = getattr(game_map, 'version', id(game_map))
+        current_key = (
+            (start_x, start_y),
+            (end_x - start_x, end_y - start_y),
+            tile_screen_size,
+            map_version,
+        )
+
+        # 检查缓存是否有效：dirty==False 且 key 匹配且尺寸正确
+        if (not self._terrain_dirty
+                and self._terrain_bg is not None
+                and self._terrain_cache_key == current_key
+                and self._terrain_bg.get_size() == target_surface.get_size()):
+            return self._terrain_bg
+
+        # 重建缓存
+        screen_w, screen_h = target_surface.get_size()
+        try:
+            self._terrain_bg = pygame.Surface((screen_w, screen_h), pygame.SRCALPHA)
+            self._terrain_bg.fill((0, 0, 0, 0))  # 透明背景
+        except (pygame.error, ValueError):
+            logger.debug("Failed to create terrain background cache surface")
+            return None
+
+        # 将所有可见地形tile绘制到缓存surface上
+        for ty in range(start_y, end_y):
+            for tx in range(start_x, end_x):
+                try:
+                    enhanced_tile = self._get_enhanced_tile(game_map, tx, ty)
+
+                    if enhanced_tile is not None and hasattr(enhanced_tile, 'base_terrain'):
+                        terrain_val = enhanced_tile.base_terrain
+                        height = getattr(enhanced_tile, 'height', 0) or 0
+                    else:
+                        terrain_val = int(game_map.tile_grid[ty, tx])
+                        height = 0
+
+                    from pycc2.presentation.rendering.autotile_system import (
+                        is_autotile_terrain,
+                        get_neighbor_bitmap,
+                    )
+
+                    bitmask = 0
+                    if is_autotile_terrain(terrain_val):
+                        try:
+                            bitmask = get_neighbor_bitmap(game_map, tx, ty, terrain_val)
+                        except Exception as e:
+                            logger.debug(f"Autotile bitmask failed: {e}")
+
+                    texture = None
+                    if self._terrain_tile_cache is not None:
+                        texture = self._terrain_tile_cache.get_tile(
+                            terrain_type=terrain_val,
+                            variation=(tx * 7919 + ty * 104729 + terrain_val * 17) % 8,
+                            height=height,
+                            size=tile_screen_size,
+                            bitmask=bitmask if is_autotile_terrain(terrain_val) else None,
+                        )
+
+                    if texture is None:
+                        variation = (tx * 7919 + ty * 104729 + terrain_val * 17) % 8
+
+                        if is_autotile_terrain(terrain_val):
+                            cache_key = (terrain_val, variation, bitmask)
+                            cached = self._autotile_cache.get_variant(terrain_val, bitmask, variation) \
+                                if self._autotile_cache else None
+                            if cached is None:
+                                texture = self._generate_cc2_style_tile(terrain_val, tx, ty, bitmask)
+                                if self._autotile_cache:
+                                    self._autotile_cache.set_variant(terrain_val, bitmask, variation, texture)
+                            else:
+                                texture = cached
+
+                            scale_key = (terrain_val, variation, bitmask, tile_screen_size)
+                            if scale_key not in self._scaled_texture_cache and texture is not None:
+                                base_texture = self._autotile_cache.get_variant(
+                                    terrain_val, bitmask, variation
+                                ) if self._autotile_cache else None
+                                if base_texture is not None:
+                                    import math as _math
+                                    scale_factor = tile_screen_size / base_texture.get_width()
+                                    new_size = (int(base_texture.get_width() * scale_factor),
+                                              int(base_texture.get_height() * scale_factor))
+                                    self._scaled_texture_cache[scale_key] = pygame.transform.smoothscale(
+                                        base_texture, new_size
+                                    )
+                                texture = self._scaled_texture_cache.get(scale_key)
+                        else:
+                            cache_key = (terrain_val, variation, height, tile_screen_size)
+                            if cache_key not in self._scaled_texture_cache:
+                                base_texture = self.get_cached_texture(terrain_val, variation)
+                                if height > 0:
+                                    lighting_sys = getattr(self._renderer, '_lighting_effects_sys', None)
+                                    if lighting_sys:
+                                        base_texture = lighting_sys.apply_height_lighting(base_texture, height)
+                                import math as _math
+                                scale_factor = tile_screen_size / base_texture.get_width()
+                                new_size = (int(base_texture.get_width() * scale_factor),
+                                          int(base_texture.get_height() * scale_factor))
+                                self._scaled_texture_cache[cache_key] = pygame.transform.smoothscale(
+                                    base_texture, new_size
+                                )
+                            texture = self._scaled_texture_cache.get(cache_key)
+
+                        if texture is None:
+                            texture = self.get_cached_texture(terrain_val, variation)
+
+                    # Blit到缓存surface
+                    if texture is not None:
+                        world_x = tx * self.TILE_SIZE
+                        world_y = ty * self.TILE_SIZE
+                        screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
+                        sx, sy = int(screen_pos[0]), int(screen_pos[1])
+                        self._terrain_bg.blit(texture, (sx, sy))
+
+                except Exception as e:
+                    logger.debug(f"Terrain cache build failed at ({tx},{ty}): {e}")
+                    continue
+
+        # 缓存构建完成
+        self._terrain_dirty = False
+        self._terrain_cache_key = current_key
+        return self._terrain_bg
+
+    def invalidate_terrain_cache(self) -> None:
+        """标记地形缓存为脏，下次渲染时重建。
+
+        应在以下情况调用：
+        - 地形被修改（破坏、挖掘等）
+        - 单位移动到新区域需要重绘
+        - 相机移动超出已缓存区域
+        """
+        self._terrain_dirty = True
 
     def draw_simple_terrain(
         self, 
@@ -191,8 +356,8 @@ class TerrainRenderingSystem:
         return sprite_cache[key]
 
     def draw_enhanced_terrain(
-        self, 
-        game_map: 'GameMap', 
+        self,
+        game_map: 'GameMap',
         camera: 'Camera',
         debug_mode: bool = False,
         surface: pygame.Surface | None = None
@@ -205,6 +370,7 @@ class TerrainRenderingSystem:
         - Autotile bitmask 连续地形连接
         - 高度基础光照调整
         - 缓存优化（避免重复生成）
+        - P1-2: 地形静态层缓存，相机不动时跳过逐tile重绘
 
         Args:
             game_map: 游戏地图
@@ -216,19 +382,48 @@ class TerrainRenderingSystem:
         if target_surface is None:
             return
 
+        # P1-2: 尝试使用地形静态层缓存
+        # 当缓存命中时，直接blit整张大图，避免每帧逐tile绘制（STEP 2 热点优化）
+        terrain_bg = self._ensure_terrain_cache(game_map, camera)
+        if terrain_bg is not None:
+            target_surface.blit(terrain_bg, (0, 0))
+        else:
+            # 缓存不可用时的回退：直接绘制到目标surface
+            self._draw_terrain_tiles_direct(game_map, camera, target_surface)
+
         bounds = camera.view_bounds
         start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
         end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
         start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
         end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
+        tile_screen_size = int(self.TILE_SIZE * camera.zoom)
 
+        # 边缘平滑和过渡效果仍需每帧绘制（它们是叠加层，依赖当前状态）
+        self.apply_terrain_edge_smoothing(game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size)
+        self.render_terrain_transitions(game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size)
+
+        if debug_mode:
+            self.draw_terrain_borders(game_map, camera, start_x, end_x, start_y, end_y)
+
+    def _draw_terrain_tiles_direct(
+        self,
+        game_map: 'GameMap',
+        camera: 'Camera',
+        target_surface: pygame.Surface,
+    ) -> None:
+        """直接将所有可见地形tile绘制到目标surface（缓存不可用时的回退路径）。"""
+        bounds = camera.view_bounds
+        start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
+        end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
+        start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
+        end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
         tile_screen_size = int(self.TILE_SIZE * camera.zoom)
 
         for ty in range(start_y, end_y):
             for tx in range(start_x, end_x):
                 try:
                     enhanced_tile = self._get_enhanced_tile(game_map, tx, ty)
-                    
+
                     if enhanced_tile is not None and hasattr(enhanced_tile, 'base_terrain'):
                         terrain_val = enhanced_tile.base_terrain
                         height = getattr(enhanced_tile, 'height', 0) or 0
@@ -236,12 +431,11 @@ class TerrainRenderingSystem:
                         terrain_val = int(game_map.tile_grid[ty, tx])
                         height = 0
 
-                    # Calculate autotile bitmask for continuous terrains
                     from pycc2.presentation.rendering.autotile_system import (
                         is_autotile_terrain,
                         get_neighbor_bitmap
                     )
-                    
+
                     bitmask = 0
                     if is_autotile_terrain(terrain_val):
                         try:
@@ -249,7 +443,6 @@ class TerrainRenderingSystem:
                         except Exception as e:
                             logger.debug(f"Autotile bitmask failed: {e}")
 
-                    # Use TerrainTileCache for pre-computed tiles with edge smoothing
                     texture = None
                     if self._terrain_tile_cache is not None:
                         texture = self._terrain_tile_cache.get_tile(
@@ -261,22 +454,21 @@ class TerrainRenderingSystem:
                         )
 
                     if texture is None:
-                        # Fallback to procedural generation with caching
                         variation = (tx * 7919 + ty * 104729 + terrain_val * 17) % 8
-                        
+
                         if is_autotile_terrain(terrain_val):
                             cache_key = (terrain_val, variation, bitmask)
-                            
+
                             cached = self._autotile_cache.get_variant(terrain_val, bitmask, variation) \
                                 if self._autotile_cache else None
-                                
+
                             if cached is None:
                                 texture = self._generate_cc2_style_tile(terrain_val, tx, ty, bitmask)
                                 if self._autotile_cache:
                                     self._autotile_cache.set_variant(terrain_val, bitmask, variation, texture)
                             else:
                                 texture = cached
-                            
+
                             scale_key = (terrain_val, variation, bitmask, tile_screen_size)
                             if scale_key not in self._scaled_texture_cache and texture is not None:
                                 base_texture = self._autotile_cache.get_variant(terrain_val, bitmask, variation) \
@@ -290,27 +482,26 @@ class TerrainRenderingSystem:
                                 texture = self._scaled_texture_cache.get(scale_key)
                         else:
                             cache_key = (terrain_val, variation, height, tile_screen_size)
-                            
+
                             if cache_key not in self._scaled_texture_cache:
                                 base_texture = self.get_cached_texture(terrain_val, variation)
-                                
+
                                 if height > 0:
                                     lighting_sys = getattr(self._renderer, '_lighting_effects_sys', None)
                                     if lighting_sys:
                                         base_texture = lighting_sys.apply_height_lighting(base_texture, height)
-                                
+
                                 import math
                                 scale_factor = tile_screen_size / base_texture.get_width()
                                 new_size = (int(base_texture.get_width() * scale_factor),
                                           int(base_texture.get_height() * scale_factor))
                                 self._scaled_texture_cache[cache_key] = pygame.transform.smoothscale(base_texture, new_size)
-                            
+
                             texture = self._scaled_texture_cache.get(cache_key)
-                        
+
                         if texture is None:
                             texture = self.get_cached_texture(terrain_val, variation)
 
-                    # Blit terrain tile to screen
                     if texture is not None:
                         world_x = tx * self.TILE_SIZE
                         world_y = ty * self.TILE_SIZE
@@ -323,16 +514,6 @@ class TerrainRenderingSystem:
                 except Exception as e:
                     logger.debug(f"Terrain render failed at ({tx},{ty}): {e}")
                     continue
-
-        # Apply terrain edge smoothing
-        self.apply_terrain_edge_smoothing(game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size)
-        
-        # Render terrain transitions between different types
-        self.render_terrain_transitions(game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size)
-        
-        # Draw terrain borders only in debug mode
-        if debug_mode:
-            self.draw_terrain_borders(game_map, camera, start_x, end_x, start_y, end_y)
 
     def _get_enhanced_tile(self, game_map: 'GameMap', x: int, y: int):
         """获取增强地形瓦片数据（兼容新旧格式）。"""
