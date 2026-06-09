@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.rendering.minimap import Minimap
+from pycc2.presentation.rendering.fade_transition import FadeTransition
 
 
 class CC2BottomPanel:
@@ -133,6 +134,9 @@ class CC2BottomPanel:
         self._active_popup_member: object | None = None  # SquadMember for detail popup
         self._active_popup_rect: Rect | None = None
 
+        # Fade transition for smooth show/hide
+        self._fade = FadeTransition(fade_duration=0.2)
+
     def initialize(self) -> None:
         """Initialize fonts and icons."""
         if not font.get_init():
@@ -152,6 +156,29 @@ class CC2BottomPanel:
         self._command_icons = self._create_command_icons()
         self._roster_icons = self._create_roster_icons()
         self._commander_portrait = self._create_commander_portrait()
+
+    def show(self) -> None:
+        """Show the panel with fade-in effect."""
+        self._visible = True
+        self._fade.show()
+
+    def hide(self) -> None:
+        """Hide the panel with fade-out effect."""
+        self._fade.hide()
+
+    def update(self, dt: float) -> None:
+        """Update fade transition animation state.
+
+        Args:
+            dt: Delta time in seconds since last frame.
+        """
+        self._fade.update(dt)
+        if not self._fade.is_visible:
+            self._visible = False
+
+    @property
+    def is_fading(self) -> bool:
+        return self._fade.is_fading
 
     def set_battle_timer(self, seconds: int) -> None:
         """Update the battle countdown timer."""
@@ -728,11 +755,22 @@ class CC2BottomPanel:
         sw, sh = surface.get_size()
         panel_y = sh - self.PANEL_HEIGHT
 
+        # Apply fade transition: render to temp surface, then blit with alpha
+        alpha = self._fade.alpha
+        use_fade_surface = alpha < 1.0
+        if use_fade_surface:
+            panel_surface = Surface((sw, self.PANEL_HEIGHT), pygame.SRCALPHA)
+            target = panel_surface
+            offset_y = 0
+        else:
+            target = surface
+            offset_y = panel_y
+
         # Draw main background
-        panel_rect = Rect(0, panel_y, sw, self.PANEL_HEIGHT)
-        draw.rect(surface, self.BG_COLOR, panel_rect)
+        panel_rect = Rect(0, offset_y, sw, self.PANEL_HEIGHT)
+        draw.rect(target, self.BG_COLOR, panel_rect)
         # Fine 1px bright top border (CC2 style)
-        draw.line(surface, self.BORDER_COLOR, (0, panel_y), (sw, panel_y), 1)
+        draw.line(target, self.BORDER_COLOR, (0, offset_y), (sw, offset_y), 1)
 
         # === TIMER DISPLAY (Top-center of panel, CC2 style) ===
         timer_height = 0
@@ -751,30 +789,35 @@ class CC2BottomPanel:
             # Render centered at top of panel
             timer_surf = self._font_large.render(timer_text, True, timer_color)
             timer_x = (sw - timer_surf.get_width()) // 2
-            surface.blit(timer_surf, (timer_x, panel_y + 2))
+            surface.blit(timer_surf, (timer_x, offset_y + 2))
 
         # Calculate section positions (shift down if timer is shown)
-        section_y = panel_y + 5 + timer_height
+        section_y = offset_y + 5 + timer_height
         content_height = self.PANEL_HEIGHT - 15 - timer_height
 
         # === SECTION 1: Unit Roster (Left) ===
-        self._render_roster(surface, 5, section_y, self.ROSTER_WIDTH, content_height)
+        self._render_roster(target, 5, section_y, self.ROSTER_WIDTH, content_height)
 
         # === SECTION 2: Unit Details (Center-Left) ===
         detail_x = self.ROSTER_WIDTH + 10
-        self._render_unit_details(surface, detail_x, section_y, self.DETAIL_WIDTH, content_height)
+        self._render_unit_details(target, detail_x, section_y, self.DETAIL_WIDTH, content_height)
 
         # === SECTION 3: Command Bar (Center-Right, next to details) ===
         cmd_x = detail_x + self.DETAIL_WIDTH + 10
-        self._render_command_bar(surface, cmd_x, section_y, self.COMMAND_WIDTH, content_height, time_remaining)
+        self._render_command_bar(target, cmd_x, section_y, self.COMMAND_WIDTH, content_height, time_remaining)
 
         # === SECTION 4: Urgency Indicator (Right of commands) ===
         urgency_x = cmd_x + self.COMMAND_WIDTH + 5
-        self._render_urgency_indicator(surface, urgency_x, section_y, self.URGENCY_WIDTH, content_height)
+        self._render_urgency_indicator(target, urgency_x, section_y, self.URGENCY_WIDTH, content_height)
 
         # === SECTION 5: Minimap (Far Right) ===
         minimap_x = urgency_x + self.URGENCY_WIDTH + 5
-        self._render_minimap_section(surface, minimap_x, section_y, self.MINIMAP_SIZE, minimap, camera, game_map)
+        self._render_minimap_section(target, minimap_x, section_y, self.MINIMAP_SIZE, minimap, camera, game_map)
+
+        # Blit the faded panel surface onto the target surface with alpha
+        if use_fade_surface:
+            panel_surface.set_alpha(int(alpha * 255))
+            surface.blit(panel_surface, (0, panel_y))
 
     def _render_roster(
         self, surface: Surface, x: int, y: int, w: int, h: int

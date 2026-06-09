@@ -2,6 +2,28 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.32] - 2026-06-09
+
+### Deep Visual Polish (5 P2 improvements)
+
+- **[VISUAL]** **P2-01**: Combat particle enrichment — `dirt_splash` (radial debris), `blood_pool` (persistent ground stain on kill), and `hit_marker` (colored flash by damage type) now triggered from combat_director.process_effects(). 3 new delegate methods added to particle_effects_renderer + enhanced_renderer
+- **[VISUAL]** **P2-02**: Unit death fade-out animation — units now fade out over 500ms (alpha 255→0) with CC2 dark-gray ghost rendering instead of instant vanishing. `_fading_units` dict with time.monotonic() for frame-rate-independent smooth decay
+- **[VISUAL]** **P2-03**: Screen flash effect — explosion hits trigger warm white flash (255,240,200), kill shots trigger soft red flash (255,100,100). Uses BLEND_RGBA_ADD overlay with ease-out quad decay curve. Integrated into game_loop update cycle
+- **[VISUAL]** **P2-04**: Unit movement smoothing — position lerp interpolation at 12 u/s prevents teleportation between tiles. `_unit_positions` dict tracks displayed positions, auto-cleans dead units. unit_renderer accepts optional position_overrides param
+- **[VISUAL]** **P2-05**: UI panel transition animations — FadeTransition utility class (0.18-0.2s duration) applied to BottomPanel, Minimap, and HUD unit panel. Uses SRCALPHA surface compositing with zero-overhead fast path when fully visible
+
+### New File
+- `presentation/rendering/fade_transition.py` — Reusable alpha-based fade transition helper
+
+### Visual Fidelity Impact
+| Metric | Before | After |
+|--------|--------|-------|
+| Combat particles per hit | 2 types (flash+damage) | **5 types** (+dirt+blood+marker) |
+| Unit death visual | Instant vanish | **500ms ghost fade** |
+| Explosion feedback | Shake only | **Shake + flash + particles** |
+| Unit movement | Teleport | **Smooth lerp** |
+| UI panel show/hide | Instant pop | **0.2s fade transition** |
+
 ## [0.3.31] - 2026-06-08
 
 ### Rendering & Visual Quality Overhaul (8 improvements)

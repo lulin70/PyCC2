@@ -13,6 +13,7 @@ from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.presentation.rendering.visual_spec import VisualSpec
+from pycc2.presentation.rendering.fade_transition import FadeTransition
 
 
 class Minimap:
@@ -30,6 +31,9 @@ class Minimap:
         self._is_isometric: bool = False
         self._selected_unit_id: str | None = None
         self._camera_viewport: tuple[float, float, float, float] | None = None  # (x, y, w, h) in world coords
+
+        # Fade transition for smooth show/hide
+        self._fade = FadeTransition(fade_duration=0.2)
 
     def set_map(self, game_map: GameMap) -> None:
         """Set the game map for rendering."""
@@ -51,8 +55,36 @@ class Minimap:
         """Set camera viewport rectangle in world coordinates (x, y, width, height)."""
         self._camera_viewport = viewport
 
+    def show(self) -> None:
+        """Show the minimap with fade-in effect."""
+        self._fade.show()
+
+    def hide(self) -> None:
+        """Hide the minimap with fade-out effect."""
+        self._fade.hide()
+
+    def update(self, dt: float) -> None:
+        """Update fade transition animation state.
+
+        Args:
+            dt: Delta time in seconds since last frame.
+        """
+        self._fade.update(dt)
+
+    @property
+    def is_visible(self) -> bool:
+        return self._fade.is_visible
+
+    @property
+    def is_fading(self) -> bool:
+        return self._fade.is_fading
+
     def render(self, surface: Surface, x: int, y: int) -> None:
         """Render minimap at screen position (x, y)."""
+        # Skip rendering if fully faded out
+        if not self._fade.is_visible and self._fade.alpha <= 0.01:
+            return
+
         self._render_x = x
         self._render_y = y
 
@@ -69,6 +101,13 @@ class Minimap:
         draw.rect(
             self._surface, self.spec.minimap_border_color, Rect(0, 0, self.size, self.size), 1
         )
+
+        # Apply fade alpha before blitting to target surface
+        alpha = self._fade.alpha
+        if alpha < 1.0:
+            self._surface.set_alpha(int(alpha * 255))
+        else:
+            self._surface.set_alpha(255)
         surface.blit(self._surface, (x, y))
 
     def _draw_terrain(self) -> None:

@@ -401,12 +401,27 @@ class CombatDirector:
                 renderer.spawn_damage_number(
                     effect["position"], effect["damage"], effect.get("is_kill", False)
                 )
+                # P2-01: Enriched combat particles — dirt splash, blood pool, hit marker
+                position = effect["position"]
+                is_kill = effect.get("is_kill", False)
+                if hasattr(renderer, "spawn_dirt_splash"):
+                    renderer.spawn_dirt_splash(position.x, position.y, count=8)
+                if is_kill and hasattr(renderer, "spawn_blood_pool"):
+                    renderer.spawn_blood_pool(position.x, position.y, size=10)
+                if hasattr(renderer, "spawn_hit_marker"):
+                    renderer.spawn_hit_marker(
+                        position.x, position.y,
+                        damage_type='critical' if is_kill else 'normal'
+                    )
                 # 爆炸武器触发大爆炸 + 屏幕震动
                 weapon_id = effect.get("weapon_id", "")
                 if weapon_id and self._is_explosive_weapon(weapon_id):
                     renderer.spawn_explosion(effect["position"], "large")
                     if camera and hasattr(camera, "shake"):
                         camera.shake(3.0, 0.15)
+                    # P2-03: Warm white flash for large explosions
+                    if hasattr(renderer, "trigger_flash"):
+                        renderer.trigger_flash((255, 240, 200), 0.5, 0.15)
                     self.event_bus.publish_named("Explosion", {
                         "intensity": 4.0,
                         "position": (
@@ -419,6 +434,9 @@ class CombatDirector:
                     renderer.spawn_explosion(effect["position"], "small")
                     if camera and hasattr(camera, "shake"):
                         camera.shake(1.5, 0.1)
+                # P2-03: Pale red flash for fatal / killing blows
+                if is_kill and hasattr(renderer, "trigger_flash"):
+                    renderer.trigger_flash((255, 100, 100), 0.3, 0.12)
                 if self.sound_system:
                     self.sound_system.play_hit(is_critical=effect.get("is_kill", False))
             elif etype == "muzzle":

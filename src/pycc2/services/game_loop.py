@@ -379,6 +379,14 @@ class GameLoop:
         # 更新相机屏幕震动
         self.state.camera.update_shake(dt)
 
+        # P2-03: Update screen flash overlay alpha (fade-out)
+        if hasattr(self.renderer, 'update_flash'):
+            self.renderer.update_flash(dt)
+
+        # P2-04: Smooth unit position interpolation (lerp toward real positions)
+        if hasattr(self.renderer, '_smooth_positions'):
+            self.renderer._smooth_positions(self.state.units, dt)
+
         # Update cinematic camera effect stack
         if self._effect_stack is not None:
             self._effect_stack.update(dt)

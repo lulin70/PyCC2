@@ -205,6 +205,19 @@ class EnhancedRenderer:
         self._enable_cc2_color_grading: bool = True
         self._hud = None
         self._hud_enabled: bool = True
+
+        # P2-02: Death fade-out animation tracking
+        # {unit_id: {"position": Vec2, "alpha": int, "start_time": int, "duration_ms": int}}
+        self._fading_units: dict[str, dict] = {}
+
+        # P2-03: Screen flash overlay system (white/red flash on explosion / kill)
+        self._flash_color: tuple[int, int, int] | None = None  # RGB or None
+        self._flash_alpha: float = 0.0
+        self._flash_duration: float = 0.0
+        self._flash_elapsed: float = 0.0
+
+        # P2-04: Smooth unit position interpolation (lerp toward real position)
+        self._unit_positions: dict[str, tuple[float, float]] = {}  # unit_id → displayed (x, y)
     
     def initialize(self, screen: pygame.Surface) -> None:
         """Initialize renderer with display surface."""
@@ -299,6 +312,86 @@ class EnhancedRenderer:
 
     def enable_hud(self, enabled: bool = True) -> None:
         self._hud_enabled = enabled
+
+    # ====== P2-03: Screen Flash Overlay System ======
+
+    def trigger_flash(self, color: tuple[int, int, int] = (255, 255, 255), intensity: float = 0.4, duration: float = 0.12) -> None:
+        """Trigger a screen flash overlay effect.
+
+        Args:
+            color: RGB tuple for flash color (white for explosions, red for kills).
+            intensity: Peak alpha multiplier (0.0–1.0).
+            duration: Flash fade-out duration in seconds.
+        """
+        self._flash_color = color
+        self._flash_alpha = intensity * 255
+        self._flash_duration = duration
+        self._flash_elapsed = 0.0
+        logger.debug(f"Screen flash triggered: color={color}, intensity={intensity}, duration={duration}s")
+
+    def update_flash(self, dt: float) -> None:
+        """Update screen flash alpha (call once per frame in update phase).
+
+        Uses ease-out quad curve for natural fade-out feel.
+        """
+        if self._flash_color is None:
+            return
+        self._flash_elapsed += dt
+        progress = min(1.0, self._flash_elapsed / self._flash_duration)
+        # Ease-out quad fade: fast start, slow end
+        self._flash_alpha = (1.0 - (1.0 - progress) ** 2) * (-255)  # 255 → 0
+        if progress >= 1.0:
+            self._flash_color = None
+            self._flash_alpha = 0.0
+
+    # ====== P2-04: Smooth Unit Position Interpolation ======
+
+    LERP_SPEED = 12.0  # units per second — higher = snappier tracking
+
+    def _smooth_positions(self, units: list, dt: float) -> None:
+        """Lerp displayed unit positions toward real pixel positions.
+
+        Call this once per frame before rendering units so they glide
+        smoothly instead of snapping grid-to-grid.
+        """
+        alive_ids: set[str] = set()
+        for unit in units:
+            if not hasattr(unit, 'id') or not hasattr(unit, 'position'):
+                continue
+            if unit.position is None or not hasattr(unit.position, 'pixel_position'):
+                continue
+
+            alive_ids.add(unit.id)
+
+            try:
+                real_x = float(unit.position.pixel_position.x)
+                real_y = float(unit.position.pixel_position.y)
+            except (AttributeError, TypeError):
+                continue
+
+            if unit.id not in self._unit_positions:
+                # First seen — snap to real position immediately
+                self._unit_positions[unit.id] = (real_x, real_y)
+            else:
+                dx = real_x - self._unit_positions[unit.id][0]
+                dy = real_y - self._unit_positions[unit.id][1]
+                dist = math.sqrt(dx * dx + dy * dy)
+                if dist > 0.1:
+                    step = min(self.LERP_SPEED * dt, dist)
+                    self._unit_positions[unit.id] = (
+                        self._unit_positions[unit.id][0] + dx * step / dist,
+                        self._unit_positions[unit.id][1] + dy * step / dist,
+                    )
+                else:
+                    # Close enough — snap to avoid endless micro-movement
+                    self._unit_positions[unit.id] = (real_x, real_y)
+
+        # Clean up dead / removed units
+        self._unit_positions = {k: v for k, v in self._unit_positions.items() if k in alive_ids}
+
+    def get_smooth_position(self, unit_id: str) -> tuple[float, float] | None:
+        """Return the smoothed (lerped) position for a unit, or None if not tracked."""
+        return self._unit_positions.get(unit_id)
 
     def _get_pooled_surface(self, size: tuple[int, int]) -> pygame.Surface:
         """Get or create a surface from the object pool with LRU eviction (PERF-001).
@@ -417,8 +510,11 @@ class EnhancedRenderer:
         # STEP 4.8: Environment lighting pass (after terrain/buildings, before units)
         self._apply_environment_lighting(game_map, camera, units)
 
-        # STEP 5: Draw units
+        # STEP 5: Draw units (positions already smoothed by _smooth_positions in update phase)
         self._draw_units(units, camera, selected_unit_ids)
+
+        # STEP 5.05: Draw death fade-out ghosts (P2-02 — semi-transparent dying units)
+        self._render_fading_units(camera)
 
         # STEP 5.1: Draw unit and vehicle shadows (AFTER units rendered)
         self._shadow_rendering_sys.render_unit_shadows(self._offscreen, units, camera)
@@ -443,6 +539,12 @@ class EnhancedRenderer:
         # STEP 5.9: Render CC2 three-panel HUD (if enabled and attached)
         if self._hud_enabled and self._hud is not None:
             self._hud.render(self._offscreen)
+
+        # P2-03: Screen flash overlay (after all rendering, before atomic flip)
+        if self._flash_color is not None and self._flash_alpha > 0:
+            flash_surf = pygame.Surface(self._offscreen.get_size(), pygame.SRCALPHA)
+            flash_surf.fill((*self._flash_color, int(max(0, self._flash_alpha))))
+            self._offscreen.blit(flash_surf, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
 
         # STEP 6: Atomic blit off-screen buffer → display surface
         self._screen.blit(self._offscreen, (0, 0))
@@ -794,8 +896,8 @@ class EnhancedRenderer:
                     self._offscreen.blit(sprite, rect)
     
     def _draw_units(self, units: list[Unit], camera: Camera, selected_unit_ids: set[str] | None = None) -> None:
-        """Delegate to UnitRenderer for unit drawing."""
-        self._unit_renderer.draw_units(units, camera, selected_unit_ids)
+        """Delegate to UnitRenderer for unit drawing (with P2-04 smooth positions)."""
+        self._unit_renderer.draw_units(units, camera, selected_unit_ids, position_overrides=self._unit_positions)
 
     def _draw_damage_vfx(self, unit: Unit, cx: int, cy: int) -> None:
         """Delegate to UnitRenderer for damage visual effects."""
@@ -832,6 +934,8 @@ class EnhancedRenderer:
     def spawn_death_effect(self, unit_id: str, position) -> None:
         """Delegate to ParticleEffectsRenderer."""
         self._particle_effects.spawn_death_effect(unit_id, position)
+        # P2-02: Trigger death fade-out animation
+        self.start_death_fade(unit_id, position, duration_ms=500)
 
     # NOTE: spawn_explosion (ring+dynamic light version) defined below at L1299.
     # The sprite-only version was removed — ring version is strictly more capable.
@@ -839,6 +943,57 @@ class EnhancedRenderer:
     def spawn_smoke_screen(self, position, radius: float = 64.0) -> None:
         """Delegate to ParticleEffectsRenderer."""
         self._particle_effects.spawn_smoke_screen(position, radius)
+
+    def spawn_dirt_splash(self, x: float, y: float, count: int = 8) -> None:
+        """Delegate to ParticleEffectsRenderer for dirt splash particles on hit."""
+        self._particle_effects.spawn_dirt_splash(x, y, count)
+
+    def spawn_blood_pool(self, x: float, y: float, size: int = 10) -> None:
+        """Delegate to ParticleEffectsRenderer for persistent blood pool stain."""
+        self._particle_effects.spawn_blood_pool(x, y, size)
+
+    def spawn_hit_marker(self, x: float, y: float, damage_type: str = 'normal') -> None:
+        """Delegate to ParticleEffectsRenderer for hit marker visual feedback."""
+        self._particle_effects.spawn_hit_marker(x, y, damage_type)
+
+    # ------------------------------------------------------------------ 
+    # P2-02: Death fade-out animation
+    # ------------------------------------------------------------------
+
+    def start_death_fade(self, unit_id: str, position, duration_ms: int = 500) -> None:
+        """Register a unit for death fade-out animation (alpha 255→0)."""
+        import time as _time
+        px = position.x if hasattr(position, 'x') else float(position[0]) if hasattr(position, '__getitem__') else 0.0
+        py = position.y if hasattr(position, 'y') else float(position[1]) if hasattr(position, '__getitem__') else 0.0
+        self._fading_units[unit_id] = {
+            "x": px, "y": py,
+            "start_time": _time.monotonic(),
+            "duration": duration_ms / 1000.0,
+            "alpha": 255,
+        }
+
+    def _render_fading_units(self, camera: Camera) -> None:
+        """Render semi-transparent ghost for each dying unit; remove when fully faded."""
+        import time as _time
+        now = _time.monotonic()
+        dead_ids = []
+        for uid, state in self._fading_units.items():
+            elapsed = now - state["start_time"]
+            progress = min(1.0, elapsed / max(0.001, state["duration"]))
+            alpha = int(255 * (1.0 - progress))  # linear fade
+            if alpha <= 1:
+                dead_ids.append(uid)
+                continue
+            sx = int(state["x"] - camera.x + self._offscreen.get_width() // 2)
+            sy = int(state["y"] - camera.y + self._offscreen.get_height() // 2)
+            size = 12
+            color = (60, 55, 50, alpha)  # CC2 dark gray ghost
+            try:
+                pygame.draw.circle(self._offscreen, color, (sx, sy), size)
+            except Exception:
+                pass
+        for uid in dead_ids:
+            del self._fading_units[uid]
 
     def _draw_queued_commands(self, units: list, camera: Camera) -> None:
         """Delegate to UIOverlayRenderer for queued command lines."""

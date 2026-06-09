@@ -40,7 +40,8 @@ class UnitRenderer:
     def __init__(self, ctx: RenderContext):
         self._ctx = ctx
 
-    def draw_units(self, units: list[Unit], camera: Camera, selected_unit_ids: set[str] | None = None) -> None:
+    def draw_units(self, units: list[Unit], camera: Camera, selected_unit_ids: set[str] | None = None,
+                   position_overrides: dict[str, tuple[float, float]] | None = None) -> None:
         if self._ctx.screen is None or self._ctx.offscreen is None:
             return
 
@@ -62,9 +63,16 @@ class UnitRenderer:
                 cx, cy = None, None
 
                 if hasattr(unit, 'position') and unit.position is not None:
+                    # P2-04: Use smoothed (lerped) position if available
+                    use_pos = unit.position.pixel_position
+                    if position_overrides and hasattr(unit, 'id') and unit.id in position_overrides:
+                        ox, oy = position_overrides[unit.id]
+                        from pycc2.domain.value_objects.vec2 import Vec2
+                        use_pos = Vec2(ox, oy)
+
                     if hasattr(unit.position, 'pixel_position'):
                         try:
-                            pos = camera.world_to_screen(unit.position.pixel_position)
+                            pos = camera.world_to_screen(use_pos)
                             cx, cy = int(pos[0]), int(pos[1])
                         except (ValueError, TypeError) as e:
                             logging.debug(f"Unit pixel_position conversion failed: {e}")

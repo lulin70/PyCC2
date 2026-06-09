@@ -13,6 +13,7 @@ from pycc2.domain.entities.unit import Unit
 from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.presentation.rendering.minimap import Minimap
 from pycc2.presentation.rendering.visual_spec import VisualSpec
+from pycc2.presentation.rendering.fade_transition import FadeTransition
 
 
 class HUDManager:
@@ -30,6 +31,9 @@ class HUDManager:
         self._turn_number: int = 1
         self._minimap = Minimap(display_config)
 
+        # Fade transition for unit info panel (appears/disappears on selection)
+        self._unit_panel_fade = FadeTransition(fade_duration=0.18)
+
     def initialize(self) -> None:
         """Initialize fonts and resources."""
         pygame.font.init()
@@ -39,6 +43,21 @@ class HUDManager:
     def set_selected_units(self, units: list[Unit]) -> None:
         """Set currently selected units for info display."""
         self._selected_units = units
+        # Trigger fade-in when units are selected, fade-out when cleared
+        if units:
+            self._unit_panel_fade.show()
+        else:
+            self._unit_panel_fade.hide()
+
+    def update(self, dt: float) -> None:
+        """Update all HUD fade transitions.
+
+        Args:
+            dt: Delta time in seconds since last frame.
+        """
+        self._unit_panel_fade.update(dt)
+        # Also propagate update to minimap's own fade
+        self._minimap.update(dt)
 
     def update_fps(self, fps: float) -> None:
         """Update FPS counter value."""
@@ -85,13 +104,30 @@ class HUDManager:
         """Render selected unit information panel."""
         if not self._selected_units or not self._font_small:
             return
+        # Skip rendering if fully faded out
+        if not self._unit_panel_fade.is_visible and self._unit_panel_fade.alpha <= 0.01:
+            return
+
         panel_width = int(200 * self._dc.ui_scale)
         panel_height = int(120 * self._dc.ui_scale)
         panel_x = int(10 * self._dc.ui_scale)
         panel_y = surface.get_height() - panel_height - int(10 * self._dc.ui_scale)
         panel_rect = Rect(panel_x, panel_y, panel_width, panel_height)
-        pygame.draw.rect(surface, self.spec.panel_background_color, panel_rect)
-        pygame.draw.rect(surface, self.spec.panel_border_color, panel_rect, 1)
+
+        # Apply fade transition: render to temp surface with alpha
+        alpha = self._unit_panel_fade.alpha
+        if alpha < 1.0:
+            import pygame
+            panel_surface = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
+            target = panel_surface
+            target_offset = (0, 0)
+        else:
+            target = surface
+            target_offset = (panel_x, panel_y)
+
+        draw_rect = Rect(0, 0, panel_width, panel_height) if alpha < 1.0 else panel_rect
+        pygame.draw.rect(target, self.spec.panel_background_color, draw_rect)
+        pygame.draw.rect(target, self.spec.panel_border_color, draw_rect, 1)
 
         unit = self._selected_units[0]
         lines = [
@@ -105,7 +141,12 @@ class HUDManager:
         pad = int(10 * self._dc.ui_scale)
         for i, line in enumerate(lines):
             text_surface = self._font_small.render(line, True, self.spec.hud_text_color)
-            surface.blit(text_surface, (panel_x + pad, panel_y + pad + i * line_h))
+            target.blit(text_surface, (target_offset[0] + pad, target_offset[1] + pad + i * line_h))
+
+        # Blit faded panel surface onto main surface with alpha
+        if alpha < 1.0:
+            panel_surface.set_alpha(int(alpha * 255))
+            surface.blit(panel_surface, (panel_x, panel_y))
 
     def _render_minimap_placeholder(self, surface: Surface) -> None:
         """Render minimap using real Minimap component."""

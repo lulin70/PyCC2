@@ -196,3 +196,22 @@ class ParticleEffectsRenderer:
         if self._particle_system:
             return self._particle_system.active_count
         return 0
+
+    def spawn_dirt_splash(self, x: float, y: float, count: int = 12) -> None:
+        """Spawn dirt splash particles at position (delegates to TopDownParticleSystem)."""
+        if self._particle_system:
+            self._particle_system.spawn_dirt_splash(x, y, count)
+
+    def spawn_blood_pool(self, x: float, y: float, size: int = 8) -> None:
+        """Spawn persistent blood pool stain at position (delegates to TopDownParticleSystem)."""
+        if self._particle_system:
+            self._particle_system.spawn_blood_pool(x, y, size)
+
+    def spawn_hit_marker(self, x: float, y: float, damage_type: str = 'normal') -> None:
+        """Spawn hit marker visual feedback at position (delegates to TopDownParticleSystem).
+
+        Args:
+            damage_type: 'normal', 'critical', 'armor_penetrate', or 'ricochet'
+        """
+        if self._particle_system:
+            self._particle_system.spawn_hit_marker(x, y, damage_type)
