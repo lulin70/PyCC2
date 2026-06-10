@@ -87,6 +87,7 @@ from pycc2.presentation.rendering.render_context import RenderContext
 from pycc2.presentation.rendering.particle_effects_renderer import ParticleEffectsRenderer
 from pycc2.presentation.rendering.environment_renderer import EnvironmentRenderer
 from pycc2.presentation.rendering.ui_overlay_renderer import UIOverlayRenderer
+from pycc2.presentation.rendering.post_processing import PostProcessingEffects
 
 from dataclasses import dataclass
 
@@ -202,6 +203,10 @@ class EnhancedRenderer:
         self._environment = EnvironmentRenderer()
         self._ui_overlay = UIOverlayRenderer(self._render_ctx)
 
+        # Post-processing effects (vignette + color grading / desaturation)
+        # Created in initialize() when screen dimensions are known
+        self._post_processing: PostProcessingEffects | None = None
+
         self._enable_cc2_color_grading: bool = True
         self._hud = None
         self._hud_enabled: bool = True
@@ -239,6 +244,17 @@ class EnhancedRenderer:
             warnings.warn(f"Could not create SRCALPHA surface: {e}. Using convert() fallback.")
             self._offscreen = pygame.Surface(screen.get_size()).convert()
 
+        # Initialize post-processing effects (desaturation, vignette)
+        # This was a ghost feature: code existed but instance was never created
+        try:
+            sw, sh = screen.get_size()
+            self._post_processing = PostProcessingEffects(sw, sh)
+            self._post_processing.enable_color_grading()  # Enable CC2 war atmosphere desaturation
+            logger.info("PostProcessingEffects initialized with color grading enabled")
+        except Exception as e:
+            logger.warning("PostProcessingEffects init failed (non-critical): %s", e)
+            self._post_processing = None
+
         # 现在display已初始化，可以创建SpriteRenderer加载PNG
         try:
             from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
@@ -275,6 +291,10 @@ class EnhancedRenderer:
             logger.info("Tank rotation precache complete")
         except Exception as e:
             logger.warning("Tank rotation precache skipped: %s", e)
+
+        # Set default light fog atmosphere (P3-01: was ghost feature, now active)
+        self.set_weather("light_fog")
+        logger.info("Weather overlay set to default: light_fog")
 
     def set_attack_line_system(self, attack_line_system) -> None:
         """Set attack line system (dependency injection setter - P0-2 Fix)."""

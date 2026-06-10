@@ -2,6 +2,22 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.34] - 2026-06-10
+
+### Full Ghost Feature Sweep — 2 Critical Fixes
+
+- **[FIX]** **PostProcessingEffects instance was never created** — `EnhancedRenderer.__init__` had no `_post_processing = PostProcessingEffects(...)` initialization. The entire post-processing pipeline (desaturation, vignette) was unreachable despite complete implementation code. Now instantiated in `initialize()` with `enable_color_grading()` called, making CC2 war atmosphere desaturation **finally visible** after 3 versions of being ghost code.
+- **[FIX]** **Weather overlay had zero callers** — `set_weather()` API was fully implemented (clear/light_fog/dust/smoke with particle animation) but never invoked from any initialization or game setup path. Now defaults to `"light_fog"` at end of `initialize()`, giving every battle a subtle atmospheric haze.
+
+### Remaining Ghost Inventory (Technical Debt)
+After this fix, confirmed remaining ghosts are all **non-critical dead code** (not breaking visible features):
+| Module | Lines | Status | Recommendation |
+|--------|-------|--------|----------------|
+| AnimationController | ~430 | Never instantiated | Decide: integrate or remove |
+| EnvironmentalAudioSystem | ~700+ | Never instantiated | Keep for future audio phase |
+| ThemeManager (singleton) | ~150 | `.instance()` never called | Low priority: nice-to-have |
+| invalidate_terrain_cache() | 1 method | No external caller | Accept: key-mismatch covers most cases |
+
 ## [0.3.33] - 2026-06-10
 
 ### Ghost Feature Audit & Fixes (4 critical integration bugs resolved)
