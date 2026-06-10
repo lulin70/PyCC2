@@ -391,3 +391,17 @@ class HUDManager:
     @property
     def minimap(self) -> Minimap | None:
         return self._minimap
+
+    # ------------------------------------------------------------------
+    # Mouse interaction forwarding (for hover/press/tooltip feedback)
+    # ------------------------------------------------------------------
+
+    def set_mouse_pos(self, pos: tuple[int, int] | None) -> None:
+        """Forward mouse position to CC2 panel for hover rendering."""
+        if self._cc2_panel is not None:
+            self._cc2_panel.set_mouse_pos(pos)
+
+    def set_mouse_pressed(self, pressed: bool) -> None:
+        """Forward mouse button state to CC2 panel for press rendering."""
+        if self._cc2_panel is not None:
+            self._cc2_panel.set_mouse_pressed(pressed)

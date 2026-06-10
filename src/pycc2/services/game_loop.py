@@ -383,9 +383,22 @@ class GameLoop:
         if hasattr(self.renderer, 'update_flash'):
             self.renderer.update_flash(dt)
 
+        # P3-01: Update weather atmosphere animation
+        if hasattr(self.renderer, 'update_weather'):
+            self.renderer.update_weather(dt)
+
+        # P3-02: Update shell casing physics
+        if hasattr(self.renderer, 'update_shell_casings'):
+            self.renderer.update_shell_casings(dt)
+
         # P2-04: Smooth unit position interpolation (lerp toward real positions)
         if hasattr(self.renderer, '_smooth_positions'):
             self.renderer._smooth_positions(self.state.units, dt)
+
+        # P2-05: Update UI fade transitions (HUDManager panel/minimap fades)
+        if hasattr(self, '_hud_manager') and self._hud_manager is not None:
+            if hasattr(self._hud_manager, 'update'):
+                self._hud_manager.update(dt)
 
         # Update cinematic camera effect stack
         if self._effect_stack is not None:

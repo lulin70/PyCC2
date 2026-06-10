@@ -2,6 +2,29 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.33] - 2026-06-10
+
+### Ghost Feature Audit & Fixes (4 critical integration bugs resolved)
+
+- **[FIX]** **P0-1**: Re-enabled post-processing pipeline in render() — `_apply_desaturation()` numpy color grading was completely unreachable (commented out as "causes flickering"). Fixed by applying post-processing to display surface after offscreen→screen blit, before flip.
+- **[FIX]** **P0-4**: Tank rotation cache key strategy changed from `id(base)` to `(width, height, angle)`. Old key caused 100% cache miss since each frame creates new Surface objects. Also wired `precache_tank_rotations()` into `EnhancedRenderer.initialize()`.
+- **[FIX]** **P2-04**: Movement smoothing now works for PNG sprite path — `position_overrides` propagated through `UnitRenderer` → `SpriteRenderer._draw_units()` → `SpriteRenderer._draw_sprite_unit()`. Previously only the fallback shape-rendering path used smooth positions.
+- **[FIX]** **P2-05**: UI fade transitions now animate — `HUDManager.update(dt)` called from `GameLoop._update_logic()`. Previously FadeTransition alpha was stuck at 0.0 because no code path invoked `update()`.
+
+### Audit Summary
+| Item | Before Fix | After Fix |
+|------|-----------|-----------|
+| Desaturation color grading | Ghost (commented out) | **Active** — CC2 war atmosphere visible |
+| Tank rotation cache | Partial ghost (0% hit rate) | **Active** — size-based key, precache at init |
+| Movement smoothing (sprites) | Bypassed by PNG path | **Active** — all rendering paths covered |
+| UI panel fade transitions | Ghost (update() never called) | **Active** — 0.18s smooth fade |
+
+### P3 Deep Visual Improvements (3 new features)
+
+- **[VISUAL]** **P3-01**: Weather overlay system — 4 modes (clear/light_fog/dust/smoke) with animated particle drift. Light fog uses semi-transparent gray surface; dust uses 30 drifting particles with sine-wave motion; smoke uses turbulent brown particles. Integrated into render pipeline + game_loop update cycle via `set_weather()` / `update_weather(dt)`.
+- **[VISUAL]** **P3-02**: Shell casing ejection physics — combat hits spawn brass shell casings with realistic ejection trajectory (perpendicular to firing direction + random spread), gravity (400px/s²), ground bounce (0.3x velocity retention), 1.5-3s lifetime with fade-out. 3 brass color variants. Triggered from combat_director.process_effects().
+- **[VISUAL]** **P3-03**: Button hover/click feedback + tooltip system — BottomPanel buttons now highlight on hover (bright blue border, fill brighten 10%), darken on press (sunken 3D effect). TooltipManager class provides 0.4s-delayed tooltips for all command buttons ("Move unit [Z]", "End turn [E]", etc.). Mouse events forwarded through EventDispatcher → HUDManager → BottomPanel.
+
 ## [0.3.32] - 2026-06-09
 
 ### Deep Visual Polish (5 P2 improvements)

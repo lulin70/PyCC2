@@ -74,7 +74,7 @@ class PixelArtist3D:
         Returns:
             旋转后的Surface（从缓存或新计算）
         """
-        cache_key = (id(base), round(angle, 1))
+        cache_key = (base.get_width(), base.get_height(), round(angle, 1))
         if cache_key not in cls._rotation_cache:
             import pygame
             cls._rotation_cache[cache_key] = pygame.transform.rotate(base, angle)

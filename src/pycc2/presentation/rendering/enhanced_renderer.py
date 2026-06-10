@@ -218,6 +218,14 @@ class EnhancedRenderer:
 
         # P2-04: Smooth unit position interpolation (lerp toward real position)
         self._unit_positions: dict[str, tuple[float, float]] = {}  # unit_id → displayed (x, y)
+
+        # P3-01: Weather atmosphere overlay system
+        self._weather_mode: str = "clear"  # clear / light_fog / dust / smoke
+        self._weather_alpha: float = 0.0
+        self._weather_particles: list = []  # [(x, y, speed, size), ...]
+
+        # P3-02: Shell casing ejection system
+        self._shell_casings: list[dict] = []  # [{x, y, vx, vy, gravity, life, max_life, size, color, bounced}, ...]
     
     def initialize(self, screen: pygame.Surface) -> None:
         """Initialize renderer with display surface."""
@@ -259,6 +267,14 @@ class EnhancedRenderer:
         # Update RenderContext with initialized surfaces
         self._render_ctx.update_surfaces(self._screen, self._offscreen)
         self._render_ctx.sprite_renderer = self._sprite_renderer
+
+        # Precache tank rotation surfaces (P0-4: size-based cache key enables cross-frame reuse)
+        try:
+            from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+            PixelArtist3D.precache_tank_rotations()
+            logger.info("Tank rotation precache complete")
+        except Exception as e:
+            logger.warning("Tank rotation precache skipped: %s", e)
 
     def set_attack_line_system(self, attack_line_system) -> None:
         """Set attack line system (dependency injection setter - P0-2 Fix)."""
@@ -392,6 +408,128 @@ class EnhancedRenderer:
     def get_smooth_position(self, unit_id: str) -> tuple[float, float] | None:
         """Return the smoothed (lerped) position for a unit, or None if not tracked."""
         return self._unit_positions.get(unit_id)
+
+    # ====== P3-01: Weather Atmosphere Overlay System ======
+
+    def set_weather(self, mode: str) -> None:
+        """Set weather overlay mode: 'clear', 'light_fog', 'dust', or 'smoke'."""
+        valid_modes = {"clear", "light_fog", "dust", "smoke"}
+        if mode not in valid_modes:
+            logger.warning("Invalid weather mode '%s'. Valid modes: %s", mode, valid_modes)
+            return
+        self._weather_mode = mode
+        if mode == "clear":
+            self._weather_alpha = 0.0
+            self._weather_particles = []
+        elif mode == "light_fog":
+            self._weather_alpha = 0.15  # subtle gray fog
+        elif mode == "dust":
+            self._weather_alpha = 0.12
+            self._init_dust_particles()
+        elif mode == "smoke":
+            self._weather_alpha = 0.18
+            self._init_smoke_particles()
+        logger.debug("Weather mode set to '%s' (alpha=%.2f)", mode, self._weather_alpha)
+
+    def _init_dust_particles(self) -> None:
+        """Initialize drifting dust particle positions."""
+        w, h = self._offscreen.get_size() if hasattr(self, '_offscreen') and self._offscreen else (800, 600)
+        self._weather_particles = [
+            (random.randint(0, w), random.randint(0, h), random.uniform(10, 40), random.uniform(1, 3))
+            for _ in range(30)
+        ]
+
+    def _init_smoke_particles(self) -> None:
+        """Initialize drifting smoke particle positions."""
+        w, h = self._offscreen.get_size() if hasattr(self, '_offscreen') and self._offscreen else (800, 600)
+        self._weather_particles = [
+            (random.randint(0, w), random.randint(0, h), random.uniform(5, 20), random.uniform(3, 8))
+            for _ in range(20)
+        ]
+
+    def update_weather(self, dt: float) -> None:
+        """Update weather animation state each frame."""
+        if self._weather_mode == "dust" and self._weather_particles:
+            w = self._offscreen.get_width() if hasattr(self, '_offscreen') and self._offscreen else 800
+            for i, (x, y, speed, size) in enumerate(self._weather_particles):
+                nx = x + speed * dt * 20
+                ny = y + math.sin(x * 0.01) * 0.5  # gentle wave
+                if nx > w:
+                    nx = -size
+                self._weather_particles[i] = (nx, ny, speed, size)
+        elif self._weather_mode == "smoke" and self._weather_particles:
+            w = self._offscreen.get_width() if hasattr(self, '_offscreen') and self._offscreen else 800
+            h = self._offscreen.get_height() if hasattr(self, '_offscreen') and self._offscreen else 600
+            for i, (x, y, speed, size) in enumerate(self._weather_particles):
+                nx = x + speed * dt * 10
+                ny = y + math.sin(x * 0.005 + y * 0.008) * 1.0  # slow turbulent drift
+                if nx > w + size:
+                    nx = -size
+                    ny = random.randint(0, h)
+                elif nx < -size:
+                    nx = w + size
+                    ny = random.randint(0, h)
+                self._weather_particles[i] = (nx, ny, speed, size)
+
+    # ====== P3-02: Shell Casing Ejection System ======
+
+    def spawn_shell_casing(self, x: float, y: float, direction_rad: float = 0) -> None:
+        """Spawn a shell casing ejected from weapon position.
+
+        Args:
+            x: World X coordinate of ejection point.
+            y: World Y coordinate of ejection point.
+            direction_rad: Firing direction in radians (ejection is perpendicular).
+        """
+        eject_speed = random.uniform(60, 120)
+        eject_angle = direction_rad + math.pi / 2 + random.uniform(-0.3, 0.3)
+        vx = math.cos(eject_angle) * eject_speed
+        vy = math.sin(eject_angle) * eject_speed - random.uniform(30, 80)  # upward arc
+        self._shell_casings.append({
+            "x": x, "y": y,
+            "vx": vx, "vy": vy,
+            "gravity": 400,  # pixels/s^2
+            "life": 0.0,
+            "max_life": random.uniform(1.5, 3.0),
+            "size": random.uniform(2, 4),
+            "color": random.choice([(210, 190, 140), (190, 170, 120), (220, 200, 150)]),
+            "bounced": False,
+        })
+
+    def update_shell_casings(self, dt: float) -> None:
+        """Update shell casing physics simulation."""
+        dead_indices = []
+        for i, c in enumerate(self._shell_casings):
+            c["life"] += dt
+            if c["life"] > c["max_life"]:
+                dead_indices.append(i)
+                continue
+            c["vy"] += c["gravity"] * dt
+            c["x"] += c["vx"] * dt
+            c["y"] += c["vy"] * dt
+            # Simple ground bounce
+            if c["vy"] > 0 and not c["bounced"]:
+                c["bounced"] = True
+                c["vy"] *= -0.3
+                c["vx"] *= 0.6
+        for i in reversed(dead_indices):
+            self._shell_casings.pop(i)
+
+    def render_shell_casings(self, camera) -> None:
+        """Render shell casings as small ellipses with fade-out."""
+        if self._offscreen is None:
+            return
+        for c in self._shell_casings:
+            sx = int(c["x"] - camera.x + self._offscreen.get_width() // 2)
+            sy = int(c["y"] - camera.y + self._offscreen.get_height() // 2)
+            fade = max(0, 1.0 - c["life"] / c["max_life"])
+            alpha = int(255 * (1.0 - fade * 0.7))
+            try:
+                surf = pygame.Surface((int(c["size"] * 2), int(c["size"])), pygame.SRCALPHA)
+                pygame.draw.ellipse(surf, (*c["color"], alpha), surf.get_rect())
+                self._offscreen.blit(surf, (sx - int(c["size"]), sy))
+            except Exception:
+                pass
 
     def _get_pooled_surface(self, size: tuple[int, int]) -> pygame.Surface:
         """Get or create a surface from the object pool with LRU eviction (PERF-001).
@@ -532,6 +670,9 @@ class EnhancedRenderer:
         if hasattr(self, '_projectile_trail_sys') and self._projectile_trail_sys is not None:
             self._projectile_trail_sys.render(self._offscreen)
 
+        # P3-02: Render shell casings (ejected brass, physics-driven)
+        self.render_shell_casings(camera)
+
         # STEP 5.8: Top-down lighting system pass (time-of-day tint + dynamic lights)
         self._lighting_effects_sys.apply_time_of_day_tint(self._offscreen)
         self._lighting_effects_sys.render_dynamic_lights(self._offscreen)
@@ -546,11 +687,35 @@ class EnhancedRenderer:
             flash_surf.fill((*self._flash_color, int(max(0, self._flash_alpha))))
             self._offscreen.blit(flash_surf, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
 
+        # P3-01: Weather atmosphere overlay (light_fog / dust / smoke)
+        if self._weather_mode != "clear" and self._weather_alpha > 0:
+            if self._weather_mode == "light_fog":
+                fog_surf = pygame.Surface(self._offscreen.get_size(), pygame.SRCALPHA)
+                fog_surf.fill((180, 175, 170, int(self._weather_alpha * 255)))
+                self._offscreen.blit(fog_surf, (0, 0))
+            elif self._weather_mode in ("dust", "smoke"):
+                color = (160, 140, 110) if self._weather_mode == "dust" else (80, 75, 70)
+                for px, py, _, sz in self._weather_particles:
+                    alpha = int(self._weather_alpha * 200)
+                    try:
+                        pygame.draw.circle(self._offscreen, (*color, alpha), (int(px), int(py)), int(sz))
+                    except Exception:
+                        pass
+
         # STEP 6: Atomic blit off-screen buffer → display surface
         self._screen.blit(self._offscreen, (0, 0))
 
-        # DISABLED: All post-processing to prevent flickering and crashes
-        # self._apply_post_processing()  # REMOVED - causes flickering
+        # Post-processing (applied to display surface for flicker-free output)
+        if hasattr(self, '_post_processing') and self._post_processing is not None:
+            try:
+                processed = self._post_processing.apply_all(self._screen, color_style="war")
+                if processed is not None:
+                    self._screen.blit(processed, (0, 0))
+            except Exception:
+                pass  # Non-critical: skip post-processing on error
+
+        # Atomic flip
+        pygame.display.flip()
 
     def _render_isometric(
         self,

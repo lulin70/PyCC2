@@ -458,6 +458,7 @@ class SpriteRenderer:
         units: list[Unit],
         camera: Camera,
         selected_ids: set[str] | None = None,
+        position_overrides: dict[str, tuple[float, float]] | None = None,
     ) -> None:
         """使用精灵绘制单位"""
         from pycc2.presentation.rendering.camera import ProjectionMode
@@ -484,10 +485,17 @@ class SpriteRenderer:
                 continue
 
             is_selected = unit.id in (selected_ids or set())
-            self._draw_sprite_unit(unit, camera, is_selected)
+            self._draw_sprite_unit(unit, camera, is_selected,
+                                   position_overrides=position_overrides)
 
-    def _draw_sprite_unit(self, unit: Unit, camera: Camera, is_selected: bool) -> None:
+    def _draw_sprite_unit(self, unit: Unit, camera: Camera, is_selected: bool,
+                          position_overrides: dict[str, tuple[float, float]] | None = None) -> None:
         pos = unit.position.pixel_position
+        # P2-04: Apply smoothed position override if available
+        if position_overrides and hasattr(unit, 'id') and unit.id in position_overrides:
+            ox, oy = position_overrides[unit.id]
+            from pycc2.domain.value_objects.vec2 import Vec2
+            pos = Vec2(ox, oy)
         sp = camera.world_to_screen(pos)
 
         dir_idx = self._facing_to_direction_index(unit.position.facing_rad)

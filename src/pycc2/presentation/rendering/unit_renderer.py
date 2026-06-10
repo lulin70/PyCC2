@@ -50,7 +50,8 @@ class UnitRenderer:
 
         if self._ctx.sprite_renderer is not None:
             self._ctx.sprite_renderer._target_surface = self._ctx.offscreen
-            self._ctx.sprite_renderer._draw_units(units, camera, selected_unit_ids)
+            self._ctx.sprite_renderer._draw_units(units, camera, selected_unit_ids,
+                                                   position_overrides=position_overrides)
             self._ctx.sprite_renderer._target_surface = None
             return
         else:

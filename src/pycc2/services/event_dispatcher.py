@@ -280,6 +280,15 @@ class EventDispatcher:
 
     def _handle_battle_input(self, event) -> None:
         """Route input events during the battle phase."""
+        # Forward mouse state to HUD manager for hover/press/tooltip feedback
+        if self.hud_manager is not None:
+            if event.type == pygame.MOUSEMOTION:
+                self.hud_manager.set_mouse_pos(event.pos)
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                self.hud_manager.set_mouse_pressed(True)
+            elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                self.hud_manager.set_mouse_pressed(False)
+
         if self.victory_manager is not None:
             self.input_router.show_post_battle = self.victory_manager.show_post_battle
 

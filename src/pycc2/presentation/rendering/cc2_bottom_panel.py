@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 import math
+import time
 from typing import TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
@@ -27,6 +28,65 @@ if TYPE_CHECKING:
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.rendering.minimap import Minimap
 from pycc2.presentation.rendering.fade_transition import FadeTransition
+
+
+# ------------------------------------------------------------------
+# Tooltip Manager — lightweight tooltip display for UI buttons
+# ------------------------------------------------------------------
+
+class TooltipManager:
+    """Simple tooltip display manager for UI elements.
+
+    Provides timed hover-tooltips with a short delay to avoid flickering.
+    Designed for CC2 dark-toned UI (deep gray background, off-white text).
+    """
+
+    def __init__(self, font_size: int = 11, delay: float = 0.4) -> None:
+        self._text: str = ""
+        self._pos: tuple[int, int] = (0, 0)
+        self._visible: bool = False
+        self._delay: float = delay
+        self._hover_start: float = 0.0
+        self._font_size: int = font_size
+
+    def begin_hover(self, text: str, pos: tuple[int, int]) -> None:
+        """Called when mouse enters a tooltippable area."""
+        if text != self._text:
+            self._text = text
+            self._pos = pos
+            self._hover_start = time.monotonic()
+            self._visible = False
+
+    def end_hover(self) -> None:
+        """Called when mouse leaves the area."""
+        self._text = ""
+        self._visible = False
+
+    def update(self, dt: float) -> None:
+        """Advance tooltip timer; show after delay elapsed."""
+        if self._text and not self._visible:
+            elapsed = time.monotonic() - self._hover_start
+            if elapsed >= self._delay:
+                self._visible = True
+
+    def render(self, surface: Surface) -> None:
+        """Render the tooltip above the stored position if visible."""
+        if not self._visible or not self._text:
+            return
+        try:
+            font_obj = font.SysFont('arial', self._font_size)
+            text_surf = font_obj.render(self._text, True, (240, 235, 220))
+            padding = 4
+            bg_rect = text_surf.get_rect.inflate(padding * 2, padding * 2)
+            bg_rect.topleft = (self._pos[0], self._pos[1] - bg_rect.height - 8)
+            # Keep on screen
+            bg_rect.clamp_ip(surface.get_rect())
+            bg_surf = Surface(bg_rect.size, pygame.SRCALPHA)
+            bg_surf.fill((30, 28, 25, 230))  # dark semi-transparent
+            surface.blit(bg_surf, bg_rect.topleft)
+            surface.blit(text_surf, (bg_rect.x + padding, bg_rect.y + padding))
+        except Exception:
+            pass  # Silently skip if font/render fails
 
 
 class CC2BottomPanel:
@@ -137,6 +197,26 @@ class CC2BottomPanel:
         # Fade transition for smooth show/hide
         self._fade = FadeTransition(fade_duration=0.2)
 
+        # Mouse interaction state (for hover / click-press feedback)
+        self._mouse_pos: tuple[int, int] | None = None
+        self._mouse_pressed: bool = False
+
+        # Tooltip manager for button hints
+        self._tooltip = TooltipManager(font_size=11, delay=0.4)
+
+        # Tooltip text for each command button
+        self._command_tooltips: dict[str, str] = {
+            "move": "Move unit to target location [Z]",
+            "fast": "Fast move — double speed, lower stealth [X]",
+            "sneak": "Sneak move — slow, avoids detection [S]",
+            "attack": "Attack mode — fire at enemies [C]",
+            "smoke": "Deploy smoke grenade for cover [V]",
+            "defend": "Defend / Take cover position [D]",
+            "hide": "Hide unit from enemy view [H]",
+            "cancel": "Cancel current selection [ESC]",
+            "end_battle": "End battle and retreat [E]",
+        }
+
     def initialize(self) -> None:
         """Initialize fonts and icons."""
         if not font.get_init():
@@ -175,6 +255,27 @@ class CC2BottomPanel:
         self._fade.update(dt)
         if not self._fade.is_visible:
             self._visible = False
+        # Update tooltip timer
+        self._tooltip.update(dt)
+
+    def set_mouse_pos(self, pos: tuple[int, int] | None) -> None:
+        """Set current mouse position for hover / click-press rendering.
+
+        Args:
+            pos: Screen-space (x, y) coordinates, or None if unavailable.
+        """
+        self._mouse_pos = pos
+        # Also update internal hover tracking for backward compat
+        if pos is not None:
+            self.handle_mouse_move(pos)
+
+    def set_mouse_pressed(self, pressed: bool) -> None:
+        """Set whether the primary mouse button is currently held down.
+
+        Args:
+            pressed: True when mouse button is depressed.
+        """
+        self._mouse_pressed = pressed
 
     @property
     def is_fading(self) -> bool:
@@ -819,6 +920,9 @@ class CC2BottomPanel:
             panel_surface.set_alpha(int(alpha * 255))
             surface.blit(panel_surface, (0, panel_y))
 
+        # Render tooltip on top of everything (always on main surface)
+        self._tooltip.render(surface)
+
     def _render_roster(
         self, surface: Surface, x: int, y: int, w: int, h: int
     ) -> None:
@@ -1414,19 +1518,32 @@ class CC2BottomPanel:
         btn_size = 20
         btn_y = minimap_y + minimap_size - btn_size - 2
 
+        # Helper to check if a rect is hovered/pressed
+        mp = self._mouse_pos
+
         # Zoom out (-)
         self._zoom_out_rect = Rect(x + 2, btn_y, btn_size, btn_size)
-        draw.rect(surface, (60, 60, 70), self._zoom_out_rect)
-        draw.rect(surface, self.BORDER_COLOR, self._zoom_out_rect, 1)
+        zo_hovered = mp is not None and self._zoom_out_rect.collidepoint(mp)
+        zo_pressed = zo_hovered and self._mouse_pressed
+        zo_bg = (45, 45, 55) if zo_pressed else ((80, 85, 100) if zo_hovered else (60, 60, 70))
+        draw.rect(surface, zo_bg, self._zoom_out_rect)
+        draw.rect(surface, (140, 150, 170) if zo_hovered else self.BORDER_COLOR, self._zoom_out_rect, 1)
         minus = self._font_normal.render("-", True, self.TEXT_COLOR)
         surface.blit(minus, (x + 7, btn_y + 2))
+        if zo_hovered:
+            self._tooltip.begin_hover("Zoom out [-]", (self._zoom_out_rect.centerx, self._zoom_out_rect.top))
 
         # Zoom in (+)
         self._zoom_in_rect = Rect(x + size - btn_size - 2, btn_y, btn_size, btn_size)
-        draw.rect(surface, (60, 60, 70), self._zoom_in_rect)
-        draw.rect(surface, self.BORDER_COLOR, self._zoom_in_rect, 1)
+        zi_hovered = mp is not None and self._zoom_in_rect.collidepoint(mp)
+        zi_pressed = zi_hovered and self._mouse_pressed
+        zi_bg = (45, 45, 55) if zi_pressed else ((80, 85, 100) if zi_hovered else (60, 60, 70))
+        draw.rect(surface, zi_bg, self._zoom_in_rect)
+        draw.rect(surface, (140, 150, 170) if zi_hovered else self.BORDER_COLOR, self._zoom_in_rect, 1)
         plus = self._font_normal.render("+", True, self.TEXT_COLOR)
         surface.blit(plus, (x + size - btn_size + 5, btn_y + 2))
+        if zi_hovered:
+            self._tooltip.begin_hover("Zoom in [+]", (self._zoom_in_rect.centerx, self._zoom_in_rect.top))
 
         # Zoom level indicator
         zoom_lvl = self._current_zoom_index + 1
@@ -1464,35 +1581,62 @@ class CC2BottomPanel:
 
             is_active = (mode == self._info_mode)
 
+            # Check hover/press state
+            mp = self._mouse_pos
+            btn_hovered = mp is not None and btn_rect.collidepoint(mp)
+            btn_pressed = btn_hovered and self._mouse_pressed
+
             # Button background color based on state
             if is_active:
-                bg_color = (70, 80, 60)       # Active: lighter olive
+                bg_color = (55, 65, 48) if btn_pressed else (70, 80, 60)  # Active
                 text_color = self.HIGHLIGHT_COLOR
+            elif btn_pressed:
+                bg_color = (35, 40, 32)   # Inactive + pressed
+                text_color = (140, 140, 130)
+            elif btn_hovered:
+                bg_color = (58, 65, 50)   # Inactive + hovered
+                text_color = (190, 190, 170)
             else:
-                bg_color = (45, 50, 40)        # Inactive: darker olive
+                bg_color = (45, 50, 40)    # Inactive normal
                 text_color = (160, 160, 150)   # Dimmed text
 
             draw.rect(surface, bg_color, btn_rect)
 
-            # 3D raised border effect (same style as command buttons but smaller)
-            if is_active:
-                # Active button: pressed look (inverted borders)
+            # 3D border effect based on state
+            if is_active or btn_pressed:
+                # Active/pressed button: sunken look (inverted borders)
                 draw.line(surface, self.BORDER_DARK, (btn_rect.left, btn_rect.top), (btn_rect.right, btn_rect.top), 1)
                 draw.line(surface, self.BORDER_DARK, (btn_rect.left, btn_rect.top), (btn_rect.left, btn_rect.bottom), 1)
                 draw.line(surface, self.BORDER_LIGHT, (btn_rect.left, btn_rect.bottom), (btn_rect.right, btn_rect.bottom), 1)
                 draw.line(surface, self.BORDER_LIGHT, (btn_rect.right, btn_rect.top), (btn_rect.right, btn_rect.bottom), 1)
             else:
                 # Inactive button: raised look
-                draw.line(surface, self.BORDER_LIGHT, (btn_rect.left, btn_rect.top), (btn_rect.right, btn_rect.top), 1)
-                draw.line(surface, self.BORDER_LIGHT, (btn_rect.left, btn_rect.top), (btn_rect.left, btn_rect.bottom), 1)
+                border_c = (130, 140, 120) if btn_hovered else self.BORDER_LIGHT
+                draw.line(surface, border_c, (btn_rect.left, btn_rect.top), (btn_rect.right, btn_rect.top), 1)
+                draw.line(surface, border_c, (btn_rect.left, btn_rect.top), (btn_rect.left, btn_rect.bottom), 1)
                 draw.line(surface, self.BORDER_DARK, (btn_rect.left, btn_rect.bottom), (btn_rect.right, btn_rect.bottom), 1)
                 draw.line(surface, self.BORDER_DARK, (btn_rect.right, btn_rect.top), (btn_rect.right, btn_rect.bottom), 1)
+
+            # Hover highlight border for inactive hovered buttons
+            if btn_hovered and not is_active and not btn_pressed:
+                hl_rect = Rect(btn_rect.x + 1, btn_rect.y + 1, btn_rect.width - 2, btn_rect.height - 2)
+                hl_surf = Surface((hl_rect.width, hl_rect.height), pygame.SRCALPHA)
+                draw.rect(hl_surf, (120, 150, 100, 150), hl_surf.get_rect(), 1)
+                surface.blit(hl_surf, hl_rect.topleft)
 
             # Button label (small font)
             label = self._font_small.render(mode, True, text_color)
             label_x = btn_x + (btn_width - label.get_width()) // 2
             label_y = y + 2 + (btn_height - label.get_height()) // 2
             surface.blit(label, (label_x, label_y))
+
+            # Tooltip for info toggle buttons
+            if btn_hovered:
+                tip_map = {"ALL": "Show all unit information",
+                           "STYLE": "Show visual style info only",
+                           "OUTLINE": "Show outline info only"}
+                self._tooltip.begin_hover(tip_map.get(mode, f"Switch to {mode} mode"),
+                                          (btn_rect.centerx, btn_rect.top))
 
     def _render_timer(
         self, surface: Surface, x: int, y: int, w: int, h: int,
@@ -1565,6 +1709,9 @@ class CC2BottomPanel:
 
         self._button_rects = {}
 
+        # Reset tooltip at start of each frame; buttons will re-trigger if hovered
+        self._tooltip.end_hover()
+
         # Check if we have a selected unit for enabling/disabling commands
         has_selection = self._selected_unit_id is not None
 
@@ -1595,6 +1742,7 @@ class CC2BottomPanel:
             self._button_rects[cmd["id"]] = btn_rect
 
             is_hovered = cmd["id"] == self._hovered_command
+            is_pressed = is_hovered and self._mouse_pressed
 
             # Button background color based on state
             if not cmd_enabled:
@@ -1602,12 +1750,18 @@ class CC2BottomPanel:
                 text_color = (100, 100, 100)  # Dimmed text
             elif cmd["id"] == "end_battle":
                 # End Battle: olive green color scheme (CC2 style)
-                if is_hovered:
+                if is_pressed:
+                    bg_color = (50, 58, 38)   # Pressed: darker olive
+                    text_color = (200, 200, 130)
+                elif is_hovered:
                     bg_color = (90, 100, 70)  # Hovered: lighter olive
                     text_color = (255, 255, 150)
                 else:
                     bg_color = (60, 68, 50)  # Normal: olive green
                     text_color = (220, 220, 180)
+            elif is_pressed:
+                bg_color = (40, 48, 62)    # Pressed: darkened ~20%
+                text_color = (200, 210, 230)
             elif is_hovered:
                 bg_color = (80, 90, 110)  # Hovered: lighter
                 text_color = self.HIGHLIGHT_COLOR
@@ -1619,14 +1773,29 @@ class CC2BottomPanel:
 
             # 3D raised border effect: top/left bright, bottom/right dark
             if cmd_enabled:
-                # Top edge
-                draw.line(surface, self.BORDER_LIGHT, (btn_rect.left, btn_rect.top), (btn_rect.right, btn_rect.top), 1)
-                # Left edge
-                draw.line(surface, self.BORDER_LIGHT, (btn_rect.left, btn_rect.top), (btn_rect.left, btn_rect.bottom), 1)
-                # Bottom edge
-                draw.line(surface, self.BORDER_DARK, (btn_rect.left, btn_rect.bottom), (btn_rect.right, btn_rect.bottom), 1)
-                # Right edge
-                draw.line(surface, self.BORDER_DARK, (btn_rect.right, btn_rect.top), (btn_rect.right, btn_rect.bottom), 1)
+                if is_pressed:
+                    # Pressed: inverted borders (sunken look)
+                    draw.line(surface, self.BORDER_DARK, (btn_rect.left, btn_rect.top), (btn_rect.right, btn_rect.top), 1)
+                    draw.line(surface, self.BORDER_DARK, (btn_rect.left, btn_rect.top), (btn_rect.left, btn_rect.bottom), 1)
+                    draw.line(surface, self.BORDER_LIGHT, (btn_rect.left, btn_rect.bottom), (btn_rect.right, btn_rect.bottom), 1)
+                    draw.line(surface, self.BORDER_LIGHT, (btn_rect.right, btn_rect.top), (btn_rect.right, btn_rect.bottom), 1)
+                else:
+                    # Top edge
+                    draw.line(surface, self.BORDER_LIGHT, (btn_rect.left, btn_rect.top), (btn_rect.right, btn_rect.top), 1)
+                    # Left edge
+                    draw.line(surface, self.BORDER_LIGHT, (btn_rect.left, btn_rect.top), (btn_rect.left, btn_rect.bottom), 1)
+                    # Bottom edge
+                    draw.line(surface, self.BORDER_DARK, (btn_rect.left, btn_rect.bottom), (btn_rect.right, btn_rect.bottom), 1)
+                    # Right edge
+                    draw.line(surface, self.BORDER_DARK, (btn_rect.right, btn_rect.top), (btn_rect.right, btn_rect.bottom), 1)
+
+                # Hover highlight: bright inner border glow when hovered (not pressed)
+                if is_hovered and not is_pressed:
+                    highlight_color = (140, 160, 200, 180)
+                    highlight_rect = Rect(btn_rect.x + 1, btn_rect.y + 1, btn_rect.width - 2, btn_rect.height - 2)
+                    hl_surf = Surface((highlight_rect.width, highlight_rect.height), pygame.SRCALPHA)
+                    draw.rect(hl_surf, highlight_color, hl_surf.get_rect(), 1)
+                    surface.blit(hl_surf, highlight_rect.topleft)
             else:
                 draw.rect(surface, (45, 48, 53), btn_rect, 1)
 
@@ -1649,6 +1818,12 @@ class CC2BottomPanel:
             text_x = icon_x + 26
             text_y = btn_y + (btn_height - text_surf.get_height()) // 2
             surface.blit(text_surf, (text_x, text_y))
+
+            # Trigger tooltip on hovered enabled button
+            if is_hovered and cmd_enabled and self._mouse_pos is not None:
+                tip_text = self._command_tooltips.get(cmd["id"], "")
+                if tip_text:
+                    self._tooltip.begin_hover(tip_text, (btn_rect.centerx, btn_rect.top))
 
     def _get_unit_type_color(self, unit: Unit) -> tuple[int, int, int]:
         """Get color for unit type icon."""

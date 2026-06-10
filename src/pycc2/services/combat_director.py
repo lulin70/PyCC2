@@ -401,6 +401,10 @@ class CombatDirector:
                 renderer.spawn_damage_number(
                     effect["position"], effect["damage"], effect.get("is_kill", False)
                 )
+                # P3-02: Spawn shell casing at hit position (ejected brass)
+                if hasattr(renderer, 'spawn_shell_casing'):
+                    position = effect["position"]
+                    renderer.spawn_shell_casing(position.x, position.y)
                 # P2-01: Enriched combat particles — dirt splash, blood pool, hit marker
                 position = effect["position"]
                 is_kill = effect.get("is_kill", False)
