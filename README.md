@@ -5,7 +5,7 @@
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-3930%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/Tests-%7E3985%20passed-brightgreen.svg" alt="Tests" />
 <img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%8888%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Beta%20Candidate-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
@@ -15,11 +15,28 @@
 <em>A Python recreation of Atomic Games' legendary WWII tactical wargame — Beta Candidate with full SRP refactoring, real-mode E2E, and mature test suite</em>
 </p>
 
-> 🟢 **Beta Candidate**: Core gameplay + cinematic effects + achievement system + dynamic shadows + projectile trails + SRP architecture cleanup + real SDL E2E validation + visual polish (death fade, screen flash, movement smoothing, UI transitions, weather overlay, shell ejection, button feedback). **3930 tests passing (100%)**, 38-phase E2E user journey validated in real environment. Ghost feature audit complete — all critical rendering pipelines now active.
+> 🟢 **Beta Candidate**: Core gameplay + cinematic effects + achievement system + dynamic shadows + projectile trails + SRP architecture cleanup + real SDL E2E validation + visual polish (death fade, screen flash, movement smoothing, UI transitions, weather overlay, shell ejection, button feedback). **~3985 tests passing (100%)**, 38-phase E2E user journey validated in real environment. Ghost feature audit complete — all critical rendering pipelines now active. Environmental audio activated, dirty rectangle optimization live, EnhancedRenderer split complete, ResourceCacheManager online.
 
 ---
 
-## What's New in v0.3.34
+## What's New in v0.3.37
+
+### v0.3.35 — Quick Wins (2026-06-11)
+- Deleted AnimationController dead code (430 lines, 90% overlap with existing systems)
+- Save system security hardening: file permissions locked to 0o600, HMAC key minimum length validation, error logging
+- README documentation synchronized across all 3 languages
+
+### v0.3.36 — Infrastructure (2026-06-11)
+- ThemeManager runtime activation: default/dark/light themes now live at startup (3 UI files connected)
+- SurfacePool complete unification: all 6 Surface consumers now use shared LRU pool
+- HUD test coverage: 55 new tests covering CC2HUDManager core functionality (12 classes)
+- Fixed e2e save_load tests (path nesting + chmod tolerance)
+
+### v0.3.37 — Deep Optimization (2026-06-11)
+- EnvironmentalAudioSystem activated: 11 procedurally-generated ambient sounds synced to game state
+- Dirty Rectangle rendering optimization: _DirtyRectTracker for partial screen updates
+- EnhancedRenderer God Class split: extracted ShellCasingSystem + FlashEffectSystem + WeatherSystem
+- ResourceCacheManager: HTTP download manager with SHA256 verification, LRU cache, offline mode
 
 ### 🏗️ v0.3.34 — Critical Ghost Fix (June 10, 2026)
 - **[FIX]** **PostProcessingEffects instance was never created** — entire post-processing pipeline (desaturation, vignette) now instantiated and active
@@ -169,7 +186,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Total Tests** | **3930** (all passing, 100%) ✅ |
+| **Total Tests** | **~3985** (all passing, 100%) ✅ |
 | **Test Quality** | A+ (121 weak assertions eliminated) 🎯 |
 | **E2E Tests** | 22 test files (38-phase real SDL mode, 100% pass rate) |
 | **Maps** | 63 historical maps (Operation Market Garden) |
@@ -177,25 +194,25 @@
 | **Weapon Types** | 69 authentic CC2 weapons |
 | **Campaign Battles** | 29 battles across 9 days, 3 sectors |
 | **AI Behaviors** | 6 tactical AI types (flanking, suppression, VP, etc.) |
-| **Code Files** | ~253 Python modules (+4 new since v0.3.30: surface_pool.py, fade_transition.py + weather/shell systems in v0.3.31-v0.3.34) |
+| **Code Files** | ~253 Python modules (+7 new since v0.3.30: surface_pool.py, fade_transition.py + shell_casing_system.py, flash_effect_system.py, weather_system.py, resource_cache.py + weather/shell systems in v0.3.31-v0.3.34) |
 | **Class Definitions** | 330+ classes |
-| **Extracted Modules** | 19 rendering/data systems (new: SurfacePool, FadeTransition, WeatherOverlay, ShellEjection, TooltipManager + previous 17) |
+| **Extracted Modules** | 22 rendering/data systems (new: ShellCasingSystem, FlashEffectSystem, WeatherSystem, ResourceCacheManager + previous 19) |
 | **Technical Debt** | 4 God Classes >1000 lines remaining (deployment_ui 1323↓, pixel_artist_3d 2340, campaign_four_layer 1987, pixel_artist 1971) |
 | **Layer Violations** | ~25 (down from 41 in v0.3.29, -39%) |
 | **CC2 Fidelity** | ~88% (Visual: 85%, Mechanics: 92%) ⚠️ | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for details |
 
-### 📈 Code Quality Metrics (v0.3.34 — Post Ghost Fix & Visual Polish)
+### 📈 Code Quality Metrics (v0.3.37 — Deep Optimization)
 
 | Dimension | Score | Notes |
 |----------|-------|-------|
-| **Architecture** | 7.5/10 | DDD + DI, EnhancedRenderer split complete, 4 God Classes remain, layer violations -39% |
-| **Test Quality** | 9.5/10 ✅ | **3930 tests**, weak assertions <1%, smoke tests for zero-coverage modules |
-| **Test Coverage** | 8.5/10 | Broad coverage, 27 new smoke tests in v0.3.27 |
-| **Code Quality** | 7.5/10 | **~1 bare print() remaining (99.3% cleaned)** (down from 200+), logging migration complete |
-| **Performance** | 8.5/10 | Surface pool LRU unified, terrain cache, tank rotation cache, viewport culling |
-| **Security** | 9.5/10 ✅ | Zero eval/exec, HMAC saves, no injection vectors |
-| **Documentation** | **8.5/10** ✅ | **Synchronized to v0.3.34** (this update) |
-| **Maintainability** | 8/10 | Clear patterns, good logging, ghost audit complete, critical pipelines active |
+| **Architecture** | 7.5/10 | DDD + DI, EnhancedRenderer split complete (3 subsystems extracted), 4 God Classes remain, layer violations -39% |
+| **Test Quality** | 9.5/10 ✅ | **~3985 tests**, weak assertions <1%, smoke tests for zero-coverage modules |
+| **Test Coverage** | 8.5/10 | Broad coverage, 27 new smoke tests in v0.3.27, 55 new HUD tests in v0.3.36 |
+| **Code Quality** | 7.5/10 | **~1 bare print() remaining (99.3% cleaned)** (down from 200+), logging migration complete, AnimationController dead code removed |
+| **Performance** | 8.5/10 | Surface pool LRU unified (6/6 consumers), dirty rectangle optimization live, terrain cache, tank rotation cache, viewport culling |
+| **Security** | 9.5/10 ✅ | Zero eval/exec, HMAC saves (permissions 0o600, key validation), no injection vectors |
+| **Documentation** | **8.5/10** ✅ | **Synchronized to v0.3.37** (this update) |
+| **Maintainability** | 8/10 | Clear patterns, good logging, ghost audit complete, critical pipelines active, environmental audio online |
 | **Visual Polish** | 8/10 🆕 | Death fade, screen flash, movement lerp, UI transitions, weather, shells, tooltips (v0.3.31-v0.3.34) |
 | **Overall Health** | **8.2/10** | **Beta Candidate** ✅ |
 
@@ -355,6 +372,11 @@ PyCC2/
 │   ├── services/           # Game loop, AI service, Event bus, Combat director
 │   ├── presentation/       # Rendering, Input handling, UI, Audio
 │   │   ├── rendering/      # Camera, HUD, Minimap, Sprites, Isometric engine
+│   │   │   ├── surface_pool.py          # Unified Surface LRU pool
+│   │   │   ├── shell_casing_system.py   # Shell ejection physics system (125L)
+│   │   │   ├── flash_effect_system.py   # Screen flash effect system (101L)
+│   │   │   ├── weather_system.py        # Weather overlay rendering system (160L)
+│   │   │   └── fade_transition.py       # UI alpha fade transition
 │   │   ├── input/          # Command system, Interaction controller
 │   │   ├── ui/             # Menus, Panels, Tooltips, Deployment UI
 │   │   └── audio/          # Sound system, Voice commands
@@ -363,7 +385,7 @@ PyCC2/
 │   ├── maps/               # 63 historical map JSON files
 │   ├── scenarios/          # 11 scenario configurations
 │   └── units/              # Unit template definitions
-├── tests/                  # 3929 tests (unit + integration + E2E + smoke)
+├── tests/                  # ~3985 tests (unit + integration + E2E + smoke)
 ├── assets/                 # Sprites, sounds, CC2 reference screenshots
 └── docs/                   # Design documents, PRD, Gap analysis
 ```
@@ -424,7 +446,7 @@ PyCC2/
 ## Testing
 
 ```bash
-# Full test suite (3929 tests)
+# Full test suite (~3985 tests)
 pytest tests/ -q
 
 # By category

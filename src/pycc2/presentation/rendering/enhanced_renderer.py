@@ -89,6 +89,9 @@ from pycc2.presentation.rendering.particle_effects_renderer import ParticleEffec
 from pycc2.presentation.rendering.environment_renderer import EnvironmentRenderer
 from pycc2.presentation.rendering.ui_overlay_renderer import UIOverlayRenderer
 from pycc2.presentation.rendering.post_processing import PostProcessingEffects
+from pycc2.presentation.rendering.shell_casing_system import ShellCasingSystem
+from pycc2.presentation.rendering.flash_effect_system import FlashEffectSystem
+from pycc2.presentation.rendering.weather_system import WeatherSystem
 
 from dataclasses import dataclass
 
