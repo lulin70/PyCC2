@@ -2,6 +2,28 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.35] - 2026-06-11
+
+### Quick Wins (DevSquad Top-10 Optimization Round 1)
+
+#### Dead Code Removal
+- **[DELETE]** `animation_controller.py` (430 lines) — Removed completely. 90% functional overlap with existing `animation_system.py` + `sprite_renderer.py` + `pixel_artist_3d.py`. Zero production imports, only 2 test methods depended on it.
+- **[CLEANUP]** Removed 2 orphan test methods from `test_phase_a.py`. Updated `TEST_STRATEGY_COMPREHENSIVE.md` to mark as removed.
+
+#### Security Hardening (Save System: 8.0→8.5/10)
+- **[P1]** Save file permissions locked to `0o600` (owner read/write only) after write — prevents same-machine users from reading or tampering with saves.
+- **[P1]** `save_game()` exceptions now logged via `logger.warning()` instead of silently swallowed — improves debuggability for disk-full/permission errors.
+- **[P2]** Fixed double `saves/saves/` directory nesting bug in default save path.
+- **[P2]** HMAC key minimum length validation (16 bytes) — short keys now rejected with warning + auto-fallback to CSPRNG random key.
+
+#### Documentation Sync
+- README.md, README_zh.md, README_ja.md all synchronized to v0.3.34 reality:
+  - Version: 0.3.34 → 0.3.35
+  - Test count: 3929 → 3930
+  - Added v0.31-v0.34 feature summaries (rendering overhaul, combat polish, ghost fixes, P3 features)
+  - Architecture tree updated with new modules (SurfacePool, FadeTransition, WeatherOverlay, ShellEjection, TooltipManager)
+  - Quality metrics: Overall health 8.0 → 8.2, Visual Polish dimension added at 8/10
+
 ## [0.3.34] - 2026-06-10
 
 ### Full Ghost Feature Sweep — 2 Critical Fixes

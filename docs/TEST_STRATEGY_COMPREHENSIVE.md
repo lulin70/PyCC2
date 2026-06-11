@@ -599,7 +599,7 @@ class TestUnit:
 ##### WeatherRenderer 天气渲染 [12 tests - 新增]
 ##### LightingRenderer 光照渲染 [10 tests - 新增]
 ##### CC2BottomPanel 底部面板 [18 tests - 新增]
-##### AnimationController 动画控制器 [15 tests - 新增]
+##### AnimationController 动画控制器 [15 tests - ~~新增~~ **已移除 (Dead Code)**]
 
 **重要提示**: Presentation层测试需要Mock pygame surface:
 

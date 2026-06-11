@@ -43,7 +43,7 @@ class SaveFile:
 
 
 class SecureSaveManager:
-    SAVE_DIR_NAME = "saves"
+    SAVE_DIR_NAME = ""
     MAX_SLOTS = 8
     CURRENT_VERSION = "0.1.1"
 
@@ -53,7 +53,7 @@ class SecureSaveManager:
         self._base_dir = (
             Path(base_dir) if base_dir else Path(__file__).resolve().parent.parent.parent / "saves"
         )
-        self._save_dir = self._base_dir / self.SAVE_DIR_NAME
+        self._save_dir = self._base_dir / self.SAVE_DIR_NAME if self.SAVE_DIR_NAME else self._base_dir
         self._save_dir.mkdir(parents=True, exist_ok=True)
         self._hmac_key = self._get_hmac_key()
 
@@ -65,7 +65,12 @@ class SecureSaveManager:
         env_key = os.environ.get("PYCC2_SAVE_HMAC_KEY")
         if env_key:
             try:
-                return env_key.encode("utf-8")
+                key = env_key.encode("utf-8")
+                if len(key) < 16:
+                    logger.warning("HMAC key too short (%d bytes), minimum is 16. Generating random key.", len(key))
+                    import secrets
+                    key = secrets.token_bytes(32)
+                return key
             except (AttributeError, UnicodeEncodeError) as e:
                 logging.info(f"HMAC key from env failed: {e}")
         config_path = Path(__file__).resolve().parent.parent / "config" / "secrets.toml"
@@ -75,7 +80,12 @@ class SecureSaveManager:
                     line = line.strip()
                     if line.startswith("hmac_key") and "=" in line:
                         key_val = line.split("=", 1)[1].strip().strip('"').strip("'")
-                        return key_val.encode("utf-8")
+                        key = key_val.encode("utf-8")
+                        if len(key) < 16:
+                            logger.warning("HMAC key too short (%d bytes), minimum is 16. Generating random key.", len(key))
+                            import secrets
+                            key = secrets.token_bytes(32)
+                        return key
             except Exception as e:
                 logging.info(f"HMAC key from config failed: {e}")
         import warnings
@@ -153,8 +163,10 @@ class SecureSaveManager:
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(final_json)
 
+            os.chmod(filepath, 0o600)
             return True
         except (OSError, TypeError, ValueError) as e:
+            logger.warning("Save game failed for slot %d: %s", slot, e)
             return False
 
     def load_game(self, slot: int) -> tuple[dict | None, SaveMetaData | None, SaveSlotStatus]:

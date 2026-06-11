@@ -311,47 +311,6 @@ class TestA3DirectionSprite:
         assert Direction.WEST in sprite_set.directions
         pygame.quit()
 
-    def test_animation_controller_states(self):
-        """Animation controller should support all required states."""
-        import pygame
-        pygame.init()
-        from pycc2.presentation.rendering.animation_controller import (
-            AnimationController,
-            AnimationState,
-        )
-
-        unit_mock = MagicMock()
-        controller = AnimationController(unit_mock)
-
-        states = list(AnimationState)
-        required = ["IDLE", "MOVING", "ATTACKING", "DYING", "DEAD"]
-        state_names = [s.name for s in states]
-
-        for req in required:
-            assert req in state_names, f"Missing animation state: {req}"
-        pygame.quit()
-
-    def test_animation_default_frame_counts(self):
-        """Default animations should have correct frame counts."""
-        import pygame
-        pygame.init()
-        from pycc2.presentation.rendering.animation_controller import (
-            AnimationController,
-            AnimationState,
-        )
-
-        unit_mock = MagicMock()
-        controller = AnimationController(unit_mock)
-
-        idle_anim = controller._animations[AnimationState.IDLE]
-        moving_anim = controller._animations[AnimationState.MOVING]
-        attacking_anim = controller._animations[AnimationState.ATTACKING]
-
-        assert len(idle_anim.frames) >= 2  # At least 2 idle frames
-        assert len(moving_anim.frames) >= 4  # At least 4 move frames
-        assert len(attacking_anim.frames) >= 1  # At least 1 attack frame
-        pygame.quit()
-
 
 # ========================================================================
 # A4: Context Menu Tests (I-1)

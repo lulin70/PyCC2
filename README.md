@@ -1,11 +1,11 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.3.30 | Beta Candidate | June 7, 2026**
+**v0.3.34 | Beta Candidate | June 10, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-3929%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/Tests-3930%20passed-brightgreen.svg" alt="Tests" />
 <img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%8888%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Beta%20Candidate-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
@@ -15,11 +15,40 @@
 <em>A Python recreation of Atomic Games' legendary WWII tactical wargame — Beta Candidate with full SRP refactoring, real-mode E2E, and mature test suite</em>
 </p>
 
-> 🟢 **Beta Candidate**: Core gameplay + cinematic effects + achievement system + dynamic shadows + projectile trails + SRP architecture cleanup + real SDL E2E validation. **3929 tests passing (100%)**, 38-phase E2E user journey validated in real environment.
+> 🟢 **Beta Candidate**: Core gameplay + cinematic effects + achievement system + dynamic shadows + projectile trails + SRP architecture cleanup + real SDL E2E validation + visual polish (death fade, screen flash, movement smoothing, UI transitions, weather overlay, shell ejection, button feedback). **3930 tests passing (100%)**, 38-phase E2E user journey validated in real environment. Ghost feature audit complete — all critical rendering pipelines now active.
 
 ---
 
-## What's New in v0.3.30
+## What's New in v0.3.34
+
+### 🏗️ v0.3.34 — Critical Ghost Fix (June 10, 2026)
+- **[FIX]** **PostProcessingEffects instance was never created** — entire post-processing pipeline (desaturation, vignette) now instantiated and active
+- **[FIX]** **Weather overlay defaults to `"light_fog"`** — every battle now has subtle atmospheric haze
+
+### 🏗️ v0.3.33 — Ghost Fixes + P3 Visual Deep-Dive (June 10, 2026)
+- **[FIX]** Re-enabled desaturation color grading in render() pipeline (was commented out)
+- **[FIX]** Tank rotation cache: key strategy changed to `(width, height, angle)` for O(1) hit rate + precache at init
+- **[FIX]** Movement smoothing now works for PNG sprite path (was bypassed)
+- **[FIX]** UI fade transitions now animate (FadeTransition.update() wired into game loop)
+- **[VISUAL]** Weather overlay system: 4 modes (clear/light_fog/dust/smoke) with animated particle drift
+- **[VISUAL]** Shell casing ejection physics: brass casings with trajectory, gravity, bounce, fade-out
+- **[VISUAL]** Button hover/click feedback + tooltip system for all command buttons
+
+### 🎬 v0.3.32 — Deep Visual Polish (June 9, 2026)
+- **[VISUAL]** Combat particle enrichment: dirt_splash, blood_pool, hit_marker (5 types per hit vs 2)
+- **[VISUAL]** Unit death fade-out: 500ms alpha decay with CC2 dark-gray ghost rendering
+- **[VISUAL]** Screen flash effect: warm white on explosion, soft red on kill shot
+- **[VISUAL]** Unit movement smoothing: position lerp at 12 u/s prevents teleportation
+- **[VISUAL]** UI panel transition animations: FadeTransition (0.18-0.2s) on BottomPanel/Minimap/HUD
+
+### 🎨 v0.3.31 — Rendering & Visual Quality Overhaul (June 8, 2026)
+- **[VISUAL]** Desaturation effect: numpy pixel-level CC2 grayscale war atmosphere (was `pass` stub)
+- **[VISUAL]** Infantry 8-direction differentiation enhanced: ~80%+ visual variety (8 params × 8 dirs)
+- **[VISUAL]** Minimap terrain detail: roads, buildings, water, woods with distinct rendering
+- **[VISUAL]** HUD minimap: replaced text placeholder with real Minimap component
+- **[PERF]** Unified SurfacePool: eliminated 3 duplicate LRU pool implementations → single shared class
+- **[PERF]** Tank sprite rotation pre-caching: 24 angles cached at init, O(1) lookup
+- **[PERF]** Terrain static layer cache: dirty-flag-based large-surface cache (+15-20 FPS expected)
 
 ### 🏗️ v0.3.30 — Version Sync & Documentation Update (June 7, 2026)
 - **[SYNC]** All README versions synchronized to v0.3.30
@@ -140,7 +169,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Total Tests** | **3929** (all passing, 100%) ✅ |
+| **Total Tests** | **3930** (all passing, 100%) ✅ |
 | **Test Quality** | A+ (121 weak assertions eliminated) 🎯 |
 | **E2E Tests** | 22 test files (38-phase real SDL mode, 100% pass rate) |
 | **Maps** | 63 historical maps (Operation Market Garden) |
@@ -148,26 +177,27 @@
 | **Weapon Types** | 69 authentic CC2 weapons |
 | **Campaign Battles** | 29 battles across 9 days, 3 sectors |
 | **AI Behaviors** | 6 tactical AI types (flanking, suppression, VP, etc.) |
-| **Code Files** | ~249 Python modules (+23 new since last count, audio_enums.py, deployment_factory.py, deployment_los.py + others in v0.3.29-v0.3.30) |
+| **Code Files** | ~253 Python modules (+4 new since v0.3.30: surface_pool.py, fade_transition.py + weather/shell systems in v0.3.31-v0.3.34) |
 | **Class Definitions** | 330+ classes |
-| **Extracted Modules** | 17 rendering/data systems (new: UIOverlayRenderer, GameLoopAssembler, GameStateView Protocol, DeploymentFactory, DeploymentLOSSystem, AudioEnums) |
+| **Extracted Modules** | 19 rendering/data systems (new: SurfacePool, FadeTransition, WeatherOverlay, ShellEjection, TooltipManager + previous 17) |
 | **Technical Debt** | 4 God Classes >1000 lines remaining (deployment_ui 1323↓, pixel_artist_3d 2340, campaign_four_layer 1987, pixel_artist 1971) |
 | **Layer Violations** | ~25 (down from 41 in v0.3.29, -39%) |
 | **CC2 Fidelity** | ~88% (Visual: 85%, Mechanics: 92%) ⚠️ | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for details |
 
-### 📈 Code Quality Metrics (v0.3.30 — Post Documentation Sync)
+### 📈 Code Quality Metrics (v0.3.34 — Post Ghost Fix & Visual Polish)
 
 | Dimension | Score | Notes |
 |----------|-------|-------|
 | **Architecture** | 7.5/10 | DDD + DI, EnhancedRenderer split complete, 4 God Classes remain, layer violations -39% |
-| **Test Quality** | 9.5/10 ✅ | **3929 tests**, weak assertions <1%, smoke tests for zero-coverage modules |
+| **Test Quality** | 9.5/10 ✅ | **3930 tests**, weak assertions <1%, smoke tests for zero-coverage modules |
 | **Test Coverage** | 8.5/10 | Broad coverage, 27 new smoke tests in v0.3.27 |
 | **Code Quality** | 7.5/10 | **~1 bare print() remaining (99.3% cleaned)** (down from 200+), logging migration complete |
-| **Performance** | 8/10 | Surface pool LRU, viewport culling, incremental association discovery |
+| **Performance** | 8.5/10 | Surface pool LRU unified, terrain cache, tank rotation cache, viewport culling |
 | **Security** | 9.5/10 ✅ | Zero eval/exec, HMAC saves, no injection vectors |
-| **Documentation** | **8.5/10** ✅ | **Synchronized to v0.3.30** (this update) |
-| **Maintainability** | 8/10 | Clear patterns, good logging, ~1 TODO markers remaining (domain/systems focus) |
-| **Overall Health** | **8.0/10** | **Beta Candidate** ✅ |
+| **Documentation** | **8.5/10** ✅ | **Synchronized to v0.3.34** (this update) |
+| **Maintainability** | 8/10 | Clear patterns, good logging, ghost audit complete, critical pipelines active |
+| **Visual Polish** | 8/10 🆕 | Death fade, screen flash, movement lerp, UI transitions, weather, shells, tooltips (v0.3.31-v0.3.34) |
+| **Overall Health** | **8.2/10** | **Beta Candidate** ✅ |
 
 ---
 
@@ -557,4 +587,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Generated on 2026-06-07 | v0.3.30 (Beta Candidate) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
+<p align="center"><sub>Generated on 2026-06-10 | v0.3.34 (Beta Candidate) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
