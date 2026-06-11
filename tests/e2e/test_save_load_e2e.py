@@ -112,13 +112,13 @@ class TestSaveGameCreatesFile:
     def test_save_game_creates_file(self, save_controller, mock_game_loop, tmp_save_dir):
         result = save_controller.quick_save(slot=0, game_loop=mock_game_loop)
         assert result is True, "存档操作应成功"
-        slot_path = tmp_save_dir / "saves" / "save_slot_0.json"
+        slot_path = tmp_save_dir / "save_slot_0.json"
         assert slot_path.exists(), "存档文件应被创建"
         assert slot_path.stat().st_size > 0, "存档文件不应为空"
 
     def test_save_file_contains_valid_json(self, save_controller, mock_game_loop, tmp_save_dir):
         save_controller.quick_save(slot=1, game_loop=mock_game_loop)
-        slot_path = tmp_save_dir / "saves" / "save_slot_1.json"
+        slot_path = tmp_save_dir / "save_slot_1.json"
         with open(slot_path, encoding="utf-8") as f:
             content = json.load(f)
         assert isinstance(content, dict), "存档文件应为有效的JSON字典"
@@ -128,7 +128,7 @@ class TestSaveGameCreatesFile:
 
     def test_save_metadata_populated(self, save_controller, mock_game_loop, tmp_save_dir):
         save_controller.quick_save(slot=2, game_loop=mock_game_loop)
-        slot_path = tmp_save_dir / "saves" / "save_slot_2.json"
+        slot_path = tmp_save_dir / "save_slot_2.json"
         with open(slot_path, encoding="utf-8") as f:
             content = json.load(f)
         meta = content["meta"]
@@ -284,7 +284,7 @@ class TestCorruptedSaveRejected:
 
     def test_corrupted_save_rejected_by_controller(self, save_controller, mock_game_loop, tmp_save_dir):
         save_controller.quick_save(slot=0, game_loop=mock_game_loop)
-        filepath = tmp_save_dir / "saves" / "save_slot_0.json"
+        filepath = tmp_save_dir / "save_slot_0.json"
         with open(filepath, encoding="utf-8") as f:
             content = json.loads(f.read())
         content["state"]["tick"] = 77777

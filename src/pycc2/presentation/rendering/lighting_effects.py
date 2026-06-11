@@ -17,6 +17,8 @@ from typing import TYPE_CHECKING
 
 import pygame
 
+from pycc2.presentation.rendering.surface_pool import SurfacePool
+
 if TYPE_CHECKING:
     from pycc2.presentation.rendering.lighting_system import TopDownLightingConfig
 
@@ -70,8 +72,7 @@ class LightingEffectsSystem:
         # CC2颜色分级缓存（性能优化：避免重复numpy计算）
         self._grading_cache: dict[tuple[int, int], pygame.Surface] = {}
         self._last_grading_size: tuple[int, int] | None = None
-        self._light_surface_pool: dict[tuple[int, int], pygame.Surface] = {}
-        self._MAX_LIGHT_SURFACE_POOL = 30
+        self._light_surface_pool = SurfacePool(max_size=15)
 
     @staticmethod
     def get_health_tinted_color(base_color: tuple, unit) -> tuple:
@@ -334,16 +335,9 @@ class LightingEffectsSystem:
             self._dynamic_lights.remove(light)
 
     def _get_light_surface(self, w: int, h: int) -> pygame.Surface:
-        key = (w, h)
-        if key in self._light_surface_pool:
-            surf = self._light_surface_pool.pop(key)
-            self._light_surface_pool[key] = surf
-            surf.fill((0, 0, 0, 0))
-            return surf
-        surf = pygame.Surface((w, h), pygame.SRCALPHA)
-        if len(self._light_surface_pool) >= self._MAX_LIGHT_SURFACE_POOL:
-            self._light_surface_pool.pop(next(iter(self._light_surface_pool)))
-        self._light_surface_pool[key] = surf
+        """Get or create a light surface from the shared SurfacePool."""
+        surf = self._light_surface_pool.get((w, h))
+        surf.fill((0, 0, 0, 0))
         return surf
 
     def render_dynamic_lights(self, surface: pygame.Surface) -> None:

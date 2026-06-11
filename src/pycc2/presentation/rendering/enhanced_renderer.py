@@ -33,7 +33,7 @@ from __future__ import annotations
 import logging
 import math
 import random
-from collections import OrderedDict
+from pycc2.presentation.rendering.surface_pool import SurfacePool
 from typing import TYPE_CHECKING, Any
 
 import pygame
@@ -82,6 +82,7 @@ from pycc2.presentation.rendering.procedural_texture_generator import Procedural
 from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
 from pycc2.presentation.rendering.rendering_utils import draw_dashed_line
 from pycc2.presentation.rendering.render_context import RenderContext
+from pycc2.presentation.ui.theme import ThemeManager
 
 # Import extracted sub-modules (SRP refactoring)
 from pycc2.presentation.rendering.particle_effects_renderer import ParticleEffectsRenderer
@@ -160,8 +161,7 @@ class EnhancedRenderer:
 
         # Surface object pool - eliminate per-frame allocation (PERF-001)
         # LRU eviction strategy: max 50 surfaces, evict least recently used
-        self._surface_pool: OrderedDict[tuple[int, int], pygame.Surface] = OrderedDict()
-        self._MAX_SURFACE_POOL_SIZE = 50
+        self._surface_pool = SurfacePool(max_size=50)
         self._cached_screen_size: tuple[int, int] | None = None
         self._cached_warm_overlay: pygame.Surface | None = None
         self._cached_vignette: pygame.Surface | None = None
@@ -295,6 +295,12 @@ class EnhancedRenderer:
         # Set default light fog atmosphere (P3-01: was ghost feature, now active)
         self.set_weather("light_fog")
         logger.info("Weather overlay set to default: light_fog")
+
+        # Initialize ThemeManager with default theme for runtime theme switching
+        # Ensure singleton exists first (registers default themes via __new__)
+        ThemeManager()
+        ThemeManager.set_theme("default")
+        logger.info("ThemeManager initialized with 'default' theme")
 
     def set_attack_line_system(self, attack_line_system) -> None:
         """Set attack line system (dependency injection setter - P0-2 Fix)."""
@@ -554,26 +560,12 @@ class EnhancedRenderer:
     def _get_pooled_surface(self, size: tuple[int, int]) -> pygame.Surface:
         """Get or create a surface from the object pool with LRU eviction (PERF-001).
 
-        Reuses existing surfaces to avoid per-frame allocation overhead.
-        Implements LRU (Least Recently Used) eviction when pool exceeds max size.
-        Surfaces are cleared before return for safe reuse.
+        Delegates to the shared SurfacePool for consistent LRU behavior across
+        all rendering subsystems.
         """
-        if size in self._surface_pool:
-            # Move to end (most recently used)
-            self._surface_pool.move_to_end(size)
-            surf = self._surface_pool[size]
-            surf.fill(self.TRANSPARENT_BLACK)  # Clear for reuse
-            return surf
-
-        new_surf = pygame.Surface(size, pygame.SRCALPHA)
-
-        # LRU eviction: remove oldest entry if at capacity
-        if len(self._surface_pool) >= self._MAX_SURFACE_POOL_SIZE:
-            evicted_size, evicted_surf = self._surface_pool.popitem(last=False)
-            del evicted_surf  # Explicitly release memory
-
-        self._surface_pool[size] = new_surf
-        return new_surf
+        surf = self._surface_pool.get(size)
+        surf.fill(self.TRANSPARENT_BLACK)  # Clear for reuse
+        return surf
 
     def _invalidate_surface_cache(self) -> None:
         """Clear surface pool when screen size changes (PERF-001)."""
@@ -622,8 +614,9 @@ class EnhancedRenderer:
             self._offscreen = pygame.Surface((screen_w, screen_h), pygame.SRCALPHA)
             self._render_ctx.update_surfaces(self._screen, self._offscreen)
 
-        # STEP 1: Clear off-screen buffer
-        self._offscreen.fill((34, 40, 48))  # Dark blue-gray background
+        # STEP 1: Clear off-screen buffer (use theme background color)
+        theme_bg = ThemeManager.get_current().colors.background
+        self._offscreen.fill(theme_bg)
 
         # STEP 2: Draw terrain — use enhanced texturing with simple fallback
         try:

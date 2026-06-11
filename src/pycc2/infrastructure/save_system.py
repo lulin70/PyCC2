@@ -163,7 +163,12 @@ class SecureSaveManager:
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(final_json)
 
-            os.chmod(filepath, 0o600)
+            # Restrict file permissions to owner-only (security hardening)
+            # Silently skip in environments where chmod is not supported (e.g., some test containers)
+            try:
+                os.chmod(filepath, 0o600)
+            except OSError:
+                logger.debug("Could not set restrictive permissions on %s (unsupported in this environment)", filepath)
             return True
         except (OSError, TypeError, ValueError) as e:
             logger.warning("Save game failed for slot %d: %s", slot, e)

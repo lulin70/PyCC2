@@ -1,6 +1,6 @@
 {
   "version": "0.3.0",
-  "timestamp": "2026-06-08T03:31:03.932111+00:00",
+  "timestamp": "2026-06-11T03:44:51.197468+00:00",
   "environment": "Darwin",
   "results": [
     {
@@ -11749,18 +11749,2418 @@
       "passed": true,
       "timestamp": "2026-06-08T03:31:03.929354+00:00",
       "version": "0.3.0"
+    },
+    {
+      "name": "test_render_16x16_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 100.0,
+      "measurements": [
+        8.62295800470747,
+        7.58354201389011,
+        8.112833005725406,
+        7.61604199942667,
+        8.181708006304689
+      ],
+      "median_ms": 8.112833005725406,
+      "mean_ms": 8.02341660601087,
+      "min_ms": 7.58354201389011,
+      "max_ms": 8.62295800470747,
+      "std_dev": 0.4335738332680491,
+      "passed": true,
+      "timestamp": "2026-06-09T09:45:00.028500+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_64x64_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 500.0,
+      "measurements": [
+        15.661416997318156,
+        14.88124999741558,
+        13.245084002846852,
+        15.121707998332568,
+        14.071625002543442
+      ],
+      "median_ms": 14.88124999741558,
+      "mean_ms": 14.59621679969132,
+      "min_ms": 13.245084002846852,
+      "max_ms": 15.661416997318156,
+      "std_dev": 0.9477331867437926,
+      "passed": true,
+      "timestamp": "2026-06-09T09:45:04.565885+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_efficiency",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 90.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T09:45:08.403149+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_16x16_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 100.0,
+      "measurements": [
+        8.575166008085944,
+        8.778500006883405,
+        7.475958002032712,
+        8.656416001031175,
+        7.856750002247281
+      ],
+      "median_ms": 8.575166008085944,
+      "mean_ms": 8.268558004056104,
+      "min_ms": 7.475958002032712,
+      "max_ms": 8.778500006883405,
+      "std_dev": 0.5705882345793357,
+      "passed": true,
+      "timestamp": "2026-06-09T09:46:31.064944+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_64x64_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 500.0,
+      "measurements": [
+        16.530374996364117,
+        14.993124990724027,
+        13.474459003191441,
+        14.947666000807658,
+        15.805542003363371
+      ],
+      "median_ms": 14.993124990724027,
+      "mean_ms": 15.150233398890123,
+      "min_ms": 13.474459003191441,
+      "max_ms": 16.530374996364117,
+      "std_dev": 1.1410693037822472,
+      "passed": true,
+      "timestamp": "2026-06-09T09:46:35.121162+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_efficiency",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 90.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T09:46:38.929233+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_viewport_culling_effectiveness",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 70.0,
+      "measurements": [
+        98.73046875
+      ],
+      "median_ms": 98.73046875,
+      "mean_ms": 98.73046875,
+      "min_ms": 98.73046875,
+      "max_ms": 98.73046875,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T09:46:43.359468+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_ai_tick_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 10.0,
+      "measurements": [
+        0.07325000478886068,
+        0.0735829962650314,
+        0.07345799531321973,
+        0.07345799531321973,
+        0.07375000859610736
+      ],
+      "median_ms": 0.07345799531321973,
+      "mean_ms": 0.07349980005528778,
+      "min_ms": 0.07325000478886068,
+      "max_ms": 0.07375000859610736,
+      "std_dev": 0.0001839965157706178,
+      "passed": true,
+      "timestamp": "2026-06-09T09:46:43.376118+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_pathfinding_50_tiles",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 50.0,
+      "measurements": [
+        12.249374995008111,
+        11.913417009054683,
+        12.671749995206483,
+        12.306207994697616,
+        12.078833999112248
+      ],
+      "median_ms": 12.249374995008111,
+      "mean_ms": 12.243916798615828,
+      "min_ms": 11.913417009054683,
+      "max_ms": 12.671749995206483,
+      "std_dev": 0.2843561458426889,
+      "passed": true,
+      "timestamp": "2026-06-09T09:46:43.486470+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_combat_resolution_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 5.0,
+      "measurements": [
+        0.02520799171179533,
+        0.02520800626371056,
+        0.025083005311898887,
+        0.025000001187436283,
+        0.02504199801478535
+      ],
+      "median_ms": 0.025083005311898887,
+      "mean_ms": 0.02510820049792528,
+      "min_ms": 0.025000001187436283,
+      "max_ms": 0.02520800626371056,
+      "std_dev": 9.571328827902596e-05,
+      "passed": true,
+      "timestamp": "2026-06-09T09:46:43.498693+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_save_load_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 2000.0,
+      "measurements": [
+        2.5959579943446442,
+        2.766749996226281,
+        2.413084002910182
+      ],
+      "median_ms": 2.5959579943446442,
+      "mean_ms": 2.5919306644937024,
+      "min_ms": 2.413084002910182,
+      "max_ms": 2.766749996226281,
+      "std_dev": 0.17686738887189454,
+      "passed": true,
+      "timestamp": "2026-06-09T09:46:43.523433+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_memory_after_100_frames",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "MB",
+      "threshold": 50.0,
+      "measurements": [
+        0.7396039962768555
+      ],
+      "median_ms": 0.7396039962768555,
+      "mean_ms": 0.7396039962768555,
+      "min_ms": 0.7396039962768555,
+      "max_ms": 0.7396039962768555,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T09:46:53.169536+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_size_stability",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "%",
+      "threshold": 100.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T09:46:57.284371+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_cold_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 10000.0,
+      "measurements": [
+        137.29,
+        88.58,
+        87.23,
+        82.49,
+        86.69
+      ],
+      "median_ms": 87.23,
+      "mean_ms": 96.456,
+      "min_ms": 82.49,
+      "max_ms": 137.29,
+      "std_dev": 22.940084568283524,
+      "passed": true,
+      "timestamp": "2026-06-09T09:46:57.928196+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_hot_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 3000.0,
+      "measurements": [
+        0.14212500536814332
+      ],
+      "median_ms": 0.14212500536814332,
+      "mean_ms": 0.14212500536814332,
+      "min_ms": 0.14212500536814332,
+      "max_ms": 0.14212500536814332,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T09:46:57.941851+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_16x16_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 100.0,
+      "measurements": [
+        9.19275000342168,
+        8.144874998833984,
+        8.765624996158294,
+        8.231082989368588,
+        9.64037500671111
+      ],
+      "median_ms": 8.765624996158294,
+      "mean_ms": 8.794941598898731,
+      "min_ms": 8.144874998833984,
+      "max_ms": 9.64037500671111,
+      "std_dev": 0.6352935843001237,
+      "passed": true,
+      "timestamp": "2026-06-09T09:49:55.893498+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_64x64_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 500.0,
+      "measurements": [
+        13.181749993236735,
+        14.41116699425038,
+        14.983209010097198,
+        12.996417004615068,
+        13.341166006284766
+      ],
+      "median_ms": 13.341166006284766,
+      "mean_ms": 13.78274180169683,
+      "min_ms": 12.996417004615068,
+      "max_ms": 14.983209010097198,
+      "std_dev": 0.8675434808290798,
+      "passed": true,
+      "timestamp": "2026-06-09T09:49:59.849063+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_efficiency",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 90.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T09:50:03.540052+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_16x16_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 100.0,
+      "measurements": [
+        8.945541994762607,
+        8.146624997607432,
+        8.746334002353251,
+        7.870166999055073,
+        9.24916700751055
+      ],
+      "median_ms": 8.746334002353251,
+      "mean_ms": 8.591567000257783,
+      "min_ms": 7.870166999055073,
+      "max_ms": 9.24916700751055,
+      "std_dev": 0.5701053057701102,
+      "passed": true,
+      "timestamp": "2026-06-09T09:50:20.837832+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_64x64_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 500.0,
+      "measurements": [
+        15.218958011246286,
+        13.669291001860984,
+        16.135750003741123,
+        15.896665994659998,
+        13.562791995354928
+      ],
+      "median_ms": 15.218958011246286,
+      "mean_ms": 14.896691401372664,
+      "min_ms": 13.562791995354928,
+      "max_ms": 16.135750003741123,
+      "std_dev": 1.2170528482012177,
+      "passed": true,
+      "timestamp": "2026-06-09T09:50:25.098802+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_efficiency",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 90.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T09:50:28.955650+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_viewport_culling_effectiveness",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 70.0,
+      "measurements": [
+        98.73046875
+      ],
+      "median_ms": 98.73046875,
+      "mean_ms": 98.73046875,
+      "min_ms": 98.73046875,
+      "max_ms": 98.73046875,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T09:50:33.311324+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_ai_tick_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 10.0,
+      "measurements": [
+        0.07508300768677145,
+        0.0747500016586855,
+        0.11195801198482513,
+        0.07429199467878789,
+        0.07524999091401696
+      ],
+      "median_ms": 0.07508300768677145,
+      "mean_ms": 0.08226660138461739,
+      "min_ms": 0.07429199467878789,
+      "max_ms": 0.11195801198482513,
+      "std_dev": 0.01660203547682136,
+      "passed": true,
+      "timestamp": "2026-06-09T09:50:33.355180+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_pathfinding_50_tiles",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 50.0,
+      "measurements": [
+        23.47429200017359,
+        17.88958298857324,
+        14.541834010742605,
+        16.305666998960078,
+        15.642500002286397
+      ],
+      "median_ms": 16.305666998960078,
+      "mean_ms": 17.57077520014718,
+      "min_ms": 14.541834010742605,
+      "max_ms": 23.47429200017359,
+      "std_dev": 3.515905919618111,
+      "passed": true,
+      "timestamp": "2026-06-09T09:50:33.518285+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_combat_resolution_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 5.0,
+      "measurements": [
+        0.02587500785011798,
+        0.025707995519042015,
+        0.031042000045999885,
+        0.028291993658058345,
+        0.046542001655325294
+      ],
+      "median_ms": 0.028291993658058345,
+      "mean_ms": 0.031491799745708704,
+      "min_ms": 0.025707995519042015,
+      "max_ms": 0.046542001655325294,
+      "std_dev": 0.0086883600123877,
+      "passed": true,
+      "timestamp": "2026-06-09T09:50:33.531104+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_save_load_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 2000.0,
+      "measurements": [
+        2.5297499960288405,
+        2.620125000248663,
+        2.5929580006049946
+      ],
+      "median_ms": 2.5929580006049946,
+      "mean_ms": 2.580944332294166,
+      "min_ms": 2.5297499960288405,
+      "max_ms": 2.620125000248663,
+      "std_dev": 0.04636978020915337,
+      "passed": true,
+      "timestamp": "2026-06-09T09:50:33.560448+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_memory_after_100_frames",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "MB",
+      "threshold": 50.0,
+      "measurements": [
+        0.7396039962768555
+      ],
+      "median_ms": 0.7396039962768555,
+      "mean_ms": 0.7396039962768555,
+      "min_ms": 0.7396039962768555,
+      "max_ms": 0.7396039962768555,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T09:50:44.398799+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_size_stability",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "%",
+      "threshold": 100.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T09:50:48.940657+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_cold_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 10000.0,
+      "measurements": [
+        191.2,
+        130.17,
+        130.47,
+        319.2,
+        112.46
+      ],
+      "median_ms": 130.47,
+      "mean_ms": 176.7,
+      "min_ms": 112.46,
+      "max_ms": 319.2,
+      "std_dev": 85.0669315891904,
+      "passed": true,
+      "timestamp": "2026-06-09T09:50:50.575392+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_hot_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 3000.0,
+      "measurements": [
+        0.2006249997066334
+      ],
+      "median_ms": 0.2006249997066334,
+      "mean_ms": 0.2006249997066334,
+      "min_ms": 0.2006249997066334,
+      "max_ms": 0.2006249997066334,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T09:50:50.595719+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_16x16_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 100.0,
+      "measurements": [
+        19.929292000597343,
+        19.02266699471511,
+        19.72620899323374,
+        16.268125007627532,
+        16.088208998553455
+      ],
+      "median_ms": 19.02266699471511,
+      "mean_ms": 18.206900398945436,
+      "min_ms": 16.088208998553455,
+      "max_ms": 19.929292000597343,
+      "std_dev": 1.883355372796634,
+      "passed": true,
+      "timestamp": "2026-06-09T10:07:48.699161+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_64x64_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 500.0,
+      "measurements": [
+        30.481875000987202,
+        27.92266600590665,
+        26.815707999048755,
+        26.497124999877997,
+        27.151749993208796
+      ],
+      "median_ms": 27.151749993208796,
+      "mean_ms": 27.77382479980588,
+      "min_ms": 26.497124999877997,
+      "max_ms": 30.481875000987202,
+      "std_dev": 1.603949566288128,
+      "passed": true,
+      "timestamp": "2026-06-09T10:07:56.326551+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_efficiency",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 90.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T10:08:01.490478+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_16x16_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 100.0,
+      "measurements": [
+        141.84654199925717,
+        58.6107919953065,
+        88.04820899968036,
+        57.96995801210869,
+        447.09579199843574
+      ],
+      "median_ms": 88.04820899968036,
+      "mean_ms": 158.7142586009577,
+      "min_ms": 57.96995801210869,
+      "max_ms": 447.09579199843574,
+      "std_dev": 164.78185379608044,
+      "passed": true,
+      "timestamp": "2026-06-09T10:08:52.075852+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_64x64_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 500.0,
+      "measurements": [
+        84.07733400235884,
+        97.49612500309013,
+        62.15054099448025,
+        73.60733298992272,
+        69.72195800335612
+      ],
+      "median_ms": 73.60733298992272,
+      "mean_ms": 77.41065819864161,
+      "min_ms": 62.15054099448025,
+      "max_ms": 97.49612500309013,
+      "std_dev": 13.732471677064122,
+      "passed": true,
+      "timestamp": "2026-06-09T10:09:12.602531+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_efficiency",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 90.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T10:09:26.632341+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_viewport_culling_effectiveness",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 70.0,
+      "measurements": [
+        98.73046875
+      ],
+      "median_ms": 98.73046875,
+      "mean_ms": 98.73046875,
+      "min_ms": 98.73046875,
+      "max_ms": 98.73046875,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T10:09:34.026998+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_ai_tick_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 10.0,
+      "measurements": [
+        0.07408398960251361,
+        0.07412499689962715,
+        0.07395900320261717,
+        0.07387500954791903,
+        0.07416700827889144
+      ],
+      "median_ms": 0.07408398960251361,
+      "mean_ms": 0.07404200150631368,
+      "min_ms": 0.07387500954791903,
+      "max_ms": 0.07416700827889144,
+      "std_dev": 0.00012150407535247347,
+      "passed": true,
+      "timestamp": "2026-06-09T10:09:34.058694+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_pathfinding_50_tiles",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 50.0,
+      "measurements": [
+        15.215832987450995,
+        13.53450000169687,
+        15.101458004210144,
+        20.614000008208677,
+        15.222457994241267
+      ],
+      "median_ms": 15.215832987450995,
+      "mean_ms": 15.93764979916159,
+      "min_ms": 13.53450000169687,
+      "max_ms": 20.614000008208677,
+      "std_dev": 2.7099407637505113,
+      "passed": true,
+      "timestamp": "2026-06-09T10:09:34.191753+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_combat_resolution_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 5.0,
+      "measurements": [
+        0.03370799822732806,
+        0.03329200262669474,
+        0.0329999893438071,
+        0.032916999771259725,
+        0.03287500294391066
+      ],
+      "median_ms": 0.0329999893438071,
+      "mean_ms": 0.03315839858260006,
+      "min_ms": 0.03287500294391066,
+      "max_ms": 0.03370799822732806,
+      "std_dev": 0.00034770309574522917,
+      "passed": true,
+      "timestamp": "2026-06-09T10:09:34.210117+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_save_load_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 2000.0,
+      "measurements": [
+        3.4317499957978725,
+        3.217707999283448,
+        3.2274169934680685
+      ],
+      "median_ms": 3.2274169934680685,
+      "mean_ms": 3.2922916628497965,
+      "min_ms": 3.217707999283448,
+      "max_ms": 3.4317499957978725,
+      "std_dev": 0.12087198233466519,
+      "passed": true,
+      "timestamp": "2026-06-09T10:09:34.257862+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_memory_after_100_frames",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "MB",
+      "threshold": 50.0,
+      "measurements": [
+        0.7396039962768555
+      ],
+      "median_ms": 0.7396039962768555,
+      "mean_ms": 0.7396039962768555,
+      "min_ms": 0.7396039962768555,
+      "max_ms": 0.7396039962768555,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T10:09:50.467521+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_size_stability",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "%",
+      "threshold": 100.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T10:09:57.209245+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_cold_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 10000.0,
+      "measurements": [
+        257.42,
+        159.62,
+        155.67,
+        170.61,
+        279.69
+      ],
+      "median_ms": 170.61,
+      "mean_ms": 204.602,
+      "min_ms": 155.67,
+      "max_ms": 279.69,
+      "std_dev": 59.16317663885198,
+      "passed": true,
+      "timestamp": "2026-06-09T10:09:58.495550+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_hot_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 3000.0,
+      "measurements": [
+        0.23433299793396145
+      ],
+      "median_ms": 0.23433299793396145,
+      "mean_ms": 0.23433299793396145,
+      "min_ms": 0.23433299793396145,
+      "max_ms": 0.23433299793396145,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T10:09:58.535492+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_efficiency",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 90.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T11:23:58.235056+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_viewport_culling_effectiveness",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 70.0,
+      "measurements": [
+        98.73046875
+      ],
+      "median_ms": 98.73046875,
+      "mean_ms": 98.73046875,
+      "min_ms": 98.73046875,
+      "max_ms": 98.73046875,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T11:24:05.909672+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_ai_tick_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 10.0,
+      "measurements": [
+        0.15904199972283095,
+        0.15641699428670108,
+        0.15362499107141048,
+        0.1529589935671538,
+        0.1537080097477883
+      ],
+      "median_ms": 0.1537080097477883,
+      "mean_ms": 0.15515019767917693,
+      "min_ms": 0.1529589935671538,
+      "max_ms": 0.15904199972283095,
+      "std_dev": 0.0025474709752119247,
+      "passed": true,
+      "timestamp": "2026-06-09T11:24:05.944552+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_pathfinding_50_tiles",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 50.0,
+      "measurements": [
+        25.138708006124943,
+        25.436374999117106,
+        26.8004999961704,
+        31.507374995271675,
+        28.175458006444387
+      ],
+      "median_ms": 26.8004999961704,
+      "mean_ms": 27.411683200625703,
+      "min_ms": 25.138708006124943,
+      "max_ms": 31.507374995271675,
+      "std_dev": 2.5884284259906076,
+      "passed": true,
+      "timestamp": "2026-06-09T11:24:06.190968+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_combat_resolution_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 5.0,
+      "measurements": [
+        0.0637500052107498,
+        0.06270800076890737,
+        0.06066600326448679,
+        0.06254199251998216,
+        0.060125006712041795
+      ],
+      "median_ms": 0.06254199251998216,
+      "mean_ms": 0.06195820169523358,
+      "min_ms": 0.060125006712041795,
+      "max_ms": 0.0637500052107498,
+      "std_dev": 0.0015119483164929112,
+      "passed": true,
+      "timestamp": "2026-06-09T11:24:06.221817+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_save_load_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 2000.0,
+      "measurements": [
+        6.971458002226427,
+        5.859375,
+        6.507708996650763
+      ],
+      "median_ms": 6.507708996650763,
+      "mean_ms": 6.446180666292396,
+      "min_ms": 5.859375,
+      "max_ms": 6.971458002226427,
+      "std_dev": 0.5585888045223893,
+      "passed": true,
+      "timestamp": "2026-06-09T11:24:06.281665+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_size_stability",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "%",
+      "threshold": 100.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T11:24:24.081547+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_cold_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 10000.0,
+      "measurements": [
+        207.67,
+        176.05,
+        159.06,
+        151.14,
+        151.94
+      ],
+      "median_ms": 159.06,
+      "mean_ms": 169.172,
+      "min_ms": 151.14,
+      "max_ms": 207.67,
+      "std_dev": 23.736839932897553,
+      "passed": true,
+      "timestamp": "2026-06-09T11:24:25.280587+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_hot_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 3000.0,
+      "measurements": [
+        0.35704199399333447
+      ],
+      "median_ms": 0.35704199399333447,
+      "mean_ms": 0.35704199399333447,
+      "min_ms": 0.35704199399333447,
+      "max_ms": 0.35704199399333447,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T11:24:25.398033+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_16x16_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 100.0,
+      "measurements": [
+        15.785833995323628,
+        19.917333993362263,
+        13.72237500618212,
+        22.10770800593309,
+        16.5278339991346
+      ],
+      "median_ms": 16.5278339991346,
+      "mean_ms": 17.61221699998714,
+      "min_ms": 13.72237500618212,
+      "max_ms": 22.10770800593309,
+      "std_dev": 3.360261740055319,
+      "passed": true,
+      "timestamp": "2026-06-09T11:28:16.820357+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_64x64_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 500.0,
+      "measurements": [
+        20.893249995424412,
+        20.612792010069825,
+        20.812666989513673,
+        21.02974998706486,
+        22.440291999373585
+      ],
+      "median_ms": 20.893249995424412,
+      "mean_ms": 21.15775019628927,
+      "min_ms": 20.612792010069825,
+      "max_ms": 22.440291999373585,
+      "std_dev": 0.7326867903142388,
+      "passed": true,
+      "timestamp": "2026-06-09T11:28:22.991559+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_efficiency",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 90.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T11:28:27.930817+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_viewport_culling_effectiveness",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 70.0,
+      "measurements": [
+        98.73046875
+      ],
+      "median_ms": 98.73046875,
+      "mean_ms": 98.73046875,
+      "min_ms": 98.73046875,
+      "max_ms": 98.73046875,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T11:28:33.790788+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_ai_tick_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 10.0,
+      "measurements": [
+        0.1338339934591204,
+        0.1369579986203462,
+        0.13204199785832316,
+        0.13145800039637834,
+        0.15625001105945557
+      ],
+      "median_ms": 0.1338339934591204,
+      "mean_ms": 0.13810840027872473,
+      "min_ms": 0.13145800039637834,
+      "max_ms": 0.15625001105945557,
+      "std_dev": 0.010365098603920474,
+      "passed": true,
+      "timestamp": "2026-06-09T11:28:33.833935+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_pathfinding_50_tiles",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 50.0,
+      "measurements": [
+        30.67291599290911,
+        34.388084008242004,
+        24.22495899372734,
+        21.389916990301572,
+        21.571792007307522
+      ],
+      "median_ms": 24.22495899372734,
+      "mean_ms": 26.44953359849751,
+      "min_ms": 21.389916990301572,
+      "max_ms": 34.388084008242004,
+      "std_dev": 5.813741413281672,
+      "passed": true,
+      "timestamp": "2026-06-09T11:28:34.071575+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_combat_resolution_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 5.0,
+      "measurements": [
+        0.05208399670664221,
+        0.050000002374872565,
+        0.04687499313149601,
+        0.04741598968394101,
+        0.10766700142994523
+      ],
+      "median_ms": 0.050000002374872565,
+      "mean_ms": 0.060808396665379405,
+      "min_ms": 0.04687499313149601,
+      "max_ms": 0.10766700142994523,
+      "std_dev": 0.026278135783648064,
+      "passed": true,
+      "timestamp": "2026-06-09T11:28:34.096284+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_save_load_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 2000.0,
+      "measurements": [
+        5.8173750003334135,
+        7.830709000700153,
+        6.511083003715612
+      ],
+      "median_ms": 6.511083003715612,
+      "mean_ms": 6.719722334916393,
+      "min_ms": 5.8173750003334135,
+      "max_ms": 7.830709000700153,
+      "std_dev": 1.0227542359487527,
+      "passed": true,
+      "timestamp": "2026-06-09T11:28:34.154696+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_memory_after_100_frames",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "MB",
+      "threshold": 50.0,
+      "measurements": [
+        0.7397260665893555
+      ],
+      "median_ms": 0.7397260665893555,
+      "mean_ms": 0.7397260665893555,
+      "min_ms": 0.7397260665893555,
+      "max_ms": 0.7397260665893555,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T11:28:51.984317+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_size_stability",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "%",
+      "threshold": 100.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T11:28:57.175025+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_cold_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 10000.0,
+      "measurements": [
+        435.16,
+        127.45,
+        138.36,
+        122.92,
+        129.45
+      ],
+      "median_ms": 129.45,
+      "mean_ms": 190.668,
+      "min_ms": 122.92,
+      "max_ms": 435.16,
+      "std_dev": 136.79036468260475,
+      "passed": true,
+      "timestamp": "2026-06-09T11:28:58.501018+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_hot_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 3000.0,
+      "measurements": [
+        0.14354199811350554
+      ],
+      "median_ms": 0.14354199811350554,
+      "mean_ms": 0.14354199811350554,
+      "min_ms": 0.14354199811350554,
+      "max_ms": 0.14354199811350554,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T11:28:58.522411+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_16x16_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 100.0,
+      "measurements": [
+        8.658250008011237,
+        8.392791991354898,
+        9.572166978614405,
+        8.962708001490682,
+        8.870250021573156
+      ],
+      "median_ms": 8.870250021573156,
+      "mean_ms": 8.891233400208876,
+      "min_ms": 8.392791991354898,
+      "max_ms": 9.572166978614405,
+      "std_dev": 0.43930187744527666,
+      "passed": true,
+      "timestamp": "2026-06-09T23:08:52.532509+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_render_64x64_map_time",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 500.0,
+      "measurements": [
+        15.967957995599136,
+        16.24670802266337,
+        15.453542000614107,
+        15.371082990895957,
+        16.110500000650063
+      ],
+      "median_ms": 15.967957995599136,
+      "mean_ms": 15.829958202084526,
+      "min_ms": 15.371082990895957,
+      "max_ms": 16.24670802266337,
+      "std_dev": 0.39486822893141615,
+      "passed": true,
+      "timestamp": "2026-06-09T23:08:57.665968+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_efficiency",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 90.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T23:09:02.841820+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_viewport_culling_effectiveness",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 70.0,
+      "measurements": [
+        98.73046875
+      ],
+      "median_ms": 98.73046875,
+      "mean_ms": 98.73046875,
+      "min_ms": 98.73046875,
+      "max_ms": 98.73046875,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T23:09:07.559682+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_ai_tick_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 10.0,
+      "measurements": [
+        0.10137498611584306,
+        0.08233397966250777,
+        0.08024999988265336,
+        0.08062500273808837,
+        0.08024999988265336
+      ],
+      "median_ms": 0.08062500273808837,
+      "mean_ms": 0.08496679365634918,
+      "min_ms": 0.08024999988265336,
+      "max_ms": 0.10137498611584306,
+      "std_dev": 0.009212870409093497,
+      "passed": true,
+      "timestamp": "2026-06-09T23:09:07.581436+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_pathfinding_50_tiles",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 50.0,
+      "measurements": [
+        14.979291998315603,
+        14.68987500993535,
+        14.221000019460917,
+        14.004875003593042,
+        13.391582993790507
+      ],
+      "median_ms": 14.221000019460917,
+      "mean_ms": 14.257325005019084,
+      "min_ms": 13.391582993790507,
+      "max_ms": 14.979291998315603,
+      "std_dev": 0.617028278113043,
+      "passed": true,
+      "timestamp": "2026-06-09T23:09:07.712910+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_combat_resolution_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 5.0,
+      "measurements": [
+        0.028499984182417393,
+        0.02912498894147575,
+        0.02833400503732264,
+        0.028082984499633312,
+        0.028250011382624507
+      ],
+      "median_ms": 0.02833400503732264,
+      "mean_ms": 0.02845839480869472,
+      "min_ms": 0.028082984499633312,
+      "max_ms": 0.02912498894147575,
+      "std_dev": 0.00040184162971781436,
+      "passed": true,
+      "timestamp": "2026-06-09T23:09:07.729379+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_save_load_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 2000.0,
+      "measurements": [
+        2.7042919828090817,
+        2.952292008558288,
+        2.9549580067396164
+      ],
+      "median_ms": 2.952292008558288,
+      "mean_ms": 2.8705139993689954,
+      "min_ms": 2.7042919828090817,
+      "max_ms": 2.9549580067396164,
+      "std_dev": 0.14395866065822124,
+      "passed": true,
+      "timestamp": "2026-06-09T23:09:07.767991+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_memory_after_100_frames",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "MB",
+      "threshold": 50.0,
+      "measurements": [
+        0.7397260665893555
+      ],
+      "median_ms": 0.7397260665893555,
+      "mean_ms": 0.7397260665893555,
+      "min_ms": 0.7397260665893555,
+      "max_ms": 0.7397260665893555,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T23:09:19.889665+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_size_stability",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "%",
+      "threshold": 100.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T23:09:24.576729+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_cold_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 10000.0,
+      "measurements": [
+        235.87,
+        129.52,
+        156.69,
+        96.22,
+        96.7
+      ],
+      "median_ms": 129.52,
+      "mean_ms": 143.0,
+      "min_ms": 96.22,
+      "max_ms": 235.87,
+      "std_dev": 57.7191948142037,
+      "passed": true,
+      "timestamp": "2026-06-09T23:09:25.552342+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_hot_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 3000.0,
+      "measurements": [
+        0.13520897482521832
+      ],
+      "median_ms": 0.13520897482521832,
+      "mean_ms": 0.13520897482521832,
+      "min_ms": 0.13520897482521832,
+      "max_ms": 0.13520897482521832,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-09T23:09:25.570400+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_efficiency",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 90.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-10T03:35:25.033896+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_viewport_culling_effectiveness",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 70.0,
+      "measurements": [
+        98.73046875
+      ],
+      "median_ms": 98.73046875,
+      "mean_ms": 98.73046875,
+      "min_ms": 98.73046875,
+      "max_ms": 98.73046875,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-10T03:35:30.285846+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_ai_tick_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 10.0,
+      "measurements": [
+        0.10341699817217886,
+        0.10387500515207648,
+        0.10304100578650832,
+        0.10220802505500615,
+        0.10333297541365027
+      ],
+      "median_ms": 0.10333297541365027,
+      "mean_ms": 0.10317480191588402,
+      "min_ms": 0.10220802505500615,
+      "max_ms": 0.10387500515207648,
+      "std_dev": 0.0006177623646876769,
+      "passed": true,
+      "timestamp": "2026-06-10T03:35:30.312689+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_pathfinding_50_tiles",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 50.0,
+      "measurements": [
+        23.400000005494803,
+        18.241207988467067,
+        19.13500000955537,
+        16.846458980580792,
+        17.534084006911144
+      ],
+      "median_ms": 18.241207988467067,
+      "mean_ms": 19.031350198201835,
+      "min_ms": 16.846458980580792,
+      "max_ms": 23.400000005494803,
+      "std_dev": 2.5853299989642884,
+      "passed": true,
+      "timestamp": "2026-06-10T03:35:30.484924+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_combat_resolution_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 5.0,
+      "measurements": [
+        0.036291981814429164,
+        0.035999983083456755,
+        0.036083016311749816,
+        0.03595798625610769,
+        0.03933301195502281
+      ],
+      "median_ms": 0.036083016311749816,
+      "mean_ms": 0.03673319588415325,
+      "min_ms": 0.03595798625610769,
+      "max_ms": 0.03933301195502281,
+      "std_dev": 0.0014590234673030954,
+      "passed": true,
+      "timestamp": "2026-06-10T03:35:30.503812+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_save_load_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 2000.0,
+      "measurements": [
+        3.7913339911028743,
+        3.5687079944182187,
+        3.820500016445294
+      ],
+      "median_ms": 3.7913339911028743,
+      "mean_ms": 3.7268473339887955,
+      "min_ms": 3.5687079944182187,
+      "max_ms": 3.820500016445294,
+      "std_dev": 0.13772691203404058,
+      "passed": true,
+      "timestamp": "2026-06-10T03:35:30.539835+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_size_stability",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "%",
+      "threshold": 100.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-10T03:35:43.606511+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_cold_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 10000.0,
+      "measurements": [
+        261.88,
+        126.82,
+        119.64,
+        122.8,
+        119.19
+      ],
+      "median_ms": 122.8,
+      "mean_ms": 150.066,
+      "min_ms": 119.19,
+      "max_ms": 261.88,
+      "std_dev": 62.580449662814026,
+      "passed": true,
+      "timestamp": "2026-06-10T03:35:44.672382+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_hot_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 3000.0,
+      "measurements": [
+        0.16691599739715457
+      ],
+      "median_ms": 0.16691599739715457,
+      "mean_ms": 0.16691599739715457,
+      "min_ms": 0.16691599739715457,
+      "max_ms": 0.16691599739715457,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-10T03:35:44.763032+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_efficiency",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 90.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-10T04:27:01.748717+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_viewport_culling_effectiveness",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 70.0,
+      "measurements": [
+        98.73046875
+      ],
+      "median_ms": 98.73046875,
+      "mean_ms": 98.73046875,
+      "min_ms": 98.73046875,
+      "max_ms": 98.73046875,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-10T04:27:15.887176+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_ai_tick_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 10.0,
+      "measurements": [
+        0.8000000088941306,
+        0.20612499793060124,
+        0.3107499796897173,
+        0.193667015992105,
+        0.1927920093294233
+      ],
+      "median_ms": 0.20612499793060124,
+      "mean_ms": 0.3406668023671955,
+      "min_ms": 0.1927920093294233,
+      "max_ms": 0.8000000088941306,
+      "std_dev": 0.26146672811696936,
+      "passed": true,
+      "timestamp": "2026-06-10T04:27:16.438407+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_pathfinding_50_tiles",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 50.0,
+      "measurements": [
+        53.08225000044331,
+        43.97749999770895,
+        67.25533399730921,
+        46.539667004253715,
+        51.08791700331494
+      ],
+      "median_ms": 51.08791700331494,
+      "mean_ms": 52.388533600606024,
+      "min_ms": 43.97749999770895,
+      "max_ms": 67.25533399730921,
+      "std_dev": 9.05744620109548,
+      "passed": false,
+      "timestamp": "2026-06-10T04:27:17.053253+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_combat_resolution_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 5.0,
+      "measurements": [
+        0.11379100033082068,
+        0.14058398664928973,
+        0.08149998029693961,
+        0.06937500438652933,
+        0.09887499618344009
+      ],
+      "median_ms": 0.09887499618344009,
+      "mean_ms": 0.10082499356940389,
+      "min_ms": 0.06937500438652933,
+      "max_ms": 0.14058398664928973,
+      "std_dev": 0.027907236111144314,
+      "passed": true,
+      "timestamp": "2026-06-10T04:27:17.160723+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_save_load_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 2000.0,
+      "measurements": [
+        16.996624995954335,
+        14.011416002176702,
+        18.064792006043717
+      ],
+      "median_ms": 16.996624995954335,
+      "mean_ms": 16.357611001391586,
+      "min_ms": 14.011416002176702,
+      "max_ms": 18.064792006043717,
+      "std_dev": 2.1008851518149476,
+      "passed": true,
+      "timestamp": "2026-06-10T04:27:17.386383+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_size_stability",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "%",
+      "threshold": 100.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-10T04:27:51.948310+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_cold_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 10000.0,
+      "measurements": [
+        1698.14,
+        817.39,
+        1137.81,
+        600.04,
+        847.27
+      ],
+      "median_ms": 847.27,
+      "mean_ms": 1020.13,
+      "min_ms": 600.04,
+      "max_ms": 1698.14,
+      "std_dev": 424.5603130887295,
+      "passed": true,
+      "timestamp": "2026-06-10T04:27:58.847893+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_hot_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 3000.0,
+      "measurements": [
+        3.859083022689447
+      ],
+      "median_ms": 3.859083022689447,
+      "mean_ms": 3.859083022689447,
+      "min_ms": 3.859083022689447,
+      "max_ms": 3.859083022689447,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-10T04:27:59.447797+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_efficiency",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 90.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-10T04:54:30.024852+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_viewport_culling_effectiveness",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 70.0,
+      "measurements": [
+        98.73046875
+      ],
+      "median_ms": 98.73046875,
+      "mean_ms": 98.73046875,
+      "min_ms": 98.73046875,
+      "max_ms": 98.73046875,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-10T04:54:34.864184+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_ai_tick_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 10.0,
+      "measurements": [
+        0.11470899335108697,
+        0.1158749801106751,
+        0.11491600889712572,
+        0.11466699652373791,
+        0.11383299715816975
+      ],
+      "median_ms": 0.11470899335108697,
+      "mean_ms": 0.11479999520815909,
+      "min_ms": 0.11383299715816975,
+      "max_ms": 0.1158749801106751,
+      "std_dev": 0.0007297442931254287,
+      "passed": true,
+      "timestamp": "2026-06-10T04:54:34.887449+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_pathfinding_50_tiles",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 50.0,
+      "measurements": [
+        19.492457999149337,
+        18.6691660201177,
+        18.574290996184573,
+        18.542750010965392,
+        19.65133400517516
+      ],
+      "median_ms": 18.6691660201177,
+      "mean_ms": 18.985999806318432,
+      "min_ms": 18.542750010965392,
+      "max_ms": 19.65133400517516,
+      "std_dev": 0.5397980341652121,
+      "passed": true,
+      "timestamp": "2026-06-10T04:54:35.058193+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_combat_resolution_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 5.0,
+      "measurements": [
+        0.04591699689626694,
+        0.045666994992643595,
+        0.04516699118539691,
+        0.045249995309859514,
+        0.04549999721348286
+      ],
+      "median_ms": 0.04549999721348286,
+      "mean_ms": 0.04550019511952996,
+      "min_ms": 0.04516699118539691,
+      "max_ms": 0.04591699689626694,
+      "std_dev": 0.00030625592419147526,
+      "passed": true,
+      "timestamp": "2026-06-10T04:54:35.082372+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_save_load_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 2000.0,
+      "measurements": [
+        4.535832995316014,
+        6.1861669819336385,
+        4.495000001043081
+      ],
+      "median_ms": 4.535832995316014,
+      "mean_ms": 5.072333326097578,
+      "min_ms": 4.495000001043081,
+      "max_ms": 6.1861669819336385,
+      "std_dev": 0.9648242808979085,
+      "passed": true,
+      "timestamp": "2026-06-10T04:54:35.125788+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_size_stability",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "%",
+      "threshold": 100.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-10T04:54:46.855746+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_cold_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 10000.0,
+      "measurements": [
+        172.52,
+        129.2,
+        125.03,
+        132.31,
+        130.72
+      ],
+      "median_ms": 130.72,
+      "mean_ms": 137.956,
+      "min_ms": 125.03,
+      "max_ms": 172.52,
+      "std_dev": 19.51061326560496,
+      "passed": true,
+      "timestamp": "2026-06-10T04:54:47.827962+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_hot_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 3000.0,
+      "measurements": [
+        0.0983330246526748
+      ],
+      "median_ms": 0.0983330246526748,
+      "mean_ms": 0.0983330246526748,
+      "min_ms": 0.0983330246526748,
+      "max_ms": 0.0983330246526748,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-10T04:54:47.923267+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_efficiency",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 90.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-11T03:18:05.712873+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_viewport_culling_effectiveness",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 70.0,
+      "measurements": [
+        98.73046875
+      ],
+      "median_ms": 98.73046875,
+      "mean_ms": 98.73046875,
+      "min_ms": 98.73046875,
+      "max_ms": 98.73046875,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-11T03:18:09.288880+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_ai_tick_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 10.0,
+      "measurements": [
+        0.07166698924265802,
+        0.07945799734443426,
+        0.07029200787656009,
+        0.07045798702165484,
+        0.0705840066075325
+      ],
+      "median_ms": 0.0705840066075325,
+      "mean_ms": 0.07249179761856794,
+      "min_ms": 0.07029200787656009,
+      "max_ms": 0.07945799734443426,
+      "std_dev": 0.003931392071282695,
+      "passed": true,
+      "timestamp": "2026-06-11T03:18:09.306807+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_pathfinding_50_tiles",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 50.0,
+      "measurements": [
+        11.359583004377782,
+        11.752666992833838,
+        11.975125002209097,
+        11.709459009580314,
+        11.36862501152791
+      ],
+      "median_ms": 11.709459009580314,
+      "mean_ms": 11.633091804105788,
+      "min_ms": 11.359583004377782,
+      "max_ms": 11.975125002209097,
+      "std_dev": 0.2654555670640564,
+      "passed": true,
+      "timestamp": "2026-06-11T03:18:09.412460+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_combat_resolution_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 5.0,
+      "measurements": [
+        0.025582994567230344,
+        0.02520799171179533,
+        0.025124987587332726,
+        0.025249988539144397,
+        0.025166984414681792
+      ],
+      "median_ms": 0.02520799171179533,
+      "mean_ms": 0.025266589364036918,
+      "min_ms": 0.025124987587332726,
+      "max_ms": 0.025582994567230344,
+      "std_dev": 0.00018288912894499256,
+      "passed": true,
+      "timestamp": "2026-06-11T03:18:09.426941+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_save_load_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 2000.0,
+      "measurements": [
+        2.5030830001924187,
+        2.4243330117315054,
+        2.4492920201737434
+      ],
+      "median_ms": 2.4492920201737434,
+      "mean_ms": 2.4589026773658893,
+      "min_ms": 2.4243330117315054,
+      "max_ms": 2.5030830001924187,
+      "std_dev": 0.04024504589880849,
+      "passed": true,
+      "timestamp": "2026-06-11T03:18:09.451406+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_surface_pool_size_stability",
+      "category": "memory",
+      "priority": "P1",
+      "unit": "%",
+      "threshold": 100.0,
+      "measurements": [
+        100.0
+      ],
+      "median_ms": 100.0,
+      "mean_ms": 100.0,
+      "min_ms": 100.0,
+      "max_ms": 100.0,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-11T03:18:17.650496+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_cold_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 10000.0,
+      "measurements": [
+        109.12,
+        77.74,
+        79.89,
+        82.06,
+        78.51
+      ],
+      "median_ms": 79.89,
+      "mean_ms": 85.464,
+      "min_ms": 77.74,
+      "max_ms": 109.12,
+      "std_dev": 13.32555177093992,
+      "passed": true,
+      "timestamp": "2026-06-11T03:18:18.269764+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_hot_startup_time",
+      "category": "startup",
+      "priority": "P1",
+      "unit": "ms",
+      "threshold": 3000.0,
+      "measurements": [
+        0.13187501463107765
+      ],
+      "median_ms": 0.13187501463107765,
+      "mean_ms": 0.13187501463107765,
+      "min_ms": 0.13187501463107765,
+      "max_ms": 0.13187501463107765,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-11T03:18:18.329533+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_viewport_culling_effectiveness",
+      "category": "rendering",
+      "priority": "P0",
+      "unit": "%",
+      "threshold": 70.0,
+      "measurements": [
+        98.73046875
+      ],
+      "median_ms": 98.73046875,
+      "mean_ms": 98.73046875,
+      "min_ms": 98.73046875,
+      "max_ms": 98.73046875,
+      "std_dev": 0.0,
+      "passed": true,
+      "timestamp": "2026-06-11T03:44:50.952845+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_ai_tick_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 10.0,
+      "measurements": [
+        0.11929200263693929,
+        0.07554201874881983,
+        0.07458298932760954,
+        0.10362500324845314,
+        0.09158399188891053
+      ],
+      "median_ms": 0.09158399188891053,
+      "mean_ms": 0.09292520117014647,
+      "min_ms": 0.07458298932760954,
+      "max_ms": 0.11929200263693929,
+      "std_dev": 0.01904011943771558,
+      "passed": true,
+      "timestamp": "2026-06-11T03:44:50.977237+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_pathfinding_50_tiles",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 50.0,
+      "measurements": [
+        11.84550000471063,
+        11.693291016854346,
+        12.507834006100893,
+        11.926458013476804,
+        11.491750017739832
+      ],
+      "median_ms": 11.84550000471063,
+      "mean_ms": 11.892966611776501,
+      "min_ms": 11.491750017739832,
+      "max_ms": 12.507834006100893,
+      "std_dev": 0.38153694575865316,
+      "passed": true,
+      "timestamp": "2026-06-11T03:44:51.099564+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_combat_resolution_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 5.0,
+      "measurements": [
+        0.024958018912002444,
+        0.024749984731897712,
+        0.02475001383572817,
+        0.024666980607435107,
+        0.024834007490426302
+      ],
+      "median_ms": 0.02475001383572817,
+      "mean_ms": 0.024791801115497947,
+      "min_ms": 0.024666980607435107,
+      "max_ms": 0.024958018912002444,
+      "std_dev": 0.00011009618508425775,
+      "passed": true,
+      "timestamp": "2026-06-11T03:44:51.121578+00:00",
+      "version": "0.3.0"
+    },
+    {
+      "name": "test_save_load_time",
+      "category": "game_logic",
+      "priority": "P0",
+      "unit": "ms",
+      "threshold": 2000.0,
+      "measurements": [
+        2.8010840178467333,
+        2.9759170138277113,
+        2.726708975387737
+      ],
+      "median_ms": 2.8010840178467333,
+      "mean_ms": 2.8345700023540608,
+      "min_ms": 2.726708975387737,
+      "max_ms": 2.9759170138277113,
+      "std_dev": 0.1279341431150951,
+      "passed": true,
+      "timestamp": "2026-06-11T03:44:51.194921+00:00",
+      "version": "0.3.0"
     }
   ],
   "summary": {
-    "total_benchmarks": 582,
-    "passed": 582,
-    "failed": 0,
-    "pass_rate": "100.0%",
+    "total_benchmarks": 701,
+    "passed": 700,
+    "failed": 1,
+    "pass_rate": "99.9%",
     "by_category": {
-      "rendering": 196,
-      "game_logic": 195,
-      "memory": 95,
-      "startup": 96
+      "rendering": 236,
+      "game_logic": 239,
+      "memory": 110,
+      "startup": 116
     }
   }
 }

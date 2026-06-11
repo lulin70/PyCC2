@@ -14,6 +14,7 @@ from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.presentation.rendering.minimap import Minimap
 from pycc2.presentation.rendering.visual_spec import VisualSpec
 from pycc2.presentation.rendering.fade_transition import FadeTransition
+from pycc2.presentation.ui.theme import ThemeManager
 
 
 class HUDManager:
@@ -39,6 +40,14 @@ class HUDManager:
         pygame.font.init()
         self._font_large = pygame.font.Font(None, self._dc.font_size_large)
         self._font_small = pygame.font.Font(None, self._dc.font_size_normal)
+
+        # Apply ThemeManager colors to VisualSpec for runtime theme switching
+        theme = ThemeManager.get_current()
+        self.spec.hud_background_color = (*theme.colors.background, 200)
+        self.spec.hud_border_color = theme.colors.border
+        self.spec.hud_text_color = theme.colors.text_primary
+        self.spec.panel_background_color = (*theme.colors.surface, 220)
+        self.spec.panel_border_color = theme.colors.border
 
     def set_selected_units(self, units: list[Unit]) -> None:
         """Set currently selected units for info display."""

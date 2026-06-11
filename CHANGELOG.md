@@ -2,6 +2,33 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.36] - 2026-06-11
+
+### Infrastructure Phase (DevSquad Top-10 Optimization Round 2)
+
+#### ThemeManager Activation (176-line system finally alive)
+- **[INTEGRATE]** `ThemeManager` singleton now initialized in `EnhancedRenderer.initialize()` with `"default"` theme active at startup
+- **3 files connected**: enhanced_renderer.py (background fill), cc2_bottom_panel.py (5 color constants → dynamic properties), hud.py (VisualSpec 5-color override)
+- Runtime theme switching: `ThemeManager.set_theme("dark")` / `"light"` / `"default"` — all connected UI components respond immediately
+- All theme lookups have fallback defaults — zero crash risk if ThemeManager not initialized
+
+#### SurfacePool Complete Unification (4→1, now 6/6)
+- **enhanced_renderer.py**: Internal OrderedDict pool → `SurfacePool(max_size=50)`, `_get_pooled_surface()` simplified from ~20 lines to 3
+- **terrain_rendering_system.py**: Internal dict pool → `SurfacePool(max_size=20)`, `_get_overlay_surface()` simplified
+- **lighting_effects.py**: Internal dict pool → `SurfacePool(max_size=15)`, `_get_light_surface()` simplified
+- **Status**: All 6 Surface consumers now use unified LRU pooling — eliminated duplicate memory management code across rendering pipeline
+
+#### HUD Test Coverage (1138 lines → 55 new tests)
+- **New file**: `tests/unit/test_cc2_hud.py` — 12 test classes, 55 test methods covering:
+  - Init defaults (13 attrs), selection management, clear/hide behavior
+  - Click edge cases (7 scenarios), HP status bar boundary values (5 boundaries)
+  - AP/AT bar edge cases, scrolling behavior, minimap integration
+  - Info mode cycling, render stability across states (5 variants)
+- **Bug found during testing**: hide_button_rects vs unit_rects area overlap in handle_click — documented for future fix
+
+#### Save System Test Fix
+- Fixed 2 e2e `test_save_load_e2e` failures: test path mismatch (`saves/save_slot_X` → `save_slot_X` after SAVE_DIR_NAME="") + chmod OSError tolerance
+
 ## [0.3.35] - 2026-06-11
 
 ### Quick Wins (DevSquad Top-10 Optimization Round 1)

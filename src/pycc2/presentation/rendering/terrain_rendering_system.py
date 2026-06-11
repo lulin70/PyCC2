@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING
 import pygame
 
 from pycc2.domain.value_objects.vec2 import Vec2
+from pycc2.presentation.rendering.surface_pool import SurfacePool
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
@@ -94,8 +95,7 @@ class TerrainRenderingSystem:
         self._scaled_texture_cache = getattr(renderer, '_scaled_texture_cache', {})
         self._terrain_tile_cache = getattr(renderer, '_terrain_tile_cache', None)
         self._transition_cache = getattr(renderer, '_transition_cache', {})
-        self._overlay_surface_pool: dict[tuple[int, int], pygame.Surface] = {}
-        self._MAX_OVERLAY_SURFACE_POOL = 30
+        self._overlay_surface_pool = SurfacePool(max_size=20)
 
         # P1-2: 地形静态层缓存 — 将所有可见地形tile合成一张大图
         # 当相机不动且地形未修改时，直接blit缓存的大图，避免每帧逐tile绘制
@@ -104,16 +104,9 @@ class TerrainRenderingSystem:
         self._terrain_cache_key: tuple | None = None  # (viewport_tl, viewport_size, map_version)
 
     def _get_overlay_surface(self, w: int, h: int) -> pygame.Surface:
-        key = (w, h)
-        if key in self._overlay_surface_pool:
-            surf = self._overlay_surface_pool.pop(key)
-            self._overlay_surface_pool[key] = surf
-            surf.fill((0, 0, 0, 0))
-            return surf
-        surf = pygame.Surface((w, h), pygame.SRCALPHA)
-        if len(self._overlay_surface_pool) >= self._MAX_OVERLAY_SURFACE_POOL:
-            self._overlay_surface_pool.pop(next(iter(self._overlay_surface_pool)))
-        self._overlay_surface_pool[key] = surf
+        """Get or create an overlay surface from the shared SurfacePool."""
+        surf = self._overlay_surface_pool.get((w, h))
+        surf.fill((0, 0, 0, 0))
         return surf
 
     def _ensure_terrain_cache(

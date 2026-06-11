@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.rendering.minimap import Minimap
 from pycc2.presentation.rendering.fade_transition import FadeTransition
+from pycc2.presentation.ui.theme import ThemeManager
 
 
 # ------------------------------------------------------------------
@@ -111,11 +112,37 @@ class CC2BottomPanel:
     COMMAND_BAR_HEIGHT: int = 40  # Command button row height
 
     # Colors (CC2 military style - Deep Olive Green)
-    BG_COLOR = (58, 64, 48)  # Deep olive green (#3A4030) - CC2 original
-    BORDER_COLOR = (90, 96, 80)  # Olive border (#5A6050) - CC2 original
-    TEXT_COLOR = (220, 220, 220)
-    HIGHLIGHT_COLOR = (255, 255, 100)
-    SELECTED_BG = (40, 45, 55)
+    # Theme-managed: falls back to CC2 originals if ThemeManager not initialized
+    _BG_COLOR_DEFAULT = (58, 64, 48)       # Deep olive green (#3A4030) - CC2 original
+    _BORDER_COLOR_DEFAULT = (90, 96, 80)   # Olive border (#5A6050) - CC2 original
+    _TEXT_COLOR_DEFAULT = (220, 220, 220)
+    _HIGHLIGHT_COLOR_DEFAULT = (255, 255, 100)
+    _SELECTED_BG_DEFAULT = (40, 45, 55)
+
+    @property
+    def BG_COLOR(self) -> tuple[int, int, int]:
+        """Panel background color from current theme."""
+        return getattr(ThemeManager.get_current().colors, 'surface', self._BG_COLOR_DEFAULT)
+
+    @property
+    def BORDER_COLOR(self) -> tuple[int, int, int]:
+        """Panel border color from current theme."""
+        return getattr(ThemeManager.get_current().colors, 'border', self._BORDER_COLOR_DEFAULT)
+
+    @property
+    def TEXT_COLOR(self) -> tuple[int, int, int]:
+        """Primary text color from current theme."""
+        return getattr(ThemeManager.get_current().colors, 'text_primary', self._TEXT_COLOR_DEFAULT)
+
+    @property
+    def HIGHLIGHT_COLOR(self) -> tuple[int, int, int]:
+        """Highlight/accent color from current theme."""
+        return getattr(ThemeManager.get_current().colors, 'warning', self._HIGHLIGHT_COLOR_DEFAULT)
+
+    @property
+    def SELECTED_BG(self) -> tuple[int, int, int]:
+        """Selected item background color from current theme."""
+        return getattr(ThemeManager.get_current().colors, 'surface', self._SELECTED_BG_DEFAULT)
 
     # 3D border colors for raised buttons
     BORDER_LIGHT = (90, 95, 105)  # Top/left highlight
