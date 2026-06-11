@@ -69,6 +69,24 @@ class GameLoopAssembler:
             self._loop.sound_system = SS()
         self._loop.sound_system.initialize()
 
+        # Initialize environmental ambient audio system (procedural, no external files needed)
+        try:
+            from pycc2.infrastructure.audio.environmental_audio import (
+                EnvironmentalAudioSystem,
+            )
+            import pygame
+
+            env_audio = EnvironmentalAudioSystem()
+            env_audio.initialize(pygame.mixer)
+            self._loop._environmental_audio = env_audio
+            logger.info("EnvironmentalAudioSystem initialized and wired into GameLoop")
+        except Exception as e:
+            logger.warning(
+                "EnvironmentalAudioSystem init failed (non-critical, game runs without ambient audio): %s",
+                e,
+            )
+            self._loop._environmental_audio = None
+
     def _init_core_services(self) -> None:
         from pycc2.services.deployment_manager import DeploymentManager
         from pycc2.services.pause_menu_controller import PauseMenuController

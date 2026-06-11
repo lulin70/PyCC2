@@ -90,6 +90,7 @@ class GameLoop:
     _combat_camera: object | None = field(init=False, default=None)
     _achievement_bridge: object | None = field(init=False, default=None)
     _projectile_trail_sys: object | None = field(init=False, default=None)
+    _environmental_audio: object | None = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         from pycc2.services.game_loop_assembler import GameLoopAssembler
@@ -323,6 +324,44 @@ class GameLoop:
                 self.sound_system.process_event_queue()
             except AttributeError:
                 pass  # SoundSystem may not have process_event_queue method
+
+        # Update environmental ambient audio system
+        if self._environmental_audio is not None:
+            try:
+                self._environmental_audio.update(dt)
+            except Exception:
+                pass
+
+        # Sync environmental audio context with game state
+        if self._environmental_audio is not None:
+            try:
+                # Sync time-of-day from day-night cycle
+                if hasattr(self, '_day_night_cycle') and self._day_night_cycle is not None:
+                    tod = getattr(self._day_night_cycle, 'time_of_day', None)
+                    if tod is not None:
+                        hour = int(tod * 24) % 24
+                        self._environmental_audio.set_time_of_day(hour)
+                elif hasattr(self, '_day_night_time') and self._day_night_time is not None:
+                    hour = int(self._day_night_time * 24) % 24
+                    self._environmental_audio.set_time_of_day(hour)
+
+                # Sync weather (rain)
+                if hasattr(self, '_weather_state') and self._weather_state is not None:
+                    weather_type = getattr(self._weather_state, 'weather_type', None)
+                    if weather_type is not None:
+                        is_raining = 'rain' in str(weather_type).lower()
+                        self._environmental_audio.set_weather_rain(is_raining)
+
+                # Estimate combat intensity from unit states
+                attacking_count = sum(
+                    1 for u in self.state.units
+                    if u.is_alive and u.state_machine.current == UnitState.ATTACKING
+                )
+                total_alive = sum(1 for u in self.state.units if u.is_alive)
+                intensity = min(1.0, attacking_count / max(1, total_alive * 0.15))
+                self._environmental_audio.set_combat_intensity(intensity)
+            except Exception:
+                pass
 
         # Update unit movements (smooth movement toward targets)
         for unit in self.state.units:
@@ -602,6 +641,11 @@ class GameLoop:
         self.state.running = False
         if self._achievement_bridge is not None:
             self._achievement_bridge._manager.save()
+        if self._environmental_audio is not None:
+            try:
+                self._environmental_audio.stop_all()
+            except Exception:
+                pass
         if self.sound_system is not None:
             self.sound_system.shutdown()
         if self.ai_service is not None:

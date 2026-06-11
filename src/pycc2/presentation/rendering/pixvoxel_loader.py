@@ -52,6 +52,8 @@ from __future__ import annotations
 
 import json
 import logging
+import shutil
+import subprocess
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -222,6 +224,16 @@ ANIMATION_MAP: dict[str, str] = {
     "explosions": "Explosions",
 }
 
+# PixVoxel asset pack download URLs (CC0 licensed from OpenGameArt)
+PIXVOXEL_ISO_URL = (
+    "https://opengameart.org/sites/default/files/"
+    "Revised_PixVoxel_Wargame_1.7z"
+)
+PIXVOXEL_ORTHO_URL = (
+    "https://opengameart.org/sites/default/files/"
+    "PixVoxel_Ortho_Wargame.7z"
+)
+
 
 class PixVoxelLoader:
     """
@@ -229,9 +241,15 @@ class PixVoxelLoader:
 
     加载 PixVoxel 等距/正交精灵，支持调色板替换和缓存。
     当 PixVoxel 资源不可用时，自动 fallback 到程序化生成。
+    支持通过 ResourceCacheManager 自动下载缺失的资源包。
     """
 
-    def __init__(self, assets_dir: Path | None = None):
+    def __init__(
+        self,
+        assets_dir: Path | None = None,
+        auto_download: bool = False,
+        offline_mode: bool = False,
+    ):
         if assets_dir is None:
             project_root = Path(__file__).resolve().parent.parent.parent.parent.parent
             assets_dir = project_root / "assets"
@@ -239,6 +257,8 @@ class PixVoxelLoader:
         self.assets_dir = Path(assets_dir)
         self.iso_dir = self.assets_dir / "sprites" / "pixvoxel_isometric"
         self.ortho_dir = self.assets_dir / "sprites" / "pixvoxel_ortho"
+        self._auto_download = auto_download
+        self._offline_mode = offline_mode
 
         # 缓存: key → Surface
         self._cache: dict[str, Surface] = {}
@@ -253,17 +273,330 @@ class PixVoxelLoader:
         ).exists()
 
         if self._iso_available:
-            logger.info(f"PixVoxel 等距精灵可用: {self.iso_dir}")
+            logger.info("PixVoxel isometric sprites available: %s", self.iso_dir)
         else:
-            logger.info("PixVoxel 等距精灵不可用，将使用 fallback")
+            logger.info("PixVoxel isometric sprites unavailable, will use fallback")
+            # Attempt auto-download when assets are missing
+            if self._auto_download:
+                self._try_auto_download_iso()
 
         if self._ortho_available:
-            logger.info(f"PixVoxel 正交精灵可用: {self.ortho_dir}")
+            logger.info("PixVoxel orthographic sprites available: %s", self.ortho_dir)
 
     @property
     def is_available(self) -> bool:
-        """是否有可用的 PixVoxel 资源"""
+        """Whether any PixVoxel resource is available."""
         return self._iso_available or self._ortho_available
+
+    # ------------------------------------------------------------------
+    # Auto-download via ResourceCacheManager
+    # ------------------------------------------------------------------
+
+    def _try_auto_download_iso(self) -> None:
+        """Attempt to download and extract isometric PixVoxel assets.
+
+        Uses ResourceCacheManager for downloading with caching support.
+        After download, extracts the 7z archive and organizes sprites.
+        """
+        try:
+            from pycc2.infrastructure.resource_cache import ResourceCacheManager
+
+            cache_mgr = ResourceCacheManager(offline_mode=self._offline_mode)
+            archive_path = cache_mgr.get(PIXVOXEL_ISO_URL)
+
+            if archive_path is None:
+                logger.warning(
+                    "Auto-download failed for PixVoxel isometric assets. "
+                    "Game will use procedural fallback."
+                )
+                return
+
+            # Extract and organize
+            if self._extract_and_organize(archive_path, self.iso_dir, "isometric"):
+                # Re-check availability after extraction
+                self._iso_available = (
+                    self.iso_dir.exists()
+                    and (self.iso_dir / "manifest.json").exists()
+                )
+                if self._iso_available:
+                    logger.info(
+                        "PixVoxel isometric assets downloaded and ready: %s",
+                        self.iso_dir,
+                    )
+
+        except Exception as exc:
+            logger.warning("Auto-download error: %s", exc)
+
+    def _try_auto_download_ortho(self) -> None:
+        """Attempt to download and extract orthographic PixVoxel assets."""
+        try:
+            from pycc2.infrastructure.resource_cache import ResourceCacheManager
+
+            cache_mgr = ResourceCacheManager(offline_mode=self._offline_mode)
+            archive_path = cache_mgr.get(PIXVOXEL_ORTHO_URL)
+
+            if archive_path is None:
+                logger.warning(
+                    "Auto-download failed for PixVoxel orthographic assets."
+                )
+                return
+
+            if self._extract_and_organize(archive_path, self.ortho_dir, "orthographic"):
+                self._ortho_available = (
+                    self.ortho_dir.exists()
+                    and (self.ortho_dir / "manifest.json").exists()
+                )
+                if self._ortho_available:
+                    logger.info(
+                        "PixVoxel orthographic assets downloaded and ready: %s",
+                        self.ortho_dir,
+                    )
+
+        except Exception as exc:
+            logger.warning("Auto-download ortho error: %s", exc)
+
+    def _extract_and_organize(
+        self,
+        archive_path: Path,
+        output_dir: Path,
+        sprite_type: str,
+    ) -> bool:
+        """Extract a 7z archive and organize sprites into *output_dir*.
+
+        Args:
+            archive_path: Path to the .7z file.
+            output_dir: Target directory for organized sprites.
+            sprite_type: Either 'isometric' or 'orthographic'.
+
+        Returns:
+            True on success.
+        """
+        import tempfile
+
+        extract_dir = Path(tempfile.mkdtemp(prefix="pycc2_pv_extract_"))
+
+        try:
+            if not self._extract_7z_archive(archive_path, extract_dir):
+                return False
+
+            # Organize extracted files
+            if sprite_type == "isometric":
+                self._organize_isometric_sprites(extract_dir, output_dir)
+            else:
+                self._organize_ortho_sprites(extract_dir, output_dir)
+
+            return (output_dir / "manifest.json").exists()
+
+        finally:
+            shutil.rmtree(extract_dir, ignore_errors=True)
+
+    @staticmethod
+    def _extract_7z_archive(archive_path: Path, output_dir: Path) -> bool:
+        """Extract a .7z archive using available tools.
+
+        Tries py7zr, then 7z/7za command-line tools.
+        """
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Method 1: py7zr Python library
+        try:
+            import py7zr  # noqa: F811
+
+            logger.info("Extracting with py7zr: %s", archive_path)
+            with py7zr.SevenZipFile(str(archive_path), mode="r") as z:
+                z.extractall(path=str(output_dir))
+            return True
+        except ImportError:
+            logger.debug("py7zr not available")
+        except Exception as exc:
+            logger.warning("py7zr extraction failed: %s", exc)
+
+        # Method 2: 7z command
+        for tool in ("7z", "7za", "/usr/local/bin/7z"):
+            if shutil.which(tool):
+                cmd = [tool, "x", str(archive_path), f"-o{output_dir}", "-y"]
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                if result.returncode == 0:
+                    logger.info("Extracted with %s: %s", tool, archive_path)
+                    return True
+                logger.warning("%s extraction failed: %s", tool, result.stderr)
+
+        logger.error(
+            "No 7z extraction tool available. Install with: pip install py7zr"
+        )
+        return False
+
+    def _organize_isometric_sprites(
+        self, extracted_dir: Path, output_dir: Path
+    ) -> None:
+        """Organize extracted isometric sprites into PyCC2 directory structure.
+
+        Mirrors the logic from scripts/download_pixvoxel_assets.py
+        so the loader can work standalone without requiring the script.
+        """
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        possible_roots = list(extracted_dir.glob("Revised_PixVoxel_Wargame*"))
+        root = possible_roots[0] if possible_roots else extracted_dir
+
+        faction_color_map = {
+            "color1": "allies",
+            "color2": "axis",
+            "color3": "allies_uk",
+            "color4": "axis_italy",
+            "color5": "allies_poland",
+            "color6": "allies_us",
+            "color7": "axis_germany",
+            "color8": "resistance",
+        }
+
+        manifest_entries: list[dict] = []
+
+        for color_dir in sorted(root.glob("color*")):
+            if not color_dir.is_dir():
+                continue
+            faction = faction_color_map.get(color_dir.name, "allies")
+
+            for unit_dir in sorted(color_dir.iterdir()):
+                if not unit_dir.is_dir():
+                    continue
+                unit_name = unit_dir.name
+                pycc2_type = PIXVOXEL_TO_PYCC2.get(unit_name, unit_name.upper())
+
+                for anim_dir in sorted(unit_dir.iterdir()):
+                    if not anim_dir.is_dir():
+                        continue
+                    anim_name = anim_dir.name
+
+                    for sprite_file in sorted(anim_dir.glob("*.png")):
+                        stem = sprite_file.stem
+                        parts = stem.split("_")
+                        direction = parts[0] if len(parts) >= 2 else "N"
+                        frame = parts[1] if len(parts) >= 2 else "0"
+
+                        rel_path = (
+                            f"{faction}/{pycc2_type}/{anim_name}/"
+                            f"{direction}_{frame}.png"
+                        )
+                        target_path = output_dir / rel_path
+                        target_path.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(sprite_file, target_path)
+
+                        manifest_entries.append({
+                            "pixvoxel_name": unit_name,
+                            "pycc2_type": pycc2_type,
+                            "faction": faction,
+                            "animation": anim_name,
+                            "direction": direction,
+                            "frame": frame,
+                            "path": rel_path,
+                        })
+
+        # Copy special directories
+        for special in ("palettes", "blank"):
+            src = root / special
+            if src.exists():
+                dst = output_dir / special
+                if dst.exists():
+                    shutil.rmtree(dst)
+                shutil.copytree(src, dst)
+
+        # Write manifest
+        self._write_manifest(output_dir, manifest_entries, "isometric")
+
+    def _organize_ortho_sprites(
+        self, extracted_dir: Path, output_dir: Path
+    ) -> None:
+        """Organize extracted orthographic sprites into PyCC2 structure."""
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        possible_roots = list(extracted_dir.glob("PixVoxel_Ortho*"))
+        root = possible_roots[0] if possible_roots else extracted_dir
+
+        faction_color_map = {
+            "color1": "allies",
+            "color2": "axis",
+            "color3": "allies_uk",
+            "color4": "axis_italy",
+            "color5": "allies_poland",
+            "color6": "allies_us",
+            "color7": "axis_germany",
+            "color8": "resistance",
+        }
+
+        manifest_entries: list[dict] = []
+
+        for color_dir in sorted(root.glob("color*")):
+            if not color_dir.is_dir():
+                continue
+            faction = faction_color_map.get(color_dir.name, "allies")
+
+            for unit_dir in sorted(color_dir.iterdir()):
+                if not unit_dir.is_dir():
+                    continue
+                unit_name = unit_dir.name
+                pycc2_type = PIXVOXEL_TO_PYCC2.get(unit_name, unit_name.upper())
+
+                for anim_dir in sorted(unit_dir.iterdir()):
+                    if not anim_dir.is_dir():
+                        continue
+                    anim_name = anim_dir.name
+
+                    for sprite_file in sorted(anim_dir.glob("*.png")):
+                        stem = sprite_file.stem
+                        parts = stem.split("_")
+                        direction = parts[0] if len(parts) >= 2 else "N"
+                        frame = parts[1] if len(parts) >= 2 else "0"
+
+                        rel_path = (
+                            f"{faction}/{pycc2_type}/{anim_name}/"
+                            f"{direction}_{frame}.png"
+                        )
+                        target_path = output_dir / rel_path
+                        target_path.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(sprite_file, target_path)
+
+                        manifest_entries.append({
+                            "pixvoxel_name": unit_name,
+                            "pycc2_type": pycc2_type,
+                            "faction": faction,
+                            "animation": anim_name,
+                            "direction": direction,
+                            "frame": frame,
+                            "path": rel_path,
+                        })
+
+        for special in ("palettes", "blank"):
+            src = root / special
+            if src.exists():
+                dst = output_dir / special
+                if dst.exists():
+                    shutil.rmtree(dst)
+                shutil.copytree(src, dst)
+
+        self._write_manifest(output_dir, manifest_entries, "orthographic")
+
+    @staticmethod
+    def _write_manifest(
+        output_dir: Path,
+        entries: list[dict],
+        sprite_type: str,
+    ) -> None:
+        """Write manifest.json for the organized sprites."""
+        manifest = {
+            "type": sprite_type,
+            "source": "PixVoxel Revised Isometric Wargame Sprites",
+            "license": "CC0",
+            "author": "Thomas Ettinger (TEttinger)",
+            "url": "https://opengameart.org/content/"
+                   "pixvoxel-revised-isometric-wargame-sprites",
+            "total_sprites": len(entries),
+            "sprites": entries,
+        }
+        manifest_path = output_dir / "manifest.json"
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, indent=2, ensure_ascii=False)
+        logger.info("Manifest written: %s (%d entries)", manifest_path, len(entries))
 
     def load_manifest(self) -> dict | None:
         """加载精灵清单文件"""

@@ -94,6 +94,79 @@ from dataclasses import dataclass
 
 
 # ============================================================
+# Dirty Rectangle Tracker (PERF: partial display update)
+# ============================================================
+
+class _DirtyRectTracker:
+    """Track dirty screen regions for partial display updates.
+
+    Only regions marked dirty are passed to ``pygame.display.update(rects)``,
+    avoiding a full-screen blit to the GPU when only small areas changed.
+    Falls back to full ``flip()`` when too many rects accumulate or when
+    a full-dirty event occurs (camera move, screen flash, etc.).
+
+    Thread-safety: single-threaded render loop — no locking needed.
+    """
+
+    __slots__ = ("_dirty_rects", "_full_redraw", "_screen_rect", "_max_rects")
+
+    def __init__(self, screen_w: int, screen_h: int, max_rects: int = 16):
+        self._dirty_rects: list[pygame.Rect] = []
+        self._full_redraw: bool = True          # First frame always full redraw
+        self._screen_rect: pygame.Rect = pygame.Rect(0, 0, screen_w, screen_h)
+        self._max_rects: int = max_rects
+
+    def mark_dirty(self, rect: pygame.Rect | None) -> None:
+        """Mark a screen-region rectangle as dirty.
+
+        *rect* may be ``None`` to force a full redraw on this frame.
+        Overlapping / adjacent rectangles are merged to keep the count low.
+        """
+        if rect is None:
+            self._full_redraw = True
+            return
+
+        # Clamp to screen bounds
+        rect = rect.clip(self._screen_rect)
+        if rect.width == 0 or rect.height == 0:
+            return
+
+        # Merge with existing rects if they overlap
+        merged = False
+        for i, existing in enumerate(self._dirty_rects):
+            if rect.colliderect(existing):
+                union = rect.union(existing)
+                # Only merge if union is not much larger than sum (avoids bloating)
+                if union.width * union.height < rect.width * rect.height + existing.width * existing.height + 200:
+                    self._dirty_rects[i] = union
+                    merged = True
+                    break
+        if not merged:
+            self._dirty_rects.append(rect)
+
+    def mark_full_dirty(self) -> None:
+        """Force a full-screen update on the current frame."""
+        self._full_redraw = True
+        self._dirty_rects.clear()
+
+    def get_update_rects(self) -> list[pygame.Rect] | None:
+        """Return the list of rects to update, or *None* for full flip."""
+        if self._full_redraw:
+            return None                     # Caller should use flip()
+        if len(self._dirty_rects) > self._max_rects:
+            return None                     # Too many regions → fall back
+        if not self._dirty_rects:
+            return [pygame.Rect(0, 0, 0, 0)]  # No-op: empty update
+        return self._dirty_rects.copy()
+
+    def next_frame(self) -> None:
+        """Clear per-frame state; call after ``display.flip/update``."""
+        if self._full_redraw:
+            self._full_redraw = False
+        self._dirty_rects.clear()
+
+
+# ============================================================
 
 
 
@@ -207,6 +280,10 @@ class EnhancedRenderer:
         # Created in initialize() when screen dimensions are known
         self._post_processing: PostProcessingEffects | None = None
 
+        # Dirty rectangle tracker for partial display updates (PERF)
+        # Set to None to disable; initialized in initialize() when screen size known
+        self._dirty_tracker: _DirtyRectTracker | None = None
+
         self._enable_cc2_color_grading: bool = True
         self._hud = None
         self._hud_enabled: bool = True
@@ -216,21 +293,19 @@ class EnhancedRenderer:
         self._fading_units: dict[str, dict] = {}
 
         # P2-03: Screen flash overlay system (white/red flash on explosion / kill)
-        self._flash_color: tuple[int, int, int] | None = None  # RGB or None
-        self._flash_alpha: float = 0.0
-        self._flash_duration: float = 0.0
-        self._flash_elapsed: float = 0.0
+        # Delegated to FlashEffectSystem
+        self._flash_sys = FlashEffectSystem()
 
         # P2-04: Smooth unit position interpolation (lerp toward real position)
         self._unit_positions: dict[str, tuple[float, float]] = {}  # unit_id → displayed (x, y)
 
         # P3-01: Weather atmosphere overlay system
-        self._weather_mode: str = "clear"  # clear / light_fog / dust / smoke
-        self._weather_alpha: float = 0.0
-        self._weather_particles: list = []  # [(x, y, speed, size), ...]
+        # Delegated to WeatherSystem
+        self._weather_sys = WeatherSystem()
 
         # P3-02: Shell casing ejection system
-        self._shell_casings: list[dict] = []  # [{x, y, vx, vy, gravity, life, max_life, size, color, bounced}, ...]
+        # Delegated to ShellCasingSystem
+        self._shell_sys = ShellCasingSystem()
     
     def initialize(self, screen: pygame.Surface) -> None:
         """Initialize renderer with display surface."""
@@ -251,6 +326,10 @@ class EnhancedRenderer:
             self._post_processing = PostProcessingEffects(sw, sh)
             self._post_processing.enable_color_grading()  # Enable CC2 war atmosphere desaturation
             logger.info("PostProcessingEffects initialized with color grading enabled")
+
+            # Initialize dirty rectangle tracker for partial display updates
+            self._dirty_tracker = _DirtyRectTracker(sw, sh)
+            logger.info("DirtyRectTracker initialized (%dx%d, max_rects=16)", sw, sh)
         except Exception as e:
             logger.warning("PostProcessingEffects init failed (non-critical): %s", e)
             self._post_processing = None
@@ -355,7 +434,7 @@ class EnhancedRenderer:
     def enable_hud(self, enabled: bool = True) -> None:
         self._hud_enabled = enabled
 
-    # ====== P2-03: Screen Flash Overlay System ======
+    # ====== P2-03: Screen Flash Overlay System (delegated to FlashEffectSystem) ======
 
     def trigger_flash(self, color: tuple[int, int, int] = (255, 255, 255), intensity: float = 0.4, duration: float = 0.12) -> None:
         """Trigger a screen flash overlay effect.
@@ -365,26 +444,14 @@ class EnhancedRenderer:
             intensity: Peak alpha multiplier (0.0–1.0).
             duration: Flash fade-out duration in seconds.
         """
-        self._flash_color = color
-        self._flash_alpha = intensity * 255
-        self._flash_duration = duration
-        self._flash_elapsed = 0.0
-        logger.debug(f"Screen flash triggered: color={color}, intensity={intensity}, duration={duration}s")
+        self._flash_sys.trigger(color, intensity, duration)
 
     def update_flash(self, dt: float) -> None:
         """Update screen flash alpha (call once per frame in update phase).
 
         Uses ease-out quad curve for natural fade-out feel.
         """
-        if self._flash_color is None:
-            return
-        self._flash_elapsed += dt
-        progress = min(1.0, self._flash_elapsed / self._flash_duration)
-        # Ease-out quad fade: fast start, slow end
-        self._flash_alpha = (1.0 - (1.0 - progress) ** 2) * (-255)  # 255 → 0
-        if progress >= 1.0:
-            self._flash_color = None
-            self._flash_alpha = 0.0
+        self._flash_sys.update(dt)
 
     # ====== P2-04: Smooth Unit Position Interpolation ======
 
@@ -435,69 +502,17 @@ class EnhancedRenderer:
         """Return the smoothed (lerped) position for a unit, or None if not tracked."""
         return self._unit_positions.get(unit_id)
 
-    # ====== P3-01: Weather Atmosphere Overlay System ======
+    # ====== P3-01: Weather Atmosphere Overlay System (delegated to WeatherSystem) ======
 
     def set_weather(self, mode: str) -> None:
         """Set weather overlay mode: 'clear', 'light_fog', 'dust', or 'smoke'."""
-        valid_modes = {"clear", "light_fog", "dust", "smoke"}
-        if mode not in valid_modes:
-            logger.warning("Invalid weather mode '%s'. Valid modes: %s", mode, valid_modes)
-            return
-        self._weather_mode = mode
-        if mode == "clear":
-            self._weather_alpha = 0.0
-            self._weather_particles = []
-        elif mode == "light_fog":
-            self._weather_alpha = 0.15  # subtle gray fog
-        elif mode == "dust":
-            self._weather_alpha = 0.12
-            self._init_dust_particles()
-        elif mode == "smoke":
-            self._weather_alpha = 0.18
-            self._init_smoke_particles()
-        logger.debug("Weather mode set to '%s' (alpha=%.2f)", mode, self._weather_alpha)
-
-    def _init_dust_particles(self) -> None:
-        """Initialize drifting dust particle positions."""
-        w, h = self._offscreen.get_size() if hasattr(self, '_offscreen') and self._offscreen else (800, 600)
-        self._weather_particles = [
-            (random.randint(0, w), random.randint(0, h), random.uniform(10, 40), random.uniform(1, 3))
-            for _ in range(30)
-        ]
-
-    def _init_smoke_particles(self) -> None:
-        """Initialize drifting smoke particle positions."""
-        w, h = self._offscreen.get_size() if hasattr(self, '_offscreen') and self._offscreen else (800, 600)
-        self._weather_particles = [
-            (random.randint(0, w), random.randint(0, h), random.uniform(5, 20), random.uniform(3, 8))
-            for _ in range(20)
-        ]
+        self._weather_sys.set_mode(mode)
 
     def update_weather(self, dt: float) -> None:
         """Update weather animation state each frame."""
-        if self._weather_mode == "dust" and self._weather_particles:
-            w = self._offscreen.get_width() if hasattr(self, '_offscreen') and self._offscreen else 800
-            for i, (x, y, speed, size) in enumerate(self._weather_particles):
-                nx = x + speed * dt * 20
-                ny = y + math.sin(x * 0.01) * 0.5  # gentle wave
-                if nx > w:
-                    nx = -size
-                self._weather_particles[i] = (nx, ny, speed, size)
-        elif self._weather_mode == "smoke" and self._weather_particles:
-            w = self._offscreen.get_width() if hasattr(self, '_offscreen') and self._offscreen else 800
-            h = self._offscreen.get_height() if hasattr(self, '_offscreen') and self._offscreen else 600
-            for i, (x, y, speed, size) in enumerate(self._weather_particles):
-                nx = x + speed * dt * 10
-                ny = y + math.sin(x * 0.005 + y * 0.008) * 1.0  # slow turbulent drift
-                if nx > w + size:
-                    nx = -size
-                    ny = random.randint(0, h)
-                elif nx < -size:
-                    nx = w + size
-                    ny = random.randint(0, h)
-                self._weather_particles[i] = (nx, ny, speed, size)
+        self._weather_sys.update(dt)
 
-    # ====== P3-02: Shell Casing Ejection System ======
+    # ====== P3-02: Shell Casing Ejection System (delegated to ShellCasingSystem) ======
 
     def spawn_shell_casing(self, x: float, y: float, direction_rad: float = 0) -> None:
         """Spawn a shell casing ejected from weapon position.
@@ -507,55 +522,15 @@ class EnhancedRenderer:
             y: World Y coordinate of ejection point.
             direction_rad: Firing direction in radians (ejection is perpendicular).
         """
-        eject_speed = random.uniform(60, 120)
-        eject_angle = direction_rad + math.pi / 2 + random.uniform(-0.3, 0.3)
-        vx = math.cos(eject_angle) * eject_speed
-        vy = math.sin(eject_angle) * eject_speed - random.uniform(30, 80)  # upward arc
-        self._shell_casings.append({
-            "x": x, "y": y,
-            "vx": vx, "vy": vy,
-            "gravity": 400,  # pixels/s^2
-            "life": 0.0,
-            "max_life": random.uniform(1.5, 3.0),
-            "size": random.uniform(2, 4),
-            "color": random.choice([(210, 190, 140), (190, 170, 120), (220, 200, 150)]),
-            "bounced": False,
-        })
+        self._shell_sys.spawn(x, y, direction_rad)
 
     def update_shell_casings(self, dt: float) -> None:
         """Update shell casing physics simulation."""
-        dead_indices = []
-        for i, c in enumerate(self._shell_casings):
-            c["life"] += dt
-            if c["life"] > c["max_life"]:
-                dead_indices.append(i)
-                continue
-            c["vy"] += c["gravity"] * dt
-            c["x"] += c["vx"] * dt
-            c["y"] += c["vy"] * dt
-            # Simple ground bounce
-            if c["vy"] > 0 and not c["bounced"]:
-                c["bounced"] = True
-                c["vy"] *= -0.3
-                c["vx"] *= 0.6
-        for i in reversed(dead_indices):
-            self._shell_casings.pop(i)
+        self._shell_sys.update(dt)
 
     def render_shell_casings(self, camera) -> None:
         """Render shell casings as small ellipses with fade-out."""
-        if self._offscreen is None:
-            return
-        for c in self._shell_casings:
-            sx = int(c["x"] - camera.x + self._offscreen.get_width() // 2)
-            sy = int(c["y"] - camera.y + self._offscreen.get_height() // 2)
-            fade = max(0, 1.0 - c["life"] / c["max_life"])
-            alpha = int(255 * (1.0 - fade * 0.7))
-            try:
-                surf = pygame.Surface((int(c["size"] * 2), int(c["size"])), pygame.SRCALPHA)
-                pygame.draw.ellipse(surf, (*c["color"], alpha), surf.get_rect())
-                self._offscreen.blit(surf, (sx - int(c["size"]), sy))
-            except Exception:
-                pass
+        self._shell_sys.render(self._offscreen, camera)
 
     def _get_pooled_surface(self, size: tuple[int, int]) -> pygame.Surface:
         """Get or create a surface from the object pool with LRU eviction (PERF-001).
@@ -619,11 +594,16 @@ class EnhancedRenderer:
         self._offscreen.fill(theme_bg)
 
         # STEP 2: Draw terrain — use enhanced texturing with simple fallback
+        # Terrain covers most of the screen; if camera moved we need full redraw.
         try:
             self._terrain_rendering_sys.draw_enhanced_terrain(game_map, camera, debug_mode)
         except RuntimeError as e:
             logger.warning(f"Enhanced terrain failed, falling back to simple: {e}")
             self._terrain_rendering_sys.draw_simple_terrain(game_map, camera)
+
+        # PERF: Terrain redraw implies potential camera movement → full dirty
+        if self._dirty_tracker is not None:
+            self._dirty_tracker.mark_full_dirty()
 
         # STEP 3: Draw grid ONLY in debug mode
         # ============================================================
@@ -664,6 +644,21 @@ class EnhancedRenderer:
         # STEP 5: Draw units (positions already smoothed by _smooth_positions in update phase)
         self._draw_units(units, camera, selected_unit_ids)
 
+        # PERF: Mark unit screen regions as dirty
+        if self._dirty_tracker is not None and not self._dirty_tracker._full_redraw:
+            for unit in units:
+                if not hasattr(unit, 'position') or unit.position is None:
+                    continue
+                try:
+                    px = unit.position.pixel_position.x
+                    py = unit.position.pixel_position.y
+                except (AttributeError, TypeError):
+                    continue
+                sx = int(px - camera.x + self._offscreen.get_width() // 2)
+                sy = int(py - camera.y + self._offscreen.get_height() // 2)
+                # Bounding box with margin for unit sprite + selection ring
+                self._dirty_tracker.mark_dirty(pygame.Rect(sx - 20, sy - 20, 40, 40))
+
         # STEP 5.05: Draw death fade-out ghosts (P2-02 — semi-transparent dying units)
         self._render_fading_units(camera)
 
@@ -679,6 +674,12 @@ class EnhancedRenderer:
         # STEP 5.7: Render particle effects (explosions, smoke, muzzle flash, etc.)
         self._particle_system.render(self._offscreen)
 
+        # PERF: Particles are dynamic — mark dirty (skip if already full-dirty)
+        if self._dirty_tracker is not None and not self._dirty_tracker._full_redraw:
+            if self._particle_system.particle_count() > 0:
+                # Particles can be anywhere — conservative: mark full dirty
+                self._dirty_tracker.mark_full_dirty()
+
         # STEP 5.7-TRAIL: Render projectile trails (bullet/shell/rocket/mortar)
         if hasattr(self, '_projectile_trail_sys') and self._projectile_trail_sys is not None:
             self._projectile_trail_sys.render(self._offscreen)
@@ -693,27 +694,27 @@ class EnhancedRenderer:
         # STEP 5.9: Render CC2 three-panel HUD (if enabled and attached)
         if self._hud_enabled and self._hud is not None:
             self._hud.render(self._offscreen)
+            # PERF: HUD updates every frame (selection, health bars, etc.)
+            if self._dirty_tracker is not None and not self._dirty_tracker._full_redraw:
+                # Mark bottom HUD area as dirty (CC2 three-panel layout at bottom)
+                sw, sh = self._offscreen.get_size()
+                self._dirty_tracker.mark_dirty(pygame.Rect(0, sh - 120, sw, 120))
 
         # P2-03: Screen flash overlay (after all rendering, before atomic flip)
-        if self._flash_color is not None and self._flash_alpha > 0:
+        if self._flash_sys.is_active:
+            # PERF: Flash is full-screen overlay → must dirty entire screen
+            if self._dirty_tracker is not None:
+                self._dirty_tracker.mark_full_dirty()
             flash_surf = pygame.Surface(self._offscreen.get_size(), pygame.SRCALPHA)
-            flash_surf.fill((*self._flash_color, int(max(0, self._flash_alpha))))
+            flash_surf.fill((*self._flash_sys.color, int(max(0, self._flash_sys.alpha))))
             self._offscreen.blit(flash_surf, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
 
-        # P3-01: Weather atmosphere overlay (light_fog / dust / smoke)
-        if self._weather_mode != "clear" and self._weather_alpha > 0:
-            if self._weather_mode == "light_fog":
-                fog_surf = pygame.Surface(self._offscreen.get_size(), pygame.SRCALPHA)
-                fog_surf.fill((180, 175, 170, int(self._weather_alpha * 255)))
-                self._offscreen.blit(fog_surf, (0, 0))
-            elif self._weather_mode in ("dust", "smoke"):
-                color = (160, 140, 110) if self._weather_mode == "dust" else (80, 75, 70)
-                for px, py, _, sz in self._weather_particles:
-                    alpha = int(self._weather_alpha * 200)
-                    try:
-                        pygame.draw.circle(self._offscreen, (*color, alpha), (int(px), int(py)), int(sz))
-                    except Exception:
-                        pass
+        # P3-01: Weather atmosphere overlay (light_fog / dust / smoke) — delegated to WeatherSystem
+        if self._weather_sys.mode != "clear":
+            # PERF: weather overlays can be full-screen → mark full dirty
+            if self._dirty_tracker is not None:
+                self._dirty_tracker.mark_full_dirty()
+            self._weather_sys.render(self._offscreen)
 
         # STEP 6: Atomic blit off-screen buffer → display surface
         self._screen.blit(self._offscreen, (0, 0))
@@ -1267,10 +1268,15 @@ class EnhancedRenderer:
             self._terrain_renderer._edge_smooth_cache.clear()
 
     def resize(self, width: int, height: int) -> None:
-        """Handle window resize - reinitialize offscreen buffer."""
+        """Handle window resize - reinitialize offscreen buffer and dirty tracker."""
         if self._screen is not None:
             try:
                 self._offscreen = pygame.Surface((width, height), pygame.SRCALPHA)
                 self._invalidate_surface_cache()
+                # Re-create dirty tracker with new dimensions
+                if self._dirty_tracker is not None:
+                    self._dirty_tracker = _DirtyRectTracker(width, height)
+                # Sync new dimensions to weather system
+                self._weather_sys.update_screen_size(width, height)
             except (pygame.error, ValueError):
                 logger.warning(f"Failed to resize offscreen buffer to {width}x{height}")

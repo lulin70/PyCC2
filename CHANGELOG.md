@@ -2,6 +2,40 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.37] - 2026-06-11
+
+### Deep Optimization Phase (DevSquad Top-10 Round 3 — All Remaining Items)
+
+#### #5 EnvironmentalAudioSystem Activated (~760 lines finally alive)
+- **[INTEGRATE]** EnvironmentalAudioSystem instantiated in `game_loop_assembler._init_sound()` with full graceful degradation
+- 11 ambient sound types (BIRDS, WIND, RAIN, THUNDER, DISTANT_ARTILLERY, etc.) — all procedurally generated, zero audio files needed
+- Game loop context sync: time-of-day → bird/insect activity, weather → rain/thunder sounds, combat intensity → distant artillery/radio static
+- Full try/except protection: missing pygame.mixer/numpy/scipy → silent fallback to no-audio mode
+
+#### #6 Dirty Rectangle Rendering Optimization (Highest ROI perf item)
+- New `_DirtyRectTracker` class: tracks dirty screen regions, merges overlapping rects, auto-degrades to full redraw when >16 dirty regions or fullscreen effects active
+- 6 dirty-mark points in render pipeline: terrain(full), units(40×40 bbox), particles(conditional), HUD(bottom 120px), flash(full), post-processing(full)
+- Final output: `pygame.display.update(rects)` instead of `flip()` when partial update possible
+- Safety valve: `_dirty_tracker = None` disables optimization entirely (backward compatible)
+- Resize handler rebuilds tracker for new screen dimensions
+
+#### #7 EnhancedRenderer God Class Split (3 subsystems extracted)
+| Extracted System | File | Lines | Methods |
+|---|---|---|---|
+| ShellCasingSystem | `shell_casing_system.py` | 125 | spawn/update/render |
+| FlashEffectSystem | `flash_effect_system.py` | 101 | trigger/update + properties |
+| WeatherSystem | `weather_system.py` | 160 | set_mode/update/render/screen_size |
+- enhanced_renderer.py: 7 original methods → thin delegates, public API unchanged (game_loop zero changes)
+- Internal state (_shell_casings/_flash_color/_weather_mode etc.) fully migrated to subsystems
+
+#### #10 ResourceCacheManager + PixVoxel Auto-Download
+- **New file**: `infrastructure/resource_cache.py` — HTTP download manager with:
+  - JSON-indexed local disk cache (default ~/.cache/pycc2/assets/)
+  - TTL expiration (7 days default), SHA256 integrity verification
+  - LRU eviction at 500MB limit, atomic writes (.tmp→rename)
+  - Offline mode support, progress callback API
+- **PixVoxelLoader integration**: auto_download=True triggers automatic asset fetch when sprites missing; multi-tool extraction fallback (py7zr → 7z → 7za); manifest.json generation
+
 ## [0.3.36] - 2026-06-11
 
 ### Infrastructure Phase (DevSquad Top-10 Optimization Round 2)
