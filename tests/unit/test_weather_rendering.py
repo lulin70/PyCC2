@@ -64,15 +64,17 @@ class TestNightOverlayRenders:
     @patch('pygame.draw')
     def test_night_overlay_renders(self, mock_draw, mock_surface_cls):
         from pycc2.presentation.rendering.weather_system import WeatherRenderer
-        from pycc2.domain.systems.environment import TimeOfDay, WeatherCondition
-        
+        from pycc2.domain.systems.environment import TimeOfDay
+        from pycc2.domain.systems.weather_effects import WeatherState, WeatherType
+
         mock_screen = MagicMock()
         mock_surface = MagicMock()
         mock_surface_cls.return_value = mock_surface
-        
+
         renderer = WeatherRenderer(800, 600)
-        renderer.render(mock_screen, WeatherCondition.CLEAR, TimeOfDay.NIGHT)
-        
+        weather_state = WeatherState(weather_type=WeatherType.CLEAR)
+        renderer.render(mock_screen, weather_state, TimeOfDay.NIGHT)
+
         mock_surface_cls.assert_called_with((800, 600), 65536)  # pygame.SRCALPHA = 65536
         mock_surface.fill.assert_called_once()
         args = mock_surface.fill.call_args[0][0]
@@ -82,15 +84,17 @@ class TestNightOverlayRenders:
     @patch('pygame.draw')
     def test_dawn_dusk_lighter_overlay(self, mock_draw, mock_surface_cls):
         from pycc2.presentation.rendering.weather_system import WeatherRenderer
-        from pycc2.domain.systems.environment import TimeOfDay, WeatherCondition
-        
+        from pycc2.domain.systems.environment import TimeOfDay
+        from pycc2.domain.systems.weather_effects import WeatherState, WeatherType
+
         mock_screen = MagicMock()
         mock_surface = MagicMock()
         mock_surface_cls.return_value = mock_surface
-        
+
         renderer = WeatherRenderer(800, 600)
-        renderer.render(mock_screen, WeatherCondition.CLEAR, TimeOfDay.DAWN)
-        
+        weather_state = WeatherState(weather_type=WeatherType.CLEAR)
+        renderer.render(mock_screen, weather_state, TimeOfDay.DAWN)
+
         args = mock_surface.fill.call_args[0][0]
         assert args[3] == 70  # lighter alpha for twilight
 
@@ -98,15 +102,17 @@ class TestNightOverlayRenders:
     @patch('pygame.draw')
     def test_day_no_overlay(self, mock_draw, mock_surface_cls):
         from pycc2.presentation.rendering.weather_system import WeatherRenderer
-        from pycc2.domain.systems.environment import TimeOfDay, WeatherCondition
-        
+        from pycc2.domain.systems.environment import TimeOfDay
+        from pycc2.domain.systems.weather_effects import WeatherState, WeatherType
+
         mock_screen = MagicMock()
         mock_surface = MagicMock()
         mock_surface_cls.return_value = mock_surface
-        
+
         renderer = WeatherRenderer(800, 600)
-        renderer.render(mock_screen, WeatherCondition.CLEAR, TimeOfDay.DAY)
-        
+        weather_state = WeatherState(weather_type=WeatherType.CLEAR)
+        renderer.render(mock_screen, weather_state, TimeOfDay.DAY)
+
         # No overlay should be created for day time
         assert not mock_surface.fill.called
 
@@ -116,15 +122,17 @@ class TestFogOverlayRenders:
     @patch('pygame.Surface')
     def test_fog_overlay_renders(self, mock_surface_cls, mock_draw):
         from pycc2.presentation.rendering.weather_system import WeatherRenderer
-        from pycc2.domain.systems.environment import TimeOfDay, WeatherCondition
-        
+        from pycc2.domain.systems.environment import TimeOfDay
+        from pycc2.domain.systems.weather_effects import WeatherState, WeatherType
+
         mock_screen = MagicMock()
         mock_fog_surf = MagicMock()
         mock_surface_cls.return_value = mock_fog_surf
-        
+
         renderer = WeatherRenderer(800, 600)
-        renderer.render(mock_screen, WeatherCondition.FOG, TimeOfDay.DAY)
-        
+        weather_state = WeatherState(weather_type=WeatherType.FOG)
+        renderer.render(mock_screen, weather_state, TimeOfDay.DAY)
+
         # Fog surface should be filled with base color
         fog_fill_args = mock_fog_surf.fill.call_args[0][0]
         assert fog_fill_args[3] == WeatherRenderer.FOG_ALPHA_BASE

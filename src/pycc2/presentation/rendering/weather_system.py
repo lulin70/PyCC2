@@ -158,3 +158,8 @@ class WeatherSystem:
             (random.randint(0, w), random.randint(0, h), random.uniform(5, 20), random.uniform(3, 8))
             for _ in range(20)
         ]
+
+
+# Re-export WeatherRenderer so existing imports from this module keep working
+# after the class was extracted into weather_renderer.py during v0.3.37 refactoring.
+from .weather_renderer import WeatherRenderer  # noqa: E402

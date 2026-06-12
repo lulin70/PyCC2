@@ -49,7 +49,7 @@ class ResourceCacheManager:
         offline_mode: bool = False,
         timeout: int = DEFAULT_TIMEOUT,
     ) -> None:
-        self._cache_dir = cache_dir or self.DEFAULT_CACHE_DIR
+        self._cache_dir = Path(cache_dir) if cache_dir is not None else self.DEFAULT_CACHE_DIR
         self._max_bytes = max_size_mb * 1024 * 1024
         self._ttl = ttl_seconds
         self._offline_mode = offline_mode

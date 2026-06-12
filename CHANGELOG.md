@@ -2,6 +2,37 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.38] - 2026-06-12
+
+### Evaluation Fix & P0-P2 Optimization Round
+
+#### P0: pixel_artist_3d.py God Class Split (2418→1001 lines)
+| Extracted System | File | Lines | Content |
+|---|---|---|---|
+| TankPixelRenderer | `tank_pixel_renderer.py` | 688 | Tank sprites, rotation cache, Sherman/Panther/Tiger drawing |
+| InfantryPixelRenderer | `infantry_pixel_renderer.py` | 876 | Infantry sprites, 8-direction params, 9 weapon types, InfantryAnimator |
+- pixel_artist_3d.py retains Facade delegates + vehicle/environment sprites (halftrack, jeep, AT gun, tree, building)
+- All public API signatures preserved — zero caller changes needed
+
+#### P1: ResourceCacheManager Bug Fix + Test Coverage
+- **Fixed**: `cache_dir` parameter now accepts both `str` and `Path` (was TypeError with str input)
+- **25 new tests** in `test_resource_cache.py`: init, offline mode, download mock, cache hit, TTL, invalidate, SHA256, LRU eviction, stats, filename sanitize, network failure, corrupted index, persistence
+
+#### P1: GitHub Actions Release Workflow
+- **New file**: `.github/workflows/release.yml` — auto-publish to GitHub Releases on tag push (`v*`)
+- Quality gate: tests must pass before build
+- Auto-extract changelog from CHANGELOG.md
+- Upload sdist + wheel artifacts
+- **Updated**: `ci.yml` now supports `workflow_dispatch` manual trigger
+
+#### P2: Weather Rendering Test Fix
+- Fixed missing `WeatherRenderer` re-export in `weather_system.py` (ImportError)
+- Updated 4 tests to use new `WeatherState` API instead of deprecated `WeatherCondition` enum
+- Result: 77/77 weather tests passing (was 8 failed)
+
+#### P2: Integration Test Verification
+- Confirmed 132/132 integration tests passing (attack line, combat loop, rendering pipeline, victory flow)
+
 ## [0.3.37] - 2026-06-11
 
 ### Deep Optimization Phase (DevSquad Top-10 Round 3 — All Remaining Items)
