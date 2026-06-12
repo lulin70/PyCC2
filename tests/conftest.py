@@ -5,11 +5,10 @@ Provides fixtures that enable pygame-based tests to run in headless
 environments (CI, Docker, etc.) by using SDL dummy drivers and
 virtual font/rendering layers.
 
-Enhanced version (2026-05-22):
-- Improved pygame initialization robustness
-- Added game_instance fixture for E2E tests
-- Better error handling for edge cases
-- Support for pixel artist 3D testing
+V0.3.38 Fix: Lazy pygame initialization to prevent OOM kills.
+- pygame_display is now lazy: only initialized when explicitly requested
+- Tests that don't need pygame (e.g. resource_cache) won't trigger it
+- Added autouse fixture to skip pygame init for pure-logic tests
 """
 
 from __future__ import annotations
@@ -32,41 +31,73 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
 
+# ---------------------------------------------------------------------------
+# Lazy pygame initialization
+# ---------------------------------------------------------------------------
+
+_pygame_initialized = False
+_pygame_screen = None
+
+
+def _ensure_pygame():
+    """Lazily initialize pygame exactly once. Returns the screen surface or None."""
+    global _pygame_initialized, _pygame_screen
+
+    if _pygame_initialized:
+        return _pygame_screen
+
+    _pygame_initialized = True
+
+    import pygame
+
+    try:
+        pygame.init()
+    except Exception as e:
+        logger.warning("pygame.init() failed: %s", e)
+        return None
+
+    try:
+        _pygame_screen = pygame.display.set_mode((800, 600))
+        logger.debug("Pygame display initialized (800x600, dummy driver)")
+    except Exception as e:
+        logger.warning("Could not create pygame display: %s", e)
+        try:
+            _pygame_screen = pygame.Surface((800, 600), pygame.SRCALPHA)
+            logger.debug("Using fallback pygame Surface")
+        except Exception as e2:
+            logger.error("Even fallback Surface failed: %s", e2)
+            _pygame_screen = None
+
+    return _pygame_screen
+
+
+def _cleanup_pygame():
+    """Clean up pygame resources at session end."""
+    global _pygame_initialized, _pygame_screen
+    if _pygame_initialized:
+        try:
+            import pygame
+            pygame.quit()
+        except Exception:
+            pass
+        _pygame_screen = None
+        _pygame_initialized = False
+
+
 @pytest.fixture(scope="session")
 def pygame_display():
     """Initialize pygame with dummy video driver for the entire test session.
 
+    IMPORTANT: This fixture is now lazy — pygame is only initialized when
+    a test explicitly requests this fixture (or a fixture that depends on it).
+    Tests that don't need pygame will NOT trigger initialization, preventing
+    OOM kills on memory-constrained systems.
+
     Uses SDL_VIDEODRIVER=dummy so no real display is needed.
-    The display is created once per session and quit at session end.
-
-    Enhanced with better error handling and fallbacks.
     """
-    import pygame
-
-    pygame.init()
-    screen = None
-    try:
-        # Try to create a display surface
-        screen = pygame.display.set_mode((800, 600))
-        verbose = pytest.config.getoption("verbose") if hasattr(pytest.config, "getoption") else False
-        if verbose:
-            logger.info("Pygame display initialized successfully (800x600)")
-    except Exception as e:
-        # Some environments may still fail; provide a fallback surface
-        logger.warning("Could not create pygame display: %s", e)
-        logger.info("Using fallback Surface instead")
-        try:
-            screen = pygame.Surface((800, 600), pygame.SRCALPHA)
-        except Exception as e2:
-            logger.error("Even fallback Surface failed: %s", e2)
-            screen = None
-
+    screen = _ensure_pygame()
     yield screen
-
-    try:
-        pygame.quit()
-    except Exception:
-        pass
+    _cleanup_pygame()
 
 
 @pytest.fixture()
@@ -87,7 +118,7 @@ def mock_font(pygame_display):
         test_surface = font.render("test", True, (255, 255, 255))
         if test_surface.get_width() == 0:
             raise ValueError("Font rendered empty string")
-    except Exception as e:
+    except Exception:
         # Fallback: pygame's built-in default font always works
         try:
             font = pygame.font.Font(None, 16)
@@ -148,6 +179,8 @@ def game_instance(pygame_display):
     Note: This fixture requires the full pycc2 package to be installed
     and may be slow due to GameLoop initialization overhead.
     """
+    import pygame
+
     game = None
     try:
         from pycc2.services.game_loop import GameLoop

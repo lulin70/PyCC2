@@ -235,6 +235,10 @@ class ResourceCacheManager:
             with urllib.request.urlopen(req, timeout=self._timeout) as response:
                 content_length = response.headers.get("Content-Length")
                 total_size = int(content_length) if content_length else None
+                # Capture headers before response is closed
+                etag = response.headers.get("ETag", "")
+                last_modified = response.headers.get("Last-Modified", "")
+                content_type = response.headers.get("Content-Type", "")
 
                 data = self._read_with_progress(response, total_size, progress_callback)
 
@@ -265,9 +269,9 @@ class ResourceCacheManager:
             "last_accessed": time.time(),
             "size": len(data),
             "sha256": actual_hash,
-            "etag": response.headers.get("ETag", ""),
-            "last_modified": response.headers.get("Last-Modified", ""),
-            "content_type": response.headers.get("Content-Type", ""),
+            "etag": etag,
+            "last_modified": last_modified,
+            "content_type": content_type,
             "hits": 0,
         }
         self._save_index()
