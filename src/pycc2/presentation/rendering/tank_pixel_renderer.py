@@ -15,6 +15,7 @@ from __future__ import annotations
 import logging
 import math
 import random
+from collections import OrderedDict
 from typing import Dict
 
 logger = logging.getLogger(__name__)
@@ -53,7 +54,8 @@ class TankPixelRenderer:
     PIXEL_SCALE = 1
 
     # ===== Rotation Pre-cache (P0-4) =====
-    _rotation_cache: Dict[tuple, 'pygame.Surface'] = {}
+    _MAX_CACHE_SIZE = 200
+    _rotation_cache: OrderedDict[tuple, 'pygame.Surface'] = OrderedDict()
     _PRECACHE_ANGLES = [i * 15 for i in range(24)]  # 0, 15, 30, ..., 345
 
     # ------------------------------------------------------------------ #
@@ -72,9 +74,14 @@ class TankPixelRenderer:
             Rotated surface (from cache or newly computed).
         """
         cache_key = (base.get_width(), base.get_height(), round(angle, 1))
-        if cache_key not in cls._rotation_cache:
-            import pygame
-            cls._rotation_cache[cache_key] = pygame.transform.rotate(base, angle)
+        if cache_key in cls._rotation_cache:
+            cls._rotation_cache.move_to_end(cache_key)  # LRU: mark as recently used
+            return cls._rotation_cache[cache_key]
+        import pygame
+        cls._rotation_cache[cache_key] = pygame.transform.rotate(base, angle)
+        # Evict oldest if over limit
+        while len(cls._rotation_cache) > cls._MAX_CACHE_SIZE:
+            cls._rotation_cache.popitem(last=False)
         return cls._rotation_cache[cache_key]
 
     @classmethod

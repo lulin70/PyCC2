@@ -78,6 +78,9 @@ class TerrainRenderingSystem:
         12: (90, 85, 75),     # CRATER
     }
 
+    _MAX_SCALED_CACHE = 200
+    _MAX_TRANSITION_CACHE = 500
+
     def __init__(self, renderer, tile_size: int = 32):
         """
         初始化地形渲染系统。
@@ -88,7 +91,7 @@ class TerrainRenderingSystem:
         """
         self._renderer = renderer
         self.TILE_SIZE = tile_size
-        
+
         # 缓存引用（从 renderer 获取）
         self._texture_cache = getattr(renderer, '_texture_cache', {})
         self._autotile_cache = getattr(renderer, '_autotile_cache', None)
@@ -220,6 +223,8 @@ class TerrainRenderingSystem:
                                     self._scaled_texture_cache[scale_key] = pygame.transform.smoothscale(
                                         base_texture, new_size
                                     )
+                                if len(self._scaled_texture_cache) > self._MAX_SCALED_CACHE:
+                                    self._scaled_texture_cache.clear()
                                 texture = self._scaled_texture_cache.get(scale_key)
                         else:
                             cache_key = (terrain_val, variation, height, tile_screen_size)
@@ -236,6 +241,8 @@ class TerrainRenderingSystem:
                                 self._scaled_texture_cache[cache_key] = pygame.transform.smoothscale(
                                     base_texture, new_size
                                 )
+                                if len(self._scaled_texture_cache) > self._MAX_SCALED_CACHE:
+                                    self._scaled_texture_cache.clear()
                             texture = self._scaled_texture_cache.get(cache_key)
 
                         if texture is None:
@@ -267,6 +274,8 @@ class TerrainRenderingSystem:
         - 相机移动超出已缓存区域
         """
         self._terrain_dirty = True
+        self._scaled_texture_cache.clear()
+        self._transition_cache.clear()
 
     def draw_simple_terrain(
         self, 
@@ -472,6 +481,8 @@ class TerrainRenderingSystem:
                                     new_size = (int(base_texture.get_width() * scale_factor),
                                               int(base_texture.get_height() * scale_factor))
                                     self._scaled_texture_cache[scale_key] = pygame.transform.smoothscale(base_texture, new_size)
+                                if len(self._scaled_texture_cache) > self._MAX_SCALED_CACHE:
+                                    self._scaled_texture_cache.clear()
                                 texture = self._scaled_texture_cache.get(scale_key)
                         else:
                             cache_key = (terrain_val, variation, height, tile_screen_size)
@@ -489,6 +500,8 @@ class TerrainRenderingSystem:
                                 new_size = (int(base_texture.get_width() * scale_factor),
                                           int(base_texture.get_height() * scale_factor))
                                 self._scaled_texture_cache[cache_key] = pygame.transform.smoothscale(base_texture, new_size)
+                                if len(self._scaled_texture_cache) > self._MAX_SCALED_CACHE:
+                                    self._scaled_texture_cache.clear()
 
                             texture = self._scaled_texture_cache.get(cache_key)
 
@@ -669,6 +682,8 @@ class TerrainRenderingSystem:
 
                     target_surface.blit(strip, rect.topleft)
                     self._transition_cache[cache_key] = (strip, rect)
+                    if len(self._transition_cache) > self._MAX_TRANSITION_CACHE:
+                        self._transition_cache.clear()
 
     def apply_terrain_edge_smoothing(
         self,

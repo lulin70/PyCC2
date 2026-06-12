@@ -15,6 +15,8 @@ from pycc2.domain.interfaces import IEventPublisher
 
 
 class EventBus(IEventPublisher):
+    _MAX_QUEUE_SIZE = 1000
+
     def __init__(self) -> None:
         self._handlers: dict[type, list[Callable]] = defaultdict(list)
         self._named_handlers: dict[str, list[Callable[[dict], None]]] = defaultdict(list)
@@ -158,6 +160,9 @@ class EventBus(IEventPublisher):
     def enqueue(self, event: object) -> None: ...
 
     def enqueue(self, event: dict | object) -> None:
+        if len(self._queue) >= self._MAX_QUEUE_SIZE:
+            logger.warning("Event queue overflow (%d), dropping oldest event", len(self._queue))
+            self._queue.pop(0)
         self._queue.append((time.time(), event))
 
     def process_queue(self) -> int:

@@ -177,13 +177,25 @@ class TopDownParticleSystem:
                 'elapsed': 0,
             })
 
+    _MAX_BLOOD_POOLS = 50
+
     def spawn_blood_pool(self, x, y, size=8):
-        """血迹池 - 红色椭圆形污渍留在地面（持久）"""
+        """血迹池 - 红色椭圆形污渍留在地面（持久，上限50个）"""
+        # Evict oldest blood pool if at limit
+        blood_count = sum(1 for p in self.particles if p.get('persistent', False))
+        if blood_count >= self._MAX_BLOOD_POOLS:
+            for i, p in enumerate(self.particles):
+                if p.get('persistent', False):
+                    removed = self.particles.pop(i)
+                    if self._pool is not None:
+                        self._pool.release_dict(removed)
+                    break
+
         self._add_particle({
             'type': 'blood_pool',
             'x': x, 'y': y,
             'size': size,
-            'duration': 0,
+            'duration': 30.0,  # Auto-expire after 30 seconds
             'elapsed': 0,
             'persistent': True,
             'color': (140, 20, 20),
