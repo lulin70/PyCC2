@@ -22,6 +22,9 @@ class VictoryManager:
     _game_result: GameResult | None = field(init=False, default=None)
     _game_over_tick: int = field(init=False, default=0)
     _show_post_battle: bool = field(init=False, default=False)
+    _victory_detected: bool = field(init=False, default=False)
+    _victory_time: float = field(init=False, default=0.0)
+    _post_battle_delay: float = field(init=False, default=2.0)
     _event_bus: EventBus | None = field(init=False, default=None)
     _combat_director: object | None = field(init=False, default=None)
 
@@ -105,14 +108,25 @@ class VictoryManager:
             if result.name != "ONGOING":
                 self._game_result = result
                 self._game_over_tick = tick
-                self._show_post_battle = True
+                self._victory_detected = True
+                self._victory_time = _time.monotonic()
+                # Do NOT set _show_post_battle yet — delay for user to see "Victory!" prompt
                 return (result, reason)
         return None
+
+    def update(self) -> None:
+        """Check if post-battle delay has elapsed and auto-show post-battle screen."""
+        if self._victory_detected and not self._show_post_battle:
+            elapsed = _time.monotonic() - self._victory_time
+            if elapsed >= self._post_battle_delay:
+                self._show_post_battle = True
 
     def reset(self) -> None:
         self._game_result = None
         self._game_over_tick = 0
         self._show_post_battle = False
+        self._victory_detected = False
+        self._victory_time = 0.0
 
     @property
     def game_result(self):

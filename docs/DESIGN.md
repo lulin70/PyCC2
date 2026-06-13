@@ -1,8 +1,8 @@
-# PyCC2 技术设计文档 (DESIGN) **v0.3.0**
+# PyCC2 技术设计文档 (DESIGN) **v0.3.39**
 
-> **项目**: Close Combat 2 Python 重写 | **阶段**: M2 — 核心功能完善已完成
-> **输入**: P2 ADD v1.0 (架构设计) + P1 PRD v1.0 (需求规格) + M1/M2 修复与新增方案
-> **文档版本**: v0.3.0 | **日期**: 2026-05-27
+> **项目**: Close Combat 2 Python 重写 | **阶段**: M3 — Beta Candidate
+> **输入**: P2 ADD v1.0 (架构设计) + P1 PRD v1.0 (需求规格) + M1/M2/M3 修复与新增方案
+> **文档版本**: v0.3.39 | **日期**: 2026-06-13
 
 ---
 
@@ -949,3 +949,95 @@ class CampaignResult:
     units_survived: int
     campaign_rating: str          # "Historic Victory" / "Marginal Victory" / etc.
 ```
+
+---
+
+## 第14部分：v0.3.31-v0.3.39 架构更新 (M3 新增)
+
+### 14.1 更新后的技术架构树
+
+```
+PyCC2/
+├── src/pycc2/
+│   ├── domain/                    # 核心游戏逻辑（纯Python，高可测试性）
+│   │   ├── ai/                   # 行为树AI，战术决策系统
+│   │   ├── components/           # ECS：Health, Morale, Weapon, Position, Vision
+│   │   ├── entities/             # Squad, Unit, GameMap, Projectile
+│   │   ├── systems/              # Campaign, Combat, Ballistics, Pathfinding
+│   │   └── value_objects/        # Damage, Direction, TerrainType, Vec2, AudioEnums
+│   ├── services/                 # 游戏循环，AI服务，Event bus，Combat director
+│   │   ├── game_loop/            # GameLoopAssembler (Composition Root)
+│   │   └── ...
+│   ├── presentation/             # 渲染，输入处理，UI，音频
+│   │   ├── rendering/            # Camera, HUD, Minimap, Sprites, Isometric引擎
+│   │   │   ├── surface_pool.py              # 统一Surface LRU池 (v0.3.31)
+│   │   │   ├── shell_casing_system.py       # 药莢排出物理系统 125行 (v0.3.33)
+│   │   │   ├── flash_effect_system.py       # 屏幕闪光效果系统 101行 (v0.3.33)
+│   │   │   ├── weather_system.py            # 天气覆盖渲染系统 160行 (v0.3.33)
+│   │   │   ├── fade_transition.py           # UI alpha淡入淡出过渡 (v0.3.32)
+│   │   │   ├── ui_overlay_renderer.py       # VL标志/攻击线/队列命令/LOS (v0.3.28)
+│   │   │   ├── particle_effects_renderer.py # 粒子效果渲染器 (v0.3.13)
+│   │   │   ├── environment_renderer.py      # 环境渲染器 (v0.3.13)
+│   │   │   ├── tank_pixel_renderer.py       # 战车像素渲染器
+│   │   │   ├── infantry_pixel_renderer.py   # 步兵像素渲染器
+│   │   │   └── ...               # 其他渲染模块
+│   │   ├── input/                # 命令系统，交互控制器
+│   │   ├── ui/                   # 菜单，面板，工具提示，部署UI
+│   │   └── audio/                # 声音系统，语音命令，环境音频
+│   └── infrastructure/           # 存档系统，配置，解析器
+│       ├── resource_cache.py     # HTTP下载+SHA256+LRU+离线 (v0.3.37)
+│       └── ...
+├── data/
+│   ├── maps/                     # 63个历史地图JSON文件
+│   ├── scenarios/                # 11个场景配置
+│   └── units/                    # 单位模板定义
+├── tests/                        # ~3985测试（单元 + 集成 + E2E + 冒烟）
+├── assets/                       # 精灵图，音效，CC2参考截图
+└── docs/                         # 设计文档，PRD，差距分析
+```
+
+### 14.2 分层描述更新
+
+#### Domain 层
+核心业务逻辑，纯Python实现，零外部依赖。包含AI行为树、ECS组件、实体、系统和值对象。
+- v0.3.29新增：`audio_enums.py`（SoundType + InteractionMode从services迁移）
+- 原则：domain不依赖presentation或infrastructure
+
+#### Services 层
+游戏循环编排、AI服务、EventBus、CombatDirector。
+- v0.3.26新增：GameStateView Protocol打破presentation→services循环依赖
+- v0.3.26新增：GameLoopAssembler作为Composition Root（10个子方法）
+- EventBus双通道：publish()自动桥接TypedDict到named handlers
+
+#### Presentation 层
+渲染、输入处理、UI、音频。最大的变化区域。
+- **Rendering子层**（v0.3.28-v0.3.37重大重构）：
+  - EnhancedRenderer从1389行→943行（-32%），3个子系统抽出
+  - 新增：ShellCasingSystem、FlashEffectSystem、WeatherSystem、FadeTransition
+  - 新增：tank_pixel_renderer.py、infantry_pixel_renderer.py
+  - SurfacePool统一：6/6消费者使用共享LRU池
+  - Dirty Rectangle优化：_DirtyRectTracker部分屏幕更新
+- **UI子层**：
+  - ThemeManager运行时激活（default/dark/light）
+  - 按钮hover/click反馈 + 工具提示系统
+  - FadeTransition动画（BottomPanel/Minimap/HUD）
+- **Audio子层**：
+  - EnvironmentalAudioSystem：11种程序化环境音
+
+#### Infrastructure 层
+存档系统、配置、解析器。
+- v0.3.35：存档安全加固（权限0o600，HMAC密钥最小长度验证）
+- v0.3.37：ResourceCacheManager（HTTP下载+SHA256验证+LRU缓存+离线模式）
+
+### 14.3 关键架构指标
+
+| 指标 | v0.3.0 | v0.3.39 | 变化 |
+|------|--------|---------|------|
+| 测试数 | 3372 | ~3985 | +613 |
+| CC2还原度 | ~95% | ~88% | -7%（更诚实评估） |
+| 层违规 | ~41 | ~25 | -39% |
+| EnhancedRenderer行数 | 1389 | 943 | -32% |
+| 裸print() | 200+ | ~1 | 99.3%清理 |
+| E2E测试 | 17阶段/dummy | 38阶段/real SDL | 显著提升 |
+| 抽出渲染模块 | 9 | 22 | +13 |
+| God Classes (>1000行) | 8 | 4 | -50% |

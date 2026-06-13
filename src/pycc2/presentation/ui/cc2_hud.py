@@ -20,8 +20,12 @@ import pygame
 from pygame import Rect, Surface, draw, font
 from pygame.font import Font
 
+from pycc2.presentation.rendering.minimap import Minimap
+
 if TYPE_CHECKING:
+    from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
+    from pycc2.presentation.rendering.camera import Camera
 
 
 class CC2HUD:
@@ -106,6 +110,11 @@ class CC2HUD:
         self._at_remaining: int = 5
         self._timer: str = "00:00"
         self._info_mode: str = "ALL"
+        self._game_map: GameMap | None = None
+        self._camera: Camera | None = None
+
+        # Minimap component
+        self._minimap: Minimap = Minimap(size=self.MINIMAP_SIZE)
 
         # Interaction state
         self._hovered_command: str | None = None
@@ -198,6 +207,15 @@ class CC2HUD:
     def set_timer(self, timer_str: str) -> None:
         """Set timer display string (format: 'MM:SS')."""
         self._timer = timer_str
+
+    def set_game_map(self, game_map: GameMap) -> None:
+        """Set the game map for minimap terrain rendering."""
+        self._game_map = game_map
+        self._minimap.set_map(game_map)
+
+    def set_camera(self, camera: Camera) -> None:
+        """Set the camera reference for minimap viewport rendering."""
+        self._camera = camera
 
     def register_callback(self, event_type: str, callback: callable) -> None:
         """Register event callback.
@@ -603,22 +621,22 @@ class CC2HUD:
         minimap_size = min(self.MINIMAP_SIZE, w - 16, h - line_y + y - 80)
         if minimap_size > 40:
             mm_x = x + (w - minimap_size) // 2
-            mm_rect = Rect(mm_x, line_y, minimap_size, minimap_size)
-            draw.rect(surface, (25, 28, 33), mm_rect)
-            draw.rect(surface, self.BORDER_COLOR, mm_rect, 1)
 
-            # Minimap placeholder pattern (grid)
-            grid_color = (40, 43, 50)
-            for gx in range(mm_x, mm_x + minimap_size, 10):
-                draw.line(surface, grid_color, (gx, line_y), (gx, line_y + minimap_size), 1)
-            for gy in range(line_y, line_y + minimap_size, 10):
-                draw.line(surface, grid_color, (mm_x, gy), (mm_x + minimap_size, gy), 1)
+            # Sync minimap data before rendering
+            self._minimap.update_units(self._units)
+            self._minimap.set_selected_unit(self._selected_unit_id)
+            if self._camera:
+                cam = self._camera
+                viewport = (
+                    cam.position.x,
+                    cam.position.y,
+                    cam.viewport_width,
+                    cam.viewport_height,
+                )
+                self._minimap.set_camera_viewport(viewport)
 
-            # Label
-            mm_label = self._font_small.render("🖼️Preview", True, (130, 130, 125))
-            surface.blit(mm_label,
-                        (mm_x + (minimap_size - mm_label.get_width()) // 2,
-                         line_y + minimap_size - 14))
+            # Render the real minimap (terrain + units + viewport)
+            self._minimap.render(surface, mm_x, line_y)
 
             line_y += minimap_size + 8
 
@@ -797,7 +815,7 @@ class CC2HUD:
 
         Args:
             game_state: Dict with optional keys: units, selected_unit,
-                       ap_remaining, at_remaining, timer
+                       ap_remaining, at_remaining, timer, game_map, camera
         """
         if 'units' in game_state:
             self.set_units(game_state['units'])
@@ -809,6 +827,10 @@ class CC2HUD:
             self._at_remaining = game_state['at_remaining']
         if 'timer' in game_state:
             self._timer = game_state['timer']
+        if 'game_map' in game_state:
+            self.set_game_map(game_state['game_map'])
+        if 'camera' in game_state:
+            self.set_camera(game_state['camera'])
 
     def _get_status_color(self, unit: Unit) -> tuple[int, int, int]:
         """Get status dot color based on unit health.

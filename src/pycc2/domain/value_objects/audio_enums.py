@@ -29,6 +29,11 @@ class SoundType(Enum):
     HIT_CONFIRM = auto()
     HIT_CRITICAL = auto()
     RICOCHET = auto()
+    TANK_CANNON = auto()
+    AT_GUN = auto()
+    MORTAR = auto()
+    SMG = auto()
+    SNIPER = auto()
 
     # Unit sounds
     UNIT_MOVE = auto()

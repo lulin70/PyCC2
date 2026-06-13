@@ -1,58 +1,62 @@
 # PyCC2 Development Roadmap
 
-**v0.3.0 | May 30, 2026 | Based on DevSquad 7-Role Analysis**
+**v0.3.39 | June 13, 2026 | Based on DevSquad 7-Role Analysis**
 
-> **Current Version**: v0.3.0 | **Tests**: 3372 (all passing) | **CC2 Fidelity**: ~95%
-> **Status**: M1+M2 Complete — Game fully playable with all core systems working | **M3: Visual Polish in Progress**
+> **Current Version**: v0.3.39 | **Tests**: ~3985 (all passing) | **CC2 Fidelity**: ~88%
+> **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish in Progress**
 
 ---
 
 ## Executive Summary
 
-PyCC2 has progressed from an unplayable state (~45% fidelity) to a fully functional Alpha (~95% fidelity) through two major milestone phases:
+PyCC2 has progressed from an unplayable state (~45% fidelity) to a Beta Candidate (~88% fidelity) through multiple milestone phases:
 
 - **M1 (May 23-24)**: Emergency fixes — resolved 5 P0 critical bugs
 - **M2 (May 25-27)**: Core features — implemented CC2 victory conditions, command system, garrison, bridge destruction, campaign carryover, enhanced visuals
+- **M3 (ongoing)**: Visual polish & deep optimization — SRP refactoring, cinematic effects, ghost feature fixes, visual polish, architecture cleanup
 
-The project now has **3372 passing tests**, **63 historical maps**, **277 unit templates**, and **69 authentic weapons**. All core gameplay loops work end-to-end.
+The project now has **~3985 passing tests**, **63 historical maps**, **277 unit templates**, and **69 authentic weapons**. All core gameplay loops work end-to-end. 38-phase E2E user journey validated in real SDL environment.
 
 ---
 
 ## Current Status Dashboard
 
-| Metric | v0.1.1 (May 23) | v0.3.0 (May 27) | Change |
-|--------|------------------|------------------|--------|
-| **Test Count** | 2767 (1 failed) | **3372** (all pass) | ✅ +605, 100% pass |
+| Metric | v0.1.1 (May 23) | v0.3.39 (June 13) | Change |
+|--------|------------------|---------------------|--------|
+| **Test Count** | 2767 (1 failed) | **~3985** (all pass) | ✅ +1218, 100% pass |
 | **Test Pass Rate** | 99.96% | **100%** | ✅ Perfect |
-| **CC2 Fidelity** | ~45% | **~95%** | ✅ +50% |
+| **CC2 Fidelity** | ~45% | **~88%** | ✅ +43% |
 | **Map Count** | 30 | **63** | ✅ +110% |
 | **Weapon Types** | 69 | **69** | ✅ Unchanged |
 | **Unit Templates** | 277 (data only) | **277** (rendering works) | ✅ Rendering fixed |
 | **P0 Bugs** | 5 | **0** | ✅ All cleared |
 | **Combat UI** | Crashing | **Fully functional** | ✅ Fixed |
-| **AI Behavior** | BT broken | **6 AI types working** | ✅ Fixed |
+| **AI Behavior** | BT broken | **8 AI types working** | ✅ Fixed |
 | **Command System** | 3/7 usable | **7/7 + hotkeys + queue** | ✅ Complete |
 | **Unit Rendering** | Geometric shapes | **Sprites + turret rotation** | ✅ Fixed |
 | **Victory Conditions** | None | **CC2-authentic triple** | ✅ New feature |
 | **Building Garrison** | None | **Defense + window arcs** | ✅ New feature |
 | **Bridge Destruction** | None | **Engineer demolition** | ✅ New feature |
 | **Campaign Carryover** | None | **Units persist** | ✅ New feature |
+| **E2E Tests** | None | **38-phase real SDL** | ✅ New feature |
+| **Visual Polish** | None | **Death fade, flash, weather, shells** | ✅ v0.3.31-v0.3.34 |
+| **Architecture** | God classes | **SRP splits, -39% violations** | ✅ v0.3.23-v0.3.29 |
 
 ---
 
 ## Seven-Dimension Quality Assessment
 
-> Updated 2026-05-30 based on codebase static analysis + runtime verification + 7-role review
+> Updated 2026-06-13 based on codebase static analysis + runtime verification + 7-role review
 
 | Dimension | Score | Trend | Notes |
 |-----------|-------|-------|-------|
-| **Architecture** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Clean DDD layers; TD-045~049 fixed; remaining TD-050/051 are domain→services/infra violations |
-| **Code Quality** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Bare except cleaned (TD-047), duplicate modules merged (TD-046); enhanced_renderer.py still oversized (TD-052) |
-| **Test Coverage** | ✅ GOOD | ↑ from ADEQUATE | 3372 tests all green, includes integration+E2E; contract tests and performance regression tests still missing |
-| **Security** | ✅ EXCELLENT | — | HMAC integrity protection, input validation complete, no known security vulnerabilities |
-| **Performance** | 🟡 ADEQUATE | — | 50×42 map @30fps achieved; 100×100 isometric mode needs optimization (TD-043) |
+| **Architecture** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Clean DDD layers; EnhancedRenderer split complete (3 subsystems extracted); 4 God Classes remain; layer violations -39% |
+| **Code Quality** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Bare print() ~1 remaining (99.3% cleaned); AnimationController dead code removed; logging migration complete |
+| **Test Coverage** | ✅ EXCELLENT | ↑ from GOOD | ~3985 tests all green, includes integration+E2E+smoke; 55 HUD tests in v0.3.36; 38-phase real SDL E2E |
+| **Security** | ✅ EXCELLENT | — | HMAC integrity protection (permissions 0o600, key validation), input validation complete, no injection vectors |
+| **Performance** | ✅ GOOD | ↑ from ADEQUATE | Surface pool LRU unified (6/6 consumers), dirty rectangle optimization, terrain cache, tank rotation cache, viewport culling |
 | **Error Handling** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Bare except replaced with specific exceptions; key paths have error recovery; some modules need enhancement |
-| **Documentation** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Version numbers unified; doc-code sync mechanism pending (TD-038) |
+| **Documentation** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Version numbers unified to v0.3.39; doc-code sync mechanism pending |
 
 **Scoring Scale**: EXCELLENT > GOOD > ADEQUATE > NEEDS_IMPROVEMENT > POOR
 
@@ -119,7 +123,56 @@ The project now has **3372 passing tests**, **63 historical maps**, **277 unit t
 
 ---
 
-## Current Phase: M3 — Polish & Visual Fidelity 🟡
+### ✅ M3: Visual Polish & Deep Optimization (May 28 - June 13, 2026)
+
+**Goal**: Polish visual fidelity, fix ghost features, deep architecture optimization
+
+#### v0.3.31-v0.3.34 — Visual Quality Overhaul & Ghost Fixes (June 8-10)
+
+| Task | Priority | Status | Notes |
+|------|----------|--------|-------|
+| Desaturation effect (numpy pixel-level CC2 grayscale) | P1 | ✅ Complete | Was `pass` stub, now active |
+| Infantry 8-direction differentiation enhanced | P1 | ✅ Complete | ~80%+ visual variety |
+| Minimap terrain detail (roads, buildings, water, woods) | P1 | ✅ Complete | Replaced text placeholder |
+| HUD minimap (real Minimap component) | P1 | ✅ Complete | v0.3.31 |
+| Weather overlay system (4 modes) | P1 | ✅ Complete | clear/light_fog/dust/smoke |
+| Shell casing ejection physics | P2 | ✅ Complete | v0.3.33 |
+| Button hover/click feedback + tooltips | P2 | ✅ Complete | v0.3.33 |
+| PostProcessingEffects instance creation fix | P0 | ✅ Complete | v0.3.34 — entire pipeline was never instantiated |
+| Weather overlay default to light_fog | P1 | ✅ Complete | v0.3.34 |
+| Death fade-out (500ms alpha decay) | P1 | ✅ Complete | v0.3.32 |
+| Screen flash effect (explosion/kill) | P2 | ✅ Complete | v0.3.32 |
+| Movement smoothing (position lerp 12 u/s) | P1 | ✅ Complete | v0.3.32 |
+| UI panel transition animations | P2 | ✅ Complete | v0.3.32 |
+| Combat particle enrichment (5 types per hit) | P2 | ✅ Complete | v0.3.32 |
+
+#### v0.3.35-v0.3.39 — Infrastructure & Cleanup (June 11-13)
+
+| Task | Priority | Status | Notes |
+|------|----------|--------|-------|
+| AnimationController dead code deletion (430 lines) | P2 | ✅ Complete | v0.3.35 |
+| Save system security hardening (0o600, HMAC key validation) | P1 | ✅ Complete | v0.3.35 |
+| ThemeManager runtime activation (3 themes) | P2 | ✅ Complete | v0.3.36 |
+| SurfacePool complete unification (6/6 consumers) | P1 | ✅ Complete | v0.3.36 |
+| HUD test coverage (55 new tests, 12 classes) | P2 | ✅ Complete | v0.3.36 |
+| EnvironmentalAudioSystem activated (11 sounds) | P1 | ✅ Complete | v0.3.37 |
+| Dirty Rectangle rendering optimization | P1 | ✅ Complete | v0.3.37 |
+| EnhancedRenderer God Class split (ShellCasingSystem + FlashEffectSystem + WeatherSystem) | P1 | ✅ Complete | v0.3.37 |
+| ResourceCacheManager (HTTP + SHA256 + LRU + offline) | P2 | ✅ Complete | v0.3.37 |
+
+**M3 Acceptance Criteria**: ✅ MOSTLY PASSED
+- [x] CC2 three-panel HUD with VP display
+- [x] Visual polish: death fade, screen flash, movement smoothing, UI transitions
+- [x] Weather overlay system active
+- [x] Ghost features fixed (PostProcessing, desaturation, movement smoothing, UI transitions)
+- [x] Architecture: EnhancedRenderer split, layer violations -39%
+- [ ] Command queue shows visual waypoints with numbering
+- [ ] Vehicle damage has visual feedback (smoke, fire, disabled appearance)
+- [ ] Save/Load fully integrated into UI
+
+---
+
+## Current Phase: M3 — Polish & Visual Fidelity 🟡 (Ongoing)
 
 **Target**: v0.4-alpha | **Timeline**: 5-7 days | **Focus**: User-facing polish
 
@@ -212,12 +265,17 @@ The project now has **3372 passing tests**, **63 historical maps**, **277 unit t
 |---------|----------|-------|-------------|-------------|------------------|---------------|
 | v0.1.1 | Fix First | M1 | ~55% | 2767 | Fixed 5 P0 bugs | ✅ Completed |
 | v0.2.0 | Playable | M2-first-half | ~90% | 3325 | 7 commands + PNG sprites + AI fix | ✅ Completed |
-| **v0.3.0** | **Full Features** | **M2** | **~95%** | **3372** | **Victory + Garrison + Bridge + Carryover + Visuals** | ✅ **Current** |
-| v0.4-alpha | Polish | M3 | ~96% | 3400 | Command queue UI + Damage visuals + Smoke particles | ⬜ Next |
-| v0.5-alpha | Maintainable | M4 | ~97% | 3400 | Architecture refactor + Tech debt cleanup | ⬜ Planned |
-| v0.6-alpha | Sustainable | M5 | ~98% | 3500 | CI enhancement + Docs + E2E expansion | ⬜ Planned |
-| v0.7-beta | Enhanced | M6 | ~98% | 3600 | Decorations + Sound effects + AI enhancement | ⬜ Planned |
-| v1.0-beta | A Bridge Too Far | Final | ≥98% | ≥3600 | Full release candidate | ⬜ Target |
+| v0.3.0 | Full Features | M2 | ~95% | 3372 | Victory + Garrison + Bridge + Carryover + Visuals | ✅ Completed |
+| v0.3.1-v0.3.2 | Visual+Arch | M3-start | ~90% | 3400 | HUD + VP display + renderer split + DDD | ✅ Completed |
+| v0.3.11-v0.3.16 | Audit+Split | M3-mid | ~88% | 3500 | God class splits, test quality revolution, 121 weak assertions fixed | ✅ Completed |
+| v0.3.17-v0.3.23 | Cinematic+Opt | M3-mid | ~88% | 3700 | Camera effects, achievements, shadows, trails, optimization | ✅ Completed |
+| v0.3.25-v0.3.30 | Arch Cleanup | M3-late | ~88% | 3850 | Circular deps, GameLoopAssembler, E2E upgrade, doc sync | ✅ Completed |
+| v0.3.31-v0.3.34 | Visual Polish | M3-polish | ~88% | 3920 | Desaturation, weather, death fade, screen flash, ghost fixes | ✅ Completed |
+| **v0.3.39** | **Beta Candidate** | **M3** | **~88%** | **~3985** | **ThemeManager, env audio, dirty rect, SRP splits, security** | ✅ **Current** |
+| v0.4-alpha | Polish Complete | M3-final | ~90% | 4000 | Command queue UI + Damage visuals + Save/Load UI | ⬜ Next |
+| v0.5-alpha | Maintainable | M4 | ~92% | 4100 | Architecture refactor + Tech debt cleanup | ⬜ Planned |
+| v0.6-alpha | Sustainable | M5 | ~95% | 4200 | CI enhancement + Docs + E2E expansion | ⬜ Planned |
+| v1.0-beta | A Bridge Too Far | Final | ≥95% | ≥4200 | Full release candidate | ⬜ Target |
 
 ---
 
@@ -287,9 +345,9 @@ We welcome community contributions to any milestone:
 
 ---
 
-**Document Version**: 0.3.0
+**Document Version**: 0.3.39
 **Created**: 2026-05-19
-**Updated**: 2026-05-30
-**Status**: M1+M2 Complete, M3 In Progress
+**Updated**: 2026-06-13
+**Status**: Beta Candidate — M3 Visual Polish & Deep Optimization
 **Next Review**: Upon M3 Completion
-**Related Documents**: [GAP_ANALYSIS.md](docs/CC2_GAP_ANALYSIS_AND_PLAN.md) | [TECH_DEBT.md](docs/TECH_DEBT.md)
+**Related Documents**: [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) | [TECH_DEBT.md](docs/TECH_DEBT.md)

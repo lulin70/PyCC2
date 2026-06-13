@@ -129,6 +129,93 @@ class ProceduralSoundGenerator:
         return (wave * 22000).astype(np.int16)
 
     @classmethod
+    def generate_tank_cannon(cls, duration_ms: int = 800) -> np.ndarray:
+        """Low-frequency long pulse with reverb tail."""
+        n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
+        t = np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
+        # Deep fundamental with harmonics
+        fundamental = np.sin(2 * np.pi * 55 * t) * np.exp(-t * 4) * 0.7
+        harmonic = np.sin(2 * np.pi * 110 * t) * np.exp(-t * 6) * 0.3
+        # Noise burst for the crack
+        noise = np.random.uniform(-1, 1, n_samples).astype(np.float32) * np.exp(-t * 12) * 0.5
+        # Reverb tail (delayed echo)
+        echo_start = int(0.15 * n_samples)
+        echo = np.zeros(n_samples, dtype=np.float32)
+        echo_t = t[:n_samples - echo_start]
+        echo[echo_start:] = np.sin(2 * np.pi * 50 * echo_t) * np.exp(-echo_t * 3) * 0.25
+        wave = fundamental + harmonic + noise + echo
+        return (wave * 26000).astype(np.int16)
+
+    @classmethod
+    def generate_at_gun(cls, duration_ms: int = 400) -> np.ndarray:
+        """Mid-frequency sharp pulse."""
+        n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
+        t = np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
+        # Mid-frequency crack
+        crack = np.sin(2 * np.pi * 200 * t) * np.exp(-t * 15) * 0.6
+        # Higher snap
+        snap = np.sin(2 * np.pi * 600 * t) * np.exp(-t * 30) * 0.3
+        # Noise
+        noise = np.random.uniform(-1, 1, n_samples).astype(np.float32) * np.exp(-t * 10) * 0.4
+        wave = crack + snap + noise
+        return (wave * 25000).astype(np.int16)
+
+    @classmethod
+    def generate_mortar(cls, duration_ms: int = 1200) -> np.ndarray:
+        """Low-frequency thump with delayed reverb echo."""
+        n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
+        t = np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
+        # Initial thump
+        thump = np.sin(2 * np.pi * 70 * t) * np.exp(-t * 8) * 0.8
+        # Noise burst
+        noise = np.random.uniform(-1, 1, n_samples).astype(np.float32) * np.exp(-t * 15) * 0.3
+        # Delayed echo (incoming shell impact)
+        echo_start = int(0.6 * n_samples)
+        echo = np.zeros(n_samples, dtype=np.float32)
+        echo_t = t[:n_samples - echo_start]
+        echo[echo_start:] = (
+            np.sin(2 * np.pi * 60 * echo_t) * np.exp(-echo_t * 5) * 0.4
+            + np.random.uniform(-0.3, 0.3, len(echo_t)).astype(np.float32) * np.exp(-echo_t * 6) * 0.3
+        )
+        wave = thump + noise + echo
+        return (wave * 26000).astype(np.int16)
+
+    @classmethod
+    def generate_smg(cls, duration_ms: int = 200) -> np.ndarray:
+        """Rapid short pulses (like MG but shorter bursts)."""
+        n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
+        t = np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
+        # Multiple rapid bursts
+        burst_count = 4
+        burst_len = n_samples // burst_count
+        wave = np.zeros(n_samples, dtype=np.float32)
+        for i in range(burst_count):
+            start = i * burst_len
+            end = min(start + burst_len, n_samples)
+            seg_t = np.linspace(0, (end - start) / cls.SAMPLE_RATE, end - start, dtype=np.float32)
+            decay = 1.0 - (i / burst_count) * 0.3
+            noise = np.random.uniform(-1, 1, end - start).astype(np.float32) * np.exp(-seg_t * 50) * 0.6
+            pop = np.sin(2 * np.pi * 300 * seg_t) * np.exp(-seg_t * 40) * 0.3
+            wave[start:end] = (noise + pop) * decay
+        return (wave * 22000).astype(np.int16)
+
+    @classmethod
+    def generate_sniper(cls, duration_ms: int = 300) -> np.ndarray:
+        """High-frequency sharp crack with long decay tail."""
+        n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
+        t = np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
+        # High-frequency sharp crack
+        crack = np.sin(2 * np.pi * 2500 * t) * np.exp(-t * 50) * 0.4
+        # Supersonic snap
+        snap = np.sin(2 * np.pi * 4000 * t) * np.exp(-t * 80) * 0.2
+        # Long decay tail (echo)
+        tail = np.sin(2 * np.pi * 800 * t) * np.exp(-t * 5) * 0.3
+        # Noise burst
+        noise = np.random.uniform(-1, 1, n_samples).astype(np.float32) * np.exp(-t * 30) * 0.3
+        wave = crack + snap + tail + noise
+        return (wave * 24000).astype(np.int16)
+
+    @classmethod
     def generate_footstep(cls, surface: str = "grass") -> np.ndarray:
         duration_ms = 100
         n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
@@ -245,6 +332,11 @@ class SoundSystem(SoundEffectsMixin):
             (SoundType.UNIT_DEATH, lambda: ProceduralSoundGenerator.generate_death_cry()),
             (SoundType.FOOTSTEP_GRASS, lambda: ProceduralSoundGenerator.generate_footstep("grass")),
             (SoundType.FOOTSTEP_ROAD, lambda: ProceduralSoundGenerator.generate_footstep("road")),
+            (SoundType.TANK_CANNON, lambda: ProceduralSoundGenerator.generate_tank_cannon()),
+            (SoundType.AT_GUN, lambda: ProceduralSoundGenerator.generate_at_gun()),
+            (SoundType.MORTAR, lambda: ProceduralSoundGenerator.generate_mortar()),
+            (SoundType.SMG, lambda: ProceduralSoundGenerator.generate_smg()),
+            (SoundType.SNIPER, lambda: ProceduralSoundGenerator.generate_sniper()),
         ]
         for sound_type, generator in common:
             raw = generator()
@@ -281,6 +373,11 @@ class SoundSystem(SoundEffectsMixin):
                 SoundType.AMBIENT_WIND: lambda: np.zeros(1000, dtype=np.int16),
                 SoundType.AMBIENT_BIRD: lambda: np.zeros(2000, dtype=np.int16),
                 SoundType.FOOTSTEP_WOOD: lambda: ProceduralSoundGenerator.generate_footstep("wood"),
+                SoundType.TANK_CANNON: lambda: ProceduralSoundGenerator.generate_tank_cannon(),
+                SoundType.AT_GUN: lambda: ProceduralSoundGenerator.generate_at_gun(),
+                SoundType.MORTAR: lambda: ProceduralSoundGenerator.generate_mortar(),
+                SoundType.SMG: lambda: ProceduralSoundGenerator.generate_smg(),
+                SoundType.SNIPER: lambda: ProceduralSoundGenerator.generate_sniper(),
             }
             gen = generators.get(sound_type)
             if gen:
@@ -456,6 +553,11 @@ class SoundSystem(SoundEffectsMixin):
             SoundType.MG_BURST: SoundPriority.HIGH,
             SoundType.PISTOL_SHOT: SoundPriority.HIGH,
             SoundType.EXPLOSION: SoundPriority.HIGH,
+            SoundType.TANK_CANNON: SoundPriority.HIGH,
+            SoundType.AT_GUN: SoundPriority.HIGH,
+            SoundType.MORTAR: SoundPriority.HIGH,
+            SoundType.SMG: SoundPriority.HIGH,
+            SoundType.SNIPER: SoundPriority.HIGH,
             SoundType.HIT_CONFIRM: SoundPriority.HIGH,
             SoundType.HIT_CRITICAL: SoundPriority.CRITICAL,
             SoundType.RICOCHET: SoundPriority.MEDIUM,

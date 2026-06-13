@@ -76,21 +76,18 @@ DEFAULT_SOUND_MAPPINGS: list[SoundFileMapping] = [
     ),
     SoundFileMapping(
         event=CombatSoundEvent.TANK_CANNON_FIRE,
-        file_path="",
+        file_path="data/sounds/weapons/tank_cannon.wav",
         volume=1.0,
-        fallback_generator=lambda: None,
     ),
     SoundFileMapping(
         event=CombatSoundEvent.AT_ROCKET_FIRE,
-        file_path="",
+        file_path="data/sounds/weapons/at_gun.wav",
         volume=0.9,
-        fallback_generator=lambda: None,
     ),
     SoundFileMapping(
         event=CombatSoundEvent.MORTAR_LAUNCH,
-        file_path="",
+        file_path="data/sounds/weapons/mortar.wav",
         volume=0.85,
-        fallback_generator=lambda: None,
     ),
     SoundFileMapping(
         event=CombatSoundEvent.GRENADE_EXPLOSION_SHORT,

@@ -1,9 +1,9 @@
 # PyCC2 User Guide
 
-**v0.3.0 | Alpha — Fully Playable | May 30, 2026**
+**v0.3.39 | Beta Candidate — Fully Playable | June 13, 2026**
 
-> 🎮 **Game Status**: Fully playable with all core systems working!
-> This guide covers the current v0.3.0 features based on runtime verification.
+> 🎮 **Game Status**: Beta Candidate — AI対戦可用、コア玩法完整！
+> This guide covers the current v0.3.39 features based on runtime verification.
 
 ---
 
@@ -111,11 +111,13 @@ Options available:
 | **Health Bar** | Bottom panel | Unit HP (green→yellow→red) |
 | **Morale Bar** | Bottom panel | Unit morale state |
 | **Ammo Indicator** | Bottom panel | Remaining ammunition % |
-| **Minimap** | Bottom-right | Tactical overview, click to jump |
-| **Command Bar** | Bottom-center | Quick command buttons |
+| **Minimap** | Bottom-right | Tactical overview with terrain detail (roads, buildings, water, woods) — real Minimap component since v0.3.31 |
+| **Command Bar** | Bottom-center | Quick command buttons with hover/click feedback + tooltips (v0.3.33) |
 | **FPS Counter** | Top-left | Performance monitoring |
 | **Battle Timer** | Top-center | 20-minute countdown |
 | **Unit Info Panel** | Selected unit | Name, health, morale, ammo, status |
+| **Weather Overlay** | Full screen | Atmospheric haze (light_fog default since v0.3.34), 4 modes: clear/light_fog/dust/smoke |
+| **Theme** | Settings | Default/Dark/Light themes available at runtime (v0.3.36) |
 
 ---
 
@@ -140,7 +142,7 @@ Before each battle, you deploy your forces in designated zones.
 
 ### Deployment LOS Preview
 
-✅ **Working in v0.3.0**: Before placing a unit, hold Ctrl to preview its line-of-sight. This helps you position units with good fields of fire.
+✅ **Working in v0.3.39**: Before placing a unit, hold Ctrl to preview its line-of-sight. This helps you position units with good fields of fire.
 
 ### Force Limits
 
@@ -444,9 +446,41 @@ Never send tanks alone:
 
 ---
 
-## 8. Known Issues
+## 8. New Features in v0.3.31+
 
-Based on v0.3.0 runtime verification (May 30, 2026).
+### Visual Enhancements (v0.3.31-v0.3.34)
+
+| Feature | Version | Description |
+|---------|---------|-------------|
+| **Desaturation Effect** | v0.3.31 | CC2-style grayscale war atmosphere — pixel-level color grading for authentic dark wartime feel |
+| **Infantry 8-Direction Visuals** | v0.3.31 | Enhanced visual variety (~80%+) for infantry sprites across all 8 facing directions |
+| **Minimap Terrain Detail** | v0.3.31 | Roads, buildings, water, and woods now rendered with distinct visual styles on the minimap |
+| **Real Minimap Component** | v0.3.31 | Replaced text placeholder with actual interactive minimap in HUD |
+| **Death Fade-Out** | v0.3.32 | Fallen units fade out over 500ms with CC2 dark-gray ghost rendering |
+| **Screen Flash** | v0.3.32 | Warm white flash on explosions, soft red flash on kill shots |
+| **Movement Smoothing** | v0.3.32 | Units move smoothly at 12 units/second instead of teleporting between tiles |
+| **UI Panel Transitions** | v0.3.32 | FadeTransition animations (0.18-0.2s) on BottomPanel, Minimap, and HUD |
+| **Combat Particles** | v0.3.32 | Enriched particle effects: dirt_splash, blood_pool, hit_marker (5 types per hit) |
+| **Weather Overlay** | v0.3.33-v0.3.34 | 4 weather modes (clear/light_fog/dust/smoke) with animated particle drift; defaults to light_fog |
+| **Shell Casing Ejection** | v0.3.33 | Brass casings with trajectory, gravity, bounce, and fade-out physics |
+| **Button Feedback** | v0.3.33 | Hover/click feedback and tooltip system for all command buttons |
+| **Post-Processing** | v0.3.34 | Desaturation and vignette effects now active (were never instantiated before) |
+
+### System Enhancements (v0.3.35-v0.3.39)
+
+| Feature | Version | Description |
+|---------|---------|-------------|
+| **Theme Switching** | v0.3.36 | Default/Dark/Light themes available at runtime via settings |
+| **Environmental Audio** | v0.3.37 | 11 procedurally-generated ambient sounds synced to game state |
+| **Dirty Rectangle Optimization** | v0.3.37 | Partial screen updates for improved rendering performance |
+| **Resource Cache Manager** | v0.3.37 | HTTP download manager with SHA256 verification, LRU cache, offline mode |
+| **Save System Hardening** | v0.3.35 | File permissions locked to 0o600, HMAC key minimum length validation |
+
+---
+
+## 9. Known Issues
+
+Based on v0.3.39 runtime verification (June 13, 2026).
 
 ### P1 — Polish (Degrades Experience)
 
@@ -501,10 +535,10 @@ These were all fixed in M1/M2:
 
 ---
 
-*User Guide Version*: 3.0
-*Last Updated*: 2026-05-30
-*Game Version*: PyCC2 v0.3.0
-*CC2 Fidelity*: ~95%
-*Status*: Alpha — Fully Playable
+*User Guide Version*: 3.39
+*Last Updated*: 2026-06-13
+*Game Version*: PyCC2 v0.3.39
+*CC2 Fidelity*: ~88%
+*Status*: Beta Candidate — Fully Playable
 
-**Next Update**: After M3 completion (visual polish features)
+**Next Update**: After M3 completion (command queue UI, vehicle damage visuals, save/load UI)

@@ -91,6 +91,7 @@ class GameLoop:
     _achievement_bridge: object | None = field(init=False, default=None)
     _projectile_trail_sys: object | None = field(init=False, default=None)
     _environmental_audio: object | None = field(init=False, default=None)
+    _victory_delay: float = field(init=False, default=0.0)
 
     def __post_init__(self) -> None:
         from pycc2.services.game_loop_assembler import GameLoopAssembler
@@ -129,6 +130,10 @@ class GameLoop:
             self._accumulator += frame_time
             catchup_count = 0
             max_catchup = 5
+
+            # Update victory manager delay timer even when paused (for post-battle auto-transition)
+            if self._victory_manager is not None:
+                self._victory_manager.update()
 
             time_speed = self._get_time_speed()
             if time_speed <= 0.0:
@@ -303,6 +308,19 @@ class GameLoop:
         if self.state.paused:
             return
 
+        self._update_weather(dt)
+        self._update_audio_sync(dt)
+        self._update_unit_movement(dt)
+        self._update_fatigue(dt)
+        self._update_combat(dt)
+        self._update_popups()
+        self._update_camera(dt)
+        self._update_visual_effects(dt)
+        self._update_hud(dt)
+        self._update_ai(dt)
+        self._update_victory()
+
+    def _update_weather(self, dt: float) -> None:
         # Update weather system
         if hasattr(self, '_weather_system') and self._weather_system:
             self._weather_system.update(dt)
@@ -318,6 +336,7 @@ class GameLoop:
         if hasattr(self, '_day_night_cycle') and self._day_night_cycle:
             self._day_night_cycle.advance(dt)
 
+    def _update_audio_sync(self, dt: float) -> None:
         # Process audio event queue
         if self.sound_system:
             try:
@@ -363,6 +382,7 @@ class GameLoop:
             except Exception:
                 pass
 
+    def _update_unit_movement(self, dt: float) -> None:
         # Update unit movements (smooth movement toward targets)
         for unit in self.state.units:
             # Update movement mode timers (Fast Move, Sneak, Defend)
@@ -374,6 +394,7 @@ class GameLoop:
                 if arrived:
                     logger.debug(f"[MOVEMENT] {unit.display_name} arrived at destination")
 
+    def _update_fatigue(self, dt: float) -> None:
         # Update unit fatigue, veterancy, and weather effects
         for unit in self.state.units:
             # Fatigue accumulation
@@ -393,6 +414,7 @@ class GameLoop:
         if self.interaction_controller:
             self.interaction_controller.attack_line.update_tracking(self.state.units)
 
+    def _update_combat(self, dt: float) -> None:
         self._combat_director.update(
             units=self.state.units,
             game_map=self.state.game_map,
@@ -412,12 +434,15 @@ class GameLoop:
                 if next_cmd is not None:
                     unit._execute_queued_command(next_cmd)
 
+    def _update_popups(self) -> None:
         # Trigger combat popups for significant events
         self._process_combat_popups()
 
+    def _update_camera(self, dt: float) -> None:
         # 更新相机屏幕震动
         self.state.camera.update_shake(dt)
 
+    def _update_visual_effects(self, dt: float) -> None:
         # P2-03: Update screen flash overlay alpha (fade-out)
         if hasattr(self.renderer, 'update_flash'):
             self.renderer.update_flash(dt)
@@ -430,14 +455,13 @@ class GameLoop:
         if hasattr(self.renderer, 'update_shell_casings'):
             self.renderer.update_shell_casings(dt)
 
+        # Suppression overlay: update red edge flash for pinned/broken player units
+        if hasattr(self.renderer, 'update_suppression_overlay'):
+            self.renderer.update_suppression_overlay(dt, self.state.units)
+
         # P2-04: Smooth unit position interpolation (lerp toward real positions)
         if hasattr(self.renderer, '_smooth_positions'):
             self.renderer._smooth_positions(self.state.units, dt)
-
-        # P2-05: Update UI fade transitions (HUDManager panel/minimap fades)
-        if hasattr(self, '_hud_manager') and self._hud_manager is not None:
-            if hasattr(self._hud_manager, 'update'):
-                self._hud_manager.update(dt)
 
         # Update cinematic camera effect stack
         if self._effect_stack is not None:
@@ -455,6 +479,13 @@ class GameLoop:
                 tod = getattr(self._day_night_cycle, 'time_of_day', 0.5)
                 self._dynamic_shadow_sys.set_time_of_day(tod)
 
+    def _update_hud(self, dt: float) -> None:
+        # P2-05: Update UI fade transitions (HUDManager panel/minimap fades)
+        if hasattr(self, '_hud_manager') and self._hud_manager is not None:
+            if hasattr(self._hud_manager, 'update'):
+                self._hud_manager.update(dt)
+
+    def _update_ai(self, dt: float) -> None:
         if self.ai_service is not None and self.ai_service.managed_unit_count > 0:
             self._ai_tick_counter += 1
             if self._ai_tick_counter >= self._ai_update_interval:
@@ -467,6 +498,7 @@ class GameLoop:
                     self.ai_service.execute_intents(intents)
                 self._ai_tick_counter = 0
 
+    def _update_victory(self) -> None:
         victory_outcome = self._victory_manager.evaluate(self.state.units, self.state.tick)
         if victory_outcome is not None:
             result, reason = victory_outcome

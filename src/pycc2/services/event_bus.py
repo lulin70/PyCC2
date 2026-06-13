@@ -24,6 +24,7 @@ class EventBus(IEventPublisher):
         self._error_count: int = 0
         self._total_published: int = 0
         self._registered_types: set[type] = set()
+        self._handler_error_counts: dict[int, int] = {}
 
     @overload
     def subscribe(self, event_type: type[E], handler: Callable[[E], None]) -> None: ...
@@ -98,22 +99,39 @@ class EventBus(IEventPublisher):
         handlers = self._handlers.get(event_type, [])
         self._total_published += 1
 
-        for handler in handlers:
+        for handler in list(handlers):
+            handler_id = id(handler)
+            if self._handler_error_counts.get(handler_id, 0) >= 3:
+                continue
             try:
                 handler(event)
+                self._handler_error_counts.pop(handler_id, None)
             except (ValueError, TypeError, KeyError, RuntimeError, AttributeError) as e:
                 self._error_count += 1
-                logger.error(
-                    "Handler error for %s: %s",
-                    event_type.__name__,
-                    e,
-                    exc_info=True,
-                )
+                count = self._handler_error_counts.get(handler_id, 0) + 1
+                self._handler_error_counts[handler_id] = count
+                if count >= 3:
+                    logger.warning(
+                        "Circuit breaker: unsubscribing failing handler %s for %s (3 consecutive errors)",
+                        handler,
+                        event_type.__name__,
+                    )
+                    self.unsubscribe(event_type, handler)
+                else:
+                    logger.error(
+                        "Handler error for %s: %s",
+                        event_type.__name__,
+                        e,
+                        exc_info=True,
+                    )
 
         if event_type is not dict and hasattr(event_type, "__name__"):
             type_name = event_type.__name__
             named = self._named_handlers.get(type_name, [])
-            for handler in named:
+            for handler in list(named):
+                handler_id = id(handler)
+                if self._handler_error_counts.get(handler_id, 0) >= 3:
+                    continue
                 try:
                     if isinstance(event, dict):
                         handler(event)
@@ -121,14 +139,25 @@ class EventBus(IEventPublisher):
                         handler(dict(event))
                     else:
                         handler({"data": event})
+                    self._handler_error_counts.pop(handler_id, None)
                 except (ValueError, TypeError, KeyError, RuntimeError, AttributeError) as e:
                     self._error_count += 1
-                    logger.error(
-                        "Named handler error for %s: %s",
-                        type_name,
-                        e,
-                        exc_info=True,
-                    )
+                    count = self._handler_error_counts.get(handler_id, 0) + 1
+                    self._handler_error_counts[handler_id] = count
+                    if count >= 3:
+                        logger.warning(
+                            "Circuit breaker: unsubscribing failing named handler %s for %s (3 consecutive errors)",
+                            handler,
+                            type_name,
+                        )
+                        self.unsubscribe_from(type_name, handler)
+                    else:
+                        logger.error(
+                            "Named handler error for %s: %s",
+                            type_name,
+                            e,
+                            exc_info=True,
+                        )
 
         if self._total_published > 0 and self._error_count / self._total_published > 0.05:
             logger.warning(
@@ -141,17 +170,31 @@ class EventBus(IEventPublisher):
     def publish_named(self, event_name: str, data: dict) -> None:
         self._total_published += 1
         named = self._named_handlers.get(event_name, [])
-        for handler in named:
+        for handler in list(named):
+            handler_id = id(handler)
+            if self._handler_error_counts.get(handler_id, 0) >= 3:
+                continue
             try:
                 handler(data)
+                self._handler_error_counts.pop(handler_id, None)
             except (ValueError, TypeError, KeyError, RuntimeError, AttributeError) as e:
                 self._error_count += 1
-                logger.error(
-                    "Named handler error for %s: %s",
-                    event_name,
-                    e,
-                    exc_info=True,
-                )
+                count = self._handler_error_counts.get(handler_id, 0) + 1
+                self._handler_error_counts[handler_id] = count
+                if count >= 3:
+                    logger.warning(
+                        "Circuit breaker: unsubscribing failing named handler %s for %s (3 consecutive errors)",
+                        handler,
+                        event_name,
+                    )
+                    self.unsubscribe_from(event_name, handler)
+                else:
+                    logger.error(
+                        "Named handler error for %s: %s",
+                        event_name,
+                        e,
+                        exc_info=True,
+                    )
 
     @overload
     def enqueue(self, event: dict) -> None: ...

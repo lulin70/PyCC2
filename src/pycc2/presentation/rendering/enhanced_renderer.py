@@ -309,6 +309,11 @@ class EnhancedRenderer:
         # P3-02: Shell casing ejection system
         # Delegated to ShellCasingSystem
         self._shell_sys = ShellCasingSystem()
+
+        # Suppression overlay: red edge flash when player units are pinned/broken
+        self._suppression_overlay_alpha: float = 0.0
+        self._suppression_overlay_max_alpha: float = 80.0
+        self._suppression_overlay_decay: float = 120.0  # alpha units per second
     
     def initialize(self, screen: pygame.Surface) -> None:
         """Initialize renderer with display surface."""
@@ -531,9 +536,110 @@ class EnhancedRenderer:
         """Update shell casing physics simulation."""
         self._shell_sys.update(dt)
 
+    def update_suppression_overlay(self, dt: float, units: list | None = None) -> None:
+        """Update suppression overlay alpha based on player unit morale states.
+
+        When player-controlled units are PINNED or BROKEN, increase the red
+        edge overlay alpha.  Alpha decays over time when no units are suppressed.
+
+        Args:
+            dt: Delta time in seconds.
+            units: List of units to check for morale state (optional).
+        """
+        from pycc2.domain.systems.morale_system import MoraleSystem, MoraleState
+
+        suppressed_count = 0
+        if units is not None:
+            for unit in units:
+                if not unit.is_alive:
+                    continue
+                # Only count ally/player units
+                if hasattr(unit, 'side') and unit.side not in ('allies', 'ally'):
+                    continue
+                if hasattr(unit, 'morale') and unit.morale is not None:
+                    morale_state = MoraleSystem.get_state(unit.morale.value)
+                    if morale_state in (MoraleState.PINNED, MoraleState.BROKEN):
+                        suppressed_count += 1
+
+        if suppressed_count > 0:
+            # Increase alpha proportional to number of suppressed units
+            target_alpha = min(
+                self._suppression_overlay_max_alpha,
+                30.0 + suppressed_count * 20.0,
+            )
+            # Quick ramp-up
+            self._suppression_overlay_alpha = min(
+                target_alpha,
+                self._suppression_overlay_alpha + 200.0 * dt,
+            )
+        else:
+            # Decay alpha over time
+            self._suppression_overlay_alpha = max(
+                0.0,
+                self._suppression_overlay_alpha - self._suppression_overlay_decay * dt,
+            )
+
     def render_shell_casings(self, camera) -> None:
         """Render shell casings as small ellipses with fade-out."""
         self._shell_sys.render(self._offscreen, camera)
+
+    def _render_suppression_overlay(self) -> None:
+        """Render semi-transparent red edge overlay for suppression feedback.
+
+        Draws a red vignette-like border that pulses when player units are
+        PINNED or BROKEN.  The alpha is controlled by _suppression_overlay_alpha
+        which ramps up when suppressed units exist and decays when they don't.
+        """
+        if self._offscreen is None:
+            return
+
+        sw, sh = self._offscreen.get_size()
+        alpha = int(max(0, min(255, self._suppression_overlay_alpha)))
+        if alpha < 2:
+            return
+
+        # Mark full dirty since this is a screen-wide overlay
+        if self._dirty_tracker is not None:
+            self._dirty_tracker.mark_full_dirty()
+
+        overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
+
+        # Draw red gradient strips along all four edges
+        edge_width = min(60, sw // 6)
+        edge_height = min(60, sh // 6)
+        red = (200, 30, 30)
+
+        # Top edge
+        for i in range(edge_height):
+            a = int(alpha * (1.0 - i / edge_height))
+            if a < 1:
+                break
+            pygame.draw.line(overlay, (*red, a), (0, i), (sw, i))
+
+        # Bottom edge
+        for i in range(edge_height):
+            a = int(alpha * (1.0 - i / edge_height))
+            if a < 1:
+                break
+            y = sh - 1 - i
+            pygame.draw.line(overlay, (*red, a), (0, y), (sw, y))
+
+        # Left edge
+        for i in range(edge_width):
+            a = int(alpha * (1.0 - i / edge_width))
+            if a < 1:
+                break
+            pygame.draw.line(overlay, (*red, a), (i, 0), (i, sh))
+
+        # Right edge
+        for i in range(edge_width):
+            a = int(alpha * (1.0 - i / edge_width))
+            if a < 1:
+                break
+            x = sw - 1 - i
+            pygame.draw.line(overlay, (*red, a), (x, 0), (x, sh))
+
+        self._offscreen.blit(overlay, (0, 0))
 
     def _get_pooled_surface(self, size: tuple[int, int]) -> pygame.Surface:
         """Get or create a surface from the object pool with LRU eviction (PERF-001).
@@ -714,6 +820,10 @@ class EnhancedRenderer:
             flash_surf.fill((*self._flash_sys.color, int(max(0, self._flash_sys.alpha))))
             self._offscreen.blit(flash_surf, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
 
+        # Suppression overlay: red edge flash when player units are pinned/broken
+        if self._suppression_overlay_alpha > 1.0:
+            self._render_suppression_overlay()
+
         # P3-01: Weather atmosphere overlay (light_fog / dust / smoke) — delegated to WeatherSystem
         if self._weather_sys.mode != "clear":
             # PERF: weather overlays can be full-screen → mark full dirty
@@ -730,8 +840,8 @@ class EnhancedRenderer:
                 processed = self._post_processing.apply_all(self._screen, color_style="war")
                 if processed is not None:
                     self._screen.blit(processed, (0, 0))
-            except Exception:
-                pass  # Non-critical: skip post-processing on error
+            except (pygame.error, ValueError, TypeError) as exc:
+                logger.debug("Post-processing skipped: %s", exc)
 
         # Atomic flip — use dirty-rect partial update when possible
         if self._dirty_tracker is not None:
@@ -1182,8 +1292,8 @@ class EnhancedRenderer:
             color = (60, 55, 50, alpha)  # CC2 dark gray ghost
             try:
                 pygame.draw.circle(self._offscreen, color, (sx, sy), size)
-            except Exception:
-                pass
+            except (pygame.error, ValueError) as exc:
+                logger.debug("Fading unit draw skipped: %s", exc)
         for uid in dead_ids:
             del self._fading_units[uid]
 

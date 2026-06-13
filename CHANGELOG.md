@@ -2,6 +2,42 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.40] - 2026-06-13
+
+### User Experience Overhaul — "Ready for Players"
+
+#### P0: HUD Minimap Integration (was placeholder)
+- CC2HUD now renders real Minimap with terrain, units, and camera viewport
+- Added `set_game_map()` and `set_camera()` setters for data binding
+- Replaced gray grid + "Preview" text with actual tactical overview
+
+#### P0: Procedural Weapon Sound Generation (was only 2 WAV files)
+- Added 5 new weapon sound types: tank_cannon, at_gun, mortar, smg, sniper
+- ProceduralSoundGenerator creates realistic waveforms when WAV files don't exist
+- Each weapon has distinct audio signature (frequency, duration, decay pattern)
+- Updated sound_effects.py and enhanced_sound_bridge.py with full weapon mapping
+
+#### P1: Victory Auto-Transition (was stuck on pause)
+- VictoryManager now auto-transitions to PostBattleScreen after 2-second delay
+- Players see "Victory!" then naturally flow to battle results
+- Delay timer runs even when game is paused
+
+#### P1: Suppression Visual Feedback (was invisible)
+- Red gradient overlay on screen edges when ally units are PINNED/BROKEN
+- Alpha ramps up during suppression, decays when pressure lifts
+- Per-line alpha fade creates immersive "under fire" feeling
+
+#### P2: GameLoop._update_logic() Refactored (was 187-line God Method)
+- Split into 11 focused methods: weather, audio, movement, fatigue, combat,
+  popups, camera, visual_effects, hud, ai, victory
+- Dispatcher is now 15 lines — zero logic change, pure extraction
+
+#### P2: Technical Debt Cleanup
+- bare except → specific exceptions with logger.debug() in enhanced_renderer.py
+- EventBus circuit breaker: auto-unsubscribe handlers after 3 consecutive failures
+- README_ja.md completely rewritten (was describing v0.4-p4w2 era project)
+- docs/ROADMAP.md, USER_GUIDE.md, DESIGN.md updated to v0.3.40
+
 ## [0.3.39] - 2026-06-13
 
 ### Critical Fix: AI Combat Fire Chain (P0)

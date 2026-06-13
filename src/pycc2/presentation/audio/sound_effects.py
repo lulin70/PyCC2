@@ -55,12 +55,17 @@ class SoundEffectsMixin:
         from pycc2.presentation.audio.sound_system import SoundType
         if not self._available:
             return
-        if weapon_type == "mg":
-            self.play(SoundType.MG_BURST)
-        elif weapon_type == "pistol":
-            self.play(SoundType.PISTOL_SHOT)
-        else:
-            self.play(SoundType.RIFLE_SHOT)
+        weapon_map = {
+            "mg": SoundType.MG_BURST,
+            "pistol": SoundType.PISTOL_SHOT,
+            "tank_cannon": SoundType.TANK_CANNON,
+            "at_gun": SoundType.AT_GUN,
+            "mortar": SoundType.MORTAR,
+            "smg": SoundType.SMG,
+            "sniper": SoundType.SNIPER,
+        }
+        st = weapon_map.get(weapon_type, SoundType.RIFLE_SHOT)
+        self.play(st)
 
     def play_hit(self, is_critical: bool = False) -> None:
         from pycc2.presentation.audio.sound_system import SoundType
