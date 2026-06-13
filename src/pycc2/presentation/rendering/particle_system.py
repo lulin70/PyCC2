@@ -476,3 +476,19 @@ class TopDownParticleSystem:
     def active_count(self) -> int:
         """当前活跃粒子数量"""
         return len(self.particles)
+
+    def get_dirty_rects(self) -> list[pygame.Rect]:
+        """Return bounding rects for all active particles (for dirty-rect tracking).
+
+        Each particle contributes a rect centered at (x, y) with size based on
+        its current radius.  The list is suitable for passing to
+        ``DirtyRectTracker.mark_dirty()``.
+        """
+        rects: list[pygame.Rect] = []
+        for p in self.particles:
+            x, y = int(p['x']), int(p['y'])
+            r = int(p.get('current_radius', p.get('max_radius', 10)))
+            if r < 1:
+                r = 10  # minimum bounding size for point-like particles
+            rects.append(pygame.Rect(x - r, y - r, r * 2, r * 2))
+        return rects

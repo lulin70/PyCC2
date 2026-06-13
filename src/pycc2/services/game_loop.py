@@ -458,12 +458,11 @@ class GameLoop:
         if self.ai_service is not None and self.ai_service.managed_unit_count > 0:
             self._ai_tick_counter += 1
             if self._ai_tick_counter >= self._ai_update_interval:
-                context: dict = {
-                    "game_map": self.state.game_map,
-                    "units": self.state.units,
-                    "tick": self.state.tick,
-                }
-                intents = self.ai_service.update_all(dt, context)
+                intents = self.ai_service.tick(
+                    dt,
+                    game_map=self.state.game_map,
+                    all_units=self.state.units,
+                )
                 if intents:
                     self.ai_service.execute_intents(intents)
                 self._ai_tick_counter = 0

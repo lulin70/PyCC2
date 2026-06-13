@@ -1,6 +1,6 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.3.34 | Beta Candidate | June 10, 2026**
+**v0.3.39 | Beta Candidate | June 13, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
@@ -19,7 +19,7 @@
 
 ---
 
-## What's New in v0.3.37
+## What's New in v0.3.39
 
 ### v0.3.35 — Quick Wins (2026-06-11)
 - Deleted AnimationController dead code (430 lines, 90% overlap with existing systems)
@@ -201,7 +201,7 @@
 | **Layer Violations** | ~25 (down from 41 in v0.3.29, -39%) |
 | **CC2 Fidelity** | ~88% (Visual: 85%, Mechanics: 92%) ⚠️ | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for details |
 
-### 📈 Code Quality Metrics (v0.3.37 — Deep Optimization)
+### 📈 Code Quality Metrics (v0.3.39 — Critical Fix & CI)
 
 | Dimension | Score | Notes |
 |----------|-------|-------|
@@ -211,7 +211,7 @@
 | **Code Quality** | 7.5/10 | **~1 bare print() remaining (99.3% cleaned)** (down from 200+), logging migration complete, AnimationController dead code removed |
 | **Performance** | 8.5/10 | Surface pool LRU unified (6/6 consumers), dirty rectangle optimization live, terrain cache, tank rotation cache, viewport culling |
 | **Security** | 9.5/10 ✅ | Zero eval/exec, HMAC saves (permissions 0o600, key validation), no injection vectors |
-| **Documentation** | **8.5/10** ✅ | **Synchronized to v0.3.37** (this update) |
+| **Documentation** | **8.5/10** ✅ | **Synchronized to v0.3.39** (this update) |
 | **Maintainability** | 8/10 | Clear patterns, good logging, ghost audit complete, critical pipelines active, environmental audio online |
 | **Visual Polish** | 8/10 🆕 | Death fade, screen flash, movement lerp, UI transitions, weather, shells, tooltips (v0.3.31-v0.3.34) |
 | **Overall Health** | **8.2/10** | **Beta Candidate** ✅ |
@@ -609,4 +609,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Generated on 2026-06-10 | v0.3.34 (Beta Candidate) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
+<p align="center"><sub>Generated on 2026-06-13 | v0.3.39 (Beta Candidate) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>

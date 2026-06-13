@@ -269,26 +269,26 @@ class TestAIThrottle:
     def test_ai_not_called_on_first_tick(self, game_loop):
         mock_ai = Mock()
         mock_ai.managed_unit_count = 5
-        mock_ai.update_all.return_value = []
+        mock_ai.tick.return_value = []
         game_loop.ai_service = mock_ai
         self._run_logic_n(game_loop, 1, mock_ai)
-        mock_ai.update_all.assert_not_called()
+        mock_ai.tick.assert_not_called()
 
     def test_ai_called_on_third_tick(self, game_loop):
         mock_ai = Mock()
         mock_ai.managed_unit_count = 5
-        mock_ai.update_all.return_value = []
+        mock_ai.tick.return_value = []
         game_loop.ai_service = mock_ai
         self._run_logic_n(game_loop, 3, mock_ai)
-        assert mock_ai.update_all.call_count == 1
+        assert mock_ai.tick.call_count == 1
 
     def test_ai_called_every_3rd_tick(self, game_loop):
         mock_ai = Mock()
         mock_ai.managed_unit_count = 5
-        mock_ai.update_all.return_value = []
+        mock_ai.tick.return_value = []
         game_loop.ai_service = mock_ai
         self._run_logic_n(game_loop, 9, mock_ai)
-        assert mock_ai.update_all.call_count == 3
+        assert mock_ai.tick.call_count == 3
 
     def test_combat_update_not_throttled(self, game_loop):
         mock_ai = Mock()
@@ -304,7 +304,7 @@ class TestAIThrottle:
     def test_ai_counter_resets_after_update(self, game_loop):
         mock_ai = Mock()
         mock_ai.managed_unit_count = 5
-        mock_ai.update_all.return_value = []
+        mock_ai.tick.return_value = []
         game_loop.ai_service = mock_ai
         with patch.object(game_loop._combat_director, "update"):
             with patch.object(game_loop._combat_director, "process_effects"):
@@ -324,16 +324,16 @@ class TestAIThrottle:
         game_loop._ai_update_interval = 5
         mock_ai = Mock()
         mock_ai.managed_unit_count = 5
-        mock_ai.update_all.return_value = []
+        mock_ai.tick.return_value = []
         game_loop.ai_service = mock_ai
         self._run_logic_n(game_loop, 9, mock_ai)
-        assert mock_ai.update_all.call_count == 1
+        assert mock_ai.tick.call_count == 1
 
     def test_ai_still_makes_decisions_just_less_often(self, game_loop):
         intents_result = [{"test": "intent"}]
         mock_ai = Mock()
         mock_ai.managed_unit_count = 5
-        mock_ai.update_all.return_value = intents_result
+        mock_ai.tick.return_value = intents_result
         game_loop.ai_service = mock_ai
         self._run_logic_n(game_loop, 6, mock_ai)
         assert mock_ai.execute_intents.call_count == 2

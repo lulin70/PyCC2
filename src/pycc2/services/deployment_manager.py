@@ -288,7 +288,9 @@ class DeploymentManager:
         # Create player units from deployment placements
         placements = result.get("placements", [])
         if not placements:
-            logger.warning("No placements in deployment result")
+            logger.warning("No units deployed — battle cannot start without units")
+            self.deployment_phase_active = False
+            return None
 
         for placement in placements:
             unit = self._create_unit_from_placement(

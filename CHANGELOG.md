@@ -2,6 +2,31 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.39] - 2026-06-13
+
+### Critical Fix: AI Combat Fire Chain (P0)
+- **Fixed**: AI units now properly execute attacks via CombatDirector (was broken - TacticExecutor published untyped dict events that CombatDirector never received)
+- **Fixed**: game_loop now calls `ai_service.tick()` instead of legacy `update_all()` for full decision pipeline (perception, difficulty, engagement rules, commander AI, squad coordination)
+- **Impact**: AI opponents can now actually fight back - game is playable against AI
+
+### Performance Fix: Dirty Rectangle Optimization (P1)
+- **Fixed**: Dirty rect tracking now actually works - particles and terrain use targeted dirty rects instead of full-screen marks
+- **Fixed**: Render pipeline uses `display.update(rects)` for partial updates instead of always `display.flip()`
+- **Impact**: Significant FPS improvement on large maps and during combat
+
+### Stability Fixes (P1)
+- **Fixed**: Save system HMAC key now stable across sessions (was random per launch, making saves unreadable on next start)
+- **Fixed**: Empty deployment validation - players can no longer start battle with 0 units
+- **Fixed**: Save version incompatibility shows error dialog instead of crashing
+
+### Documentation & CI
+- Updated all README versions to v0.3.39
+- Added Dependabot configuration
+- Added bandit security scanning to CI
+- Upgraded Codecov and upload-artifact actions to v4
+- Removed duplicate pytest.ini and mypy.ini (merged into pyproject.toml)
+- Removed committed .baseline_results.json (378KB auto-generated)
+
 ## [0.3.38] - 2026-06-12
 
 ### Evaluation Fix & P0-P2 Optimization Round

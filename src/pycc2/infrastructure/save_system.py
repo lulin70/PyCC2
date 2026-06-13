@@ -104,9 +104,9 @@ class SecureSaveManager:
             stacklevel=2,
         )
         SecureSaveManager._using_default_key = True
-        # Generate a random key for this session (saves won't be portable across sessions)
-        import secrets
-        return secrets.token_bytes(32)
+        # Fixed dev key ensures saves are portable across sessions.
+        # Production must set PYCC2_SAVE_HMAC_KEY or config/secrets.toml.
+        return b"pycc2-dev-hmac-key-v1"
 
     @staticmethod
     def _sanitize_filename(filename: str) -> str:

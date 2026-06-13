@@ -245,25 +245,18 @@ class TacticExecutor:
         target = self._get_unit(intent.target_unit_id or "") if intent.target_unit_id else None
         if unit is None or target is None:
             return False
-        if self.ballistic_engine is None:
-            self._logger.warning("No ballistic engine available for attack")
-            return False
-        result = self.ballistic_engine.calculate_shot(
-            attacker=unit, target=target, game_map=self.game_map
+        # Publish typed PlayerCommand so CombatDirector handles the full
+        # attack pipeline (ballistics, damage, ammo, visual effects).
+        from pycc2.domain.interfaces.event_types import PlayerCommand
+
+        event = PlayerCommand(
+            command="attack",
+            unit_ids=[intent.unit_id],
+            target_id=intent.target_unit_id,
         )
-        event = {
-            "attacker_id": intent.unit_id,
-            "target_id": intent.target_unit_id,
-            "is_hit": result.hit,
-            "damage": result.damage_dealt,
-            "timestamp": time.time(),
-        }
-        if result.is_killing_blow:
-            event["kill_shot"] = True
         self.event_bus.publish(event)
         self._logger.debug(
-            f"Unit {intent.unit_id} attacked {intent.target_unit_id}: "
-            f"hit={result.hit}, damage={result.damage_dealt:.1f}"
+            f"Unit {intent.unit_id} attack command issued -> {intent.target_unit_id}"
         )
         return True
 

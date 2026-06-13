@@ -604,7 +604,9 @@ class EnhancedRenderer:
             logger.warning(f"Enhanced terrain failed, falling back to simple: {e}")
             self._terrain_rendering_sys.draw_simple_terrain(game_map, camera)
 
-        # PERF: Terrain redraw implies potential camera movement → full dirty
+        # PERF: Terrain covers the entire visible viewport; camera movement or
+        # tile redraw invalidates all pixels.  Keeping full-dirty here is correct
+        # because the terrain pass touches every on-screen tile.
         if self._dirty_tracker is not None:
             self._dirty_tracker.mark_full_dirty()
 
@@ -677,11 +679,11 @@ class EnhancedRenderer:
         # STEP 5.7: Render particle effects (explosions, smoke, muzzle flash, etc.)
         self._particle_system.render(self._offscreen)
 
-        # PERF: Particles are dynamic — mark dirty (skip if already full-dirty)
+        # PERF: Mark particle screen regions as dirty (skip if already full-dirty)
         if self._dirty_tracker is not None and not self._dirty_tracker._full_redraw:
-            if self._particle_system.particle_count() > 0:
-                # Particles can be anywhere — conservative: mark full dirty
-                self._dirty_tracker.mark_full_dirty()
+            if self._particle_system.active_count > 0:
+                for prect in self._particle_system.get_dirty_rects():
+                    self._dirty_tracker.mark_dirty(prect)
 
         # STEP 5.7-TRAIL: Render projectile trails (bullet/shell/rocket/mortar)
         if hasattr(self, '_projectile_trail_sys') and self._projectile_trail_sys is not None:
@@ -731,8 +733,16 @@ class EnhancedRenderer:
             except Exception:
                 pass  # Non-critical: skip post-processing on error
 
-        # Atomic flip
-        pygame.display.flip()
+        # Atomic flip — use dirty-rect partial update when possible
+        if self._dirty_tracker is not None:
+            dirty_rects = self._dirty_tracker.get_update_rects()
+            if dirty_rects is not None:
+                pygame.display.update(dirty_rects)
+            else:
+                pygame.display.flip()
+            self._dirty_tracker.next_frame()
+        else:
+            pygame.display.flip()
 
     def _render_isometric(
         self,

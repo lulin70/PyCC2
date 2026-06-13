@@ -52,20 +52,28 @@ class TestTacticExecutorMoveTo:
 
 
 class TestTacticExecutorAttack:
-    def test_execute_attack_without_ballistic_engine(self, executor):
-        intent = TacticIntent(
-            unit_id="unit_1",
-            tactic_type=TacticType.ATTACK,
-            target_unit_id="enemy_1",
-        )
+    def test_execute_attack_publishes_player_command(self, executor, event_bus):
+        from pycc2.domain.interfaces.event_types import PlayerCommand
+
+        published_events = []
+        event_bus.subscribe(PlayerCommand, lambda e: published_events.append(e))
         unit_mock = MagicMock()
         unit_mock.id = "unit_1"
         target_mock = MagicMock()
         target_mock.id = "enemy_1"
         executor.register_unit(unit_mock)
         executor.register_unit(target_mock)
+        intent = TacticIntent(
+            unit_id="unit_1",
+            tactic_type=TacticType.ATTACK,
+            target_unit_id="enemy_1",
+        )
         result = executor.execute(intent)
-        assert result is False
+        assert result is True
+        assert len(published_events) == 1
+        assert published_events[0]["command"] == "attack"
+        assert published_events[0]["unit_ids"] == ["unit_1"]
+        assert published_events[0]["target_id"] == "enemy_1"
 
 
 class TestTacticExecutorRetreat:
