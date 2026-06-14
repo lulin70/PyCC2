@@ -111,6 +111,7 @@ filterwarnings = [
     "ignore::PendingDeprecationWarning",
 ]
 markers = [
+    "unit: marks tests as unit tests",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "e2e: marks tests as end-to-end tests",
