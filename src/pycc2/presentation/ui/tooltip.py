@@ -58,6 +58,9 @@ class Tooltip:
         self._data: TooltipData = TooltipData()
         self._was_hovering: bool = False
         self._mouse_pos: tuple[int, int] = (0, 0)
+        # Surface cache – lazy init
+        self._tooltip_surface_cache = None
+        self._tooltip_surface_cache_size: tuple[int, int] | None = None
 
     def on_hover(self, unit: Unit | None, dt: float) -> None:
         """
@@ -158,7 +161,12 @@ class Tooltip:
             x = max(0, min(x, screen_size[0] - width))
             y = max(0, min(y, screen_size[1] - height))
             
-            tooltip_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+            tooltip_size = (width, height)
+            if self._tooltip_surface_cache is None or self._tooltip_surface_cache_size != tooltip_size:
+                self._tooltip_surface_cache = pygame.Surface(tooltip_size, pygame.SRCALPHA)
+                self._tooltip_surface_cache_size = tooltip_size
+            tooltip_surface = self._tooltip_surface_cache
+            tooltip_surface.fill((0, 0, 0, 0))
             pygame.draw.rect(
                 tooltip_surface,
                 (20, 20, 30, 230),

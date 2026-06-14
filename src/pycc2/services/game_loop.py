@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from pycc2.domain.interfaces.display_config import DisplayConfig
     from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
     from pycc2.presentation.rendering.window_config import WindowManager
-    from pycc2.presentation.ui.deployment_ui import DeploymentUI
+    from pycc2.domain.interfaces.deployment_ui_protocol import IDeploymentUI
     from pycc2.presentation.ui.time_control import TimeControlUI
     from pycc2.services.ai_service import AIService
     from pycc2.services.deployment_manager import DeploymentManager
@@ -82,6 +82,7 @@ class GameLoop:
     _ai_tick_counter: int = field(init=False, default=0)
     _pause_menu: object | None = field(init=False, default=None)
     _deployment_manager: DeploymentManager = field(init=False, default=None)
+    _deployment_ui_factory: object | None = None  # Callable[[int, int], IDeploymentUI]
     _event_dispatcher: EventDispatcher = field(init=False, default=None)
     _campaign_ui: object | None = field(init=False, default=None)
     time_control: TimeControlUI | None = field(init=False, default=None)
@@ -625,12 +626,18 @@ class GameLoop:
 
         Delegates to DeploymentManager.start().
         """
-        from pycc2.presentation.ui.deployment_ui import DeploymentUI as DUI
-
         dc = self.display_config
         width = dc.window_width if dc else 800
         height = dc.window_height if dc else 600
-        deployment_ui = DUI(width=width, height=height)
+
+        if self._deployment_ui_factory is not None:
+            deployment_ui = self._deployment_ui_factory(width, height)
+        else:
+            raise ValueError(
+                "deployment_ui_factory not set — inject via GameLoopAssembler "
+                "to avoid service→presentation coupling."
+            )
+
         self._deployment_manager.start(
             map_data=map_data,
             faction=faction,

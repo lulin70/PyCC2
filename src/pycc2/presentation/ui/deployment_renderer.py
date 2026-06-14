@@ -55,6 +55,17 @@ class DeploymentRenderer:
     def __init__(self, ui: "DeploymentUI"):
         """Store reference to parent UI for state access."""
         self._ui = ui
+        # Surface caches – lazy init to avoid pygame-not-initialized issues
+        self._zone_overlay_cache: pygame.Surface | None = None
+        self._zone_overlay_cache_size: tuple[int, int] | None = None
+        self._highlight_surf_cache: pygame.Surface | None = None
+        self._highlight_surf_cache_size: tuple[int, int] | None = None
+        self._roster_panel_cache: pygame.Surface | None = None
+        self._roster_panel_cache_size: tuple[int, int] | None = None
+        self._rp_bg_cache: pygame.Surface | None = None
+        self._rp_bg_cache_size: tuple[int, int] | None = None
+        self._unit_detail_panel_cache: pygame.Surface | None = None
+        self._unit_detail_panel_cache_size: tuple[int, int] | None = None
 
     # ------------------------------------------------------------------
     # Public rendering entry points
@@ -83,7 +94,12 @@ class DeploymentRenderer:
         map_w = getattr(game_map, "width", ui._map_width)
         map_h = getattr(game_map, "height", ui._map_height)
 
-        zone_overlay = pygame.Surface((map_w * tile_size, map_h * tile_size), pygame.SRCALPHA)
+        overlay_size = (map_w * tile_size, map_h * tile_size)
+        if self._zone_overlay_cache is None or self._zone_overlay_cache_size != overlay_size:
+            self._zone_overlay_cache = pygame.Surface(overlay_size, pygame.SRCALPHA)
+            self._zone_overlay_cache_size = overlay_size
+        zone_overlay = self._zone_overlay_cache
+        zone_overlay.fill((0, 0, 0, 0))
 
         for y in range(map_h):
             for x in range(map_w):
@@ -219,7 +235,11 @@ class DeploymentRenderer:
         if unit.deployment_cost > ui.requisition_remaining:
             return
 
-        highlight_surf = pygame.Surface((ts, ts), pygame.SRCALPHA)
+        highlight_size = (ts, ts)
+        if self._highlight_surf_cache is None or self._highlight_surf_cache_size != highlight_size:
+            self._highlight_surf_cache = pygame.Surface(highlight_size, pygame.SRCALPHA)
+            self._highlight_surf_cache_size = highlight_size
+        highlight_surf = self._highlight_surf_cache
 
         for y in range(ui._map_height):
             for x in range(ui._map_width):
@@ -464,8 +484,13 @@ class DeploymentRenderer:
         ui = self._ui
         roster_h = ui.height
 
-        # Background
-        panel_surf = pygame.Surface((ui._roster_width, roster_h), pygame.SRCALPHA)
+        # Background – reuse cached surface
+        panel_size = (ui._roster_width, roster_h)
+        if self._roster_panel_cache is None or self._roster_panel_cache_size != panel_size:
+            self._roster_panel_cache = pygame.Surface(panel_size, pygame.SRCALPHA)
+            self._roster_panel_cache_size = panel_size
+        panel_surf = self._roster_panel_cache
+        panel_surf.fill((0, 0, 0, 0))
         pygame.draw.rect(
             panel_surf,
             _ROSTER_BG,
@@ -692,8 +717,13 @@ class DeploymentRenderer:
         if panel_x < 0:
             panel_x = 5
 
-        # Semi-transparent background
-        bg_surf = pygame.Surface((panel_w, bar_height), pygame.SRCALPHA)
+        # Semi-transparent background – reuse cached surface
+        bg_size = (panel_w, bar_height)
+        if self._rp_bg_cache is None or self._rp_bg_cache_size != bg_size:
+            self._rp_bg_cache = pygame.Surface(bg_size, pygame.SRCALPHA)
+            self._rp_bg_cache_size = bg_size
+        bg_surf = self._rp_bg_cache
+        bg_surf.fill((0, 0, 0, 0))
         pygame.draw.rect(bg_surf, (30, 35, 45, 230), (0, 0, panel_w, bar_height), border_radius=8)
         pygame.draw.rect(bg_surf, (80, 85, 100), (0, 0, panel_w, bar_height), width=2, border_radius=8)
 
@@ -846,8 +876,13 @@ class DeploymentRenderer:
         panel_x = screen.get_width() - panel_w - 10
         panel_y = 80
 
-        # Background
-        panel_surf = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
+        # Background – reuse cached surface
+        panel_size = (panel_w, panel_h)
+        if self._unit_detail_panel_cache is None or self._unit_detail_panel_cache_size != panel_size:
+            self._unit_detail_panel_cache = pygame.Surface(panel_size, pygame.SRCALPHA)
+            self._unit_detail_panel_cache_size = panel_size
+        panel_surf = self._unit_detail_panel_cache
+        panel_surf.fill((0, 0, 0, 0))
         pygame.draw.rect(panel_surf, (25, 28, 35, 240), (0, 0, panel_w, panel_h), border_radius=8)
         pygame.draw.rect(panel_surf, (70, 75, 90), (0, 0, panel_w, panel_h), width=2, border_radius=8)
 

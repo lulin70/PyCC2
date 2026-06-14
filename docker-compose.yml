@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  pycc2-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - SDL_VIDEODRIVER=dummy
+      - SDL_AUDIODRIVER=dummy
+    command: python -m pytest tests/ -q --tb=short

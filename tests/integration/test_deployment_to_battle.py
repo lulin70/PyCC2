@@ -11,8 +11,6 @@ import os
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
-from unittest.mock import MagicMock, patch
-
 import numpy as np
 import pytest
 
@@ -82,10 +80,19 @@ def map_data():
 
 
 @pytest.fixture
-def mock_ai_service():
-    svc = MagicMock()
-    svc.register_ai_unit = MagicMock()
-    return svc
+def ai_service():
+    """Real AIService for integration testing (no MagicMock)."""
+    from pycc2.services.ai_service import AIService
+
+    return AIService(event_bus=EventBus())
+
+
+@pytest.fixture
+def deployment_ui():
+    """Real DeploymentUI for integration testing."""
+    from pycc2.presentation.ui.deployment_ui import DeploymentUI
+
+    return DeploymentUI(width=800, height=600)
 
 
 # ── Tests ─────────────────────────────────────────────────────────────
@@ -93,23 +100,23 @@ def mock_ai_service():
 
 @pytest.mark.integration
 class TestDeploymentStart:
-    def test_start_creates_deployment_ui(self, deployment_manager, map_data):
-        """DeploymentManager.start() should create a DeploymentUI instance."""
-        deployment_manager.start(map_data=map_data, faction="ally")
+    def test_start_creates_deployment_ui(self, deployment_manager, map_data, deployment_ui):
+        """DeploymentManager.start() should store the injected DeploymentUI instance."""
+        deployment_manager.start(map_data=map_data, faction="ally", deployment_ui=deployment_ui)
         assert deployment_manager.deployment_ui is not None
         assert deployment_manager.is_active is True
 
-    def test_start_sets_phase_active(self, deployment_manager, map_data):
-        deployment_manager.start(map_data=map_data, faction="ally")
+    def test_start_sets_phase_active(self, deployment_manager, map_data, deployment_ui):
+        deployment_manager.start(map_data=map_data, faction="ally", deployment_ui=deployment_ui)
         assert deployment_manager.deployment_phase_active is True
 
-    def test_start_axis_faction(self, deployment_manager, map_data):
+    def test_start_axis_faction(self, deployment_manager, map_data, deployment_ui):
         """Starting deployment as axis faction should also work."""
-        deployment_manager.start(map_data=map_data, faction="axis")
+        deployment_manager.start(map_data=map_data, faction="axis", deployment_ui=deployment_ui)
         assert deployment_manager.is_active is True
 
-    def test_get_state_returns_ui_state(self, deployment_manager, map_data):
-        deployment_manager.start(map_data=map_data, faction="ally")
+    def test_get_state_returns_ui_state(self, deployment_manager, map_data, deployment_ui):
+        deployment_manager.start(map_data=map_data, faction="ally", deployment_ui=deployment_ui)
         state = deployment_manager.get_state()
         # get_state should return something (even if it's a mock-like object)
         assert state is not None
@@ -117,24 +124,24 @@ class TestDeploymentStart:
 
 @pytest.mark.integration
 class TestDeploymentComplete:
-    def test_complete_returns_none_when_not_active(self, deployment_manager, mock_ai_service, game_state):
+    def test_complete_returns_none_when_not_active(self, deployment_manager, ai_service, game_state):
         """complete() should return None if no deployment is active."""
-        result = deployment_manager.complete(ai_service=mock_ai_service, state=game_state)
+        result = deployment_manager.complete(ai_service=ai_service, state=game_state)
         assert result is None
 
-    def test_complete_deactivates_phase(self, deployment_manager, map_data, mock_ai_service, game_state):
+    def test_complete_deactivates_phase(self, deployment_manager, map_data, ai_service, game_state, deployment_ui):
         """After complete(), the deployment phase should be deactivated."""
-        deployment_manager.start(map_data=map_data, faction="ally")
+        deployment_manager.start(map_data=map_data, faction="ally", deployment_ui=deployment_ui)
         # Simulate at least one placement so begin_battle() returns a result
         self._add_placement(deployment_manager)
-        deployment_manager.complete(ai_service=mock_ai_service, state=game_state)
+        deployment_manager.complete(ai_service=ai_service, state=game_state)
         assert deployment_manager.is_active is False
 
-    def test_complete_creates_units_in_state(self, deployment_manager, map_data, mock_ai_service, game_state):
+    def test_complete_creates_units_in_state(self, deployment_manager, map_data, ai_service, game_state, deployment_ui):
         """complete() should create Unit entities and add them to game state."""
-        deployment_manager.start(map_data=map_data, faction="ally")
+        deployment_manager.start(map_data=map_data, faction="ally", deployment_ui=deployment_ui)
         self._add_placement(deployment_manager)
-        deployment_manager.complete(ai_service=mock_ai_service, state=game_state)
+        deployment_manager.complete(ai_service=ai_service, state=game_state)
         assert len(game_state.units) >= 1, f"complete() should create at least 1 unit in game state, got {len(game_state.units)}"
 
     def _add_placement(self, dm: DeploymentManager) -> None:
@@ -319,13 +326,13 @@ class TestUnitAttributeSetup:
 
 @pytest.mark.integration
 class TestAIServiceInitialization:
-    def test_ai_service_initialized_with_units(self, deployment_manager, map_data, game_state):
+    def test_ai_service_initialized_with_units(self, deployment_manager, map_data, game_state, deployment_ui):
         """After complete(), AI service should have registered AI units."""
         from pycc2.services.ai_service import AIService
         from pycc2.presentation.ui.deployment_models import DeploymentUnit
 
         ai_service = AIService(event_bus=EventBus())
-        deployment_manager.start(map_data=map_data, faction="ally")
+        deployment_manager.start(map_data=map_data, faction="ally", deployment_ui=deployment_ui)
 
         # Inject a player placement into the deployment UI state
         # (begin_battle() reads from _state.placed_units)
@@ -358,9 +365,9 @@ class TestAIServiceInitialization:
         # AI service should have registered at least one unit (the AI one)
         assert ai_service.managed_unit_count >= 1
 
-    def test_ai_service_none_does_not_crash(self, deployment_manager, map_data, game_state):
+    def test_ai_service_none_does_not_crash(self, deployment_manager, map_data, game_state, deployment_ui):
         """complete() with ai_service=None should not crash."""
-        deployment_manager.start(map_data=map_data, faction="ally")
+        deployment_manager.start(map_data=map_data, faction="ally", deployment_ui=deployment_ui)
         # Should not raise
         deployment_manager.complete(ai_service=None, state=game_state)
 

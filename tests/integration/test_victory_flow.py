@@ -127,12 +127,13 @@ class TestVictoryManagerInitialize:
         victory_manager.initialize(event_bus=event_bus)
         assert victory_manager.game_result is None
 
-    def test_initialize_with_combat_director(self, victory_manager, event_bus):
+    def test_initialize_with_combat_director(self, victory_manager, event_bus, ally_unit, enemy_unit):
         """initialize() with combat_director should store the reference."""
-        from unittest.mock import MagicMock
-        mock_cd = MagicMock()
-        victory_manager.initialize(event_bus=event_bus, combat_director=mock_cd)
-        assert victory_manager._combat_director is mock_cd
+        from tests.conftest import FakeCombatDirector
+
+        fake_cd = FakeCombatDirector(units=[ally_unit, enemy_unit])
+        victory_manager.initialize(event_bus=event_bus, combat_director=fake_cd)
+        assert victory_manager._combat_director is fake_cd
 
 
 @pytest.mark.integration
@@ -357,15 +358,13 @@ class TestVictoryManagerReset:
 class TestVictoryManagerWithCombat:
     def test_stats_recorded_on_attack(self, victory_manager, event_bus, ally_unit, enemy_unit):
         """When an attack event is published, battle stats should be recorded."""
-        from unittest.mock import MagicMock
+        from tests.conftest import FakeCombatDirector
 
         victory_manager.initialize(event_bus=event_bus)
 
-        # Set up a mock combat director that has units
-        mock_cd = MagicMock()
-        mock_cd._units = [ally_unit, enemy_unit]
-        mock_cd.record_stats = MagicMock()
-        victory_manager._combat_director = mock_cd
+        # Set up a fake combat director that has units and records stats
+        fake_cd = FakeCombatDirector(units=[ally_unit, enemy_unit])
+        victory_manager._combat_director = fake_cd
 
         # Publish an attack event
         event_bus.publish(
@@ -379,7 +378,7 @@ class TestVictoryManagerWithCombat:
         )
 
         # The combat director's record_stats should have been called
-        mock_cd.record_stats.assert_called_once()
+        assert len(fake_cd._record_stats_calls) == 1
 
     def test_multiple_kills_tracked(self):
         """Multiple kills should be tracked correctly in BattleStats."""

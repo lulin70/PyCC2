@@ -290,6 +290,99 @@ def pixel_artist_3d_fixture(pygame_display, can_render):
         pytest.skip(f"PixelArtist3D not available: {e}")
 
 
+# ---------------------------------------------------------------------------
+# Lightweight Fake classes for integration/acceptance tests
+# ---------------------------------------------------------------------------
+
+
+class FakeAIService:
+    """Lightweight AI service fake for testing.
+
+    Replaces MagicMock for AIService in tests that only need
+    register_ai_unit / managed_unit_count / tick / execute_intents.
+    Tracks call counts for behavioral assertions.
+    """
+
+    def __init__(self, managed_unit_count=0, tick_return_value=None):
+        self._registered_units: dict = {}
+        self._tick_count: int = 0
+        self._execute_intents_count: int = 0
+        self._managed_unit_count_override: int = managed_unit_count
+        self._tick_return_value = tick_return_value or []
+
+    def register_ai_unit(self, unit, behavior_tree=None) -> None:
+        self._registered_units[unit.id] = unit
+
+    @property
+    def managed_unit_count(self) -> int:
+        if self._managed_unit_count_override > 0:
+            return self._managed_unit_count_override
+        return len(self._registered_units)
+
+    @property
+    def managed_unit_ids(self):
+        return list(self._registered_units.keys())
+
+    def tick(self, dt=0.0, game_map=None, all_units=None, fog_of_war=None):
+        self._tick_count += 1
+        return self._tick_return_value
+
+    @property
+    def tick_call_count(self) -> int:
+        return self._tick_count
+
+    def execute_intents(self, intents=None):
+        self._execute_intents_count += 1
+        return {}
+
+    @property
+    def execute_intents_call_count(self) -> int:
+        return self._execute_intents_count
+
+    def shutdown(self) -> None:
+        self._registered_units.clear()
+
+
+class FakeCombatDirector:
+    """Lightweight combat director fake for testing.
+
+    Replaces MagicMock for CombatDirector in tests that only need
+    _units, record_stats, update, process_effects.
+    """
+
+    def __init__(self, units=None):
+        self._units = units or []
+        self._record_stats_calls: list[dict] = []
+
+    def record_stats(self, data: dict, units, battle_stats) -> None:
+        self._record_stats_calls.append(data)
+        if battle_stats is None:
+            return
+        attacker_id = data.get("attacker_id", "")
+        damage = data.get("damage", 0)
+        killed = data.get("killed", False) or data.get("kill_shot", False)
+        attacker = next((u for u in units if u.id == attacker_id), None)
+        if attacker:
+            faction = "allies" if attacker.faction.name == "ALLIES" else "axis"
+            battle_stats.record_shot(faction, hit=(damage > 0))
+            if damage > 0:
+                battle_stats.record_damage(faction, damage)
+            if killed:
+                battle_stats.record_kill(faction)
+
+    def update(self, units, game_map, dt, battle_stats=None):
+        pass
+
+    def process_effects(self):
+        return []
+
+    def process_movements(self, units, game_map):
+        pass
+
+    def process_deaths(self, units, battle_stats=None):
+        pass
+
+
 def pytest_configure(config):
     """Pytest hook - called before test collection."""
     logger.info("PyCC2 Test Suite Configuration")

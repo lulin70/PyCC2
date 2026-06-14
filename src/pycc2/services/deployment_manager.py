@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING, ClassVar
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
+    from pycc2.domain.interfaces.deployment_ui_protocol import IDeploymentUI
     from pycc2.domain.interfaces.display_config import DisplayConfig
-    from pycc2.presentation.ui.deployment_ui import DeploymentUI
     from pycc2.services.ai_service import AIService
 
     from .game_loop import GameState
@@ -51,7 +51,7 @@ class DeploymentManager:
     ``"allied"`` (historically accurate for Market Garden).
     """
 
-    deployment_ui: DeploymentUI | None = None
+    deployment_ui: IDeploymentUI | None = None
     deployment_phase_active: bool = False
     attacker_faction: str = "allied"
     _ai_deployments: list[dict] = field(init=False, default_factory=list)
@@ -146,19 +146,23 @@ class DeploymentManager:
             Display configuration for window dimensions.
         deployment_ui : object | None
             Pre-created DeploymentUI instance (injected by caller to avoid
-            service→presentation coupling). If None, created internally.
+            service→presentation coupling). Required — the service layer
+            no longer creates presentation objects directly.
         """
         try:
             from pycc2.domain.systems.game_settings import SUPPLY_EFFECTS
-            from pycc2.presentation.ui.deployment_ui import DeploymentUI as DUI  # needed for class-method calls below
+            from pycc2.presentation.ui.deployment_factory import (
+                build_force_pool_from_settings,
+                generate_ai_deployment,
+            )
 
             if deployment_ui is not None:
                 self.deployment_ui = deployment_ui
             else:
-                width = display_config.window_width if display_config else 800
-                height = display_config.window_height if display_config else 600
-
-                self.deployment_ui = DUI(width=width, height=height)
+                raise ValueError(
+                    "deployment_ui must be injected by the caller; "
+                    "the service layer no longer creates presentation objects directly."
+                )
 
             # Determine attacker faction from scenario data (G6)
             self.attacker_faction = self._detect_attacker_faction(map_data, faction)
@@ -186,7 +190,7 @@ class DeploymentManager:
                 requisition_points = int(base_rp * supply_effects.requisition_point_modifier)
 
                 # Build force pool based on faction
-                force_pool = DUI.build_force_pool_from_settings(
+                force_pool = build_force_pool_from_settings(
                     faction=faction, requisition_points=requisition_points,
                 )
 
@@ -220,7 +224,7 @@ class DeploymentManager:
                 enemy_rp = int(enemy_base_rp * enemy_supply_effects.requisition_point_modifier)
 
                 try:
-                    self._ai_deployments = DUI.generate_ai_deployment(
+                    self._ai_deployments = generate_ai_deployment(
                         map_data=map_data,
                         faction=enemy_faction,
                         requisition_points=enemy_rp,

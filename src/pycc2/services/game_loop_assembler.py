@@ -92,6 +92,14 @@ class GameLoopAssembler:
         from pycc2.services.pause_menu_controller import PauseMenuController
 
         self._loop._deployment_manager = DeploymentManager()
+
+        # Inject DeploymentUI factory so GameLoop doesn't import presentation layer
+        def _make_deployment_ui(width: int, height: int):
+            from pycc2.presentation.ui.deployment_ui import DeploymentUI
+            return DeploymentUI(width=width, height=height)
+
+        self._loop._deployment_ui_factory = _make_deployment_ui
+
         self._loop._pause_menu = PauseMenuController()
 
     def _init_combat_render_input(self) -> None:

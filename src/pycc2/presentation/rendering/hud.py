@@ -35,6 +35,10 @@ class HUDManager:
         # Fade transition for unit info panel (appears/disappears on selection)
         self._unit_panel_fade = FadeTransition(fade_duration=0.18)
 
+        # Surface cache – lazy init
+        self._panel_surface_cache: Surface | None = None
+        self._panel_surface_cache_size: tuple[int, int] | None = None
+
     def initialize(self) -> None:
         """Initialize fonts and resources."""
         pygame.font.init()
@@ -127,7 +131,12 @@ class HUDManager:
         alpha = self._unit_panel_fade.alpha
         if alpha < 1.0:
             import pygame
-            panel_surface = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
+            panel_size = (panel_width, panel_height)
+            if self._panel_surface_cache is None or self._panel_surface_cache_size != panel_size:
+                self._panel_surface_cache = pygame.Surface(panel_size, pygame.SRCALPHA)
+                self._panel_surface_cache_size = panel_size
+            panel_surface = self._panel_surface_cache
+            panel_surface.fill((0, 0, 0, 0))
             target = panel_surface
             target_offset = (0, 0)
         else:

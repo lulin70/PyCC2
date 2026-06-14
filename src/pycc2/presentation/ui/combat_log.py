@@ -112,6 +112,9 @@ class CombatLog:
     events: list[CombatEvent] = field(default_factory=list)
     scroll_offset: int = 0
     expanded: bool = False
+    # Surface cache – lazy init
+    _panel_cache: object = field(default=None, init=False, repr=False)
+    _panel_cache_size: tuple[int, int] | None = field(default=None, init=False, repr=False)
     
     def add_event(self, event: CombatEvent) -> None:
         """Add new event and auto-scroll to latest."""
@@ -203,12 +206,18 @@ class CombatLog:
             panel_width = screen_size[0] // 2
             panel_height = screen_size[1]
             x = screen_size[0] - panel_width
-            
+
             font = pygame.font.SysFont('arial', 12)
             line_height = 18
             padding = 10
-            
-            panel = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
+
+            # Panel – reuse cached surface
+            panel_size = (panel_width, panel_height)
+            if self._panel_cache is None or self._panel_cache_size != panel_size:
+                self._panel_cache = pygame.Surface(panel_size, pygame.SRCALPHA)
+                self._panel_cache_size = panel_size
+            panel = self._panel_cache
+            panel.fill((0, 0, 0, 0))
             pygame.draw.rect(panel, (20, 20, 30, 230), (0, 0, panel_width, panel_height))
             pygame.draw.rect(panel, (100, 100, 120), (0, 0, panel_width, panel_height), width=1)
             

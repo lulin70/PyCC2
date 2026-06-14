@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import contextlib
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pygame
@@ -170,9 +170,8 @@ class TestPauseResume:
         initial_paused = game_loop.state.paused
         esc_event = InputEvent(event_type="key_down", key=pygame.K_ESCAPE)
         mock_input_handler.process_event.return_value = esc_event
-        mock_event = MagicMock()
-        mock_event.type = pygame.KEYDOWN
-        mock_event.key = pygame.K_ESCAPE
+        # Create a simple namespace object instead of MagicMock for the pygame event
+        mock_event = type("Event", (), {"type": pygame.KEYDOWN, "key": pygame.K_ESCAPE})()
         game_loop._handle_input(mock_event)
         assert game_loop.state.paused != initial_paused
 
@@ -249,7 +248,7 @@ class TestEdgeCases:
 
 
 class TestAIThrottle:
-    def _run_logic_n(self, game_loop, n, mock_ai):
+    def _run_logic_n(self, game_loop, n, fake_ai):
         with patch.object(game_loop._combat_director, "update"):
             with patch.object(game_loop._combat_director, "process_effects"):
                 game_loop._victory_manager._victory_evaluator = None
@@ -267,33 +266,34 @@ class TestAIThrottle:
         assert gl._ai_update_interval == 3
 
     def test_ai_not_called_on_first_tick(self, game_loop):
-        mock_ai = Mock()
-        mock_ai.managed_unit_count = 5
-        mock_ai.tick.return_value = []
-        game_loop.ai_service = mock_ai
-        self._run_logic_n(game_loop, 1, mock_ai)
-        mock_ai.tick.assert_not_called()
+        from tests.conftest import FakeAIService
+
+        fake_ai = FakeAIService(managed_unit_count=5)
+        game_loop.ai_service = fake_ai
+        self._run_logic_n(game_loop, 1, fake_ai)
+        assert fake_ai.tick_call_count == 0
 
     def test_ai_called_on_third_tick(self, game_loop):
-        mock_ai = Mock()
-        mock_ai.managed_unit_count = 5
-        mock_ai.tick.return_value = []
-        game_loop.ai_service = mock_ai
-        self._run_logic_n(game_loop, 3, mock_ai)
-        assert mock_ai.tick.call_count == 1
+        from tests.conftest import FakeAIService
+
+        fake_ai = FakeAIService(managed_unit_count=5)
+        game_loop.ai_service = fake_ai
+        self._run_logic_n(game_loop, 3, fake_ai)
+        assert fake_ai.tick_call_count == 1
 
     def test_ai_called_every_3rd_tick(self, game_loop):
-        mock_ai = Mock()
-        mock_ai.managed_unit_count = 5
-        mock_ai.tick.return_value = []
-        game_loop.ai_service = mock_ai
-        self._run_logic_n(game_loop, 9, mock_ai)
-        assert mock_ai.tick.call_count == 3
+        from tests.conftest import FakeAIService
+
+        fake_ai = FakeAIService(managed_unit_count=5)
+        game_loop.ai_service = fake_ai
+        self._run_logic_n(game_loop, 9, fake_ai)
+        assert fake_ai.tick_call_count == 3
 
     def test_combat_update_not_throttled(self, game_loop):
-        mock_ai = Mock()
-        mock_ai.managed_unit_count = 5
-        game_loop.ai_service = mock_ai
+        from tests.conftest import FakeAIService
+
+        fake_ai = FakeAIService(managed_unit_count=5)
+        game_loop.ai_service = fake_ai
         with patch.object(game_loop._combat_director, "update") as mock_combat:
             with patch.object(game_loop._combat_director, "process_effects"):
                 game_loop._victory_manager._victory_evaluator = None
@@ -302,10 +302,10 @@ class TestAIThrottle:
         assert mock_combat.call_count == 5
 
     def test_ai_counter_resets_after_update(self, game_loop):
-        mock_ai = Mock()
-        mock_ai.managed_unit_count = 5
-        mock_ai.tick.return_value = []
-        game_loop.ai_service = mock_ai
+        from tests.conftest import FakeAIService
+
+        fake_ai = FakeAIService(managed_unit_count=5)
+        game_loop.ai_service = fake_ai
         with patch.object(game_loop._combat_director, "update"):
             with patch.object(game_loop._combat_director, "process_effects"):
                 game_loop._victory_manager._victory_evaluator = None
@@ -321,19 +321,19 @@ class TestAIThrottle:
         self._run_logic_n(game_loop, 5, None)
 
     def test_configurable_interval(self, game_loop):
+        from tests.conftest import FakeAIService
+
         game_loop._ai_update_interval = 5
-        mock_ai = Mock()
-        mock_ai.managed_unit_count = 5
-        mock_ai.tick.return_value = []
-        game_loop.ai_service = mock_ai
-        self._run_logic_n(game_loop, 9, mock_ai)
-        assert mock_ai.tick.call_count == 1
+        fake_ai = FakeAIService(managed_unit_count=5)
+        game_loop.ai_service = fake_ai
+        self._run_logic_n(game_loop, 9, fake_ai)
+        assert fake_ai.tick_call_count == 1
 
     def test_ai_still_makes_decisions_just_less_often(self, game_loop):
+        from tests.conftest import FakeAIService
+
         intents_result = [{"test": "intent"}]
-        mock_ai = Mock()
-        mock_ai.managed_unit_count = 5
-        mock_ai.tick.return_value = intents_result
-        game_loop.ai_service = mock_ai
-        self._run_logic_n(game_loop, 6, mock_ai)
-        assert mock_ai.execute_intents.call_count == 2
+        fake_ai = FakeAIService(managed_unit_count=5, tick_return_value=intents_result)
+        game_loop.ai_service = fake_ai
+        self._run_logic_n(game_loop, 6, fake_ai)
+        assert fake_ai.execute_intents_call_count == 2

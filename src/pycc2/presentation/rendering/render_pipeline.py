@@ -34,6 +34,11 @@ class RenderPipeline:
     weather_renderer: WeatherRenderer | None = None
 
     _fps: float = 0.0
+    # Surface caches – lazy init
+    _post_battle_overlay_cache: pygame.Surface | None = None
+    _post_battle_overlay_cache_size: tuple[int, int] | None = None
+    _post_battle_panel_cache: pygame.Surface | None = None
+    _post_battle_panel_cache_size: tuple[int, int] | None = None
 
     def render(
         self,
@@ -167,7 +172,13 @@ class RenderPipeline:
         dc = self.display_config
         sw, sh = screen.get_size()
 
-        overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
+        # Overlay – reuse cached surface
+        overlay_size = (sw, sh)
+        if self._post_battle_overlay_cache is None or self._post_battle_overlay_cache_size != overlay_size:
+            self._post_battle_overlay_cache = pygame.Surface(overlay_size, pygame.SRCALPHA)
+            self._post_battle_overlay_cache_size = overlay_size
+        overlay = self._post_battle_overlay_cache
+        overlay.fill((0, 0, 0, 0))
         overlay.fill((0, 0, 0, 180))
         screen.blit(overlay, (0, 0))
 
@@ -176,7 +187,13 @@ class RenderPipeline:
         panel_x = (sw - panel_w) // 2
         panel_y = (sh - panel_h) // 2
 
-        panel_surf = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
+        # Panel – reuse cached surface
+        panel_size = (panel_w, panel_h)
+        if self._post_battle_panel_cache is None or self._post_battle_panel_cache_size != panel_size:
+            self._post_battle_panel_cache = pygame.Surface(panel_size, pygame.SRCALPHA)
+            self._post_battle_panel_cache_size = panel_size
+        panel_surf = self._post_battle_panel_cache
+        panel_surf.fill((0, 0, 0, 0))
         panel_surf.fill((30, 30, 40, 230))
         pygame.draw.rect(panel_surf, (100, 100, 120), (0, 0, panel_w, panel_h), 2, border_radius=8)
         screen.blit(panel_surf, (panel_x, panel_y))

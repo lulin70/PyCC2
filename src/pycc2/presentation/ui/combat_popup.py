@@ -45,6 +45,8 @@ class CombatPopupManager:
         self._popups: list[CombatPopup] = []
         self._max_popups = max_popups
         self._font: pygame.font.Font | None = None
+        # Surface pool for popup alpha surfaces
+        self._surface_pool: dict[tuple[int, int], pygame.Surface] = {}
 
     def add_popup(self, text: str, world_x: float, world_y: float,
                   color: tuple[int, int, int] = (255, 255, 100)) -> None:
@@ -92,15 +94,23 @@ class CombatPopupManager:
             screen_x = popup.x - cam_x
             screen_y = popup.y - cam_y + popup.offset_y
 
-            # Render text with alpha
+            # Render text with alpha – reuse cached surface
             text_surf = self._font.render(popup.text, True, popup.color)
-            alpha_surf = pygame.Surface(text_surf.get_size(), pygame.SRCALPHA)
+            text_size = text_surf.get_size()
+            if text_size not in self._surface_pool:
+                self._surface_pool[text_size] = pygame.Surface(text_size, pygame.SRCALPHA)
+            alpha_surf = self._surface_pool[text_size]
+            alpha_surf.fill((0, 0, 0, 0))
             alpha_surf.blit(text_surf, (0, 0))
             alpha_surf.set_alpha(popup.alpha)
 
-            # Draw with shadow for readability
+            # Draw with shadow for readability – reuse same pool
             shadow_surf = self._font.render(popup.text, True, (0, 0, 0))
-            shadow_alpha = pygame.Surface(shadow_surf.get_size(), pygame.SRCALPHA)
+            shadow_size = shadow_surf.get_size()
+            if shadow_size not in self._surface_pool:
+                self._surface_pool[shadow_size] = pygame.Surface(shadow_size, pygame.SRCALPHA)
+            shadow_alpha = self._surface_pool[shadow_size]
+            shadow_alpha.fill((0, 0, 0, 0))
             shadow_alpha.blit(shadow_surf, (0, 0))
             shadow_alpha.set_alpha(popup.alpha)
 

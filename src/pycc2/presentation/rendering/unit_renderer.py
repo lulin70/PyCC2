@@ -39,6 +39,9 @@ class UnitRenderer:
 
     def __init__(self, ctx: RenderContext):
         self._ctx = ctx
+        # Glow surface cache – lazy init
+        self._glow_surf_cache: pygame.Surface | None = None
+        self._glow_surf_cache_size: tuple[int, int] | None = None
 
     def draw_units(self, units: list[Unit], camera: Camera, selected_unit_ids: set[str] | None = None,
                    position_overrides: dict[str, tuple[float, float]] | None = None) -> None:
@@ -195,10 +198,12 @@ class UnitRenderer:
                     select_radius = radius + 8 + int(pulse)
 
                     outer_glow_radius = radius + 15 + int(pulse * 0.7)
-                    glow_surf = pygame.Surface(
-                        (outer_glow_radius * 2 + 10, outer_glow_radius * 2 + 10),
-                        pygame.SRCALPHA,
-                    )
+                    glow_size = (outer_glow_radius * 2 + 10, outer_glow_radius * 2 + 10)
+                    if self._glow_surf_cache is None or self._glow_surf_cache_size != glow_size:
+                        self._glow_surf_cache = pygame.Surface(glow_size, pygame.SRCALPHA)
+                        self._glow_surf_cache_size = glow_size
+                    glow_surf = self._glow_surf_cache
+                    glow_surf.fill((0, 0, 0, 0))
                     glow_center = outer_glow_radius + 5
                     pygame.draw.circle(
                         glow_surf,

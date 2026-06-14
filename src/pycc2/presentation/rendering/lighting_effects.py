@@ -64,10 +64,11 @@ class LightingEffectsSystem:
         
         # 动态光源状态
         self._dynamic_lights: list[dict] = []
-        
+
         # 时间色调缓存（避免每帧重新生成）
         self._tod_tint_cache: pygame.Surface | None = None
         self._last_time_of_day: str = lighting_config.time_of_day
+        self._tod_tint_cache_size: tuple[int, int] | None = None
         
         # CC2颜色分级缓存（性能优化：避免重复numpy计算）
         self._grading_cache: dict[tuple[int, int], pygame.Surface] = {}
@@ -178,39 +179,54 @@ class LightingEffectsSystem:
             应用了色调的表面（可能是原实例或修改后）
         """
         config = self._lighting_config
-        
-        # 检查 ToD 是否变化（缓存优化）
-        if config.time_of_day == self._last_time_of_day and self._tod_tint_cache is not None:
+        surf_size = surface.get_size()
+
+        # 检查 ToD 是否变化或尺寸是否变化（缓存优化）
+        tod_changed = config.time_of_day != self._last_time_of_day
+        size_changed = self._tod_tint_cache_size != surf_size
+
+        if not tod_changed and not size_changed and self._tod_tint_cache is not None:
             surface.blit(self._tod_tint_cache, (0, 0))
             return surface
-        
+
         # 更新缓存跟踪
         self._last_time_of_day = config.time_of_day
-        
+
         # 根据时间段生成新的色调叠加层
         if config.time_of_day == "dawn":
-            overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+            if self._tod_tint_cache is None or size_changed:
+                self._tod_tint_cache = pygame.Surface(surf_size, pygame.SRCALPHA)
+                self._tod_tint_cache_size = surf_size
+            overlay = self._tod_tint_cache
+            overlay.fill((0, 0, 0, 0))
             overlay.fill((255, 180, 120, 25))  # 暖橙
             surface.blit(overlay, (0, 0))
-            self._tod_tint_cache = overlay
-            
+
         elif config.time_of_day == "noon":
             self._tod_tint_cache = None  # 正午不需要色调
-            
+            self._tod_tint_cache_size = None
+
         elif config.time_of_day == "dusk":
-            overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+            if self._tod_tint_cache is None or size_changed:
+                self._tod_tint_cache = pygame.Surface(surf_size, pygame.SRCALPHA)
+                self._tod_tint_cache_size = surf_size
+            overlay = self._tod_tint_cache
+            overlay.fill((0, 0, 0, 0))
             overlay.fill((200, 100, 50, 35))  # 深橙红
             surface.blit(overlay, (0, 0))
-            self._tod_tint_cache = overlay
-            
+
         elif config.time_of_day == "night":
-            overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+            if self._tod_tint_cache is None or size_changed:
+                self._tod_tint_cache = pygame.Surface(surf_size, pygame.SRCALPHA)
+                self._tod_tint_cache_size = surf_size
+            overlay = self._tod_tint_cache
+            overlay.fill((0, 0, 0, 0))
             overlay.fill((20, 30, 60, 80))  # 深蓝黑
             surface.blit(overlay, (0, 0))
-            self._tod_tint_cache = overlay
-            
+
         else:
             self._tod_tint_cache = None
+            self._tod_tint_cache_size = None
             
         return surface
 

@@ -44,6 +44,9 @@ class WeatherSystem:
         self._alpha: float = 0.0
         self._particles: list[tuple[float, float, float, float]] = []  # (x, y, speed, size)
         self._screen_size: tuple[int, int] = _FALLBACK_SCREEN_SIZE
+        # Fog surface cache – lazy init
+        self._fog_surf_cache: pygame.Surface | None = None
+        self._fog_surf_cache_size: tuple[int, int] | None = None
 
     # ------------------------------------------------------------------
     # Public API
@@ -118,7 +121,12 @@ class WeatherSystem:
             return
 
         if self._mode == "light_fog":
-            fog_surf = pygame.Surface(offscreen.get_size(), pygame.SRCALPHA)
+            fog_size = offscreen.get_size()
+            if self._fog_surf_cache is None or self._fog_surf_cache_size != fog_size:
+                self._fog_surf_cache = pygame.Surface(fog_size, pygame.SRCALPHA)
+                self._fog_surf_cache_size = fog_size
+            fog_surf = self._fog_surf_cache
+            fog_surf.fill((0, 0, 0, 0))
             fog_surf.fill((180, 175, 170, int(self._alpha * 255)))
             offscreen.blit(fog_surf, (0, 0))
         elif self._mode in ("dust", "smoke"):

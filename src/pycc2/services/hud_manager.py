@@ -15,12 +15,12 @@ if TYPE_CHECKING:
 
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
+    from pycc2.domain.interfaces.bottom_panel_protocol import IBottomPanel
+    from pycc2.domain.interfaces.display_config import DisplayConfig
+    from pycc2.domain.interfaces.minimap_protocol import IMinimap
     from pycc2.presentation.audio.sound_system import SoundSystem
     from pycc2.presentation.input.interaction_controller import InteractionController
     from pycc2.presentation.rendering.camera import Camera
-    from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
-    from pycc2.domain.interfaces.display_config import DisplayConfig
-    from pycc2.presentation.rendering.minimap import Minimap
     from pycc2.presentation.rendering.render_pipeline import RenderPipeline
     from pycc2.presentation.rendering.window_config import WindowManager
     from pycc2.services.event_bus import EventBus
@@ -47,8 +47,8 @@ class HUDManager:
         Center camera (and minimap view) on a selected unit.
     """
 
-    _cc2_panel: CC2BottomPanel | None = field(init=False, default=None)
-    _minimap: Minimap | None = field(init=False, default=None)
+    _cc2_panel: IBottomPanel | None = field(init=False, default=None)
+    _minimap: IMinimap | None = field(init=False, default=None)
 
     # Injected references (set in initialize)
     _state: GameState | None = field(init=False, default=None)
@@ -83,16 +83,18 @@ class HUDManager:
         if minimap is not None:
             self._minimap = minimap
         else:
-            from pycc2.presentation.rendering.minimap import Minimap  # fallback for backward compat
-
-            self._minimap = Minimap(display_config=dc, size=int(140 * dc.ui_scale))
+            raise ValueError(
+                "minimap must be injected by the caller; "
+                "the service layer no longer creates presentation objects directly."
+            )
 
         if cc2_panel is not None:
             self._cc2_panel = cc2_panel
         else:
-            from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel  # fallback
-
-            self._cc2_panel = CC2BottomPanel()
+            raise ValueError(
+                "cc2_panel must be injected by the caller; "
+                "the service layer no longer creates presentation objects directly."
+            )
         self._cc2_panel.initialize()  # 初始化字体
 
         state.camera.viewport_width = dc.window_width
@@ -389,7 +391,7 @@ class HUDManager:
     # ------------------------------------------------------------------
 
     @property
-    def minimap(self) -> Minimap | None:
+    def minimap(self) -> IMinimap | None:
         return self._minimap
 
     # ------------------------------------------------------------------
