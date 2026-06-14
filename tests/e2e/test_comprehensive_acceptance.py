@@ -695,9 +695,9 @@ class TestStageEAttackLineAndLOS:
         grid = np.zeros((20, 20), dtype=np.int8)
         grid[5][6] = TerrainType.WALL.value
         gm = GameMap(id="block_test", name="Block Test", width=20, height=20, tile_grid=grid)
-        from pycc2.domain.systems.los_system import Lossystem
+        from pycc2.domain.systems.los_system import LOSSystem
 
-        los = Lossystem(gm)
+        los = LOSSystem(gm)
         attacker = make_unit(tile_x=5, tile_y=5)
         target_pos = Vec2(8 * 32, 5 * 32)
         dist = attacker.position.pixel_position.distance_to(target_pos)

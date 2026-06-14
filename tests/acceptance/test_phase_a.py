@@ -145,10 +145,10 @@ class TestA2LOSSystem:
 
     def test_los_clear_line_of_sight(self, game_map):
         """Should return CLEAR when no obstacles between units."""
-        from pycc2.domain.systems.los_system import Lossystem
+        from pycc2.domain.systems.los_system import LOSSystem
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         start = TileCoord(5, 5)
         end = TileCoord(10, 5)
 
@@ -159,10 +159,10 @@ class TestA2LOSSystem:
 
     def test_los_blocked_by_terrain(self, game_map):
         """Wall should block line of sight."""
-        from pycc2.domain.systems.los_system import LosStatus, Lossystem
+        from pycc2.domain.systems.los_system import LosStatus, LOSSystem
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         start = TileCoord(5, 5)
         end = TileCoord(15, 5)
 
@@ -186,10 +186,10 @@ class TestA2LOSSystem:
 
     def test_los_out_of_range(self, game_map):
         """Units too far apart should be OUT_OF_RANGE."""
-        from pycc2.domain.systems.los_system import LosStatus, Lossystem
+        from pycc2.domain.systems.los_system import LosStatus, LOSSystem
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         start = TileCoord(0, 0)
         end = TileCoord(50, 50)  # Way beyond default range of 15
 
@@ -200,10 +200,10 @@ class TestA2LOSSystem:
 
     def test_los_elevation_advantage(self, game_map):
         """Higher elevation should extend visual range."""
-        from pycc2.domain.systems.los_system import Lossystem
+        from pycc2.domain.systems.los_system import LOSSystem
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
 
         def get_enhanced_tile(x, y):
             if x == 0:
@@ -221,10 +221,10 @@ class TestA2LOSSystem:
 
     def test_los_bresenham_algorithm_correctness(self, game_map):
         """Bresenham line should visit correct intermediate tiles (supercover variant)."""
-        from pycc2.domain.systems.los_system import Lossystem
+        from pycc2.domain.systems.los_system import LOSSystem
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         start = TileCoord(0, 0)
         end = TileCoord(3, 3)
 
@@ -236,9 +236,9 @@ class TestA2LOSSystem:
 
     def test_los_integration_with_attack_line(self, game_map):
         """LOS result should convert to AttackLine status correctly."""
-        from pycc2.domain.systems.los_system import LosStatus, Lossystem
+        from pycc2.domain.systems.los_system import LosStatus, LOSSystem
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
 
         clear_result = MagicMock(status=LosStatus.CLEAR)
         assert los.integrate_to_attack_line_status(clear_result) == "CAN_ATTACK"
@@ -828,7 +828,7 @@ class TestA8TerrainElevation:
 
     def test_elevation_increases_los_range(self):
         """Higher elevation should provide LOS advantage."""
-        from pycc2.domain.systems.los_system import Lossystem
+        from pycc2.domain.systems.los_system import LOSSystem
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
         map_mock = MagicMock()
@@ -846,7 +846,7 @@ class TestA8TerrainElevation:
 
         map_mock.get_enhanced_tile.side_effect = get_elev
 
-        los = Lossystem(map_mock)
+        los = LOSSystem(map_mock)
         _, result = los.check_los(
             TileCoord(0, 0),
             TileCoord(18, 0),
@@ -901,7 +901,7 @@ class TestPhaseAIntegration:
 
     def test_combat_scenario_with_los_and_flanking(self):
         """Full scenario: Unit on hill sees enemy, flanks for 1.5x bonus."""
-        from pycc2.domain.systems.los_system import Lossystem
+        from pycc2.domain.systems.los_system import LOSSystem
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
         map_mock = MagicMock()
@@ -912,7 +912,7 @@ class TestPhaseAIntegration:
         map_mock.get_terrain.return_value = terrain_mock
         map_mock.get_enhanced_tile.return_value = {"elevation": 0}
 
-        los = Lossystem(map_mock)
+        los = LOSSystem(map_mock)
 
         attacker_pos = TileCoord(5, 5)
         target_pos = TileCoord(12, 5)

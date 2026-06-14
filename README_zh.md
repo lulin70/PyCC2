@@ -1,6 +1,6 @@
 # 🎮 PyCC2 — 近距离作战2：遥远的桥梁 (Python重制版)
 
-**v0.3.39 | Beta 候选版本 | 2026年6月13日**
+**v0.3.41 | Beta 候选版本 | 2026年6月14日**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
@@ -19,7 +19,7 @@
 
 ---
 
-## ✨ v0.3.39 最新更新
+## ✨ v0.3.41 最新更新
 
 ### 🛠️ v0.3.35 — 快速修复 (2026年6月11日)
 - 删除 AnimationController 死代码（430行，与现有系统90%功能重叠）

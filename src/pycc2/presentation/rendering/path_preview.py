@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
-    from pycc2.domain.systems.los_system import Lossystem
+    from pycc2.domain.systems.los_system import LOSSystem
     from pycc2.presentation.rendering.camera import Camera
 
 
@@ -68,7 +68,7 @@ class PathPreview:
     def __init__(
         self,
         pathfinder,
-        los_system: Lossystem | None = None,
+        los_system: LOSSystem | None = None,
     ):
         self.pathfinder = pathfinder
         self.los_system = los_system

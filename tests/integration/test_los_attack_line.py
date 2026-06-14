@@ -5,7 +5,7 @@ status evaluation to visual rendering, verifying that terrain
 blocking, range limits, and status colors integrate correctly.
 
 Covers:
-1. LOS system integration (FogOfWar + Lossystem)
+1. LOS system integration (FogOfWar + LOSSystem)
 2. Attack line status & color mapping
 3. LOS → AttackLine → Renderer pipeline
 4. Attack line + combat execution flow
@@ -35,7 +35,7 @@ from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.systems.fog_of_war import FogOfWar
-from pycc2.domain.systems.los_system import LosStatus, Lossystem
+from pycc2.domain.systems.los_system import LosStatus, LOSSystem
 from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.value_objects.vec2 import Vec2
@@ -153,12 +153,12 @@ def open_map():
 
 @pytest.mark.integration
 class TestLOSIntegration:
-    """Test LOS calculations through FogOfWar and Lossystem."""
+    """Test LOS calculations through FogOfWar and LOSSystem."""
 
     def test_los_clear_between_two_units_on_open_ground(self, open_map):
         """两个单位在开阔地上LOS清晰。"""
         fow = FogOfWar(open_map.width, open_map.height)
-        los = Lossystem(open_map)
+        los = LOSSystem(open_map)
 
         obs = TileCoord(5, 5)
         target = TileCoord(8, 8)
@@ -173,7 +173,7 @@ class TestLOSIntegration:
         )
         assert fow.is_visible(target)
 
-        # Lossystem: direct LOS check
+        # LOSSystem: direct LOS check
         can_see, result = los.check_los(obs, target)
         assert can_see
         assert result.status == LosStatus.CLEAR
@@ -185,7 +185,7 @@ class TestLOSIntegration:
         grid[5][5] = TerrainType.WALL.value
         game_map = GameMap(id="wall", name="Wall Map", width=12, height=12, tile_grid=grid)
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         can_see, result = los.check_los(TileCoord(3, 5), TileCoord(8, 5))
         assert not can_see
         assert result.status in (LosStatus.BLOCKED_TERRAIN, LosStatus.BLOCKED_HEIGHT)
@@ -196,7 +196,7 @@ class TestLOSIntegration:
         grid[5][5] = TerrainType.BUILDING_SOLID.value
         game_map = GameMap(id="bldg", name="Building Map", width=12, height=12, tile_grid=grid)
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         can_see, result = los.check_los(TileCoord(3, 5), TileCoord(8, 5))
         assert not can_see
         assert result.status in (LosStatus.BLOCKED_TERRAIN, LosStatus.BLOCKED_HEIGHT)
@@ -207,7 +207,7 @@ class TestLOSIntegration:
         grid[5][5] = TerrainType.WOODS.value
         game_map = GameMap(id="woods", name="Woods Map", width=12, height=12, tile_grid=grid)
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         can_see, result = los.check_los(TileCoord(3, 5), TileCoord(8, 5))
         # Woods blocks_los=True, so LOS should be blocked
         # (unless target is adjacent to woods, which gives PARTIAL)
@@ -232,7 +232,7 @@ class TestLOSIntegration:
         grid = np.ones((12, 12), dtype=np.int8)  # all road
         game_map = GameMap(id="road", name="Road Map", width=12, height=12, tile_grid=grid)
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         can_see, result = los.check_los(TileCoord(2, 2), TileCoord(10, 10))
         assert can_see
         assert result.status == LosStatus.CLEAR
@@ -246,7 +246,7 @@ class TestLOSIntegration:
             elevated_coords=[(5, 5, 3)],  # Observer on hill
         )
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         # Normal range is 15 tiles; elevation bonus = 3 * 2.0 = 6 extra
         # So effective range should be 21
         can_see_close, result_close = los.check_los(TileCoord(5, 5), TileCoord(5, 15))
@@ -261,7 +261,7 @@ class TestLOSIntegration:
     def test_los_range_limit(self):
         """超出视野范围LOS不可用。"""
         game_map = make_map_with_terrain([[0] * 30 for _ in range(30)])
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
 
         # Max range 5, target at distance 10
         can_see, result = los.check_los(TileCoord(5, 5), TileCoord(15, 5), max_range=5)
@@ -314,7 +314,7 @@ class TestAttackLineStatus:
         grid[5][6] = TerrainType.WALL.value
         game_map = GameMap(id="los_block", name="LOS Block", width=20, height=20, tile_grid=grid)
 
-        los_system = Lossystem(game_map)
+        los_system = LOSSystem(game_map)
 
         attacker = make_unit("attacker", tile_x=5, tile_y=5)
         target_pos = Vec2(8 * TILE_SIZE, 5 * TILE_SIZE)
@@ -604,7 +604,7 @@ class TestLOSToAttackLineIntegration:
 
     def test_los_clear_gives_can_attack(self, open_map):
         """LOS清晰→HIT_HIGH(CC2 4-color system)。"""
-        los = Lossystem(open_map)
+        los = LOSSystem(open_map)
         als = AttackLineSystem()
 
         attacker = make_unit("attacker", tile_x=5, tile_y=5)
@@ -621,7 +621,7 @@ class TestLOSToAttackLineIntegration:
         grid[5][6] = TerrainType.WALL.value
         game_map = GameMap(id="wall", name="Wall", width=20, height=20, tile_grid=grid)
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         als = AttackLineSystem()
 
         attacker = make_unit("attacker", tile_x=5, tile_y=5)
@@ -637,7 +637,7 @@ class TestLOSToAttackLineIntegration:
         grid = np.zeros((30, 30), dtype=np.int8)
         game_map = GameMap(id="big", name="Big Map", width=30, height=30, tile_grid=grid)
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         als = AttackLineSystem()
 
         attacker = make_unit("attacker", tile_x=5, tile_y=5)
@@ -653,7 +653,7 @@ class TestLOSToAttackLineIntegration:
     def test_fog_of_war_and_attack_line_consistency(self, open_map):
         """FogOfWar可见性和攻击线状态一致。"""
         fow = FogOfWar(open_map.width, open_map.height)
-        los = Lossystem(open_map)
+        los = LOSSystem(open_map)
         als = AttackLineSystem()
 
         obs = TileCoord(5, 5)
@@ -684,7 +684,7 @@ class TestLOSToAttackLineIntegration:
         game_map = GameMap(id="bldg", name="Building", width=20, height=20, tile_grid=grid)
 
         fow = FogOfWar(game_map.width, game_map.height)
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         als = AttackLineSystem()
 
         obs = TileCoord(5, 5)
@@ -710,8 +710,8 @@ class TestLOSToAttackLineIntegration:
         assert status == AttackLineStatus.BLOCKED
 
     def test_los_system_integrate_to_attack_line_status(self, open_map):
-        """Lossystem.integrate_to_attack_line_status方法正确转换。"""
-        los = Lossystem(open_map)
+        """LOSSystem.integrate_to_attack_line_status方法正确转换。"""
+        los = LOSSystem(open_map)
 
         # CLEAR → CAN_ATTACK
         _, result = los.check_los(TileCoord(3, 3), TileCoord(5, 5))

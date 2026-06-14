@@ -75,12 +75,15 @@ class CombatDirector:
         cmd = data.get("command")
         unit_ids = data.get("unit_ids", [])
 
+        # Pre-build unit lookup for O(1) access instead of O(n) linear scan
+        unit_map = {u.id: u for u in units}
+
         if cmd == "attack" and "target_id" in data:
             target_id = data["target_id"]
-            target = next((u for u in units if u.id == target_id), None)
+            target = unit_map.get(target_id)
 
             for uid in unit_ids:
-                attacker = next((u for u in units if u.id == uid), None)
+                attacker = unit_map.get(uid)
                 if attacker and target and attacker.faction != target.faction:
                     self.execute_attack(attacker, target)
 
@@ -90,7 +93,7 @@ class CombatDirector:
 
             target_tc = TileCoord(tx, ty)
             for uid in unit_ids:
-                unit = next((u for u in units if u.id == uid), None)
+                unit = unit_map.get(uid)
                 if unit and self.pathfinder:
                     path = self.pathfinder.find_path(unit.position.tile_coord, target_tc, game_map)
                     if path:
@@ -106,18 +109,14 @@ class CombatDirector:
                 if uid in self._move_orders:
                     del self._move_orders[uid]
                 # Reset movement mode to normal
-                unit = next((u for u in units if u.id == uid), None)
+                unit = unit_map.get(uid)
                 if unit and hasattr(unit, "set_movement_mode"):
                     unit.set_movement_mode("normal")
 
         elif cmd == "defend":
             """Defend command: Reduces mobility, improves accuracy."""
-            import logging
-
-            logger = logging.getLogger(__name__)
-
             for uid in unit_ids:
-                unit = next((u for u in units if u.id == uid), None)
+                unit = unit_map.get(uid)
                 if unit and hasattr(unit, "set_movement_mode"):
                     # Toggle defend mode (or set if not already defending)
                     if unit.movement_mode != "defend":
@@ -126,40 +125,34 @@ class CombatDirector:
                         if uid in self._move_orders:
                             del self._move_orders[uid]
                         logger.info(
-                            f"[COMMAND] {unit.name or uid} entering DEFEND mode (+25% accuracy, -50% speed)"
+                            "[COMMAND] %s entering DEFEND mode (+25%% accuracy, -50%% speed)",
+                            unit.name or uid,
                         )
                     else:
                         # Cancel defend mode
                         unit.set_movement_mode("normal")
-                        logger.info(f"[COMMAND] {unit.name or uid} exiting DEFEND mode")
+                        logger.info("[COMMAND] %s exiting DEFEND mode", unit.name or uid)
 
         elif cmd == "fast_move":
             """Fast Move command: Moves faster but more visible to enemies."""
-            import logging
-
-            logger = logging.getLogger(__name__)
-
             for uid in unit_ids:
-                unit = next((u for u in units if u.id == uid), None)
+                unit = unit_map.get(uid)
                 if unit and hasattr(unit, "set_movement_mode"):
                     # Toggle fast move mode
                     if unit.movement_mode != "fast_move":
                         unit.set_movement_mode("fast_move", duration_ticks=-1)
                         logger.info(
-                            f"[COMMAND] {unit.name or uid} entering FAST MOVE mode (1.5x speed, +50% detection)"
+                            "[COMMAND] %s entering FAST MOVE mode (1.5x speed, +50%% detection)",
+                            unit.name or uid,
                         )
                     else:
                         unit.set_movement_mode("normal")
-                        logger.info(f"[COMMAND] {unit.name or uid} exiting FAST MOVE mode")
+                        logger.info("[COMMAND] %s exiting FAST MOVE mode", unit.name or uid)
 
         elif cmd == "sneak":
             """Sneak Move command: Moves slower but harder to detect."""
-            import logging
-
-            logger = logging.getLogger(__name__)
-
             for uid in unit_ids:
-                unit = next((u for u in units if u.id == uid), None)
+                unit = unit_map.get(uid)
                 if (
                     unit
                     and hasattr(unit, "set_movement_mode")
@@ -169,24 +162,22 @@ class CombatDirector:
                     if unit.movement_mode != "sneak":
                         unit.set_movement_mode("sneak", duration_ticks=-1)
                         logger.info(
-                            f"[COMMAND] {unit.name or uid} entering SNEAK mode (0.6x speed, -50% detection)"
+                            "[COMMAND] %s entering SNEAK mode (0.6x speed, -50%% detection)",
+                            unit.name or uid,
                         )
                     else:
                         unit.set_movement_mode("normal")
-                        logger.info(f"[COMMAND] {unit.name or uid} exiting SNEAK mode")
+                        logger.info("[COMMAND] %s exiting SNEAK mode", unit.name or uid)
                 elif unit:
                     logger.warning(
-                        f"[COMMAND] {unit.name or uid} cannot use SNEAK mode (unit type not supported)"
+                        "[COMMAND] %s cannot use SNEAK mode (unit type not supported)",
+                        unit.name or uid,
                     )
 
         elif cmd == "hide":
             """Hide command: Similar to defend but with concealment bonus."""
-            import logging
-
-            logger = logging.getLogger(__name__)
-
             for uid in unit_ids:
-                unit = next((u for u in units if u.id == uid), None)
+                unit = unit_map.get(uid)
                 if unit and hasattr(unit, "set_movement_mode") and getattr(unit, "can_hide", False):
                     if unit.movement_mode != "defend":
                         unit.set_movement_mode("defend", duration_ticks=-1)
@@ -195,31 +186,25 @@ class CombatDirector:
                             unit.combat_state.concealment.special_bonus += 0.2
                         if uid in self._move_orders:
                             del self._move_orders[uid]
-                        logger.info(f"[COMMAND] {unit.name or uid} HIDING (+concealment)")
+                        logger.info("[COMMAND] %s HIDING (+concealment)", unit.name or uid)
 
         elif cmd == "deploy_smoke":
             """Deploy smoke grenade at unit position."""
-            import logging
-
-            logger = logging.getLogger(__name__)
-
             for uid in unit_ids:
-                unit = next((u for u in units if u.id == uid), None)
+                unit = unit_map.get(uid)
 
                 # Verify unit can use smoke
                 if not unit:
                     continue
                 if not getattr(unit, "can_use_smoke", False):
                     logger.warning(
-                        f"[SMOKE] {unit.name or uid} cannot deploy smoke (no capability)"
+                        "[SMOKE] %s cannot deploy smoke (no capability)",
+                        unit.name or uid,
                     )
                     continue
 
                 # Check ammo
                 if hasattr(unit, "weapon") and unit.weapon:
-                    # Consume smoke ammo (if tracked separately)
-                    # For now, just verify unit has weapon system
-
                     # Deploy smoke effect
                     try:
                         from pycc2.domain.systems.ammo_type_system import AmmoTypeSystem
@@ -229,11 +214,12 @@ class CombatDirector:
                             success = AmmoTypeSystem.deploy_smoke(unit, self._game_map)
                             if not success:
                                 logger.warning(
-                                    f"[SMOKE] Failed to deploy smoke for {unit.name or uid}"
+                                    "[SMOKE] Failed to deploy smoke for %s",
+                                    unit.name or uid,
                                 )
                                 continue
                     except Exception as e:
-                        logger.warning(f"[SMOKE] Error deploying smoke: {e}")
+                        logger.warning("[SMOKE] Error deploying smoke: %s", e)
                         # Continue with visual effect even if system call fails
 
                     # Trigger visual smoke screen effect
@@ -250,9 +236,9 @@ class CombatDirector:
                         unit.combat_state.concealment.in_smoke = True
                         # Smoke fades after some time (handled by combat_state turn processing)
 
-                    logger.info(f"[SMOKE] {unit.name or uid} deployed smoke grenade")
+                    logger.info("[SMOKE] %s deployed smoke grenade", unit.name or uid)
                 else:
-                    logger.warning(f"[SMOKE] {unit.name or uid} has no weapon system")
+                    logger.warning("[SMOKE] %s has no weapon system", unit.name or uid)
 
     def execute_attack(self, attacker, target) -> None:
         from pycc2.services.event_protocol import UnitAttacked, UnitKilled

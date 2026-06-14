@@ -35,7 +35,7 @@ class LosResult:
     distance_tiles: float = 0.0
 
 
-class Lossystem:
+class LOSSystem:
     """
     Line of Sight detection system using Bresenham's algorithm.
 

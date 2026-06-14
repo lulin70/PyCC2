@@ -653,9 +653,9 @@ class TestLOSAndAttackLine:
         game_map = GameMap(id="los_block", name="LOS Block", width=20, height=20, tile_grid=grid)
 
         # 创建一个简单的LOS系统mock
-        from pycc2.domain.systems.los_system import Lossystem
+        from pycc2.domain.systems.los_system import LOSSystem
 
-        los_system = Lossystem(game_map)
+        los_system = LOSSystem(game_map)
 
         attacker = make_unit("attacker", tile_x=5, tile_y=5)
         target_pos = Vec2(8 * 32, 5 * 32)

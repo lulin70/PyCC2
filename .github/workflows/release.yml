@@ -9,7 +9,7 @@ on:
       version:
         description: 'Version to release (e.g. 0.3.38)'
         required: true
-        default: '0.3.38'
+        default: '0.3.41'
 
 permissions:
   contents: write

@@ -2,6 +2,29 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.41] - 2026-06-14
+
+### Architecture: SpriteRenderer Responsibility Separation
+- Extracted `SpriteCacheManager` from SpriteRenderer — sprite generation, caching, and lookup now isolated (~200 lines)
+- Extracted `EffectRenderer` from SpriteRenderer — particle effects, damage numbers, death animations, hit flash now isolated (~350 lines)
+- SpriteRenderer refactored to coordinator pattern — composes SpriteCacheManager + EffectRenderer, backward-compatible property accessors preserve old API
+- No functional changes: all 3411 unit tests pass, full regression green
+
+### Code Quality: Naming Convention Fix
+- Renamed `Lossystem` → `LOSSystem` (PascalCase compliance, 5 references updated)
+
+### Code Quality: CombatDirector Performance Fix
+- Replaced O(unit_ids × units) linear `next()` lookup with O(1) dict lookup in `handle_player_command`
+- Removed 5 duplicate `import logging` + `logger = logging.getLogger(__name__)` inside method branches (moved to module-level)
+
+### Code Quality: Logging Consistency
+- Converted 61 f-string logger calls to %-formatting (Python logging best practice, lazy evaluation)
+
+### Documentation: Version Sync
+- Synchronized version to v0.3.41 across README.md, README_zh.md, README_ja.md, CHANGELOG.md, release.yml
+- Updated TECH_DEBT.md from v0.3.13 to v0.3.41 (28 versions behind)
+- Updated ROADMAP.md from v0.3.39 to v0.3.41
+
 ## [0.3.40] - 2026-06-13
 
 ### User Experience Overhaul — "Ready for Players"

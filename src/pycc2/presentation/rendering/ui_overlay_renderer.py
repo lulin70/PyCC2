@@ -363,10 +363,10 @@ class UIOverlayRenderer:
         if unit is None or game_map is None:
             return
 
-        from pycc2.domain.systems.los_system import Lossystem
+        from pycc2.domain.systems.los_system import LOSSystem
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         ux = unit.position.tile_coord.x
         uy = unit.position.tile_coord.y
         tile_size = self._ctx.tile_size

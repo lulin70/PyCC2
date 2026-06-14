@@ -10,7 +10,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from pycc2.domain.systems.los_system import LosResult, LosStatus, Lossystem
+from pycc2.domain.systems.los_system import LosResult, LosStatus, LOSSystem
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
 # ===========================================================================
@@ -64,23 +64,23 @@ class TestBresenhamLine:
     """Test the Bresenham line algorithm."""
 
     def test_horizontal_line(self):
-        line = Lossystem._bresenham_line_enhanced(TileCoord(0, 0), TileCoord(3, 0))
+        line = LOSSystem._bresenham_line_enhanced(TileCoord(0, 0), TileCoord(3, 0))
         assert TileCoord(0, 0) in line
         assert TileCoord(3, 0) in line
         assert len(line) >= 4  # At least 4 points
 
     def test_vertical_line(self):
-        line = Lossystem._bresenham_line_enhanced(TileCoord(0, 0), TileCoord(0, 3))
+        line = LOSSystem._bresenham_line_enhanced(TileCoord(0, 0), TileCoord(0, 3))
         assert TileCoord(0, 0) in line
         assert TileCoord(0, 3) in line
 
     def test_diagonal_line(self):
-        line = Lossystem._bresenham_line_enhanced(TileCoord(0, 0), TileCoord(3, 3))
+        line = LOSSystem._bresenham_line_enhanced(TileCoord(0, 0), TileCoord(3, 3))
         assert TileCoord(0, 0) in line
         assert TileCoord(3, 3) in line
 
     def test_same_point(self):
-        line = Lossystem._bresenham_line_enhanced(TileCoord(5, 5), TileCoord(5, 5))
+        line = LOSSystem._bresenham_line_enhanced(TileCoord(5, 5), TileCoord(5, 5))
         assert len(line) == 1
         assert line[0] == TileCoord(5, 5)
 
@@ -96,14 +96,14 @@ class TestCheckLos:
 
     def test_clear_los_on_flat_terrain(self):
         game_map = _make_game_map()
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         can_see, result = los.check_los(TileCoord(0, 0), TileCoord(5, 5))
         assert can_see is True
         assert result.status == LosStatus.CLEAR
 
     def test_out_of_range(self):
         game_map = _make_game_map()
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         # Distance > 15 (default visual range)
         can_see, result = los.check_los(TileCoord(0, 0), TileCoord(20, 20))
         assert can_see is False
@@ -115,14 +115,14 @@ class TestCheckLos:
             (3, 3): StubTerrain("building_solid", blocks_los=True),
         }
         game_map = _make_game_map(terrain_map=terrain_map)
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         can_see, result = los.check_los(TileCoord(1, 1), TileCoord(5, 5))
         assert can_see is False
         assert result.status == LosStatus.BLOCKED_TERRAIN
 
     def test_los_caching(self):
         game_map = _make_game_map()
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         # First call
         can_see1, result1 = los.check_los(TileCoord(0, 0), TileCoord(5, 5))
         # Second call should hit cache
@@ -132,7 +132,7 @@ class TestCheckLos:
 
     def test_clear_cache(self):
         game_map = _make_game_map()
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         los.check_los(TileCoord(0, 0), TileCoord(5, 5))
         assert len(los._cache) > 0
         los.clear_cache()
@@ -156,7 +156,7 @@ class TestHeightBlocking:
             (5, 5): {"elevation": 0.0, "building_height": 0.0},
         }
         game_map = _make_game_map(enhanced_tiles=enhanced_tiles)
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         can_see, result = los.check_los(TileCoord(1, 1), TileCoord(5, 5))
         # The tall hill should block LOS
         assert can_see is False
@@ -169,7 +169,7 @@ class TestHeightBlocking:
             (14, 0): {"elevation": 0.0, "building_height": 0.0},
         }
         game_map = _make_game_map(enhanced_tiles=enhanced_tiles)
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         can_see, result = los.check_los(TileCoord(0, 0), TileCoord(14, 0))
         # With elevation bonus, should be within range
         assert can_see is True
@@ -186,25 +186,25 @@ class TestBuildingVisibilityBonus:
 
     def test_no_building_data(self):
         game_map = _make_game_map()
-        bonus = Lossystem.get_building_visibility_bonus(5, 5, game_map)
+        bonus = LOSSystem.get_building_visibility_bonus(5, 5, game_map)
         assert bonus == 1.0
 
     def test_one_floor_no_bonus(self):
         enhanced_tiles = {(5, 5): {"building_floors": 1}}
         game_map = _make_game_map(enhanced_tiles=enhanced_tiles)
-        bonus = Lossystem.get_building_visibility_bonus(5, 5, game_map)
+        bonus = LOSSystem.get_building_visibility_bonus(5, 5, game_map)
         assert bonus == 1.0
 
     def test_two_floors_bonus(self):
         enhanced_tiles = {(5, 5): {"building_floors": 2}}
         game_map = _make_game_map(enhanced_tiles=enhanced_tiles)
-        bonus = Lossystem.get_building_visibility_bonus(5, 5, game_map)
+        bonus = LOSSystem.get_building_visibility_bonus(5, 5, game_map)
         assert bonus == 1.25
 
     def test_five_plus_floors_max_bonus(self):
         enhanced_tiles = {(5, 5): {"building_floors": 6}}
         game_map = _make_game_map(enhanced_tiles=enhanced_tiles)
-        bonus = Lossystem.get_building_visibility_bonus(5, 5, game_map)
+        bonus = LOSSystem.get_building_visibility_bonus(5, 5, game_map)
         assert bonus == 2.0
 
 
@@ -218,7 +218,7 @@ class TestAttackLineIntegration:
     """Test LOS result to attack line status conversion."""
 
     def _make_los(self):
-        return Lossystem(_make_game_map())
+        return LOSSystem(_make_game_map())
 
     def test_clear_to_can_attack(self):
         result = LosResult(status=LosStatus.CLEAR, can_see=True)
@@ -247,14 +247,14 @@ class TestAngleDiff:
     """Test the angle difference helper."""
 
     def test_same_angle(self):
-        assert abs(Lossystem._angle_diff(0.0, 0.0)) < 0.001
+        assert abs(LOSSystem._angle_diff(0.0, 0.0)) < 0.001
 
     def test_opposite_angle(self):
-        diff = Lossystem._angle_diff(math.pi, 0.0)
+        diff = LOSSystem._angle_diff(math.pi, 0.0)
         assert abs(abs(diff) - math.pi) < 0.001
 
     def test_wrapping(self):
-        diff = Lossystem._angle_diff(-math.pi, math.pi)
+        diff = LOSSystem._angle_diff(-math.pi, math.pi)
         assert abs(diff) < 0.001
 
 
@@ -269,7 +269,7 @@ class TestGetBlockingTerrain:
 
     def test_no_blocking_returns_empty(self):
         game_map = _make_game_map()
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         blocking = los.get_blocking_terrain(TileCoord(0, 0), TileCoord(3, 0))
         assert blocking == []
 
@@ -278,6 +278,6 @@ class TestGetBlockingTerrain:
             (2, 0): StubTerrain("building_solid", blocks_los=True),
         }
         game_map = _make_game_map(terrain_map=terrain_map)
-        los = Lossystem(game_map)
+        los = LOSSystem(game_map)
         blocking = los.get_blocking_terrain(TileCoord(0, 0), TileCoord(5, 0))
         assert len(blocking) > 0

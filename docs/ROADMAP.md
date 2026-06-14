@@ -1,8 +1,8 @@
 # PyCC2 Development Roadmap
 
-**v0.3.39 | June 13, 2026 | Based on DevSquad 7-Role Analysis**
+**v0.3.41 | June 14, 2026 | Based on DevSquad 7-Role Analysis**
 
-> **Current Version**: v0.3.39 | **Tests**: ~3985 (all passing) | **CC2 Fidelity**: ~88%
+> **Current Version**: v0.3.41 | **Tests**: ~3985 (all passing) | **CC2 Fidelity**: ~88%
 > **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish in Progress**
 
 ---
@@ -41,6 +41,7 @@ The project now has **~3985 passing tests**, **63 historical maps**, **277 unit 
 | **E2E Tests** | None | **38-phase real SDL** | ✅ New feature |
 | **Visual Polish** | None | **Death fade, flash, weather, shells** | ✅ v0.3.31-v0.3.34 |
 | **Architecture** | God classes | **SRP splits, -39% violations** | ✅ v0.3.23-v0.3.29 |
+| **SpriteRenderer** | 1529-line God class | **Coordinator + 2 sub-classes** | ✅ v0.3.41 |
 
 ---
 

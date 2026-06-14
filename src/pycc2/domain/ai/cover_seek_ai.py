@@ -125,7 +125,7 @@ class CoverScoringSystem:
 
     def __init__(
         self,
-        los_system: Lossystem | None = None,
+        los_system: LOSSystem | None = None,
         game_map: GameMap | None = None,
     ) -> None:
         self._los = los_system

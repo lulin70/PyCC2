@@ -1,6 +1,6 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python再実装)
 
-**v0.3.40 | Beta Candidate | 2026年6月13日**
+**v0.3.41 | Beta Candidate | 2026年6月14日**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
@@ -19,7 +19,7 @@
 
 ---
 
-## v0.3.39 の更新内容
+## v0.3.41 の更新内容
 
 ### v0.3.35 — クイックフィックス（2026-06-11）
 - AnimationControllerのデッドコード削除（430行、既存システムと90%重複）

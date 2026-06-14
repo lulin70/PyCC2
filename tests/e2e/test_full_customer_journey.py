@@ -368,10 +368,10 @@ class TestFullCustomerJourney:
 
     def test_19_window_firing_arc_works(self):
         """Units in buildings can only fire through windows."""
-        from pycc2.domain.systems.los_system import Lossystem
+        from pycc2.domain.systems.los_system import LOSSystem
 
         # Method should exist
-        assert hasattr(Lossystem, "check_window_firing_arc")
+        assert hasattr(LOSSystem, "check_window_firing_arc")
 
     def test_20_game_runs_60_seconds(self):
         """Game runs for 60 simulated seconds without crash."""
