@@ -84,6 +84,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "F821", "N801", "B007"]  # allow assert, TYPE_CHECKING refs, test class naming, and unused loop vars in tests
+"scripts/*" = ["F401", "F821", "N801"]  # scripts have conditional imports and test-style naming
 
 [tool.mypy]
 python_version = "3.11"

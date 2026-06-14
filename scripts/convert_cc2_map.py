@@ -74,7 +74,9 @@ def _interactive_add_objectives(map_data: dict) -> dict:
                 continue
             x, y = int(parts[0].strip()), int(parts[1].strip())
             if not (0 <= x < map_data["width"] and 0 <= y < map_data["height"]):
-                print(f"    Position out of bounds (0-{map_data['width']-1}, 0-{map_data['height']-1})")
+                print(
+                    f"    Position out of bounds (0-{map_data['width'] - 1}, 0-{map_data['height'] - 1})"
+                )
                 continue
         except (ValueError, IndexError):
             print("    Invalid input. Use integer coordinates 'x,y'")
@@ -91,13 +93,15 @@ def _interactive_add_objectives(map_data: dict) -> dict:
         required = input("  Required? (y/n) [y]: ").strip().lower()
         is_required = required != "n"
 
-        objectives.append({
-            "id": f"vl_{idx}",
-            "name": name,
-            "position": [x, y],
-            "radius": 2,
-            "required": is_required,
-        })
+        objectives.append(
+            {
+                "id": f"vl_{idx}",
+                "name": name,
+                "position": [x, y],
+                "radius": 2,
+                "required": is_required,
+            }
+        )
         idx += 1
 
     map_data["objectives"] = objectives
@@ -136,12 +140,14 @@ def _interactive_add_spawns(map_data: dict) -> dict:
         except ValueError:
             units_max = 6
 
-        spawn_points.append({
-            "id": f"spawn_{side}",
-            "side": side,
-            "position": [x, y],
-            "units_max": units_max,
-        })
+        spawn_points.append(
+            {
+                "id": f"spawn_{side}",
+                "side": side,
+                "position": [x, y],
+                "units_max": units_max,
+            }
+        )
 
     map_data["spawn_points"] = spawn_points
     return map_data
@@ -160,7 +166,8 @@ def main() -> None:
         help="Path to the CC2 map file (e.g. Map001)",
     )
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         type=str,
         default=None,
         help="Output JSON file path (default: <input_stem>.json in current directory)",

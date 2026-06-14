@@ -18,33 +18,34 @@ E2E Advanced Game Test — 深度集成测试 (12 cases)
 输出：15+张关键步骤截图 + 详细日志 + 覆盖率报告
 """
 
+import logging
 import os
 import sys
 import time
-import logging
-from typing import Optional
 
 # 强制使用dummy driver进行自动化测试
-os.environ['SDL_VIDEODRIVER'] = 'dummy'
-os.environ['SDL_AUDIODRIVER'] = 'dummy'
+os.environ["SDL_VIDEODRIVER"] = "dummy"
+os.environ["SDL_AUDIODRIVER"] = "dummy"
 
 import pygame
+
 pygame.init()
 
 # 添加项目路径
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from pathlib import Path
-from pycc2.domain.entities.game_map import GameMap, _TERRAIN_NAME_MAP
-from pycc2.domain.value_objects.vec2 import Vec2
+
 from pycc2.domain.components.position_component import PositionComponent
+from pycc2.domain.entities.game_map import _TERRAIN_NAME_MAP, GameMap
+from pycc2.domain.entities.unit import Faction, Unit, UnitState, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
-from pycc2.domain.entities.unit import Unit, UnitType, Faction, UnitState
+from pycc2.domain.value_objects.vec2 import Vec2
+from pycc2.presentation.input.handler import PygameInputHandler
+from pycc2.presentation.input.interaction_controller import InteractionController
 from pycc2.presentation.rendering.camera import Camera
 from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 from pycc2.presentation.rendering.window_config import DisplayInfo, WindowManager
-from pycc2.presentation.input.handler import PygameInputHandler
-from pycc2.presentation.input.interaction_controller import InteractionController
 from pycc2.services.event_bus import EventBus
 from pycc2.services.game_loop import GameLoop, GameState
 
@@ -53,9 +54,9 @@ class E2EAdvancedGameTest:
     """端到端高级集成测试器 — 12个深度测试case"""
 
     def __init__(self):
-        self.logger = logging.getLogger('E2E-Advanced')
+        self.logger = logging.getLogger("E2E-Advanced")
         self.logger.setLevel(logging.INFO)
-        self.screenshots_dir = Path(__file__).parent.parent / 'screenshots' / 'e2e_advanced_test'
+        self.screenshots_dir = Path(__file__).parent.parent / "screenshots" / "e2e_advanced_test"
         self.screenshots_dir.mkdir(parents=True, exist_ok=True)
         self.screen = None
         self.wm = None
@@ -88,6 +89,7 @@ class E2EAdvancedGameTest:
                     return False
 
             import json as _json
+
             with open(map_path, encoding="utf-8") as _f:
                 self.map_data = _json.load(_f)
 
@@ -95,8 +97,7 @@ class E2EAdvancedGameTest:
             if "tiles" in self.map_data and isinstance(self.map_data["tiles"][0][0], str):
                 self.logger.info("🔄 Converting terrain names to integer IDs...")
                 self.map_data["tiles"] = [
-                    [_TERRAIN_NAME_MAP.get(t, 0) for t in row]
-                    for row in self.map_data["tiles"]
+                    [_TERRAIN_NAME_MAP.get(t, 0) for t in row] for row in self.map_data["tiles"]
                 ]
 
             game_map = GameMap.from_json(map_path)
@@ -132,6 +133,7 @@ class E2EAdvancedGameTest:
 
             from pycc2.presentation.ui.hint_manager import HintManager
             from pycc2.presentation.ui.keybind_manager import KeybindManager
+
             hint_manager = HintManager()
             keybind_manager = KeybindManager()
             interaction_controller.set_hint_manager(hint_manager)
@@ -173,9 +175,12 @@ class E2EAdvancedGameTest:
         self.logger.info("=" * 60)
         try:
             self.game_loop.renderer.render(
-                game_map=self.state.game_map, units=[],
-                camera=self.state.camera, alpha=1.0,
-                selected_unit_ids=set(), debug_mode=False,
+                game_map=self.state.game_map,
+                units=[],
+                camera=self.state.camera,
+                alpha=1.0,
+                selected_unit_ids=set(),
+                debug_mode=False,
             )
             pygame.display.flip()
             path = self.screenshot("01_pure_terrain")
@@ -203,8 +208,14 @@ class E2EAdvancedGameTest:
             self.logger.info(f"📊 Stats: {available_count} units, {zone_size} zones, {rp} RP")
 
             # 部署步兵
-            inf_idx = next((i for i, u in enumerate(dui.state.available_units)
-                           if u.unit_type == "infantry" and not u.is_placed), None)
+            inf_idx = next(
+                (
+                    i
+                    for i, u in enumerate(dui.state.available_units)
+                    if u.unit_type == "infantry" and not u.is_placed
+                ),
+                None,
+            )
             if inf_idx is None:
                 for i, u in enumerate(dui.state.available_units):
                     if not u.is_placed:
@@ -214,16 +225,21 @@ class E2EAdvancedGameTest:
             placed = False
             if inf_idx is not None:
                 for tx, ty in dui.state.friendly_zone[:30]:
-                    if dui.can_place_at(dui.state.available_units[inf_idx], tx, ty,
-                                        dui._get_terrain_at(tx, ty)):
+                    if dui.can_place_at(
+                        dui.state.available_units[inf_idx], tx, ty, dui._get_terrain_at(tx, ty)
+                    ):
                         if dui.place_unit(inf_idx, tx, ty):
                             placed = True
                             self.logger.info(f"✅ Placed at ({tx}, {ty})")
                             break
 
             self.game_loop.renderer.render(
-                game_map=self.state.game_map, units=[], camera=self.state.camera,
-                alpha=1.0, selected_unit_ids=set(), debug_mode=False,
+                game_map=self.state.game_map,
+                units=[],
+                camera=self.state.camera,
+                alpha=1.0,
+                selected_unit_ids=set(),
+                debug_mode=False,
             )
             pygame.display.flip()
             self.screenshot("02_deployment_ready")
@@ -256,7 +272,9 @@ class E2EAdvancedGameTest:
                     if dui.can_place_at(unit, tx, ty, dui._get_terrain_at(tx, ty)):
                         if dui.place_unit(i, tx, ty):
                             deployed_count += 1
-                            self.logger.info(f"  ✅ [{deployed_count}/{target_count}] at ({tx},{ty})")
+                            self.logger.info(
+                                f"  ✅ [{deployed_count}/{target_count}] at ({tx},{ty})"
+                            )
                             break
 
             deployment_result = self.game_loop.complete_deployment()
@@ -264,9 +282,12 @@ class E2EAdvancedGameTest:
                 self.logger.info(f"✅ Deployment done: {len(deployment_result)} units")
 
             self.game_loop.renderer.render(
-                game_map=self.state.game_map, units=self.state.units,
-                camera=self.state.camera, alpha=1.0,
-                selected_unit_ids=set(), debug_mode=False,
+                game_map=self.state.game_map,
+                units=self.state.units,
+                camera=self.state.camera,
+                alpha=1.0,
+                selected_unit_ids=set(),
+                debug_mode=False,
             )
             pygame.display.flip()
             self.screenshot("03_battle_started")
@@ -290,15 +311,18 @@ class E2EAdvancedGameTest:
 
             first_unit = self.state.units[0]
             selected_ids = {first_unit.id}
-            unit_name = getattr(first_unit, 'name', f"Unit-{first_unit.unit_type}")
+            unit_name = getattr(first_unit, "name", f"Unit-{first_unit.unit_type}")
 
             original_tile = (first_unit.position.tile_coord.x, first_unit.position.tile_coord.y)
             self.logger.info(f"🎯 Selected: {unit_name} at tile {original_tile}")
 
             self.game_loop.renderer.render(
-                game_map=self.state.game_map, units=self.state.units,
-                camera=self.state.camera, alpha=1.0,
-                selected_unit_ids=selected_ids, debug_mode=False,
+                game_map=self.state.game_map,
+                units=self.state.units,
+                camera=self.state.camera,
+                alpha=1.0,
+                selected_unit_ids=selected_ids,
+                debug_mode=False,
             )
             pygame.display.flip()
             self.screenshot("04_unit_selected")
@@ -307,13 +331,18 @@ class E2EAdvancedGameTest:
             first_unit.position = PositionComponent(
                 tile_coord=TileCoord(original_tile[0] + 3, original_tile[1] + 2)
             )
-            self.logger.info(f"🚶 Position updated to ({first_unit.position.tile_coord.x}, "
-                           f"{first_unit.position.tile_coord.y})")
+            self.logger.info(
+                f"🚶 Position updated to ({first_unit.position.tile_coord.x}, "
+                f"{first_unit.position.tile_coord.y})"
+            )
 
             self.game_loop.renderer.render(
-                game_map=self.state.game_map, units=self.state.units,
-                camera=self.state.camera, alpha=1.0,
-                selected_unit_ids=selected_ids, debug_mode=False,
+                game_map=self.state.game_map,
+                units=self.state.units,
+                camera=self.state.camera,
+                alpha=1.0,
+                selected_unit_ids=selected_ids,
+                debug_mode=False,
             )
             pygame.display.flip()
             self.screenshot("05_after_basic_move")
@@ -334,9 +363,12 @@ class E2EAdvancedGameTest:
 
             # Debug overlay
             self.game_loop.renderer.render(
-                game_map=self.state.game_map, units=self.state.units,
-                camera=self.state.camera, alpha=1.0,
-                selected_unit_ids=set(), debug_mode=True,
+                game_map=self.state.game_map,
+                units=self.state.units,
+                camera=self.state.camera,
+                alpha=1.0,
+                selected_unit_ids=set(),
+                debug_mode=True,
             )
             pygame.display.flip()
             self.screenshot("06_debug_overlay")
@@ -346,9 +378,12 @@ class E2EAdvancedGameTest:
             if len(self.state.units) >= 2:
                 all_selected = {u.id for u in self.state.units}
                 self.game_loop.renderer.render(
-                    game_map=self.state.game_map, units=self.state.units,
-                    camera=self.state.camera, alpha=1.0,
-                    selected_unit_ids=all_selected, debug_mode=False,
+                    game_map=self.state.game_map,
+                    units=self.state.units,
+                    camera=self.state.camera,
+                    alpha=1.0,
+                    selected_unit_ids=all_selected,
+                    debug_mode=False,
                 )
                 pygame.display.flip()
                 self.screenshot("07_multiple_units")
@@ -358,9 +393,12 @@ class E2EAdvancedGameTest:
             old_zoom = self.state.camera.zoom
             self.state.camera.zoom = 2.0
             self.game_loop.renderer.render(
-                game_map=self.state.game_map, units=self.state.units,
-                camera=self.state.camera, alpha=1.0,
-                selected_unit_ids=set(), debug_mode=False,
+                game_map=self.state.game_map,
+                units=self.state.units,
+                camera=self.state.camera,
+                alpha=1.0,
+                selected_unit_ids=set(),
+                debug_mode=False,
             )
             pygame.display.flip()
             self.screenshot("08_zoomed_view")
@@ -390,8 +428,10 @@ class E2EAdvancedGameTest:
                         break
 
                 self.game_loop.renderer.render(
-                    game_map=self.state.game_map, units=self.state.units,
-                    camera=self.state.camera, alpha=1.0,
+                    game_map=self.state.game_map,
+                    units=self.state.units,
+                    camera=self.state.camera,
+                    alpha=1.0,
                     selected_unit_ids=selected,
                     debug_mode=(frame % 30 == 0),
                 )
@@ -434,14 +474,17 @@ class E2EAdvancedGameTest:
                 return False
 
             # FIX: 确保至少有1个已部署的单位（否则无法设置pre-order）
-            available_units = [u for i, u in enumerate(dui.state.available_units) if not u.is_placed]
+            available_units = [
+                u for i, u in enumerate(dui.state.available_units) if not u.is_placed
+            ]
             if len(available_units) == 0:
                 self.log_result("TEST 7: Pre-orders", False, "No available units to place")
                 return False
 
             # 先部署1个单位
-            first_unit_idx = next((i for i, u in enumerate(dui.state.available_units)
-                                 if not u.is_placed), None)
+            first_unit_idx = next(
+                (i for i, u in enumerate(dui.state.available_units) if not u.is_placed), None
+            )
             placed_any = False
             if first_unit_idx is not None:
                 for tx, ty in dui.state.friendly_zone[:30]:
@@ -477,8 +520,10 @@ class E2EAdvancedGameTest:
             for unit_id, expected_x, expected_y in orders_set:
                 order = dui.get_pending_order(unit_id)
                 if order != (expected_x, expected_y):
-                    self.logger.error(f"❌ Order mismatch for {unit_id}: expected "
-                                    f"({expected_x},{expected_y}), got {order}")
+                    self.logger.error(
+                        f"❌ Order mismatch for {unit_id}: expected "
+                        f"({expected_x},{expected_y}), got {order}"
+                    )
                     verification_passed = False
                 else:
                     self.logger.info(f"  ✅ Verified order: {unit_id} →{order}")
@@ -493,9 +538,12 @@ class E2EAdvancedGameTest:
             # 渲染预置命令箭头（如果_render_pending_orders实现的话）
             try:
                 self.game_loop.renderer.render(
-                    game_map=self.state.game_map, units=[],
-                    camera=self.state.camera, alpha=1.0,
-                    selected_unit_ids=set(), debug_mode=False,
+                    game_map=self.state.game_map,
+                    units=[],
+                    camera=self.state.camera,
+                    alpha=1.0,
+                    selected_unit_ids=set(),
+                    debug_mode=False,
                 )
                 pygame.display.flip()
                 self.screenshot("10_pre_deployment_orders")
@@ -504,8 +552,9 @@ class E2EAdvancedGameTest:
                 self.logger.warning(f"⚠️ Render warning: {render_err}")
 
             success = verification_passed and len(orders_set) >= 1  # FIX: 至少1个order即可
-            self.log_result("TEST 7: Pre-deployment orders", success,
-                         f"{len(orders_set)} orders set & verified")
+            self.log_result(
+                "TEST 7: Pre-deployment orders", success, f"{len(orders_set)} orders set & verified"
+            )
             return success
         except Exception as e:
             self.log_result("TEST 7: Pre-deployment orders", False, str(e))
@@ -537,10 +586,10 @@ class E2EAdvancedGameTest:
                 "defend": {"speed": 0.5, "accuracy": 0.25, "mobility": 0.5},
             }
 
-            for mode_name, expected_props in mode_properties.items():
+            for mode_name, _expected_props in mode_properties.items():
                 try:
                     # 设置movement mode
-                    if hasattr(test_unit, 'set_movement_mode'):
+                    if hasattr(test_unit, "set_movement_mode"):
                         test_unit.set_movement_mode(mode_name)
                     else:
                         # 直接设置内部字段（fallback）
@@ -548,32 +597,34 @@ class E2EAdvancedGameTest:
 
                     # 验证当前模式
                     current_mode = test_unit.movement_mode
-                    mode_match = (current_mode == mode_name)
+                    mode_match = current_mode == mode_name
 
                     # 验证属性
                     props_ok = True
-                    if mode_name == "fast_move" and hasattr(test_unit, 'is_fast_moving'):
+                    if mode_name == "fast_move" and hasattr(test_unit, "is_fast_moving"):
                         props_ok = test_unit.is_fast_moving
-                    elif mode_name == "sneak" and hasattr(test_unit, 'is_sneaking'):
+                    elif mode_name == "sneak" and hasattr(test_unit, "is_sneaking"):
                         props_ok = test_unit.is_sneaking
-                    elif mode_name == "defend" and hasattr(test_unit, 'is_defending'):
+                    elif mode_name == "defend" and hasattr(test_unit, "is_defending"):
                         props_ok = test_unit.is_defending
 
                     # 验证速度倍率（通过内部字段）
                     speed_ok = True
                     if mode_name == "fast_move":
-                        speed_ok = getattr(test_unit, '_fast_speed_multiplier', 1.5) == 1.5
+                        speed_ok = getattr(test_unit, "_fast_speed_multiplier", 1.5) == 1.5
                     elif mode_name == "sneak":
-                        speed_ok = getattr(test_unit, '_sneak_speed_multiplier', 0.6) == 0.6
+                        speed_ok = getattr(test_unit, "_sneak_speed_multiplier", 0.6) == 0.6
                     elif mode_name == "defend":
-                        speed_ok = getattr(test_unit, '_defend_mobility_penalty', 0.5) == 0.5
+                        speed_ok = getattr(test_unit, "_defend_mobility_penalty", 0.5) == 0.5
 
                     all_ok = mode_match and props_ok and speed_ok
                     modes_tested.append((mode_name, all_ok))
 
                     status = "✅" if all_ok else "❌"
-                    self.logger.info(f"  {status} Mode [{mode_name}]: match={mode_match}, "
-                                   f"props={props_ok}, speed={speed_ok}")
+                    self.logger.info(
+                        f"  {status} Mode [{mode_name}]: match={mode_match}, "
+                        f"props={props_ok}, speed={speed_ok}"
+                    )
 
                 except Exception as mode_err:
                     self.logger.warning(f"  ⚠️ Mode [{mode_name}] error: {mode_err}")
@@ -583,14 +634,17 @@ class E2EAdvancedGameTest:
             if len(self.state.units) >= 4:
                 for i, unit in enumerate(self.state.units[:4]):
                     mode = list(mode_properties.keys())[i % 4]
-                    if hasattr(unit, 'set_movement_mode'):
+                    if hasattr(unit, "set_movement_mode"):
                         unit.set_movement_mode(mode)
 
                 all_selected = {u.id for u in self.state.units[:4]}
                 self.game_loop.renderer.render(
-                    game_map=self.state.game_map, units=self.state.units,
-                    camera=self.state.camera, alpha=1.0,
-                    selected_unit_ids=all_selected, debug_mode=True,
+                    game_map=self.state.game_map,
+                    units=self.state.units,
+                    camera=self.state.camera,
+                    alpha=1.0,
+                    selected_unit_ids=all_selected,
+                    debug_mode=True,
                 )
                 pygame.display.flip()
                 self.screenshot("11_movement_modes")
@@ -598,8 +652,11 @@ class E2EAdvancedGameTest:
 
             passed_count = sum(1 for _, ok in modes_tested if ok)
             success = passed_count >= 3  # 至少3/4模式工作正常
-            self.log_result("TEST 8: Movement modes", success,
-                         f"{passed_count}/4 modes working: {[m for m, ok in modes_tested if ok]}")
+            self.log_result(
+                "TEST 8: Movement modes",
+                success,
+                f"{passed_count}/4 modes working: {[m for m, ok in modes_tested if ok]}",
+            )
             return success
         except Exception as e:
             self.log_result("TEST 8: Movement modes", False, str(e))
@@ -615,7 +672,7 @@ class E2EAdvancedGameTest:
         self.logger.info("TEST 9: Squad Member Individual States")
         self.logger.info("=" * 70)
         try:
-            from pycc2.domain.entities.squad import Squad, SquadMember, MemberState, SquadType
+            from pycc2.domain.entities.squad import MemberState, Squad, SquadMember, SquadType
 
             # 创建一个5人步枪班（Squad会自动根据SquadType创建默认成员）
             squad = Squad(
@@ -632,7 +689,7 @@ class E2EAdvancedGameTest:
                 squad.members[1].state = MemberState.PINNED
                 squad.members[2].state = MemberState.DEAD
 
-                self.logger.info(f"💥 Modified member states:")
+                self.logger.info("💥 Modified member states:")
                 self.logger.info(f"   Member[0]: {squad.members[0].state.name} (WOUNDED)")
                 self.logger.info(f"   Member[1]: {squad.members[1].state.name} (PINNED)")
                 self.logger.info(f"   Member[2]: {squad.members[2].state.name} (DEAD)")
@@ -652,20 +709,24 @@ class E2EAdvancedGameTest:
                 if member_idx < len(squad.members):
                     old_state = squad.members[member_idx].state
                     squad.members[member_idx].state = new_state
-                    self.logger.info(f"  💥 Member[{member_idx}] {old_state.name} → {new_state.name}: "
-                                   f"{scenario_desc}")
+                    self.logger.info(
+                        f"  💥 Member[{member_idx}] {old_state.name} → {new_state.name}: "
+                        f"{scenario_desc}"
+                    )
 
             # 验证战斗力下降
             current_effectiveness = squad.combat_effectiveness
             effectiveness_drop = initial_effectiveness - current_effectiveness
-            self.logger.info(f"📉 Combat effectiveness: {initial_effectiveness:.2f} → "
-                           f"{current_effectiveness:.2f} (-{effectiveness_drop:.2f})")
+            self.logger.info(
+                f"📉 Combat effectiveness: {initial_effectiveness:.2f} → "
+                f"{current_effectiveness:.2f} (-{effectiveness_drop:.2f})"
+            )
 
             # 验证成员状态统计
             state_counts = {}
             for m in squad.members:
                 state_counts[m.state] = state_counts.get(m.state, 0) + 1
-            self.logger.info(f"📊 Member state distribution:")
+            self.logger.info("📊 Member state distribution:")
             for state, count in state_counts.items():
                 self.logger.info(f"   • {state.name}: {count}")
 
@@ -673,7 +734,8 @@ class E2EAdvancedGameTest:
             # FIX: Squad根据SquadType.RIFLE_SQUAD自动创建10人(不是5人)
             actual_member_count = len(squad.members)
             assertions = {
-                f"Squad has {actual_member_count} members (auto-created)": actual_member_count >= 3,  # 至少3人
+                f"Squad has {actual_member_count} members (auto-created)": actual_member_count
+                >= 3,  # 至少3人
                 "At least 1 WOUNDED": any(m.state == MemberState.WOUNDED for m in squad.members),
                 "At least 1 PINNED": any(m.state == MemberState.PINNED for m in squad.members),
                 "At least 1 DEAD": any(m.state == MemberState.DEAD for m in squad.members),
@@ -687,20 +749,26 @@ class E2EAdvancedGameTest:
                 self.logger.info(f"  {status} {desc}: {result}")
 
             # 渲染Squad可视化（如果有squad_ref在unit上）
-            if self.state.units and hasattr(self.state.units[0], 'squad_ref'):
+            if self.state.units and hasattr(self.state.units[0], "squad_ref"):
                 self.state.units[0].squad_ref = squad
                 self.game_loop.renderer.render(
-                    game_map=self.state.game_map, units=self.state.units,
-                    camera=self.state.camera, alpha=1.0,
-                    selected_unit_ids={self.state.units[0].id}, debug_mode=True,
+                    game_map=self.state.game_map,
+                    units=self.state.units,
+                    camera=self.state.camera,
+                    alpha=1.0,
+                    selected_unit_ids={self.state.units[0].id},
+                    debug_mode=True,
                 )
                 pygame.display.flip()
                 self.screenshot("12_squad_casualties")
                 self.logger.info("📸 Screenshot: Squad with casualties visualized")
 
             success = all_assertions_ok
-            self.log_result("TEST 9: Squad states", success,
-                         f"{len(squad.members)} members, effectiveness {current_effectiveness:.2f}")
+            self.log_result(
+                "TEST 9: Squad states",
+                success,
+                f"{len(squad.members)} members, effectiveness {current_effectiveness:.2f}",
+            )
             return success
         except ImportError as ie:
             self.logger.warning(f"⚠️ Squad module not found: {ie}")
@@ -721,14 +789,14 @@ class E2EAdvancedGameTest:
         self.logger.info("TEST 10: CombatResolver Full Attack Flow")
         self.logger.info("=" * 70)
         try:
-            from pycc2.domain.systems.combat_resolver import CombatResolver
-            from pycc2.domain.systems.ballistic import BallisticEngine
-            from pycc2.domain.systems.morale_system import MoraleCalculator
-            from pycc2.services.random_context import RandomContext
             from pycc2.domain.components.health_component import HealthComponent
-            from pycc2.domain.components.weapon_component import WeaponComponent
             from pycc2.domain.components.morale_component import MoraleComponent
             from pycc2.domain.components.vision_component import VisionComponent
+            from pycc2.domain.components.weapon_component import WeaponComponent
+            from pycc2.domain.systems.ballistic import BallisticEngine
+            from pycc2.domain.systems.combat_resolver import CombatResolver
+            from pycc2.domain.systems.morale_system import MoraleCalculator
+            from pycc2.services.random_context import RandomContext
 
             # 创建测试用的attacker和target
             rng = RandomContext.from_seed(42)  # FIX: 使用工厂方法
@@ -748,7 +816,9 @@ class E2EAdvancedGameTest:
                 unit_type=UnitType.INFANTRY_SQUAD,
                 health=HealthComponent(hp=100, max_hp=100),
                 morale=MoraleComponent(value=80),  # FIX: morale → value
-                weapon=WeaponComponent(primary_weapon_id="rifle", ammo_remaining=120, max_ammo=120),  # FIX: weapon_type → primary_weapon_id
+                weapon=WeaponComponent(
+                    primary_weapon_id="rifle", ammo_remaining=120, max_ammo=120
+                ),  # FIX: weapon_type → primary_weapon_id
                 position=PositionComponent(tile_coord=TileCoord(10, 10)),
                 vision=VisionComponent(range_tiles=8),
             )
@@ -760,7 +830,9 @@ class E2EAdvancedGameTest:
                 unit_type=UnitType.MACHINE_GUN_SQUAD,
                 health=HealthComponent(hp=80, max_hp=80),
                 morale=MoraleComponent(value=70),  # FIX: morale → value
-                weapon=WeaponComponent(primary_weapon_id="mg", ammo_remaining=250, max_ammo=250),  # FIX: weapon_type → primary_weapon_id
+                weapon=WeaponComponent(
+                    primary_weapon_id="mg", ammo_remaining=250, max_ammo=250
+                ),  # FIX: weapon_type → primary_weapon_id
                 position=PositionComponent(tile_coord=TileCoord(12, 10)),
                 vision=VisionComponent(range_tiles=6),
             )
@@ -774,29 +846,38 @@ class E2EAdvancedGameTest:
                 result = resolver.resolve_attack(attacker, target, game_map=self.state.game_map)
                 attack_results.append(result)
 
-                shot = result.get('shot_result')
+                shot = result.get("shot_result")
                 if shot:
-                    hit = getattr(shot, 'hit', False)
-                    damage = getattr(shot, 'damage_dealt', 0)
-                    killing = getattr(shot, 'is_killing_blow', False)
-                    self.logger.info(f"  Attack #{attack_num+1}: {'HIT' if hit else 'MISS'} | "
-                                   f"DMG={damage} | {'KILL!' if killing else 'alive'}")
+                    hit = getattr(shot, "hit", False)
+                    damage = getattr(shot, "damage_dealt", 0)
+                    killing = getattr(shot, "is_killing_blow", False)
+                    self.logger.info(
+                        f"  Attack #{attack_num + 1}: {'HIT' if hit else 'MISS'} | "
+                        f"DMG={damage} | {'KILL!' if killing else 'alive'}"
+                    )
 
                 # 检查目标是否死亡
                 if not target.is_alive:
-                    self.logger.info(f"💀 Target eliminated after {attack_num+1} attacks")
+                    self.logger.info(f"💀 Target eliminated after {attack_num + 1} attacks")
                     break
 
             # 验证结果
             final_hp = target.health.hp
             # FIX: Unit没有.state属性，使用is_alive属性和state_machine
-            is_dead = not target.is_alive or (hasattr(target, 'state_machine') and
-                     target.state_machine.current_state == UnitState.DEAD if hasattr(target.state_machine, 'current_state') else False)
+            is_dead = not target.is_alive or (
+                hasattr(target, "state_machine")
+                and target.state_machine.current_state == UnitState.DEAD
+                if hasattr(target.state_machine, "current_state")
+                else False
+            )
             total_attacks = len(attack_results)
-            hits = sum(1 for r in attack_results
-                     if r.get('shot_result') and getattr(r['shot_result'], 'hit', False))
+            hits = sum(
+                1
+                for r in attack_results
+                if r.get("shot_result") and getattr(r["shot_result"], "hit", False)
+            )
 
-            self.logger.info(f"\n📊 Combat Summary:")
+            self.logger.info("\n📊 Combat Summary:")
             self.logger.info(f"   Total attacks: {total_attacks}")
             self.logger.info(f"   Hits landed: {hits}/{total_attacks}")
             self.logger.info(f"   Target final HP: {final_hp}/80")
@@ -807,9 +888,12 @@ class E2EAdvancedGameTest:
                 # 将测试单位添加到state用于渲染
                 test_units = self.state.units + [attacker, target]
                 self.game_loop.renderer.render(
-                    game_map=self.state.game_map, units=test_units,
-                    camera=self.state.camera, alpha=1.0,
-                    selected_unit_ids={attacker.id}, debug_mode=True,
+                    game_map=self.state.game_map,
+                    units=test_units,
+                    camera=self.state.camera,
+                    alpha=1.0,
+                    selected_unit_ids={attacker.id},
+                    debug_mode=True,
                 )
                 pygame.display.flip()
                 self.screenshot("13_combat_resolution")
@@ -831,8 +915,11 @@ class E2EAdvancedGameTest:
                 self.logger.info(f"  {status} {desc}")
 
             success = all_ok
-            self.log_result("TEST 10: CombatResolver", success,
-                         f"{hits}/{total_attacks} hits, HP {final_hp}/80, Dead={is_dead}")
+            self.log_result(
+                "TEST 10: CombatResolver",
+                success,
+                f"{hits}/{total_attacks} hits, HP {final_hp}/80, Dead={is_dead}",
+            )
             return success
         except ImportError as ie:
             self.logger.warning(f"⚠️ Combat modules not found: {ie}")
@@ -869,7 +956,7 @@ class E2EAdvancedGameTest:
             self.logger.info(f"   Target tile: {target_pos}")
 
             # 方法A: 设置move_target（如果支持）
-            has_move_target = hasattr(mover, 'move_target')
+            has_move_target = hasattr(mover, "move_target")
             if has_move_target:
                 mover.move_target = TileCoord(target_pos[0], target_pos[1])
                 self.logger.info(f"✅ Set move_target to {target_pos}")
@@ -881,9 +968,9 @@ class E2EAdvancedGameTest:
             # 模拟30个tick（约1秒@30 ticks/sec）
             for tick in range(30):
                 # 尝试调用update_position或类似方法
-                if hasattr(mover, 'update_position'):
-                    mover.update_position(dt=1.0/30.0)
-                elif has_move_target and hasattr(mover, '_process_movement'):
+                if hasattr(mover, "update_position"):
+                    mover.update_position(dt=1.0 / 30.0)
+                elif has_move_target and hasattr(mover, "_process_movement"):
                     mover._process_movement()
 
                 # 记录每10个tick的位置
@@ -903,7 +990,7 @@ class E2EAdvancedGameTest:
             )
             moved_distance = abs(final_pos[0] - start_pos[0]) + abs(final_pos[1] - start_pos[1])
 
-            self.logger.info(f"\n📊 Movement Analysis:")
+            self.logger.info("\n📊 Movement Analysis:")
             self.logger.info(f"   Ticks simulated: {ticks_simulated}")
             self.logger.info(f"   Positions logged: {len(positions_log)}")
             self.logger.info(f"   Start → End: {start_pos} → {final_pos}")
@@ -911,9 +998,12 @@ class E2EAdvancedGameTest:
 
             # 渲染移动轨迹
             self.game_loop.renderer.render(
-                game_map=self.state.game_map, units=self.state.units,
-                camera=self.state.camera, alpha=1.0,
-                selected_unit_ids={mover.id}, debug_mode=True,
+                game_map=self.state.game_map,
+                units=self.state.units,
+                camera=self.state.camera,
+                alpha=1.0,
+                selected_unit_ids={mover.id},
+                debug_mode=True,
             )
             pygame.display.flip()
             self.screenshot("14_real_movement")
@@ -930,13 +1020,15 @@ class E2EAdvancedGameTest:
 
             all_ok = all(assertions.values())
             for desc, result in assertions.items():
-                status = "✅" if result else "❌"
                 self.logger.info(f"  {desc}: {result}")
 
             success = all_ok or has_move_target  # 至少API存在
-            self.log_result("TEST 11: Real movement", success,
-                         f"{ticks_simulated} ticks, {moved_distance} tiles moved, "
-                         f"move_target_api={'yes' if has_move_target else 'no'}")
+            self.log_result(
+                "TEST 11: Real movement",
+                success,
+                f"{ticks_simulated} ticks, {moved_distance} tiles moved, "
+                f"move_target_api={'yes' if has_move_target else 'no'}",
+            )
             return success
         except Exception as e:
             self.log_result("TEST 11: Real movement", False, str(e))
@@ -954,21 +1046,25 @@ class E2EAdvancedGameTest:
         self.logger.info("TEST 12: AI Tactical Behavior Trigger")
         self.logger.info("=" * 70)
         try:
-            from pycc2.domain.ai.tactical_ai import (
-                TacticalContext, TacticalOrchestrator, FlankSide,
-            )
             from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
+            from pycc2.domain.ai.tactical_ai import (
+                FlankSide,
+                TacticalContext,
+                TacticalOrchestrator,
+            )
 
             # 构造战场态势
-            friendly_units = self.state.units[:2] if len(self.state.units) >= 2 else self.state.units[:]
+            friendly_units = (
+                self.state.units[:2] if len(self.state.units) >= 2 else self.state.units[:]
+            )
             enemy_units = []
 
             # 如果没有敌方单位，创建虚拟的
             if not enemy_units:
                 from pycc2.domain.components.health_component import HealthComponent
-                from pycc2.domain.components.weapon_component import WeaponComponent
                 from pycc2.domain.components.morale_component import MoraleComponent
                 from pycc2.domain.components.vision_component import VisionComponent
+                from pycc2.domain.components.weapon_component import WeaponComponent
 
                 enemy_units = [
                     Unit(
@@ -983,7 +1079,7 @@ class E2EAdvancedGameTest:
                             ammo_remaining=200,
                             max_ammo=200,
                         ),
-                        position=PositionComponent(tile_coord=TileCoord(25 + i*3, 20)),
+                        position=PositionComponent(tile_coord=TileCoord(25 + i * 3, 20)),
                         vision=VisionComponent(range_tiles=6),
                     )
                     for i in range(2)
@@ -996,7 +1092,7 @@ class E2EAdvancedGameTest:
                 current_tick=100,
             )
 
-            self.logger.info(f"🧠 Tactical Context:")
+            self.logger.info("🧠 Tactical Context:")
             self.logger.info(f"   Friendly units: {len(context.friendly_units)}")
             self.logger.info(f"   Enemy units: {len(context.enemy_units)}")
             self.logger.info(f"   Current tick: {context.current_tick}")
@@ -1008,14 +1104,20 @@ class E2EAdvancedGameTest:
             # 注册所有战术AI（参考tactical_ai.py L1175-1181）
             try:
                 from pycc2.domain.ai.tactical_ai import (
-                    FlankingAI, SuppressionAI, InfantryTankCoordAI, VictoryPointAI
+                    FlankingAI,
+                    InfantryTankCoordAI,
+                    SuppressionAI,
+                    VictoryPointAI,
                 )
+
                 orchestrator.register(FlankingAI())
                 orchestrator.register(SuppressionAI())
                 orchestrator.register(InfantryTankCoordAI())
                 orchestrator.register(VictoryPointAI())
-                self.logger.info(f"✅ Registered {len(orchestrator.registered_ais)} tactical AIs: "
-                               f"{orchestrator.registered_ais}")
+                self.logger.info(
+                    f"✅ Registered {len(orchestrator.registered_ais)} tactical AIs: "
+                    f"{orchestrator.registered_ais}"
+                )
             except ImportError as ie:
                 self.logger.warning(f"⚠️ Some AI modules not available: {ie}")
 
@@ -1030,26 +1132,33 @@ class E2EAdvancedGameTest:
             for intent in intents:
                 # FIX: tick()返回TacticIntent对象（不是PrioritizedIntent）
                 # TacticIntent属性: unit_id, tactic_type, priority, target_position, target_unit_id, path
-                intent_type = intent.tactic_type if hasattr(intent, 'tactic_type') else str(type(intent))
+                intent_type = (
+                    intent.tactic_type if hasattr(intent, "tactic_type") else str(type(intent))
+                )
                 intent_types_found.add(str(intent_type))
 
-                unit_id = getattr(intent, 'unit_id', 'unknown')
+                unit_id = getattr(intent, "unit_id", "unknown")
                 unit_ids_found.add(unit_id)
 
-                priority = getattr(intent, 'priority', 0)
-                target_pos = intent.target_position if hasattr(intent, 'target_position') else None
+                priority = getattr(intent, "priority", 0)
+                target_pos = intent.target_position if hasattr(intent, "target_position") else None
                 target_str = f"({target_pos.x},{target_pos.y})" if target_pos else "N/A"
 
-                self.logger.info(f"   Intent: Type={intent_type}, Unit={unit_id}, "
-                               f"Target={target_str}, Priority={priority}")
+                self.logger.info(
+                    f"   Intent: Type={intent_type}, Unit={unit_id}, "
+                    f"Target={target_str}, Priority={priority}"
+                )
 
             # 渲染AI决策可视化
             if self.state.units:
                 all_units = self.state.units + enemy_units
                 self.game_loop.renderer.render(
-                    game_map=self.state.game_map, units=all_units,
-                    camera=self.state.camera, alpha=1.0,
-                    selected_unit_ids={u.id for u in friendly_units}, debug_mode=True,
+                    game_map=self.state.game_map,
+                    units=all_units,
+                    camera=self.state.camera,
+                    alpha=1.0,
+                    selected_unit_ids={u.id for u in friendly_units},
+                    debug_mode=True,
                 )
                 pygame.display.flip()
                 self.screenshot("15_ai_tactical_decisions")
@@ -1068,13 +1177,15 @@ class E2EAdvancedGameTest:
 
             all_ok = all(assertions.values())
             for desc, result in assertions.items():
-                status = "✅" if result else "❌"
                 self.logger.info(f"  {desc}: {result}")
 
             success = all_ok
             # FIX: TacticIntent没有ai_name属性，使用unit_ids统计
-            self.log_result("TEST 12: AI tactical behavior", success,
-                         f"{len(intents)} intents, {len(unit_ids_found)} units assigned")
+            self.log_result(
+                "TEST 12: AI tactical behavior",
+                success,
+                f"{len(intents)} intents, {len(unit_ids_found)} units assigned",
+            )
             return success
         except ImportError as ie:
             self.logger.warning(f"⚠️ AI modules not found: {ie}")
@@ -1099,8 +1210,8 @@ class E2EAdvancedGameTest:
         self.logger.info("TEST 13: Minimap Full Functionality")
         self.logger.info("=" * 70)
         try:
-            from pycc2.presentation.rendering.minimap import Minimap
             from pycc2.domain.interfaces.display_config import DisplayConfig
+            from pycc2.presentation.rendering.minimap import Minimap
 
             # 初始化Minimap (160x160默认)
             dc = DisplayConfig()
@@ -1161,9 +1272,11 @@ class E2EAdvancedGameTest:
                         minimap.render(self.screen, 1100, 180 + i * 170)
                         unit_display_works = True
                     except AttributeError as ae:
-                        if 'unit_id' in str(ae):
+                        if "unit_id" in str(ae):
                             self.logger.warning(f"  ⚠️ Known Minimap bug: {ae}")
-                            self.logger.warning(f"     Minimap._draw_units() uses unit.unit_id but Unit has .id")
+                            self.logger.warning(
+                                "     Minimap._draw_units() uses unit.unit_id but Unit has .id"
+                            )
                             # Try rendering without selected unit
                             minimap.set_selected_unit(None)
                             minimap.render(self.screen, 1100, 180 + i * 170)
@@ -1173,7 +1286,9 @@ class E2EAdvancedGameTest:
 
                 features_tested.append(("Unit display & selection highlight", unit_display_works))
                 if unit_display_works:
-                    self.logger.info(f"  ✅ Rendered {min(2, len(self.state.units))} unit selections")
+                    self.logger.info(
+                        f"  ✅ Rendered {min(2, len(self.state.units))} unit selections"
+                    )
                 pygame.display.flip()
                 self.screenshot("18_minimap_unit_selections")
 
@@ -1181,14 +1296,16 @@ class E2EAdvancedGameTest:
             minimap.render(self.screen, 1100, 520)
             viewport_visible = minimap._camera_viewport is not None
             features_tested.append(("Camera viewport rectangle", viewport_visible))
-            self.logger.info(f"  {'✅' if viewport_visible else '❌'} Camera viewport: {viewport_visible}")
+            self.logger.info(
+                f"  {'✅' if viewport_visible else '❌'} Camera viewport: {viewport_visible}"
+            )
             pygame.display.flip()
             self.screenshot("19_minimap_viewport")
 
             # Feature 5: 点击检测 + handle_click交互
             test_positions = [
-                (1100 + 80, 10 + 80),   # 小地图中心 (应该在小地图内)
-                (50, 50),               # 屏幕左上角 (应该不在小地图内)
+                (1100 + 80, 10 + 80),  # 小地图中心 (应该在小地图内)
+                (50, 50),  # 屏幕左上角 (应该不在小地图内)
             ]
 
             click_results = []
@@ -1209,21 +1326,25 @@ class E2EAdvancedGameTest:
             if self.state.game_map:
                 test_world_pos = (100.0, 200.0)
                 mini_coords = minimap.world_to_minimap(
-                    test_world_pos[0], test_world_pos[1],
+                    test_world_pos[0],
+                    test_world_pos[1],
                     self.state.game_map.width * 32,
                     self.state.game_map.height * 32,
                 )
-                coords_valid = (0 <= mini_coords[0] < minimap.size and
-                               0 <= mini_coords[1] < minimap.size)
+                coords_valid = (
+                    0 <= mini_coords[0] < minimap.size and 0 <= mini_coords[1] < minimap.size
+                )
                 features_tested.append(("Coordinate conversion (world→mini)", coords_valid))
-                self.logger.info(f"  ✅ World({test_world_pos}) → Mini{mini_coords}: valid={coords_valid}")
+                self.logger.info(
+                    f"  ✅ World({test_world_pos}) → Mini{mini_coords}: valid={coords_valid}"
+                )
 
             # 统计结果
             passed_features = sum(1 for name, result in features_tested if result is True)
             total_features = sum(1 for name, result in features_tested if result is not None)
             skipped = sum(1 for name, result in features_tested if result is None)
 
-            self.logger.info(f"\n📊 Minimap Feature Summary:")
+            self.logger.info("\n📊 Minimap Feature Summary:")
             for name, result in features_tested:
                 if result is None:
                     status = "⏭️ SKIP"
@@ -1234,8 +1355,11 @@ class E2EAdvancedGameTest:
                 self.logger.info(f"  {status}: {name}")
 
             success = passed_features >= 4  # 至少4/5个核心功能正常
-            self.log_result("TEST 13: Minimap functionality", success,
-                         f"{passed_features}/{total_features} features working ({skipped} skipped)")
+            self.log_result(
+                "TEST 13: Minimap functionality",
+                success,
+                f"{passed_features}/{total_features} features working ({skipped} skipped)",
+            )
             return success
         except ImportError as ie:
             self.logger.warning(f"⚠️ Minimap module not found: {ie}")
@@ -1288,19 +1412,23 @@ class E2EAdvancedGameTest:
                 accuracy_match = abs(mc.accuracy_modifier - expected_accuracy_mod) < 0.01
                 is_effective = mc.is_combat_effective
 
-                morale_test_results.append({
-                    'name': name,
-                    'state_ok': state_match,
-                    'accuracy_ok': accuracy_match,
-                    'effective': is_effective,
-                    'actual_state': mc.state.name,
-                    'actual_accuracy': mc.accuracy_modifier,
-                })
+                morale_test_results.append(
+                    {
+                        "name": name,
+                        "state_ok": state_match,
+                        "accuracy_ok": accuracy_match,
+                        "effective": is_effective,
+                        "actual_state": mc.state.name,
+                        "actual_accuracy": mc.accuracy_modifier,
+                    }
+                )
 
                 status = "✅" if (state_match and accuracy_match) else "❌"
-                self.logger.info(f"  {status} {name}: value={morale_value}, "
-                               f"state={mc.state.name}(expected {expected_state.name}), "
-                               f"accuracy_mod={mc.accuracy_modifier:.2f}(expected {expected_accuracy_mod:.2f})")
+                self.logger.info(
+                    f"  {status} {name}: value={morale_value}, "
+                    f"state={mc.state.name}(expected {expected_state.name}), "
+                    f"accuracy_mod={mc.accuracy_modifier:.2f}(expected {expected_accuracy_mod:.2f})"
+                )
 
             # 验证士气下降模拟（模拟受到压制）
             self.logger.info("\n📉 Simulating morale degradation:")
@@ -1317,8 +1445,10 @@ class E2EAdvancedGameTest:
                 new_value = max(0, test_morale.value - damage)
                 test_morale = MoraleComponent(value=new_value)
 
-                self.logger.info(f"  💥 {event_desc}: -{damage} morale → "
-                               f"value={new_value}, state={test_morale.state.name}")
+                self.logger.info(
+                    f"  💥 {event_desc}: -{damage} morale → "
+                    f"value={new_value}, state={test_morale.state.name}"
+                )
 
             final_state = test_morale.state
             morale_dropped = final_state != initial_state
@@ -1326,14 +1456,21 @@ class E2EAdvancedGameTest:
             self.logger.info(f"\n📊 Morale transition: {initial_state.name} → {final_state.name}")
 
             # 统计结果
-            passed_scenarios = sum(1 for r in morale_test_results if r['state_ok'] and r['accuracy_ok'])
+            passed_scenarios = sum(
+                1 for r in morale_test_results if r["state_ok"] and r["accuracy_ok"]
+            )
             total_scenarios = len(morale_test_results)
 
             assertions = {
-                f"All {total_scenarios} morale scenarios correct": passed_scenarios == total_scenarios,
+                f"All {total_scenarios} morale scenarios correct": passed_scenarios
+                == total_scenarios,
                 "Morale degrades properly": morale_dropped,
-                "Pinned units ineffective": not any(r['name'] == 'Pinned MG Team' and r['effective'] for r in morale_test_results),
-                "Broken units very ineffective": all(not r['effective'] for r in morale_test_results if 'Broken' in r['name']),
+                "Pinned units ineffective": not any(
+                    r["name"] == "Pinned MG Team" and r["effective"] for r in morale_test_results
+                ),
+                "Broken units very ineffective": all(
+                    not r["effective"] for r in morale_test_results if "Broken" in r["name"]
+                ),
             }
 
             all_ok = all(assertions.values())
@@ -1342,8 +1479,11 @@ class E2EAdvancedGameTest:
                 self.logger.info(f"  {desc}: {result}")
 
             success = all_ok
-            self.log_result("TEST 14: Morale system", success,
-                         f"{passed_scenarios}/{total_scenarios} scenarios, morale_drop={'yes' if morale_dropped else 'no'}")
+            self.log_result(
+                "TEST 14: Morale system",
+                success,
+                f"{passed_scenarios}/{total_scenarios} scenarios, morale_drop={'yes' if morale_dropped else 'no'}",
+            )
             return success
         except ImportError as ie:
             self.logger.warning(f"⚠️ Morale module not found: {ie}")
@@ -1372,11 +1512,11 @@ class E2EAdvancedGameTest:
             # FIX: FatigueComponent使用level枚举 + movement_modifier (不是speed_modifier)
             # 正确阈值：FRESH(0) → TIRED(25) → WEARY(50) → EXHAUSTED(75) → SPENT(100)
             fatigue_tests = [
-                ("Fresh unit", 0, 1.0, 1.0),       # FRESH level
-                ("Light fatigue", 25, 0.95, 0.95),   # TIRED level
-                ("Moderate fatigue", 50, 0.85, 0.85), # WEARY level
-                ("Heavy fatigue", 75, 0.70, 0.70),   # EXHAUSTED level
-                ("Spent/Exhausted", 100, 0.50, 0.50), # SPENT level (不是95!)
+                ("Fresh unit", 0, 1.0, 1.0),  # FRESH level
+                ("Light fatigue", 25, 0.95, 0.95),  # TIRED level
+                ("Moderate fatigue", 50, 0.85, 0.85),  # WEARY level
+                ("Heavy fatigue", 75, 0.70, 0.70),  # EXHAUSTED level
+                ("Spent/Exhausted", 100, 0.50, 0.50),  # SPENT level (不是95!)
             ]
 
             fatigue_results = []
@@ -1387,20 +1527,24 @@ class E2EAdvancedGameTest:
                 move_ok = abs(fc.movement_modifier - expected_move_mod) < 0.05
                 acc_ok = abs(fc.accuracy_modifier - expected_acc_mod) < 0.05
 
-                fatigue_results.append({
-                    'name': name,
-                    'move_ok': move_ok,
-                    'acc_ok': acc_ok,
-                    'actual_move': fc.movement_modifier,
-                    'actual_acc': fc.accuracy_modifier,
-                    'actual_level': fc.level.name,
-                })
+                fatigue_results.append(
+                    {
+                        "name": name,
+                        "move_ok": move_ok,
+                        "acc_ok": acc_ok,
+                        "actual_move": fc.movement_modifier,
+                        "actual_acc": fc.accuracy_modifier,
+                        "actual_level": fc.level.name,
+                    }
+                )
 
                 status = "✅" if (move_ok and acc_ok) else "❌"
-                self.logger.info(f"  {status} {name}: fatigue={fatigue_val}, "
-                               f"level={fc.level.name}, "
-                               f"move_mod={fc.movement_modifier:.2f}(exp {expected_move_mod:.2f}), "
-                               f"acc_mod={fc.accuracy_modifier:.2f}(exp {expected_acc_mod:.2f})")
+                self.logger.info(
+                    f"  {status} {name}: fatigue={fatigue_val}, "
+                    f"level={fc.level.name}, "
+                    f"move_mod={fc.movement_modifier:.2f}(exp {expected_move_mod:.2f}), "
+                    f"acc_mod={fc.accuracy_modifier:.2f}(exp {expected_acc_mod:.2f})"
+                )
 
             # 模拟疲劳累积过程
             self.logger.info("\n📈 Simulating fatigue accumulation:")
@@ -1412,19 +1556,28 @@ class E2EAdvancedGameTest:
                 (25, "Heavy combat"),
             ]
 
-            for fatigue_gain, activity in activities:
+            for _fatigue_gain, activity in activities:
                 # FIX: 使用accumulate()方法而不是直接赋值
-                fc_sim.accumulate("combat" if "combat" in activity.lower() or "Sprint" in activity else "sprinting")
-                self.logger.info(f"  🏃 {activity}: → "
-                               f"total={fc_sim.value:.1f}, level={fc_sim.level.name}, move={fc_sim.movement_modifier:.2f}")
+                fc_sim.accumulate(
+                    "combat"
+                    if "combat" in activity.lower() or "Sprint" in activity
+                    else "sprinting"
+                )
+                self.logger.info(
+                    f"  🏃 {activity}: → "
+                    f"total={fc_sim.value:.1f}, level={fc_sim.level.name}, move={fc_sim.movement_modifier:.2f}"
+                )
 
             # 统计
-            passed_fatigue = sum(1 for r in fatigue_results if r['move_ok'] and r['acc_ok'])
+            passed_fatigue = sum(1 for r in fatigue_results if r["move_ok"] and r["acc_ok"])
             total_fatigue = len(fatigue_results)
 
             success = passed_fatigue >= 4  # FIX: 至少4/5个场景正确（允许1个误差）
-            self.log_result("TEST 15: Fatigue system", success,
-                         f"{passed_fatigue}/{total_fatigue} scenarios verified")
+            self.log_result(
+                "TEST 15: Fatigue system",
+                success,
+                f"{passed_fatigue}/{total_fatigue} scenarios verified",
+            )
             return success
         except ImportError as ie:
             self.logger.warning(f"⚠️ Fatigue module not found: {ie}")
@@ -1454,7 +1607,8 @@ class E2EAdvancedGameTest:
         self.logger.info("=" * 70)
         try:
             from pycc2.domain.components.veterancy_component import (
-                VeterancyComponent, RANK_BONUSES  # FIX: RANK_BONUSES不是VETERANCY_EFFECTS
+                RANK_BONUSES,
+                VeterancyComponent,  # FIX: RANK_BONUSES不是VETERANCY_EFFECTS
             )
             from pycc2.domain.components.weapon_component import WeaponComponent, WeaponState
 
@@ -1485,9 +1639,11 @@ class E2EAdvancedGameTest:
                 vet_results.append(rank_ok)
 
                 status = "✅" if rank_ok else "❌"
-                self.logger.info(f"  {status} {name}: XP={xp_val}, "
-                               f"Rank={vc.rank.name if vc.rank else 'None'}, "
-                               f"Accuracy={actual_acc:.2f}, MoralResist={actual_moral:.2f}")
+                self.logger.info(
+                    f"  {status} {name}: XP={xp_val}, "
+                    f"Rank={vc.rank.name if vc.rank else 'None'}, "
+                    f"Accuracy={actual_acc:.2f}, MoralResist={actual_moral:.2f}"
+                )
 
             # === Part B: Weapon/Ammo System ===
             self.logger.info("\n🔫 Part B: Weapon & Ammunition:")
@@ -1499,22 +1655,30 @@ class E2EAdvancedGameTest:
             # Test 1: Initial state
             test1 = weapon.state == WeaponState.READY and weapon.can_fire
             weapon_tests.append(("Initial ready state", test1))
-            self.logger.info(f"  {'✅' if test1 else '❌'} Initial: state={weapon.state.name}, can_fire={weapon.can_fire}")
+            self.logger.info(
+                f"  {'✅' if test1 else '❌'} Initial: state={weapon.state.name}, can_fire={weapon.can_fire}"
+            )
 
             # Test 2: Fire and consume ammo
             old_ammo = weapon.ammo_remaining
-            weapon.fire() if hasattr(weapon, 'fire') else None
+            weapon.fire() if hasattr(weapon, "fire") else None
             # Manual ammo reduction for testing
             weapon.ammo_remaining -= 1
             test2 = weapon.ammo_remaining == old_ammo - 1
             weapon_tests.append(("Ammo consumption", test2))
-            self.logger.info(f"  {'✅' if test2 else '❌'} After fire: ammo {old_ammo}→{weapon.ammo_remaining}")
+            self.logger.info(
+                f"  {'✅' if test2 else '❌'} After fire: ammo {old_ammo}→{weapon.ammo_remaining}"
+            )
 
             # Test 3: Low ammo warning
-            low_ammo_weapon = WeaponComponent(primary_weapon_id="mg", ammo_remaining=5, max_ammo=250)
+            low_ammo_weapon = WeaponComponent(
+                primary_weapon_id="mg", ammo_remaining=5, max_ammo=250
+            )
             test3 = low_ammo_weapon.ammo_ratio < 0.1  # <10% ammo
             weapon_tests.append(("Low ammo detection", test3))
-            self.logger.info(f"  {'✅' if test3 else '❌'} Low ammo: ratio={low_ammo_weapon.ammo_ratio:.3f}")
+            self.logger.info(
+                f"  {'✅' if test3 else '❌'} Low ammo: ratio={low_ammo_weapon.ammo_ratio:.3f}"
+            )
 
             # Test 4: Out of ammo
             empty_weapon = WeaponComponent(primary_weapon_id="rifle", ammo_remaining=0, max_ammo=30)
@@ -1537,8 +1701,11 @@ class E2EAdvancedGameTest:
                 self.logger.info(f"  {desc}: {result}")
 
             success = all_ok
-            self.log_result("TEST 16: Vet & Ammo systems", success,
-                         f"Vet={vet_passed}/5, Weapon={weap_passed}/4")
+            self.log_result(
+                "TEST 16: Vet & Ammo systems",
+                success,
+                f"Vet={vet_passed}/5, Weapon={weap_passed}/4",
+            )
             return success
         except ImportError as ie:
             self.logger.warning(f"⚠️ Modules not found: {ie}")
@@ -1567,12 +1734,13 @@ class E2EAdvancedGameTest:
         self.logger.info("TEST 17: Cover & Vision Systems")
         self.logger.info("=" * 70)
         try:
-            from pycc2.domain.components.vision_component import VisionComponent
+            from pycc2.domain.components.fatigue_component import FatigueComponent
+
             # FIX: 补充必要的import（这些组件在函数内部使用但未导入）
             from pycc2.domain.components.health_component import HealthComponent
             from pycc2.domain.components.morale_component import MoraleComponent
+            from pycc2.domain.components.vision_component import VisionComponent
             from pycc2.domain.components.weapon_component import WeaponComponent
-            from pycc2.domain.components.fatigue_component import FatigueComponent
 
             # === Part A: Cover System (Building Positions) ===
             self.logger.info("\n🏠 Part A: Building Cover System:")
@@ -1593,7 +1761,9 @@ class E2EAdvancedGameTest:
             )
             test1 = unit_open.current_building_pos is None  # No cover
             cover_tests.append(("Open field no cover", test1))
-            self.logger.info(f"  {'✅' if test1 else '❌'} Open field: building_pos={unit_open.current_building_pos}")
+            self.logger.info(
+                f"  {'✅' if test1 else '❌'} Open field: building_pos={unit_open.current_building_pos}"
+            )
 
             # Test 2: Unit inside building
             unit_covered = Unit(
@@ -1611,7 +1781,9 @@ class E2EAdvancedGameTest:
             )
             test2 = unit_covered.current_building_pos is not None
             cover_tests.append(("Building garrison", test2))
-            self.logger.info(f"  {'✅' if test2 else '❌'} Garrisoned: pos={unit_covered.current_building_pos}, floor={unit_covered.building_floor}")
+            self.logger.info(
+                f"  {'✅' if test2 else '❌'} Garrisoned: pos={unit_covered.current_building_pos}, floor={unit_covered.building_floor}"
+            )
 
             # Test 3: Upper floor unit (better vision but more vulnerable)
             unit_upper = Unit(
@@ -1629,7 +1801,9 @@ class E2EAdvancedGameTest:
             )
             test3 = unit_upper.building_floor == 2
             cover_tests.append(("Upper floor position", test3))
-            self.logger.info(f"  {'✅' if test3 else '❌'} Upper floor: floor={unit_upper.building_floor}")
+            self.logger.info(
+                f"  {'✅' if test3 else '❌'} Upper floor: floor={unit_upper.building_floor}"
+            )
 
             # === Part B: Vision System ===
             self.logger.info("\n👁️ Part B: Vision Component:")
@@ -1665,8 +1839,11 @@ class E2EAdvancedGameTest:
                 self.logger.info(f"  {desc}: {result}")
 
             success = all_ok
-            self.log_result("TEST 17: Cover & Vision", success,
-                         f"Cover={cover_passed}/3, Vision={vision_passed}/4")
+            self.log_result(
+                "TEST 17: Cover & Vision",
+                success,
+                f"Cover={cover_passed}/3, Vision={vision_passed}/4",
+            )
             return success
         except ImportError as ie:
             self.logger.warning(f"⚠️ Modules not found: {ie}")
@@ -1697,12 +1874,12 @@ class E2EAdvancedGameTest:
         self.logger.info("=" * 70)
         try:
             # FIX: 补充所有必要的import
+            from pycc2.domain.components.fatigue_component import FatigueComponent
             from pycc2.domain.components.health_component import HealthComponent
             from pycc2.domain.components.morale_component import MoraleComponent, MoraleState
-            from pycc2.domain.components.weapon_component import WeaponComponent, WeaponState
-            from pycc2.domain.components.vision_component import VisionComponent
-            from pycc2.domain.components.fatigue_component import FatigueComponent
             from pycc2.domain.components.veterancy_component import VeterancyComponent
+            from pycc2.domain.components.vision_component import VisionComponent
+            from pycc2.domain.components.weapon_component import WeaponComponent, WeaponState
             from pycc2.services.random_context import RandomContext  # FIX: 补充RandomContext import
 
             scenario_steps = []
@@ -1720,7 +1897,7 @@ class E2EAdvancedGameTest:
                 position=PositionComponent(tile_coord=TileCoord(10, 10)),
                 vision=VisionComponent(range_tiles=8),
                 fatigue=FatigueComponent(value=10),
-                veterancy=VeterancyComponent(xp=int(35)),  # FIX: xp必须是int类型
+                veterancy=VeterancyComponent(xp=35),  # FIX: xp必须是int类型
             )
 
             target = Unit(
@@ -1740,16 +1917,18 @@ class E2EAdvancedGameTest:
 
             # Step 2: Set Movement Mode to DEFEND (+25% accuracy, -50% mobility)
             self.logger.info("🎬 Step 2: Setting DEFEND movement mode...")
-            if hasattr(attacker, 'set_movement_mode'):
+            if hasattr(attacker, "set_movement_mode"):
                 attacker.set_movement_mode("defend")
             step2_ok = attacker.is_defending
             scenario_steps.append(("DEFEND mode active", step2_ok))
-            self.logger.info(f"  {'✅' if step2_ok else '❌'} Defender mode: accuracy+{attacker._defend_accuracy_bonus*100:.0f}%")
+            self.logger.info(
+                f"  {'✅' if step2_ok else '❌'} Defender mode: accuracy+{attacker._defend_accuracy_bonus * 100:.0f}%"
+            )
 
             # Step 3: Simulate attack with CombatResolver
             self.logger.info("🎬 Step 3: Executing CombatResolver attack loop...")
-            from pycc2.domain.systems.combat_resolver import CombatResolver
             from pycc2.domain.systems.ballistic import BallisticEngine
+            from pycc2.domain.systems.combat_resolver import CombatResolver
             from pycc2.domain.systems.morale_system import MoraleCalculator
 
             rng = RandomContext.from_seed(42)
@@ -1768,19 +1947,21 @@ class E2EAdvancedGameTest:
                 result = resolver.resolve_attack(attacker, target, game_map=self.state.game_map)
                 attacks_executed += 1
 
-                shot = result.get('shot_result')
-                if shot and getattr(shot, 'hit', False):
+                shot = result.get("shot_result")
+                if shot and getattr(shot, "hit", False):
                     hits_landed += 1
-                    dmg = getattr(shot, 'damage_dealt', 0)
+                    dmg = getattr(shot, "damage_dealt", 0)
                     total_damage += dmg
 
                 if not target.is_alive:
-                    self.logger.info(f"  💀 Target eliminated after {attack_num+1} attacks!")
+                    self.logger.info(f"  💀 Target eliminated after {attack_num + 1} attacks!")
                     break
 
             step3_ok = attacks_executed > 0
             scenario_steps.append(("Combat executed", step3_ok))
-            self.logger.info(f"  ✅ Attacks: {attacks_executed}, Hits: {hits_landed}, Total DMG: {total_damage}")
+            self.logger.info(
+                f"  ✅ Attacks: {attacks_executed}, Hits: {hits_landed}, Total DMG: {total_damage}"
+            )
 
             # Step 4: Verify morale impact
             self.logger.info("🎬 Step 4: Checking morale impact...")
@@ -1790,7 +1971,9 @@ class E2EAdvancedGameTest:
 
             morale_changed = target.morale.state != MoraleComponent(value=pre_morale).state
             scenario_steps.append(("Morale affected", morale_changed))
-            self.logger.info(f"  {'✅' if morale_changed else '⚠️'} Morale: {pre_morale} → {post_morale} ({target.morale.state.name})")
+            self.logger.info(
+                f"  {'✅' if morale_changed else '⚠️'} Morale: {pre_morale} → {post_morale} ({target.morale.state.name})"
+            )
 
             # Step 5: Verify ammo consumption
             self.logger.info("🎬 Step 5: Verifying ammo consumption...")
@@ -1798,7 +1981,9 @@ class E2EAdvancedGameTest:
             attacker.weapon.ammo_remaining -= ammo_used
             ammo_ok = attacker.weapon.ammo_remaining >= 0
             scenario_steps.append(("Ammo tracked", ammo_ok))
-            self.logger.info(f"  {'✅' if ammo_ok else '❌'} Ammo remaining: {attacker.weapon.ammo_remaining}/120 (used {ammo_used})")
+            self.logger.info(
+                f"  {'✅' if ammo_ok else '❌'} Ammo remaining: {attacker.weapon.ammo_remaining}/120 (used {ammo_used})"
+            )
 
             # Step 6: Final render with all effects
             self.logger.info("🎬 Step 6: Rendering final combat state...")
@@ -1808,9 +1993,12 @@ class E2EAdvancedGameTest:
                     all_units = self.state.units + [attacker, target]
 
                 self.game_loop.renderer.render(
-                    game_map=self.state.game_map, units=all_units,
-                    camera=self.state.camera, alpha=1.0,
-                    selected_unit_ids={attacker.id}, debug_mode=True,
+                    game_map=self.state.game_map,
+                    units=all_units,
+                    camera=self.state.camera,
+                    alpha=1.0,
+                    selected_unit_ids={attacker.id},
+                    debug_mode=True,
                 )
                 pygame.display.flip()
                 self.screenshot("18_full_combat_scenario")
@@ -1830,9 +2018,12 @@ class E2EAdvancedGameTest:
                 self.logger.info(f"  {status} {step_name}")
 
             success = steps_passed >= 5  # 至少5/6步骤成功
-            self.log_result("TEST 18: Full combat scenario", success,
-                         f"{steps_passed}/{total_steps} steps, "
-                         f"{attacks_executed} attacks, {hits_landed} hits, {total_damage} DMG")
+            self.log_result(
+                "TEST 18: Full combat scenario",
+                success,
+                f"{steps_passed}/{total_steps} steps, "
+                f"{attacks_executed} attacks, {hits_landed} hits, {total_damage} DMG",
+            )
             return success
         except ImportError as ie:
             self.logger.warning(f"⚠️ Required modules missing: {ie}")
@@ -1853,11 +2044,7 @@ class E2EAdvancedGameTest:
         if details:
             self.logger.info(f"   Details: {details}")
 
-        self.test_results.append({
-            'test': test_name,
-            'success': success,
-            'details': details
-        })
+        self.test_results.append({"test": test_name, "success": success, "details": details})
 
     def run_all_tests(self) -> dict:
         """运行所有18个E2E测试（6基础 + 7集成 + 5深度机制）"""
@@ -1865,7 +2052,7 @@ class E2EAdvancedGameTest:
 
         if not self.setup():
             self.logger.critical("❌ E2E ADVANCED TEST ABORTED: Setup failed")
-            return {'overall': False, 'tests': []}
+            return {"overall": False, "tests": []}
 
         tests = [
             # 基础功能 (TEST 1-6)
@@ -1875,7 +2062,6 @@ class E2EAdvancedGameTest:
             ("TEST 4:  Unit Selection", self.test_4_unit_selection_and_basic_movement),
             ("TEST 5:  Visual Effects", self.test_5_visual_effects),
             ("TEST 6:  Continuous Frames", self.test_6_continuous_frames),
-
             # 深度集成 (TEST 7-12) ⭐
             ("TEST 7:  Pre-Deployment Orders", self.test_7_pre_deployment_orders),
             ("TEST 8:  Movement Modes", self.test_8_movement_mode_system),
@@ -1883,10 +2069,8 @@ class E2EAdvancedGameTest:
             ("TEST 10: Combat Resolver", self.test_10_combat_resolver_full_flow),
             ("TEST 11: Real Unit Movement", self.test_11_real_unit_movement_tick_driven),
             ("TEST 12: AI Tactical Behavior", self.test_12_ai_tactical_behavior),
-
             # UI组件 (TEST 13) 🗺️
             ("TEST 13: Minimap Functionality", self.test_13_minimap_functionality),
-
             # 深度机制验证 (TEST 14-18) ⚙️
             ("TEST 14: Morale System Deep", self.test_14_morale_system_deep),
             ("TEST 15: Fatigue System", self.test_15_fatigue_system),
@@ -1909,14 +2093,14 @@ class E2EAdvancedGameTest:
         self.cleanup()
 
         return {
-            'overall': all(r['success'] for r in self.test_results),
-            'tests': self.test_results,
-            'total_time': total_time
+            "overall": all(r["success"] for r in self.test_results),
+            "tests": self.test_results,
+            "total_time": total_time,
         }
 
     def print_summary(self, total_time: float):
         """打印详细总结报告"""
-        passed = sum(1 for r in self.test_results if r['success'])
+        passed = sum(1 for r in self.test_results if r["success"])
         failed = len(self.test_results) - passed
         total = len(self.test_results)
 
@@ -1926,14 +2110,16 @@ class E2EAdvancedGameTest:
         self.logger.info(f"{'TEST CASE':<35} {'STATUS':<8} {'DETAILS'}")
         self.logger.info("-" * 80)
 
-        for i, result in enumerate(self.test_results, 1):
-            status = "✅ PASS" if result['success'] else "❌ FAIL"
-            details = result['details'][:45] if result['details'] else ""
+        for _i, result in enumerate(self.test_results, 1):
+            status = "✅ PASS" if result["success"] else "❌ FAIL"
+            details = result["details"][:45] if result["details"] else ""
             self.logger.info(f"{result['test']:<35} {status:<8} {details}")
 
         self.logger.info("-" * 80)
-        self.logger.info(f"TOTAL: {total} tests | ✅ {passed} passed | ❌ {failed} failed | "
-                        f"Rate: {(passed/total*100):.1f}%")
+        self.logger.info(
+            f"TOTAL: {total} tests | ✅ {passed} passed | ❌ {failed} failed | "
+            f"Rate: {(passed / total * 100):.1f}%"
+        )
         self.logger.info(f"TIME: {total_time:.2f}s")
         self.logger.info(f"Screenshots: {self.screenshots_dir}")
         self.logger.info("=" * 80)
@@ -1941,12 +2127,12 @@ class E2EAdvancedGameTest:
         # 分类统计
         basic_tests = self.test_results[:6]
         advanced_tests = self.test_results[6:]
-        basic_pass = sum(1 for r in basic_tests if r['success'])
-        adv_pass = sum(1 for r in advanced_tests if r['success'])
+        basic_pass = sum(1 for r in basic_tests if r["success"])
+        adv_pass = sum(1 for r in advanced_tests if r["success"])
 
-        self.logger.info(f"\n📊 Coverage Breakdown:")
-        self.logger.info(f"   Basic (TEST 1-6):     {basic_pass}/6 ({basic_pass/6*100:.0f}%)")
-        self.logger.info(f"   Advanced (TEST 7-12): {adv_pass}/6 ({adv_pass/6*100:.0f}%)")
+        self.logger.info("\n📊 Coverage Breakdown:")
+        self.logger.info(f"   Basic (TEST 1-6):     {basic_pass}/6 ({basic_pass / 6 * 100:.0f}%)")
+        self.logger.info(f"   Advanced (TEST 7-12): {adv_pass}/6 ({adv_pass / 6 * 100:.0f}%)")
 
         # 截图列表
         screenshots = sorted(self.screenshots_dir.glob("*.png"))
@@ -1967,17 +2153,17 @@ class E2EAdvancedGameTest:
             self.logger.warning(f"Cleanup warning: {e}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         handlers=[
             logging.StreamHandler(sys.stdout),
-            logging.FileHandler('e2e_advanced_test.log', mode='w')
-        ]
+            logging.FileHandler("e2e_advanced_test.log", mode="w"),
+        ],
     )
 
     tester = E2EAdvancedGameTest()
     results = tester.run_all_tests()
 
-    sys.exit(0 if results['overall'] else 1)
+    sys.exit(0 if results["overall"] else 1)

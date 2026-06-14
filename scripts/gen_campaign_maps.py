@@ -44,8 +44,18 @@ MAP_SIZE = 20
 
 # Valid terrain names matching GameMap._TERRAIN_NAME_MAP
 TERRAIN_TYPES = [
-    "open", "road", "grass", "woods", "building_enterable",
-    "building_solid", "water", "hedge", "wall", "rough", "shallow", "bridge",
+    "open",
+    "road",
+    "grass",
+    "woods",
+    "building_enterable",
+    "building_solid",
+    "water",
+    "hedge",
+    "wall",
+    "rough",
+    "shallow",
+    "bridge",
 ]
 
 
@@ -185,10 +195,19 @@ def generate_best_village() -> dict:
 
     # Village buildings cluster (8-15 buildings)
     buildings = [
-        (7, 7), (7, 8), (8, 7), (8, 8),   # NW cluster
-        (7, 12), (7, 13), (8, 12),          # NE cluster
-        (12, 7), (12, 8),                    # SW cluster
-        (12, 12), (12, 13), (13, 12), (13, 13),  # SE cluster
+        (7, 7),
+        (7, 8),
+        (8, 7),
+        (8, 8),  # NW cluster
+        (7, 12),
+        (7, 13),
+        (8, 12),  # NE cluster
+        (12, 7),
+        (12, 8),  # SW cluster
+        (12, 12),
+        (12, 13),
+        (13, 12),
+        (13, 13),  # SE cluster
     ]
     for r, c in buildings:
         tiles[r][c] = "building_enterable"
@@ -211,7 +230,12 @@ def generate_best_village() -> dict:
         "Best Village - 101st Airborne Defense",
         tiles,
         objectives=[
-            {"id": "village_center", "name": "Village Center", "position": [10, 10], "type": "defend"},
+            {
+                "id": "village_center",
+                "name": "Village Center",
+                "position": [10, 10],
+                "type": "defend",
+            },
             {"id": "north_road", "name": "North Road", "position": [10, 3], "type": "capture"},
         ],
         spawn_points=[
@@ -317,7 +341,12 @@ def generate_zonsche_forest() -> dict:
         tiles,
         objectives=[
             {"id": "forest_exit", "name": "Forest Exit", "position": [17, 10], "type": "reach"},
-            {"id": "crossroads", "name": "Forest Crossroads", "position": [5, 10], "type": "capture"},
+            {
+                "id": "crossroads",
+                "name": "Forest Crossroads",
+                "position": [5, 10],
+                "type": "capture",
+            },
         ],
         spawn_points=[
             {"id": "allied_west", "side": "friendly", "position": [2, 10], "units_max": 9},
@@ -344,17 +373,39 @@ def generate_eindhoven_suburbs() -> dict:
 
     # Urban buildings (15-25)
     building_positions = [
-        (3, 3), (3, 4), (4, 3),
-        (3, 7), (3, 8), (4, 8),
-        (3, 12), (4, 12), (4, 13),
-        (7, 3), (8, 3), (8, 4),
-        (7, 7), (7, 8), (8, 7), (8, 8),
-        (7, 12), (7, 13), (8, 12),
-        (12, 3), (12, 4), (13, 3),
-        (12, 7), (13, 7), (13, 8),
-        (12, 12), (12, 13), (13, 12), (13, 13),
-        (17, 7), (17, 8),
-        (17, 12), (17, 13),
+        (3, 3),
+        (3, 4),
+        (4, 3),
+        (3, 7),
+        (3, 8),
+        (4, 8),
+        (3, 12),
+        (4, 12),
+        (4, 13),
+        (7, 3),
+        (8, 3),
+        (8, 4),
+        (7, 7),
+        (7, 8),
+        (8, 7),
+        (8, 8),
+        (7, 12),
+        (7, 13),
+        (8, 12),
+        (12, 3),
+        (12, 4),
+        (13, 3),
+        (12, 7),
+        (13, 7),
+        (13, 8),
+        (12, 12),
+        (12, 13),
+        (13, 12),
+        (13, 13),
+        (17, 7),
+        (17, 8),
+        (17, 12),
+        (17, 13),
     ]
     for r, c in building_positions:
         if 0 <= r < MAP_SIZE and 0 <= c < MAP_SIZE:
@@ -615,7 +666,12 @@ def generate_mook_woods() -> dict:
         "Mook Woods - Forest Patrol",
         tiles,
         objectives=[
-            {"id": "crossroads", "name": "Forest Crossroads", "position": [14, 10], "type": "capture"},
+            {
+                "id": "crossroads",
+                "name": "Forest Crossroads",
+                "position": [14, 10],
+                "type": "capture",
+            },
             {"id": "clearing", "name": "North Clearing", "position": [3, 3], "type": "reach"},
         ],
         spawn_points=[
@@ -720,8 +776,18 @@ def generate_arnhem_bridge() -> dict:
         "Arnhem Bridge - Rhine River",
         tiles,
         objectives=[
-            {"id": "bridge_north", "name": "Bridge North End", "position": [10, 8], "type": "capture"},
-            {"id": "bridge_south", "name": "Bridge South End", "position": [10, 13], "type": "capture"},
+            {
+                "id": "bridge_north",
+                "name": "Bridge North End",
+                "position": [10, 8],
+                "type": "capture",
+            },
+            {
+                "id": "bridge_south",
+                "name": "Bridge South End",
+                "position": [10, 13],
+                "type": "capture",
+            },
         ],
         spawn_points=[
             {"id": "allied_north", "side": "friendly", "position": [10, 2], "units_max": 9},
@@ -787,7 +853,12 @@ def generate_oosterbeek_perimeter() -> dict:
         "Oosterbeek Perimeter",
         tiles,
         objectives=[
-            {"id": "hartenstein", "name": "Hotel Hartenstein HQ", "position": [9, 9], "type": "defend"},
+            {
+                "id": "hartenstein",
+                "name": "Hotel Hartenstein HQ",
+                "position": [9, 9],
+                "type": "defend",
+            },
             {"id": "perimeter_n", "name": "North Perimeter", "position": [10, 4], "type": "defend"},
         ],
         spawn_points=[
@@ -866,8 +937,20 @@ def generate_hartenstein_hotel() -> dict:
     tiles[9][10] = "building_solid"
 
     # Outbuildings
-    for r, c in [(6, 6), (6, 7), (7, 6), (6, 13), (6, 14), (7, 14),
-                 (13, 6), (13, 7), (14, 6), (13, 13), (13, 14), (14, 14)]:
+    for r, c in [
+        (6, 6),
+        (6, 7),
+        (7, 6),
+        (6, 13),
+        (6, 14),
+        (7, 14),
+        (13, 6),
+        (13, 7),
+        (14, 6),
+        (13, 13),
+        (13, 14),
+        (14, 14),
+    ]:
         tiles[r][c] = "building_enterable"
 
     # Garden/park area (woods around hotel)
@@ -1030,7 +1113,12 @@ def generate_hell_highway() -> dict:
         tiles,
         objectives=[
             {"id": "north_village", "name": "North Village", "position": [3, 1], "type": "capture"},
-            {"id": "south_village", "name": "South Village", "position": [15, 13], "type": "capture"},
+            {
+                "id": "south_village",
+                "name": "South Village",
+                "position": [15, 13],
+                "type": "capture",
+            },
         ],
         spawn_points=[
             {"id": "allied_south", "side": "friendly", "position": [10, 18], "units_max": 9},
@@ -1069,8 +1157,20 @@ def generate_vught_bridge() -> dict:
         tiles[5][c] = "road"
 
     # Buildings on north bank
-    for r, c in [(3, 5), (3, 6), (4, 5), (3, 13), (3, 14), (4, 14),
-                 (6, 7), (6, 8), (7, 7), (6, 12), (6, 13), (7, 13)]:
+    for r, c in [
+        (3, 5),
+        (3, 6),
+        (4, 5),
+        (3, 13),
+        (3, 14),
+        (4, 14),
+        (6, 7),
+        (6, 8),
+        (7, 7),
+        (6, 12),
+        (6, 13),
+        (7, 13),
+    ]:
         tiles[r][c] = "building_enterable"
 
     # Buildings on south bank

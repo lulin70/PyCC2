@@ -31,8 +31,18 @@ from pathlib import Path
 MAP_SIZE = 20
 
 TERRAIN_TYPES = [
-    "open", "road", "grass", "woods", "building_enterable",
-    "building_solid", "water", "hedge", "wall", "rough", "shallow", "bridge",
+    "open",
+    "road",
+    "grass",
+    "woods",
+    "building_enterable",
+    "building_solid",
+    "water",
+    "hedge",
+    "wall",
+    "rough",
+    "shallow",
+    "bridge",
 ]
 
 
@@ -155,7 +165,12 @@ def generate_koevering_crossroads() -> dict:
         "Koevering Crossroads - Corridor Defense",
         tiles,
         objectives=[
-            {"id": "crossroads", "name": "Koevering Crossroads", "position": [9, 10], "type": "capture"},
+            {
+                "id": "crossroads",
+                "name": "Koevering Crossroads",
+                "position": [9, 10],
+                "type": "capture",
+            },
             {"id": "highway_north", "name": "Highway North", "position": [10, 3], "type": "reach"},
         ],
         spawn_points=[
@@ -225,13 +240,37 @@ def generate_st_oedenrode_bridge() -> dict:
         tiles[12][c] = "road"
 
     # St. Oedenrode buildings on north bank
-    for r, c in [(4, 3), (4, 4), (5, 3), (5, 4), (4, 8), (4, 9), (5, 8),
-                 (5, 9), (4, 11), (4, 12), (5, 11), (5, 12)]:
+    for r, c in [
+        (4, 3),
+        (4, 4),
+        (5, 3),
+        (5, 4),
+        (4, 8),
+        (4, 9),
+        (5, 8),
+        (5, 9),
+        (4, 11),
+        (4, 12),
+        (5, 11),
+        (5, 12),
+    ]:
         tiles[r][c] = "building_enterable"
 
     # Buildings on south bank
-    for r, c in [(13, 3), (13, 4), (14, 3), (14, 4), (13, 8), (13, 9), (14, 8),
-                 (14, 9), (13, 11), (13, 12), (14, 11), (14, 12)]:
+    for r, c in [
+        (13, 3),
+        (13, 4),
+        (14, 3),
+        (14, 4),
+        (13, 8),
+        (13, 9),
+        (14, 8),
+        (14, 9),
+        (13, 11),
+        (13, 12),
+        (14, 11),
+        (14, 12),
+    ]:
         tiles[r][c] = "building_enterable"
 
     # Church (solid building)
@@ -351,7 +390,12 @@ def generate_willys_canal_crossing() -> dict:
         tiles,
         objectives=[
             {"id": "bailey_bridge", "name": "Bailey Bridge", "position": [12, 9], "type": "defend"},
-            {"id": "construction", "name": "Construction Site", "position": [13, 7], "type": "defend"},
+            {
+                "id": "construction",
+                "name": "Construction Site",
+                "position": [13, 7],
+                "type": "defend",
+            },
         ],
         spawn_points=[
             {"id": "allied_north", "side": "friendly", "position": [12, 2], "units_max": 9},
@@ -392,8 +436,7 @@ def generate_driel_landing_zone() -> dict:
         tiles[r][10] = "road"
 
     # Driel village buildings
-    for r, c in [(10, 4), (10, 5), (11, 4), (11, 5),
-                 (10, 14), (10, 15), (11, 14), (11, 15)]:
+    for r, c in [(10, 4), (10, 5), (11, 4), (11, 5), (10, 14), (10, 15), (11, 14), (11, 15)]:
         tiles[r][c] = "building_enterable"
 
     # Church in Driel
@@ -425,8 +468,18 @@ def generate_driel_landing_zone() -> dict:
         "Driel Landing Zone - Polish Brigade",
         tiles,
         objectives=[
-            {"id": "river_crossing", "name": "River Crossing Point", "position": [9, 3], "type": "reach"},
-            {"id": "driel_village", "name": "Driel Village", "position": [9, 10], "type": "capture"},
+            {
+                "id": "river_crossing",
+                "name": "River Crossing Point",
+                "position": [9, 3],
+                "type": "reach",
+            },
+            {
+                "id": "driel_village",
+                "name": "Driel Village",
+                "position": [9, 10],
+                "type": "capture",
+            },
         ],
         spawn_points=[
             {"id": "allied_south", "side": "friendly", "position": [10, 17], "units_max": 9},
@@ -526,7 +579,12 @@ def generate_maas_waal_canal() -> dict:
         tiles,
         objectives=[
             {"id": "heumen_bridge", "name": "Heumen Bridge", "position": [4, 9], "type": "capture"},
-            {"id": "secondary_bridge", "name": "Secondary Bridge", "position": [14, 9], "type": "capture"},
+            {
+                "id": "secondary_bridge",
+                "name": "Secondary Bridge",
+                "position": [14, 9],
+                "type": "capture",
+            },
         ],
         spawn_points=[
             {"id": "allied_south", "side": "friendly", "position": [5, 17], "units_max": 9},
@@ -829,8 +887,18 @@ def generate_westerbouwing_heights() -> dict:
         "Westerbouwing Heights - Overlook Position",
         tiles,
         objectives=[
-            {"id": "heights", "name": "Westerbouwing Heights", "position": [10, 7], "type": "defend"},
-            {"id": "restaurant", "name": "Westerbouwing Restaurant", "position": [10, 7], "type": "defend"},
+            {
+                "id": "heights",
+                "name": "Westerbouwing Heights",
+                "position": [10, 7],
+                "type": "defend",
+            },
+            {
+                "id": "restaurant",
+                "name": "Westerbouwing Restaurant",
+                "position": [10, 7],
+                "type": "defend",
+            },
         ],
         spawn_points=[
             {"id": "allied_north", "side": "friendly", "position": [10, 5], "units_max": 9},
@@ -910,7 +978,12 @@ def generate_arnhem_railway_bridge() -> dict:
         tiles,
         objectives=[
             {"id": "rail_bridge", "name": "Railway Bridge", "position": [5, 9], "type": "capture"},
-            {"id": "north_approach", "name": "North Rail Approach", "position": [6, 4], "type": "capture"},
+            {
+                "id": "north_approach",
+                "name": "North Rail Approach",
+                "position": [6, 4],
+                "type": "capture",
+            },
         ],
         spawn_points=[
             {"id": "allied_north", "side": "friendly", "position": [6, 2], "units_max": 9},
@@ -955,10 +1028,24 @@ def generate_oosterbeek_church() -> dict:
                 tiles[r][c] = "open"
 
     # Surrounding village buildings
-    for r, c in [(5, 5), (5, 6), (6, 5), (6, 6),
-                 (5, 13), (5, 14), (6, 13), (6, 14),
-                 (13, 5), (13, 6), (14, 5), (14, 6),
-                 (13, 13), (13, 14), (14, 13), (14, 14)]:
+    for r, c in [
+        (5, 5),
+        (5, 6),
+        (6, 5),
+        (6, 6),
+        (5, 13),
+        (5, 14),
+        (6, 13),
+        (6, 14),
+        (13, 5),
+        (13, 6),
+        (14, 5),
+        (14, 6),
+        (13, 13),
+        (13, 14),
+        (14, 13),
+        (14, 14),
+    ]:
         tiles[r][c] = "building_enterable"
 
     # Destroyed buildings (rubble)
@@ -993,7 +1080,12 @@ def generate_oosterbeek_church() -> dict:
         tiles,
         objectives=[
             {"id": "church", "name": "Oosterbeek Church", "position": [9, 8], "type": "defend"},
-            {"id": "village_center", "name": "Village Center", "position": [10, 10], "type": "defend"},
+            {
+                "id": "village_center",
+                "name": "Village Center",
+                "position": [10, 10],
+                "type": "defend",
+            },
         ],
         spawn_points=[
             {"id": "allied_church", "side": "friendly", "position": [10, 9], "units_max": 9},
@@ -1045,8 +1137,7 @@ def generate_driel_polish_crossing() -> dict:
         tiles[r][c] = "building_enterable"
 
     # South bank - Driel village
-    for r, c in [(15, 5), (15, 6), (16, 5), (16, 6),
-                 (15, 13), (15, 14), (16, 13), (16, 14)]:
+    for r, c in [(15, 5), (15, 6), (16, 5), (16, 6), (15, 13), (15, 14), (16, 13), (16, 14)]:
         tiles[r][c] = "building_enterable"
 
     # South bank road to crossing
@@ -1156,7 +1247,12 @@ def generate_valkenswaard_woods() -> dict:
         "Valkenswaard Woods - Irish Guards Advance",
         tiles,
         objectives=[
-            {"id": "village", "name": "Valkenswaard Village", "position": [9, 2], "type": "capture"},
+            {
+                "id": "village",
+                "name": "Valkenswaard Village",
+                "position": [9, 2],
+                "type": "capture",
+            },
             {"id": "road_south", "name": "Road South", "position": [10, 17], "type": "reach"},
         ],
         spawn_points=[
@@ -1276,8 +1372,7 @@ def generate_venray_tank_battle() -> dict:
     tiles[7][10] = "road"
 
     # Venray village buildings (north)
-    for r, c in [(3, 8), (3, 9), (4, 8), (4, 9),
-                 (3, 12), (3, 13), (4, 12), (4, 13)]:
+    for r, c in [(3, 8), (3, 9), (4, 8), (4, 9), (3, 12), (3, 13), (4, 12), (4, 13)]:
         tiles[r][c] = "building_enterable"
 
     # Church in Venray
@@ -1285,8 +1380,7 @@ def generate_venray_tank_battle() -> dict:
     tiles[2][11] = "building_solid"
 
     # South hamlet
-    for r, c in [(15, 8), (15, 9), (16, 8), (16, 9),
-                 (15, 12), (15, 13), (16, 12), (16, 13)]:
+    for r, c in [(15, 8), (15, 9), (16, 8), (16, 9), (15, 12), (15, 13), (16, 12), (16, 13)]:
         tiles[r][c] = "building_enterable"
 
     # Minefields (rough patches)
@@ -1374,13 +1468,11 @@ def generate_nederweert_canal() -> dict:
         tiles[r][11] = "road"
 
     # Nederweert village on east bank
-    for r, c in [(3, 14), (3, 15), (4, 14), (4, 15),
-                 (7, 15), (7, 16), (8, 15), (8, 16)]:
+    for r, c in [(3, 14), (3, 15), (4, 14), (4, 15), (7, 15), (7, 16), (8, 15), (8, 16)]:
         tiles[r][c] = "building_enterable"
 
     # West bank farmhouses
-    for r, c in [(3, 3), (3, 4), (4, 3), (4, 4),
-                 (10, 2), (10, 3), (11, 2), (11, 3)]:
+    for r, c in [(3, 3), (3, 4), (4, 3), (4, 4), (10, 2), (10, 3), (11, 2), (11, 3)]:
         tiles[r][c] = "building_enterable"
 
     # Defensive positions along canal (rough = trenches)

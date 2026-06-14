@@ -100,23 +100,23 @@ UNIT_NAME_MAP: dict[str, str] = {
 # PixVoxel 方向名称 → PyCC2 方向索引 (4方向 → 8方向映射)
 # PixVoxel 使用 4 个等距方向: N, E, S, W
 DIRECTION_MAP: dict[str, int] = {
-    "N": 0,   # North
+    "N": 0,  # North
     "NE": 1,  # Northeast (通过翻转 W 得到)
-    "E": 2,   # East
+    "E": 2,  # East
     "SE": 3,  # Southeast (通过翻转 SW 得到)
-    "S": 4,   # South
+    "S": 4,  # South
     "SW": 5,  # Southwest
-    "W": 6,   # West
+    "W": 6,  # West
     "NW": 7,  # Northwest (通过翻转 NE 得到)
 }
 
 # PixVoxel 4 方向 → 8 方向补全规则
 # PixVoxel 原始只有 N, E, S, W 四个方向
 ISO_DIRECTION_MAP: dict[str, list[str]] = {
-    "N": ["N", "NE"],   # NE 由 N 翻转或近似
-    "E": ["E", "SE"],   # SE 由 E 近似
-    "S": ["S", "SW"],   # SW 由 S 翻转或近似
-    "W": ["W", "NW"],   # NW 由 W 翻转或近似
+    "N": ["N", "NE"],  # NE 由 N 翻转或近似
+    "E": ["E", "SE"],  # SE 由 E 近似
+    "S": ["S", "SW"],  # SW 由 S 翻转或近似
+    "W": ["W", "NW"],  # NW 由 W 翻转或近似
 }
 
 
@@ -132,9 +132,19 @@ def download_file(url: str, output_path: Path) -> bool:
     if shutil.which("curl"):
         logger.info(f"使用 curl 下载: {url}")
         cmd = [
-            "curl", "-L", "-C", "-", "--retry", "5",
-            "--retry-delay", "2", "--max-time", "600",
-            "-o", str(output_path), url,
+            "curl",
+            "-L",
+            "-C",
+            "-",
+            "--retry",
+            "5",
+            "--retry-delay",
+            "2",
+            "--max-time",
+            "600",
+            "-o",
+            str(output_path),
+            url,
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode == 0 and output_path.exists():
@@ -146,8 +156,13 @@ def download_file(url: str, output_path: Path) -> bool:
     if shutil.which("wget"):
         logger.info(f"使用 wget 下载: {url}")
         cmd = [
-            "wget", "--continue", "--timeout=30", "--tries=5",
-            "-O", str(output_path), url,
+            "wget",
+            "--continue",
+            "--timeout=30",
+            "--tries=5",
+            "-O",
+            str(output_path),
+            url,
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode == 0 and output_path.exists():
@@ -159,6 +174,7 @@ def download_file(url: str, output_path: Path) -> bool:
     logger.info(f"使用 Python urllib 下载: {url}")
     try:
         import urllib.request
+
         urllib.request.urlretrieve(url, str(output_path))
         if output_path.exists():
             logger.info(f"下载成功: {output_path}")
@@ -177,6 +193,7 @@ def extract_7z(archive_path: Path, output_dir: Path) -> bool:
     # 方法1: py7zr
     try:
         import py7zr
+
         logger.info(f"使用 py7zr 提取: {archive_path}")
         with py7zr.SevenZipFile(str(archive_path), mode="r") as z:
             z.extractall(path=str(output_dir))
@@ -262,14 +279,14 @@ def organize_isometric_sprites(extracted_dir: Path, output_dir: Path) -> None:
 
     # 阵营颜色映射: PixVoxel color → PyCC2 faction
     faction_color_map = {
-        "color1": "allies",   # 白色 → 盟军 (后续通过调色板换为绿色)
-        "color2": "axis",     # 红色 → 轴心国 (后续通过调色板换为灰色)
+        "color1": "allies",  # 白色 → 盟军 (后续通过调色板换为绿色)
+        "color2": "axis",  # 红色 → 轴心国 (后续通过调色板换为灰色)
         "color3": "allies_uk",  # 蓝色 → 英军
-        "color4": "axis_italy", # 黄色 → 意军
-        "color5": "allies_poland", # 紫色 → 波兰军
-        "color6": "allies_us",   # 青色 → 美军
-        "color7": "axis_germany", # 橙色 → 德军
-        "color8": "resistance",   # 粉色 → 抵抗军
+        "color4": "axis_italy",  # 黄色 → 意军
+        "color5": "allies_poland",  # 紫色 → 波兰军
+        "color6": "allies_us",  # 青色 → 美军
+        "color7": "axis_germany",  # 橙色 → 德军
+        "color8": "resistance",  # 粉色 → 抵抗军
     }
 
     manifest_entries: list[dict] = []
@@ -307,26 +324,25 @@ def organize_isometric_sprites(extracted_dir: Path, output_dir: Path) -> None:
                         frame = "0"
 
                     # 构建目标路径
-                    rel_path = (
-                        f"{faction}/{pycc2_type}/{anim_name}/"
-                        f"{direction}_{frame}.png"
-                    )
+                    rel_path = f"{faction}/{pycc2_type}/{anim_name}/{direction}_{frame}.png"
                     target_path = output_dir / rel_path
                     target_path.parent.mkdir(parents=True, exist_ok=True)
 
                     # 复制文件
                     shutil.copy2(sprite_file, target_path)
 
-                    manifest_entries.append({
-                        "pixvoxel_name": unit_name,
-                        "pycc2_type": pycc2_type,
-                        "faction": faction,
-                        "animation": anim_name,
-                        "direction": direction,
-                        "direction_index": DIRECTION_MAP.get(direction, 0),
-                        "frame": frame,
-                        "path": rel_path,
-                    })
+                    manifest_entries.append(
+                        {
+                            "pixvoxel_name": unit_name,
+                            "pycc2_type": pycc2_type,
+                            "faction": faction,
+                            "animation": anim_name,
+                            "direction": direction,
+                            "direction_index": DIRECTION_MAP.get(direction, 0),
+                            "frame": frame,
+                            "path": rel_path,
+                        }
+                    )
 
     # 同时复制调色板和空白模板
     for special_dir in ["palettes", "blank"]:
@@ -397,25 +413,24 @@ def organize_ortho_sprites(extracted_dir: Path, output_dir: Path) -> None:
                     direction = parts[0] if len(parts) >= 2 else "N"
                     frame = parts[1] if len(parts) >= 2 else "0"
 
-                    rel_path = (
-                        f"{faction}/{pycc2_type}/{anim_name}/"
-                        f"{direction}_{frame}.png"
-                    )
+                    rel_path = f"{faction}/{pycc2_type}/{anim_name}/{direction}_{frame}.png"
                     target_path = output_dir / rel_path
                     target_path.parent.mkdir(parents=True, exist_ok=True)
 
                     shutil.copy2(sprite_file, target_path)
 
-                    manifest_entries.append({
-                        "pixvoxel_name": unit_name,
-                        "pycc2_type": pycc2_type,
-                        "faction": faction,
-                        "animation": anim_name,
-                        "direction": direction,
-                        "direction_index": DIRECTION_MAP.get(direction, 0),
-                        "frame": frame,
-                        "path": rel_path,
-                    })
+                    manifest_entries.append(
+                        {
+                            "pixvoxel_name": unit_name,
+                            "pycc2_type": pycc2_type,
+                            "faction": faction,
+                            "animation": anim_name,
+                            "direction": direction,
+                            "direction_index": DIRECTION_MAP.get(direction, 0),
+                            "frame": frame,
+                            "path": rel_path,
+                        }
+                    )
 
     for special_dir in ["palettes", "blank"]:
         src = root / special_dir
@@ -458,9 +473,7 @@ def main() -> int:
     """主入口"""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="下载并整理 PixVoxel 等距战争游戏精灵"
-    )
+    parser = argparse.ArgumentParser(description="下载并整理 PixVoxel 等距战争游戏精灵")
     parser.add_argument(
         "--ortho",
         action="store_true",
@@ -487,12 +500,7 @@ def main() -> int:
     logger.info("\n--- 下载等距精灵 ---")
     if not download_file(ISO_URL, ISO_ARCHIVE):
         logger.error("等距精灵下载失败！")
-        logger.info(
-            "请手动下载:\n"
-            f"  URL: {ISO_URL}\n"
-            f"  保存到: {ISO_ARCHIVE}\n"
-            "然后重新运行此脚本。"
-        )
+        logger.info(f"请手动下载:\n  URL: {ISO_URL}\n  保存到: {ISO_ARCHIVE}\n然后重新运行此脚本。")
         return 1
 
     # 提取

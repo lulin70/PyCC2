@@ -2,19 +2,23 @@
 
 Renders actual game maps (not test grids) through the full EnhancedRenderer.
 """
-import os, sys
-os.environ['SDL_VIDEODRIVER'] = 'dummy'
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+import os
+import sys
+
+os.environ["SDL_VIDEODRIVER"] = "dummy"
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+
+from pathlib import Path
 
 import pygame
-from pathlib import Path
 
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.value_objects.vec2 import Vec2
 from pycc2.presentation.rendering.camera import Camera
 from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 
-OUT = Path(__file__).parent.parent / 'screenshots' / 'verification'
+OUT = Path(__file__).parent.parent / "screenshots" / "verification"
 OUT.mkdir(parents=True, exist_ok=True)
 
 pygame.init()
@@ -37,7 +41,8 @@ def render_map(map_name: str, label: str) -> bool:
 
     camera = Camera(
         position=Vec2(game_map.width * 16.0 / 2, game_map.height * 16.0 / 2),
-        viewport_width=1280, viewport_height=720,
+        viewport_width=1280,
+        viewport_height=720,
     )
     renderer = EnhancedRenderer()
     renderer.initialize(screen)
@@ -49,8 +54,11 @@ def render_map(map_name: str, label: str) -> bool:
         try:
             screen.fill((0, 0, 0))
             renderer.render(
-                game_map=game_map, units=[], camera=camera,
-                alpha=1.0, selected_unit_ids=set(),
+                game_map=game_map,
+                units=[],
+                camera=camera,
+                alpha=1.0,
+                selected_unit_ids=set(),
                 debug_mode=(zoom_name == "debug"),
             )
             fname = f"{label}_{zoom_name}.png"

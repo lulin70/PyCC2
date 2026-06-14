@@ -4,6 +4,7 @@ Initializes pygame in headless mode, loads a map, creates units,
 renders one frame of the battle phase and one of the deployment phase,
 then saves both screenshots to the screenshots/ directory.
 """
+
 import os
 import sys
 
@@ -11,7 +12,6 @@ import sys
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
-import json
 import numpy as np
 import pygame
 
@@ -102,92 +102,104 @@ def create_units() -> list:
 
     # Allied infantry squads
     for i, (x, y) in enumerate([(6, 10), (8, 14), (5, 8)]):
-        units.append(Unit(
-            id=f"ally_inf_{i}",
-            name=f"Rifle Squad {i+1}",
-            faction=Faction.ALLIES,
-            unit_type=UnitType.INFANTRY_SQUAD,
-            position=PositionComponent(tile_coord=TileCoord(x, y)),
-            vision=VisionComponent(),
-            health=HealthComponent(hp=100, max_hp=100),
-            weapon=WeaponComponent(primary_weapon_id="rifle", max_ammo=120, ammo_remaining=120),
-            morale=MoraleComponent(value=75),
-        ))
+        units.append(
+            Unit(
+                id=f"ally_inf_{i}",
+                name=f"Rifle Squad {i + 1}",
+                faction=Faction.ALLIES,
+                unit_type=UnitType.INFANTRY_SQUAD,
+                position=PositionComponent(tile_coord=TileCoord(x, y)),
+                vision=VisionComponent(),
+                health=HealthComponent(hp=100, max_hp=100),
+                weapon=WeaponComponent(primary_weapon_id="rifle", max_ammo=120, ammo_remaining=120),
+                morale=MoraleComponent(value=75),
+            )
+        )
 
     # Allied MG team
-    units.append(Unit(
-        id="ally_mg_0",
-        name="MG Team Alpha",
-        faction=Faction.ALLIES,
-        unit_type=UnitType.MACHINE_GUN_SQUAD,
-        position=PositionComponent(tile_coord=TileCoord(7, 12)),
-        vision=VisionComponent(),
-        health=HealthComponent(hp=80, max_hp=80),
-        weapon=WeaponComponent(primary_weapon_id="mg42", max_ammo=250, ammo_remaining=250),
-        morale=MoraleComponent(value=80),
-    ))
+    units.append(
+        Unit(
+            id="ally_mg_0",
+            name="MG Team Alpha",
+            faction=Faction.ALLIES,
+            unit_type=UnitType.MACHINE_GUN_SQUAD,
+            position=PositionComponent(tile_coord=TileCoord(7, 12)),
+            vision=VisionComponent(),
+            health=HealthComponent(hp=80, max_hp=80),
+            weapon=WeaponComponent(primary_weapon_id="mg42", max_ammo=250, ammo_remaining=250),
+            morale=MoraleComponent(value=80),
+        )
+    )
 
     # Allied tank
-    units.append(Unit(
-        id="ally_tank_0",
-        name="Sherman",
-        faction=Faction.ALLIES,
-        unit_type=UnitType.TANK,
-        position=PositionComponent(tile_coord=TileCoord(9, 12)),
-        vision=VisionComponent(),
-        health=HealthComponent(hp=200, max_hp=200),
-        weapon=WeaponComponent(primary_weapon_id="tank_cannon", max_ammo=30, ammo_remaining=30),
-        morale=MoraleComponent(value=90),
-    ))
+    units.append(
+        Unit(
+            id="ally_tank_0",
+            name="Sherman",
+            faction=Faction.ALLIES,
+            unit_type=UnitType.TANK,
+            position=PositionComponent(tile_coord=TileCoord(9, 12)),
+            vision=VisionComponent(),
+            health=HealthComponent(hp=200, max_hp=200),
+            weapon=WeaponComponent(primary_weapon_id="tank_cannon", max_ammo=30, ammo_remaining=30),
+            morale=MoraleComponent(value=90),
+        )
+    )
 
     # Allied commander
-    units.append(Unit(
-        id="ally_cmd_0",
-        name="Captain Ness",
-        faction=Faction.ALLIES,
-        unit_type=UnitType.COMMANDER,
-        position=PositionComponent(tile_coord=TileCoord(6, 12)),
-        vision=VisionComponent(),
-        health=HealthComponent(hp=100, max_hp=100),
-        weapon=WeaponComponent(primary_weapon_id="pistol", max_ammo=14, ammo_remaining=14),
-        morale=MoraleComponent(value=95),
-    ))
+    units.append(
+        Unit(
+            id="ally_cmd_0",
+            name="Captain Ness",
+            faction=Faction.ALLIES,
+            unit_type=UnitType.COMMANDER,
+            position=PositionComponent(tile_coord=TileCoord(6, 12)),
+            vision=VisionComponent(),
+            health=HealthComponent(hp=100, max_hp=100),
+            weapon=WeaponComponent(primary_weapon_id="pistol", max_ammo=14, ammo_remaining=14),
+            morale=MoraleComponent(value=95),
+        )
+    )
 
     # Axis infantry
     for i, (x, y) in enumerate([(22, 10), (24, 14), (20, 8)]):
-        units.append(Unit(
-            id=f"axis_inf_{i}",
-            name=f"Grenadier {i+1}",
-            faction=Faction.AXIS,
-            unit_type=UnitType.INFANTRY_SQUAD,
-            position=PositionComponent(tile_coord=TileCoord(x, y)),
-            vision=VisionComponent(),
-            health=HealthComponent(hp=100, max_hp=100),
-            weapon=WeaponComponent(primary_weapon_id="rifle", max_ammo=120, ammo_remaining=120),
-            morale=MoraleComponent(value=70),
-        ))
+        units.append(
+            Unit(
+                id=f"axis_inf_{i}",
+                name=f"Grenadier {i + 1}",
+                faction=Faction.AXIS,
+                unit_type=UnitType.INFANTRY_SQUAD,
+                position=PositionComponent(tile_coord=TileCoord(x, y)),
+                vision=VisionComponent(),
+                health=HealthComponent(hp=100, max_hp=100),
+                weapon=WeaponComponent(primary_weapon_id="rifle", max_ammo=120, ammo_remaining=120),
+                morale=MoraleComponent(value=70),
+            )
+        )
 
     # Axis tank
-    units.append(Unit(
-        id="axis_tank_0",
-        name="Panther",
-        faction=Faction.AXIS,
-        unit_type=UnitType.TANK,
-        position=PositionComponent(tile_coord=TileCoord(23, 12)),
-        vision=VisionComponent(),
-        health=HealthComponent(hp=200, max_hp=200),
-        weapon=WeaponComponent(primary_weapon_id="tank_cannon", max_ammo=30, ammo_remaining=30),
-        morale=MoraleComponent(value=85),
-    ))
+    units.append(
+        Unit(
+            id="axis_tank_0",
+            name="Panther",
+            faction=Faction.AXIS,
+            unit_type=UnitType.TANK,
+            position=PositionComponent(tile_coord=TileCoord(23, 12)),
+            vision=VisionComponent(),
+            health=HealthComponent(hp=200, max_hp=200),
+            weapon=WeaponComponent(primary_weapon_id="tank_cannon", max_ammo=30, ammo_remaining=30),
+            morale=MoraleComponent(value=85),
+        )
+    )
 
     return units
 
 
 def render_battle_screenshot(screen, game_map, units) -> pygame.Surface:
     """Render a battle-phase frame and return the surface."""
+    from pycc2.domain.value_objects.vec2 import Vec2
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-    from pycc2.domain.value_objects.vec2 import Vec2
 
     renderer = EnhancedRenderer()
     renderer.initialize(screen)
@@ -219,10 +231,10 @@ def render_battle_screenshot(screen, game_map, units) -> pygame.Surface:
 
 def render_deployment_screenshot(screen, game_map) -> pygame.Surface:
     """Render a deployment-phase frame and return the surface."""
+    from pycc2.domain.value_objects.vec2 import Vec2
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
     from pycc2.services.deployment_manager import DeploymentManager
-    from pycc2.domain.value_objects.vec2 import Vec2
 
     renderer = EnhancedRenderer()
     renderer.initialize(screen)
@@ -238,8 +250,10 @@ def render_deployment_screenshot(screen, game_map) -> pygame.Surface:
     map_data = {
         "width": game_map.width,
         "height": game_map.height,
-        "tiles": [[int(game_map.tile_grid[y, x]) for x in range(game_map.width)]
-                   for y in range(game_map.height)],
+        "tiles": [
+            [int(game_map.tile_grid[y, x]) for x in range(game_map.width)]
+            for y in range(game_map.height)
+        ],
         "spawn_points": [
             {"id": "sp_ally", "side": "ally", "position": [5, 10], "units_max": 6},
             {"id": "sp_axis", "side": "axis", "position": [25, 10], "units_max": 6},
@@ -295,8 +309,10 @@ def main():
     game_map = create_game_map()
     units = create_units()
     print(f"[OK] Map created: {game_map.width}x{game_map.height}")
-    print(f"[OK] Units created: {len(units)} ({sum(1 for u in units if u.faction.name == 'ALLIES')} allies, "
-          f"{sum(1 for u in units if u.faction.name == 'AXIS')} axis)")
+    print(
+        f"[OK] Units created: {len(units)} ({sum(1 for u in units if u.faction.name == 'ALLIES')} allies, "
+        f"{sum(1 for u in units if u.faction.name == 'AXIS')} axis)"
+    )
 
     # ---- Battle phase screenshot ----
     print("[INFO] Rendering battle phase...")
@@ -308,6 +324,7 @@ def main():
     except Exception as e:
         print(f"[ERROR] Battle screenshot failed: {e}")
         import traceback
+
         traceback.print_exc()
 
     # ---- Deployment phase screenshot ----
@@ -322,6 +339,7 @@ def main():
     except Exception as e:
         print(f"[ERROR] Deployment screenshot failed: {e}")
         import traceback
+
         traceback.print_exc()
 
     # Cleanup

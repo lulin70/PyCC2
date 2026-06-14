@@ -13,48 +13,48 @@ E2E Game Test: 完整游戏流程验证
 输出：6张关键步骤截图 + 详细日志
 """
 
+import logging
 import os
 import sys
 import time
-import logging
 
 # 强制使用dummy driver进行自动化测试
-os.environ['SDL_VIDEODRIVER'] = 'dummy'
-os.environ['SDL_AUDIODRIVER'] = 'dummy'
+os.environ["SDL_VIDEODRIVER"] = "dummy"
+os.environ["SDL_AUDIODRIVER"] = "dummy"
 
 import pygame
+
 pygame.init()
 
 # 添加项目路径
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from pathlib import Path
-from pycc2.domain.entities.game_map import GameMap
-from pycc2.domain.value_objects.vec2 import Vec2
+
 from pycc2.domain.components.position_component import PositionComponent
+from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.value_objects.tile_coord import TileCoord
-from pycc2.domain.entities.unit import Unit, UnitType, Faction
+from pycc2.domain.value_objects.vec2 import Vec2
+from pycc2.presentation.input.handler import PygameInputHandler
+from pycc2.presentation.input.interaction_controller import InteractionController
+
 # MovementMode is a string: "normal", "fast_move", "sneak", "defend"
 from pycc2.presentation.rendering.camera import Camera
 from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 from pycc2.presentation.rendering.window_config import DisplayInfo, WindowManager
-from pycc2.presentation.input.handler import PygameInputHandler
-from pycc2.presentation.input.interaction_controller import InteractionController
-from pycc2.services.event_bus import EventBus
-from pycc2.services.game_loop import GameLoop, GameState
-from pycc2.services.deployment_manager import DeploymentManager
-from pycc2.presentation.ui.deployment_ui import DeploymentUI
 from pycc2.presentation.ui.hint_manager import HintManager
 from pycc2.presentation.ui.keybind_manager import KeybindManager
+from pycc2.services.event_bus import EventBus
+from pycc2.services.game_loop import GameLoop, GameState
 
 
 class E2EGameTest:
     """端到端游戏测试器"""
 
     def __init__(self):
-        self.logger = logging.getLogger('E2E-GameTest')
+        self.logger = logging.getLogger("E2E-GameTest")
         self.logger.setLevel(logging.INFO)
-        self.screenshots_dir = Path(__file__).parent.parent / 'screenshots' / 'e2e_game_test'
+        self.screenshots_dir = Path(__file__).parent.parent / "screenshots" / "e2e_game_test"
         self.screenshots_dir.mkdir(parents=True, exist_ok=True)
         self.screen = None
         self.wm = None
@@ -87,19 +87,22 @@ class E2EGameTest:
                     return False
 
             import json as _json
+
             with open(map_path, encoding="utf-8") as _f:
                 self.map_data = _json.load(_f)
 
             # 关键修复: 将字符串terrain名称转换为整数ID
             # deployment_ui期望 tiles: list[list[int]] 而非 list[list[str]]
             from pycc2.domain.entities.game_map import _TERRAIN_NAME_MAP
+
             if "tiles" in self.map_data and isinstance(self.map_data["tiles"][0][0], str):
                 self.logger.info("🔄 Converting terrain names to integer IDs...")
                 self.map_data["tiles"] = [
-                    [_TERRAIN_NAME_MAP.get(t, 0) for t in row]
-                    for row in self.map_data["tiles"]
+                    [_TERRAIN_NAME_MAP.get(t, 0) for t in row] for row in self.map_data["tiles"]
                 ]
-                self.logger.info(f"✅ Converted {len(self.map_data['tiles'])}x{len(self.map_data['tiles'][0])} tile grid")
+                self.logger.info(
+                    f"✅ Converted {len(self.map_data['tiles'])}x{len(self.map_data['tiles'][0])} tile grid"
+                )
 
             game_map = GameMap.from_json(map_path)
             self.logger.info(f"✅ Map loaded: {game_map.width}x{game_map.height} ({map_path.name})")
@@ -216,8 +219,10 @@ class E2EGameTest:
             available_count = len(dui.state.available_units)
             zone_size = len(dui.state.friendly_zone)
             rp = dui.requisition_remaining
-            self.logger.info(f"📊 Deployment UI stats: {available_count} units available, "
-                           f"{zone_size} tiles in friendly zone, {rp} RP remaining")
+            self.logger.info(
+                f"📊 Deployment UI stats: {available_count} units available, "
+                f"{zone_size} tiles in friendly zone, {rp} RP remaining"
+            )
 
             # 渲染当前屏幕（包含背景地形）
             self.game_loop.renderer.render(
@@ -229,11 +234,17 @@ class E2EGameTest:
                 debug_mode=False,
             )
             pygame.display.flip()
-            path = self.screenshot("02_deployment_ready")
+            self.screenshot("02_deployment_ready")
 
             # 尝试部署步兵
-            inf_idx = next((i for i, u in enumerate(dui.state.available_units)
-                           if u.unit_type == "infantry" and not u.is_placed), None)
+            inf_idx = next(
+                (
+                    i
+                    for i, u in enumerate(dui.state.available_units)
+                    if u.unit_type == "infantry" and not u.is_placed
+                ),
+                None,
+            )
 
             if inf_idx is None:
                 self.logger.warning("⚠️ No infantry unit found in roster")
@@ -248,8 +259,9 @@ class E2EGameTest:
                 zone = dui.state.friendly_zone
                 placed = False
                 for tx, ty in zone[:30]:
-                    if dui.can_place_at(dui.state.available_units[inf_idx], tx, ty,
-                                        dui._get_terrain_at(tx, ty)):
+                    if dui.can_place_at(
+                        dui.state.available_units[inf_idx], tx, ty, dui._get_terrain_at(tx, ty)
+                    ):
                         result = dui.place_unit(inf_idx, tx, ty)
                         if result:
                             placed = True
@@ -271,11 +283,14 @@ class E2EGameTest:
                 debug_mode=False,
             )
             pygame.display.flip()
-            path = self.screenshot("03_after_deployment")
+            self.screenshot("03_after_deployment")
 
             success = len([u for u in dui.state.available_units if u.is_placed]) > 0
-            self.log_result("TEST 2: Deployment phase", success,
-                          f"{len([u for u in dui.state.available_units if u.is_placed])} units placed")
+            self.log_result(
+                "TEST 2: Deployment phase",
+                success,
+                f"{len([u for u in dui.state.available_units if u.is_placed])} units placed",
+            )
             return success
 
         except Exception as e:
@@ -309,8 +324,10 @@ class E2EGameTest:
                     if dui.can_place_at(unit, tx, ty, dui._get_terrain_at(tx, ty)):
                         if dui.place_unit(i, tx, ty):
                             deployed_count += 1
-                            self.logger.info(f"  ✅ Deployed [{deployed_count}/{target_count}]: "
-                                           f"{unit.display_name} at ({tx},{ty})")
+                            self.logger.info(
+                                f"  ✅ Deployed [{deployed_count}/{target_count}]: "
+                                f"{unit.display_name} at ({tx},{ty})"
+                            )
                             break
 
             self.logger.info(f"\n📊 Total units deployed: {deployed_count}")
@@ -318,7 +335,9 @@ class E2EGameTest:
             # 完成部署
             deployment_result = self.game_loop.complete_deployment()
             if deployment_result is not None:
-                self.logger.info(f"✅ Deployment completed with result: {len(deployment_result)} units transferred")
+                self.logger.info(
+                    f"✅ Deployment completed with result: {len(deployment_result)} units transferred"
+                )
             else:
                 self.logger.warning("⚠️ complete_deployment() returned None")
 
@@ -332,12 +351,13 @@ class E2EGameTest:
                 debug_mode=False,
             )
             pygame.display.flip()
-            path = self.screenshot("04_battle_started")
-            self.logger.info(f"📸 Battle start screenshot saved")
+            self.screenshot("04_battle_started")
+            self.logger.info("📸 Battle start screenshot saved")
 
             success = len(self.state.units) >= deployed_count
-            self.log_result("TEST 3: Battle start", success,
-                          f"{len(self.state.units)} units in battle state")
+            self.log_result(
+                "TEST 3: Battle start", success, f"{len(self.state.units)} units in battle state"
+            )
             return success
 
         except Exception as e:
@@ -361,13 +381,17 @@ class E2EGameTest:
             selected_ids = {first_unit.id}
 
             # 安全获取单位名称（兼容不同Unit实现）
-            unit_name = getattr(first_unit, 'display_name', None) or \
-                       getattr(first_unit, 'name', None) or \
-                       f"Unit-{first_unit.unit_type}"
+            unit_name = (
+                getattr(first_unit, "display_name", None)
+                or getattr(first_unit, "name", None)
+                or f"Unit-{first_unit.unit_type}"
+            )
 
-            self.logger.info(f"🎯 Selected unit: {unit_name} "
-                           f"(ID: {first_unit.id[:8]}...) at "
-                           f"tile=({first_unit.position.tile_coord.x}, {first_unit.position.tile_coord.y})")
+            self.logger.info(
+                f"🎯 Selected unit: {unit_name} "
+                f"(ID: {first_unit.id[:8]}...) at "
+                f"tile=({first_unit.position.tile_coord.x}, {first_unit.position.tile_coord.y})"
+            )
 
             # 渲染选中状态
             self.game_loop.renderer.render(
@@ -379,8 +403,8 @@ class E2EGameTest:
                 debug_mode=False,
             )
             pygame.display.flip()
-            path = self.screenshot("05_unit_selected")
-            self.logger.info(f"📸 Unit selection with pulse effect")
+            self.screenshot("05_unit_selected")
+            self.logger.info("📸 Unit selection with pulse effect")
 
             # 模拟移动（更新位置）
             original_tile = (first_unit.position.tile_coord.x, first_unit.position.tile_coord.y)
@@ -389,8 +413,10 @@ class E2EGameTest:
                 tile_coord=TileCoord(original_tile[0] + 3, original_tile[1] + 2)
             )
 
-            self.logger.info(f"🚶 Moved unit from tile {original_tile} → "
-                           f"({first_unit.position.tile_coord.x}, {first_unit.position.tile_coord.y})")
+            self.logger.info(
+                f"🚶 Moved unit from tile {original_tile} → "
+                f"({first_unit.position.tile_coord.x}, {first_unit.position.tile_coord.y})"
+            )
 
             # 渲染移动后状态
             self.game_loop.renderer.render(
@@ -402,10 +428,9 @@ class E2EGameTest:
                 debug_mode=False,
             )
             pygame.display.flip()
-            path = self.screenshot("06_after_movement")
+            self.screenshot("06_after_movement")
 
-            self.log_result("TEST 4: Selection & movement", True,
-                          f"Unit moved successfully")
+            self.log_result("TEST 4: Selection & movement", True, "Unit moved successfully")
             return True
 
         except Exception as e:
@@ -431,7 +456,7 @@ class E2EGameTest:
                 debug_mode=True,  # 开启debug模式
             )
             pygame.display.flip()
-            path = self.screenshot("07_debug_overlay")
+            self.screenshot("07_debug_overlay")
             effects_verified.append(("Debug overlay", True))
 
             # 5b: 多个单位不同状态
@@ -451,7 +476,7 @@ class E2EGameTest:
                     debug_mode=False,
                 )
                 pygame.display.flip()
-                path = self.screenshot("08_multiple_units")
+                self.screenshot("08_multiple_units")
                 effects_verified.append(("Multiple unit states", True))
 
             # 5c: 高缩放级别
@@ -466,13 +491,14 @@ class E2EGameTest:
                 debug_mode=False,
             )
             pygame.display.flip()
-            path = self.screenshot("09_zoomed_view")
+            self.screenshot("09_zoomed_view")
             self.state.camera.zoom = old_zoom
             effects_verified.append(("Zoom rendering", True))
 
             all_ok = all(v for _, v in effects_verified)
-            self.log_result("TEST 5: Visual effects", all_ok,
-                          [name for name, ok in effects_verified])
+            self.log_result(
+                "TEST 5: Visual effects", all_ok, [name for name, ok in effects_verified]
+            )
             return all_ok
 
         except Exception as e:
@@ -514,17 +540,20 @@ class E2EGameTest:
             avg_frame_time = sum(frame_times) / len(frame_times)
             fps_estimate = 1000.0 / avg_frame_time if avg_frame_time > 0 else 0
 
-            self.logger.info(f"📊 Frame timing:")
+            self.logger.info("📊 Frame timing:")
             self.logger.info(f"   Average: {avg_frame_time:.2f}ms/frame")
             self.logger.info(f"   Estimated FPS: {fps_estimate:.1f}")
             self.logger.info(f"   Min: {min(frame_times):.2f}ms | Max: {max(frame_times):.2f}ms")
 
             # 最后一帧截图
-            path = self.screenshot("10_final_frame")
+            self.screenshot("10_final_frame")
 
             success = fps_estimate > 10  # 至少10 FPS（dummy driver会慢）
-            self.log_result("TEST 6: Continuous rendering", success,
-                          f"Avg {avg_frame_time:.1f}ms (~{fps_estimate:.0f} FPS)")
+            self.log_result(
+                "TEST 6: Continuous rendering",
+                success,
+                f"Avg {avg_frame_time:.1f}ms (~{fps_estimate:.0f} FPS)",
+            )
             return success
 
         except Exception as e:
@@ -538,11 +567,7 @@ class E2EGameTest:
         if details:
             self.logger.info(f"   Details: {details}")
 
-        self.test_results.append({
-            'test': test_name,
-            'success': success,
-            'details': details
-        })
+        self.test_results.append({"test": test_name, "success": success, "details": details})
 
     def run_all_tests(self) -> dict:
         """运行所有E2E测试"""
@@ -551,7 +576,7 @@ class E2EGameTest:
         # Setup
         if not self.setup():
             self.logger.critical("❌ E2E Test ABORTED: Setup failed")
-            return {'overall': False, 'tests': []}
+            return {"overall": False, "tests": []}
 
         # 运行所有测试
         tests = [
@@ -579,14 +604,14 @@ class E2EGameTest:
         self.cleanup()
 
         return {
-            'overall': all(r['success'] for r in self.test_results),
-            'tests': self.test_results,
-            'total_time': total_time
+            "overall": all(r["success"] for r in self.test_results),
+            "tests": self.test_results,
+            "total_time": total_time,
         }
 
     def print_summary(self, total_time: float):
         """打印测试总结"""
-        passed = sum(1 for r in self.test_results if r['success'])
+        passed = sum(1 for r in self.test_results if r["success"])
         failed = len(self.test_results) - passed
 
         self.logger.info("\n" + "=" * 70)
@@ -595,7 +620,7 @@ class E2EGameTest:
         self.logger.info(f"Total Tests: {len(self.test_results)}")
         self.logger.info(f"✅ Passed:    {passed}")
         self.logger.info(f"❌ Failed:    {failed}")
-        self.logger.info(f"Success Rate: {(passed/len(self.test_results)*100):.1f}%")
+        self.logger.info(f"Success Rate: {(passed / len(self.test_results) * 100):.1f}%")
         self.logger.info(f"Total Time:  {total_time:.2f}s")
         self.logger.info(f"Screenshots: {self.screenshots_dir}")
         self.logger.info("=" * 70)
@@ -619,19 +644,19 @@ class E2EGameTest:
             self.logger.warning(f"Cleanup warning: {e}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # 配置日志输出到文件和控制台
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         handlers=[
             logging.StreamHandler(sys.stdout),
-            logging.FileHandler('e2e_game_test.log', mode='w')
-        ]
+            logging.FileHandler("e2e_game_test.log", mode="w"),
+        ],
     )
 
     tester = E2EGameTest()
     results = tester.run_all_tests()
 
     # Exit code: 0=all pass, 1=some failed
-    sys.exit(0 if results['overall'] else 1)
+    sys.exit(0 if results["overall"] else 1)

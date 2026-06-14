@@ -1,25 +1,36 @@
 """Quick validation script for isometric rendering pipeline."""
+
 import os
-os.environ['SDL_VIDEODRIVER'] = 'dummy'
-os.environ['SDL_AUDIODRIVER'] = 'dummy'
+
+os.environ["SDL_VIDEODRIVER"] = "dummy"
+os.environ["SDL_AUDIODRIVER"] = "dummy"
 
 import pygame
+
 pygame.init()
 pygame.display.set_mode((640, 480))
 
-from pycc2.presentation.rendering.camera import Camera, ProjectionMode
 from pycc2.domain.value_objects.vec2 import Vec2
-from pycc2.presentation.rendering.isometric_transform import (
-    world_to_isometric, isometric_to_world, depth_sort_key,
-    tile_diamond_corners, is_point_in_diamond
+from pycc2.presentation.rendering.camera import Camera, ProjectionMode
+from pycc2.presentation.rendering.isometric_depth_sorter import (
+    IsometricRenderable,
+    RenderLayer,
+    sort_for_isometric,
 )
 from pycc2.presentation.rendering.isometric_tile_generator import (
-    generate_grass_tile, generate_dirt_tile, generate_water_tile,
-    generate_building_tile, generate_crater_tile, generate_hedgerow_tile,
-    generate_road_tile
+    generate_building_tile,
+    generate_crater_tile,
+    generate_dirt_tile,
+    generate_grass_tile,
+    generate_hedgerow_tile,
+    generate_road_tile,
+    generate_water_tile,
 )
-from pycc2.presentation.rendering.isometric_depth_sorter import (
-    sort_for_isometric, IsometricRenderable, RenderLayer
+from pycc2.presentation.rendering.isometric_transform import (
+    is_point_in_diamond,
+    isometric_to_world,
+    tile_diamond_corners,
+    world_to_isometric,
 )
 
 print("=" * 60)
@@ -47,54 +58,58 @@ for wx, wy in [(0, 0), (1, 0), (0, 1), (1, 1), (10, 5)]:
     sx, sy = world_to_isometric(wx, wy)
     rwx, rwy = isometric_to_world(sx, sy)
     assert abs(rwx - wx) < 0.01 and abs(rwy - wy) < 0.01
-print(f"[2] Coordinate roundtrips: ALL PASS")
+print("[2] Coordinate roundtrips: ALL PASS")
 
 # Test 3: Tile generation
 tiles = {
-    'grass': generate_grass_tile(),
-    'dirt': generate_dirt_tile(),
-    'water': generate_water_tile(),
-    'road': generate_road_tile(),
-    'crater': generate_crater_tile(),
-    'hedgerow': generate_hedgerow_tile(),
-    'building': generate_building_tile(2),
+    "grass": generate_grass_tile(),
+    "dirt": generate_dirt_tile(),
+    "water": generate_water_tile(),
+    "road": generate_road_tile(),
+    "crater": generate_crater_tile(),
+    "hedgerow": generate_hedgerow_tile(),
+    "building": generate_building_tile(2),
 }
 for name, tile in tiles.items():
     print(f"[3] {name}: {tile.get_size()}")
-assert tiles['grass'].get_size() == (64, 32)
-assert tiles['building'].get_size()[1] > 32  # Building is taller than flat tile
+assert tiles["grass"].get_size() == (64, 32)
+assert tiles["building"].get_size()[1] > 32  # Building is taller than flat tile
 
 # Test 4: Depth sorting
 renderables = [
-    IsometricRenderable(5, 5, 0, RenderLayer.UNIT, 'unit_front'),
-    IsometricRenderable(0, 0, 0, RenderLayer.TERRAIN, 'tile_back'),
-    IsometricRenderable(3, 3, 0, RenderLayer.TERRAIN, 'tile_mid'),
-    IsometricRenderable(3, 3, 0, RenderLayer.UNIT, 'unit_mid'),
-    IsometricRenderable(2, 2, 1, RenderLayer.BUILDING, 'building'),
+    IsometricRenderable(5, 5, 0, RenderLayer.UNIT, "unit_front"),
+    IsometricRenderable(0, 0, 0, RenderLayer.TERRAIN, "tile_back"),
+    IsometricRenderable(3, 3, 0, RenderLayer.TERRAIN, "tile_mid"),
+    IsometricRenderable(3, 3, 0, RenderLayer.UNIT, "unit_mid"),
+    IsometricRenderable(2, 2, 1, RenderLayer.BUILDING, "building"),
 ]
 sorted_ren = sort_for_isometric(renderables)
 order = [r.data for r in sorted_ren]
 print(f"[4] Depth sort: {order}")
-assert order.index('tile_back') < order.index('unit_front')
-assert order.index('tile_mid') < order.index('unit_mid')
+assert order.index("tile_back") < order.index("unit_front")
+assert order.index("tile_mid") < order.index("unit_mid")
 
 # Test 5: Diamond geometry
 corners = tile_diamond_corners(32, 16)
 print(f"[5] Diamond corners: {corners}")
-assert is_point_in_diamond(32, 16, 32, 16) == True
-assert is_point_in_diamond(0, 0, 32, 16) == False
+assert is_point_in_diamond(32, 16, 32, 16)
+assert not is_point_in_diamond(0, 0, 32, 16)
 
 # Test 6: IsometricRenderer
 from pycc2.presentation.rendering.isometric_renderer import IsometricRenderer
+
 renderer = IsometricRenderer()
 screen = pygame.display.get_surface()
 renderer.initialize(screen)
-print(f"[6] IsometricRenderer: OK")
+print("[6] IsometricRenderer: OK")
 
 # Test 7: Building renderer
 from pycc2.presentation.rendering.isometric_building_renderer import (
-    render_building, BuildingType, DamageState
+    BuildingType,
+    DamageState,
+    render_building,
 )
+
 for bt in BuildingType:
     for ds in DamageState:
         surf = render_building(bt, damage=ds)
@@ -102,8 +117,9 @@ for bt in BuildingType:
 
 # Test 8: PixVoxelLoader (without actual assets)
 from pycc2.presentation.rendering.pixvoxel_loader import PixVoxelLoader
+
 loader = PixVoxelLoader()
-print(f"[8] PixVoxelLoader: OK (fallback mode)")
+print("[8] PixVoxelLoader: OK (fallback mode)")
 
 # Test 9: Projection toggle
 cam.projection = ProjectionMode.ORTHOGRAPHIC

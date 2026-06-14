@@ -3,26 +3,26 @@
 Press I to toggle between Orthographic and Isometric projection.
 Press ESC to quit.
 """
+
 import os
 import sys
 
 import pygame
 
 # Add project to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from pycc2.domain.value_objects.vec2 import Vec2
-from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.entities.game_map import GameMap
-from pycc2.domain.entities.unit import Unit
+from pycc2.domain.value_objects.vec2 import Vec2
 from pycc2.presentation.rendering.camera import Camera, ProjectionMode
 from pycc2.presentation.rendering.isometric_renderer import IsometricRenderer
-from pycc2.presentation.rendering.isometric_transform import TILE_W, TILE_H
+from pycc2.presentation.rendering.isometric_transform import TILE_H, TILE_W
 
 
 def create_demo_map(width=20, height=15):
     """Create a small demo map with varied terrain."""
     import numpy as np
+
     # Start with all grass (terrain_id=2)
     grid = np.full((height, width), 2, dtype=np.int8)
 
@@ -162,17 +162,17 @@ def main():
                     if -tile_size < sx < 1280 and -tile_size < sy < 720:
                         terrain = game_map.get_tile(x, y)
                         colors = {
-                            0: (76, 132, 52),   # GRASS
+                            0: (76, 132, 52),  # GRASS
                             1: (149, 126, 94),  # ROAD
-                            2: (56, 104, 36),   # GRASS
-                            3: (34, 72, 30),    # WOODS
-                            4: (180, 170, 155), # BUILDING
+                            2: (56, 104, 36),  # GRASS
+                            3: (34, 72, 30),  # WOODS
+                            4: (180, 170, 155),  # BUILDING
                             6: (64, 120, 172),  # WATER
                         }
                         color = colors.get(terrain, (100, 100, 100))
-                        rect = pygame.Rect(int(sx), int(sy),
-                                         int(tile_size * cam.zoom),
-                                         int(tile_size * cam.zoom))
+                        rect = pygame.Rect(
+                            int(sx), int(sy), int(tile_size * cam.zoom), int(tile_size * cam.zoom)
+                        )
                         pygame.draw.rect(screen, color, rect)
                         pygame.draw.rect(screen, (40, 40, 40), rect, 1)
 
@@ -201,7 +201,7 @@ def main():
                 f"Frames: {stats['frame_count']}",
             ]
             for i, line in enumerate(perf_lines):
-                color = (255, 100, 100) if stats['draw_time_ms'] > 33.0 else (140, 200, 140)
+                color = (255, 100, 100) if stats["draw_time_ms"] > 33.0 else (140, 200, 140)
                 perf_surf = font.render(line, True, color)
                 screen.blit(perf_surf, (10, 70 + i * 18))
 

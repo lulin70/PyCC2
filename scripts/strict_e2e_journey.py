@@ -15,11 +15,12 @@ Phases:
   8. Window Operations (resize, info query)
   9. Clean Shutdown
 """
+
+import gc
 import os
 import sys
 import time
 import traceback
-import gc
 
 # --- Phase 0: Environment Detection ---
 # Try real display first; fall back to dummy only when needed.
@@ -28,6 +29,7 @@ _force_dummy = os.environ.get("CI") or os.environ.get("HEADLESS") or os.environ.
 if not _force_dummy:
     # On macOS, DISPLAY is not set (X11-only); detect platform instead
     import platform
+
     _is_macos = platform.system() == "Darwin"
     _has_display = bool(os.environ.get("DISPLAY"))  # Linux/X11
     # If explicitly requested or no display server detected
@@ -37,36 +39,41 @@ if not _force_dummy:
         _real_display = False
 
 import pygame
+
 pygame.init()
 
-from pycc2.services.game_loop import GameLoop, GameState
-from pycc2.services.game_loop_assembler import GameLoopAssembler
-from pycc2.domain.entities.unit import Faction, Unit, UnitType
-from pycc2.domain.entities.game_map import GameMap
-from pycc2.domain.value_objects.vec2 import Vec2
-from pycc2.domain.value_objects.tile_coord import TileCoord
+import numpy as np
+
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent
 from pycc2.domain.components.position_component import PositionComponent
 from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
+from pycc2.domain.entities.game_map import GameMap
+from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.interfaces.game_state_view import GameStateView
-from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-from pycc2.presentation.rendering.camera import Camera
-from pycc2.services.event_bus import EventBus
-from pycc2.services.ai_service import AIService
-from pycc2.presentation.input.interaction_controller import InteractionController
+from pycc2.domain.value_objects.tile_coord import TileCoord
+from pycc2.domain.value_objects.vec2 import Vec2
 from pycc2.presentation.input.handler import PygameInputHandler
-from pycc2.presentation.input.input_router import InputRouter
+from pycc2.presentation.input.interaction_controller import InteractionController
+from pycc2.presentation.rendering.camera import Camera
+from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 from pycc2.presentation.rendering.window_config import WindowManager
-import numpy as np
+from pycc2.services.ai_service import AIService
+from pycc2.services.event_bus import EventBus
+from pycc2.services.game_loop import GameLoop, GameState
+from pycc2.services.game_loop_assembler import GameLoopAssembler
 
 
-def make_unit(uid: str, name: str, faction: Faction, unit_type: UnitType,
-              x: int, y: int, hp: int = 100) -> Unit:
+def make_unit(
+    uid: str, name: str, faction: Faction, unit_type: UnitType, x: int, y: int, hp: int = 100
+) -> Unit:
     """Create a fully initialized Unit for E2E testing."""
     return Unit(
-        id=uid, name=name, faction=faction, unit_type=unit_type,
+        id=uid,
+        name=name,
+        faction=faction,
+        unit_type=unit_type,
         position=PositionComponent(tile_coord=TileCoord(x, y)),
         vision=VisionComponent(),
         health=HealthComponent(hp=hp, max_hp=hp),
@@ -76,6 +83,8 @@ def make_unit(uid: str, name: str, faction: Faction, unit_type: UnitType,
 
 
 results = []
+
+
 def check(name, condition, detail=""):
     status = "PASS" if condition else "FAIL"
     results.append((name, status, detail))
@@ -93,8 +102,7 @@ try:
     # ===================================================================
     print("\n=== Phase 0: Environment ===")
     driver = os.environ.get("SDL_VIDEODRIVER", "(default)")
-    check("Display environment", _real_display,
-          f"driver={driver}, real={_real_display}")
+    check("Display environment", _real_display, f"driver={driver}, real={_real_display}")
     check("PyGame version", pygame.vernum[0] >= 2, f"pygame {pygame.version.ver}")
 
     # ===================================================================
@@ -111,39 +119,56 @@ try:
     renderer.initialize(screen)
     event_bus = EventBus()
     game_map = GameMap(
-        id="e2e_test", name="E2E Test Map", width=40, height=30,
+        id="e2e_test",
+        name="E2E Test Map",
+        width=40,
+        height=30,
         tile_grid=np.zeros((30, 40), dtype=np.int8),
     )
 
     # Create units for both sides (simulating post-deployment state)
     units = []
     for i in range(5):
-        units.append(make_unit(f"ally_{i}", f"Allies Squad {i}", Faction.ALLIES,
-                               UnitType.INFANTRY_SQUAD, 5 + i, 12))
-    units.append(make_unit("ally_mg", "Allies MG", Faction.ALLIES,
-                           UnitType.MACHINE_GUN_SQUAD, 4, 14))
-    units.append(make_unit("ally_tank", "Allies Tank", Faction.ALLIES,
-                           UnitType.TANK, 6, 10))
+        units.append(
+            make_unit(
+                f"ally_{i}", f"Allies Squad {i}", Faction.ALLIES, UnitType.INFANTRY_SQUAD, 5 + i, 12
+            )
+        )
+    units.append(
+        make_unit("ally_mg", "Allies MG", Faction.ALLIES, UnitType.MACHINE_GUN_SQUAD, 4, 14)
+    )
+    units.append(make_unit("ally_tank", "Allies Tank", Faction.ALLIES, UnitType.TANK, 6, 10))
     for i in range(5):
-        units.append(make_unit(f"axis_{i}", f"Axis Squad {i}", Faction.AXIS,
-                               UnitType.INFANTRY_SQUAD, 34 + i, 12))
-    units.append(make_unit("axis_mg", "Axis MG", Faction.AXIS,
-                           UnitType.MACHINE_GUN_SQUAD, 35, 14))
-    units.append(make_unit("axis_tank", "Axis Tank", Faction.AXIS,
-                           UnitType.TANK, 33, 10))
+        units.append(
+            make_unit(
+                f"axis_{i}", f"Axis Squad {i}", Faction.AXIS, UnitType.INFANTRY_SQUAD, 34 + i, 12
+            )
+        )
+    units.append(make_unit("axis_mg", "Axis MG", Faction.AXIS, UnitType.MACHINE_GUN_SQUAD, 35, 14))
+    units.append(make_unit("axis_tank", "Axis Tank", Faction.AXIS, UnitType.TANK, 33, 10))
 
     state = GameState(
-        game_map=game_map, units=units, camera=camera,
-        tick=0, running=True, paused=False, debug_mode=False,
-        side_turn="allies", selected_unit_ids=set(),
+        game_map=game_map,
+        units=units,
+        camera=camera,
+        tick=0,
+        running=True,
+        paused=False,
+        debug_mode=False,
+        side_turn="allies",
+        selected_unit_ids=set(),
     )
     input_handler = PygameInputHandler(camera=camera, window_manager=wm)
     ai_service = AIService(event_bus=event_bus)
     interaction_controller = InteractionController(camera, game_map, event_bus)
 
     game_loop = GameLoop(
-        renderer=renderer, window_manager=wm, event_bus=event_bus,
-        state=state, input_handler=input_handler, ai_service=ai_service,
+        renderer=renderer,
+        window_manager=wm,
+        event_bus=event_bus,
+        state=state,
+        input_handler=input_handler,
+        ai_service=ai_service,
         interaction_controller=interaction_controller,
     )
     check("GameLoop created", game_loop is not None)
@@ -172,7 +197,8 @@ try:
         for y in range(10, 15):
             spawn_points.append({"side": "axis", "position": [x, y]})
     map_data = {
-        "width": 40, "height": 30,
+        "width": 40,
+        "height": 30,
         "tiles": np.zeros((30, 40), dtype=np.int8),
         "spawn_points": spawn_points,
     }
@@ -186,7 +212,11 @@ try:
 
     try:
         deploy_result = game_loop.complete_deployment()
-        check("Deployment completed", deploy_result is not None, f"result={type(deploy_result).__name__}")
+        check(
+            "Deployment completed",
+            deploy_result is not None,
+            f"result={type(deploy_result).__name__}",
+        )
     except Exception as e:
         check("Deployment completed", False, str(e))
 
@@ -263,7 +293,7 @@ try:
     elapsed = time.perf_counter() - t0
     check("No crashes", crashes == 0)
     check("Ticks advanced", game_loop.state.tick >= 300, f"tick={game_loop.state.tick}")
-    check("Performance OK", elapsed < 30, f"{elapsed:.2f}s ({300/elapsed:.0f} ticks/s)")
+    check("Performance OK", elapsed < 30, f"{elapsed:.2f}s ({300 / elapsed:.0f} ticks/s)")
     check("Renders done", renders_done >= 6, f"{renders_done} renders")
 
     # ===================================================================
@@ -280,8 +310,11 @@ try:
         check("Full render pass", True, f"screen={surf_size[0]}x{surf_size[1]}")
         # Verify screen has content (non-zero in center pixel)
         center_pixel = screen.get_at((surf_size[0] // 2, surf_size[1] // 2))
-        check("Screen has rendered content", center_pixel != (0, 0, 0, 0),
-              f"center={center_pixel[:3]}")
+        check(
+            "Screen has rendered content",
+            center_pixel != (0, 0, 0, 0),
+            f"center={center_pixel[:3]}",
+        )
     except Exception as e:
         check("Full render pass", False, str(e))
 
@@ -292,7 +325,11 @@ try:
     if game_loop._achievement_bridge is not None:
         mgr = game_loop._achievement_bridge._manager
         check("Achievement manager", mgr is not None)
-        check("Achievements defined", len(mgr._definitions) > 0, f"{len(mgr._definitions)} achievements")
+        check(
+            "Achievements defined",
+            len(mgr._definitions) > 0,
+            f"{len(mgr._definitions)} achievements",
+        )
         # Verify achievement persistence works
         mgr.save()
         check("Achievement save", True)
@@ -306,8 +343,11 @@ try:
     if _real_display:
         try:
             actual_size = wm.get_actual_size()
-            check("Window size query", actual_size[0] > 0 and actual_size[1] > 0,
-                  f"{actual_size[0]}x{actual_size[1]}")
+            check(
+                "Window size query",
+                actual_size[0] > 0 and actual_size[1] > 0,
+                f"{actual_size[0]}x{actual_size[1]}",
+            )
 
             # Resize may fail on some platforms (macOS SDL renderer limitation)
             try:

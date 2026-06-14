@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import sys
 import time
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
@@ -22,31 +22,25 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Import all audio modules
+from pycc2.infrastructure.audio.environmental_audio import (
+    EnvironmentalAudioSystem,
+    EnvironmentalSoundGenerator,
+    EnvironmentSoundType,
+)
 from pycc2.infrastructure.audio.weapon_sounds import (
     SAMPLE_RATE,
     WEAPON_SOUND_PROFILES,
     WeaponSoundGenerator,
     WeaponSoundProfile,
 )
-
 from pycc2.presentation.audio.enhanced_sound_bridge import (
     CombatSoundEvent,
     EnhancedSoundSystem,
-    get_enhanced_sound_system,
 )
-
 from pycc2.presentation.audio.sound_system import (
     AudioMixerConfig,
     SoundPriority,
     SoundSystem,
-    SoundType,
-    ProceduralSoundGenerator,
-)
-
-from pycc2.infrastructure.audio.environmental_audio import (
-    EnvironmentSoundType,
-    EnvironmentalSoundGenerator,
-    EnvironmentalAudioSystem,
 )
 
 
@@ -99,13 +93,19 @@ class TestC1_WeaponSounds:
 
         # Should be longer than pistol but shorter than rifle
         pistol_p = WeaponSoundProfile(
-            weapon_id="test", sound_type="pistol",
-            base_frequency=500, duration=0.05, decay_rate=25.0,
-            noise_ratio=0.3, burst_count=1
+            weapon_id="test",
+            sound_type="pistol",
+            base_frequency=500,
+            duration=0.05,
+            decay_rate=25.0,
+            noise_ratio=0.3,
+            burst_count=1,
         )
         pistol_sound = WeaponSoundGenerator.generate_weapon_sound(pistol_p)
         assert len(result) > len(pistol_sound), "Assault rifle should be longer than pistol"
-        print(f"✅ Assault rifle sound generated: {len(result)} samples ({len(result)/SAMPLE_RATE:.3f}s)")
+        print(
+            f"✅ Assault rifle sound generated: {len(result)} samples ({len(result) / SAMPLE_RATE:.3f}s)"
+        )
 
     def test_4_tank_cannon_generator(self):
         """Test Sherman/Panzer IV tank cannon sound generation"""
@@ -295,7 +295,9 @@ class TestC3_EnvironmentalAudio:
         generators = {
             "Bird Chirp": lambda: EnvironmentalSoundGenerator.generate_bird_chirp(0),
             "Wind Gust": lambda: EnvironmentalSoundGenerator.generate_wind_gust(0.7),
-            "Distant Artillery": lambda: EnvironmentalSoundGenerator.generate_distant_artillery(1.0),
+            "Distant Artillery": lambda: EnvironmentalSoundGenerator.generate_distant_artillery(
+                1.0
+            ),
             "Rain": lambda: EnvironmentalSoundGenerator.generate_rain(0.8),
             "Thunder": lambda: EnvironmentalSoundGenerator.generate_thunder(),
             "Insect Chirp": lambda: EnvironmentalSoundGenerator.generate_insect_chirp("cricket"),
@@ -340,7 +342,7 @@ class TestC3_EnvironmentalAudio:
 
         # Time of day
         system.set_time_of_day(12)  # Noon - birds active
-        system.set_time_of_day(2)   # Night - birds inactive (internal logic)
+        system.set_time_of_day(2)  # Night - birds inactive (internal logic)
 
         # Location types
         for location in ["village", "city", "forest", "open_field"]:
@@ -358,7 +360,9 @@ class TestC3_EnvironmentalAudio:
             "RADIO_STATIC",
         ]
         for type_name in new_types:
-            assert hasattr(EnvironmentSoundType, type_name), f"Missing EnvironmentSoundType: {type_name}"
+            assert hasattr(EnvironmentSoundType, type_name), (
+                f"Missing EnvironmentSoundType: {type_name}"
+            )
         print(f"✅ All {len(new_types)} new environmental types present")
 
 
@@ -402,16 +406,14 @@ class TestC4_AdvancedMixer:
 
         # Test stereo pan calculation for different angles
         test_cases = [
-            (Vec2(0, 10), Vec2(0, 0), 0.0, "Front"),           # Directly in front
-            (Vec2(-10, 0), Vec2(0, 0), 0.0, "Left"),             # Left side
-            (Vec2(10, 0), Vec2(0, 0), 0.0, "Right"),              # Right side
-            (Vec2(0, -10), Vec2(0, 0), 0.0, "Behind"),             # Behind
+            (Vec2(0, 10), Vec2(0, 0), 0.0, "Front"),  # Directly in front
+            (Vec2(-10, 0), Vec2(0, 0), 0.0, "Left"),  # Left side
+            (Vec2(10, 0), Vec2(0, 0), 0.0, "Right"),  # Right side
+            (Vec2(0, -10), Vec2(0, 0), 0.0, "Behind"),  # Behind
         ]
 
         for source_pos, listener_pos, facing, desc in test_cases:
-            left_vol, right_vol = system.calculate_stereo_pan(
-                source_pos, listener_pos, facing
-            )
+            left_vol, right_vol = system.calculate_stereo_pan(source_pos, listener_pos, facing)
             assert 0.0 <= left_vol <= 1.0, f"Left volume out of range for {desc}"
             assert 0.0 <= right_vol <= 1.0, f"Right volume out of range for {desc}"
 
@@ -432,12 +434,14 @@ def run_all_tests():
     start_time = time.time()
 
     # Run pytest programmatically
-    exit_code = pytest.main([
-        __file__,
-        "-v",
-        "--tb=short",
-        "--color=yes",
-    ])
+    exit_code = pytest.main(
+        [
+            __file__,
+            "-v",
+            "--tb=short",
+            "--color=yes",
+        ]
+    )
 
     elapsed = time.time() - start_time
 

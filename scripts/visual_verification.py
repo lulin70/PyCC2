@@ -11,24 +11,33 @@ Generated content:
 6. Faction color comparison
 """
 
-import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 import pygame
+
 pygame.init()
 
-from pycc2.presentation.rendering.pixel_artist_3d import (
-    PixelArtist3D, Direction, Faction, InfantryType, TankType
+from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
+from pycc2.presentation.rendering.cc2_building_renderer import (
+    CC2BuildingType,
+    DamageLevel,
+    render_cc2_building,
 )
 from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-from pycc2.presentation.rendering.cc2_building_renderer import (
-    CC2BuildingType, DamageLevel, render_cc2_building
+from pycc2.presentation.rendering.pixel_artist_3d import (
+    Direction,
+    Faction,
+    InfantryType,
+    PixelArtist3D,
+    TankType,
 )
-from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
 
 OUTPUT_DIR = "visual_verification"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 
 def create_sprite_sheet(sprites_dict, filename, title, cell_size=(48, 48)):
     """Create sprite comparison sheet with English labels only."""
@@ -37,13 +46,13 @@ def create_sprite_sheet(sprites_dict, filename, title, cell_size=(48, 48)):
     cols = min(max_cols, num_sprites)
     rows = (num_sprites + cols - 1) // cols
 
-    w = cols * cell_size[0] + (cols-1) * 4
-    h = rows * cell_size[1] + (rows-1) * 4 + 30
+    w = cols * cell_size[0] + (cols - 1) * 4
+    h = rows * cell_size[1] + (rows - 1) * 4 + 30
 
     surface = pygame.Surface((w, h), pygame.SRCALPHA)
     surface.fill((40, 44, 52))
 
-    font = pygame.font.SysFont('arial', 14, bold=True)
+    font = pygame.font.SysFont("arial", 14, bold=True)
     title_surf = font.render(title, True, (255, 255, 100))
     surface.blit(title_surf, (10, 5))
 
@@ -56,7 +65,7 @@ def create_sprite_sheet(sprites_dict, filename, title, cell_size=(48, 48)):
         if sprite:
             surface.blit(sprite, (x, y))
 
-        label_font = pygame.font.SysFont('arial', 9)
+        label_font = pygame.font.SysFont("arial", 9)
         display_name = name[:15] if len(name) > 15 else name
         label = label_font.render(display_name, True, (200, 200, 200))
         surface.blit(label, (x, y + cell_size[1] + 1))
@@ -65,6 +74,7 @@ def create_sprite_sheet(sprites_dict, filename, title, cell_size=(48, 48)):
     pygame.image.save(surface, path)
     print(f"[OK] Saved: {path}")
     return surface
+
 
 def generate_infantry_comparison():
     """Generate infantry sprite comparison (8-dir standing + 4-dir prone)."""
@@ -93,8 +103,13 @@ def generate_infantry_comparison():
         )
         sprites[f"PRONE_{direction.name}"] = sprite
 
-    create_sprite_sheet(sprites, "01_infantry_8dir_prone.png",
-                        "Infantry: 8-Dir Standing + 4-Dir Prone (Single Soldier)", (28, 28))
+    create_sprite_sheet(
+        sprites,
+        "01_infantry_8dir_prone.png",
+        "Infantry: 8-Dir Standing + 4-Dir Prone (Single Soldier)",
+        (28, 28),
+    )
+
 
 def generate_tank_comparison():
     """Generate tank sprite comparison (with armor panel seams)."""
@@ -127,8 +142,13 @@ def generate_tank_comparison():
         )
         sprites[f"{tank_name}_E"] = sprite_e
 
-    create_sprite_sheet(sprites, "02_tanks_with_seams.png",
-                        "Tanks: Sherman/Panther/Tiger (Size Diff + Armor Seams)", (50, 50))
+    create_sprite_sheet(
+        sprites,
+        "02_tanks_with_seams.png",
+        "Tanks: Sherman/Panther/Tiger (Size Diff + Armor Seams)",
+        (50, 50),
+    )
+
 
 def generate_terrain_textures():
     """Generate terrain texture samples."""
@@ -159,10 +179,15 @@ def generate_terrain_textures():
             print(f"  [WARN] Failed to generate {name}: {e}")
 
     if len(sprites) > 0:
-        create_sprite_sheet(sprites, "03_terrain_textures.png",
-                            f"Terrain: High-Density ({len(sprites)} samples)", (52, 52))
+        create_sprite_sheet(
+            sprites,
+            "03_terrain_textures.png",
+            f"Terrain: High-Density ({len(sprites)} samples)",
+            (52, 52),
+        )
     else:
         print("  [FAIL] No terrain textures generated")
+
 
 def generate_buildings():
     """Generate building sprites (Normandy style - TOP-DOWN VIEW + INTERIOR!)."""
@@ -205,8 +230,10 @@ def generate_buildings():
         )
         sprites[f"{name}_DmgFlr"] = sprite_dmg_int
 
-    create_sprite_sheet(sprites, "04_buildings_normandy.png",
-                        "Buildings: Roof + INTERIOR Floor + Windows", (52, 52))
+    create_sprite_sheet(
+        sprites, "04_buildings_normandy.png", "Buildings: Roof + INTERIOR Floor + Windows", (52, 52)
+    )
+
 
 def generate_ui_panel():
     """Generate UI panel screenshot."""
@@ -219,11 +246,10 @@ def generate_ui_panel():
     surface = pygame.Surface((w, h), pygame.SRCALPHA)
     surface.fill((30, 33, 38))
 
-    from pycc2.domain.entities.game_map import GameMap
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.rendering.minimap import Minimap
 
-    camera = Camera(position=None, viewport_width=w, viewport_height=h*2)
+    camera = Camera(position=None, viewport_width=w, viewport_height=h * 2)
     minimap = Minimap()
 
     panel.render(surface, camera, None, minimap, time_remaining=245)
@@ -232,6 +258,7 @@ def generate_ui_panel():
     pygame.image.save(surface, path)
     print(f"[OK] Saved: {path}")
 
+
 def generate_faction_colors():
     """Generate faction color comparison."""
     print("\n[6/6] Generating faction uniform colors...")
@@ -239,7 +266,7 @@ def generate_faction_colors():
     sprites = {}
 
     # Allied uniforms
-    for dir_idx, direction in enumerate([Direction.NORTH, Direction.EAST, Direction.SOUTH]):
+    for _dir_idx, direction in enumerate([Direction.NORTH, Direction.EAST, Direction.SOUTH]):
         sprite_allies = PixelArtist3D.create_infantry_sprite(
             direction=direction,
             faction=Faction.ALLIES,
@@ -249,7 +276,7 @@ def generate_faction_colors():
         sprites[f"US_OD_{direction.name}"] = sprite_allies
 
     # Axis uniforms
-    for dir_idx, direction in enumerate([Direction.NORTH, Direction.EAST, Direction.SOUTH]):
+    for _dir_idx, direction in enumerate([Direction.NORTH, Direction.EAST, Direction.SOUTH]):
         sprite_axis = PixelArtist3D.create_infantry_sprite(
             direction=direction,
             faction=Faction.AXIS,
@@ -258,8 +285,13 @@ def generate_faction_colors():
         )
         sprites[f"DE_FG_{direction.name}"] = sprite_axis
 
-    create_sprite_sheet(sprites, "06_faction_uniforms.png",
-                        "Factions: US Olive Drab vs German Feldgrau (Historical)", (28, 28))
+    create_sprite_sheet(
+        sprites,
+        "06_faction_uniforms.png",
+        "Factions: US Olive Drab vs German Feldgrau (Historical)",
+        (28, 28),
+    )
+
 
 def main():
     """Main function."""
@@ -296,9 +328,11 @@ def main():
     except Exception as e:
         print(f"\n[ERROR] {e}")
         import traceback
+
         traceback.print_exc()
     finally:
         pygame.quit()
+
 
 if __name__ == "__main__":
     main()
