@@ -240,7 +240,7 @@ class LightingSystem:
             pixel_array[:, :, 2] = b_channel.astype(np.uint8)
 
             del pixel_array
-        except Exception as e:
+        except Exception:
             pass
         finally:
             surface.unlock()

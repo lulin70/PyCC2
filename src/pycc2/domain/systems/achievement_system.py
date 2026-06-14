@@ -14,13 +14,13 @@ Achievement categories:
 4. SPECIAL - Hidden/easter egg achievements
 """
 
-from enum import Enum, auto
-from dataclasses import dataclass, field
+from enum import Enum
+from dataclasses import dataclass
 import json
 import logging
 import os
 import time
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

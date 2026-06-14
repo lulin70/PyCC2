@@ -20,7 +20,7 @@ from pycc2.domain.components.position_component import PositionComponent
 from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
-from pycc2.domain.systems.victory_conditions import BattleStats, GameResult
+from pycc2.domain.systems.victory_conditions import BattleStats
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.services.event_bus import EventBus
 from pycc2.services.event_protocol import UnitAttacked

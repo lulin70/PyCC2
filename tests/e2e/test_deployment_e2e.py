@@ -17,7 +17,6 @@ Tests the complete deployment flow from start to battle transition:
 from __future__ import annotations
 
 import os
-import pytest
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")

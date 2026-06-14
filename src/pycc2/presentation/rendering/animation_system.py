@@ -487,7 +487,7 @@ class ParticleEmitter:
         preset = self.PRESETS.get(name)
         if not preset:
             return 0
-        
+
         count = preset["count"]
         speed_range = preset["speed"]
         life_range = preset["life"]
@@ -495,12 +495,12 @@ class ParticleEmitter:
         color = preset["color"]
         spread = preset["spread"]
         gravity = preset.get("gravity", 0.3)
-        
+
         for _ in range(count):
             angle_offset = random.uniform(-spread / 2, spread / 2) * (math.pi / 180)
             angle = direction + angle_offset
             speed = random.uniform(speed_range[0], speed_range[1])
-            
+
             self._add_particle(
                 type=self.ParticleType.SPARK,
                 x=x,
@@ -515,5 +515,5 @@ class ParticleEmitter:
                 gravity=gravity,
                 friction=0.95 if gravity > 0 else 0.98,
             )
-        
+
         return count

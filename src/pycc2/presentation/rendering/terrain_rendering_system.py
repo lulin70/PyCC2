@@ -217,7 +217,6 @@ class TerrainRenderingSystem:
                                     terrain_val, bitmask, variation
                                 ) if self._autotile_cache else None
                                 if base_texture is not None:
-                                    import math as _math
                                     scale_factor = tile_screen_size / base_texture.get_width()
                                     new_size = (int(base_texture.get_width() * scale_factor),
                                               int(base_texture.get_height() * scale_factor))
@@ -235,7 +234,6 @@ class TerrainRenderingSystem:
                                     lighting_sys = getattr(self._renderer, '_lighting_effects_sys', None)
                                     if lighting_sys:
                                         base_texture = lighting_sys.apply_height_lighting(base_texture, height)
-                                import math as _math
                                 scale_factor = tile_screen_size / base_texture.get_width()
                                 new_size = (int(base_texture.get_width() * scale_factor),
                                           int(base_texture.get_height() * scale_factor))
@@ -332,7 +330,7 @@ class TerrainRenderingSystem:
                     )
                     pygame.draw.rect(target_surface, color, rect)
 
-                except (AttributeError, ValueError) as e:
+                except (AttributeError, ValueError):
                     continue
 
     def get_cached_texture(self, terrain_id: int, variation: int) -> pygame.Surface:
@@ -350,12 +348,12 @@ class TerrainRenderingSystem:
         """获取或生成缓存的装饰精灵。"""
         key = (deco_type_name, variant)
         sprite_cache = getattr(self._renderer, '_sprite_cache', {})
-        
+
         if key not in sprite_cache:
             from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
             sprite = SpriteGenerator.generate_decoration_sprite(deco_type_name, variant)
             sprite_cache[key] = sprite
-            
+
         return sprite_cache[key]
 
     def draw_enhanced_terrain(
@@ -477,7 +475,6 @@ class TerrainRenderingSystem:
                                 base_texture = self._autotile_cache.get_variant(terrain_val, bitmask, variation) \
                                     if self._autotile_cache else None
                                 if base_texture is not None:
-                                    import math
                                     scale_factor = tile_screen_size / base_texture.get_width()
                                     new_size = (int(base_texture.get_width() * scale_factor),
                                               int(base_texture.get_height() * scale_factor))
@@ -496,7 +493,6 @@ class TerrainRenderingSystem:
                                     if lighting_sys:
                                         base_texture = lighting_sys.apply_height_lighting(base_texture, height)
 
-                                import math
                                 scale_factor = tile_screen_size / base_texture.get_width()
                                 new_size = (int(base_texture.get_width() * scale_factor),
                                           int(base_texture.get_height() * scale_factor))
@@ -527,12 +523,12 @@ class TerrainRenderingSystem:
         try:
             if hasattr(game_map, 'get_enhanced_tile'):
                 return game_map.get_enhanced_tile(x, y)
-            
+
             terrain_id = int(game_map.tile_grid[y, x])
             height = 0
             if hasattr(game_map, 'height_map') and game_map.height_map is not None:
                 height = int(game_map.height_map[y, x])
-                
+
             from pycc2.domain.entities.enhanced_tile import EnhancedTile
             return EnhancedTile(
                 base_terrain=terrain_id,
@@ -548,11 +544,11 @@ class TerrainRenderingSystem:
         """获取指定坐标的地形类型，越界返回 -1。"""
         if x < 0 or y < 0 or x >= game_map.width or y >= game_map.height:
             return -1
-            
+
         etile = self._get_enhanced_tile(game_map, x, y)
         if etile is not None and hasattr(etile, 'base_terrain'):
             return etile.base_terrain
-            
+
         try:
             return int(game_map.tile_grid[y, x])
         except (IndexError, AttributeError):
@@ -578,10 +574,10 @@ class TerrainRenderingSystem:
             48×48 像素的 Pygame Surface
         """
         variation = tile_x * 7919 + tile_y * 104729 + terrain_id * 17
-        
+
         from pycc2.presentation.rendering.procedural_texture_generator import ProceduralTextureGenerator
         palette_gen = getattr(self._renderer, '_palette_gen', None)
-        
+
         return ProceduralTextureGenerator.generate_terrain_texture(
             terrain_id,
             variation % 8,
@@ -630,16 +626,16 @@ class TerrainRenderingSystem:
 
                 for direction_name, dx, dy in directions:
                     nx, ny = tx + dx, ty + dy
-                    
+
                     if nx < start_x or nx >= end_x or ny < start_y or ny >= end_y:
                         continue
-                    
+
                     neighbor = self.get_terrain_at(game_map, nx, ny)
                     if neighbor < 0 or neighbor == current:
                         continue
 
                     cache_key = (tx, ty, current, neighbor, direction_name)
-                    
+
                     if cache_key in self._transition_cache:
                         strip, rect = self._transition_cache[cache_key]
                         target_surface.blit(strip, rect.topleft)
@@ -717,8 +713,7 @@ class TerrainRenderingSystem:
         if target_surface is None:
             return
 
-        from pycc2.presentation.rendering.autotile_system import is_autotile_terrain
-        
+
         autotile_terrains = {5, 6, 7}
         smooth_transitions = [(0, 1), (0, 9), (1, 9), (2, 0)]
 
@@ -734,10 +729,10 @@ class TerrainRenderingSystem:
 
                     for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
                         nx, ny = tx + dx, ty + dy
-                        
+
                         if nx < start_x or nx >= end_x or ny < start_y or ny >= end_y:
                             continue
-                            
+
                         neighbor = self.get_terrain_at(game_map, nx, ny)
                         if neighbor != target_terrain:
                             continue
@@ -803,7 +798,7 @@ class TerrainRenderingSystem:
                         if neighbor >= 0 and neighbor != current:
                             neighbors_different = True
                             break
-                
+
                 if not neighbors_different:
                     continue
 
@@ -813,7 +808,7 @@ class TerrainRenderingSystem:
                 sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
                 tile_screen_size = int(self.TILE_SIZE * camera.zoom)
-                
+
                 border_color = {
                     0: (50, 150, 50),   # Grass: Green
                     1: (150, 100, 50),   # Road: Brown

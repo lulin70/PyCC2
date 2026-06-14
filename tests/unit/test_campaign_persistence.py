@@ -10,7 +10,6 @@ import pytest
 from pycc2.domain.components.veterancy_component import (
     VeterancyComponent,
     VeteranRank,
-    RANK_THRESHOLDS,
     RANK_BONUSES,
 )
 from pycc2.domain.systems.battle_result import (

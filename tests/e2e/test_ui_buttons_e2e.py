@@ -13,7 +13,6 @@ Tests every clickable UI element:
 from __future__ import annotations
 
 import os
-import pytest
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -192,7 +191,7 @@ class TestUIButtonsE2E:
 
     def test_06_radial_menu_show_hide(self):
         """Create RadialMenu, show at position, verify hide works."""
-        from pycc2.presentation.ui.radial_menu import RadialMenu, RadialCommand
+        from pycc2.presentation.ui.radial_menu import RadialMenu
 
         menu = RadialMenu()
         assert not menu.is_visible
@@ -205,7 +204,7 @@ class TestUIButtonsE2E:
 
     def test_07_radial_menu_hover_sectors(self):
         """Move mouse to each sector and verify correct command is hovered."""
-        from pycc2.presentation.ui.radial_menu import RadialMenu, RadialCommand, COMMAND_ORDER
+        from pycc2.presentation.ui.radial_menu import RadialMenu, COMMAND_ORDER
 
         menu = RadialMenu()
         menu.show(center=(400, 300))
@@ -220,7 +219,7 @@ class TestUIButtonsE2E:
         for i in range(n):
             # Calculate position for this sector
             angle = (sector_angle * i) - 3.14159 / 2  # Start from top
-            mx = 400 + int(radius * 0.9 * (3.14159 / 2 - angle) / (3.14159 / 2))
+            400 + int(radius * 0.9 * (3.14159 / 2 - angle) / (3.14159 / 2))
             # Simpler: just use the update_hover method with positions around the circle
             test_x = 400 + int(radius * 0.8 * ((i % 3) - 1))
             test_y = 300 + int(radius * 0.8 * ((i // 3) - 1))

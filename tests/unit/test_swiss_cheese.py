@@ -218,7 +218,7 @@ class TestSwissCheeseEngineResolve:
             a = sc_engine.resolve(target=t2, raw_damage=35.0, is_armor_piercing=True)
             normal_total += n.kia_count + n.wia_count
             ap_total += a.kia_count + a.wia_count
-        
+
         # With 500 trials, statistical law of large numbers ensures stability
         # Relaxed tolerance: AP should cause at least 50% of normal casualties
         # (Original 75% was too tight for probabilistic combat resolution)

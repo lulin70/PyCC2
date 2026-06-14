@@ -35,7 +35,7 @@ from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.systems.fog_of_war import FogOfWar
-from pycc2.domain.systems.los_system import LosResult, LosStatus, Lossystem
+from pycc2.domain.systems.los_system import LosStatus, Lossystem
 from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.value_objects.vec2 import Vec2
@@ -546,7 +546,7 @@ class TestAttackLineCombatExecution:
         source_pos = attacker.position.pixel_position
         als.begin_attack(unit_id="attacker", source_pos=source_pos)
 
-        target = als.update_mouse_position(
+        als.update_mouse_position(
             screen_pos=(8 * TILE_SIZE, 5 * TILE_SIZE),
             world_pos=enemy.position.pixel_position,
             units=[attacker, enemy],
@@ -698,7 +698,7 @@ class TestLOSToAttackLineIntegration:
         )
 
         # Tile behind building should not be visible
-        behind = TileCoord(9, 5)
+        TileCoord(9, 5)
         # (May or may not be visible depending on ray angle, but building should block)
 
         # Attack line through building should be blocked

@@ -12,10 +12,10 @@ All effects managed by EffectStack with priority queuing.
 """
 
 from enum import Enum, auto
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import math
 import random
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 
 class EffectType(Enum):
@@ -36,7 +36,7 @@ class CameraEffect:
     elapsed: float = 0.0
     easing: str = "ease_out"
     priority: int = 0
-    
+
     # Type-specific parameters
     zoom_factor: float = 0.8
     time_scale: float = 0.3
@@ -68,7 +68,6 @@ class CameraEffect:
                 return t
             return pow(2, -10 * t) * math.sin((t * 10 - 10.75) * (2 * math.pi / 3)) + 1
         elif self.easing == "bounce":
-            n = 7
             if t == 0 or t == 1:
                 return t
             return pow(2, -10 * t) * abs(math.sin(t * 10 * math.pi)) + 1
@@ -78,7 +77,7 @@ class CameraEffect:
     def get_offset(self) -> Tuple[float, float]:
         """Calculate current offset based on effect type and progress."""
         progress = self.apply_easing(self.get_progress())
-        
+
         if self.effect_type == EffectType.SHAKE:
             shake_x = (random.random() - 0.5) * 2 * self.intensity * (1 - progress)
             shake_y = (random.random() - 0.5) * 2 * self.intensity * (1 - progress)
@@ -137,18 +136,18 @@ class EffectStack:
         """Calculate combined offset from all active effects."""
         total_x = 0.0
         total_y = 0.0
-        
+
         for effect in self._effects:
             ox, oy = effect.get_offset()
             total_x += ox
             total_y += oy
-            
+
         return (total_x, total_y)
 
     def get_zoom_multiplier(self) -> float:
         """Get combined zoom multiplier from ZOOM_IMPACT effects."""
         zoom_mult = 1.0
-        
+
         for effect in self._effects:
             if effect.effect_type == EffectType.ZOOM_IMPACT:
                 progress = effect.apply_easing(effect.get_progress())
@@ -156,17 +155,17 @@ class EffectStack:
                     zoom_mult *= effect.zoom_factor + (1.0 - effect.zoom_factor) * (progress * 2)
                 else:
                     zoom_mult *= 1.0 - (1.0 - effect.zoom_factor) * ((progress - 0.5) * 2)
-                    
+
         return max(0.5, min(2.0, zoom_mult))
 
     def get_time_scale(self) -> float:
         """Get time scale from SLOW_MOTION effects (lowest wins)."""
         time_scale = 1.0
-        
+
         for effect in self._effects:
             if effect.effect_type == EffectType.SLOW_MOTION:
                 time_scale = min(time_scale, effect.time_scale)
-                
+
         return max(0.1, time_scale)
 
     def is_frozen(self) -> bool:

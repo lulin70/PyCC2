@@ -7,7 +7,6 @@ import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 # Lazy import to avoid pulling in the entire pycc2 package tree (pygame etc.)
 # which can cause OOM kills on memory-constrained systems (8GB RAM).

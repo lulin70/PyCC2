@@ -19,13 +19,11 @@ if TYPE_CHECKING:
     from pycc2.domain.interfaces.display_config import DisplayConfig
     from pycc2.domain.interfaces.renderer_protocol import IRenderer as EnhancedRenderer
     from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
-    from pycc2.domain.interfaces.deployment_ui_protocol import IDeploymentUI
     from pycc2.presentation.ui.time_control import TimeControlUI
     from pycc2.services.ai_service import AIService
     from pycc2.services.deployment_manager import DeploymentManager
     from pycc2.services.event_bus import EventBus
     from pycc2.services.hud_manager import HUDManager
-    from pycc2.services.pause_menu_controller import PauseMenuController
 
     from .event_dispatcher import EventDispatcher
 
@@ -211,7 +209,7 @@ class GameLoop:
             elif self._deployment_manager.is_active and self._deployment_manager.deployment_ui is not None and screen:
                 # === 部署阶段渲染 ===
                 deployment_ui = self._deployment_manager.deployment_ui
-                
+
                 # Step 1: 渲染地图和单位
                 self._render_pipeline.render(
                     game_map=self.state.game_map,

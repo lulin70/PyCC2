@@ -7,7 +7,6 @@ all integrate correctly without requiring pygame/display.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
@@ -18,11 +17,8 @@ from pycc2.domain.systems.campaign_four_layer import (
     BattleState,
     GrandCampaignDefinition,
     GrandCampaignState,
-    OperationDefinition,
     OperationState,
-    SectorCampaignDefinition,
     SectorState,
-    VictoryLocationDef,
     create_market_garden_campaign,
 )
 from pycc2.domain.systems.cc2_authentic_weapons import Faction

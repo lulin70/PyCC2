@@ -6,7 +6,7 @@ weapon selection, hit chance calculation, and counter-attack mechanics.
 """
 
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from pycc2.domain.ai.melee_combat import (
     MeleeCombatSystem,
@@ -18,12 +18,8 @@ from pycc2.domain.ai.melee_combat import (
     FISTS_DAMAGE,
     BASE_HIT_CHANCE,
     CHARGE_BONUS,
-    EXHAUSTED_PENALTY,
-    VETERAN_BONUS,
     WOUNDED_PENALTY,
     COUNTER_ATTACK_RATIO,
-    AMMO_THRESHOLD,
-    MELEE_RANGE,
 )
 from pycc2.domain.entities.unit import Faction, UnitType
 from pycc2.domain.ai.tactic_intent import TacticType

@@ -2,8 +2,6 @@
 Tests for Camera Effects System.
 """
 
-import math
-import pytest
 from pycc2.presentation.rendering.camera_effects import (
     EffectType, CameraEffect, EffectStack,
     create_shake, create_zoom_impact, create_slow_motion,

@@ -1,4 +1,3 @@
-import pytest
 
 from pycc2.domain.ai.ai_config import AIConfig
 

@@ -7,7 +7,7 @@ explicit interfaces for all shared rendering dependencies.
 
 from __future__ import annotations
 
-from typing import Callable, Protocol
+from typing import Callable
 
 import pygame
 

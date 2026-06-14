@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
@@ -281,7 +281,7 @@ class AttackLineSystem:
                 accuracy_mod *= 0.8
         # Morale accuracy modifier
         if hasattr(attacker, 'morale') and attacker.morale is not None:
-            from pycc2.domain.systems.morale_system import MoraleSystem, MoraleState
+            from pycc2.domain.systems.morale_system import MoraleSystem
             morale_state = MoraleSystem.get_state(attacker.morale.value)
             accuracy_mod *= MoraleSystem.get_accuracy_modifier(morale_state)
 

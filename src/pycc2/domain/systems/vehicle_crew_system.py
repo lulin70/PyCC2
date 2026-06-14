@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import random
 from dataclasses import dataclass, field
-from enum import Enum, auto
+from enum import Enum
 from typing import TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ class CrewMember:
 class VehicleCrew:
     """
     Manages crew for a vehicle unit.
-    
+
     Features:
     - Individual crew members with roles and HP
     - Random damage distribution among active crew
@@ -93,7 +93,7 @@ class VehicleCrew:
         """Determine default crew based on vehicle type."""
         unit_type = getattr(self._vehicle, 'unit_type', None) if self._vehicle else None
         type_name = str(unit_type).lower() if unit_type else ""
-        
+
         if "tank" in type_name or "heavy" in type_name:
             return [
                 CrewRole.COMMANDER,
@@ -162,12 +162,12 @@ class VehicleCrew:
     ) -> dict:
         """
         Apply damage to crew member(s).
-        
+
         Args:
             damage: Damage points to apply
             hit_location: 'random', 'commander', 'gunner', etc.
             role_target: Specific role to target (overrides hit_location)
-            
+
         Returns:
             Dict with damage result details
         """
@@ -178,23 +178,23 @@ class VehicleCrew:
             "crew_destroyed": False,
             "new_penalties": {},
         }
-        
+
         if not self.is_crew_alive:
             result["crew_destroyed"] = True
             return result
-            
+
         # Determine target
         target = self._select_damage_target(hit_location, role_target)
-        
+
         if target is None:
             return result
-            
+
         # Apply damage
         actual_damage = min(damage, target.hp)
         target.hp -= actual_damage
         result["damage_dealt"] = actual_damage
         result["member_hit"] = target.role.value
-        
+
         # Check for death
         if target.hp <= 0:
             target.status = CrewStatus.DEAD
@@ -202,22 +202,22 @@ class VehicleCrew:
             target.efficiency = 0.0
             self._alive_count -= 1
             result["was_kill"] = True
-            
+
             logger.warning("[Crew] %s (%s) killed!", target.name, target.role.value)
-            
+
             # Apply penalties
             new_penalties = self._apply_crew_death_penalty(target)
             result["new_penalties"] = new_penalties
-            
+
             # Check for crew wipeout
             if self._alive_count <= 0:
                 self._vehicle_efficiency = 0.0
                 result["crew_destroyed"] = True
-                
+
                 # Mark vehicle as destroyed/disabled
                 if self._vehicle is not None and hasattr(self._vehicle, 'health'):
                     self._vehicle.health.current_hp = 0
-                    
+
                 logger.warning("[Crew] All crew members dead! Vehicle disabled.")
         else:
             # Wound the member
@@ -225,7 +225,7 @@ class VehicleCrew:
                 target.status = CrewStatus.WOUNDED
                 target.efficiency = 0.5
                 self._apply_wound_penalty(target)
-                
+
         return result
 
     def _select_damage_target(
@@ -238,7 +238,7 @@ class VehicleCrew:
             member = self.get_member_by_role(role_target)
             if member and member.status != CrewStatus.DEAD:
                 return member
-                
+
         if hit_location == "random":
             active = self.get_active_members()
             if active:
@@ -247,7 +247,7 @@ class VehicleCrew:
             if wounded:
                 return random.choice(wounded)
             return None
-            
+
         # Try to match location string to role
         role_map = {
             "commander": CrewRole.COMMANDER,
@@ -255,13 +255,13 @@ class VehicleCrew:
             "driver": CrewRole.DRIVER,
             "loader": CrewRole.LOADER,
         }
-        
+
         target_role = role_map.get(hit_location.lower())
         if target_role:
             member = self.get_member_by_role(target_role)
             if member and member.status != CrewStatus.DEAD:
                 return member
-                
+
         # Fallback to random
         active = self.get_active_members()
         return random.choice(active) if active else None
@@ -269,32 +269,32 @@ class VehicleCrew:
     def _apply_crew_death_penalty(self, deceased: CrewMember) -> dict[str, float]:
         """Apply performance penalties based on deceased crew member's role."""
         penalties = {}
-        
+
         ratio = max(0.2, self.crew_ratio)
         self._vehicle_efficiency = ratio
-        
+
         # Role-specific penalties
         if deceased.role == CrewRole.DRIVER:
             penalties["speed_multiplier"] = 0.5
             if self._vehicle is not None and hasattr(self._vehicle, 'position'):
                 pass  # Would modify movement speed component
-                
+
         elif deceased.role == CrewRole.GUNNER:
             penalties["accuracy_multiplier"] = 0.5
             penalties["reload_time_multiplier"] = 2.0
-            
+
         elif deceased.role == CrewRole.COMMANDER:
             penalties["vision_range_multiplier"] = 0.7
             penalties["morale_penalty"] = -15
-            
+
         elif deceased.role == CrewRole.LOADER:
             penalties["reload_time_multiplier"] = 1.8
-            
+
         self._penalties_applied.update(penalties)
-        
+
         logger.info("[Crew] Penalties applied: %s", penalties)
         logger.info("[Crew] Overall efficiency: %.1f%%", self._vehicle_efficiency * 100)
-        
+
         return penalties
 
     def _apply_wound_penalty(self, wounded: CrewMember) -> None:
@@ -313,25 +313,25 @@ class VehicleCrew:
     ) -> bool:
         """
         Heal a crew member.
-        
+
         Args:
             role: Role of member to heal
             heal_amount: HP to restore
-            
+
         Returns:
             True if healing applied
         """
         member = self.get_member_by_role(role)
         if not member or member.status == CrewStatus.DEAD:
             return False
-            
+
         old_hp = member.hp
         member.hp = min(member.max_hp, member.hp + heal_amount)
-        
+
         if member.hp > member.max_hp * 0.3:
             member.status = CrewStatus.ACTIVE
             member.efficiency = 1.0
-            
+
         return member.hp > old_hp
 
     def replace_member(
@@ -341,18 +341,18 @@ class VehicleCrew:
     ) -> bool:
         """
         Replace a dead crew member.
-        
+
         Args:
             role: Role to replace
             replacement: New crew member (or create default)
-            
+
         Returns:
             True if replacement successful
         """
         existing = self.get_member_by_role(role)
         if not existing or existing.status != CrewStatus.DEAD:
             return False
-            
+
         if replacement is None:
             replacement = CrewMember(
                 name=f"Replacement {role.value}",
@@ -362,32 +362,32 @@ class VehicleCrew:
                 status=CrewStatus.ACTIVE,
                 efficiency=0.7,  # Lower skill than original
             )
-            
+
         idx = self._members.index(existing)
         self._members[idx] = replacement
         self._alive_count += 1
-        
+
         # Recalculate efficiency
         self._vehicle_efficiency = max(0.2, self.crew_ratio)
-        
+
         logger.info("[Crew] %s replaced with %s", role.value, replacement.name)
         return True
 
     def evacuate_crew(self) -> list[CrewMember]:
         """
         Evacuate all surviving crew members.
-        
+
         Returns:
             List of evacuated members
         """
         surviving = [m for m in self._members if m.status != CrewStatus.DEAD]
-        
+
         for member in surviving:
             member.status = CrewStatus.ACTIVE  # Reset to active (evacuated safely)
-            
+
         self._alive_count = 0
         self._vehicle_efficiency = 0.0
-        
+
         logger.info("[Crew] Evacuated %d crew members", len(surviving))
         return surviving
 

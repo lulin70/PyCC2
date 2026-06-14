@@ -13,7 +13,7 @@ import pygame
 import random
 from enum import Enum
 
-from pycc2.domain.value_objects.building_data import BUILDING_WINDOWS, CC2BuildingType
+from pycc2.domain.value_objects.building_data import CC2BuildingType
 
 
 class DamageLevel(Enum):
@@ -441,7 +441,7 @@ def _render_normandy_farmhouse(
     cx, cy = (w - wall_width) // 2, (h - wall_height) // 2
 
     # 1. Roof plane
-    roof_rect = (0, 0, w - wall_width, h - wall_height)
+    (0, 0, w - wall_width, h - wall_height)
     roof_margin = tile_size // 8
     inner_roof = (
         roof_margin,
@@ -736,7 +736,7 @@ def _render_building_interior(
     # 占据者标记
     occupant_marker = (0, 200, 0)   # 绿色圆圈（表示单位位置）
 
-    cx, cy = w // 2, h // 2
+    cx, _cy = w // 2, h // 2
 
     # === 1. 地板纹理（棋盘格/木地板）===
     check_size = max(8, tile_size // 5)  # 棋盘格大小

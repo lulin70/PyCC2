@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING
 
 import pygame
 
-from pycc2.domain.value_objects.vec2 import Vec2
 from pycc2.presentation.rendering.render_context import RenderContext
 
 logger = logging.getLogger(__name__)
@@ -195,7 +194,7 @@ class UnitRenderer:
                 is_selected = selected_unit_ids and unit.id in selected_unit_ids
                 if is_selected:
                     pulse = abs(math.sin(pygame.time.get_ticks() * 0.008)) * 8
-                    select_radius = radius + 8 + int(pulse)
+                    radius + 8 + int(pulse)
 
                     outer_glow_radius = radius + 15 + int(pulse * 0.7)
                     glow_size = (outer_glow_radius * 2 + 10, outer_glow_radius * 2 + 10)

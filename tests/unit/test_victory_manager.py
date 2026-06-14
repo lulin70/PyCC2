@@ -6,7 +6,7 @@ and game-over state management.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock
 
 from pycc2.services.victory_manager import VictoryManager
 
@@ -192,7 +192,6 @@ class TestBuildObjectivesFromMap:
         # Mock combat_director with a game_map that has objectives
         # The source code does getattr(pos, 'x', pos[0]) which evaluates
         # pos[0] eagerly, so the position must be subscriptable.
-        mock_pos = (10, 10)  # tuple is subscriptable and has no .x attr
         # But the code checks for .x first via getattr, so we need an
         # object that has both .x/.y AND is subscriptable.
         class SubscriptablePos:

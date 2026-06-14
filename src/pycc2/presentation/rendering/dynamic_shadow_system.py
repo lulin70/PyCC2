@@ -12,14 +12,13 @@ Integrates with existing ShadowRenderingSystem and LightingEffectsSystem.
 """
 
 import math
-from typing import Any, Optional, Tuple, TYPE_CHECKING
+from typing import Optional, Tuple, TYPE_CHECKING
 
 import pygame
 from pycc2.presentation.rendering.surface_pool import SurfacePool
 
 if TYPE_CHECKING:
-    from pycc2.presentation.rendering.camera import Camera
-    from pycc2.domain.value_objects.vec2 import Vec2
+    pass
 
 
 class DynamicShadowSystem:

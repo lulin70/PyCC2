@@ -3,17 +3,17 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Callable, TypeVar, overload
 
-from .ai_service_protocol import IAIService
-from .bottom_panel_protocol import IBottomPanel
-from .camera_protocol import ICamera
-from .deployment_ui_protocol import IDeploymentUI
-from .display_config import DisplayConfig
-from .input_handler_protocol import IInputHandler
-from .interaction_controller_protocol import IInteractionController
-from .minimap_protocol import IMinimap
-from .renderer_protocol import IRenderer
-from .sound_system_protocol import ISoundSystem
-from .window_manager_protocol import IWindowManager
+from .ai_service_protocol import IAIService as IAIService
+from .bottom_panel_protocol import IBottomPanel as IBottomPanel
+from .camera_protocol import ICamera as ICamera
+from .deployment_ui_protocol import IDeploymentUI as IDeploymentUI
+from .display_config import DisplayConfig as DisplayConfig
+from .input_handler_protocol import IInputHandler as IInputHandler
+from .interaction_controller_protocol import IInteractionController as IInteractionController
+from .minimap_protocol import IMinimap as IMinimap
+from .renderer_protocol import IRenderer as IRenderer
+from .sound_system_protocol import ISoundSystem as ISoundSystem
+from .window_manager_protocol import IWindowManager as IWindowManager
 
 E = TypeVar("E")
 

@@ -18,7 +18,6 @@ All method signatures remain unchanged for backward compatibility.
 from __future__ import annotations
 
 import logging
-import math
 from typing import TYPE_CHECKING
 
 import pygame
@@ -33,7 +32,7 @@ logger = logging.getLogger(__name__)
 class EnvironmentRenderer:
     """
     Manages environmental visual effects and lighting systems.
-    
+
     Delegated by EnhancedRenderer to maintain clean separation of concerns.
     Handles:
     - Post-processing effects (vignette, warm overlay)
@@ -68,22 +67,22 @@ class EnvironmentRenderer:
 
     def _get_screen_overlays(self, screen_size: tuple[int, int]) -> tuple[pygame.Surface, pygame.Surface]:
         """Get cached full-screen overlay surfaces (PERF-001).
-        
+
         Returns:
             Tuple of (warm_overlay, vignette) surfaces, cached across frames.
         """
         if self._cached_screen_size != screen_size:
             self._invalidate_surface_cache()
             self._cached_screen_size = screen_size
-            
+
             # Pre-create warm overlay (subtle orange-gold tint)
             self._cached_warm_overlay = pygame.Surface(screen_size, pygame.SRCALPHA)
             self._cached_warm_overlay.fill(self.WARM_OVERLAY_COLOR)
-            
+
             # Pre-create vignette (darker edges)
             self._cached_vignette = pygame.Surface(screen_size, pygame.SRCALPHA)
             screen_w, screen_h = screen_size
-            edge_width = max(self.VIGNETTE_MIN_EDGE, screen_w // 8)
+            max(self.VIGNETTE_MIN_EDGE, screen_w // 8)
             edge_height = max(self.VIGNETTE_MIN_EDGE, screen_h // 8)
             for i in range(edge_height):
                 alpha = int(self.VIGNETTE_MAX_ALPHA * (1.0 - i / edge_height))
@@ -92,7 +91,7 @@ class EnvironmentRenderer:
                 alpha = int(self.VIGNETTE_MAX_ALPHA * (1.0 - i / edge_height))
                 y = screen_h - 1 - i
                 pygame.draw.line(self._cached_vignette, (0, 0, 0, alpha), (0, y), (screen_w, y))
-        
+
         return self._cached_warm_overlay, self._cached_vignette
 
     def _invalidate_surface_cache(self) -> None:
@@ -181,40 +180,40 @@ class EnvironmentRenderer:
     def set_time_of_day(self, tod: str) -> None:
         """
         Set time of day for color grading.
-        
+
         Args:
             tod: Time of day string - 'dawn'/'noon'/'dusk'/'night'
-        
+
         Raises:
             ValueError: If tod is not a valid time of day
         """
         if self._lighting_config is None:
             raise RuntimeError("Lighting config not initialized")
-            
+
         valid_times = ['dawn', 'noon', 'dusk', 'night']
         if tod not in valid_times:
             raise ValueError(f"Invalid time of day: '{tod}'. Must be one of {valid_times}")
-        
+
         self._lighting_config.time_of_day = tod
         logger.debug(f"Lighting: Time of day set to '{tod}'")
 
     def set_light_intensity(self, intensity: float) -> None:
         """
         Set global light intensity.
-        
+
         Args:
             intensity: Brightness level (0.0 = dark, 1.0 = normal, 2.0 = very bright)
         """
         if self._lighting_config is None:
             raise RuntimeError("Lighting config not initialized")
-            
+
         self._lighting_config.light_intensity = max(0.0, min(2.0, intensity))
         logger.debug(f"Lighting: Intensity set to {self._lighting_config.light_intensity:.2f}")
 
     def get_lighting_config(self):
         """
         Get current lighting configuration (read-only access).
-        
+
         Returns:
             TopDownLightingConfig: Current lighting configuration
         """

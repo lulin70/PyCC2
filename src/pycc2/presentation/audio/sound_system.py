@@ -184,7 +184,7 @@ class ProceduralSoundGenerator:
     def generate_smg(cls, duration_ms: int = 200) -> np.ndarray:
         """Rapid short pulses (like MG but shorter bursts)."""
         n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
-        t = np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
+        np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
         # Multiple rapid bursts
         burst_count = 4
         burst_len = n_samples // burst_count

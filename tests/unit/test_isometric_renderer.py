@@ -1,9 +1,8 @@
 """Unit tests for isometric rendering pipeline - Phase 2."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pygame
-import pytest
 
 # Initialize pygame before any surface operations
 pygame.init()
@@ -27,16 +26,11 @@ from pycc2.presentation.rendering.isometric_depth_sorter import (
     IsometricRenderable,
     RenderLayer,
     sort_for_isometric,
-    tile_to_renderable,
-    unit_to_renderable,
 )
 from pycc2.presentation.rendering.isometric_renderer import IsometricRenderer
 from pycc2.presentation.rendering.isometric_transform import (
     TILE_H,
     TILE_W,
-    depth_sort_key,
-    is_point_in_diamond,
-    world_to_isometric,
 )
 
 
@@ -81,8 +75,8 @@ class TestIsometricRendererTerrain:
     def test_terrain_tile_different_types(self):
         """Different terrain IDs produce different cached tiles."""
         renderer = IsometricRenderer()
-        tile0 = renderer._get_terrain_tile(0)  # grass
-        tile6 = renderer._get_terrain_tile(6)  # water
+        renderer._get_terrain_tile(0)  # grass
+        renderer._get_terrain_tile(6)  # water
         assert 0 in renderer._tile_cache
         assert 6 in renderer._tile_cache
 

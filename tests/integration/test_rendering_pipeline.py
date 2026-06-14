@@ -29,7 +29,6 @@ from pycc2.domain.value_objects.vec2 import Vec2
 from pycc2.presentation.rendering.camera import Camera
 from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
-from pycc2.services.event_bus import EventBus
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────

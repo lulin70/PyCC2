@@ -10,11 +10,9 @@ from __future__ import annotations
 
 import pytest
 
-from pycc2.domain.ai.difficulty_system import DifficultyConfig, DifficultyLevel, DifficultySystem
+from pycc2.domain.ai.difficulty_system import DifficultyConfig, DifficultyLevel
 from pycc2.domain.systems.campaign_four_layer import (
     GrandCampaignDefinition,
-    OperationDefinition,
-    SectorCampaignDefinition,
     create_market_garden_campaign,
 )
 from pycc2.domain.systems.game_settings import (

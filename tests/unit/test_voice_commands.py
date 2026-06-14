@@ -4,7 +4,6 @@ from __future__ import annotations
 from unittest.mock import patch
 
 import numpy as np
-import pytest
 
 from pycc2.domain.entities.unit import Faction
 from pycc2.infrastructure.audio.voice_commands import (

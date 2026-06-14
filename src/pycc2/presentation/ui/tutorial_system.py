@@ -21,9 +21,9 @@ class TutorialState:
     dismissed: bool = False
     show_hints: bool = True
     hint_cooldown: int = 0
-    
+
 class TutorialOverlay:
-    
+
     STEPS = {
         TutorialStep.WELCOME: {
             "title": "Welcome to PyCC2",
@@ -90,7 +90,7 @@ class TutorialOverlay:
             "highlight_keys": [],
         },
     }
-    
+
     def __init__(self, display_config):
         self.state = TutorialState()
         self._display_config = display_config
@@ -111,7 +111,7 @@ class TutorialOverlay:
         self._overlay: pygame.Surface | None = None
         self._panel_surf: pygame.Surface | None = None
         self._cached_size: tuple[int, int] = (0, 0)
-        
+
     def _init_fonts(self) -> None:
         import pygame
         dc = self._display_config
@@ -130,23 +130,23 @@ class TutorialOverlay:
     @property
     def visible(self) -> bool:
         return self._visible
-    
+
     def show(self, step: TutorialStep | None = None) -> None:
         self._visible = True
         if step:
             self.state.step = step
         self._target_alpha = 0.9
         self._alpha = 0.0
-        
+
     def hide(self) -> None:
         self._target_alpha = 0.0
-        
+
     def toggle(self) -> None:
         if self._visible:
             self.hide()
         else:
             self.show()
-            
+
     def advance_step(self) -> bool:
         steps = list(TutorialStep)
         current_idx = steps.index(self.state.step)
@@ -158,7 +158,7 @@ class TutorialOverlay:
         self.state.step = TutorialStep.COMPLETE
         self.hide()
         return False
-    
+
     def handle_input(self, event) -> str | None:
         import pygame
         if event.type == pygame.KEYDOWN:
@@ -175,35 +175,34 @@ class TutorialOverlay:
                     self.advance_step()
                     return 'advanced'
         return None
-    
+
     def update(self) -> None:
         if abs(self._alpha - self._target_alpha) > 0.01:
             speed = 0.08 if self._target_alpha > self._alpha else 0.12
             self._alpha += (self._target_alpha - self._alpha) * speed
         else:
             self._alpha = self._target_alpha
-        
+
         if self.state.step == TutorialStep.COMPLETE and self._target_alpha > 0.5:
             if self._hint_timer > 180:
                 self.hide()
                 self._hint_timer = 0
         self._hint_timer += 1
-        
+
         if self.state.hint_cooldown > 0:
             self.state.hint_cooldown -= 1
-    
+
     def render(self, screen) -> None:
         if self._alpha < 0.01:
             return
-            
+
         import pygame
-        dc = self._display_config
         sw, sh = screen.get_size()
-        
+
         content = self.STEPS.get(self.state.step)
         if not content:
             return
-        
+
         # Lazy-init fonts on first render
         if self._font_lg is None:
             self._init_fonts()
@@ -215,18 +214,18 @@ class TutorialOverlay:
         if self._alpha < 0.99:
             self._overlay.fill((0, 0, 0, int(self._alpha * 180)))
             screen.blit(self._overlay, (0, 0))
-        
+
         pw, ph = min(550, int(sw * 0.6)), min(380, int(sh * 0.65))
         px, py = (sw - pw) // 2, (sh - ph) // 2 - 30
-        
+
         self._panel_surf.fill((20, 24, 36, int(self._alpha * 240)))
         pygame.draw.rect(self._panel_surf, (80, 100, 140, int(self._alpha * 200)), 
                         (0, 0, pw, ph), 2, border_radius=12)
         screen.blit(self._panel_surf, (px, py))
-        
+
         title_surf = self._font_lg.render(content["title"], True, (220, 230, 255))
         screen.blit(title_surf, (px + (pw - title_surf.get_width()) // 2, py + 18))
-        
+
         steps = list(TutorialStep)
         current_idx = steps.index(self.state.step)
         dot_y = py + 52
@@ -240,7 +239,7 @@ class TutorialOverlay:
                 pygame.draw.circle(screen, (150, 210, 255), (dot_start_x + i * dot_spacing, dot_y), 7, 2)
             else:
                 pygame.draw.circle(screen, color, (dot_start_x + i * dot_spacing, dot_y), 4)
-        
+
         text_y = py + 72
         for line in content["lines"]:
             if line.startswith("  "):
@@ -249,11 +248,11 @@ class TutorialOverlay:
                 color = (255, 220, 120)
             else:
                 color = (210, 215, 225)
-            
+
             text_surf = self._font_md.render(line, True, color)
             screen.blit(text_surf, (px + 25, text_y))
             text_y += 22
-        
+
         footer_y = py + ph - 35
         if self.state.step != TutorialStep.COMPLETE:
             footer = self._font_sm.render("[ SPACE / Click to continue ]  [ ESC to close ]", 
@@ -262,13 +261,13 @@ class TutorialOverlay:
             footer = self._font_sm.render("Tutorial complete! Press F1 to review anytime.",
                                    True, (140, 200, 140))
         screen.blit(footer, (px + (pw - footer.get_width()) // 2, footer_y))
-    
+
     def show_contextual_hint(self, text: str, position: tuple[float, float], 
                             lifetime: int = 120) -> None:
         self._current_hint = text
         self._hint_position = position
         self.state.hint_cooldown = lifetime
-        
+
     def render_hint(self, screen) -> None:
         if self.state.hint_cooldown <= 0 or not self._current_hint:
             return

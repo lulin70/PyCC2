@@ -11,7 +11,6 @@ import os
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
-from unittest.mock import Mock
 
 import numpy as np
 import pytest
@@ -144,7 +143,6 @@ class TestMoveCommand:
 
         # Simulate the move command flow without triggering the logger bug
         # by directly calling the callback
-        from pycc2.domain.value_objects.vec2 import Vec2
         world_vec = interaction_controller.camera.screen_to_world((400.0, 300.0))
         interaction_controller._on_move_command({"ally_1"}, world_vec)
 

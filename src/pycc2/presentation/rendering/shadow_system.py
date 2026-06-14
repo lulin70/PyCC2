@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class ShadowRenderer:
     """
     Renders consistent SE-direction shadows for all game objects.
-    
+
     Light source direction: Northwest → shadows point Southeast.
     Uses semi-transparent ellipses with caching for performance.
     """
@@ -34,10 +34,10 @@ class ShadowRenderer:
     # Light source direction: Northwest → shadows point Southeast
     SHADOW_OFFSET_X = 3   # pixels right per 24px unit
     SHADOW_OFFSET_Y = 2   # pixels down per 24px unit
-    
+
     # Base shadow color (near-black with alpha) - DARKER for visibility
     DEFAULT_SHADOW_COLOR = (5, 5, 8)
-    
+
     # Common shadow sizes to pre-render at init time
     _COMMON_SIZES = [
         (6, 3),      # Infantry
@@ -67,27 +67,27 @@ class ShadowRenderer:
     def _get_or_create_shadow(self, width: int, height: int, alpha: int) -> pygame.Surface:
         """
         Get cached shadow surface or create new one.
-        
+
         Args:
             width: Shadow ellipse width
             height: Shadow ellipse height
             alpha: Transparency level (0-255)
-            
+
         Returns:
             Cached pygame.Surface with shadow ellipse
         """
         cache_key = (width, height, alpha)
-        
+
         if cache_key not in self._shadow_cache:
             # Create new shadow surface with SRCALPHA for transparency
             shadow_surf = pygame.Surface((width, height), pygame.SRCALPHA)
             shadow_color = (*self.DEFAULT_SHADOW_COLOR, alpha)
-            
+
             # Draw filled ellipse
             pygame.draw.ellipse(shadow_surf, shadow_color, (0, 0, width, height))
-            
+
             self._shadow_cache[cache_key] = shadow_surf
-            
+
         return self._shadow_cache[cache_key]
 
     def render_shadow(
@@ -100,7 +100,7 @@ class ShadowRenderer:
     ) -> None:
         """
         Render a SE-pointing shadow ellipse beneath an object.
-        
+
         Args:
             surface: Target surface to draw on
             obj_rect: (x, y, width, height) of the object casting shadow
@@ -109,7 +109,7 @@ class ShadowRenderer:
             is_hidden: If True, reduce shadow alpha by 50% (sneaking units)
         """
         x, y, w, h = obj_rect
-        
+
         # Calculate shadow parameters based on object type
         if obj_height == 1:
             # Infantry: small subtle shadow
@@ -126,17 +126,17 @@ class ShadowRenderer:
             shadow_w, shadow_h = max(24, int(w * 0.9)), 6
             offset_x, offset_y = 6, 3
             base_alpha = 110  # INCREASED from 70 for visibility
-        
+
         # Reduce alpha for hidden/sneaking objects
         alpha = base_alpha // 2 if is_hidden else base_alpha
-        
+
         # Get or create shadow surface
         shadow_surf = self._get_or_create_shadow(shadow_w, shadow_h, alpha)
-        
+
         # Calculate shadow position (offset southeast from object base)
         shadow_x = x + offset_x
         shadow_y = y + h + offset_y - shadow_h // 2
-        
+
         # Blit shadow to target surface
         surface.blit(shadow_surf, (shadow_x, shadow_y))
 
@@ -150,7 +150,7 @@ class ShadowRenderer:
     ) -> None:
         """
         Render shadow for infantry/unit.
-        
+
         Args:
             surface: Target surface
             x: Unit X position
@@ -162,13 +162,13 @@ class ShadowRenderer:
         shadow_w, shadow_h = 6, 3
         offset_x, offset_y = 2, 1
         alpha = 65 if is_hidden else 130  # INCREASED from 40/80
-        
+
         shadow_surf = self._get_or_create_shadow(shadow_w, shadow_h, alpha)
         shadow_x = x + offset_x
         shadow_y = y + offset_y
-        
+
         surface.blit(shadow_surf, (shadow_x, shadow_y))
-        
+
         logger.debug("Rendered unit shadow at (%d, %d) [type=%s, hidden=%s]", 
                     shadow_x, shadow_y, unit_type, is_hidden)
 
@@ -183,7 +183,7 @@ class ShadowRenderer:
     ) -> None:
         """
         Render shadow for tank/vehicle.
-        
+
         Args:
             surface: Target surface
             x: Vehicle X position
@@ -197,13 +197,13 @@ class ShadowRenderer:
         shadow_h = max(4, 4)
         offset_x, offset_y = 4, 2
         alpha = 75 if is_hidden else 150  # INCREASED from 50/100
-        
+
         shadow_surf = self._get_or_create_shadow(shadow_w, shadow_h, alpha)
         shadow_x = x + offset_x
         shadow_y = y + h + offset_y - shadow_h // 2
-        
+
         surface.blit(shadow_surf, (shadow_x, shadow_y))
-        
+
         logger.debug("Rendered vehicle shadow at (%d, %d) [size=%dx%d]", 
                     shadow_x, shadow_y, shadow_w, shadow_h)
 

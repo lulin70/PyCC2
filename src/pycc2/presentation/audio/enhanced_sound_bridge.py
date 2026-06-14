@@ -7,8 +7,7 @@ Provides unified interface for combat event sound triggering.
 from __future__ import annotations
 
 import logging
-import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
 from typing import Callable
@@ -156,7 +155,7 @@ DEFAULT_SOUND_MAPPINGS: list[SoundFileMapping] = [
 class EnhancedSoundSystem:
     """
     Enhanced sound system that combines file-based and procedural sounds.
-    
+
     Features:
     - Priority: Real WAV files > Procedural generation > Silence
     - 3D positional audio support (future)
@@ -183,7 +182,7 @@ class EnhancedSoundSystem:
     def initialize(self) -> bool:
         """
         Initialize the audio system.
-        
+
         Returns:
             True if initialization successful
         """
@@ -194,12 +193,12 @@ class EnhancedSoundSystem:
             mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
             self._initialized = True
             logger.info("Initialized with real file support")
-            
+
             # Pre-load available sound files
             self._preload_sounds()
-            
+
             return True
-            
+
         except Exception as e:
             logger.warning("Init failed: %s", e)
             try:
@@ -215,7 +214,7 @@ class EnhancedSoundSystem:
         """Pre-load all mapped sound files into cache."""
         for event, mapping in self._event_mappings.items():
             full_path = self._base_path / mapping.file_path
-            
+
             if full_path.exists():
                 try:
                     sound = mixer.Sound(str(full_path))
@@ -234,7 +233,7 @@ class EnhancedSoundSystem:
     def register_sound_mapping(self, mapping: SoundFileMapping) -> None:
         """Register a new sound file mapping."""
         self._event_mappings[mapping.event] = mapping
-        
+
         # Try to load immediately if initialized
         if self._initialized:
             full_path = self._base_path / mapping.file_path
@@ -254,12 +253,12 @@ class EnhancedSoundSystem:
     ) -> bool:
         """
         Play sound for a combat event.
-        
+
         Args:
             event: Combat sound event to play
             volume: Optional volume override (0.0-1.0)
             position: Optional 3D position for spatial audio (x, y, z)
-            
+
         Returns:
             True if sound was played successfully
         """
@@ -302,10 +301,10 @@ class EnhancedSoundSystem:
     ) -> mixer.Sound | None:
         """Attempt to load sound from file path."""
         full_path = self._base_path / mapping.file_path
-        
+
         if not full_path.exists():
             return None
-            
+
         try:
             sound = mixer.Sound(str(full_path))
             self._cache_sound(mapping.event.name, sound)
@@ -320,9 +319,7 @@ class EnhancedSoundSystem:
     ) -> mixer.Sound | None:
         """Generate CC2-specific combat sounds procedurally."""
         try:
-            import numpy as np
 
-            sample_rate = 44100
             generators = {
                 CombatSoundEvent.TANK_CANNON_FIRE: self._gen_tank_cannon_fire,
                 CombatSoundEvent.AT_ROCKET_FIRE: self._gen_at_rocket_fire,
@@ -388,7 +385,7 @@ class EnhancedSoundSystem:
 
         duration_ms = 1200
         samples = int(44100 * duration_ms / 1000)
-        t = np.linspace(0, duration_ms / 1000, samples)
+        np.linspace(0, duration_ms / 1000, samples)
 
         launch_duration = int(samples * 0.4)
         explosion_start = int(samples * 0.35)
@@ -428,7 +425,7 @@ class EnhancedSoundSystem:
 
         duration_ms = 1500
         samples = int(44100 * duration_ms / 1000)
-        t = np.linspace(0, duration_ms / 1000, samples)
+        np.linspace(0, duration_ms / 1000, samples)
 
         thump_samples = int(0.05 * 44100)
         whistle_start = int(0.08 * 44100)
@@ -724,7 +721,7 @@ class EnhancedSoundSystem:
         import numpy as np
 
         samples = int(44100 * duration_ms / 1000)
-        t = np.linspace(0, duration_ms / 1000, samples)
+        np.linspace(0, duration_ms / 1000, samples)
         signal = np.zeros(samples)
 
         burst_count = int(duration_ms / 120)
@@ -765,9 +762,7 @@ class EnhancedSoundSystem:
         try:
             from pycc2.presentation.audio.sound_system import (
                 ProceduralSoundGenerator,
-                SoundType,
             )
-            import numpy as np
 
             generators = {
                 CombatSoundEvent.RIFLE_FIRE: lambda: ProceduralSoundGenerator.generate_rifle_shot(),
@@ -786,10 +781,10 @@ class EnhancedSoundSystem:
                 sound = mixer.Sound(array=raw)
                 self._cache_sound(event.name, sound)
                 return sound
-                
+
         except Exception as e:
             logger.warning("Procedural fallback failed for %s: %s", event.name, e)
-            
+
         return None
 
     # Convenience methods for common combat events
@@ -874,7 +869,6 @@ class EnhancedSoundSystem:
             return False
 
         try:
-            import numpy as np
             raw_audio = self._gen_suppression_fire(duration_ms)
             if raw_audio is not None:
                 sound = mixer.Sound(buffer=raw_audio.tobytes())
@@ -921,8 +915,8 @@ _enhanced_sound_instance: EnhancedSoundSystem | None = None
 def get_enhanced_sound_system() -> EnhancedSoundSystem:
     """Get or create the global enhanced sound system instance."""
     global _enhanced_sound_instance
-    
+
     if _enhanced_sound_instance is None:
         _enhanced_sound_instance = EnhancedSoundSystem()
-        
+
     return _enhanced_sound_instance

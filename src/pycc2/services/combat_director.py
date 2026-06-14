@@ -112,7 +112,7 @@ class CombatDirector:
             """Defend command: Reduces mobility, improves accuracy."""
             import logging
             logger = logging.getLogger(__name__)
-            
+
             for uid in unit_ids:
                 unit = next((u for u in units if u.id == uid), None)
                 if unit and hasattr(unit, 'set_movement_mode'):
@@ -132,7 +132,7 @@ class CombatDirector:
             """Fast Move command: Moves faster but more visible to enemies."""
             import logging
             logger = logging.getLogger(__name__)
-            
+
             for uid in unit_ids:
                 unit = next((u for u in units if u.id == uid), None)
                 if unit and hasattr(unit, 'set_movement_mode'):
@@ -148,7 +148,7 @@ class CombatDirector:
             """Sneak Move command: Moves slower but harder to detect."""
             import logging
             logger = logging.getLogger(__name__)
-            
+
             for uid in unit_ids:
                 unit = next((u for u in units if u.id == uid), None)
                 if unit and hasattr(unit, 'set_movement_mode') and getattr(unit, 'can_sneak', False):
@@ -166,7 +166,7 @@ class CombatDirector:
             """Hide command: Similar to defend but with concealment bonus."""
             import logging
             logger = logging.getLogger(__name__)
-            
+
             for uid in unit_ids:
                 unit = next((u for u in units if u.id == uid), None)
                 if unit and hasattr(unit, 'set_movement_mode') and getattr(unit, 'can_hide', False):
@@ -183,26 +183,26 @@ class CombatDirector:
             """Deploy smoke grenade at unit position."""
             import logging
             logger = logging.getLogger(__name__)
-            
+
             for uid in unit_ids:
                 unit = next((u for u in units if u.id == uid), None)
-                
+
                 # Verify unit can use smoke
                 if not unit:
                     continue
                 if not getattr(unit, 'can_use_smoke', False):
                     logger.warning(f"[SMOKE] {unit.name or uid} cannot deploy smoke (no capability)")
                     continue
-                
+
                 # Check ammo
                 if hasattr(unit, 'weapon') and unit.weapon:
                     # Consume smoke ammo (if tracked separately)
                     # For now, just verify unit has weapon system
-                    
+
                     # Deploy smoke effect
                     try:
                         from pycc2.domain.systems.ammo_type_system import AmmoTypeSystem
-                        
+
                         # Check if AmmoTypeSystem has smoke deployment
                         if hasattr(AmmoTypeSystem, 'deploy_smoke'):
                             success = AmmoTypeSystem.deploy_smoke(unit, self._game_map)
@@ -212,7 +212,7 @@ class CombatDirector:
                     except Exception as e:
                         logger.warning(f"[SMOKE] Error deploying smoke: {e}")
                         # Continue with visual effect even if system call fails
-                    
+
                     # Trigger visual smoke screen effect
                     self._pending_effects.append(
                         {
@@ -221,12 +221,12 @@ class CombatDirector:
                             "radius": 144.0,
                         }
                     )
-                    
+
                     # Apply smoke to concealment system if available
                     if hasattr(unit, 'combat_state') and unit.combat_state:
                         unit.combat_state.concealment.in_smoke = True
                         # Smoke fades after some time (handled by combat_state turn processing)
-                    
+
                     logger.info(f"[SMOKE] {unit.name or uid} deployed smoke grenade")
                 else:
                     logger.warning(f"[SMOKE] {unit.name or uid} has no weapon system")
@@ -520,7 +520,7 @@ class CombatDirector:
                 ratio = move_pixels / dist
                 new_x = current_vec.x + diff_x * ratio
                 new_y = current_vec.y + diff_y * ratio
-                new_pixel_pos = Vec2(new_x, new_y)
+                Vec2(new_x, new_y)
                 tile_x = int(new_x // ts)
                 tile_y = int(new_y // ts)
                 unit.position.tile_coord = TileCoord(tile_x, tile_y)

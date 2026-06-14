@@ -67,7 +67,7 @@ class InfantryRenderer:
     # CC2 步兵基础调色板 (从原版截图分析)
     ALLIES_BASE_COLOR = (98, 115, 82)      # 盟军：橄榄绿
     AXIS_BASE_COLOR = (119, 111, 95)       # 轴心国：灰绿色
-    
+
     # 身体部位颜色偏移
     SKIN_TONE = (210, 175, 145)           # 肤色
     HELMET_COLOR_ALLIES = (72, 86, 63)    # 盔甲绿（盟军）
@@ -183,11 +183,11 @@ class InfantryRenderer:
         # 添加随机血迹像素
         import random
         random.seed(42)  # 固定种子保证一致性
-        
+
         for _ in range(5):  # 5个血迹点
             x = random.randint(2, w - 3)
             y = random.randint(4, h - 2)
-            
+
             # 暗红色半透明圆点
             for dx in range(-1, 2):
                 for dy in range(-1, 2):
@@ -326,16 +326,16 @@ class InfantryRenderer:
     ) -> None:
         """绘制行走/跑步状态的腿部动画。"""
         cx, cy = params['body_offset']
-        
+
         # 简单的腿部摆动动画
         swing = math.sin(frame_offset * 0.5) * 3  # 摆动幅度
-        
+
         leg_color = tuple(int(c * 0.9) for c in base_color)
-        
+
         # 左腿
         left_leg_x = cx - 3 + int(swing)
         pygame.draw.rect(surface, leg_color, (left_leg_x, cy + 7, 2, 6))
-        
+
         # 右腿（相位差180度）
         right_leg_x = cx + 1 - int(swing)
         pygame.draw.rect(surface, leg_color, (right_leg_x, cy + 7, 2, 6))
@@ -365,7 +365,7 @@ class InfantryRenderer:
         """
         cx, cy = params['body_offset']
         fx, fy = params['facing']
-        
+
         # 武器基础位置（右手位置）
         weapon_x = cx + int(fx * 6)
         weapon_y = cy + int(fy * 2)
@@ -383,7 +383,7 @@ class InfantryRenderer:
             stock_y = weapon_y - int(fy * 1)
             pygame.draw.line(surface, self.WOOD_STOCK,
                            (weapon_x, weapon_y), (stock_x, stock_y), 2)
-                           
+
         elif weapon_type == 'mg':
             # 机枪：更粗更长
             length = 16
@@ -397,7 +397,7 @@ class InfantryRenderer:
                            (weapon_x - 2, bipod_y), (weapon_x - 4, bipod_y + 4), 1)
             pygame.draw.line(surface, self.WEAPON_METAL,
                            (weapon_x + 2, bipod_y), (weapon_x + 4, bipod_y + 4), 1)
-                           
+
         elif weapon_type == 'at':
             # 反坦克火箭：短粗 + 圆筒发射器
             tube_length = 8
@@ -408,7 +408,7 @@ class InfantryRenderer:
             # 护木
             pygame.draw.rect(surface, self.WOOD_STOCK,
                            (weapon_x - 2, weapon_y - 1, 4, 3))
-                           
+
         elif weapon_type == 'smg':
             # 冲锋枪：中等长度
             length = 10
@@ -421,7 +421,7 @@ class InfantryRenderer:
             mag_y = weapon_y + 2
             pygame.draw.rect(surface, self.WEAPON_METAL,
                            (mag_x, mag_y, 2, 4))
-                           
+
         elif weapon_type == 'sniper':
             # 狙击枪：长 + 瞄准镜
             length = 16
@@ -503,7 +503,7 @@ class InfantryRenderer:
             is_dead: 是否完全死亡
         """
         cx, cy = params['body_offset']
-        
+
         # 死亡时颜色变暗
         darkness = 0.5 if is_dead else 0.7
         body_color = tuple(int(c * darkness) for c in base_color)
@@ -517,7 +517,7 @@ class InfantryRenderer:
                 (cx - 6, cy + 5),
             ]
             pygame.draw.polygon(surface, body_color, points)
-            
+
             # 武器掉落在一旁
             weapon_color = (100, 100, 98)
             pygame.draw.line(surface, weapon_color, 
@@ -525,14 +525,14 @@ class InfantryRenderer:
         else:
             # 正在倒下：倾斜姿态
             tilt_angle = 30  # 倾斜角度
-            
+
             # 简化表示：用旋转的矩形
             if self._body_surf is None:
                 self._body_surf = pygame.Surface((10, 6), pygame.SRCALPHA)
             self._body_surf.fill((0, 0, 0, 0))
             self._body_surf.fill(body_color)
             rotated = pygame.transform.rotate(self._body_surf, tilt_angle)
-            
+
             rot_rect = rotated.get_rect(center=(cx, cy))
             surface.blit(rotated, rot_rect.topleft)
 
@@ -571,16 +571,16 @@ class InfantryRenderer:
         """
         states = list(InfantryAnimationState) if include_all_states else \
                  [InfantryAnimationState.IDLE, InfantryAnimationState.WALKING]
-        
+
         animation_sheet = {}
-        
+
         for state in states:
             direction_sprites = []
             for direction in Direction:
                 # 计算帧偏移（用于行走/跑步动画）
                 frame_offset = 0 if state == InfantryAnimationState.IDLE else \
                               list(Direction).index(direction) * 2
-                
+
                 sprite = self.create_infantry_sprite(
                     infantry_type=infantry_type,
                     faction=faction,
@@ -589,9 +589,9 @@ class InfantryRenderer:
                     frame_offset=frame_offset
                 )
                 direction_sprites.append(sprite)
-            
+
             animation_sheet[state] = direction_sprites
-        
+
         return animation_sheet
 
 
@@ -632,7 +632,7 @@ class InfantryAnimator:
         if self.current_state == InfantryAnimationState.SHOOTING:
             if self.state_timer > 300:  # 射击持续300ms
                 self.transition_to(InfantryAnimationState.IDLE)
-                
+
         elif self.current_state == InfantryAnimationState.DYING:
             if self.state_timer > 1000:  # 死亡动画1秒后变为DEAD
                 self.transition_to(InfantryAnimationState.DEAD)

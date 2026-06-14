@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from pycc2.domain.ai.retreat_ai import RetreatDecisionAI
 from pycc2.domain.ai.tactic_intent import TacticType

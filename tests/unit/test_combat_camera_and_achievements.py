@@ -2,7 +2,6 @@
 Tests for Combat Camera Controller.
 """
 
-import pytest
 from pycc2.presentation.rendering.combat_camera_controller import CombatCameraController
 from pycc2.presentation.rendering.camera_effects import EffectStack, EffectType
 

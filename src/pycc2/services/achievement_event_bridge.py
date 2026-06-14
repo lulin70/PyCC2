@@ -10,11 +10,10 @@ Integration points:
 - AchievementEventBridge maps events to achievement progress
 """
 
-from typing import Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from pycc2.domain.systems.achievement_system import (
     AchievementManager,
-    AchievementCategory,
 )
 
 if TYPE_CHECKING:

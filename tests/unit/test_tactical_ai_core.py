@@ -15,17 +15,14 @@ Covers:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from unittest.mock import MagicMock
 
-import pytest
 
 from pycc2.domain.ai.tactical_ai import (
     FlankSide,
     FlankingAI,
     InfantryTankCoordAI,
     SuppressionAI,
-    TacticalAIBase,
     TacticalContext,
     TacticalOrchestrator,
     VictoryPointAI,
@@ -34,7 +31,6 @@ from pycc2.domain.ai.tactical_ai import (
     _threat_score,
 )
 from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
-from pycc2.domain.ai.blackboard import Blackboard
 from pycc2.domain.ai.difficulty_system import DifficultyConfig, DifficultyLevel
 from pycc2.domain.entities.unit import Faction, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
@@ -355,7 +351,7 @@ class TestFlankingAI:
         )
         intents = ai.execute(ctx)
         suppress_intents = [i for i in intents if i.tactic_type == TacticType.SUPPRESS_FIRE]
-        flank_intents = [i for i in intents if i.tactic_type == TacticType.FLANKING]
+        [i for i in intents if i.tactic_type == TacticType.FLANKING]
         assert len(suppress_intents) >= 1, (
             f"With 6 units, FlankingAI should produce at least 1 suppress intent for pinning force, "
             f"got {len(suppress_intents)}"
@@ -451,7 +447,7 @@ class TestSuppressionAI:
         assert len(high_priority) > 0
 
     def test_should_continue_suppression_panicked_target(self):
-        ai = SuppressionAI()
+        SuppressionAI()
         mg = _make_mock_unit(uid="mg1", unit_type=UnitType.MACHINE_GUN_SQUAD)
         target = _make_mock_unit(uid="e1", faction=Faction.AXIS, morale_value=10)
         ctx = _make_context(friendlies=[mg], enemies=[target])
@@ -459,7 +455,7 @@ class TestSuppressionAI:
         assert result is False  # Target panicked, switch
 
     def test_should_continue_suppression_pinned_target(self):
-        ai = SuppressionAI()
+        SuppressionAI()
         mg = _make_mock_unit(uid="mg1", unit_type=UnitType.MACHINE_GUN_SQUAD)
         target = _make_mock_unit(uid="e1", faction=Faction.AXIS, morale_value=50)
         target.suppression_state = MagicMock()

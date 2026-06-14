@@ -135,7 +135,7 @@ class GrenadeSystem:
         # Optional: check LOS (grenades can arc over some obstacles)
         if game_map is not None:
             from pycc2.domain.value_objects.tile_coord import TileCoord
-            start = TileCoord(
+            TileCoord(
                 int(unit.position_component.x),
                 int(unit.position_component.y),
             )

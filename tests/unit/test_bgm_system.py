@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from pycc2.infrastructure.audio.bgm_system import (
     SAMPLE_RATE,

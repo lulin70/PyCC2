@@ -32,9 +32,8 @@ from __future__ import annotations
 
 import logging
 import math
-import random
 from pycc2.presentation.rendering.surface_pool import SurfacePool
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pygame
 
@@ -44,16 +43,9 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.presentation.rendering.camera import Camera
-    from pycc2.domain.systems.enhanced_tile import EnhancedTile
 
 # Import autotile system for cross-tile visual continuity
 from pycc2.presentation.rendering.autotile_system import (
-    get_neighbor_bitmap,
-    get_continuity_variant,
-    detect_building_clusters,
-    get_building_cluster_info,
-    is_autotile_terrain,
-    get_edge_transition_width,
     AutotileCache,
 )
 from pycc2.presentation.rendering.camera import ProjectionMode
@@ -74,13 +66,10 @@ from pycc2.presentation.rendering.building_renderer import BuildingRenderer
 from pycc2.presentation.rendering.decoration_renderer import DecorationRenderer
 from pycc2.presentation.rendering.terrain_tile_cache import (
     TerrainTileCache,
-    CC2_TERRAIN_PALETTE,
-    TERRAIN_PALETTE_MAP,
 )
 from pycc2.presentation.rendering.palette_generator import PaletteGenerator
 from pycc2.presentation.rendering.procedural_texture_generator import ProceduralTextureGenerator
 from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
-from pycc2.presentation.rendering.rendering_utils import draw_dashed_line
 from pycc2.presentation.rendering.render_context import RenderContext
 from pycc2.presentation.ui.theme import ThemeManager
 
@@ -93,7 +82,6 @@ from pycc2.presentation.rendering.shell_casing_system import ShellCasingSystem
 from pycc2.presentation.rendering.flash_effect_system import FlashEffectSystem
 from pycc2.presentation.rendering.weather_system import WeatherSystem
 
-from dataclasses import dataclass
 
 
 # ============================================================
@@ -221,17 +209,17 @@ class EnhancedRenderer:
         self._shadow_rendering_sys = ShadowRenderingSystem(self._shadow_renderer, self.TILE_SIZE)  # Unified shadow coordinator
         self._attack_line_system = attack_line_system  # Dependency injection for attack line system
         self._particle_system = TopDownParticleSystem()  # Top-down particle effects system
-        
+
         # Top-down lighting system configuration
         self._lighting_config = lighting_config or TopDownLightingConfig()
-        
+
         # Initialize lighting effects system (time-of-day, CC2 grading, dynamic lights)
         self._lighting_effects_sys = LightingEffectsSystem(
             self._lighting_config, 
             self.TILE_SIZE,
             max_dynamic_lights=8
         )
-        
+
         # Initialize terrain rendering system (extracted from EnhancedRenderer)
         self._terrain_rendering_sys = TerrainRenderingSystem(self, self.TILE_SIZE)
 
@@ -318,7 +306,7 @@ class EnhancedRenderer:
         # Cached full-screen overlay surfaces (avoid per-frame allocation)
         self._suppression_overlay_cache: pygame.Surface | None = None
         self._flash_surf_cache: pygame.Surface | None = None
-    
+
     def initialize(self, screen: pygame.Surface) -> None:
         """Initialize renderer with display surface."""
         self._screen = screen
@@ -364,7 +352,7 @@ class EnhancedRenderer:
             offscreen=self._offscreen,
             surface_pool_fn=self._get_pooled_surface,
         )
-        
+
         self._environment.set_dependencies(
             lighting_effects_sys=self._lighting_effects_sys,
             lighting_config=self._lighting_config,
@@ -409,10 +397,10 @@ class EnhancedRenderer:
     def set_time_of_day(self, tod: str) -> None:
         """
         Set time of day for color grading.
-        
+
         Args:
             tod: Time of day string - 'dawn'/'noon'/'dusk'/'night'
-        
+
         Raises:
             ValueError: If tod is not a valid time of day
         """
@@ -421,7 +409,7 @@ class EnhancedRenderer:
     def set_light_intensity(self, intensity: float) -> None:
         """
         Set global light intensity.
-        
+
         Args:
             intensity: Brightness level (0.0 = dark, 1.0 = normal, 2.0 = very bright)
         """
@@ -430,7 +418,7 @@ class EnhancedRenderer:
     def get_lighting_config(self) -> TopDownLightingConfig:
         """
         Get current lighting configuration (read-only access).
-        
+
         Returns:
             TopDownLightingConfig: Current lighting configuration
         """
@@ -943,7 +931,7 @@ class EnhancedRenderer:
     def _draw_simple_terrain(self, game_map: GameMap, camera: Camera) -> None:
         """Delegate to TerrainRenderingSystem for simple solid-color terrain."""
         self._terrain_rendering_sys.draw_simple_terrain(game_map, camera)
-    
+
     def _get_cached_texture(self, terrain_id: int, variation: int) -> pygame.Surface:
         """Get or generate cached terrain texture."""
         key = (terrain_id, variation)
@@ -952,14 +940,14 @@ class EnhancedRenderer:
                 terrain_id, variation, self._palette_gen
             )
         return self._texture_cache[key]
-    
+
     def _get_cached_sprite(self, deco_type_name: str, variant: int = 0) -> pygame.Surface:
         """Get or generate cached decoration sprite."""
         key = f"{deco_type_name}_{variant}"
         if key not in self._sprite_cache:
             self._sprite_cache[key] = SpriteGenerator.generate_sprite(deco_type_name, variant)
         return self._sprite_cache[key]
-    
+
     def _draw_enhanced_terrain(self, game_map: GameMap, camera: Camera, debug_mode: bool = False) -> None:
         """Delegate to TerrainRenderer for enhanced terrain drawing."""
         self._terrain_renderer.draw_enhanced_terrain(game_map, camera, debug_mode)
@@ -1124,7 +1112,7 @@ class EnhancedRenderer:
                         (sx, sy + tile_screen_size),
                         (sx + tile_screen_size, sy + tile_screen_size), 1
                     )
-    
+
     def _render_dynamic_shadows(self, game_map: GameMap, camera: Camera) -> None:
         """Render dynamic time-of-day shadows for buildings and trees."""
         shadow_sys = self._dynamic_shadow_sys
@@ -1208,58 +1196,58 @@ class EnhancedRenderer:
     def _render_dynamic_lights(self) -> None:
         """Delegate to EnvironmentRenderer for dynamic light rendering (legacy API)."""
         self._environment._render_dynamic_lights()
-    
+
     def _draw_decorations(self, game_map: GameMap, camera: Camera) -> None:
         """Draw decoration sprites on map."""
         if self._screen is None or self._offscreen is None:
             return
-        
+
         bounds = camera.view_bounds
         start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
         end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
         start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
         end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
-        
+
         for ty in range(start_y, end_y):
             for tx in range(start_x, end_x):
                 enhanced_tile = self._get_enhanced_tile(game_map, tx, ty)
-                
+
                 if not enhanced_tile or not enhanced_tile.decorations:
                     continue
-                
+
                 for deco in enhanced_tile.decorations:
                     # Get sprite
                     sprite = self._get_cached_sprite(
                         deco.decoration_type.name,
                         deco.variant
                     )
-                    
+
                     # Calculate position with sub-tile offset
                     base_x = tx * self.TILE_SIZE
                     base_y = ty * self.TILE_SIZE
-                    
+
                     offset_x = int(deco.offset_x * self.TILE_SIZE)
                     offset_y = int(deco.offset_y * self.TILE_SIZE)
-                    
+
                     world_x = base_x + offset_x
                     world_y = base_y + offset_y
-                    
+
                     from pycc2.domain.value_objects.vec2 import Vec2
                     screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
-                    
+
                     # Scale sprite
                     sprite_size = int(self.TILE_SIZE * camera.zoom * deco.scale)
                     if sprite_size != 32:
                         sprite = pygame.transform.scale(sprite, (sprite_size, sprite_size))
-                    
+
                     # Rotate if needed
                     if deco.rotation != 0:
                         sprite = pygame.transform.rotate(sprite, -deco.rotation)
-                    
+
                     rect = sprite.get_rect()
                     rect.center = (int(screen_pos[0]), int(screen_pos[1]))
                     self._offscreen.blit(sprite, rect)
-    
+
     def _draw_units(self, units: list[Unit], camera: Camera, selected_unit_ids: set[str] | None = None) -> None:
         """Delegate to UnitRenderer for unit drawing (with P2-04 smooth positions)."""
         self._unit_renderer.draw_units(units, camera, selected_unit_ids, position_overrides=self._unit_positions)
@@ -1369,11 +1357,11 @@ class EnhancedRenderer:
     # ============================================================
     # Particle System Convenience Methods (Top-Down VFX) - Delegated
     # ============================================================
-    
+
     def update_particles(self, dt_ms: int) -> None:
         """Delegate to ParticleEffectsRenderer for particle updates."""
         self._particle_effects.update_particles(dt_ms)
-        
+
     def spawn_explosion(self, position, max_radius=40, duration_ms=500, 
                         color=(255, 200, 50)) -> None:
         """Delegate to ParticleEffectsRenderer for explosion ring effect."""
@@ -1382,11 +1370,11 @@ class EnhancedRenderer:
         )
         self.spawn_dynamic_light(position, radius=60, intensity=1.5, 
                                 color=(255, 200, 100), duration_ms=duration_ms)
-                                
+
     def spawn_muzzle_flash(self, position, direction) -> None:
         """Delegate to ParticleEffectsRenderer for muzzle flash (ParticleSystem version)."""
         self._particle_effects.spawn_muzzle_flash_particle(position, direction)
-        
+
     def particle_count(self) -> int:
         """Delegate to ParticleEffectsRenderer for particle count."""
         return self._particle_effects.particle_count()
@@ -1409,17 +1397,17 @@ class EnhancedRenderer:
         """
         if self._screen is None:
             return
-        
+
         bounds = camera.view_bounds
         grid_color = (60, 80, 40, 80)  # Dim grey-green (was bright grey 100,100,100)
-        
+
         start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
         end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
         start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
         end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
-        
-        tile_size_scaled = int(self.TILE_SIZE * camera.zoom)
-        
+
+        int(self.TILE_SIZE * camera.zoom)
+
         for ty in range(start_y, end_y + 1):
             from pycc2.domain.value_objects.vec2 import Vec2
             start_pos = camera.world_to_screen(Vec2(start_x * self.TILE_SIZE, ty * self.TILE_SIZE))
@@ -1429,7 +1417,7 @@ class EnhancedRenderer:
                 (int(start_pos[0]), int(start_pos[1])),
                 (int(end_pos[0]), int(end_pos[1])), 1
             )
-        
+
         for tx in range(start_x, end_x + 1):
             start_pos = camera.world_to_screen(Vec2(tx * self.TILE_SIZE, start_y * self.TILE_SIZE))
             end_pos = camera.world_to_screen(Vec2(tx * self.TILE_SIZE, end_y * self.TILE_SIZE))
@@ -1438,7 +1426,7 @@ class EnhancedRenderer:
                 (int(start_pos[0]), int(start_pos[1])),
                 (int(end_pos[0]), int(end_pos[1])), 1
             )
-    
+
     def shutdown(self) -> None:
         """Clean up renderer resources."""
         self._texture_cache.clear()

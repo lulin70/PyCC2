@@ -6,7 +6,7 @@ and weapon selection logic.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, MagicMock
 
 from pycc2.services.combat_director import CombatDirector
 from pycc2.domain.entities.unit import Faction, UnitType

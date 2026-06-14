@@ -15,7 +15,7 @@ Total unit types modeled: 80+ (matching CC2's 130+ with vehicle variants)
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Any
 
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 from pycc2.domain.systems.cc2_authentic_weapons import (
     WeaponProfile, Faction, InfantryRole, VehicleType,
-    get_cc2_weapons, get_weapons_for_faction
+    get_cc2_weapons
 )
 
 
@@ -35,33 +35,33 @@ from pycc2.domain.systems.cc2_authentic_weapons import (
 class CC2UnitTemplate:
     """
     Complete unit specification matching CC2's internal data structure.
-    
+
     Each template represents a deployable team/squad/vehicle.
     """
-    
+
     # === IDENTITY ===
     template_id: str                   # Unique identifier: 'us_rifle_squad_82nd'
     display_name: str                  # "82nd Airborne Rifle Squad"
     faction: Faction
     role: InfantryRole | VehicleType   # Unit role classification
-    
+
     # === COMPOSITION (Infantry only) ===
     squad_size: int = 10               # Number of men (1-15)
     weapon_primary_id: str = ''        # Primary weapon key from weapon DB
     weapon_secondary_id: str | None = None  # Optional secondary weapon
-    
+
     # === VEHICLE DATA (Vehicles only) ===
     vehicle_armor: int = 0             # Armor thickness (mm equivalent)
     vehicle_speed: int = 0            # Max speed (km/h)
     vehicle_crew: int = 0             # Crew size
     is_amphibious: bool = False       # Can cross water
-    
+
     # === COMBAT STATS (derived from weapons + experience) ===
     experience_level: int = 0         # 0=Green, 1=Regular, 2=Veteran, 3=Elite
     morale_initial: float = 80.0      # Starting morale (0-100)
     stealth_rating: float = 0.3       # Base concealment (0.0-1.0)
     vision_range: int = 6             # Tiles of visibility
-    
+
     # === SPECIAL PROPERTIES ===
     can_capture: bool = True          # Can capture victory locations
     can_deploy_in_building: bool = True
@@ -69,37 +69,37 @@ class CC2UnitTemplate:
     is_command_unit: bool = False     # Morale boost to nearby units
     is_fanatic: bool = False         # Never panics (SS/Fanatics)
     has_demolitions: bool = False     # Can destroy structures
-    
+
     # === DEPLOYMENT RULES ===
     deployment_cost: int = 100        # "Requisition points" cost (Operations mode)
     max_per_battle: int = 99           # Limit on how many can be brought
     min_turns_reinforce: int = 0     # 0=available start, >0=reinforcement turn
-    
+
     # === FLAVOR TEXT ===
     historical_notes: str = ""
-    
+
     def get_weapon(self) -> WeaponProfile:
         """Resolve and return primary weapon profile."""
         db = get_cc2_weapons()
         return db.get(self.weapon_primary_id)
-    
+
     def get_secondary_weapon(self) -> WeaponProfile | None:
         """Resolve optional secondary weapon."""
         if not self.weapon_secondary_id:
             return None
         db = get_cc2_weapons()
         return db.get(self.weapon_secondary_id)
-    
+
     def calculate_effective_stats(self) -> dict[str, Any]:
         """
         Calculate effective combat stats based on equipment + experience.
-        
+
         Returns dict with all relevant combat parameters.
         """
         weapon = self.get_weapon()
         if not weapon:
             return {'error': f'Unknown weapon: {self.weapon_primary_id}'}
-        
+
         # Experience multipliers (CC2-style)
         exp_mult = {
             0: {'accuracy': 1.0, 'morale': 1.0, 'suppression_resist': 1.0},
@@ -107,15 +107,15 @@ class CC2UnitTemplate:
             2: {'accuracy': 1.20, 'morale': 1.12, 'suppression_resist': 1.12},
             3: {'accuracy': 1.35, 'morale': 1.25, 'suppression_resist': 1.25},
         }
-        
+
         m = exp_mult.get(self.experience_level, exp_mult[0])
-        
+
         base_stats = {
             'name': self.display_name,
             'role': self.role.name,
             'faction': self.faction.name,
             'squad_size': self.squad_size,
-            
+
             # Weapon stats (experience-modified)
             'weapon_name': weapon.name,
             'weapon_type': weapon.weapon_type.name,
@@ -127,7 +127,7 @@ class CC2UnitTemplate:
             'damage_vs_light_armor': weapon.damage_vs_light_armor,
             'suppress_power': min(1.0, weapon.suppress_power),
             'rpm': weapon.rpm,
-            
+
             # Unit stats
             'morale': min(100, self.morale_initial * m['morale']),
             'stealth': self.stealth_rating,
@@ -137,25 +137,25 @@ class CC2UnitTemplate:
             'can_capture': self.can_capture,
             'deployment_cost': self.deployment_cost,
         }
-        
+
         return base_stats
 
 
 def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
     """
     Build complete CC2 unit database.
-    
+
     Based on historical OOBs for Operation Market Garden (Sept 1944).
     Covers all four factions with authentic compositions.
     """
     units = {}
-    
+
     # ================================================================
     # AMERICAN FORCES (82nd Airborne / 101st Airborne)
     # ================================================================
-    
+
     # --- INFANTRY CATEGORY ---
-    
+
     units['us_rifle_squad'] = CC2UnitTemplate(
         template_id='us_rifle_squad',
         display_name='US Rifle Squad',
@@ -171,7 +171,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=120,
         historical_notes='Standard US airborne rifle squad, 12 men with M1 Garands'
     )
-    
+
     units['us_rifle_squad_veteran'] = CC2UnitTemplate(
         template_id='us_rifle_squad_veteran',
         display_name='Veteran Rifle Squad',
@@ -186,7 +186,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=150,
         historical_notes='Battle-hardened squad from earlier campaigns'
     )
-    
+
     units['us_machine_gun_team_a4'] = CC2UnitTemplate(  # M1919A4 (M42)
         template_id='us_machine_gun_team_a4',
         display_name='US MG Team (M1919A4)',
@@ -202,7 +202,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=160,
         historical_notes='Heavy machine gun team with M1919A4 (.30 cal), excellent suppression'
     )
-    
+
     units['us_machine_gun_team_m34'] = CC2UnitTemplate(  # M1919 (M34)
         template_id='us_machine_gun_team_m34',
         display_name='US MG Team (M1919)',
@@ -217,7 +217,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=130,
         historical_notes='Lighter machine gun team with M1919 variant, more mobile but less firepower'
     )
-    
+
     units['us_scout_team'] = CC2UnitTemplate(
         template_id='us_scout_team',
         display_name='US Scout Team',
@@ -232,7 +232,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=110,
         historical_notes='Reconnaissance specialists, small fast teams'
     )
-    
+
     units['us_sniper_team'] = CC2UnitTemplate(
         template_id='us_sniper_team',
         display_name='US Sniper Team',
@@ -247,7 +247,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=140,
         historical_notes='Designated marksmen with scoped Springfields'
     )
-    
+
     units['us_at_team'] = CC2UnitTemplate(
         template_id='us_at_team',
         display_name='US AT Team (Bazooka)',
@@ -264,7 +264,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=150,
         historical_notes='Anti-tank specialists with M1A1 Bazooka'
     )
-    
+
     units['us_engineer_team'] = CC2UnitTemplate(
         template_id='us_engineer_team',
         display_name='US Engineer Squad',
@@ -300,7 +300,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         max_per_battle=1,
         historical_notes='US combat engineers with Garands, demolition and fortification specialists'
     )
-    
+
     units['us_flamethrower_team'] = CC2UnitTemplate(
         template_id='us_flamethrower_team',
         display_name='US Flamethrower Team',
@@ -316,7 +316,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=170,
         historical_notes='Flame specialists, devastating in close quarters, high casualty risk'
     )
-    
+
     units['us_officer'] = CC2UnitTemplate(
         template_id='us_officer',
         display_name='US Officer / Commander',
@@ -333,7 +333,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=180,
         historical_notes='Platoon/Battalion commander, provides morale bonus to adjacent units'
     )
-    
+
     units['us_heavy_assault'] = CC2UnitTemplate(
         template_id='us_heavy_assault',
         display_name='US Assault Squad',
@@ -348,9 +348,9 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=145,
         historical_notes='Close-quarters assault troops, heavily armed with SMGs'
     )
-    
+
     # --- SUPPORT CATEGORY ---
-    
+
     units['us_mortar_light_team'] = CC2UnitTemplate(
         template_id='us_mortar_light_team',
         display_name='US Light Mortar Team (60mm)',
@@ -366,7 +366,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=140,
         historical_notes='Company-level 60mm mortar team, indirect fire support'
     )
-    
+
     units['us_mortar_heavy_team'] = CC2UnitTemplate(
         template_id='us_mortar_heavy_team',
         display_name='US Heavy Mortar Team (81mm)',
@@ -382,9 +382,9 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=175,
         historical_notes='Battalion-level 81mm mortar, heavy indirect fire'
     )
-    
+
     # --- VEHICLES ---
-    
+
     units['us_sherman_m4'] = CC2UnitTemplate(
         template_id='us_sherman_m4',
         display_name='M4 Sherman (75mm)',
@@ -404,7 +404,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=350,
         historical_notes='Main US medium tank, reliable but undergunned vs late German armor'
     )
-    
+
     units['us_stuart_m5'] = CC2UnitTemplate(
         template_id='us_stuart_m5',
         display_name='M5 Stuart (37mm)',
@@ -423,7 +423,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=220,
         historical_notes='Light tank, fast but weak armor/gun, used for recon'
     )
-    
+
     units['us_halftrack_m3'] = CC2UnitTemplate(
         template_id='us_halftrack_m3',
         display_name='M3 Halftrack',
@@ -441,7 +441,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=180,
         historical_notes='Armored personnel carrier, transports infantry'
     )
-    
+
     units['us_wolverine_m10'] = CC2UnitTemplate(
         template_id='us_wolverine_m10',
         display_name='M10 Wolverine Tank Destroyer',
@@ -459,11 +459,11 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=320,
         historical_notes='Open-topped TD, good gun but vulnerable to infantry/heavy fire'
     )
-    
+
     # ================================================================
     # BRITISH FORCES (1st Airborne / XXX Corps)
     # ================================================================
-    
+
     units['uk_rifle_section'] = CC2UnitTemplate(
         template_id='uk_rifle_section',
         display_name='British Rifle Section',
@@ -478,7 +478,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=115,
         historical_notes='British airborne section, Lee-Enfields, 10 men'
     )
-    
+
     units['uk_bren_team'] = CC2UnitTemplate(
         template_id='uk_bren_team',
         display_name='Bren Gun Team',
@@ -493,7 +493,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=155,
         historical_notes='Bren gun team, .303 LMG, reliable and accurate'
     )
-    
+
     units['uk_piat_team'] = CC2UnitTemplate(
         template_id='uk_piat_team',
         display_name='PIAT Team',
@@ -509,7 +509,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=145,
         historical_notes='PIAT anti-tank team, spring-powered awkward but effective'
     )
-    
+
     units['uk_flame_team'] = CC2UnitTemplate(
         template_id='uk_flame_team',
         display_name='British Flamethrower Team',
@@ -543,7 +543,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         max_per_battle=1,
         historical_notes='British Para combat engineers, demolition specialists with airborne training'
     )
-    
+
     units['uk_churchill_mkiv'] = CC2UnitTemplate(
         template_id='uk_churchill_mkiv',
         display_name='Churchill Mk IV/VII',
@@ -562,7 +562,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=380,
         historical_notes='British heavy infantry tank, very thick armor, slow but tough'
     )
-    
+
     units['uk_cromwell'] = CC2UnitTemplate(
         template_id='uk_cromwell',
         display_name='Cromwell Mk IV/VII',
@@ -581,7 +581,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=340,
         historical_notes='Cruiser tank, fast and well-armed, standard XXX Corps issue'
     )
-    
+
     units['uk_firefly'] = CC2UnitTemplate(
         template_id='uk_firefly',
         display_name='Sherman VC Firefly',
@@ -600,7 +600,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=400,
         historical_notes='Sherman hull with 17-pdr gun, can kill Tigers/Panthers at range'
     )
-    
+
     units['uk_crocodile'] = CC2UnitTemplate(
         template_id='uk_crocodile',
         display_name='Churchill Crocodile',
@@ -640,7 +640,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         max_per_battle=1,
         historical_notes='Amphibious Sherman variant with duplex drive, used during river crossings'
     )
-    
+
     # ================================================================
     # POLISH FORCES (1st Independent Parachute Brigade)
     # ================================================================
@@ -713,7 +713,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
     # ================================================================
     # GERMAN FORCES (15th Army / SS Panzer Divisions)
     # ================================================================
-    
+
     units['de_rifle_squad'] = CC2UnitTemplate(
         template_id='de_rifle_squad',
         display_name='German Rifle Squad (Grenadier)',
@@ -728,7 +728,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=125,
         historical_notes='Standard Wehrmacht Grenadier squad, Kar98k rifles'
     )
-    
+
     units['de_ss_squad'] = CC2UnitTemplate(
         template_id='de_ss_squad',
         display_name='SS Panzergrenadier Squad',
@@ -781,7 +781,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         max_per_battle=4,
         historical_notes='Poor quality reservist troops, low morale and minimal equipment'
     )
-    
+
     units['de_mg42_team'] = CC2UnitTemplate(  # *** THE LEGENDARY MG42 ***
         template_id='de_mg42_team',
         display_name='MG42 Machine Gun Team',
@@ -796,7 +796,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=175,
         historical_notes='MG42 team - most feared German weapon, 1200 RPM, devastating suppression'
     )
-    
+
     units['de_mg34_team'] = CC2UnitTemplate(  # *** MG34 - EARLIER VARIANT ***
         template_id='de_mg34_team',
         display_name='MG34 Machine Gun Team',
@@ -811,7 +811,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=150,
         historical_notes='MG34 team - still widely used alongside MG42'
     )
-    
+
     units['de_panzerschreck_team'] = CC2UnitTemplate(
         template_id='de_panzerschreck_team',
         display_name='Panzerschreck Team',
@@ -827,7 +827,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=155,
         historical_notes='88mm rocket AT team, copied from Bazooka but improved'
     )
-    
+
     units['de_panzerfaust_team'] = CC2UnitTemplate(
         template_id='de_panzerfaust_team',
         display_name='Panzerfaust Team',
@@ -842,7 +842,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=120,  # Cheaper (disposable weapon)
         historical_notes='Disposable Panzerfaust team, cheap and numerous late-war'
     )
-    
+
     units['de_flame_team'] = CC2UnitTemplate(
         template_id='de_flame_team',
         display_name='Flammenwerfer Team',
@@ -875,7 +875,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         max_per_battle=1,
         historical_notes='German flamethrower assault squad, devastating vs infantry in buildings'
     )
-    
+
     units['de_grw50_team'] = CC2UnitTemplate(  # *** LIGHT MORTAR ***
         template_id='de_grw50_team',
         display_name='GrW 36 50mm Mortar Team',
@@ -891,7 +891,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=135,
         historical_notes='Light 50mm platoon mortar team'
     )
-    
+
     units['de_grw81_team'] = CC2UnitTemplate(  # *** HEAVY MORTAR ***
         template_id='de_grw81_team',
         display_name='GrW 34 81mm Mortar Team',
@@ -907,9 +907,9 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=170,
         historical_notes='Medium 81mm battalion mortar team'
     )
-    
+
     # --- GERMAN ARMOR ---
-    
+
     units['de_panzer_iv'] = CC2UnitTemplate(
         template_id='de_panzer_iv',
         display_name='Panzer IV Ausf H/J',
@@ -928,7 +928,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=360,
         historical_notes='Main German medium tank, excellent all-around, long 75mm KwK 40 L/48'
     )
-    
+
     units['de_tiger_i'] = CC2UnitTemplate(  # *** THE TIGER I ***
         template_id='de_tiger_i',
         display_name='Tiger I E',
@@ -947,7 +947,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=550,
         historical_notes='Tiger I heavy tank - 88mm gun, 100mm armor, terror weapon, rare but deadly'
     )
-    
+
     units['de_panther'] = CC2UnitTemplate(  # *** THE PANTHER ***
         template_id='de_panther',
         display_name='Panther D/A/G',
@@ -966,7 +966,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         deployment_cost=500,
         historical_notes='Panther - best German medium/heavy hybrid, excellent gun and armor'
     )
-    
+
     units['de_stug_iii'] = CC2UnitTemplate(  # *** STURMGESCHÜTZ III ***
         template_id='de_stug_iii',
         display_name='StuG III G',
@@ -1005,7 +1005,7 @@ def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
         max_per_battle=1,
         historical_notes='Flame tank variant of Panzer III, devastating vs infantry and fortifications'
     )
-    
+
     units['de_sdkfz_251'] = CC2UnitTemplate(
         template_id='de_sdkfz_251',
         display_name='SdKfz 251/1 Half-track',
@@ -1580,29 +1580,29 @@ class TileZone:
 class DeploymentConfig:
     """
     Configuration for a battle's deployment phase.
-    
+
     Defines where each side can place their units.
     """
     map_width: int
     map_height: int
-    
+
     # Zone assignments per tile (indexed by [y][x])
     ally_zones: list[list[ZoneType]]
     axis_zones: list[list[ZoneType]]
-    
+
     # Deployment constraints
     max_infantry: int = 9          # Max infantry units (CC2 default)
     max_support: int = 6           # Max support units (vehicles/mortars/MGs)
     max_total: int = 15            # Absolute maximum
-    
+
     # Time limit for deployment (seconds)
     time_limit: int = 300          # 5 minutes default
-    
+
     def can_deploy_at(self, x: int, y: int, faction: Faction) -> bool:
         """Check if a tile is legal for deployment by given faction."""
         if not (0 <= x < self.map_width and 0 <= y < self.map_height):
             return False
-        
+
         zones = self.ally_zones if faction in [Faction.AMERICAN, Faction.BRITISH, Faction.POLISH] else self.axis_zones
         return zones[y][x] == ZoneType.FRIENDLY
 
@@ -1610,10 +1610,10 @@ class DeploymentConfig:
 class DeploymentPhase:
     """
     Manages the pre-battle deployment phase.
-    
+
     Implements CC2's drag-and-drop unit placement system.
     """
-    
+
     def __init__(self, config: DeploymentConfig):
         self.config = config
         self.deployed_units: dict[Faction, list[tuple[int, int, str]]] = {
@@ -1621,88 +1621,88 @@ class DeploymentPhase:
         }
         self.is_complete: bool = False
         self.current_faction: Faction | None = None
-    
+
     def start_deployment(self, faction: Faction) -> None:
         """Begin deployment for a specific faction."""
         self.current_faction = faction
         self.deployed_units[faction] = []
         self.is_complete = False
-    
+
     def place_unit(self, unit_template_id: str, x: int, y: int) -> bool:
         """
         Attempt to place a unit at specified position.
-        
+
         Returns True if placement succeeded.
         """
         if not self.current_faction:
             return False
-        
+
         # Check zone legality
         if not self.config.can_deploy_at(x, y, self.current_faction):
             return False
-        
+
         # Check unit limits
         current_count = len(self.deployed_units[self.current_faction])
         if current_count >= self.config.max_total:
             return False
-        
+
         # Get unit type to check infantry/support limits
         unit_db = get_cc2_units()
         unit = unit_db.get(unit_template_id)
         if not unit:
             return False
-        
+
         # Count current infantry vs support
         infantry_count = sum(
             1 for _, _, tid in self.deployed_units[self.current_faction]
             if tid in unit_db and unit_db[tid].role in [r for r in InfantryRole]
         )
         support_count = current_count - infantry_count
-        
+
         is_infantry = unit.role in [r for r in InfantryRole]
-        
+
         if is_infantry and infantry_count >= self.config.max_infantry:
             return False
         if not is_infantry and support_count >= self.config.max_support:
             return False
-        
+
         # Check terrain legality (no tanks in buildings, etc.)
         # This would need map data integration
-        
+
         # Place the unit
         self.deployed_units[self.current_faction].append((x, y, unit_template_id))
         return True
-    
+
     def remove_unit(self, index: int) -> bool:
         """Remove a previously placed unit."""
         if not self.current_faction:
             return False
-        
+
         if 0 <= index < len(self.deployed_units[self.current_faction]):
             self.deployed_units[self.current_faction].pop(index)
             return True
         return False
-    
+
     def confirm_deployment(self) -> bool:
         """Confirm and lock in deployment."""
         if not self.current_faction:
             return False
-        
+
         self.is_complete = True
         return True
-    
+
     def get_deployed_positions(self, faction: Faction) -> list[tuple[int, int, str]]:
         """Return all deployed unit positions for a faction."""
         return self.deployed_units.get(faction, [])
-    
+
     def generate_zone_map_for_display(self, faction: Faction) -> list[list[int]]:
         """
         Generate numeric zone map for rendering.
-        
+
         Returns 2D array: 0=friendly, 1=no mans land, 2=enemy
         """
         zones = self.config.ally_zones if faction in [Faction.AMERICAN, Faction.BRITISH, Faction.POLISH] else self.config.axis_zones
-        
+
         zone_map = []
         for row in zones:
             numeric_row = []
@@ -1714,28 +1714,28 @@ class DeploymentPhase:
                 else:
                     numeric_row.append(2)
             zone_map.append(numeric_row)
-        
+
         return zone_map
 
 
 def create_default_deployment_config(map_width: int, map_height: int) -> DeploymentConfig:
     """
     Create a standard split-map deployment configuration.
-    
+
     Default: Allies get left third, Axis gets right third, middle is no-man's-land.
     """
     ally_zones = [[ZoneType.NO_MANS_LAND for _ in range(map_width)] for _ in range(map_height)]
     axis_zones = [[ZoneType.NO_MANS_LAND for _ in range(map_width)] for _ in range(map_height)]
-    
+
     third = map_width // 3
-    
+
     for y in range(map_height):
         for x in range(map_width):
             if x < third - 1:
                 ally_zones[y][x] = ZoneType.FRIENDLY
             elif x >= map_width - third + 1:
                 axis_zones[y][x] = ZoneType.FRIENDLY
-    
+
     return DeploymentConfig(
         map_width=map_width,
         map_height=map_height,
@@ -1758,40 +1758,40 @@ if __name__ == '__main__':
     db = get_cc2_units()
     logger.debug("📊 TOTAL UNIT TEMPLATES: %s", len(db))
     logger.debug("")
-    
+
     for faction in Faction:
         units = get_units_for_faction(faction)
         inf_count = sum(1 for u in units if isinstance(u.role, InfantryRole))
         veh_count = sum(1 for u in units if isinstance(u.role, VehicleType))
-        
+
         logger.debug("─" * 70)
         logger.debug("🏴 %s (%s units: %s infantry + %s vehicles)",
                      faction.name, len(units), inf_count, veh_count)
         logger.debug("─" * 70)
-        
+
         for u in sorted(units, key=lambda x: (type(x.role).__name__, x.template_id)):
             weapon = u.get_weapon()
             wname = weapon.name if weapon else 'N/A'
             suppr_icon = '💥' if weapon and weapon.suppress_power > 0.7 else ''
             fanatic_icon = '😤' if u.is_fanatic else ''
             cmd_icon = '⭐' if u.is_command_unit else ''
-            
+
             logger.debug(
                 "  [%s] %s | %d men | %s | Exp:%s %s%s%s",
                 u.role.name, u.display_name, u.squad_size, wname,
                 u.experience_level, suppr_icon, fanatic_icon, cmd_icon)
         logger.debug("")
-    
+
     # Demonstrate deployment system
     logger.debug("=" * 90)
     logger.debug("🗺️  DEPLOYMENT PHASE DEMO")
     logger.debug("=" * 90)
-    
+
     config = create_default_deployment_config(50, 42)  # Arnhem-sized map
     deployment = DeploymentPhase(config)
-    
+
     deployment.start_deployment(Faction.AMERICAN)
-    
+
     test_placements = [
         ('us_rifle_squad', 5, 20),
         ('us_machine_gun_team_a4', 6, 21),
@@ -1799,7 +1799,7 @@ if __name__ == '__main__':
         ('us_mortar_light_team', 7, 22),
         ('us_officer', 5, 21),
     ]
-    
+
     logger.debug("\n📍 Placing American units on 50×42 map...")
     for uid, x, y in test_placements:
         success = deployment.place_unit(uid, x, y)

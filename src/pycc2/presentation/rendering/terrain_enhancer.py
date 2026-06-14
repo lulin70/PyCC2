@@ -7,7 +7,6 @@ import math
 import random
 from typing import TYPE_CHECKING
 
-import pygame
 from pygame import Surface
 
 if TYPE_CHECKING:
@@ -16,29 +15,29 @@ if TYPE_CHECKING:
 
 class PerlinNoise:
     """Perlin噪声生成器 - 用于生成自然地形纹理"""
-    
+
     def __init__(self, seed: int | None = None):
         self.rng = random.Random(seed)
         # 生成256个随机排列
         self.p = list(range(256))
         self.rng.shuffle(self.p)
         self.p = self.p + self.p  # 复制以避免溢出
-    
+
     def fade(self, t: float) -> float:
         """平滑插值函数"""
         return t * t * t * (t * (t * 6 - 15) + 10)
-    
+
     def lerp(self, t: float, a: float, b: float) -> float:
         """线性插值"""
         return a + t * (b - a)
-    
+
     def grad(self, hash: int, x: float, y: float) -> float:
         """梯度函数"""
         h = hash & 3
         u = x if h < 2 else y
         v = y if h < 2 else x
         return (u if (h & 1) == 0 else -u) + (v if (h & 2) == 0 else -v)
-    
+
     def noise(self, x: float, y: float) -> float:
         """
         生成2D Perlin噪声
@@ -47,15 +46,15 @@ class PerlinNoise:
         # 找到单位网格的坐标
         X = int(math.floor(x)) & 255
         Y = int(math.floor(y)) & 255
-        
+
         # 找到相对坐标
         x -= math.floor(x)
         y -= math.floor(y)
-        
+
         # 计算淡化曲线
         u = self.fade(x)
         v = self.fade(y)
-        
+
         # 哈希坐标
         a = self.p[X] + Y
         aa = self.p[a]
@@ -63,14 +62,14 @@ class PerlinNoise:
         b = self.p[X + 1] + Y
         ba = self.p[b]
         bb = self.p[b + 1]
-        
+
         # 混合结果
         return self.lerp(
             v,
             self.lerp(u, self.grad(self.p[aa], x, y), self.grad(self.p[ba], x - 1, y)),
             self.lerp(u, self.grad(self.p[ab], x, y - 1), self.grad(self.p[bb], x - 1, y - 1))
         )
-    
+
     def octave_noise(
         self,
         x: float,
@@ -81,13 +80,13 @@ class PerlinNoise:
     ) -> float:
         """
         多层Perlin噪声（分形噪声）
-        
+
         Args:
             x, y: 坐标
             octaves: 层数（越多越细节）
             persistence: 振幅衰减（0-1）
             lacunarity: 频率增长（通常2.0）
-        
+
         Returns:
             噪声值 [-1, 1]
         """
@@ -95,28 +94,28 @@ class PerlinNoise:
         frequency = 1.0
         amplitude = 1.0
         max_value = 0.0
-        
+
         for _ in range(octaves):
             total += self.noise(x * frequency, y * frequency) * amplitude
             max_value += amplitude
             amplitude *= persistence
             frequency *= lacunarity
-        
+
         return total / max_value
 
 
 class TerrainEnhancer:
     """地形增强器 - 使用Perlin噪声生成更精细的地形纹理"""
-    
+
     def __init__(self, seed: int | None = None):
         self.perlin = PerlinNoise(seed)
         self.rng = random.Random(seed)
-    
+
     def generate_grass_texture(self, size: int = 32) -> Surface:
         """生成草地纹理（使用Perlin噪声）"""
         surface = Surface((size, size))
         surface.fill((96, 143, 48))  # 基础草绿色
-        
+
         # 使用Perlin噪声添加变化
         for y in range(size):
             for x in range(size):
@@ -126,7 +125,7 @@ class TerrainEnhancer:
                     octaves=3,
                     persistence=0.5
                 )
-                
+
                 # 映射到颜色变化 [-20, +20]
                 variation = int(noise_val * 20)
                 base_color = (96, 143, 48)
@@ -136,21 +135,21 @@ class TerrainEnhancer:
                     max(0, min(255, base_color[2] + variation))
                 )
                 surface.set_at((x, y), new_color)
-        
+
         # 添加草叶细节
         for _ in range(size // 4):
             gx = self.rng.randint(0, size - 1)
             gy = self.rng.randint(0, size - 1)
             grass_color = (68, 112, 34)
             surface.set_at((gx, gy), grass_color)
-        
+
         return surface
-    
+
     def generate_dirt_texture(self, size: int = 32) -> Surface:
         """生成泥土纹理"""
         surface = Surface((size, size))
         surface.fill((166, 138, 95))
-        
+
         for y in range(size):
             for x in range(size):
                 noise_val = self.perlin.octave_noise(
@@ -166,17 +165,17 @@ class TerrainEnhancer:
                     max(0, min(255, base_color[2] + variation))
                 )
                 surface.set_at((x, y), new_color)
-        
+
         return surface
-    
+
     def generate_water_texture(self, size: int = 32, frame: int = 0) -> Surface:
         """生成水面纹理（带动画）"""
         surface = Surface((size, size))
         surface.fill((64, 120, 172))
-        
+
         # 水波动画偏移
         wave_offset = frame * 0.1
-        
+
         for y in range(size):
             for x in range(size):
                 # 水波噪声
@@ -194,9 +193,9 @@ class TerrainEnhancer:
                     max(0, min(255, base_color[2] + variation))
                 )
                 surface.set_at((x, y), new_color)
-        
+
         return surface
-    
+
     def blend_terrain_edges(
         self,
         tile_surface: Surface,
@@ -205,21 +204,21 @@ class TerrainEnhancer:
     ) -> Surface:
         """
         地形边缘混合 - 平滑不同地形类型的过渡
-        
+
         Args:
             tile_surface: 当前tile的surface
             neighbors: 邻居地形 {'n': terrain_id, 'e': ..., 's': ..., 'w': ...}
             current_terrain: 当前地形ID
-        
+
         Returns:
             混合后的surface
         """
         size = tile_surface.get_width()
         result = tile_surface.copy()
-        
+
         # 边缘混合宽度
         blend_width = size // 8
-        
+
         # 北边混合
         if neighbors.get('n', current_terrain) != current_terrain:
             neighbor_color = self._get_terrain_base_color(neighbors.get('n', 0))
@@ -233,7 +232,7 @@ class TerrainEnhancer:
                         int(current[2] * alpha + neighbor_color[2] * (1 - alpha))
                     )
                     result.set_at((x, y), blended)
-        
+
         # 南边混合
         if neighbors.get('s', current_terrain) != current_terrain:
             neighbor_color = self._get_terrain_base_color(neighbors.get('s', 0))
@@ -247,7 +246,7 @@ class TerrainEnhancer:
                         int(current[2] * alpha + neighbor_color[2] * (1 - alpha))
                     )
                     result.set_at((x, y), blended)
-        
+
         # 东边混合
         if neighbors.get('e', current_terrain) != current_terrain:
             neighbor_color = self._get_terrain_base_color(neighbors.get('e', 0))
@@ -261,7 +260,7 @@ class TerrainEnhancer:
                         int(current[2] * alpha + neighbor_color[2] * (1 - alpha))
                     )
                     result.set_at((x, y), blended)
-        
+
         # 西边混合
         if neighbors.get('w', current_terrain) != current_terrain:
             neighbor_color = self._get_terrain_base_color(neighbors.get('w', 0))
@@ -275,9 +274,9 @@ class TerrainEnhancer:
                         int(current[2] * alpha + neighbor_color[2] * (1 - alpha))
                     )
                     result.set_at((x, y), blended)
-        
+
         return result
-    
+
     def _get_terrain_base_color(self, terrain_id: int) -> tuple[int, int, int]:
         """获取地形基础颜色"""
         terrain_colors = {

@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import pygame
 
-    from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.interfaces.bottom_panel_protocol import IBottomPanel
     from pycc2.domain.interfaces.display_config import DisplayConfig

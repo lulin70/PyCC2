@@ -13,7 +13,7 @@ import os
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pygame
 import pytest
@@ -233,7 +233,6 @@ class TestBasicRendering:
         pixels = pygame.surfarray.array3d(surface)
         panel_y = SCREEN_H - CC2HUD.PANEL_HEIGHT
         bottom_area = pixels[:, panel_y:panel_y+10, :]
-        bg = CC2HUD.BG_COLOR
         has_dark_pixel = False
         for x in range(100, 200):
             for dy in range(10):
@@ -782,7 +781,6 @@ class TestUnitIconKeyMapping:
         assert key == 'infantry'
 
     def test_tank_unit_type_maps_to_tank_key(self, hud):
-        from unittest.mock import PropertyMock
         unit = make_unit()
         type_mock = type('obj', (), {'name': 'HEAVY_TANK'})
         unit.unit_type = type_mock

@@ -59,7 +59,7 @@ class SpritesheetConfig:
 class SpritesheetParser:
     """
     Advanced spritesheet parser with auto-detection capabilities.
-    
+
     Features:
     - Automatic layout detection via transparency analysis
     - Support for irregular grids and padding
@@ -78,7 +78,7 @@ class SpritesheetParser:
         self._image_array: np.ndarray | None = None
         self._frames: list[FrameInfo] = []
         self._is_loaded = False
-        
+
         if image_path:
             self.load(image_path)
 
@@ -87,20 +87,20 @@ class SpritesheetParser:
         try:
             self._image = pygame.image.load(image_path).convert_alpha()
             self._image_array = pygame.surfarray.array_alpha(self._image)
-            
+
             if self.config.layout == SpritesheetLayout.AUTO_DETECT:
                 self._auto_detect_layout()
-            
+
             self._extract_all_frames()
             self._is_loaded = len(self._frames) > 0
-            
+
             logger.info("[SpritesheetParser] Loaded %s", image_path)
             logger.info("   Size: %s", self._image.get_size())
             logger.info("   Detected %d frames", len(self._frames))
             logger.info("   Layout: %s", self.config.layout.name)
-            
+
             return self._is_loaded
-            
+
         except Exception as e:
             logger.error("[SpritesheetParser] Error loading %s: %s", image_path, e)
             return False
@@ -109,29 +109,29 @@ class SpritesheetParser:
         """Automatically detect spritesheet layout from image analysis."""
         if self._image_array is None:
             return
-            
+
         height, width = self._image_array.shape
-        
+
         # Find content boundaries
         non_empty_rows = np.where(self._image_array.max(axis=1) > 0)[0]
         non_empty_cols = np.where(self._image_array.max(axis=0) > 0)[0]
-        
+
         if len(non_empty_rows) == 0 or len(non_empty_cols) == 0:
             self.config.layout = SpritesheetLayout.ROW_MAJOR
             return
-            
+
         content_top = non_empty_rows[0]
         content_bottom = non_empty_rows[-1]
         content_left = non_empty_cols[0]
         content_right = non_empty_cols[-1]
-        
+
         content_height = content_bottom - content_top + 1
         content_width = content_right - content_left + 1
-        
+
         # Detect horizontal gaps (row separators)
         row_gaps = self._find_horizontal_gaps()
         col_gaps = self._find_vertical_gaps()
-        
+
         # Heuristic: if we find ~7 horizontal gaps, it's likely row-major 8-direction
         if len(row_gaps) >= 6 and len(row_gaps) <= 9:
             self.config.layout = SpritesheetLayout.ROW_MAJOR
@@ -139,18 +139,18 @@ class SpritesheetParser:
             if len(row_gaps) > 0:
                 avg_row_height = content_height // (len(row_gaps) + 1)
                 self.config.sprite_size = (content_width, avg_row_height)
-                
+
         elif len(col_gaps) >= 6 and len(col_gaps) <= 9:
             self.config.layout = SpritesheetLayout.COLUMN_MAJOR
             if len(col_gaps) > 0:
                 avg_col_width = content_width // (len(col_gaps) + 1)
                 self.config.sprite_size = (avg_col_width, content_height)
-                
+
         else:
             # Default to row-major with estimated size
             # Try common ratios
             aspect_ratio = width / height
-            
+
             if aspect_ratio > 2.0:  # Wide image - likely single row or column-major
                 self.config.layout = SpritesheetLayout.SINGLE_ROW
                 self.config.sprite_size = (width // 8, height)
@@ -166,14 +166,14 @@ class SpritesheetParser:
         """Find y-coordinates of horizontal transparent gaps."""
         if self._image_array is None:
             return []
-            
+
         gaps = []
         in_gap = False
         gap_start = 0
-        
+
         for y in range(self._image_array.shape[0]):
             is_transparent = self._image_array[y].max() == 0
-            
+
             if is_transparent and not in_gap:
                 gap_start = y
                 in_gap = True
@@ -181,21 +181,21 @@ class SpritesheetParser:
                 if y - gap_start >= min_gap_size:
                     gaps.append((gap_start + y) // 2)  # Center of gap
                 in_gap = False
-                
+
         return gaps
 
     def _find_vertical_gaps(self, min_gap_size: int = 5) -> list[int]:
         """Find x-coordinates of vertical transparent gaps."""
         if self._image_array is None:
             return []
-            
+
         gaps = []
         in_gap = False
         gap_start = 0
-        
+
         for x in range(self._image_array.shape[1]):
             is_transparent = self._image_array[:, x].max() == 0
-            
+
             if is_transparent and not in_gap:
                 gap_start = x
                 in_gap = True
@@ -203,19 +203,19 @@ class SpritesheetParser:
                 if x - gap_start >= min_gap_size:
                     gaps.append((gap_start + x) // 2)
                 in_gap = False
-                
+
         return gaps
 
     def _extract_all_frames(self) -> None:
         """Extract all frames based on configured layout."""
         if self._image is None:
             return
-            
+
         self._frames.clear()
-        
+
         sw, sh = self.config.sprite_size
         pad_x, pad_y = self.config.padding
-        
+
         if self.config.layout == SpritesheetLayout.ROW_MAJOR:
             self._extract_row_major(sw, sh, pad_x, pad_y)
         elif self.config.layout == SpritesheetLayout.COLUMN_MAJOR:
@@ -231,21 +231,21 @@ class SpritesheetParser:
     ) -> None:
         """Extract frames in row-major order (rows=directions, cols=frames)."""
         sheet_w, sheet_h = self._image.get_size()
-        
+
         max_dirs = min(
             self.config.directions_count,
             sheet_h // (sprite_h + pad_y)
         )
         max_frames = sheet_w // (sprite_w + pad_x)
-        
+
         for dir_idx in range(max_dirs):
             for frame_idx in range(min(self.config.frames_per_direction, max_frames)):
                 x = frame_idx * (sprite_w + pad_x)
                 y = dir_idx * (sprite_h + pad_y)
-                
+
                 rect = pygame.Rect(x, y, sprite_w, sprite_h)
                 has_content = self._check_frame_content(rect)
-                
+
                 self._frames.append(FrameInfo(
                     rect=rect,
                     direction_index=dir_idx,
@@ -258,21 +258,21 @@ class SpritesheetParser:
     ) -> None:
         """Extract frames in column-major order (cols=directions, rows=frames)."""
         sheet_w, sheet_h = self._image.get_size()
-        
+
         max_dirs = min(
             self.config.directions_count,
             sheet_w // (sprite_w + pad_x)
         )
         max_frames = sheet_h // (sprite_h + pad_y)
-        
+
         for dir_idx in range(max_dirs):
             for frame_idx in range(min(self.config.frames_per_direction, max_frames)):
                 x = dir_idx * (sprite_w + pad_x)
                 y = frame_idx * (sprite_h + pad_y)
-                
+
                 rect = pygame.Rect(x, y, sprite_w, sprite_h)
                 has_content = self._check_frame_content(rect)
-                
+
                 self._frames.append(FrameInfo(
                     rect=rect,
                     direction_index=dir_idx,
@@ -285,22 +285,22 @@ class SpritesheetParser:
     ) -> None:
         """Extract frames from a single row layout."""
         sheet_w, sheet_h = self._image.get_size()
-        
+
         max_frames = min(
             self.config.directions_count * self.config.frames_per_direction,
             sheet_w // (sprite_w + pad_x)
         )
-        
+
         for i in range(max_frames):
             dir_idx = i // max(1, self.config.frames_per_direction)
             frame_idx = i % max(1, self.config.frames_per_direction)
-            
+
             x = i * (sprite_w + pad_x)
             y = 0
-            
+
             rect = pygame.Rect(x, y, sprite_w, sprite_h)
             has_content = self._check_frame_content(rect)
-            
+
             self._frames.append(FrameInfo(
                 rect=rect,
                 direction_index=dir_idx,
@@ -312,15 +312,15 @@ class SpritesheetParser:
         """Check if a frame region contains non-transparent pixels."""
         if self._image_array is None:
             return False
-            
+
         x, y, w, h = rect
-        
+
         # Bounds check
         if x < 0 or y < 0:
             return False
         if x + w > self._image_array.shape[1] or y + h > self._image_array.shape[0]:
             return False
-            
+
         region = self._image_array[y:y+h, x:x+w]
         return region.max() > 0
 
@@ -331,19 +331,19 @@ class SpritesheetParser:
     ) -> pygame.Surface | None:
         """
         Get sprite surface for specific direction and frame.
-        
+
         Args:
             direction: Facing direction (Direction enum)
             frame_index: Animation frame index (default 0)
-            
+
         Returns:
             Pygame Surface or None if not found
         """
         if not self._is_loaded or self._image is None:
             return None
-            
+
         dir_idx = direction.value if hasattr(direction, 'value') else direction
-        
+
         # Find matching frame
         for frame_info in self._frames:
             if (
@@ -352,7 +352,7 @@ class SpritesheetParser:
                 and frame_info.has_content
             ):
                 return self._extract_surface(frame_info.rect)
-                
+
         # Fallback: find closest direction
         return self._get_closest_frame(dir_idx, frame_index)
 
@@ -361,10 +361,10 @@ class SpritesheetParser:
     ) -> pygame.Surface | None:
         """Find closest available frame if exact match missing."""
         available_dirs = set(f.direction_index for f in self._frames if f.has_content)
-        
+
         if not available_dirs:
             return None
-            
+
         # Find closest direction (circular distance)
         best_dir = min(
             available_dirs,
@@ -374,7 +374,7 @@ class SpritesheetParser:
                 abs(d - target_dir - 8),
             ),
         )
-        
+
         for frame_info in self._frames:
             if (
                 frame_info.direction_index == best_dir
@@ -382,14 +382,14 @@ class SpritesheetParser:
                 and frame_info.has_content
             ):
                 return self._extract_surface(frame_info.rect)
-                
+
         return None
 
     def _extract_surface(self, rect: pygame.Rect) -> pygame.Surface:
         """Extract a surface region from the spritesheet."""
         if self._image is None:
             raise RuntimeError("No image loaded")
-            
+
         sprite = pygame.Surface(rect.size, pygame.SRCALPHA)
         sprite.blit(self._image, (0, 0), rect)
         return sprite
@@ -400,15 +400,15 @@ class SpritesheetParser:
     ) -> dict[int, pygame.Surface]:
         """
         Get all direction frames at specified frame index.
-        
+
         Args:
             frame_index: Animation frame index
-            
+
         Returns:
             Dict mapping direction index to Surface
         """
         result = {}
-        
+
         for frame_info in self._frames:
             if (
                 frame_info.frame_index == frame_index
@@ -418,7 +418,7 @@ class SpritesheetParser:
                 result[frame_info.direction_index] = self._extract_surface(
                     frame_info.rect
                 )
-                
+
         return result
 
     @property
@@ -441,7 +441,7 @@ class SpritesheetParser:
         """Generate human-readable analysis report."""
         if not self._is_loaded:
             return "No spritesheet loaded"
-            
+
         lines = [
             f"Spritesheet Analysis Report",
             f"=" * 50,
@@ -456,7 +456,7 @@ class SpritesheetParser:
             f"Content Frames: {sum(1 for f in self._frames if f.has_content)}",
             f"Empty Frames: {sum(1 for f in self._frames if not f.has_content)}",
         ]
-        
+
         return "\n".join(lines)
 
 
@@ -467,40 +467,40 @@ def create_direction_sprite_set_from_spritesheet(
 ) -> "DirectionSpriteSet":
     """
     Convenience function to create a DirectionSpriteSet from a spritesheet.
-    
+
     Args:
         image_path: Path to spritesheet PNG
         sprite_size: Optional override for sprite dimensions
         layout: Layout format (auto-detect by default)
-        
+
     Returns:
         Populated DirectionSpriteSet ready for use
     """
     from pycc2.domain.value_objects.direction import Direction
     from pycc2.presentation.rendering.direction_sprite import DirectionSpriteSet
-    
+
     config = SpritesheetConfig()
-    
+
     if sprite_size:
         config.sprite_size = sprite_size
     config.layout = layout
-    
+
     parser = SpritesheetParser(image_path, config)
-    
+
     if not parser.is_loaded:
         return DirectionSpriteSet()
-    
+
     sprite_set = DirectionSpriteSet()
     sprite_set.base_sprite_path = image_path
     sprite_set.sprite_size = parser.sprite_size
-    
+
     # Map frames to DirectionSpriteSet format
     from pycc2.presentation.rendering.direction_sprite import Direction
-    
+
     for dir_idx, surface in parser.get_all_directions().items():
         direction = list(Direction)[dir_idx % 8]
         sprite_set.directions[direction] = [surface]
-    
+
     sprite_set.is_loaded = len(sprite_set.directions) > 0
-    
+
     return sprite_set

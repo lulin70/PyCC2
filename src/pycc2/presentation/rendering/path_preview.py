@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.systems.los_system import Lossystem
-    from pycc2.domain.systems.pathfinder import PathFinder
     from pycc2.presentation.rendering.camera import Camera
 
 
@@ -47,22 +46,22 @@ class PreviewPath:
 class PathPreview:
     """
     Move command path preview system.
-    
+
     Features:
     - A* path calculation with visualization
     - Danger assessment (enemy LOS detection)
     - Color-coded path rendering (green=safe, red=dangerous)
     - Time estimation display
-    
+
     CC2 Behavior:
     - Shows dashed line for planned movement route
     - Red segments indicate exposure to enemy fire
     - Green segments are safe from observation
     - Each waypoint shows estimated arrival time
     """
-    
+
     SHOW_DELAY: float = 0.3  # seconds before showing preview
-    
+
     def __init__(
         self,
         pathfinder,
@@ -85,59 +84,59 @@ class PathPreview:
     ) -> PreviewPath:
         """
         Calculate path from unit position to target.
-        
+
         Args:
             unit: The moving unit
             target_pos: Target tile coordinates (x, y)
             game_map: Game map for pathfinding
             enemy_units: List of enemy units for danger assessment
-            
+
         Returns:
             PreviewPath with segments and danger levels
         """
         from pycc2.domain.value_objects.tile_coord import TileCoord
-        
+
         start = TileCoord(
             int(unit.position_component.x),
             int(unit.position_component.y),
         )
         goal = TileCoord(target_pos[0], target_pos[1])
-        
+
         raw_path = self.pathfinder.find_path(start, goal, game_map)
-        
+
         if not raw_path:
             return PreviewPath(is_valid=False, segments=[], total_distance=0)
-        
+
         if len(raw_path) == 1:
             return PreviewPath(is_valid=True, segments=[], total_distance=0)
-        
+
         segments: list[PathSegment] = []
-        
+
         for i in range(len(raw_path) - 1):
             seg_start = (raw_path[i].x, raw_path[i].y)
             seg_end = (raw_path[i + 1].x, raw_path[i + 1].y)
-            
+
             danger = self._assess_segment_danger(
                 seg_end, enemy_units, game_map
             )
-            
+
             speed = getattr(unit, 'movement_speed', 3.0)  # tiles per second
             dist = math.sqrt(
                 (seg_end[0] - seg_start[0]) ** 2 +
                 (seg_end[1] - seg_start[1]) ** 2
             )
             time_est = dist / speed if speed > 0 else 1.0
-            
+
             segments.append(PathSegment(
                 start=seg_start,
                 end=seg_end,
                 danger=danger,
                 estimated_time=time_est,
             ))
-        
+
         total_dist = len(raw_path) - 1
         total_time = sum(seg.estimated_time for seg in segments)
-        
+
         return PreviewPath(
             segments=segments,
             total_distance=total_dist,
@@ -154,16 +153,16 @@ class PathPreview:
         """Assess if a path segment is in enemy LOS."""
         if not enemy_units or not self.los_system:
             return PathDangerLevel.SAFE
-        
+
         from pycc2.domain.value_objects.tile_coord import TileCoord
         pos = TileCoord(position[0], position[1])
-        
+
         danger_count = 0
         for enemy in enemy_units:
             can_see, _ = self.los_system.can_see(enemy, pos)  # type: ignore
             if can_see:
                 danger_count += 1
-        
+
         if danger_count == 0:
             return PathDangerLevel.SAFE
         elif danger_count <= 2:
@@ -208,36 +207,36 @@ class PathPreview:
     ) -> None:
         """
         Render path preview on surface.
-        
+
         Draws dashed lines with color coding:
         - Green (#00FF00): Safe segments
         - Yellow (#FFFF00): Warning segments  
         - Red (#FF0000): Dangerous segments
-        
+
         Also shows estimated time at waypoints.
         """
         if not path or not path.is_visible if hasattr(path, 'is_visible') else True:
             return
-        
+
         render_path = path or self._current_path
         if not render_path or not render_path.segments:
             return
-        
+
         color_map = {
             PathDangerLevel.SAFE: (0, 255, 0, 180),     # Green
             PathDangerLevel.WARNING: (255, 255, 0, 180), # Yellow
             PathDangerLevel.DANGER: (255, 0, 0, 180),    # Red
         }
-        
+
         try:
             import pygame
-            
+
             for i, segment in enumerate(render_path.segments):
                 color = color_map.get(segment.danger, (0, 255, 0, 180))
-                
+
                 start_screen = camera.world_to_screen(__vec2(segment.start))
                 end_screen = camera.world_to_screen(__vec2(segment.end))
-                
+
                 self._draw_dashed_line(
                     surface,
                     start_screen,
@@ -246,13 +245,13 @@ class PathPreview:
                     dash_length=10,
                     gap_length=5,
                 )
-                
+
                 if i % 3 == 0:  # Show time every 3rd segment
                     time_text = f"{segment.estimated_time:.1f}s"
                     font = pygame.font.SysFont('arial', 12)
                     text_surf = font.render(time_text, True, (255, 255, 255))
                     surface.blit(text_surf, (end_screen[0] + 5, end_screen[1] - 5))
-                    
+
         except Exception as e:
             logging.debug(f"Path preview rendering failed: {e}")
 
@@ -269,25 +268,25 @@ class PathPreview:
         try:
             import pygame
             import math
-            
+
             dx = end[0] - start[0]
             dy = end[1] - start[1]
             distance = math.sqrt(dx * dx + dy * dy)
-            
+
             if distance == 0:
                 return
-            
+
             dashes = int(distance / (dash_length + gap_length))
-            
+
             for i in range(dashes):
                 start_frac = i * (dash_length + gap_length) / distance
                 end_frac = min((i * (dash_length + gap_length) + dash_length) / distance, 1.0)
-                
+
                 x1 = start[0] + dx * start_frac
                 y1 = start[1] + dy * start_frac
                 x2 = start[0] + dx * end_frac
                 y2 = start[1] + dy * end_frac
-                
+
                 pygame.draw.line(surface, color[:3], (x1, y1), (x2, y2), 2)
         except Exception as e:
             logging.debug(f"Dashed line draw failed: {e}")

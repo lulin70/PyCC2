@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 
 from pycc2.domain.components.veterancy_component import VeterancyComponent, VeteranRank
-from pycc2.domain.systems.battle_result import BattleResult, BattleOutcome
+from pycc2.domain.systems.battle_result import BattleResult
 
 
 class OperationPhase(Enum):

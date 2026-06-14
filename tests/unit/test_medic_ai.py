@@ -11,14 +11,8 @@ from unittest.mock import Mock
 from pycc2.domain.ai.medic_ai import (
     MedicAI,
     TreatmentPriority,
-    TreatmentRecord,
     _treatment_priority,
-    WOUNDED_THRESHOLD,
-    HEAL_RANGE,
-    HEAL_PER_TICK,
-    HEAL_CAP_RATIO,
     MIN_TREATMENT_TICKS,
-    HEAL_ADJACENT_RANGE,
 )
 from pycc2.domain.entities.unit import Faction, UnitType
 from pycc2.domain.ai.tactic_intent import TacticType
@@ -390,7 +384,7 @@ class TestPathSafety:
     """Test path safety checking for medic movement."""
 
     def test_safe_path_no_enemies(self):
-        ai = MedicAI()
+        MedicAI()
         medic = _make_medic(tile_x=10, tile_y=10)
         patient = _make_wounded(tile_x=12, tile_y=10)
         context = TacticalContext(
@@ -402,7 +396,7 @@ class TestPathSafety:
         assert MedicAI._is_path_safe(medic, patient, context) is True
 
     def test_unsafe_path_enemy_near_midpoint(self):
-        ai = MedicAI()
+        MedicAI()
         medic = _make_medic(tile_x=10, tile_y=10)
         patient = _make_wounded(tile_x=14, tile_y=10)
         # Enemy near midpoint (12, 10)

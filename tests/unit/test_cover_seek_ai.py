@@ -12,9 +12,8 @@ Coverage:
 - Performance with large search areas
 """
 
-import math
 import pytest
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock
 
 from pycc2.domain.ai.cover_seek_ai import (
     CoverCandidate,
@@ -22,9 +21,6 @@ from pycc2.domain.ai.cover_seek_ai import (
     CoverSeekAI,
     SEARCH_RADIUS,
     SUPPRESSION_THRESHOLD,
-    COVER_WEIGHT,
-    CONCEAL_WEIGHT,
-    DISTANCE_PENALTY,
     LOS_BONUS,
     OCCUPIED_PENALTY,
 )
@@ -32,7 +28,6 @@ from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
 from pycc2.domain.ai.tactical_ai import TacticalContext
 from pycc2.domain.systems.combat_mechanics_enhanced import (
     SuppressionState,
-    SuppressionEffect,
 )
 from pycc2.domain.value_objects.tile_coord import TileCoord
 

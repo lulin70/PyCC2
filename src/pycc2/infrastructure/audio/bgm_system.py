@@ -120,7 +120,7 @@ class BGMGenerator:
         n_samples = len(t)
         wave = np.zeros(n_samples, dtype=np.float64)
         chords = _CHORD_PROGRESSIONS[mood]
-        bar_duration = beat_duration * 4  # 4 beats per bar
+        beat_duration * 4  # 4 beats per bar
 
         for beat in range(beats_total):
             bar_idx = (beat // 4) % len(chords)
@@ -162,7 +162,7 @@ class BGMGenerator:
         """Generate a drum pattern appropriate for the mood."""
         n_samples = len(t)
         wave = np.zeros(n_samples, dtype=np.float64)
-        bpm = _MOOD_PARAMS[mood]["bpm"]
+        _MOOD_PARAMS[mood]["bpm"]
 
         for beat in range(beats_total):
             beat_start_sample = int(beat * beat_duration * cls.SAMPLE_RATE)
@@ -235,7 +235,7 @@ class BGMGenerator:
         n_samples = len(t)
         wave = np.zeros(n_samples, dtype=np.float64)
         chords = _CHORD_PROGRESSIONS[mood]
-        bar_duration = beat_duration * 4
+        beat_duration * 4
 
         # Play chord tones as melody notes, one per beat
         for beat in range(beats_total):
@@ -351,7 +351,7 @@ class AmbientSoundGenerator:
         """
         intensity = max(0.0, min(1.0, intensity))
         n_samples = int(cls.SAMPLE_RATE * duration)
-        t = np.linspace(0, duration, n_samples, dtype=np.float64)
+        np.linspace(0, duration, n_samples, dtype=np.float64)
 
         # Band-pass filtered noise for continuous rain sound
         noise = np.random.uniform(-1, 1, n_samples)

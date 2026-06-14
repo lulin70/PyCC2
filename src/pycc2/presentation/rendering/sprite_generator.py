@@ -20,20 +20,20 @@ import pygame
 class SpriteGenerator:
     """
     Generates pixel art sprites for decorations programmatically.
-    
+
     Each decoration type has a drawing function that creates
     recognizable icons at small sizes (up to 32x32 pixels).
     """
-    
+
     TILE_SIZE = 32
-    
+
     @staticmethod
     def generate_sprite(deco_type_name: str, variant: int = 0) -> pygame.Surface:
         """Generate sprite surface for a decoration type."""
         size = 32
         surface = pygame.Surface((size, size), pygame.SRCALPHA)
         surface.fill((0, 0, 0, 0))  # Transparent background
-        
+
         sprite_funcs = {
             'BUSH_SMALL': SpriteGenerator._draw_bush_small,
             'BUSH_DENSE': SpriteGenerator._draw_bush_dense,
@@ -58,12 +58,12 @@ class SpriteGenerator:
             'DEBRIS_FIELD': SpriteGenerator._draw_debris_field,
             'BURNING_WRECKAGE': SpriteGenerator._draw_burning_wreckage,
         }
-        
+
         draw_func = sprite_funcs.get(deco_type_name, SpriteGenerator._draw_placeholder)
         draw_func(surface, variant)
-        
+
         return surface
-    
+
     @staticmethod
     def _draw_bush_small(surface: pygame.Surface, variant: int) -> None:
         """Draw small bush (circle of green pixels)."""
@@ -75,7 +75,7 @@ class SpriteGenerator:
                 dist = math.sqrt((x-cx)**2 + (y-cy)**2)
                 if dist < 7:
                     surface.set_at((x, y), color if dist > 4 else dark)
-    
+
     @staticmethod
     def _draw_bush_dense(surface: pygame.Surface, variant: int) -> None:
         """Draw dense bush (larger, irregular shape)."""
@@ -85,13 +85,13 @@ class SpriteGenerator:
             (10, 22), (13, 18), (16, 16), (19, 17), (22, 20),
             (23, 24), (20, 26), (16, 27), (12, 26), (9, 24)
         ]
-        
+
         for y in range(16, 28):
             for x in range(9, 24):
                 if SpriteGenerator._point_in_polygon(x, y, points):
                     shade = color if (x+y+variant) % 3 != 0 else dark
                     surface.set_at((x, y), shade)
-    
+
     @staticmethod
     def _point_in_polygon(x: int, y: int, polygon: list[tuple[int, int]]) -> bool:
         """Check if point is inside polygon (ray casting)."""
@@ -105,7 +105,7 @@ class SpriteGenerator:
                 inside = not inside
             j = i
         return inside
-    
+
     @staticmethod
     def _draw_tree_oak(surface: pygame.Surface, variant: int) -> None:
         """Draw deciduous tree (trunk + round canopy)."""
@@ -113,7 +113,7 @@ class SpriteGenerator:
         for y in range(18, 28):
             for x in range(14, 18):
                 surface.set_at((x, y), trunk_color)
-        
+
         canopy_colors = [(46, 125, 50), (36, 105, 40), (56, 145, 60)]
         cx, cy = 16, 12
         for y in range(2, 20):
@@ -122,7 +122,7 @@ class SpriteGenerator:
                 if dist < 10:
                     color_idx = int(dist / 3) % 3
                     surface.set_at((x, y), canopy_colors[color_idx])
-    
+
     @staticmethod
     def _draw_tree_pine(surface: pygame.Surface, variant: int) -> None:
         """Draw coniferous tree (triangular)."""
@@ -130,10 +130,10 @@ class SpriteGenerator:
         for y in range(22, 28):
             for x in range(14, 18):
                 surface.set_at((x, y), trunk_color)
-        
+
         foliage_colors = [(20, 90, 25), (30, 110, 35), (25, 100, 30)]
         layers = [(16, 18, 10), (16, 12, 7), (16, 6, 4)]
-        
+
         for idx, (lcx, lcy, lw) in enumerate(layers):
             color = foliage_colors[idx]
             for y in range(lcy - lw*2, lcy + 2):
@@ -141,7 +141,7 @@ class SpriteGenerator:
                 for x in range(lcx - width_at_y, lcx + width_at_y + 1):
                     if 0 <= x < 32 and 0 <= y < 32:
                         surface.set_at((x, y), color)
-    
+
     @staticmethod
     def _draw_rock_large(surface: pygame.Surface, variant: int) -> None:
         """Draw large boulder."""
@@ -150,16 +150,16 @@ class SpriteGenerator:
             (8, 24), (10, 18), (14, 14), (18, 12), (22, 14),
             (25, 18), (26, 23), (24, 26), (18, 27), (12, 26), (9, 25)
         ]
-        
+
         for y in range(12, 28):
             for x in range(8, 27):
                 if SpriteGenerator._point_in_polygon(x, y, points):
                     color_idx = (x + y + variant) % 3
                     surface.set_at((x, y), colors[color_idx])
-        
+
         surface.set_at((16, 14), (180, 180, 180))
         surface.set_at((17, 15), (170, 170, 170))
-    
+
     @staticmethod
     def _draw_rock_small(surface: pygame.Surface, variant: int) -> None:
         """Draw small rock cluster."""
@@ -169,16 +169,16 @@ class SpriteGenerator:
             for x in range(12, 23):
                 if SpriteGenerator._point_in_polygon(x, y, points):
                     surface.set_at((x, y), color)
-        
+
         surface.set_at((22, 23), (138, 138, 138))
         surface.set_at((23, 24), (128, 128, 128))
-    
+
     @staticmethod
     def _draw_rubble(surface: pygame.Surface, variant: int) -> None:
         """Draw rubble pile (debris)."""
         rng = random.Random(variant * 313)
         colors = [(100, 95, 90), (80, 75, 70), (120, 115, 110), (60, 55, 50)]
-        
+
         for _ in range(15):
             px = rng.randint(8, 24)
             py = rng.randint(18, 28)
@@ -188,7 +188,7 @@ class SpriteGenerator:
                 for dx in range(size):
                     if 0 <= px+dx < 32 and 0 <= py+dy < 32:
                         surface.set_at((px+dx, py+dy), color)
-    
+
     @staticmethod
     def _draw_crater_small(surface: pygame.Surface, variant: int) -> None:
         """Draw small shell crater with multi-layer depth and irregular shape."""
@@ -258,7 +258,7 @@ class SpriteGenerator:
         for r in range(center_dark_radius, 0, -1):
             darkness = 22 + (center_dark_radius - r) * 5
             pygame.draw.circle(surface, (darkness, darkness-3, darkness-5), (cx, cy), r)
-    
+
     @staticmethod
     def _draw_crater_large(surface: pygame.Surface, variant: int) -> None:
         """Draw large bomb crater with multi-layer depth and realistic depression."""
@@ -339,14 +339,14 @@ class SpriteGenerator:
                 brightness = 125 - t * 15
                 rim_color = (brightness, brightness-5, brightness-10)
                 pygame.draw.polygon(surface, rim_color, int_rim)
-    
+
     @staticmethod
     def _draw_trench(surface: pygame.Surface, variant: int) -> None:
         """Draw trench section (rectangular depression)."""
         for y in range(20, 28):
             for x in range(4, 28):
                 surface.set_at((x, y), (70, 60, 50))
-        
+
         bag_color = (180, 160, 120)
         for x in range(4, 28, 3):
             for y in range(18, 21):
@@ -355,7 +355,7 @@ class SpriteGenerator:
                     surface.set_at((x+1, y), bag_color)
                 if x+2 < 28:
                     surface.set_at((x+2, y), (160, 140, 100))
-    
+
     @staticmethod
     def _draw_sandbag(surface: pygame.Surface, variant: int) -> None:
         """Draw sandbag wall with texture detail."""
@@ -405,19 +405,19 @@ class SpriteGenerator:
             for post_y in range(8, 24):
                 surface.set_at((post_x, post_y), post_color)
                 surface.set_at((post_x + 1, post_y), (120, 110, 100))
-    
+
     @staticmethod
     def _draw_wreckage(surface: pygame.Surface, variant: int) -> None:
         """Draw destroyed vehicle hull."""
         hull_color = (60, 55, 50)
         dark = (40, 35, 30)
         rust = (100, 60, 30)
-        
+
         hull_points = [
             (6, 22), (8, 18), (12, 16), (18, 15), (24, 16),
             (26, 19), (27, 23), (25, 26), (18, 27), (10, 26), (7, 24)
         ]
-        
+
         for y in range(15, 28):
             for x in range(6, 28):
                 if SpriteGenerator._point_in_polygon(x, y, hull_points):
@@ -427,16 +427,16 @@ class SpriteGenerator:
                     elif (x*y) % 11 == 0:
                         color = dark
                     surface.set_at((x, y), color)
-        
+
         for x in range(20, 28):
             surface.set_at((x, 17), dark)
-    
+
     @staticmethod
     def _draw_camo_net(surface: pygame.Surface, variant: int) -> None:
         """Draw camouflage netting."""
         colors = [(45, 90, 45), (60, 75, 35), (35, 65, 40)]
         rng = random.Random(variant * 373)
-        
+
         for y in range(8, 24):
             for x in range(4, 28):
                 if (x + y) % 3 == 0:
@@ -445,7 +445,7 @@ class SpriteGenerator:
                     color = colors[rng.randint(0, 2)]
                     if rng.random() > 0.3:
                         surface.set_at((x, y), color)
-    
+
     @staticmethod
     def _draw_placeholder(surface: pygame.Surface, variant: int) -> None:
         """Generic placeholder sprite."""

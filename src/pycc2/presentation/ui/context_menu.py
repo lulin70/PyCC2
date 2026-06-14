@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 import pygame
 
 if TYPE_CHECKING:
-    from pycc2.domain.value_objects.vec2 import Vec2
+    pass
 
 
 class ContextAction(Enum):

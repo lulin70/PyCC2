@@ -13,7 +13,7 @@ Integrates with existing ParticleSystem and AnimationSystem.
 
 import math
 import random
-from typing import List, Optional, Tuple
+from typing import List
 
 import pygame
 

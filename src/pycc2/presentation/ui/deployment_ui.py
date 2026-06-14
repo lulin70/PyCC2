@@ -40,53 +40,12 @@ from pycc2.presentation.ui.deployment_models import (
     DeploymentPhase,
     DeploymentState,
     DeploymentUnit,
-    UnitCategory,
     ZoneType,
     # Constants (backward compatible aliases)
     TERRAIN_OPEN,
-    TERRAIN_ROAD,
-    TERRAIN_GRASS,
-    TERRAIN_WOODS,
-    TERRAIN_BUILDING_ENTERABLE,
     TERRAIN_BUILDING_SOLID,
     TERRAIN_WATER,
-    TERRAIN_HEDGE,
-    TERRAIN_WALL,
-    TERRAIN_ROUGH,
-    TERRAIN_SHALLOW,
-    TERRAIN_BRIDGE,
-    TERRAIN_CRATER,
-    TERRAIN_SWAMP,
-    BUILDING_TERRAINS,
-    DEEP_WATER_TERRAINS,
-    SHALLOW_WATER_TERRAINS,
-    IMPASSABLE_TERRAINS,
-    ZONE_COLORS as _ZONE_COLORS,
-    ZONE_BORDER_COLORS as _ZONE_BORDER_COLORS,
-    VALID_PLACEMENT_COLOR,
-    INVALID_PLACEMENT_COLOR,
-    SELECTED_UNIT_HIGHLIGHT,
-    ROSTER_BG as _ROSTER_BG,
-    ROSTER_BORDER as _ROSTER_BORDER,
-    ROSTER_TEXT as _ROSTER_TEXT,
-    ROSTER_TEXT_DIM as _ROSTER_TEXT_DIM,
-    ROSTER_SELECTED_BG as _ROSTER_SELECTED_BG,
-    ROSTER_PLACED_BG as _ROSTER_PLACED_BG,
-    ROSTER_CATEGORY_BG as _ROSTER_CATEGORY_BG,
-    ROSTER_CATEGORY_TEXT as _ROSTER_CATEGORY_TEXT,
-    BUTTON_BG_NORMAL as _BUTTON_BG_NORMAL,
-    BUTTON_BG_HOVER as _BUTTON_BG_HOVER,
-    BUTTON_BG_DISABLED as _BUTTON_BG_DISABLED,
-    BUTTON_BORDER as _BUTTON_BORDER,
-    BUTTON_TEXT as _BUTTON_TEXT,
-    BUTTON_TEXT_DISABLED as _BUTTON_TEXT_DISABLED,
-    BUTTON_ACTIVE_BG as _BUTTON_ACTIVE_BG,
-    RP_COLOR as _RP_COLOR,
-    RP_SPENT_COLOR as _RP_SPENT_COLOR,
-    CATEGORY_INFO as _CATEGORY_INFO,
-    UNIT_TYPE_TO_CATEGORY as _UNIT_TYPE_TO_CATEGORY,
 )
-from pycc2.presentation.rendering.rendering_utils import draw_dashed_line
 from pycc2.presentation.rendering.camera import Camera
 from pycc2.domain.entities.game_map import GameMap
 
@@ -520,7 +479,7 @@ class DeploymentUI:
             unit.is_placed = True
             self._state.placed_units.append(unit)
             self._state.requisition_points_spent += unit.deployment_cost
-        except Exception as e:
+        except Exception:
             # If placement fails, rollback
             unit.position = None
             unit.is_placed = False
@@ -1065,7 +1024,7 @@ class DeploymentUI:
         # Create ghost surface ONCE (not every frame)
         try:
             self._ghost_surface = self._create_ghost_surface(unit)
-        except Exception as e:
+        except Exception:
             self._ghost_surface = None  # Safe fallback
 
         # Select the unit (for placement highlights)

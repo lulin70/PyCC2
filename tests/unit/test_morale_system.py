@@ -6,14 +6,13 @@ and panic contagion.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock
 
 from pycc2.domain.systems.morale_system import (
     MoraleSystem,
     MoraleState,
     MoraleEvent,
     MoraleCalculator,
-    MoraleCalculationResult,
     RoutingTarget,
 )
 from pycc2.domain.components.morale_component import MoraleComponent
@@ -131,7 +130,7 @@ class TestMoraleRecovery:
         unit = _make_unit("u1", morale_value=50)
         old_morale = unit.morale.value
         # Large dt to ensure recovery
-        result = MoraleSystem.update_morale_recovery(unit, 10.0, in_cover=True)
+        MoraleSystem.update_morale_recovery(unit, 10.0, in_cover=True)
         assert unit.morale.value >= old_morale
 
     def test_recovery_commander_bonus(self):
@@ -265,7 +264,7 @@ class TestMoraleCalculator:
 
     def test_panic_contagion_targets(self):
         calc = MoraleCalculator()
-        mc1 = MoraleComponent(value=10)  # BROKEN
+        MoraleComponent(value=10)  # BROKEN
         mc2 = MoraleComponent(value=50)  # WAVERING
         mc3 = MoraleComponent(value=5)   # BROKEN — should be skipped
 
@@ -338,7 +337,6 @@ class TestNCORally:
     """Test NCO/commander rally bonus."""
 
     def test_commander_rallies_nearby_broken(self):
-        from pycc2.domain.value_objects.tile_coord import TileCoord
 
         commander = _make_unit("cmd", morale_value=80, tile_x=5, tile_y=5,
                                unit_type=UnitType.COMMANDER)

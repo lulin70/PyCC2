@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import pygame
@@ -216,13 +216,13 @@ class InteractionController:
                 # Try to get type-specific radius
                 try:
                     unit_type_str = str(unit.unit_type).upper() if hasattr(unit, 'unit_type') else ""
-                    
+
                     # Try .name first (for enum types), then direct string match
                     if hasattr(unit.unit_type, 'name'):
                         type_key = unit.unit_type.name.upper()
                     else:
                         type_key = unit_type_str
-                    
+
                     radius = type_radius.get(type_key, 20) * self._camera.zoom
                 except Exception as e:
                     logging.debug(f"Unit click radius lookup failed: {e}")

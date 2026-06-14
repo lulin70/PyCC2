@@ -1072,13 +1072,13 @@ class TestStageIUIDetailCheck:
     def test_i09_zoom_in_works(self, bottom_panel):
         initial_idx = bottom_panel._current_zoom_index
         if initial_idx < len(bottom_panel._zoom_levels) - 1:
-            new_zoom = bottom_panel.zoom_in()
+            bottom_panel.zoom_in()
             assert bottom_panel._current_zoom_index == initial_idx + 1
 
     def test_i10_zoom_out_works(self, bottom_panel):
         initial_idx = bottom_panel._current_zoom_index
         if initial_idx > 0:
-            new_zoom = bottom_panel.zoom_out()
+            bottom_panel.zoom_out()
             assert bottom_panel._current_zoom_index == initial_idx - 1
 
     def test_i11_panel_dimensions_match_spec(self):

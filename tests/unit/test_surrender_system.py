@@ -11,16 +11,8 @@ from unittest.mock import Mock
 from pycc2.domain.ai.surrender_system import (
     SurrenderSystem,
     SurrenderAI,
-    FallenUnitCache,
-    AMMO_RATIO_THRESHOLD,
-    MORALE_THRESHOLD,
-    ISOLATION_RADIUS,
-    THREAT_RADIUS,
     BASE_SURRENDER_PROBABILITY,
     SURROUNDED_BONUS,
-    OFFICER_DEAD_BONUS,
-    VETERAN_ELITE_PENALTY,
-    NEARBY_FRIENDLY_PENALTY,
 )
 from pycc2.domain.entities.unit import Faction, UnitType, UnitState
 from pycc2.domain.value_objects.tile_coord import TileCoord

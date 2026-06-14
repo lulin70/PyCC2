@@ -234,7 +234,7 @@ class _GameLoopFactory:
         try:
             self.game_loop._render_pipeline.render(**default_kwargs)
             return True
-        except Exception as e:
+        except Exception:
             return False
 
     def shutdown(self):
@@ -287,7 +287,7 @@ class EventInjector:
 class TestE2ECoverageEveryUserOperation:
     """
     Comprehensive E2E: every operation a user can perform on screen is tested.
-    
+
     Coverage matrix: 42 user operations across 8 categories.
     """
 
@@ -404,10 +404,8 @@ class TestE2ECoverageEveryUserOperation:
         """User drags mouse to pan camera across the map."""
         f = self._factory()
         f.place_n_units(1)
-        orig_pos = (f.camera.position.x, f.camera.position.y)
         EventInjector.mouse_drag(500, 300, 400, 200)
         f.run_ticks(5)
-        new_pos = (f.camera.position.x, f.camera.position.y)
         assert f.render_frame()
         f.shutdown()
 
@@ -415,7 +413,6 @@ class TestE2ECoverageEveryUserOperation:
         """User scrolls up to zoom in."""
         f = self._factory()
         f.place_n_units(1)
-        orig_zoom = f.camera.zoom
         EventInjector.scroll(500, 300, direction=1)
         f.run_ticks(3)
         assert f.render_frame()
@@ -746,7 +743,7 @@ class TestE2ECoverageEveryUserOperation:
     def test_39_prone_sprite_different_from_standing(self):
         """Prone sprite pixels differ from standing sprite (visual verification)."""
         from pycc2.presentation.rendering.pixel_artist import (
-            PixelCanvas, create_unit_sprite,
+            create_unit_sprite,
         )
 
         standing = create_unit_sprite(
@@ -797,7 +794,7 @@ class TestE2ECoverageEveryUserOperation:
 
     def test_42_full_journey_deploy_to_post_battle(self):
         """Complete journey: Deploy → Navigate → Select → Command → Battle → End.
-        
+
         This is THE master smoke test. If this passes, the core loop works.
         """
         f = self._factory()
@@ -842,11 +839,6 @@ class TestE2ECoverageEveryUserOperation:
         assert len(errors) == 0, f"Battle crashed: {errors[:3]}"
 
         # Phase G: Post-battle
-        post_result = {
-            "winner": "ALLIES",
-            "turns": 100,
-            "casualties": {"ALLIES": 1, "AXIS": 2},
-        }
         assert f.render_frame()
 
         # Phase H: Shutdown

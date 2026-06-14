@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import os
 import sys
-import traceback
 import logging
 
 import pytest
@@ -280,11 +279,7 @@ def pixel_artist_3d_fixture(pygame_display, can_render):
         pytest.skip("Rendering not available in this environment")
 
     try:
-        from pycc2.presentation.rendering.pixel_artist_3d import (
-            PixelArtist3D,
-            Direction,
-            Faction,
-        )
+        from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
         return PixelArtist3D
     except ImportError as e:
         pytest.skip(f"PixelArtist3D not available: {e}")

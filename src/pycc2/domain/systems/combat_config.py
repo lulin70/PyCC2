@@ -6,7 +6,7 @@ Reference: https://github.com/buxx/OpenCombat
 
 # PLANNED: Not yet wired into game loop — reserved for future feature
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
 
 

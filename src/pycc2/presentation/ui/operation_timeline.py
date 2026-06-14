@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import pygame
-    from pycc2.domain.systems.campaign_state import CampaignState, OperationPhase
+    from pycc2.domain.systems.campaign_state import CampaignState
 
 
 DAY_INFO = {

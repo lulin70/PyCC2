@@ -12,7 +12,6 @@ Tests cover:
 from __future__ import annotations
 
 import os
-import sys
 import pytest
 
 # Ensure SDL dummy drivers are set before pygame imports

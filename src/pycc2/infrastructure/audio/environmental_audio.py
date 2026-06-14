@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 from enum import Enum, auto
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class EnvironmentalSoundGenerator:
         """
         duration = 2.0
         n_samples = int(cls.SAMPLE_RATE * duration)
-        t = np.linspace(0, duration, n_samples, dtype=np.float64)
+        np.linspace(0, duration, n_samples, dtype=np.float64)
 
         if variant == 0:
             freq_start, freq_end = 3000, 4000
@@ -177,7 +177,7 @@ class EnvironmentalSoundGenerator:
         """
         duration = 3.0
         n_samples = int(cls.SAMPLE_RATE * duration)
-        t = np.linspace(0, duration, n_samples, dtype=np.float64)
+        np.linspace(0, duration, n_samples, dtype=np.float64)
 
         base_noise = np.random.uniform(-1, 1, n_samples).astype(np.float64)
         filtered = cls._highpass_filter(base_noise, 2000, cls.SAMPLE_RATE)
@@ -280,7 +280,7 @@ class EnvironmentalSoundGenerator:
         """
         duration = 4.0
         n_samples = int(cls.SAMPLE_RATE * duration)
-        t = np.linspace(0, duration, n_samples, dtype=np.float64)
+        np.linspace(0, duration, n_samples, dtype=np.float64)
         wave = np.zeros(n_samples, dtype=np.float64)
 
         surface_configs = {

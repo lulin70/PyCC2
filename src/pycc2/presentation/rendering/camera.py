@@ -87,7 +87,6 @@ class Camera:
                 self._shake_intensity = 0.0
 
     def screen_to_world(self, screen_pos: tuple[float, float]) -> Vec2:
-        from pycc2.domain.value_objects.vec2 import Vec2
 
         if self.projection == ProjectionMode.ISOMETRIC:
             return self._screen_to_world_isometric(screen_pos)

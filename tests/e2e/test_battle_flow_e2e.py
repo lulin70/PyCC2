@@ -1,6 +1,5 @@
 """E2E test: Complete battle flow from deployment to end."""
 import os
-import sys
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -8,19 +7,18 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 import pytest
 import numpy as np
 
-from pycc2.domain.components.fatigue_component import FatigueComponent, FatigueLevel
+from pycc2.domain.components.fatigue_component import FatigueLevel
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent, MoraleState
 from pycc2.domain.components.position_component import PositionComponent
 from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
-from pycc2.domain.entities.game_map import GameMap, MapObjective
-from pycc2.domain.entities.squad import Squad, SquadType, SquadMember, MemberState
+from pycc2.domain.entities.game_map import GameMap
+from pycc2.domain.entities.squad import Squad, SquadType, MemberState
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.systems.morale_system import MoraleSystem
-from pycc2.domain.systems.vehicle_crew_system import VehicleCrew, CrewRole, CrewStatus
+from pycc2.domain.systems.vehicle_crew_system import CrewRole, CrewStatus
 from pycc2.domain.systems.victory_conditions import (
-    BattleStats,
     GameResult,
     Objective,
     VictoryConditionEvaluator,
@@ -114,10 +112,9 @@ class TestCompleteBattleFlow:
 
     def test_deployment_to_battle_transition(self, pygame_env):
         """Test that deployment phase correctly transitions to battle."""
-        import pygame
 
         game_map = _make_map()
-        event_bus = EventBus()
+        EventBus()
 
         # 1. Create deployment manager
         dm = DeploymentManager()
@@ -161,7 +158,7 @@ class TestCompleteBattleFlow:
         )
         state = GameState(game_map=game_map, units=[], camera=camera)
 
-        result = dm.complete(ai_service=None, state=state)
+        dm.complete(ai_service=None, state=state)
 
         # 6. Verify deployment is no longer active
         assert not dm.is_active
@@ -295,7 +292,7 @@ class TestCompleteBattleFlow:
         assert squad.healthy_count == squad.size
 
         # 2. Apply casualties
-        dead = squad.apply_casualties(4)
+        squad.apply_casualties(4)
         # Some should be wounded, some dead
         assert squad.wounded_count > 0 or squad.dead_count > 0
 

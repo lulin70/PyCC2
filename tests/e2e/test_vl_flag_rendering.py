@@ -10,9 +10,6 @@ This test:
 """
 from __future__ import annotations
 
-import json
-import os
-import sys
 from pathlib import Path
 
 import pytest
@@ -96,7 +93,6 @@ def _save_screenshot(screen, name: str):
 
 def _pixel_color(surface, x, y):
     """Get pixel color at (x, y) on a pygame Surface."""
-    import pygame
     # Clamp to surface bounds
     w, h = surface.get_size()
     x = max(0, min(w - 1, x))
@@ -110,7 +106,6 @@ def _has_flag_pixels(surface, sx, sy, expected_color, tolerance=50):
     The flag is drawn as a polygon from (sx+1, sy-20) to (sx+14, sy-10).
     We check a region around the flag area.
     """
-    import pygame
     w, h = surface.get_size()
     matches = 0
     checked = 0
@@ -138,7 +133,6 @@ class TestVLFlagRendering:
     @pytest.fixture(autouse=True)
     def setup(self):
         """Set up pygame, map, camera, and renderer for each test."""
-        import pygame
         self.screen = _ensure_pygame_initialized()
         self.game_map = _create_game_map()
         self.camera = _create_camera(self.game_map)
@@ -174,7 +168,7 @@ class TestVLFlagRendering:
         pygame.display.flip()
 
         # Save screenshot
-        screenshot_path = _save_screenshot(self.screen, "vl_flag_test.png")
+        _save_screenshot(self.screen, "vl_flag_test.png")
 
         # Get the offscreen buffer (where VL flags are drawn)
         offscreen = self.renderer._offscreen

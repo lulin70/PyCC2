@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from pycc2.domain.ai.trench_digging import (
     DIG_DURATION,
@@ -182,7 +181,7 @@ class TestDiggingProcess:
     def test_start_digging_creates_progress(self):
         sys = TrenchDiggingSystem()
         unit = _make_unit()
-        gm = _make_map()
+        _make_map()
         assert sys.start_digging(unit) is True
         prog = sys.get_progress("u1")
         assert prog is not None
@@ -270,7 +269,7 @@ class TestDiggingProcess:
         sys = TrenchDiggingSystem()
         u1 = _make_unit(uid="u1", x=5, y=5)
         u2 = _make_unit(uid="u2", x=10, y=10)
-        gm = _make_map()
+        _make_map()
         sys.start_digging(u1)
         sys.start_digging(u2)
         assert len(sys.active_digs) == 2

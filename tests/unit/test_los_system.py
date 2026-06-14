@@ -7,7 +7,7 @@ Bresenham ray casting, and building visibility bonuses.
 
 import math
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 
 from pycc2.domain.systems.los_system import Lossystem, LosStatus, LosResult
 from pycc2.domain.value_objects.tile_coord import TileCoord

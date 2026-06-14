@@ -17,7 +17,6 @@ import os
 import random
 import traceback
 
-import pytest
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -115,7 +114,6 @@ class TestGameRun60sE2E:
         from pycc2.services.event_bus import EventBus
         from pycc2.services.combat_director import CombatDirector
         from pycc2.services.victory_manager import VictoryManager
-        from pycc2.domain.entities.unit import Faction
 
         state = _create_game_state()
         event_bus = EventBus()
@@ -168,7 +166,7 @@ class TestGameRun60sE2E:
                     self._simulate_random_command(state, rng)
 
                 # Check victory conditions
-                victory_outcome = victory_manager.evaluate(state.units, tick)
+                victory_manager.evaluate(state.units, tick)
 
                 state.tick = tick
 
@@ -222,7 +220,7 @@ class TestGameRun60sE2E:
 
     def test_unit_state_transitions_over_time(self):
         """Verify units can transition between states over time without errors."""
-        from pycc2.domain.entities.unit import Unit, Faction, UnitType, UnitState
+        from pycc2.domain.entities.unit import Unit, Faction, UnitType
         from pycc2.domain.components.position_component import PositionComponent
         from pycc2.domain.components.health_component import HealthComponent
         from pycc2.domain.components.vision_component import VisionComponent

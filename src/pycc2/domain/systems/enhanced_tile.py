@@ -24,12 +24,12 @@ logger = logging.getLogger(__name__)
 class DecorationType(Enum):
     """
     Comprehensive decoration catalog for tactical maps.
-    
+
     Organized into thematic layers that stack to create visual richness.
     Total: 35+ decoration types covering vegetation, geology, man-made,
     combat damage, and atmospheric elements.
     """
-    
+
     # === VEGETATION LAYER (Flora) ===
     BUSH_SMALL = auto()           # Small shrub, provides light cover
     BUSH_DENSE = auto()           # Dense bush, good concealment
@@ -40,7 +40,7 @@ class DecorationType(Enum):
     CROPS_WHEAT = auto()          # Wheat field (seasonal)
     HEDGE_ROW = auto()            # Thick hedge (strong cover)
     FLOWER_PATCH = auto()         # Wildflowers (visual variety)
-    
+
     # === GEOLOGY LAYER (Natural features) ===
     ROCK_LARGE = auto()           # Boulder, provides heavy cover
     ROCK_SMALL = auto()           # Small rock cluster
@@ -48,7 +48,7 @@ class DecorationType(Enum):
     SAND_PATCH = auto()           # Sandy area (affects movement)
     MUD_PATCH = auto()            # Muddy ground (slows movement)
     PUDDLE = auto()               # Water puddle (after rain)
-    
+
     # === MAN-MADE LAYER (Structures) ===
     FENCE_WOOD = auto()           # Wooden fence (light obstacle)
     FENCE_WIRE = auto()           # Barbed wire (infantry obstacle)
@@ -57,7 +57,7 @@ class DecorationType(Enum):
     SIGN_POST = auto()             # Road sign (landmark/cover)
     ROAD_BLOCK = auto()            # Barricade/roadblock
     CRATE_STACK = auto()           # Supply crates (light cover)
-    
+
     # === COMBAT DAMAGE LAYER (Battle scars) ===
     CRATER_SMALL = auto()          # Small shell crater (mortar)
     CRATER_LARGE = auto()          # Large bomb crater (air strike)
@@ -66,7 +66,7 @@ class DecorationType(Enum):
     WRECKAGE_GUN = auto()           # Destroyed gun emplacement
     BUILDING_RUIN = auto()         # Ruined building structure (partial cover + LOS block)
     SHELL_HOLE = auto()            # Artillery impact point
-    
+
     # === ATMOSPHERE/DETAIL LAYER (Ambient) ===
     PATH_DIRT = auto()             # Dirt path (visual guide)
     GRAVE_MARKER = auto()          # Grave (atmospheric/historical)
@@ -74,7 +74,7 @@ class DecorationType(Enum):
     FLAG_POLE = auto()             # Flag marker (objective indicator)
     CAMPFIRE = auto()              # Extinguished campfire (night missions)
     ANIMAL_CORPSE = auto()         # Dead horse/cow (grim realism)
-    
+
     # === SPECIAL/TACTICAL LAYER ===
     MINE_MARKER = auto()           # Visible mine field marker (friendly)
     TRIP_FLARE = auto()            # Trip flare (alarm system)
@@ -92,7 +92,7 @@ class DecorationInstance:
     scale: float = 1.0             # Size variation (0.8 to 1.2)
     rotation: int = 0              # Rotation in degrees (0, 90, 180, 270)
     variant: int = 0               # Visual variant (for variety)
-    
+
     def get_tactical_properties(self) -> dict[str, Any]:
         """Return tactical effects of this decoration."""
         props = {
@@ -103,7 +103,7 @@ class DecorationInstance:
             'destructible': True,   # Can be destroyed by explosives
             'height_override': None # Overrides tile height if set
         }
-        
+
         # Apply type-specific properties
         type_props = {
             DecorationType.TREE_OAK: {'cover_bonus': 2, 'concealment_bonus': 0.3, 'blocks_los': True},
@@ -119,10 +119,10 @@ class DecorationInstance:
             DecorationType.CAMOUFLAGE_NET: {'concealment_bonus': 0.4},
             DecorationType.BUILDING_RUIN: {'cover_bonus': 2, 'concealment_bonus': 0.2, 'blocks_los': True},
         }
-        
+
         if self.decoration_type in type_props:
             props.update(type_props[self.decoration_type])
-        
+
         return props
 
 
@@ -130,34 +130,34 @@ class DecorationInstance:
 class EnhancedTile:
     """
     Multi-layer terrain tile - the heart of the enhanced map system.
-    
+
     Replaces simple integer terrain ID with rich data structure supporting:
     - Height variation (elevation affects LOS, movement, combat)
     - Multiple decorations per tile (stacked visual elements)
     - Visual variation (prevents repetitive appearance)
     - Tactical metadata (derived from decorations)
-    
+
     Backward Compatible: Can be initialized from legacy integer terrain ID.
     """
-    
+
     # === CORE TERRAIN DATA ===
     base_terrain: int              # Legacy terrain type (0-11) for compatibility
     height: int = 0                # Elevation level (-3 to +3, relative to map baseline)
     building_floors: int = 1       # Number of floors in building (affects LOS bonus)
-    
+
     # === VISUAL VARIATION ===
     variation: int = 0             # Appearance variant (0-7) for same terrain type
     transition_edges: dict[str, int] = field(default_factory=dict)  # Blending with neighbors
-    
+
     # === DECORATION LAYER ===
     decorations: list[DecorationInstance] = field(default_factory=list)
     max_decorations: int = 4       # Performance limit per tile
-    
+
     # === DERIVED TACTICAL PROPERTIES (cached) ===
     _cached_cover: int | None = None
     _cached_concealment: float | None = None
     _cached_movement_cost: float | None = None
-    
+
     def add_decoration(self, deco: DecorationInstance) -> bool:
         """Add decoration to tile if under limit."""
         if len(self.decorations) < self.max_decorations:
@@ -165,7 +165,7 @@ class EnhancedTile:
             self._invalidate_cache()
             return True
         return False
-    
+
     def remove_decoration(self, deco_type: DecorationType) -> bool:
         """Remove first decoration of given type."""
         for i, d in enumerate(self.decorations):
@@ -174,13 +174,13 @@ class EnhancedTile:
                 self._invalidate_cache()
                 return True
         return False
-    
+
     @property
     def total_cover_bonus(self) -> int:
         """Calculate total cover bonus from terrain + decorations."""
         if self._cached_cover is not None:
             return self._cached_cover
-        
+
         # Base cover from terrain type
         terrain_cover = {
             0: 0, 1: 0, 2: 0,       # Open ground: no cover
@@ -192,21 +192,21 @@ class EnhancedTile:
             9: 1, 11: 0,            # Rough/open: light/no cover
         }
         base = terrain_cover.get(self.base_terrain, 0)
-        
+
         # Add decoration bonuses
         for deco in self.decorations:
             props = deco.get_tactical_properties()
             base += props['cover_bonus']
-        
+
         self._cached_cover = max(-1, min(3, base))  # Clamp to [-1, 3]
         return self._cached_cover
-    
+
     @property
     def total_concealment(self) -> float:
         """Calculate total concealment factor (0.0 to 1.0)."""
         if self._cached_concealment is not None:
             return self._cached_concealment
-        
+
         # Base concealment from terrain
         terrain_conc = {
             0: 0.0, 1: 0.0, 2: 0.0,  # Open: none
@@ -218,22 +218,22 @@ class EnhancedTile:
             9: 0.15, 11: 0.05,       # Rough: some
         }
         base = terrain_conc.get(self.base_terrain, 0.0)
-        
+
         # Stack decoration concealment (diminishing returns)
         for deco in self.decorations:
             props = deco.get_tactical_properties()
             bonus = props['concealment_bonus']
             base += bonus * (1.0 - base)  # Diminishing returns
-        
+
         self._cached_concealment = min(0.95, max(0.0, base))
         return self._cached_concealment
-    
+
     @property
     def effective_movement_cost(self) -> float:
         """Calculate movement cost multiplier for this tile."""
         if self._cached_movement_cost is not None:
             return self._cached_movement_cost
-        
+
         # Base cost from terrain
         terrain_cost = {
             0: 1.0, 1: 0.7, 2: 1.0,  # Normal/road/grass
@@ -245,20 +245,20 @@ class EnhancedTile:
             9: 1.3, 11: 1.2,         # Rough: slightly slow
         }
         base = terrain_cost.get(self.base_terrain, 1.0)
-        
+
         # Apply worst decoration modifier
         for deco in self.decorations:
             props = deco.get_tactical_properties()
             if props['movement_cost'] > base:
                 base = props['movement_cost']
-        
+
         # Height penalty (going uphill costs more)
         if self.height > 0:
             base *= (1.0 + self.height * 0.2)
-        
+
         self._cached_movement_cost = base
         return self._cached_movement_cost
-    
+
     def blocks_line_of_sight(self) -> bool:
         """Check if this tile completely blocks LOS."""
         # Buildings always block
@@ -272,17 +272,17 @@ class EnhancedTile:
             DecorationType.BUILDING_RUIN,
         }
         return any(d.decoration_type in blocking_types for d in self.decorations)
-    
+
     def _invalidate_cache(self) -> None:
         """Clear cached derived values."""
         self._cached_cover = None
         self._cached_concealment = None
         self._cached_movement_cost = None
-    
+
     def to_legacy_int(self) -> int:
         """Convert back to legacy integer format (for backward compatibility)."""
         return self.base_terrain
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary for JSON storage."""
         return {
@@ -302,7 +302,7 @@ class EnhancedTile:
                 for d in self.decorations
             ]
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> 'EnhancedTile':
         """Deserialize from dictionary."""
@@ -312,7 +312,7 @@ class EnhancedTile:
             building_floors=data.get('building_floors', 1),
             variation=data.get('variation', 0),
         )
-        
+
         for deco_data in data.get('decorations', []):
             deco = DecorationInstance(
                 decoration_type=DecorationType[deco_data['type']],
@@ -323,9 +323,9 @@ class EnhancedTile:
                 variant=deco_data.get('variant', 0),
             )
             tile.add_decoration(deco)
-        
+
         return tile
-    
+
     @classmethod
     def from_legacy(cls, terrain_id: int) -> 'EnhancedTile':
         """Create EnhancedTile from legacy integer terrain ID."""
@@ -336,12 +336,12 @@ class EnhancedTile:
 class DecorationLibrary:
     """
     Metadata and rendering hints for all decoration types.
-    
+
     Provides sprite information, placement rules, and tactical defaults.
     """
-    
+
     definitions: dict[DecorationType, dict[str, Any]] = field(default_factory=dict)
-    
+
     def __post_init__(self):
         """Initialize default decoration definitions."""
         self.definitions = {
@@ -380,7 +380,7 @@ class DecorationLibrary:
                 'variants': 3,
                 'shadow_size': (32, 18),
             },
-            
+
             # GEOLOGY
             DecorationType.ROCK_LARGE: {
                 'sprite_sheet': 'geology.png',
@@ -398,7 +398,7 @@ class DecorationLibrary:
                 'size_range': (0.7, 1.3),
                 'variants': 5,
             },
-            
+
             # COMBAT DAMAGE
             DecorationType.CRATER_SMALL: {
                 'sprite_sheet': 'damage.png',
@@ -424,7 +424,7 @@ class DecorationLibrary:
                 'size_range': (1.0, 1.0),
                 'variants': 6,  # Different vehicle types
             },
-            
+
             # MAN-MADE
             DecorationType.TRENCH_SECTION: {
                 'sprite_sheet': 'fortifications.png',
@@ -451,7 +451,7 @@ class DecorationLibrary:
                 'variants': 1,
             },
         }
-    
+
     def get_definition(self, deco_type: DecorationType) -> dict[str, Any]:
         """Get definition for a decoration type."""
         return self.definitions.get(deco_type, {
@@ -467,10 +467,10 @@ class DecorationLibrary:
 class TileConverter:
     """
     Converts between legacy and enhanced tile formats.
-    
+
     Ensures backward compatibility while enabling new features.
     """
-    
+
     @staticmethod
     def convert_grid_to_enhanced(legacy_grid: list[list[int]]) -> list[list[EnhancedTile]]:
         """Convert entire legacy grid to enhanced format."""
@@ -479,26 +479,26 @@ class TileConverter:
             enhanced_row = [EnhancedTile.from_legacy(tile_id) for tile_id in row]
             enhanced_grid.append(enhanced_row)
         return enhanced_grid
-    
+
     @staticmethod
     def convert_grid_to_legacy(enhanced_grid: list[list[EnhancedTile]]) -> list[list[int]]:
         """Convert enhanced grid back to legacy format (data loss)."""
         return [[tile.to_legacy_int() for tile in row] for row in enhanced_grid]
-    
+
     @staticmethod
     def convert_map_data(map_data: dict[str, Any]) -> dict[str, Any]:
         """
         Convert full map data dictionary to enhanced format.
-        
+
         Preserves all original keys and adds enhanced tiles structure.
         """
         if 'tiles' not in map_data:
             raise ValueError("Map data must contain 'tiles' key")
-        
+
         # Convert tiles
         legacy_tiles = map_data['tiles']
         enhanced_tiles = TileConverter.convert_grid_to_enhanced(legacy_tiles)
-        
+
         # Build new map data
         new_data = {**map_data}
         new_data['tiles_enhanced'] = [
@@ -506,7 +506,7 @@ class TileConverter:
             for row in enhanced_tiles
         ]
         new_data['_format_version'] = 'enhanced_v1'
-        
+
         return new_data
 
 
@@ -514,41 +514,41 @@ class TileConverter:
 def enhance_map(map_path: str, output_path: str | None = None) -> dict[str, Any]:
     """
     Quick utility to convert a legacy map file to enhanced format.
-    
+
     Args:
         map_path: Path to legacy map JSON file
         output_path: Output path (defaults to overwriting input)
-        
+
     Returns:
         Enhanced map data dictionary
     """
     import json
     from pathlib import Path
-    
+
     map_file = Path(map_path)
     with open(map_file, 'r') as f:
         legacy_data = json.load(f)
-    
+
     enhanced_data = TileConverter.convert_map_data(legacy_data)
-    
+
     out_path = output_path or str(map_file)
     with open(out_path, 'w') as f:
         json.dump(enhanced_data, f, indent=2)
-    
+
     logger.info("✅ Enhanced map saved: %s", out_path)
     logger.info("   Size: %dx%d → %dx%d",
                 legacy_data['width'], legacy_data['height'],
                 enhanced_data['width'], enhanced_data['height'])
     logger.info("   Format: legacy → enhanced_v1")
-    
+
     return enhanced_data
 
 
 if __name__ == '__main__':
     import sys
-    
+
     if len(sys.argv) < 2:
         logger.info("Usage: python enhanced_tile.py <map_file.json> [output_file.json]")
         sys.exit(1)
-    
+
     enhance_map(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)

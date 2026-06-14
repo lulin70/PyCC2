@@ -33,14 +33,12 @@ from __future__ import annotations
 
 import logging
 import math
-from dataclasses import dataclass, field
-from enum import Enum, auto
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
 from pycc2.domain.ai.tactical_ai import TacticalAIBase, TacticalContext
 from pycc2.domain.systems.combat_mechanics_enhanced import (
-    SuppressionEffect,
     SuppressionState,
 )
 from pycc2.domain.value_objects.tile_coord import TileCoord
@@ -48,7 +46,6 @@ from pycc2.domain.value_objects.tile_coord import TileCoord
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
-    from pycc2.domain.systems.enhanced_tile import EnhancedTile
     from pycc2.domain.systems.los_system import Lossystem
 
 
@@ -186,7 +183,7 @@ class CoverScoringSystem:
         candidates: list[CoverCandidate] = []
         unit_x = int(unit.position_component.x)
         unit_y = int(unit.position_component.y)
-        unit_pos = TileCoord(unit_x, unit_y)
+        TileCoord(unit_x, unit_y)
 
         # Get occupied positions
         occupied: set[tuple[int, int]] = set()

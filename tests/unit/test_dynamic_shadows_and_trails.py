@@ -3,7 +3,6 @@ Tests for Dynamic Shadow System and Projectile Trail System.
 """
 
 import math
-import pytest
 import pygame
 import os
 

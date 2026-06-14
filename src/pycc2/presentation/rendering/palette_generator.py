@@ -10,7 +10,6 @@ Dependencies:
 from __future__ import annotations
 
 import random
-from typing import Optional
 
 
 class PaletteGenerator:
@@ -62,7 +61,7 @@ class PaletteGenerator:
             factor = 0.3 + (i * 0.1)  # 0.3 to 1.0
 
             vary = self._rng.uniform(-hue_range, hue_range) if i > 0 else 0
-            sat_vary = self._rng.uniform(-sat_range, sat_range) if i > 0 else 0
+            self._rng.uniform(-sat_range, sat_range) if i > 0 else 0
 
             new_r = max(0, min(255, int(r * factor + vary)))
             new_g = max(0, min(255, int(g * factor + vary * 0.8)))

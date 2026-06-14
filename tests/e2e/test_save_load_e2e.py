@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 import json
-import os
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
 
-from pycc2.domain.components.health_component import HealthComponent, HealthState
-from pycc2.domain.components.morale_component import MoraleComponent, MoraleState
+from pycc2.domain.components.health_component import HealthComponent
+from pycc2.domain.components.morale_component import MoraleComponent
 from pycc2.domain.components.position_component import PositionComponent
 from pycc2.domain.components.vision_component import VisionComponent
-from pycc2.domain.components.weapon_component import WeaponComponent, WeaponState
+from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
@@ -269,7 +268,6 @@ class TestQuickSaveQuickLoadCycle:
 
 class TestCorruptedSaveRejected:
     def test_corrupted_save_rejected(self, secure_manager, tmp_save_dir):
-        from pycc2.infrastructure.save_system import SaveMetaData
 
         sample_state = {"tick": 1234, "units": [{"id": "u1", "faction": "ALLIES"}]}
         secure_manager.save_game(0, sample_state)

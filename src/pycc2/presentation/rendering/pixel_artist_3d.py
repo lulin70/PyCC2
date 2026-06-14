@@ -41,8 +41,6 @@ from pycc2.presentation.rendering.pixel_artist_enums import (
 # Import extracted color palettes
 from pycc2.presentation.rendering.pixel_artist_color_palette import (
     CC2_PALETTE,
-    TANK_PALETTES,
-    TANK_SIZES,
 )
 
 # Import extracted renderers

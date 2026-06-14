@@ -20,7 +20,6 @@ import os
 import statistics
 import time
 import tracemalloc
-from collections import OrderedDict
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -43,7 +42,6 @@ from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.systems.pathfinder import PathFinder
-from pycc2.domain.systems.spatial_hash import SpatialHash
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
 
@@ -147,7 +145,7 @@ def _run_benchmark(
 ) -> list[float]:
     """
     Run a benchmark with warmup and multiple measurements.
-    
+
     Returns list of measurement times in milliseconds.
     """
     # Warmup phase
@@ -344,8 +342,8 @@ class TestRenderingPerformance:
                 renderer._get_pooled_surface(size)
 
         # Measure efficiency
-        initial_pool_size = len(renderer._surface_pool)
-        
+        len(renderer._surface_pool)
+
         for _ in range(50):
             for size in test_sizes:
                 total_requests += 1
@@ -393,7 +391,7 @@ class TestRenderingPerformance:
         # Zoom in to show only small portion of map
         camera = Camera(position=Vec2(0, 0), viewport_width=800, viewport_height=600)
         camera.zoom = 2.0  # Zoom in significantly
-        
+
         # Count tiles that would be rendered vs total tiles
         total_tiles = game_map.width * game_map.height
 
@@ -528,7 +526,7 @@ class TestGameLogicPerformance:
 
         rng = RandomContext.from_seed(42)
         game_map = benchmark_maps['50x42']
-        
+
         # Small combat scenario: 5 vs 5
         allies = sample_units[:5]
         axis = sample_units[5:10]
@@ -678,7 +676,7 @@ class TestMemoryUsage:
 
         # Simulate many different surface size requests
         np.random.seed(42)
-        sizes_before = len(renderer._surface_pool)
+        len(renderer._surface_pool)
 
         for _ in range(200):
             w = np.random.randint(100, 1200)
@@ -723,7 +721,7 @@ class TestStartupPerformance:
         """Cold startup (imports + initialization) should complete in <10s."""
         import subprocess
         import sys
-        
+
         # Create a simple script that measures cold startup
         startup_script = '''
 import time
@@ -748,7 +746,7 @@ print(f"COLD_START_TIME_MS={elapsed:.2f}")
                 text=True,
                 cwd=str(Path(__file__).resolve().parents[2]),
             )
-            
+
             for line in result.stdout.split('\\n'):
                 if 'COLD_START_TIME_MS=' in line:
                     ms = float(line.split('=')[1])
@@ -781,8 +779,8 @@ print(f"COLD_START_TIME_MS={elapsed:.2f}")
         start = time.perf_counter()
 
         # Initialize key components
-        game_map = benchmark_maps['50x42']
-        pathfinder = PathFinder()
+        benchmark_maps['50x42']
+        PathFinder()
         units = sample_units[:10]
 
         # Simulate minimal game state setup

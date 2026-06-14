@@ -5,7 +5,6 @@ Tests time progression, period detection, effects, and searchlight logic.
 
 from __future__ import annotations
 
-import math
 import pytest
 from pycc2.domain.systems.day_night_cycle import (
     TimeOfDay,

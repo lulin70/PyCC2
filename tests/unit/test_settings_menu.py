@@ -374,13 +374,11 @@ class TestCycleEnumValue:
         assert menu.state.quality_preset != original
 
     def test_cycle_quality_preset_backward(self, menu):
-        presets = ["LOW", "MEDIUM", "HIGH", "ULTRA"]
         menu.state.quality_preset = "LOW"
         menu._cycle_option_value(-1)
         assert menu.state.quality_preset == "ULTRA"
 
     def test_cycle_difficulty_forward(self, menu):
-        difficulties = ["EASY", "MEDIUM", "HARD", "VETERAN"]
         menu.state.difficulty = "EASY"
         menu._selected_option_idx = 0
         menu._active_tab = SettingsTab.GAMEPLAY

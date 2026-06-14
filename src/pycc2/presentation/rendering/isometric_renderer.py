@@ -33,7 +33,6 @@ from typing import TYPE_CHECKING, Any
 import pygame
 
 from pycc2.presentation.rendering.isometric_building_renderer import (
-    BuildingType,
     DamageState,
     is_building_terrain,
     render_building,
@@ -47,7 +46,6 @@ from pycc2.presentation.rendering.isometric_depth_sorter import (
     unit_to_renderable,
 )
 from pycc2.presentation.rendering.isometric_tile_generator import (
-    CC2_ISOMETRIC_PALETTE,
     generate_crater_tile,
     generate_dirt_tile,
     generate_grass_tile,
@@ -56,12 +54,8 @@ from pycc2.presentation.rendering.isometric_tile_generator import (
     generate_water_tile,
 )
 from pycc2.presentation.rendering.isometric_transform import (
-    HEIGHT_SCALE,
     TILE_H,
     TILE_W,
-    depth_sort_key,
-    is_point_in_diamond,
-    world_to_isometric,
 )
 
 if TYPE_CHECKING:
@@ -347,7 +341,6 @@ class IsometricRenderer:
 
         Returns (start_x, start_y, end_x, end_y) tile coordinates.
         """
-        from pycc2.domain.value_objects.vec2 import Vec2
 
         # Convert screen corners to world coords to find visible range
         # Add generous padding since isometric projection is diamond-shaped

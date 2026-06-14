@@ -92,7 +92,7 @@ class ProceduralTextureGenerator:
                     new_b = max(0, min(255, b + offset))
                     pixels[x, y] = (new_r, new_g, new_b)
             del pixels
-        except (ValueError, IndexError) as e:
+        except (ValueError, IndexError):
             pass  # Fallback: just use base color
 
     @staticmethod
@@ -178,7 +178,6 @@ class ProceduralTextureGenerator:
     ) -> None:
         """ROAD (1): CC2 authentic gravel road with texture and autotile continuity."""
         from pycc2.presentation.rendering.autotile_system import (
-            DIR_NORTH, DIR_EAST, DIR_SOUTH, DIR_WEST,
             get_edge_transition_width,
         )
 
@@ -189,7 +188,7 @@ class ProceduralTextureGenerator:
         tile_sz = ProceduralTextureGenerator.TILE_SIZE
 
         edge_widths = get_edge_transition_width(tid, bitmask, tile_sz)
-        road_dark = CC2_TERRAIN_PALETTE['road_dark']
+        CC2_TERRAIN_PALETTE['road_dark']
 
         if edge_widths['north'] > 0:
             for x in range(tile_sz):
@@ -340,7 +339,6 @@ class ProceduralTextureGenerator:
         tile_sz = ProceduralTextureGenerator.TILE_SIZE
 
         try:
-            import numpy as np
             for y in range(tile_sz):
                 for x in range(tile_sz):
                     offset = rng.randint(-8, 8)
@@ -376,7 +374,7 @@ class ProceduralTextureGenerator:
                 sx = rng.randint(tile_sz // 10, tile_sz - tile_sz // 10)
                 sy = rng.randint(int(0.7 * tile_sz), tile_sz - 1)
                 pixels[sx, sy] = (28, 45, 20)
-        except (ValueError, IndexError) as e:
+        except (ValueError, IndexError):
             pass
         finally:
             del pixels
@@ -580,7 +578,7 @@ class ProceduralTextureGenerator:
             gy = rng.randint(3, tile_sz - 3)
             pixels[gx, gy] = glint_color
 
-        water_dark = CC2_TERRAIN_PALETTE['water_dark']
+        CC2_TERRAIN_PALETTE['water_dark']
         water_foam = CC2_TERRAIN_PALETTE['water_foam']
         edge_widths = get_edge_transition_width(tid, bitmask, tile_sz)
 
@@ -1097,7 +1095,7 @@ class ProceduralTextureGenerator:
     ) -> None:
         """TRENCH (13): Defensive earthwork line."""
         from pycc2.presentation.rendering.autotile_system import (
-            DIR_NORTH, DIR_EAST, DIR_SOUTH, DIR_WEST,
+            DIR_EAST, DIR_WEST,
             get_edge_transition_width,
         )
 
@@ -1111,7 +1109,7 @@ class ProceduralTextureGenerator:
         trench_embankment = CC2_TERRAIN_PALETTE['trench_embankment']
 
         edge_widths = get_edge_transition_width(tid, bitmask, tile_sz)
-        center_x = tile_sz // 2
+        tile_sz // 2
         base_y = tile_sz // 2
         trench_width = rng.randint(3, 5)
 

@@ -2,10 +2,7 @@
 Tests for Achievement System.
 """
 
-import json
-import os
 import tempfile
-import pytest
 from pycc2.domain.systems.achievement_system import (
     Achievement, AchievementCategory, AchievementRarity,
     AchievementState, AchievementManager, create_default_achievements,

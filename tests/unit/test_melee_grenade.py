@@ -15,9 +15,8 @@ Coverage:
 - Grenade ammo management
 """
 
-import math
 import pytest
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, patch
 
 from pycc2.domain.ai.melee_combat import (
     # B4 Melee
@@ -29,21 +28,13 @@ from pycc2.domain.ai.melee_combat import (
     BUTT_STROKE_DAMAGE,
     FISTS_DAMAGE,
     BASE_HIT_CHANCE,
-    MELEE_RANGE,
-    AMMO_THRESHOLD,
-    # B5 Grenade
     GrenadeSystem,
-    GrenadeResult,
-    GrenadeTargetResult,
     GRENADE_MAX_COUNT,
-    GRENADE_MIN_RANGE,
-    GRENADE_MAX_RANGE,
-    GRENADE_AOE_RADIUS,
     GRENADE_CENTER_DAMAGE,
     GRENADE_EDGE_DAMAGE,
     GRENADE_SUPPRESSION,
 )
-from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
+from pycc2.domain.ai.tactic_intent import TacticType
 from pycc2.domain.ai.tactical_ai import TacticalContext
 from pycc2.domain.value_objects.tile_coord import TileCoord
 

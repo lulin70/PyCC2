@@ -12,8 +12,6 @@ from pycc2.domain.ai.weapon_jam import (
     WeaponJamSystem,
     JamConfig,
     WEAPON_JAM_CONFIGS,
-    CAPTURED_WEAPON_JAM_PENALTY,
-    CAPTURED_WEAPON_CLEAR_MULTIPLIER,
 )
 from pycc2.domain.components.weapon_component import WeaponState
 from pycc2.domain.entities.unit import Faction
@@ -142,7 +140,7 @@ class TestCapturedWeaponPenalty:
         rng.random = lambda: 0.0
         system = WeaponJamSystem(rng=rng)
         # Allied unit with German weapon prefix — use mg42 which is in configs
-        unit = _make_unit("u1", weapon_id="mg42", faction=Faction.ALLIES)
+        _make_unit("u1", weapon_id="mg42", faction=Faction.ALLIES)
         # mg42 is a German weapon (de_ prefix not in ID, but _is_captured_weapon
         # checks for "de_" prefix). Let's use a weapon that IS captured.
         # Actually, mg42 doesn't start with "de_" so it won't be detected as captured.

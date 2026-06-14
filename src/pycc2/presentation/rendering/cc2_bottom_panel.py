@@ -12,7 +12,6 @@ Reference: Original CC2 screenshot provided by user.
 from __future__ import annotations
 
 import logging
-import math
 import time
 from typing import TYPE_CHECKING
 

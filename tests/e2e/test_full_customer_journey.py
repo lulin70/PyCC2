@@ -25,7 +25,6 @@ pygame.font.init()  # Ensure font module is initialized for UI tests
 # ---------------------------------------------------------------------------
 # Domain imports
 # ---------------------------------------------------------------------------
-from pycc2.domain.components.fatigue_component import FatigueComponent
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent, MoraleState
 from pycc2.domain.components.position_component import PositionComponent
@@ -187,7 +186,7 @@ class TestFullCustomerJourney:
 
     def test_06_radial_menu_works(self):
         """User can use the radial menu."""
-        from pycc2.presentation.ui.radial_menu import RadialMenu, RadialCommand
+        from pycc2.presentation.ui.radial_menu import RadialMenu
 
         rm = RadialMenu()
         rm.show((400, 300))
@@ -198,7 +197,7 @@ class TestFullCustomerJourney:
             angle = (2 * math.pi * i / 7) - math.pi / 2
             mx = 400 + int(60 * math.cos(angle))
             my = 300 + int(60 * math.sin(angle))
-            cmd = rm.update_hover((mx, my))
+            rm.update_hover((mx, my))
             # Should detect some command (or None if in center)
             # The key thing is it doesn't crash
 
@@ -370,7 +369,7 @@ class TestFullCustomerJourney:
 
     def test_20_game_runs_60_seconds(self):
         """Game runs for 60 simulated seconds without crash."""
-        game_map = _make_map()
+        _make_map()
 
         # Create units
         units = []

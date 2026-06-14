@@ -26,9 +26,7 @@ if TYPE_CHECKING:
     from pycc2.domain.state_machine import StateMachine
     from pycc2.domain.systems.combat_mechanics_enhanced import (
         CombatState,
-        ConcealmentProfile,
         SuppressionEffect,
-        SuppressionState,
     )
     from pycc2.domain.systems.vehicle_crew_system import VehicleCrew
 
@@ -93,7 +91,7 @@ class Unit:
     fuel: float = -1.0  # -1 = not a vehicle (infantry); vehicles start with max_fuel
     max_fuel: float = 100.0
     fuel_per_tile: float = 1.0  # Fuel consumed per tile moved
-    
+
     # Movement mode system (for Fast Move, Sneak, Defend commands)
     _movement_mode: str = field(init=False, default="normal")  # normal, fast_move, sneak, defend
     _movement_mode_ticks_remaining: int = field(init=False, default=0)  # Duration in ticks
@@ -119,27 +117,27 @@ class Unit:
     _smoke_particles: list = field(init=False, default_factory=list)  # Smoke effect positions
     _fire_particles: list = field(init=False, default_factory=list)   # Fire effect positions
     _damage_vfx_timer: int = field(init=False, default=0)            # Animation timer
-    
+
     @property
     def movement_mode(self) -> str:
         """Current movement mode."""
         return self._movement_mode
-    
+
     @property
     def is_fast_moving(self) -> bool:
         """Check if unit is in fast move mode."""
         return self._movement_mode == "fast_move"
-    
+
     @property
     def is_sneaking(self) -> bool:
         """Check if unit is in sneak mode."""
         return self._movement_mode == "sneak"
-    
+
     @property
     def is_defending(self) -> bool:
         """Check if unit is in defend mode."""
         return self._movement_mode == "defend"
-    
+
     @property
     def can_use_smoke(self) -> bool:
         """Check if unit can deploy smoke (has smoke grenades)."""
@@ -152,7 +150,7 @@ class Unit:
             UnitType.COMMANDER,
             UnitType.SNIPER_TEAM,
         )
-    
+
     @property
     def can_sneak(self) -> bool:
         """Check if unit can use sneak mode."""
@@ -163,17 +161,17 @@ class Unit:
             UnitType.COMMANDER,
             UnitType.MEDIC_TEAM,
         )
-    
+
     @property
     def can_hide(self) -> bool:
         """Check if unit can hide (take cover)."""
         # All infantry-sized units can hide
         return not getattr(self, 'is_vehicle', False)
-    
+
     def set_movement_mode(self, mode: str, duration_ticks: int = -1) -> None:
         """
         Set movement mode for the unit.
-        
+
         Args:
             mode: One of "normal", "fast_move", "sneak", "defend"
             duration_ticks: Duration in game ticks (-1 = indefinite until cancelled)
@@ -181,10 +179,10 @@ class Unit:
         valid_modes = {"normal", "fast_move", "sneak", "defend"}
         if mode not in valid_modes:
             raise ValueError(f"Invalid movement mode: {mode}. Must be one of {valid_modes}")
-        
+
         old_mode = self._movement_mode
         self._movement_mode = mode
-        
+
         if duration_ticks > 0:
             self._movement_mode_ticks_remaining = duration_ticks
         elif duration_ticks == -1:
@@ -196,7 +194,7 @@ class Unit:
             logger.info(
                 f"[COMMAND] {self.name or self.id} mode change: {old_mode} -> {mode}"
             )
-    
+
     def get_speed_multiplier(self) -> float:
         """
         Get current speed multiplier based on movement mode.
@@ -219,7 +217,7 @@ class Unit:
         if self.crew is not None:
             base *= self.crew.vehicle_efficiency
         return base
-    
+
     def get_accuracy_modifier(self) -> float:
         """
         Get accuracy modifier based on movement mode.
@@ -244,7 +242,7 @@ class Unit:
         if self.crew is not None:
             base *= self.crew.vehicle_efficiency
         return base
-    
+
     def get_detection_modifier(self) -> float:
         """
         Get detection chance modifier based on movement mode.
@@ -264,7 +262,7 @@ class Unit:
         if self.veterancy is not None and self.veterancy.rank.value >= 3:  # VETERAN+
             base *= 0.9
         return base
-    
+
     def update_movement_mode(self) -> None:
         """Update movement mode timer (call once per tick)."""
         if self._movement_mode_ticks_remaining > 0:
@@ -509,19 +507,19 @@ class Unit:
     def can_move(self) -> bool:
         """Check if unit can move based on morale and suppression."""
         from pycc2.domain.systems.morale_system import MoraleSystem
-        
+
         # Check alive status first
         if not self.is_alive:
             return False
-        
+
         # Check combat state machine
         if self.state_machine.current in (UnitState.DEAD, UnitState.SURRENDERED):
             return False
-        
+
         # Use MoraleSystem for detailed check
         if hasattr(self, 'morale') and self.morale is not None:
             return MoraleSystem.can_move(self)
-        
+
         return True
 
     def can_accept_orders(self) -> bool:
@@ -567,7 +565,6 @@ class Unit:
 
     def set_move_target(self, tile: "TileCoord") -> None:
         """Set movement target (unit will move toward it each tick)."""
-        from pycc2.domain.value_objects.tile_coord import TileCoord
         self.move_target = tile
         if self.state_machine.current != UnitState.MOVING:
             try:
@@ -620,11 +617,11 @@ class Unit:
 
         # Apply modifiers
         speed_modifier = 1.0
-        
+
         # Apply movement mode speed multiplier (Fast Move, Sneak, Defend)
         if hasattr(self, 'get_speed_multiplier'):
             speed_modifier *= self.get_speed_multiplier()
-        
+
         # Fatigue reduces speed (if fatigue system exists)
         if hasattr(self, 'fatigue'):
             fatigue_val = getattr(self.fatigue, 'current', 0) if self.fatigue else 0

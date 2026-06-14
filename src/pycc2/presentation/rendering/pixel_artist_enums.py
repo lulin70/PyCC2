@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from enum import Enum, auto
 
-from pycc2.domain.value_objects.direction import Direction
-from pycc2.domain.entities.unit import Faction
 
 
 class InfantryType(Enum):

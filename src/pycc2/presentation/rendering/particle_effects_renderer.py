@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 class ParticleEffectsRenderer:
     """
     Manages all particle-based visual effects and combat feedback.
-    
+
     Delegated by EnhancedRenderer to maintain clean separation of concerns.
     Requires references to:
     - SpriteRenderer: For PNG-based combat effects
@@ -177,7 +177,7 @@ class ParticleEffectsRenderer:
         if self._particle_system:
             x = position[0] if hasattr(position, '__getitem__') else position.x
             y = position[1] if hasattr(position, '__getitem__') else position.y
-            
+
             self._particle_system.spawn_explosion_ring(x, y, max_radius, duration_ms, color)
 
     def spawn_muzzle_flash_particle(self, position, direction) -> None:
@@ -188,7 +188,7 @@ class ParticleEffectsRenderer:
         if self._particle_system:
             x = position[0] if hasattr(position, '__getitem__') else position.x
             y = position[1] if hasattr(position, '__getitem__') else position.y
-            
+
             self._particle_system.spawn_muzzle_flash(x, y, direction)
 
     def particle_count(self) -> int:

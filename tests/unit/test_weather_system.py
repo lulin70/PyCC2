@@ -1,4 +1,3 @@
-import pytest
 import pygame
 from pycc2.presentation.rendering.weather_system import WeatherSystem
 

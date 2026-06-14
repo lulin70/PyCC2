@@ -6,7 +6,7 @@ from unittest.mock import Mock, MagicMock
 import pygame
 import pytest
 
-from pycc2.presentation.ui.tutorial_system import TutorialOverlay, TutorialStep, TutorialState
+from pycc2.presentation.ui.tutorial_system import TutorialOverlay, TutorialStep
 from pycc2.domain.interfaces.display_config import DisplayConfig
 
 
@@ -154,7 +154,6 @@ class TestSkipTutorialDirectly:
 
     def test_toggle_when_hidden_shows(self, tutorial_overlay):
         tutorial_overlay.hide()
-        initial_visible = tutorial_overlay.visible
         tutorial_overlay.toggle()
         assert tutorial_overlay._target_alpha > 0.0, "隐藏状态下toggle应显示"
 
@@ -192,7 +191,6 @@ class TestTutorialInputHandling:
 
     def test_no_action_on_right_click(self, tutorial_overlay):
         tutorial_overlay.show(step=TutorialStep.WELCOME)
-        initial_step = tutorial_overlay.state.step
         mock_event = MagicMock()
         mock_event.type = pygame.MOUSEBUTTONDOWN
         mock_event.button = 3

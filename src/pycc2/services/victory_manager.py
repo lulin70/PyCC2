@@ -89,7 +89,6 @@ class VictoryManager:
 
     def _on_unit_attacked_for_stats(self, data: dict) -> None:
         if self._combat_director is not None:
-            from pycc2.domain.entities.unit import Unit
 
             units: list[Unit] = getattr(self._combat_director, "_units", [])
             self._combat_director.record_stats(data, units, self._battle_stats)

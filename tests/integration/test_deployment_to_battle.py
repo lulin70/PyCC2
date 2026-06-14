@@ -27,7 +27,6 @@ from pycc2.presentation.rendering.camera import Camera
 from pycc2.services.deployment_manager import DeploymentManager
 from pycc2.services.event_bus import EventBus
 from pycc2.services.game_loop import GameState
-from pycc2.services.random_context import RandomContext
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────
@@ -378,7 +377,6 @@ class TestBattleTransition:
         """After deployment, units should be selectable via InteractionController."""
         from pycc2.presentation.input.interaction_controller import (
             InteractionController,
-            InteractionMode,
         )
 
         event_bus = EventBus()
@@ -412,8 +410,6 @@ class TestBattleTransition:
             InteractionController,
             InteractionMode,
         )
-        from pycc2.services.combat_director import CombatDirector
-        from pycc2.domain.interfaces.display_config import DisplayConfig
 
         ic = InteractionController(camera=camera, game_map=game_map, event_bus=event_bus)
 

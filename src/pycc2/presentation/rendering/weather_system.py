@@ -170,4 +170,4 @@ class WeatherSystem:
 
 # Re-export WeatherRenderer so existing imports from this module keep working
 # after the class was extracted into weather_renderer.py during v0.3.37 refactoring.
-from .weather_renderer import WeatherRenderer  # noqa: E402
+from pycc2.presentation.rendering.weather_renderer import WeatherRenderer as WeatherRenderer

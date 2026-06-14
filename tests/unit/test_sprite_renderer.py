@@ -258,7 +258,6 @@ class TestTerrainCache:
         """测试8: BUILDING_SOLID有窗户门细节"""
         renderer = SpriteRenderer()
         building_tile = renderer._terrain_cache[5]
-        has_window = False
         has_door = False
         ts = renderer.TILE_SIZE
         colors_found: set[tuple[int, ...]] = set()
@@ -267,7 +266,7 @@ class TestTerrainCache:
                 color = building_tile.get_at((x, y))[:3]
                 colors_found.add(color)
                 if color[0] > 55 and color[0] < 70 and color[1] > 55 and color[1] < 70:
-                    has_window = True
+                    pass
                 if color[0] < 45 and color[1] < 35:
                     has_door = True
         assert len(colors_found) > 4, "Building should have multiple colors/detail"

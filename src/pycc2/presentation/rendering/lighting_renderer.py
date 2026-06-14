@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    import pygame
+    pass
 
 
 from pycc2.domain.systems.day_night_cycle import (
@@ -42,7 +42,6 @@ class LightingRenderer:
         time_of_day: TimeOfDay,
         searchlights: Optional[list[Searchlight]] = None,
     ) -> None:
-        import pygame
 
         effects = DayNightEffects()
         color = effects.get_lighting_color(time_of_day)

@@ -18,22 +18,19 @@ Import from this package or directly from submodules as needed.
 """
 
 from pycc2.presentation.rendering.camera import Camera
-from pycc2.presentation.rendering.enhanced_renderer import (
-    EnhancedRenderer,
-    TopDownLightingConfig,       # Re-exported from lighting_system
-    SpriteGenerator,             # Re-exported from sprite_generator
-    TopDownParticleSystem,        # Re-exported from particle_system
-    PaletteGenerator,            # Color palette generation utility
-    ProceduralTextureGenerator,  # Procedural texture creation
-    TerrainTileCache,            # Terrain tile caching system
-    CC2_TERRAIN_PALETTE,         # CC2 terrain color palette constants
-    TERRAIN_PALETTE_MAP,         # Terrain ID to palette mapping
-)
-from pycc2.presentation.rendering.sprite_generator import SpriteGenerator as SG
-from pycc2.presentation.rendering.particle_system import TopDownParticleSystem as PS
+from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
+from pycc2.presentation.rendering.sprite_generator import SpriteGenerator as SpriteGenerator
+from pycc2.presentation.rendering.particle_system import TopDownParticleSystem as TopDownParticleSystem
 from pycc2.presentation.rendering.lighting_system import (
-    TopDownLightingConfig as TLC,
+    TopDownLightingConfig as TopDownLightingConfig,
     LightingSystem,
+)
+from pycc2.presentation.rendering.palette_generator import PaletteGenerator as PaletteGenerator
+from pycc2.presentation.rendering.procedural_texture_generator import ProceduralTextureGenerator as ProceduralTextureGenerator
+from pycc2.presentation.rendering.terrain_tile_cache import (
+    TerrainTileCache as TerrainTileCache,
+    CC2_TERRAIN_PALETTE as CC2_TERRAIN_PALETTE,
+    TERRAIN_PALETTE_MAP as TERRAIN_PALETTE_MAP,
 )
 from pycc2.presentation.rendering.terrain_renderer import TerrainRenderer
 from pycc2.presentation.rendering.unit_renderer import UnitRenderer

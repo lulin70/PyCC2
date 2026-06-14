@@ -125,7 +125,7 @@ class TestUnitAnimator:
         anim.set_animation(AnimationType.DEATH)
         for _ in range(22):
             anim.update()
-        progress = anim.state.frame / anim.state.duration_ticks
+        anim.state.frame / anim.state.duration_ticks
         assert anim.state.rotation > 0, "Death should cause rotation"
         assert anim.state.alpha < 255, "Death should reduce alpha"
         assert anim.state.color_mod is not None, "Death should have red tint"

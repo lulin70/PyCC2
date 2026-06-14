@@ -206,7 +206,7 @@ class BallisticEngine:
         if game_map is not None:
             weather_state = getattr(game_map, 'weather_state', None)
             if weather_state is not None:
-                from pycc2.domain.systems.weather_effects import WeatherEffects, WeatherType
+                from pycc2.domain.systems.weather_effects import WeatherEffects
                 weather_type = getattr(weather_state, 'weather_type', None)
                 if weather_type is not None:
                     accuracy = WeatherEffects().apply_to_accuracy(accuracy, weather_type)
@@ -301,7 +301,7 @@ class BallisticEngine:
         target: Unit,
         penetration: float,
     ) -> float:
-        target_type = target.unit_type.name if hasattr(target.unit_type, 'name') else str(target.unit_type)
+        target.unit_type.name if hasattr(target.unit_type, 'name') else str(target.unit_type)
 
         armor = getattr(target, 'armor_front', 0.1)
         armor_side = getattr(target, 'armor_side', 0.08)

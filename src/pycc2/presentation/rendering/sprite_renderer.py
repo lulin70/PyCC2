@@ -259,7 +259,7 @@ class SpriteRenderer:
         for tid in range(22):
             # 尝试从assets加载
             loaded_tile = self._asset_loader.load_terrain_tile(tid, size=self.TILE_SIZE)
-            
+
             if loaded_tile is not None:
                 self._terrain_cache[tid] = loaded_tile
             else:
@@ -523,7 +523,7 @@ class SpriteRenderer:
                 self._sprite_cache.get(f"{faction}_{utype}_d0_{self.SPRITE_SIZE}") or
                 None
             )
-        
+
         if sprite is None:
             # 最终fallback：使用简单形状（但至少是方形表示不同单位类型）
             r = int(12 * camera.zoom)
@@ -632,7 +632,7 @@ class SpriteRenderer:
 
         # Enhanced morale state visualization
         self._draw_enhanced_morale_indicator(unit, sp, zoom)
-        
+
         # Draw movement mode indicator (Defend, Fast Move, Sneak)
         self._draw_movement_mode_indicator(unit, sp, zoom)
 
@@ -876,7 +876,7 @@ class SpriteRenderer:
     ) -> None:
         """
         CC2-authentic enhanced morale state visualization.
-        
+
         Shows different indicators based on MoraleSystem state:
         - RALLYED (>70): Green checkmark or no indicator (normal)
         - WAVERING (40-70): Yellow subtle pulse (slight concern)
@@ -886,20 +886,20 @@ class SpriteRenderer:
         """
         if self.draw_surface is None:
             return
-        
+
         # Get morale state from unit
         try:
-            from pycc2.domain.systems.morale_system import MoraleState, MoraleSystem
-            
+            from pycc2.domain.systems.morale_system import MoraleState
+
             if not hasattr(unit, 'morale_state'):
                 return
-            
+
             morale_state = unit.morale_state
-            
+
             # Position for indicator (above and to the right of unit)
             base_x = int(sp[0]) + int(14 * zoom)
             base_y = int(sp[1]) - int(16 * zoom)
-            
+
             if morale_state == MoraleState.PINNED:
                 self._draw_pinned_indicator(base_x, base_y, zoom)
             elif morale_state == MoraleState.BROKEN:
@@ -909,7 +909,7 @@ class SpriteRenderer:
             elif morale_state == MoraleState.WAVERING:
                 self._draw_wavering_indicator(base_x, base_y, zoom)
             # RALLYED: No indicator needed (normal operation)
-            
+
         except Exception as e:
             logger.warning(f"Failed to draw morale indicator: {e}")
             # Fallback to old method if available
@@ -924,21 +924,21 @@ class SpriteRenderer:
     def _draw_pinned_indicator(self, x: int, y: int, zoom: float) -> None:
         """Draw yellow "!" icon with pulsing ring for pinned units."""
         icon_size = max(8, int(10 * zoom))
-        
+
         # Pulsing yellow ring effect
         pulse = abs((self._animation_tick % 30) - 15) / 15.0  # 0.0 to 1.0
         ring_alpha = int(150 + 105 * pulse)  # 150-255
         ring_radius = int(icon_size + 4 * pulse * zoom)
-        
+
         # Draw outer pulsing ring
         ring_surf = self._get_pooled_surface(ring_radius * 2 + 4, ring_radius * 2 + 4)
         draw.circle(ring_surf, (255, 220, 50, ring_alpha), 
                    (ring_radius + 2, ring_radius + 2), ring_radius, 2)
         self.draw_surface.blit(ring_surf, (x - ring_radius - 2, y - ring_radius - 2))
-        
+
         # Draw yellow "!" circle
         draw.circle(self.draw_surface, (255, 220, 0), (x, y), icon_size // 2)
-        
+
         # Draw "!" mark
         font_obj = self._get_font(max(8, int(icon_size * 0.8)))
         text_surf = font_obj.render("!", True, (0, 0, 0))
@@ -949,11 +949,11 @@ class SpriteRenderer:
     def _draw_broken_indicator(self, x: int, y: int, zoom: float) -> None:
         """Draw red warning triangle for broken units."""
         icon_size = max(10, int(12 * zoom))
-        
+
         # Pulsing red glow
         pulse = abs((self._animation_tick % 25) - 12) / 12.0
         glow_alpha = int(100 + 100 * pulse)
-        
+
         # Red triangle (warning symbol)
         half_size = icon_size // 2
         triangle_points = [
@@ -961,7 +961,7 @@ class SpriteRenderer:
             (x - half_size, y + half_size // 2),  # Bottom left
             (x + half_size, y + half_size // 2),  # Bottom right
         ]
-        
+
         # Glow effect
         glow_surf = self._get_pooled_surface(icon_size * 2 + 8, icon_size * 2 + 8)
         glow_center = (icon_size + 4, icon_size + 4)
@@ -971,83 +971,82 @@ class SpriteRenderer:
         ]
         draw.polygon(glow_surf, (255, 50, 50, glow_alpha), adjusted_points)
         self.draw_surface.blit(glow_surf, (x - icon_size - 4, y - icon_size - 4))
-        
+
         # Main red triangle
         draw.polygon(self.draw_surface, (220, 30, 30), triangle_points)
         draw.polygon(self.draw_surface, (255, 80, 80), triangle_points, 2)  # Border
 
     def _draw_routing_indicator(self, unit: Unit, sp: tuple[float, float], zoom: float) -> None:
         """Draw fleeing indicator (red arrow) for routing units."""
-        from pycc2.domain.value_objects.vec2 import Vec2
-        
+
         # Arrow position (above unit)
         arrow_x = int(sp[0])
         arrow_y = int(sp[1]) - int(24 * zoom)
         arrow_length = max(12, int(18 * zoom))
         arrow_width = max(6, int(8 * zoom))
-        
+
         # Calculate flee direction (toward target or default right)
         direction = 0.0  # Default: flee to the right (East)
         if hasattr(unit, '_routing_target') and unit._routing_target.position is not None:
             dx = unit._routing_target.position.x - unit.position.pixel_position.x
             dy = unit._routing_target.position.y - unit.position.pixel_position.y
             direction = math.atan2(dy, dx)
-        
+
         # Arrow end point
         end_x = arrow_x + int(math.cos(direction) * arrow_length)
         end_y = arrow_y + int(math.sin(direction) * arrow_length)
-        
+
         # Arrow head points
         head_angle1 = direction + math.pi * 0.75
         head_angle2 = direction - math.pi * 0.75
         head_length = arrow_width * 1.5
-        
+
         head1_x = end_x + int(math.cos(head_angle1) * head_length)
         head1_y = end_y + int(math.sin(head_angle1) * head_length)
         head2_x = end_x + int(math.cos(head_angle2) * head_length)
         head2_y = end_y + int(math.sin(head_angle2) * head_length)
-        
+
         # Pulsing alpha
         pulse = abs((self._animation_tick % 20) - 10) / 10.0
         alpha = int(180 + 75 * pulse)
-        
+
         # Draw arrow on transparent surface
         arrow_surf = self._get_pooled_surface(arrow_length * 2 + 10, arrow_length * 2 + 10)
         center = (arrow_length + 5, arrow_length + 5)
-        
+
         # Offset all points to surface center
-        local_start = (center[0] + arrow_x - center[0], center[1] + arrow_y - center[1])
+        (center[0] + arrow_x - center[0], center[1] + arrow_y - center[1])
         local_end = (center[0] + end_x - arrow_x, center[1] + end_y - arrow_y)
         local_head1 = (center[0] + head1_x - arrow_x, center[1] + head1_y - arrow_y)
         local_head2 = (center[0] + head2_x - arrow_x, center[1] + head2_y - arrow_y)
-        
+
         # Draw arrow shaft
         draw.line(arrow_surf, (255, 50, 50, alpha), 
                  (arrow_length + 5, arrow_length + 5), local_end, 3)
-        
+
         # Draw arrow head
         draw.polygon(arrow_surf, (255, 50, 50, alpha),
                     [local_end, local_head1, local_head2])
-        
+
         self.draw_surface.blit(arrow_surf, (arrow_x - arrow_length - 5, arrow_y - arrow_length - 5))
 
     def _draw_wavering_indicator(self, x: int, y: int, zoom: float) -> None:
         """Draw subtle yellow pulse for wavering units."""
         icon_size = max(6, int(7 * zoom))
-        
+
         # Subtle pulse effect (slower than pinned)
         pulse = abs((self._animation_tick % 45) - 22) / 22.0
         alpha = int(80 + 60 * pulse)  # Subtle: 80-140
-        
+
         # Small yellow dot with soft glow
         surf = self._get_pooled_surface(icon_size * 3, icon_size * 3)
         center = (icon_size * 1.5, icon_size * 1.5)
-        
+
         # Outer glow
         draw.circle(surf, (255, 220, 50, alpha // 2), center, icon_size)
         # Inner core
         draw.circle(surf, (255, 220, 0, alpha), center, icon_size // 2)
-        
+
         self.draw_surface.blit(surf, (x - icon_size * 1.5, y - icon_size * 1.5))
 
     def _draw_movement_mode_indicator(
@@ -1058,26 +1057,26 @@ class SpriteRenderer:
     ) -> None:
         """
         Draw visual indicator for unit's current movement mode.
-        
+
         CC2 behavior: sneak/defend/hide show PRONE SPRITE as the only indicator.
         No extra icons needed — the elongated body posture speaks for itself.
         Only fast_move gets an additional speed indicator.
         """
         if self.draw_surface is None:
             return
-        
+
         if not hasattr(unit, 'movement_mode'):
             return
-        
+
         try:
             mode = unit.movement_mode
             if mode == "normal":
                 return
-            
+
             prone_states = {'sneak', 'hide', 'defend'}
             if mode in prone_states:
                 return  # Prone sprite IS the indicator — no extra icon needed
-            
+
             if mode == "fast_move":
                 self._draw_fast_move_indicator(sp, zoom)
         except Exception as e:
@@ -1095,7 +1094,7 @@ class SpriteRenderer:
             (x - size // 2, y + size // 3),   # Lower left
             (x - size // 2, y - size // 2),   # Upper left
         ]
-        
+
         # Blue shield with white border
         draw.polygon(self.draw_surface, (70, 130, 200), shield_points)
         draw.polygon(self.draw_surface, (150, 200, 255), shield_points, 2)
@@ -1109,20 +1108,20 @@ class SpriteRenderer:
         # Pulsing speed lines behind unit
         pulse = abs((self._animation_tick % 15) - 7) / 7.0
         alpha = int(100 + 100 * pulse)
-        
+
         base_x = int(sp[0])
         base_y = int(sp[1])
         line_length = max(15, int(25 * zoom))
-        
+
         # Draw 3 horizontal speed lines to the left (showing forward motion)
         surf = self._get_pooled_surface(line_length + 10, 30)
-        
+
         for i in range(3):
             offset_y = i * 10 - 10
             line_alpha = int(alpha * (1.0 - abs(offset_y) / 15))
             start_x = line_length + 5
             end_x = int(start_x - line_length * (0.6 + 0.4 * pulse))
-            
+
             draw.line(
                 surf,
                 (255, 200, 50, line_alpha),
@@ -1130,7 +1129,7 @@ class SpriteRenderer:
                 (end_x, 15 + offset_y),
                 2
             )
-        
+
         self.draw_surface.blit(surf, (base_x - line_length - 5, base_y - 15))
 
     def _draw_sneak_indicator(self, x: int, y: int, size: int) -> None:
@@ -1138,11 +1137,11 @@ class SpriteRenderer:
         # Semi-transparent ghost figure or eye icon
         pulse = abs((self._animation_tick % 40) - 20) / 20.0
         alpha = int(120 + 80 * pulse)
-        
+
         # Ghostly circle with semi-transparency
         surf = self._get_pooled_surface(size * 2, size * 2)
         center = (size, size)
-        
+
         # Outer glow (purple/stealth color)
         draw.circle(surf, (150, 100, 200, alpha // 2), center, size)
         # Inner core
@@ -1152,7 +1151,7 @@ class SpriteRenderer:
         draw.line(surf, (50, 30, 80, alpha),
                  (center[0] - size // 3, eye_y),
                  (center[0] + size // 3, eye_y), 2)
-        
+
         self.draw_surface.blit(surf, (x - size, y - size))
 
     # ====== 战斗视觉反馈系统 ======

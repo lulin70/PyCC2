@@ -61,7 +61,7 @@ class LightingEffectsSystem:
         self._lighting_config = lighting_config
         self.TILE_SIZE = tile_size
         self._max_dynamic_lights = max_dynamic_lights
-        
+
         # 动态光源状态
         self._dynamic_lights: list[dict] = []
 
@@ -69,7 +69,7 @@ class LightingEffectsSystem:
         self._tod_tint_cache: pygame.Surface | None = None
         self._last_time_of_day: str = lighting_config.time_of_day
         self._tod_tint_cache_size: tuple[int, int] | None = None
-        
+
         # CC2颜色分级缓存（性能优化：避免重复numpy计算）
         self._grading_cache: dict[tuple[int, int], pygame.Surface] = {}
         self._last_grading_size: tuple[int, int] | None = None
@@ -227,7 +227,7 @@ class LightingEffectsSystem:
         else:
             self._tod_tint_cache = None
             self._tod_tint_cache_size = None
-            
+
         return surface
 
     @staticmethod
@@ -247,25 +247,25 @@ class LightingEffectsSystem:
             surface: 要修改的表面（就地修改）
         """
         import numpy as np
-        
+
         # 检查缓存（性能优化：相同尺寸的surface可复用）
-        size = surface.get_size()
-        
+        surface.get_size()
+
         arr = pygame.surfarray.array3d(surface).copy().astype(np.float32)
-        
+
         # 1. 降低亮度 (乘以0.92)
         arr = arr * 0.92
-        
+
         # 2. 降低饱和度 (向灰度混合15%)
         gray = np.mean(arr, axis=2, keepdims=True)
         arr = arr * 0.85 + gray * 0.15
-        
+
         # 3. 轻微偏暖 (增加红色通道5%)
         arr[:,:,0] = np.clip(arr[:,:,0] * 1.05, 0, 255)
-        
+
         # 4. 轻微增加对比度 (S-curve midtone boost)
         arr = np.clip(arr * 1.05 - 10, 0, 255)
-        
+
         # 转回 uint8 并写回 surface
         arr = arr.astype(np.uint8)
         pygame.surfarray.blit_array(surface, arr.swapaxes(0,1))
@@ -280,12 +280,12 @@ class LightingEffectsSystem:
             surface: 要修改的表面（就地修改）
         """
         size = surface.get_size()
-        
+
         # 如果尺寸变化，清除缓存
         if self._last_grading_size != size:
             self._grading_cache.clear()
             self._last_grading_size = size
-        
+
         # 使用无缓存版本（保持向后兼容）
         self.apply_cc2_color_grading(surface)
 
@@ -311,15 +311,15 @@ class LightingEffectsSystem:
         """
         if not self._lighting_config.enable_dynamic_lights:
             return
-            
+
         # 性能保护：强制最大并发光源数
         if len(self._dynamic_lights) >= self._max_dynamic_lights:
             self._dynamic_lights.pop(0)  # 移除最旧的光源
-            
+
         # 半径上限防止超大表面
         MAX_RADIUS = 200
         capped_radius = min(radius, MAX_RADIUS)
-        
+
         self._dynamic_lights.append({
             'position': position,
             'radius': capped_radius,
@@ -340,13 +340,13 @@ class LightingEffectsSystem:
         """
         if not self._lighting_config.enable_dynamic_lights:
             return
-            
+
         expired = []
         for light in self._dynamic_lights:
             light['remaining_ms'] -= dt_ms
             if light['remaining_ms'] <= 0:
                 expired.append(light)
-                
+
         for light in expired:
             self._dynamic_lights.remove(light)
 
@@ -373,34 +373,34 @@ class LightingEffectsSystem:
         """
         if not self._lighting_config.enable_dynamic_lights or surface is None:
             return
-            
+
         for light in self._dynamic_lights:
             # 计算生命周期进度 (1.0 = 刚生成, 0.0 = 即将过期)
             progress = light['remaining_ms'] / light['max_duration']
-            
+
             # 强度随时间衰减（线性衰减）
             current_intensity = light['intensity'] * progress
-            
+
             # 半径先扩大后收缩（视觉效果）
             radius = int(light['radius'] * (2.0 - progress * 0.5))
-            
+
             # 为此光源创建表面
             light_surf = self._get_light_surface(radius * 2, radius * 2)
-            
+
             # 径向渐变使用多层同心圆（4 层）
             # 每层有不同的透明度以实现平滑衰减
             for r_factor in [1.0, 0.7, 0.4, 0.2]:
                 r = int(radius * r_factor)
                 if r <= 0:
                     continue
-                    
+
                 # Alpha 向中心递减（外层更透明）
                 alpha = int(current_intensity * 255 * (1.0 - r_factor) * 0.5)
                 alpha = min(255, max(0, alpha))  # 限制到有效范围
-                
+
                 color = (*light['color'], alpha)
                 pygame.draw.circle(light_surf, color, (radius, radius), r)
-            
+
             # 使用加法混合绘制到目标表面（发光效果）
             pos = light['position']
             surface.blit(

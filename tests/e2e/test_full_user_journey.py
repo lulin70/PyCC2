@@ -17,7 +17,6 @@ to simulate real user clicks and key presses.
 from __future__ import annotations
 
 import os
-import sys
 import traceback
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")

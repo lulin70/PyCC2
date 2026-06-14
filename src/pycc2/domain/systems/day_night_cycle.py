@@ -10,7 +10,6 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Optional
 
 
 class TimeOfDay(Enum):
@@ -153,7 +152,7 @@ class Searchlight:
         if not self.is_active:
             return illuminated
 
-        half_arc = math.radians(self.arc_angle / 2.0)
+        math.radians(self.arc_angle / 2.0)
         direction_rad = math.radians(self._current_direction)
 
         for r in range(1, self.reveal_range + 1):

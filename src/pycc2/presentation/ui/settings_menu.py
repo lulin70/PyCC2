@@ -173,7 +173,6 @@ class SettingsMenu:
     def render(self, screen) -> None:
         import pygame
 
-        dc = self._display_config
         sw, sh = screen.get_size()
 
         # Lazy-init fonts on first render

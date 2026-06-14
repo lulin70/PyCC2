@@ -10,7 +10,6 @@ the number of units in the relevant cells.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import ceil, floor, sqrt
 
 from pycc2.domain.entities.unit import Faction
 from pycc2.domain.value_objects.tile_coord import TileCoord

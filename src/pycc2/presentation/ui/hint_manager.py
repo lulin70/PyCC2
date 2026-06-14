@@ -1,9 +1,9 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import pygame
+    pass
 
 @dataclass(slots=True)
 class ActiveHint:
@@ -14,20 +14,20 @@ class ActiveHint:
     max_lifetime: int
 
 class HintManager:
-    
+
     HINT_COOLDOWN: int = 300
-    
+
     def __init__(self):
         self._hints: list[ActiveHint] = []
         self._global_cooldown: int = 0
         self._enabled: bool = True
         # Pre-create font to avoid per-frame allocation (lazy init)
         self._font = None
-        
+
     @property
     def enabled(self) -> bool:
         return self._enabled
-    
+
     def _init_font(self) -> None:
         import pygame
         self._font = pygame.font.Font(None, 16)
@@ -36,13 +36,13 @@ class HintManager:
         self._enabled = val
         if not val:
             self._hints.clear()
-    
+
     def show_hint(self, text: str, x: float, y: float, lifetime: int = 180) -> None:
         if not self._enabled:
             return
         self._hints.append(ActiveHint(text=text, x=x, y=y, 
                                       lifetime=lifetime, max_lifetime=lifetime))
-    
+
     def update(self) -> None:
         if self._global_cooldown > 0:
             self._global_cooldown -= 1
@@ -52,7 +52,7 @@ class HintManager:
             if h.lifetime > 0:
                 surviving.append(h)
         self._hints = surviving
-    
+
     def render(self, screen) -> None:
         if not self._enabled:
             return

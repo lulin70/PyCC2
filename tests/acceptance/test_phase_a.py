@@ -9,10 +9,7 @@ Run: pytest tests/acceptance/test_phase_a.py -v
 
 from __future__ import annotations
 
-import json
-import math
 import tempfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -238,7 +235,6 @@ class TestA2LOSSystem:
     def test_los_integration_with_attack_line(self, game_map):
         """LOS result should convert to AttackLine status correctly."""
         from pycc2.domain.systems.los_system import Lossystem, LosStatus
-        from pycc2.domain.value_objects.tile_coord import TileCoord
 
         los = Lossystem(game_map)
 
@@ -891,7 +887,7 @@ class TestPhaseAIntegration:
 
     def test_combat_scenario_with_los_and_flanking(self):
         """Full scenario: Unit on hill sees enemy, flanks for 1.5x bonus."""
-        from pycc2.domain.systems.los_system import Lossystem, LosStatus
+        from pycc2.domain.systems.los_system import Lossystem
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
         map_mock = MagicMock()

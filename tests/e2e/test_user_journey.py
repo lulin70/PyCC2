@@ -10,7 +10,6 @@ Each test is independent and verifies user-visible behavior.
 from __future__ import annotations
 
 import os
-import time
 
 import numpy as np
 import pytest
@@ -35,7 +34,7 @@ from pycc2.domain.components.position_component import PositionComponent
 from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.game_map import GameMap
-from pycc2.domain.entities.unit import Faction, Unit, UnitState, UnitType
+from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.systems.victory_conditions import (
     BattleStats,
     GameResult,
@@ -633,7 +632,7 @@ class TestLOSAndAttackLine:
         game_map = GameMap(id="los_block", name="LOS Block", width=20, height=20, tile_grid=grid)
 
         # 创建一个简单的LOS系统mock
-        from pycc2.domain.systems.los_system import LosResult, LosStatus, Lossystem
+        from pycc2.domain.systems.los_system import Lossystem
 
         los_system = Lossystem(game_map)
 

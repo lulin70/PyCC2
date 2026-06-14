@@ -7,7 +7,6 @@ CC2 Original: A hit "punches holes in Swiss cheese" — some soldiers get hit, o
 """
 
 from __future__ import annotations
-import math
 import random
 from dataclasses import dataclass, field
 from enum import Enum, auto

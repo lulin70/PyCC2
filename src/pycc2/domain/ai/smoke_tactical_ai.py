@@ -25,7 +25,7 @@ Smoke properties (CC2-authentic):
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
@@ -492,7 +492,7 @@ class SmokeTacticalAI(TacticalAIBase):
         env = getattr(context, 'environment', None)
         if env is None:
             return False
-        wind = getattr(env, 'wind_direction', (0, 0))
+        getattr(env, 'wind_direction', (0, 0))
         wind_speed = getattr(env, 'wind_speed', 0)
         # If wind speed is significant (> 2), smoke drifts noticeably
         return wind_speed > 2
@@ -645,7 +645,6 @@ class SmokeTacticalAI(TacticalAIBase):
         covering the movement path, and downwind if possible.
         """
         target_pos = target.position.tile_coord
-        deployer_pos = deployer.position.tile_coord
 
         # Find the nearest enemy that threatens the target
         nearest_enemy = self._nearest_enemy_to(target, context)

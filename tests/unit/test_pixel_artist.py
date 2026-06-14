@@ -208,7 +208,7 @@ class TestInfantrySprite:
     def test_infantry_has_key_body_parts(self):
         """检查步兵精灵包含头/身/腿/武器等关键部位（非全透明）"""
         canvas = create_unit_sprite("allies", "INFANTRY_SQUAD", size=56)
-        cx = canvas.width // 2
+        canvas.width // 2
         non_transparent_count = 0
         for y in range(canvas.height):
             for x in range(canvas.width):

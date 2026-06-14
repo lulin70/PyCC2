@@ -1,5 +1,4 @@
-import pytest
-from pycc2.presentation.ui.hint_manager import HintManager, ActiveHint, HINTS
+from pycc2.presentation.ui.hint_manager import HintManager, HINTS
 
 
 class TestHintManagerDefaultState:

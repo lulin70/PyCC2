@@ -74,8 +74,8 @@ class TestParticlePoolRelease:
 class TestParticlePoolExhaustion:
     def test_pool_grows_if_exhausted(self):
         pool = ParticlePool(preallocate=2)
-        p1 = pool.acquire()
-        p2 = pool.acquire()
+        pool.acquire()
+        pool.acquire()
         p3 = pool.acquire()
         assert pool.active_count == 3
         assert pool.pool_size == 0

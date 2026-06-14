@@ -1258,7 +1258,7 @@ class TerrainTileGenerator:
             ww = rng.randint(3, size // 6)
             c.fill_rect(wx, wy, ww, 1, tuple(min(255, v + 25) for v in water))
 
-        deck_margin = max(3, size // 10)
+        max(3, size // 10)
         deck_h = max(size // 5, 8)
         deck_y = size // 2 - deck_h // 2
 
@@ -1796,7 +1796,7 @@ class TerrainTileGenerator:
             y = y_base
             while x < size - 1:
                 zig = rng.randint(2, max(3, size // 8))
-                zag = rng.randint(2, max(3, size // 8))
+                rng.randint(2, max(3, size // 8))
                 next_x = min(size - 1, x + zig)
                 next_y = max(1, min(size - 2, y + rng.choice([-2, -1, 0, 1, 2])))
                 c.draw_line(x, y, next_x, next_y, wire_color, 1)

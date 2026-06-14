@@ -4,7 +4,7 @@ particle_system, and dynamic_shadow_system."""
 
 from collections import OrderedDict
 import pygame
-from typing import Optional, Tuple
+from typing import Tuple
 
 
 class SurfacePool:

@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import Dict
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +24,6 @@ from pycc2.domain.entities.unit import Faction
 from pycc2.presentation.rendering.pixel_artist_enums import (
     InfantryAnimState,
     InfantryType,
-    TankType,
 )
 from pycc2.presentation.rendering.pixel_artist_color_palette import (
     CC2_PALETTE,

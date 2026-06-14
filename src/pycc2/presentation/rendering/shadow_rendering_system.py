@@ -31,7 +31,7 @@ class ShadowRenderingSystem:
     统一阴影渲染系统。
 
     封装所有阴影相关的渲染逻辑，提供清晰的接口给 EnhancedRenderer 调用。
-    
+
     使用示例:
         shadow_sys = ShadowRenderingSystem(shadow_renderer, tile_size=32)
         shadow_sys.render_all_shadows(offscreen_surface, game_map, camera, units)
@@ -192,7 +192,7 @@ class ShadowRenderingSystem:
             units_rendered = 0
             for unit in units:
                 cx, cy = self._get_unit_screen_position(unit, camera)
-                
+
                 if cx is None or cy is None:
                     continue
 
@@ -203,7 +203,7 @@ class ShadowRenderingSystem:
                 if is_vehicle:
                     unit_w = getattr(unit, 'width', 24) or 24
                     unit_h = getattr(unit, 'height', 16) or 16
-                    
+
                     self._shadow_renderer.render_vehicle_shadow(
                         surface,
                         cx, cy,
@@ -217,7 +217,7 @@ class ShadowRenderingSystem:
                         unit_type=unit_type_str,
                         is_hidden=is_hidden
                     )
-                
+
                 units_rendered += 1
 
             if units_rendered > 0:
@@ -252,7 +252,6 @@ class ShadowRenderingSystem:
         try:
             BUILDING_DEBUG_COLOR = (255, 0, 0)      # Red for buildings
             TREE_DEBUG_COLOR = (0, 255, 0)           # Green for trees
-            UNIT_DEBUG_COLOR = (0, 0, 255)           # Blue for units
 
             # 绘制建筑阴影边界
             for y in range(game_map.height):

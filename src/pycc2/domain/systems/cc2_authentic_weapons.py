@@ -20,7 +20,6 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any
 
 from pycc2.domain.entities.unit import Faction
 
@@ -89,49 +88,49 @@ class VehicleType(Enum):
 class WeaponProfile:
     """
     Complete weapon specification matching CC2 parameters.
-    
+
     Every field based on historical CC2 game data where available.
     """
     id: str                           # Unique identifier
     name: str                         # Display name
     weapon_type: WeaponType
-    
+
     # Nation that uses this weapon
     users: list[Faction] = field(default_factory=list)
-    
+
     # === BALLISTIC DATA (from CC2 QTable) ===
     range_short: int = 0              # Short range (tiles) - accuracy unmodified
     range_medium: int = 0             # Medium range - slight penalty
     range_long: int = 0              # Long range - significant penalty
     range_max: int = 0               # Absolute max range
-    
+
     # Base accuracy at each range band (0.0-1.0)
     accuracy_short: float = 0.7
     accuracy_medium: float = 0.5
     accuracy_long: float = 0.25
-    
+
     # Damage values (abstract CC2 "kill power")
     damage_vs_infantry: float = 30.0   # Anti-personnel
     damage_vs_light_armor: float = 10.0
     damage_vs_heavy_armor: float = 2.0
-    
+
     # Rate of fire (rounds per minute - affects suppression)
     rpm: int = 60
     burst_size: int = 3              # Typical burst length
-    
+
     # Suppression capability (MG42=1.0, Rifle=0.15)
     suppress_power: float = 0.3      # 0.0 to 1.0 scale
-    
+
     # Special flags
     can_penetrate: bool = False       # Ignores some cover
     incendiary: bool = False          # Sets targets on fire
     area_effect: bool = False         # Mortars, explosives
     splash_radius: int = 0            # Tiles for AoE
-    
+
     # Ammo constraints (CC2 feature)
     ammo_capacity: int = 999          # 999 = essentially unlimited
     reload_time: float = 2.0          # Seconds to reload
-    
+
     # Historical notes
     year_introduced: int = 1944
     notes: str = ""
@@ -140,18 +139,18 @@ class WeaponProfile:
 def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
     """
     Build complete CC2 weapon database.
-    
+
     Based on:
     - CC2 game files (qtab/weap data)
     - Historical OOBs for Market Garden
     - Wiki documentation
     """
     weapons = {}
-    
+
     # ================================================================
     # AMERICAN WEAPONS (82nd / 101st Airborne)
     # ================================================================
-    
+
     weapons['us_m1_garand'] = WeaponProfile(
         id='us_m1_garand', name='M1 Garand', weapon_type=WeaponType.RIFLE,
         users=[Faction.AMERICAN],
@@ -162,7 +161,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=96,  # 8-round clip x 12 clips
         year_introduced=1936, notes='Standard US rifle, semi-auto, 8-round en-bloc clip'
     )
-    
+
     weapons['us_m1_carbine'] = WeaponProfile(
         id='us_m1_carbine', name='M1 Carbine', weapon_type=WeaponType.RIFLE,
         users=[Faction.AMERICAN],
@@ -173,7 +172,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=120,  # 15-round mag
         year_introduced=1941, notes='Light rifle for officers/support troops'
     )
-    
+
     weapons['us_thompson'] = WeaponProfile(
         id='us_thompson', name='Thompson M1A1', weapon_type=WeaponType.SUBMACHINE_GUN,
         users=[Faction.AMERICAN],
@@ -184,7 +183,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=230,  # 20/30-round mags
         year_introduced=1942, notes='.45 ACP SMG, standard issue for NCOs and paratroopers'
     )
-    
+
     weapons['us_m3_grease_gun'] = WeaponProfile(
         id='us_m3_grease_gun', name='M3 "Grease Gun"', weapon_type=WeaponType.SUBMACHINE_GUN,
         users=[Faction.AMERICAN],
@@ -195,7 +194,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=180,  # 30-round mag
         year_introduced=1942, notes='Simplified Thompson, cheaper to produce'
     )
-    
+
     # *** THE TWO US MACHINE GUNS (User specifically mentioned!) ***
     weapons['us_m1919'] = WeaponProfile(
         id='us_m1919', name='M1919 (M34)', weapon_type=WeaponType.MACHINE_GUN_LIGHT,
@@ -207,7 +206,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=250,  # Belt fed
         year_introduced=1919, notes='Air-cooled Browning, earlier variant (M34), lighter tripod mount'
     )
-    
+
     weapons['us_m1919a4'] = WeaponProfile(
         id='us_m1919a4', name='M1919A4 (M42)', weapon_type=WeaponType.MACHINE_GUN_HEAVY,
         users=[Faction.AMERICAN],
@@ -218,7 +217,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=250,
         year_introduced=1943, notes='Improved M1919 with shoulder stock (M42), primary US MMG'
     )
-    
+
     weapons['us_m1903_springfield'] = WeaponProfile(
         id='us_m1903_springfield', name='M1903 Springfield', weapon_type=WeaponType.SNIPER_RIFLE,
         users=[Faction.AMERICAN],
@@ -229,7 +228,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=30,  # 5-round stripper clip
         year_introduced=1903, notes='Bolt-action, used by designated marksmen'
     )
-    
+
     weapons['us_bazooka'] = WeaponProfile(
         id='us_bazooka', name='M1A1 Bazooka', weapon_type=WeaponType.ANTI_TANK_ROCKET,
         users=[Faction.AMERICAN],
@@ -241,7 +240,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=6,  # Single-shot reload
         year_introduced=1942, notes='2.36" rocket launcher, nickname from Bob Burns'
     )
-    
+
     weapons['us_m2_60mm'] = WeaponProfile(
         id='us_m2_60mm', name='M2 60mm Mortar', weapon_type=WeaponType.MORTAR_LIGHT,
         users=[Faction.AMERICAN, Faction.BRITISH],
@@ -253,7 +252,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=30,
         year_introduced=1940, notes='Light company-level mortar'
     )
-    
+
     weapons['us_m1_81mm'] = WeaponProfile(
         id='us_m1_81mm', name='M1 81mm Mortar', weapon_type=WeaponType.MORTAR_HEAVY,
         users=[Faction.AMERICAN],
@@ -265,7 +264,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=16,
         year_introduced=1942, notes='Battalion-level heavy mortar'
     )
-    
+
     weapons['us_flamethrower_m2'] = WeaponProfile(
         id='us_flamethrower_m2', name='M2 Flamethrower', weapon_type=WeaponType.FLAMETHROWER,
         users=[Faction.AMERICAN],
@@ -277,11 +276,11 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=10,  # Seconds of fuel
         year_introduced=1943, notes='Portable flame weapon, terror value extreme'
     )
-    
+
     # ================================================================
     # BRITISH WEAPONS (1st Airborne / XXX Corps)
     # ================================================================
-    
+
     weapons['uk_lee_enfield'] = WeaponProfile(
         id='uk_lee_enfield', name='Lee-Enfield No.4', weapon_type=WeaponType.RIFLE,
         users=[Faction.BRITISH, Faction.POLISH],
@@ -292,7 +291,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=50,  # 10-round magazine
         year_introduced=1941, notes='Bolt-action, fastest bolt of war, "Smelly"'
     )
-    
+
     weapons['uk_sten'] = WeaponProfile(
         id='uk_sten', name='STEN Mark II/IV', weapon_type=WeaponType.SUBMACHINE_GUN,
         users=[Faction.BRITISH, Faction.POLISH],
@@ -303,7 +302,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=192,  # 32-round mag
         year_introduced=1941, notes='Cheap mass-produced 9mm SMG, notorious reliability issues'
     )
-    
+
     weapons['uk_bren'] = WeaponProfile(
         id='uk_bren', name='Bren Gun', weapon_type=WeaponType.MACHINE_GUN_HEAVY,
         users=[Faction.BRITISH, Faction.POLISH],
@@ -314,7 +313,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=180,  # 30-round curved magazine
         year_introduced=1938, notes='Modified Czech ZB-26, .303 British, main British LMG'
     )
-    
+
     weapons['uk_vickers'] = WeaponProfile(
         id='uk_vickers', name='Vickers KGV (.303)', weapon_type=WeaponType.MACHINE_GUN_LIGHT,
         users=[Faction.BRITISH],
@@ -325,7 +324,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=250,  # 250-round belt
         year_introduced=1912, notes='Water-cooled HMG, extremely reliable, used on vehicles too'
     )
-    
+
     weapons['uk_piat'] = WeaponProfile(
         id='uk_piat', name='PIAT', weapon_type=WeaponType.ANTI_TANK_ROCKET,
         users=[Faction.BRITISH, Faction.POLISH],
@@ -337,7 +336,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=1,  # Single shot, long reload
         year_introduced=1943, notes='Projector Infantry Anti-Tank, spring-powered, awkward but effective'
     )
-    
+
     weapons['uk_2inch_mortar'] = WeaponProfile(
         id='uk_2inch_mortar', name='2-inch Mortar', weapon_type=WeaponType.MORTAR_LIGHT,
         users=[Faction.BRITISH, Faction.POLISH],
@@ -349,7 +348,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=36,
         year_introduced=1936, notes='Light platoon mortar (actually 51mm bore)'
     )
-    
+
     weapons['uk_3inch_mortar'] = WeaponProfile(
         id='uk_3inch_mortar', name='Ordnance ML 3-inch Mortar', weapon_type=WeaponType.MORTAR_HEAVY,
         users=[Faction.BRITISH, Faction.POLISH],
@@ -361,7 +360,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=25,
         year_introduced=1939, notes='British 3-inch mortar (76.2mm), battalion level, also used by Polish Paras'
     )
-    
+
     weapons['uk_flamethrower'] = WeaponProfile(
         id='uk_flamethrower', name='Lifebuoy Flamethrower', weapon_type=WeaponType.FLAMETHROWER,
         users=[Faction.BRITISH],
@@ -373,11 +372,11 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=10,
         year_introduced=1943, notes='British portable flamethrower, nicknamed "Lifebuoy"'
     )
-    
+
     # ================================================================
     # GERMAN WEAPONS (15th Army / SS Panzer Divisions)
     # ================================================================
-    
+
     weapons['de_kar98k'] = WeaponProfile(
         id='de_kar98k', name='Kar98k', weapon_type=WeaponType.RIFLE,
         users=[Faction.GERMAN],
@@ -388,7 +387,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=40,  # 5-round stripper clip
         year_introduced=1935, notes='Standard German bolt-action rifle, excellent accuracy'
     )
-    
+
     weapons['de_mp40'] = WeaponProfile(
         id='de_mp40', name='MP40', weapon_type=WeaponType.SUBMACHINE_GUN,
         users=[Faction.GERMAN],
@@ -399,7 +398,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=192,  # 32-round mag
         year_introduced=1940, notes='9mm "Schmeisser", iconic German SMG'
     )
-    
+
     weapons['de_mp44'] = WeaponProfile(
         id='de_mp44', name='StG 44 (MP44)', weapon_type=WeaponType.RIFLE,
         users=[Faction.GERMAN],
@@ -410,7 +409,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=150,  # 30-round mag
         year_introduced=1943, notes='First assault rifle, intermediate cartridge, rare in CC2 timeframe'
     )
-    
+
     # *** THE TWO GERMAN MACHINE GUNS ***
     weapons['de_mg34'] = WeaponProfile(
         id='de_mg34', name='MG34', weapon_type=WeaponType.MACHINE_GUN_LIGHT,
@@ -422,7 +421,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=250,  # 50-round drum or belt
         year_introduced=1934, notes='First universal MG, replaced by MG42 but still in use'
     )
-    
+
     weapons['de_mg42'] = WeaponProfile(
         id='de_mg42', name='MG42', weapon_type=WeaponType.MACHINE_GUN_HEAVY,
         users=[Faction.GERMAN],
@@ -433,7 +432,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=250,  # Belt fed
         year_introduced=1942, notes='THE iconic German MG, terrifying ROF, distinctive sound'
     )
-    
+
     weapons['de_panzerschreck'] = WeaponProfile(
         id='de_panzerschreck', name='Panzerschreck (RPzB 54)', weapon_type=WeaponType.ANTI_TANK_ROCKET,
         users=[Faction.GERMAN],
@@ -445,7 +444,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=1,
         year_introduced=1943, notes='88mm RPzB "Tank Terror", copied from Bazooka but improved'
     )
-    
+
     weapons['de_panzerfaust'] = WeaponProfile(
         id='de_panzerfaust', name='Panzerfaust (30/60/100)', weapon_type=WeaponType.ANTI_TANK_ROCKET,
         users=[Faction.GERMAN],
@@ -457,7 +456,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=1,  # Disposable!
         year_introduced=1943, notes='Disposable AT weapon, one-shot, very common late-war'
     )
-    
+
     weapons['de_grw36_50mm'] = WeaponProfile(
         id='de_grw36_50mm', name='GrW 36 50mm Mortar', weapon_type=WeaponType.MORTAR_LIGHT,
         users=[Faction.GERMAN],
@@ -469,7 +468,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=50,
         year_introduced=1936, notes='Light platoon mortar, small but effective'
     )
-    
+
     weapons['de_grw34_81mm'] = WeaponProfile(
         id='de_grw34_81mm', name='GrW 34 81mm Mortar', weapon_type=WeaponType.MORTAR_HEAVY,
         users=[Faction.GERMAN],
@@ -481,7 +480,7 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
         ammo_capacity=14,
         year_introduced=1934, notes='Standard German medium mortar'
     )
-    
+
     weapons['de_flammenwerfer_41'] = WeaponProfile(
         id='de_flammenwerfer_41', name='Flammenwerfer 41', weapon_type=WeaponType.FLAMETHROWER,
         users=[Faction.GERMAN],
@@ -557,65 +556,65 @@ def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
     # ================================================================
     # VEHICLE WEAPONS (Tank Guns, Coaxial MGs)
     # ================================================================
-    
+
     # --- Light Tank Guns ---
     weapons['m3_37mm'] = WeaponProfile(id='m3_37mm', name='M3 37mm', weapon_type=WeaponType.TANK_CANNON_LIGHT,
         users=[Faction.AMERICAN], range_short=3, range_medium=6, range_long=9, range_max=12,
         accuracy_short=0.55, accuracy_medium=0.40, damage_vs_light_armor=45, damage_vs_heavy_armor=12,
         rpm=25, suppress_power=0.35, year_introduced=1940, notes='Stuart light tank gun')
-    
+
     weapons['kwk36_37mm'] = WeaponProfile(id='kwk36_37mm', name='3.7cm KwK 36', weapon_type=WeaponType.TANK_CANNON_LIGHT,
         users=[Faction.GERMAN], range_short=3, range_medium=6, range_long=9, range_max=12,
         accuracy_short=0.58, accuracy_medium=0.42, damage_vs_light_armor=48, damage_vs_heavy_armor=14,
         rpm=25, suppress_power=0.38, year_introduced=1936, notes='PzKpfw II / early PzKpfw III gun')
-    
+
     # --- Medium Tank Guns ---
     weapons['m3_75mm_m4'] = WeaponProfile(id='m3_75mm_m4', name='M3 75mm (M4 Sherman)', weapon_type=WeaponType.TANK_CANNON_MEDIUM,
         users=[Faction.AMERICAN], range_short=4, range_medium=8, range_long=12, range_max=15,
         accuracy_short=0.62, accuracy_medium=0.48, damage_vs_light_armor=55, damage_vs_heavy_armor=22,
         rpm=18, suppress_power=0.48, year_introduced=1941, notes='Sherman main gun, adequate vs PzIV, weak vs Panther/Tiger')
-    
+
     weapons['kwk40_75mm'] = WeaponProfile(id='kwk40_75mm', name='7.5cm KwK 40 L/48', weapon_type=WeaponType.TANK_CANNON_MEDIUM,
         users=[Faction.GERMAN], range_short=5, range_medium=9, range_long=14, range_max=17,
         accuracy_short=0.68, accuracy_medium=0.54, damage_vs_light_armor=62, damage_vs_heavy_armor=28,
         rpm=15, suppress_power=0.55, year_introduced=1942, notes='Panzer IV F/G/H main gun, excellent all-around')
-    
+
     weapons['qv_75mm'] = WeaponProfile(id='qv_75mm', name='QF 75mm (Cromwell/Churchill)', weapon_type=WeaponType.TANK_CANNON_MEDIUM,
         users=[Faction.BRITISH], range_short=4, range_medium=8, range_long=12, range_max=15,
         accuracy_short=0.60, accuracy_medium=0.46, damage_vs_light_armor=52, damage_vs_heavy_armor=20,
         rpm=16, suppress_power=0.45, year_introduced=1942, notes='British 75mm, similar performance to US 75mm')
-    
+
     # --- Heavy Tank Guns ---
     weapons['kwk36_88mm'] = WeaponProfile(id='kwk36_88mm', name='8.8cm KwK 36 L/56', weapon_type=WeaponType.TANK_CANNON_HEAVY,
         users=[Faction.GERMAN], range_short=6, range_medium=12, range_long=18, range_max=24,
         accuracy_short=0.78, accuracy_medium=0.64, damage_vs_light_armor=85, damage_vs_heavy_armor=55,
         rpm=10, suppress_power=0.72, year_introduced=1940, notes='Tiger I main gun, devastating at all ranges')
-    
+
     weapons['kwk42_75mm'] = WeaponProfile(id='kwk42_75mm', name='7.5cm KwK 42 L/70', weapon_type=WeaponType.TANK_CANNON_HEAVY,
         users=[Faction.GERMAN], range_short=6, range_medium=12, range_long=18, range_max=24,
         accuracy_short=0.76, accuracy_medium=0.62, damage_vs_light_armor=80, damage_vs_heavy_armor=50,
         rpm=12, suppress_power=0.68, year_introduced=1943, notes='Panther main gun, excellent penetration')
-    
+
     weapons['qf_17pdr'] = WeaponProfile(id='qf_17pdr', name='QF 17-pounder (Firefly)', weapon_type=WeaponType.TANK_CANNON_HEAVY,
         users=[Faction.BRITISH], range_short=6, range_medium=12, range_long=18, range_max=24,
         accuracy_short=0.74, accuracy_medium=0.60, damage_vs_light_armor=78, damage_vs_heavy_armor=48,
         rpm=10, suppress_power=0.65, year_introduced=1943, notes='Sherman Firefly conversion, best allied AT gun')
-    
+
     weapons['qv_95mm'] = WeaponProfile(id='qv_95mm', name='QF 95mm howitzer', weapon_type=WeaponType.TANK_CANNON_HEAVY,
         users=[Faction.BRITISH], range_short=4, range_medium=8, range_long=14, range_max=18,
         accuracy_short=0.52, accuracy_medium=0.38, damage_vs_light_armor=65, damage_vs_heavy_armor=35,
         area_effect=True, splash_radius=2, rpm=8, suppress_power=0.60,
         year_introduced=1942, notes='Churchill CS (Close Support) howitzer, HE rounds')
-    
+
     # --- Vehicle MGs (Coaxial / Hull) ---
     weapons['coax_30cal'] = WeaponProfile(id='coax_30cal', name='.30 Cal Coaxial M1919A4', weapon_type=WeaponType.VEHICLE_MOUNTED_MG,
         users=[Faction.AMERICAN], range_short=4, range_medium=7, range_long=10, range_max=12,
         accuracy_short=0.55, damage_vs_infantry=35, rpm=500, suppress_power=0.50, year_introduced=1943)
-    
+
     weapons['coax_mg34'] = WeaponProfile(id='coax_mg34', name='Coaxial MG34', weapon_type=WeaponType.VEHICLE_MOUNTED_MG,
         users=[Faction.GERMAN], range_short=5, range_medium=8, range_long=12, range_max=14,
         accuracy_short=0.58, damage_vs_infantry=38, rpm=800, suppress_power=0.55, year_introduced=1938)
-    
+
     weapons['coax_besa'] = WeaponProfile(id='coax_besa', name='Coaxial Besa 7.92mm', weapon_type=WeaponType.VEHICLE_MOUNTED_MG,
         users=[Faction.BRITISH], range_short=5, range_medium=8, range_long=12, range_max=14,
         accuracy_short=0.56, damage_vs_infantry=36, rpm=500, suppress_power=0.48, year_introduced=1939)

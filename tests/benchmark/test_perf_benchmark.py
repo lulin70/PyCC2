@@ -5,7 +5,6 @@ Run with: SDL_VIDEODRIVER=dummy python -m pytest tests/benchmark/test_perf_bench
 """
 import os
 import time
-import pytest
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -36,7 +35,7 @@ class TestRenderingPerformance:
             autotile_mask = i % 256
             variation = i % 10
             height = i % 5
-            result = cache.get_tile(
+            cache.get_tile(
                 terrain_type=terrain_type,
                 autotile_mask=autotile_mask,
                 variation=variation,
@@ -52,19 +51,14 @@ class TestRenderingPerformance:
         pool = SurfacePool(max_size=1000)
         start = time.perf_counter()
         for _ in range(1000):
-            s = pool.get((64, 64))
+            pool.get((64, 64))
             pool.release((64, 64))
         elapsed = time.perf_counter() - start
         assert elapsed < 0.1, f"SurfacePool too slow: {elapsed:.3f}s for 1000 cycles"
 
     def test_entity_resolution_performance(self):
         """Entity resolution should process 1000 entities under 200ms."""
-        from pycc2.domain.components.health_component import HealthComponent
-        from pycc2.domain.components.morale_component import MoraleComponent
-        from pycc2.domain.components.position_component import PositionComponent
-        from pycc2.domain.components.vision_component import VisionComponent
-        from pycc2.domain.components.weapon_component import WeaponComponent
-        from pycc2.domain.entities.unit import Faction, Unit, UnitType
+        from pycc2.domain.entities.unit import Faction
         from pycc2.domain.value_objects.tile_coord import TileCoord
         from pycc2.domain.systems.spatial_hash import SpatialHash
 

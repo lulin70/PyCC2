@@ -11,7 +11,6 @@ Tests cover:
 from __future__ import annotations
 
 import os
-import sys
 import pytest
 
 # Ensure SDL dummy drivers are set before pygame imports
@@ -83,7 +82,6 @@ class TestTrenchTerrainGeneration:
 
     def test_trench_has_dark_brown_color(self, palette_gen, pygame_display):
         """Test that trench contains expected dark brown color (#3A2818)."""
-        import pygame
         from pycc2.presentation.rendering.enhanced_renderer import ProceduralTextureGenerator
 
         surface = ProceduralTextureGenerator.generate_terrain_texture(
@@ -186,14 +184,14 @@ class TestCC2TerrainPalette:
 
     def test_trench_colors_exist(self):
         """Test that trench color keys exist in CC2_TERRAIN_PALETTE."""
-        from pycc2.presentation.rendering.enhanced_renderer import CC2_TERRAIN_PALETTE
+        from pycc2.presentation.rendering.terrain_tile_cache import CC2_TERRAIN_PALETTE
 
         assert 'trench_main' in CC2_TERRAIN_PALETTE, "Missing 'trench_main' color"
         assert 'trench_embankment' in CC2_TERRAIN_PALETTE, "Missing 'trench_embankment' color"
 
     def test_trench_main_color_value(self):
         """Test that trench_main matches spec (#3A2818)."""
-        from pycc2.presentation.rendering.enhanced_renderer import CC2_TERRAIN_PALETTE
+        from pycc2.presentation.rendering.terrain_tile_cache import CC2_TERRAIN_PALETTE
 
         trench_main = CC2_TERRAIN_PALETTE['trench_main']
         # Should be approximately #3A2818 (dark earth brown)
@@ -203,7 +201,7 @@ class TestCC2TerrainPalette:
 
     def test_trench_embankment_color_value(self):
         """Test that trench_embankment matches spec (#5A4830)."""
-        from pycc2.presentation.rendering.enhanced_renderer import CC2_TERRAIN_PALETTE
+        from pycc2.presentation.rendering.terrain_tile_cache import CC2_TERRAIN_PALETTE
 
         trench_embankment = CC2_TERRAIN_PALETTE['trench_embankment']
         # Should be approximately #5A4830 (lighter embankment)
@@ -213,7 +211,7 @@ class TestCC2TerrainPalette:
 
     def test_terrain_palette_map_includes_trench(self):
         """Test that TERRAIN_PALETTE_MAP includes ID 13 for trench."""
-        from pycc2.presentation.rendering.enhanced_renderer import TERRAIN_PALETTE_MAP
+        from pycc2.presentation.rendering.terrain_tile_cache import TERRAIN_PALETTE_MAP
 
         assert 13 in TERRAIN_PALETTE_MAP, "Missing terrain ID 13 (TRENCH)"
         assert TERRAIN_PALETTE_MAP[13] == 'trench_main', \

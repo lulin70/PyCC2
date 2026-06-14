@@ -16,7 +16,6 @@ import logging
 import math
 import random
 from collections import OrderedDict
-from typing import Dict
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +27,9 @@ from pycc2.domain.value_objects.direction import (
 )
 from pycc2.domain.entities.unit import Faction
 from pycc2.presentation.rendering.pixel_artist_enums import (
-    InfantryAnimState,
-    InfantryType,
     TankType,
 )
 from pycc2.presentation.rendering.pixel_artist_color_palette import (
-    CC2_PALETTE,
     TANK_PALETTES,
     TANK_SIZES,
 )
@@ -98,7 +94,7 @@ class TankPixelRenderer:
         """
         import pygame
         from pycc2.presentation.rendering.pixel_artist_enums import TankType
-        from pycc2.presentation.rendering.pixel_artist_color_palette import TANK_PALETTES, TANK_SIZES
+        from pycc2.presentation.rendering.pixel_artist_color_palette import TANK_SIZES
 
         for tank_type in TankType:
             tank_w, tank_h = TANK_SIZES[tank_type]

@@ -9,17 +9,15 @@ Tests the full event chain:
   EnhancedRenderer → DynamicShadowSystem / ProjectileTrailSystem rendering
 """
 
-import pytest
-from unittest.mock import MagicMock, patch
 
 from pycc2.services.event_bus import EventBus
 from pycc2.presentation.rendering.camera_effects import (
-    EffectStack, CameraEffect, EffectType,
+    EffectStack, EffectType,
     create_shake, create_zoom_impact, create_slow_motion,
 )
 from pycc2.presentation.rendering.combat_camera_controller import CombatCameraController
 from pycc2.domain.systems.achievement_system import (
-    AchievementManager, Achievement, AchievementCategory, create_default_achievements,
+    AchievementManager, create_default_achievements,
 )
 from pycc2.services.achievement_event_bridge import AchievementEventBridge
 from pycc2.presentation.rendering.projectile_trail_system import ProjectileTrailSystem

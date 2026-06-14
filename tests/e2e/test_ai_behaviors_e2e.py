@@ -9,7 +9,7 @@ requiring pygame/display.
 from __future__ import annotations
 
 import random
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -17,8 +17,6 @@ from pycc2.domain.ai.ammo_pickup import (
     AmmoPickupSystem,
     AmmoSourceType,
     FallenUnitCache,
-    FallenUnitEntry,
-    PickupResult,
 )
 from pycc2.domain.ai.smoke_tactical_ai import (
     SmokeDeployment,
@@ -26,8 +24,6 @@ from pycc2.domain.ai.smoke_tactical_ai import (
     SmokeManager,
 )
 from pycc2.domain.ai.squad_degradation import (
-    ADVANCED_TACTICS,
-    BASIC_TACTICS,
     RALLY_COOLDOWN_TICKS,
     RALLY_RESTORE_MORALE,
     SquadDegradationManager,
@@ -35,10 +31,7 @@ from pycc2.domain.ai.squad_degradation import (
     NCORallyBehavior,
 )
 from pycc2.domain.ai.surrender_system import (
-    AMMO_RATIO_THRESHOLD,
-    MORALE_THRESHOLD,
     SurrenderSystem,
-    FallenUnitCache as SurrenderFallenUnitCache,
 )
 from pycc2.domain.ai.weapon_jam import (
     CAPTURED_WEAPON_CLEAR_MULTIPLIER,
@@ -134,7 +127,7 @@ class TestFallenUnitCache:
         assert cache.entry_count == 1
 
         # Before expiry — should still be there
-        sources = cache.find_sources_near(
+        cache.find_sources_near(
             position=TileCoord(3, 3),
             seeker_faction=Faction.AXIS,
             current_tick=299,
@@ -142,7 +135,7 @@ class TestFallenUnitCache:
         assert cache.entry_count == 1
 
         # After expiry — should be pruned
-        sources = cache.find_sources_near(
+        cache.find_sources_near(
             position=TileCoord(3, 3),
             seeker_faction=Faction.AXIS,
             current_tick=300,
@@ -180,7 +173,7 @@ class TestAmmoPickup:
             y=5,
         )
 
-        pickup_system = AmmoPickupSystem(fallen_cache=cache)
+        AmmoPickupSystem(fallen_cache=cache)
         sources = cache.find_sources_near(
             position=seeker.position.tile_coord,
             seeker_faction=seeker.faction,

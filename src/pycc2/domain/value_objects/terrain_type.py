@@ -4,7 +4,7 @@ TerrainType IntEnum - 22 Terrain Types with Properties
 
 from __future__ import annotations
 
-from enum import IntEnum, auto
+from enum import IntEnum
 
 
 class CoverType(IntEnum):

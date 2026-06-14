@@ -28,7 +28,6 @@ from pycc2.presentation.ui.deployment_models import (
     ZoneType,
     ZONE_COLORS as _ZONE_COLORS,
     ZONE_BORDER_COLORS as _ZONE_BORDER_COLORS,
-    VALID_PLACEMENT_COLOR,
     ROSTER_BG as _ROSTER_BG,
     ROSTER_BORDER as _ROSTER_BORDER,
     ROSTER_TEXT as _ROSTER_TEXT,
@@ -42,7 +41,6 @@ from pycc2.presentation.ui.deployment_models import (
     CATEGORY_INFO as _CATEGORY_INFO,
 )
 from pycc2.presentation.ui.deployment_los import DeploymentLOSSystem
-from pycc2.presentation.rendering.rendering_utils import draw_dashed_line
 
 
 class DeploymentRenderer:
@@ -851,7 +849,7 @@ class DeploymentRenderer:
         # Show placement count hint below button
         if ui._font_small:
             placed_count = len(ui._state.placed_units)
-            total_units = len(ui._state.available_units)
+            len(ui._state.available_units)
             hint_text = f"Units: {placed_count} placed"
             if not enabled:
                 hint_text += " (need ≥1)"

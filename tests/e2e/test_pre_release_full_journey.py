@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import os
 import time
-import traceback
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -32,7 +31,6 @@ os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 import pytest
 import pygame
 from pathlib import Path
-from dataclasses import dataclass
 
 SCREEN_W, SCREEN_H = 1280, 720
 MAX_FRAME_TIME_MS = 100.0
@@ -196,7 +194,7 @@ class TestPreReleaseFullJourney:
         available = deployment_ui.state.available_units
         assert len(available) >= 6, f"Need at least 6 units, got {len(available)}"
 
-        result = deployment_ui.handle_click_full(
+        deployment_ui.handle_click_full(
             screen_x=50, screen_y=50,
             map_offset_x=0, map_offset_y=0,
             tile_size=16,
@@ -241,7 +239,7 @@ class TestPreReleaseFullJourney:
         assert len(game_loop.state.units) > 0, "Should have units after deployment"
 
         allies = [u for u in game_loop.state.units if u.faction.name == "ALLIES"]
-        axis = [u for u in game_loop.state.units if u.faction.name == "AXIS"]
+        [u for u in game_loop.state.units if u.faction.name == "AXIS"]
         assert len(allies) > 0, "Should have Allied units"
         assert len(game_loop.state.units) > 0, "Should have units after deployment"
 
@@ -291,7 +289,6 @@ class TestPreReleaseFullJourney:
         _deploy_infantry(deployment_ui)
 
         game_loop.complete_deployment()
-        state = game_loop.state
 
         game_loop.event_bus.publish_named("UnitAttacked", {
             "attacker_id": "test",
@@ -355,12 +352,12 @@ class TestPreReleaseFullJourney:
         assert shadow_sys is not None
 
         shadow_sys.set_time_of_day(0.5)
-        noon_dir = shadow_sys.get_shadow_direction()
+        shadow_sys.get_shadow_direction()
         noon_alpha = shadow_sys.get_shadow_alpha()
         noon_len = shadow_sys.get_shadow_length_multiplier()
 
         shadow_sys.set_time_of_day(0.25)
-        dawn_dir = shadow_sys.get_shadow_direction()
+        shadow_sys.get_shadow_direction()
         dawn_alpha = shadow_sys.get_shadow_alpha()
         dawn_len = shadow_sys.get_shadow_length_multiplier()
 
@@ -390,7 +387,6 @@ class TestPreReleaseFullJourney:
 
     def test_phase6_achievement_tracking_through_events(self):
         """Achievements track progress through EventBus named events."""
-        from pycc2.domain.systems.achievement_system import AchievementManager
 
         game_loop, game_map = self._create_game_loop()
         map_data = self._build_map_data(game_map)
@@ -565,7 +561,7 @@ class TestPreReleaseFullJourney:
             frame_times.append((t1 - t0) * 1000)
 
         avg_frame_ms = sum(frame_times) / len(frame_times)
-        max_frame_ms = max(frame_times)
+        max(frame_times)
 
         assert avg_frame_ms < MAX_FRAME_TIME_MS, (
             f"Average frame time {avg_frame_ms:.1f}ms exceeds {MAX_FRAME_TIME_MS}ms"
@@ -769,7 +765,6 @@ class TestPreReleaseFullJourney:
 
     def test_phase16_achievement_display_after_battle(self):
         """Achievement manager provides visible achievements for UI display."""
-        from pycc2.domain.systems.achievement_system import create_default_achievements
 
         game_loop, game_map = self._create_game_loop()
         map_data = self._build_map_data(game_map)
