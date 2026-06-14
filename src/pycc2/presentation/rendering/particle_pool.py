@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 class ParticlePool:
     """Object pool for Particle dataclass objects to reduce GC pressure."""
 
+    MAX_POOL_SIZE: int = 200
+
     def __init__(self, preallocate: int = 100):
         self._pool: list[object] = []
         self._active_count: int = 0
@@ -37,13 +39,18 @@ class ParticlePool:
             p = self._pool.pop()
         else:
             p = self._new_particle()
+        p._pool_active = True
         self._active_count += 1
         return p
 
     def release(self, particle) -> None:
+        if getattr(particle, '_pool_active', False) is False:
+            return
+        particle._pool_active = False
         self._active_count -= 1
         particle.life = 0
-        self._pool.append(particle)
+        if len(self._pool) < self.MAX_POOL_SIZE:
+            self._pool.append(particle)
 
     def acquire_dict(self) -> dict:
         if self._dict_pool:

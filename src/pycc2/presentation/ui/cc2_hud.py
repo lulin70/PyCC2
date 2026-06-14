@@ -141,6 +141,10 @@ class CC2HUD:
         self._unit_icons: dict[str, Surface] = {}
         self._command_icons: dict[str, Surface] = {}
 
+        # Cached HUD surface (rebuilt on resize)
+        self._hud_surface: Surface | None = None
+        self._cached_hud_width: int = 0
+
         # Callbacks
         self._on_unit_select: callable | None = None
         self._on_command: callable | None = None
@@ -248,12 +252,16 @@ class CC2HUD:
         sw = surface.get_width()
         panel_y = self._screen_height - self.PANEL_HEIGHT
 
-        # Create HUD surface with transparency support
-        hud_surface = Surface((sw, self.PANEL_HEIGHT), pygame.SRCALPHA)
-        hud_surface.fill((*self.BG_COLOR, 245))
+        # Rebuild HUD surface if width changed
+        if sw != self._cached_hud_width:
+            self._hud_surface = Surface((sw, self.PANEL_HEIGHT), pygame.SRCALPHA)
+            self._cached_hud_width = sw
+
+        # Reuse cached HUD surface
+        self._hud_surface.fill((*self.BG_COLOR, 245))
 
         # Draw top border line
-        draw.line(hud_surface, self.BORDER_COLOR, (0, 0), (sw, 0), 1)
+        draw.line(self._hud_surface, self.BORDER_COLOR, (0, 0), (sw, 0), 1)
 
         # Calculate panel positions
         left_x = 0
@@ -264,15 +272,15 @@ class CC2HUD:
         content_h = self.PANEL_HEIGHT - (self.PADDING * 2) - 2
 
         # Render three panels
-        self._render_left_panel(hud_surface, left_x + 2, content_y,
+        self._render_left_panel(self._hud_surface, left_x + 2, content_y,
                                 self._left_width - 4, content_h)
-        self._render_center_panel(hud_surface, center_x, content_y,
+        self._render_center_panel(self._hud_surface, center_x, content_y,
                                   self._center_width, content_h)
-        self._render_right_panel(hud_surface, right_x, content_y,
+        self._render_right_panel(self._hud_surface, right_x, content_y,
                                  self._right_width - 2, content_h)
 
         # Blit HUD to main surface
-        surface.blit(hud_surface, (0, panel_y))
+        surface.blit(self._hud_surface, (0, panel_y))
 
     def handle_click(self, pos: tuple[int, int], game_state: dict | None = None) -> str | None:
         """Process mouse click and return action string or None.

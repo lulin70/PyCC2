@@ -53,13 +53,13 @@ def interaction_controller(camera, game_map, event_bus):
 
 class TestHmacKeyFromEnvVar:
     def test_hmac_key_loads_from_env_var(self, tmp_save_dir):
-        expected_key = b"test-env-hmac-key-12345"
+        expected_key = b"test-env-hmac-key-12345-min-32-bytes!!"
         with patch.dict(os.environ, {"PYCC2_SAVE_HMAC_KEY": expected_key.decode()}):
             mgr = SecureSaveManager(base_dir=tmp_save_dir)
             assert mgr._hmac_key == expected_key
 
     def test_hmac_key_env_var_takes_priority_over_file(self, tmp_save_dir):
-        expected_key = b"env-wins-over-file-999"
+        expected_key = b"env-wins-over-file-999-need-32bytes!!"
         with patch.dict(os.environ, {"PYCC2_SAVE_HMAC_KEY": expected_key.decode()}):
             mgr = SecureSaveManager(base_dir=tmp_save_dir)
             assert mgr._hmac_key == expected_key
@@ -70,7 +70,7 @@ class TestHmacKeyFallbackToFile:
         config_dir = tmp_path / "pycc2" / "config"
         config_dir.mkdir(parents=True)
         secrets_file = config_dir / "secrets.toml"
-        secrets_file.write_text('hmac_key = "my-file-based-secret-key-abc123"\n')
+        secrets_file.write_text('hmac_key = "my-file-based-secret-key-abc123-32b!!"\n')
         with patch.object(SecureSaveManager, "_get_hmac_key", SecureSaveManager._get_hmac_key):
             with patch.object(
                 Path,
@@ -78,7 +78,7 @@ class TestHmacKeyFallbackToFile:
                 return_value=tmp_path / "pycc2" / "infrastructure" / "save_system.py",
             ):
                 key = SecureSaveManager._get_hmac_key()
-        assert key == b"my-file-based-secret-key-abc123"
+        assert key == b"my-file-based-secret-key-abc123-32b!!"
 
     def test_get_hmac_key_returns_bytes_even_without_file(self):
         key = SecureSaveManager._get_hmac_key()

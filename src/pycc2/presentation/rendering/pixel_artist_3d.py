@@ -23,7 +23,12 @@ from typing import Dict, TYPE_CHECKING
 logger = logging.getLogger(__name__)
 
 # Import domain value objects
-from pycc2.domain.value_objects.direction import Direction
+from pycc2.domain.value_objects.direction import (
+    Direction,
+    DIRECTION_ANGLES,
+    DIRECTION_VECTORS,
+    DIRECTION_VECTORS_REVERSE,
+)
 from pycc2.domain.entities.unit import Faction
 
 # Import extracted enums
@@ -353,17 +358,7 @@ class PixelArtist3D:
         else:
             TankPixelRenderer._draw_iron_cross(temp, tcx, tcy - 2, (180, 180, 180))
 
-        direction_angles = {
-            Direction.NORTH: 0,
-            Direction.NORTHEAST: -45,
-            Direction.EAST: -90,
-            Direction.SOUTHEAST: -135,
-            Direction.SOUTH: 180,
-            Direction.SOUTHWEST: 135,
-            Direction.WEST: 90,
-            Direction.NORTHWEST: 45,
-        }
-        angle = direction_angles.get(direction, 0)
+        angle = DIRECTION_ANGLES.get(direction, 0)
         if angle != 0:
             temp = TankPixelRenderer.get_rotated_surface(temp, angle)
 
@@ -371,17 +366,7 @@ class PixelArtist3D:
         surface.blit(temp, rect)
 
         if state == "move":
-            direction_vectors = {
-                Direction.NORTH: (0, 1),
-                Direction.NORTHEAST: (-0.707, 0.707),
-                Direction.EAST: (-1, 0),
-                Direction.SOUTHEAST: (-0.707, -0.707),
-                Direction.SOUTH: (0, -1),
-                Direction.SOUTHWEST: (0.707, -0.707),
-                Direction.WEST: (1, 0),
-                Direction.NORTHWEST: (0.707, 0.707),
-            }
-            dvx, dvy = direction_vectors.get(direction, (0, 1))
+            dvx, dvy = DIRECTION_VECTORS_REVERSE.get(direction, (0, 1))
             for i in range(3):
                 dust_dist = 18 + i * 3
                 dust_x = cx + int(dvx * dust_dist)
@@ -472,17 +457,7 @@ class PixelArtist3D:
         tailgate_y = body_y + body_h - 2
         pygame.draw.line(temp, seam_color, (body_x + 2, tailgate_y), (body_x + body_w - 2, tailgate_y), 1)
 
-        direction_angles = {
-            Direction.NORTH: 0,
-            Direction.NORTHEAST: -45,
-            Direction.EAST: -90,
-            Direction.SOUTHEAST: -135,
-            Direction.SOUTH: 180,
-            Direction.SOUTHWEST: 135,
-            Direction.WEST: 90,
-            Direction.NORTHWEST: 45,
-        }
-        angle = direction_angles.get(direction, 0)
+        angle = DIRECTION_ANGLES.get(direction, 0)
         if angle != 0:
             temp = TankPixelRenderer.get_rotated_surface(temp, angle)
 
@@ -539,17 +514,7 @@ class PixelArtist3D:
         pygame.draw.line(temp, dark_color, (tcx - 1, base_y + base_h), (tcx - leg_spread, base_y + base_h + leg_length), 2)
         pygame.draw.line(temp, dark_color, (tcx + 1, base_y + base_h), (tcx + leg_spread, base_y + base_h + leg_length), 2)
 
-        direction_angles = {
-            Direction.NORTH: 0,
-            Direction.NORTHEAST: -45,
-            Direction.EAST: -90,
-            Direction.SOUTHEAST: -135,
-            Direction.SOUTH: 180,
-            Direction.SOUTHWEST: 135,
-            Direction.WEST: 90,
-            Direction.NORTHWEST: 45,
-        }
-        angle = direction_angles.get(direction, 0)
+        angle = DIRECTION_ANGLES.get(direction, 0)
         if angle != 0:
             temp = TankPixelRenderer.get_rotated_surface(temp, angle)
 
@@ -557,17 +522,7 @@ class PixelArtist3D:
         surface.blit(temp, rect)
 
         if state == "shoot" and frame == 1:
-            direction_vectors = {
-                Direction.NORTH: (0, -1),
-                Direction.NORTHEAST: (0.707, -0.707),
-                Direction.EAST: (1, 0),
-                Direction.SOUTHEAST: (0.707, 0.707),
-                Direction.SOUTH: (0, 1),
-                Direction.SOUTHWEST: (-0.707, 0.707),
-                Direction.WEST: (-1, 0),
-                Direction.NORTHWEST: (-0.707, -0.707),
-            }
-            dvx, dvy = direction_vectors.get(direction, (0, -1))
+            dvx, dvy = DIRECTION_VECTORS.get(direction, (0, -1))
             flash_dist = 16
             flash_x = cx + int(dvx * flash_dist)
             flash_y = cy + int(dvy * flash_dist)
@@ -578,7 +533,7 @@ class PixelArtist3D:
     @staticmethod
     def create_mortar_team_sprite(
         direction: Direction,
-        faction: Direction,
+        faction: Faction,
         state: str = "idle",
         frame: int = 0,
     ):

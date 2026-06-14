@@ -152,6 +152,17 @@ logs/
 *.log
 tmp/  # Process/download cache (e.g., pixvoxel_download)
 
+# Security - sensitive files
+config/secrets.toml
+key.*
+*.pem
+*.key
+.secrets/
+
+# Save files
+saves/*.sav
+saves/*.bak_*
+
 # Benchmark baseline (auto-generated)
 tests/benchmark/.baseline_results.json
 

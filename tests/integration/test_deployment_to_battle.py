@@ -322,20 +322,23 @@ class TestAIServiceInitialization:
     def test_ai_service_initialized_with_units(self, deployment_manager, map_data, game_state):
         """After complete(), AI service should have registered AI units."""
         from pycc2.services.ai_service import AIService
+        from pycc2.presentation.ui.deployment_models import DeploymentUnit
 
         ai_service = AIService(event_bus=EventBus())
         deployment_manager.start(map_data=map_data, faction="ally")
 
-        # Inject placements for both player and AI
-        if deployment_manager.deployment_ui and hasattr(deployment_manager.deployment_ui, "_placements"):
-            deployment_manager.deployment_ui._placements.append(
-                {
-                    "unit_template_id": "infantry",
-                    "display_name": "Player Squad",
-                    "unit_type": "infantry",
-                    "position": (3, 3),
-                }
+        # Inject a player placement into the deployment UI state
+        # (begin_battle() reads from _state.placed_units)
+        if deployment_manager.deployment_ui is not None:
+            player_unit = DeploymentUnit(
+                unit_template_id="infantry",
+                display_name="Player Squad",
+                unit_type="infantry",
+                deployment_cost=200,
+                position=(3, 3),
+                is_placed=True,
             )
+            deployment_manager.deployment_ui._state.placed_units.append(player_unit)
 
         # Also inject AI deployment
         deployment_manager._ai_deployments = [

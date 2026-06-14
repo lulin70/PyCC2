@@ -477,7 +477,7 @@ class TestEnvironmentSprites:
         sprite = artist.create_building_sprite(building_type="house")
         assert sprite is not None
         assert isinstance(sprite, pygame.Surface)
-        assert sprite.get_size() == (40, 40)
+        assert sprite.get_size() == (32, 32)
 
     def test_create_building_church(self, artist, pygame_display):
         """Test church building sprite with steeple"""
@@ -492,12 +492,11 @@ class TestEnvironmentSprites:
         assert sprite is not None
 
     def test_create_building_custom_colors(self, artist, pygame_display):
-        """Test building with custom roof and wall colors"""
+        """Test building with variant parameter"""
 
         sprite = artist.create_building_sprite(
             building_type="house",
-            roof_color=(200, 50, 50),
-            wall_color=(220, 210, 190),
+            variant=1,
         )
         assert sprite is not None
 

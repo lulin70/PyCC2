@@ -20,7 +20,12 @@ from typing import Dict
 
 logger = logging.getLogger(__name__)
 
-from pycc2.domain.value_objects.direction import Direction
+from pycc2.domain.value_objects.direction import (
+    Direction,
+    DIRECTION_ANGLES,
+    DIRECTION_VECTORS,
+    DIRECTION_VECTORS_REVERSE,
+)
 from pycc2.domain.entities.unit import Faction
 from pycc2.presentation.rendering.pixel_artist_enums import (
     InfantryAnimState,
@@ -236,17 +241,7 @@ class TankPixelRenderer:
         else:
             pygame.draw.rect(surface, (60, 60, 60), (cx - 2, gun_end_y - 1, 4, 2))
 
-        direction_angles = {
-            Direction.NORTH: 0,
-            Direction.NORTHEAST: -45,
-            Direction.EAST: -90,
-            Direction.SOUTHEAST: -135,
-            Direction.SOUTH: 180,
-            Direction.SOUTHWEST: 135,
-            Direction.WEST: 90,
-            Direction.NORTHWEST: 45,
-        }
-        angle = direction_angles.get(turret_direction, 0)
+        angle = DIRECTION_ANGLES.get(turret_direction, 0)
         if angle != 0:
             surface = TankPixelRenderer.get_rotated_surface(surface, angle)
 
@@ -324,19 +319,8 @@ class TankPixelRenderer:
         pygame.draw.line(turret_temp, tp['gun_barrel'], (tcx, ty), (tcx, gun_end_y), 2)
         pygame.draw.rect(turret_temp, (60, 60, 60), (tcx - 2, gun_end_y - 1, 4, 2))
 
-        direction_angles = {
-            Direction.NORTH: 0,
-            Direction.NORTHEAST: -45,
-            Direction.EAST: -90,
-            Direction.SOUTHEAST: -135,
-            Direction.SOUTH: 180,
-            Direction.SOUTHWEST: 135,
-            Direction.WEST: 90,
-            Direction.NORTHWEST: 45,
-        }
-
-        hull_angle = direction_angles.get(direction, 0)
-        turret_angle = direction_angles.get(turret_direction, 0)
+        hull_angle = DIRECTION_ANGLES.get(direction, 0)
+        turret_angle = DIRECTION_ANGLES.get(turret_direction, 0)
 
         if hull_angle != 0:
             hull_temp = TankPixelRenderer.get_rotated_surface(hull_temp, hull_angle)
@@ -350,34 +334,14 @@ class TankPixelRenderer:
         surface.blit(turret_temp, turret_rect)
 
         if state == "shoot" and frame == 1:
-            direction_vectors = {
-                Direction.NORTH: (0, -1),
-                Direction.NORTHEAST: (0.707, -0.707),
-                Direction.EAST: (1, 0),
-                Direction.SOUTHEAST: (0.707, 0.707),
-                Direction.SOUTH: (0, 1),
-                Direction.SOUTHWEST: (-0.707, 0.707),
-                Direction.WEST: (-1, 0),
-                Direction.NORTHWEST: (-0.707, -0.707),
-            }
-            dvx, dvy = direction_vectors.get(turret_direction, (0, -1))
+            dvx, dvy = DIRECTION_VECTORS.get(turret_direction, (0, -1))
             flash_dist = 18
             flash_x = cx + int(dvx * flash_dist)
             flash_y = cy + int(dvy * flash_dist)
             pygame.draw.ellipse(surface, (255, 255, 100), (flash_x - 4, flash_y - 3, 8, 6))
 
         if state == "move":
-            direction_vectors = {
-                Direction.NORTH: (0, 1),
-                Direction.NORTHEAST: (-0.707, 0.707),
-                Direction.EAST: (-1, 0),
-                Direction.SOUTHEAST: (-0.707, -0.707),
-                Direction.SOUTH: (0, -1),
-                Direction.SOUTHWEST: (0.707, -0.707),
-                Direction.WEST: (1, 0),
-                Direction.NORTHWEST: (0.707, 0.707),
-            }
-            dvx, dvy = direction_vectors.get(direction, (0, 1))
+            dvx, dvy = DIRECTION_VECTORS_REVERSE.get(direction, (0, 1))
             for i in range(3):
                 dust_dist = 16 + i * 3
                 dust_x = cx + int(dvx * dust_dist)
@@ -464,19 +428,8 @@ class TankPixelRenderer:
         pygame.draw.line(turret_temp, tp['gun_barrel'], (tcx, ty), (tcx, gun_end_y), 2)
         pygame.draw.rect(turret_temp, (55, 55, 55), (tcx - 2, gun_end_y - 1, 4, 3))
 
-        direction_angles = {
-            Direction.NORTH: 0,
-            Direction.NORTHEAST: -45,
-            Direction.EAST: -90,
-            Direction.SOUTHEAST: -135,
-            Direction.SOUTH: 180,
-            Direction.SOUTHWEST: 135,
-            Direction.WEST: 90,
-            Direction.NORTHWEST: 45,
-        }
-
-        hull_angle = direction_angles.get(direction, 0)
-        turret_angle = direction_angles.get(turret_direction, 0)
+        hull_angle = DIRECTION_ANGLES.get(direction, 0)
+        turret_angle = DIRECTION_ANGLES.get(turret_direction, 0)
 
         if hull_angle != 0:
             hull_temp = TankPixelRenderer.get_rotated_surface(hull_temp, hull_angle)
@@ -490,34 +443,14 @@ class TankPixelRenderer:
         surface.blit(turret_temp, turret_rect)
 
         if state == "shoot" and frame == 1:
-            direction_vectors = {
-                Direction.NORTH: (0, -1),
-                Direction.NORTHEAST: (0.707, -0.707),
-                Direction.EAST: (1, 0),
-                Direction.SOUTHEAST: (0.707, 0.707),
-                Direction.SOUTH: (0, 1),
-                Direction.SOUTHWEST: (-0.707, 0.707),
-                Direction.WEST: (-1, 0),
-                Direction.NORTHWEST: (-0.707, -0.707),
-            }
-            dvx, dvy = direction_vectors.get(turret_direction, (0, -1))
+            dvx, dvy = DIRECTION_VECTORS.get(turret_direction, (0, -1))
             flash_dist = 20
             flash_x = cx + int(dvx * flash_dist)
             flash_y = cy + int(dvy * flash_dist)
             pygame.draw.ellipse(surface, (255, 255, 100), (flash_x - 5, flash_y - 4, 10, 8))
 
         if state == "move":
-            direction_vectors = {
-                Direction.NORTH: (0, 1),
-                Direction.NORTHEAST: (-0.707, 0.707),
-                Direction.EAST: (-1, 0),
-                Direction.SOUTHEAST: (-0.707, -0.707),
-                Direction.SOUTH: (0, -1),
-                Direction.SOUTHWEST: (0.707, -0.707),
-                Direction.WEST: (1, 0),
-                Direction.NORTHWEST: (0.707, 0.707),
-            }
-            dvx, dvy = direction_vectors.get(direction, (0, 1))
+            dvx, dvy = DIRECTION_VECTORS_REVERSE.get(direction, (0, 1))
             for i in range(4):
                 dust_dist = 18 + i * 3
                 dust_x = cx + int(dvx * dust_dist)
@@ -600,19 +533,8 @@ class TankPixelRenderer:
         pygame.draw.circle(turret_temp, (60, 60, 60), (tcx, gun_end_y), 3)
         pygame.draw.circle(turret_temp, tp['gun_barrel'], (tcx, gun_end_y), 2, 1)
 
-        direction_angles = {
-            Direction.NORTH: 0,
-            Direction.NORTHEAST: -45,
-            Direction.EAST: -90,
-            Direction.SOUTHEAST: -135,
-            Direction.SOUTH: 180,
-            Direction.SOUTHWEST: 135,
-            Direction.WEST: 90,
-            Direction.NORTHWEST: 45,
-        }
-
-        hull_angle = direction_angles.get(direction, 0)
-        turret_angle = direction_angles.get(turret_direction, 0)
+        hull_angle = DIRECTION_ANGLES.get(direction, 0)
+        turret_angle = DIRECTION_ANGLES.get(turret_direction, 0)
 
         if hull_angle != 0:
             hull_temp = TankPixelRenderer.get_rotated_surface(hull_temp, hull_angle)
@@ -626,34 +548,14 @@ class TankPixelRenderer:
         surface.blit(turret_temp, turret_rect)
 
         if state == "shoot" and frame == 1:
-            direction_vectors = {
-                Direction.NORTH: (0, -1),
-                Direction.NORTHEAST: (0.707, -0.707),
-                Direction.EAST: (1, 0),
-                Direction.SOUTHEAST: (0.707, 0.707),
-                Direction.SOUTH: (0, 1),
-                Direction.SOUTHWEST: (-0.707, 0.707),
-                Direction.WEST: (-1, 0),
-                Direction.NORTHWEST: (-0.707, -0.707),
-            }
-            dvx, dvy = direction_vectors.get(turret_direction, (0, -1))
+            dvx, dvy = DIRECTION_VECTORS.get(turret_direction, (0, -1))
             flash_dist = 20
             flash_x = cx + int(dvx * flash_dist)
             flash_y = cy + int(dvy * flash_dist)
             pygame.draw.ellipse(surface, (255, 255, 100), (flash_x - 6, flash_y - 4, 12, 8))
 
         if state == "move":
-            direction_vectors = {
-                Direction.NORTH: (0, 1),
-                Direction.NORTHEAST: (-0.707, 0.707),
-                Direction.EAST: (-1, 0),
-                Direction.SOUTHEAST: (-0.707, -0.707),
-                Direction.SOUTH: (0, -1),
-                Direction.SOUTHWEST: (0.707, -0.707),
-                Direction.WEST: (1, 0),
-                Direction.NORTHWEST: (0.707, 0.707),
-            }
-            dvx, dvy = direction_vectors.get(direction, (0, 1))
+            dvx, dvy = DIRECTION_VECTORS_REVERSE.get(direction, (0, 1))
             for i in range(5):
                 dust_dist = 20 + i * 3
                 dust_x = cx + int(dvx * dust_dist)

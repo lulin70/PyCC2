@@ -160,7 +160,9 @@ class TestErrorRateStats:
         for _ in range(10):
             event: UnitMoved = {"unit_id": "u1", "from_tile": (0, 0), "to_tile": (1, 1)}
             bus.publish(event)
-        assert bus.error_rate == 1.0
+        # Circuit breaker unsubscribes after 3 consecutive errors,
+        # so only 3 out of 10 publishes result in errors.
+        assert bus.error_rate == 0.3
 
     def test_no_errors_zero_rate(self):
         bus = EventBus()

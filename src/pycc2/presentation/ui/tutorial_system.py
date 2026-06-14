@@ -100,7 +100,33 @@ class TutorialOverlay:
         self._current_hint: str = ""
         self._hint_timer: int = 0
         self._hint_position: tuple[float, float] = (0.0, 0.0)
+
+        # Pre-create fonts to avoid per-frame allocation (lazy init)
+        self._font_lg = None
+        self._font_md = None
+        self._font_sm = None
+        self._font_hint = None
+
+        # Cached surfaces (rebuilt on resize)
+        self._overlay: pygame.Surface | None = None
+        self._panel_surf: pygame.Surface | None = None
+        self._cached_size: tuple[int, int] = (0, 0)
         
+    def _init_fonts(self) -> None:
+        import pygame
+        dc = self._display_config
+        self._font_lg = pygame.font.Font(None, int(dc.font_size_title * 1.3))
+        self._font_md = pygame.font.Font(None, int(dc.font_size_normal))
+        self._font_sm = pygame.font.Font(None, int(dc.font_size_small))
+        self._font_hint = pygame.font.Font(None, 18)
+
+    def _rebuild_surfaces(self, sw: int, sh: int) -> None:
+        import pygame
+        self._overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
+        pw, ph = min(550, int(sw * 0.6)), min(380, int(sh * 0.65))
+        self._panel_surf = pygame.Surface((pw, ph), pygame.SRCALPHA)
+        self._cached_size = (sw, sh)
+
     @property
     def visible(self) -> bool:
         return self._visible
@@ -178,25 +204,27 @@ class TutorialOverlay:
         if not content:
             return
         
+        # Lazy-init fonts on first render
+        if self._font_lg is None:
+            self._init_fonts()
+
+        # Rebuild cached surfaces if screen size changed
+        if self._cached_size != (sw, sh):
+            self._rebuild_surfaces(sw, sh)
+
         if self._alpha < 0.99:
-            overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, int(self._alpha * 180)))
-            screen.blit(overlay, (0, 0))
+            self._overlay.fill((0, 0, 0, int(self._alpha * 180)))
+            screen.blit(self._overlay, (0, 0))
         
         pw, ph = min(550, int(sw * 0.6)), min(380, int(sh * 0.65))
         px, py = (sw - pw) // 2, (sh - ph) // 2 - 30
         
-        panel_surf = pygame.Surface((pw, ph), pygame.SRCALPHA)
-        panel_surf.fill((20, 24, 36, int(self._alpha * 240)))
-        pygame.draw.rect(panel_surf, (80, 100, 140, int(self._alpha * 200)), 
+        self._panel_surf.fill((20, 24, 36, int(self._alpha * 240)))
+        pygame.draw.rect(self._panel_surf, (80, 100, 140, int(self._alpha * 200)), 
                         (0, 0, pw, ph), 2, border_radius=12)
-        screen.blit(panel_surf, (px, py))
+        screen.blit(self._panel_surf, (px, py))
         
-        font_title = pygame.font.Font(None, int(dc.font_size_title * 1.3))
-        font_text = pygame.font.Font(None, int(dc.font_size_normal))
-        font_hint = pygame.font.Font(None, int(dc.font_size_small))
-        
-        title_surf = font_title.render(content["title"], True, (220, 230, 255))
+        title_surf = self._font_lg.render(content["title"], True, (220, 230, 255))
         screen.blit(title_surf, (px + (pw - title_surf.get_width()) // 2, py + 18))
         
         steps = list(TutorialStep)
@@ -222,16 +250,16 @@ class TutorialOverlay:
             else:
                 color = (210, 215, 225)
             
-            text_surf = font_text.render(line, True, color)
+            text_surf = self._font_md.render(line, True, color)
             screen.blit(text_surf, (px + 25, text_y))
             text_y += 22
         
         footer_y = py + ph - 35
         if self.state.step != TutorialStep.COMPLETE:
-            footer = font_hint.render("[ SPACE / Click to continue ]  [ ESC to close ]", 
+            footer = self._font_sm.render("[ SPACE / Click to continue ]  [ ESC to close ]", 
                                    True, (140, 150, 170))
         else:
-            footer = font_hint.render("Tutorial complete! Press F1 to review anytime.", 
+            footer = self._font_sm.render("Tutorial complete! Press F1 to review anytime.",
                                    True, (140, 200, 140))
         screen.blit(footer, (px + (pw - footer.get_width()) // 2, footer_y))
     
@@ -244,10 +272,11 @@ class TutorialOverlay:
     def render_hint(self, screen) -> None:
         if self.state.hint_cooldown <= 0 or not self._current_hint:
             return
-        import pygame
+        # Lazy-init fonts on first use
+        if self._font_hint is None:
+            self._init_fonts()
         alpha = min(255, int(self.state.hint_cooldown * 2))
-        font = pygame.font.Font(None, 18)
-        surf = font.render(f"💡 {self._current_hint}", True, (255, 255, 200), )
+        surf = self._font_hint.render(f"💡 {self._current_hint}", True, (255, 255, 200), )
         surf.set_alpha(alpha)
         x, y = int(self._hint_position[0]), int(self._hint_position[1])
         screen.blit(surf, (x - surf.get_width() // 2, y - 25))

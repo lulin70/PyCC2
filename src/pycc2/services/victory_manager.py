@@ -110,7 +110,7 @@ class VictoryManager:
                 self._game_over_tick = tick
                 self._victory_detected = True
                 self._victory_time = _time.monotonic()
-                # Do NOT set _show_post_battle yet — delay for user to see "Victory!" prompt
+                self._show_post_battle = True
                 return (result, reason)
         return None
 

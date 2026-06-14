@@ -11,6 +11,7 @@ Dependencies:
 from __future__ import annotations
 
 import logging
+from collections import OrderedDict
 from typing import TYPE_CHECKING, Any
 
 import pygame
@@ -83,8 +84,7 @@ class TerrainTileCache:
 
     def __init__(self, tile_size: int = 48):
         self._tile_size = tile_size
-        self._cache: dict[tuple, pygame.Surface] = {}
-        self._access_order: list[tuple] = []
+        self._cache: OrderedDict[tuple, pygame.Surface] = OrderedDict()
 
     def get_tile(
         self,
@@ -105,8 +105,7 @@ class TerrainTileCache:
         key = (terrain_type, autotile_mask, variation, height, tile_screen_size)
 
         if key in self._cache:
-            self._access_order.remove(key)
-            self._access_order.append(key)
+            self._cache.move_to_end(key)
             return self._cache[key]
 
         if renderer is None:
@@ -122,11 +121,13 @@ class TerrainTileCache:
 
     def _put(self, key: tuple, surface: pygame.Surface) -> None:
         """Insert into cache with LRU eviction."""
-        if len(self._cache) >= self.MAX_ENTRIES and key not in self._cache:
-            oldest = self._access_order.pop(0)
-            self._cache.pop(oldest, None)
+        if key in self._cache:
+            self._cache.move_to_end(key)
+            self._cache[key] = surface
+            return
+        if len(self._cache) >= self.MAX_ENTRIES:
+            self._cache.popitem(last=False)
         self._cache[key] = surface
-        self._access_order.append(key)
 
     def _render_tile(
         self,
@@ -221,12 +222,10 @@ class TerrainTileCache:
     def invalidate(self) -> None:
         """Invalidate entire cache (call when map changes)."""
         self._cache.clear()
-        self._access_order.clear()
 
     def clear(self) -> None:
         """Clear all cached tiles."""
         self._cache.clear()
-        self._access_order.clear()
 
     @property
     def size(self) -> int:

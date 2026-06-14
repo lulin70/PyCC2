@@ -36,7 +36,7 @@ jobs:
 
       - name: Security scan
         run: |
-          pip install bandit
+          pip install bandit==1.9.0
           bandit -r src/ -ll
 
   test:
@@ -61,6 +61,8 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Run tests with coverage
+        env:
+          SDL_VIDEODRIVER: dummy
         run: |
           pytest tests/ \
             --cov=src/pycc2 \

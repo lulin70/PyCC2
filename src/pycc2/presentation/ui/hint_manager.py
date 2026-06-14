@@ -21,11 +21,17 @@ class HintManager:
         self._hints: list[ActiveHint] = []
         self._global_cooldown: int = 0
         self._enabled: bool = True
+        # Pre-create font to avoid per-frame allocation (lazy init)
+        self._font = None
         
     @property
     def enabled(self) -> bool:
         return self._enabled
     
+    def _init_font(self) -> None:
+        import pygame
+        self._font = pygame.font.Font(None, 16)
+
     def set_enabled(self, val: bool) -> None:
         self._enabled = val
         if not val:
@@ -50,11 +56,13 @@ class HintManager:
     def render(self, screen) -> None:
         if not self._enabled:
             return
-        import pygame
-        font = pygame.font.Font(None, 16)
+        # Lazy-init font on first render
+        if self._font is None:
+            import pygame
+            self._font = pygame.font.Font(None, 16)
         for h in self._hints:
             alpha = min(255, int(h.lifetime / h.max_lifetime * 255))
-            surf = font.render(f"💡 {h.text}", True, (255, 255, 200))
+            surf = self._font.render(f"💡 {h.text}", True, (255, 255, 200))
             surf.set_alpha(alpha)
             screen.blit(surf, (int(h.x) - surf.get_width() // 2, int(h.y) - 20))
 

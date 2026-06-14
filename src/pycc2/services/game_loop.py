@@ -92,6 +92,14 @@ class GameLoop:
     _projectile_trail_sys: object | None = field(init=False, default=None)
     _environmental_audio: object | None = field(init=False, default=None)
     _victory_delay: float = field(init=False, default=0.0)
+    _weather_renderer: object | None = field(init=False, default=None)
+    _weather_state: object | None = field(init=False, default=None)
+    _day_night_time: float | None = field(init=False, default=None)
+    _lighting_renderer: object | None = field(init=False, default=None)
+    _weather_system: object | None = field(init=False, default=None)
+    _weather_effects: object | None = field(init=False, default=None)
+    _day_night_cycle: object | None = field(init=False, default=None)
+    _dynamic_shadow_sys: object | None = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         from pycc2.services.game_loop_assembler import GameLoopAssembler
@@ -219,11 +227,11 @@ class GameLoop:
                 )
 
                 # Step 2: 渲染天气/光照效果
-                if hasattr(self, '_weather_renderer') and self._weather_renderer:
-                    if hasattr(self, '_weather_state'):
+                if self._weather_renderer is not None:
+                    if self._weather_state is not None:
                         self._weather_renderer.render(screen, self.state.camera, self._weather_state)
-                if hasattr(self, '_lighting_renderer') and self._lighting_renderer:
-                    if hasattr(self, '_day_night_time'):
+                if self._lighting_renderer is not None:
+                    if self._day_night_time is not None:
                         self._lighting_renderer.render(screen, self._day_night_time)
 
                 # Step 3: 渲染部署UI（包含单位列表、详情、命令栏）
@@ -254,11 +262,11 @@ class GameLoop:
                 )
 
                 # Step 2: 渲染天气/光照效果
-                if hasattr(self, '_weather_renderer') and self._weather_renderer:
-                    if hasattr(self, '_weather_state'):
+                if self._weather_renderer is not None:
+                    if self._weather_state is not None:
                         self._weather_renderer.render(screen, self.state.camera, self._weather_state)
-                if hasattr(self, '_lighting_renderer') and self._lighting_renderer:
-                    if hasattr(self, '_day_night_time'):
+                if self._lighting_renderer is not None:
+                    if self._day_night_time is not None:
                         self._lighting_renderer.render(screen, self._day_night_time)
 
                 # Step 3: 渲染CC2统一底部HUD面板（单位列表+详情+小地图+命令栏）
@@ -322,18 +330,18 @@ class GameLoop:
 
     def _update_weather(self, dt: float) -> None:
         # Update weather system
-        if hasattr(self, '_weather_system') and self._weather_system:
+        if self._weather_system is not None:
             self._weather_system.update(dt)
 
         # Apply weather effects to game state
-        if hasattr(self, '_weather_effects') and self._weather_effects is not None:
-            if hasattr(self, '_weather_state') and self._weather_state is not None:
+        if self._weather_effects is not None:
+            if self._weather_state is not None:
                 # Weather modifiers are read by Unit.get_accuracy_modifier() etc.
                 # Store current weather type for unit queries
                 self.state.current_weather = self._weather_state.weather_type
 
         # Update day-night cycle
-        if hasattr(self, '_day_night_cycle') and self._day_night_cycle:
+        if self._day_night_cycle is not None:
             self._day_night_cycle.advance(dt)
 
     def _update_audio_sync(self, dt: float) -> None:
@@ -355,17 +363,17 @@ class GameLoop:
         if self._environmental_audio is not None:
             try:
                 # Sync time-of-day from day-night cycle
-                if hasattr(self, '_day_night_cycle') and self._day_night_cycle is not None:
+                if self._day_night_cycle is not None:
                     tod = getattr(self._day_night_cycle, 'time_of_day', None)
                     if tod is not None:
                         hour = int(tod * 24) % 24
                         self._environmental_audio.set_time_of_day(hour)
-                elif hasattr(self, '_day_night_time') and self._day_night_time is not None:
+                elif self._day_night_time is not None:
                     hour = int(self._day_night_time * 24) % 24
                     self._environmental_audio.set_time_of_day(hour)
 
                 # Sync weather (rain)
-                if hasattr(self, '_weather_state') and self._weather_state is not None:
+                if self._weather_state is not None:
                     weather_type = getattr(self._weather_state, 'weather_type', None)
                     if weather_type is not None:
                         is_raining = 'rain' in str(weather_type).lower()
@@ -472,16 +480,16 @@ class GameLoop:
             self._projectile_trail_sys.update(dt)
 
         # Update dynamic shadow time-of-day
-        if hasattr(self, '_dynamic_shadow_sys') and self._dynamic_shadow_sys is not None:
-            if hasattr(self, '_day_night_time') and self._day_night_time is not None:
+        if self._dynamic_shadow_sys is not None:
+            if self._day_night_time is not None:
                 self._dynamic_shadow_sys.set_time_of_day(self._day_night_time)
-            elif hasattr(self, '_day_night_cycle') and self._day_night_cycle is not None:
+            elif self._day_night_cycle is not None:
                 tod = getattr(self._day_night_cycle, 'time_of_day', 0.5)
                 self._dynamic_shadow_sys.set_time_of_day(tod)
 
     def _update_hud(self, dt: float) -> None:
         # P2-05: Update UI fade transitions (HUDManager panel/minimap fades)
-        if hasattr(self, '_hud_manager') and self._hud_manager is not None:
+        if self._hud_manager is not None:
             if hasattr(self._hud_manager, 'update'):
                 self._hud_manager.update(dt)
 

@@ -171,3 +171,43 @@ class Direction(Enum):
 
     def __repr__(self) -> str:
         return f"Direction.{self.name}"
+
+
+# ===== Module-level direction lookup constants =====
+
+# pygame rotation angles (degrees) for each direction.
+# Sprites are drawn facing NORTH (up); rotation is counter-clockwise in pygame.
+DIRECTION_ANGLES: dict["Direction", float] = {
+    Direction.NORTH: 0,
+    Direction.NORTHEAST: -45,
+    Direction.EAST: -90,
+    Direction.SOUTHEAST: -135,
+    Direction.SOUTH: 180,
+    Direction.SOUTHWEST: 135,
+    Direction.WEST: 90,
+    Direction.NORTHWEST: 45,
+}
+
+# Forward-facing unit vectors (used for muzzle flash / shooting effects).
+DIRECTION_VECTORS: dict["Direction", tuple[float, float]] = {
+    Direction.NORTH: (0, -1),
+    Direction.NORTHEAST: (0.707, -0.707),
+    Direction.EAST: (1, 0),
+    Direction.SOUTHEAST: (0.707, 0.707),
+    Direction.SOUTH: (0, 1),
+    Direction.SOUTHWEST: (-0.707, 0.707),
+    Direction.WEST: (-1, 0),
+    Direction.NORTHWEST: (-0.707, -0.707),
+}
+
+# Reverse unit vectors (used for dust trail / movement effects).
+DIRECTION_VECTORS_REVERSE: dict["Direction", tuple[float, float]] = {
+    Direction.NORTH: (0, 1),
+    Direction.NORTHEAST: (-0.707, 0.707),
+    Direction.EAST: (-1, 0),
+    Direction.SOUTHEAST: (-0.707, -0.707),
+    Direction.SOUTH: (0, -1),
+    Direction.SOUTHWEST: (0.707, -0.707),
+    Direction.WEST: (1, 0),
+    Direction.NORTHWEST: (0.707, 0.707),
+}

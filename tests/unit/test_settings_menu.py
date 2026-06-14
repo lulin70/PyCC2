@@ -78,9 +78,9 @@ class TestSettingsStateDefaults:
         s = SettingsState()
         assert s.damage_numbers is True
 
-    def test_difficulty_default_regular(self):
+    def test_difficulty_default_medium(self):
         s = SettingsState()
-        assert s.difficulty == "REGULAR"
+        assert s.difficulty == "MEDIUM"
 
     def test_autosave_interval_default_300(self):
         s = SettingsState()

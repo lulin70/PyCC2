@@ -746,7 +746,7 @@ print(f"COLD_START_TIME_MS={elapsed:.2f}")
                 [sys.executable, '-c', startup_script],
                 capture_output=True,
                 text=True,
-                cwd='/Users/lin/trae_projects/PyCC2',
+                cwd=str(Path(__file__).resolve().parents[2]),
             )
             
             for line in result.stdout.split('\\n'):

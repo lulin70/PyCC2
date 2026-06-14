@@ -91,7 +91,7 @@ python3 -m pip --version
 ### ステップ1: ソースコードを取得
 
 ```bash
-git clone https://github.com/user/pycc2.git
+git clone https://github.com/lulin70/PyCC2.git
 cd PyCC2
 ```
 

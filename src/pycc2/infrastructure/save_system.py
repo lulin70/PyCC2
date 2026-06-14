@@ -66,8 +66,8 @@ class SecureSaveManager:
         if env_key:
             try:
                 key = env_key.encode("utf-8")
-                if len(key) < 16:
-                    logger.warning("HMAC key too short (%d bytes), minimum is 16. Generating random key.", len(key))
+                if len(key) < 32:
+                    logger.warning("HMAC key too short (%d bytes), minimum is 32. Generating random key.", len(key))
                     import secrets
                     key = secrets.token_bytes(32)
                 return key
@@ -81,8 +81,8 @@ class SecureSaveManager:
                     if line.startswith("hmac_key") and "=" in line:
                         key_val = line.split("=", 1)[1].strip().strip('"').strip("'")
                         key = key_val.encode("utf-8")
-                        if len(key) < 16:
-                            logger.warning("HMAC key too short (%d bytes), minimum is 16. Generating random key.", len(key))
+                        if len(key) < 32:
+                            logger.warning("HMAC key too short (%d bytes), minimum is 32. Generating random key.", len(key))
                             import secrets
                             key = secrets.token_bytes(32)
                         return key
@@ -104,9 +104,10 @@ class SecureSaveManager:
             stacklevel=2,
         )
         SecureSaveManager._using_default_key = True
-        # Fixed dev key ensures saves are portable across sessions.
+        # Dev environment: use random session key for security.
         # Production must set PYCC2_SAVE_HMAC_KEY or config/secrets.toml.
-        return b"pycc2-dev-hmac-key-v1"
+        import secrets
+        return secrets.token_bytes(32)
 
     @staticmethod
     def _sanitize_filename(filename: str) -> str:
@@ -127,7 +128,7 @@ class SecureSaveManager:
         return self._save_dir / f"save_slot_{slot}.json"
 
     def _compute_hmac(self, data_bytes: bytes) -> str:
-        return hmac.new(self._hmac_key, data_bytes, hashlib.sha256).hexdigest()
+        return hmac.HMAC(self._hmac_key, data_bytes, hashlib.sha256).hexdigest()
 
     def _serialize_state(self, state_dict: dict) -> str:
         return json.dumps(state_dict, default=str, ensure_ascii=False, indent=2)
@@ -160,8 +161,11 @@ class SecureSaveManager:
 
             final_json = self._serialize_state(complete_save)
 
-            with open(filepath, "w", encoding="utf-8") as f:
+            # Atomic write: write to temp file first, then rename
+            tmp_path = filepath.with_suffix(".tmp")
+            with open(tmp_path, "w", encoding="utf-8") as f:
                 f.write(final_json)
+            tmp_path.replace(filepath)
 
             # Restrict file permissions to owner-only (security hardening)
             # Silently skip in environments where chmod is not supported (e.g., some test containers)

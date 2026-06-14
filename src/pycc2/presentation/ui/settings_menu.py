@@ -26,7 +26,7 @@ class SettingsState:
     screen_shake: bool = True
     particles: bool = True
     damage_numbers: bool = True
-    difficulty: str = "REGULAR"
+    difficulty: str = "MEDIUM"
     autosave_interval: int = 300
 
 
@@ -40,6 +40,30 @@ class SettingsMenu:
         self._tab_names = ["General", "Audio", "Controls", "Gameplay"]
         self._option_rects: list[tuple[object, str]] = []
         self._selected_option_idx: int = 0
+
+        # Pre-create fonts to avoid per-frame allocation (lazy init)
+        self._font_lg = None
+        self._font_md = None
+        self._font_sm = None
+
+        # Cached surfaces (rebuilt on resize)
+        self._overlay: object | None = None
+        self._panel: object | None = None
+        self._cached_size: tuple[int, int] = (0, 0)
+
+    def _init_fonts(self) -> None:
+        import pygame
+        dc = self._display_config
+        self._font_lg = pygame.font.Font(None, int(dc.font_size_title * 1.2))
+        self._font_md = pygame.font.Font(None, int(dc.font_size_large))
+        self._font_sm = pygame.font.Font(None, int(dc.font_size_normal))
+
+    def _rebuild_surfaces(self, sw: int, sh: int) -> None:
+        import pygame
+        self._overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
+        pw, ph = min(600, int(sw * 0.65)), min(500, int(sh * 0.75))
+        self._panel = pygame.Surface((pw, ph), pygame.SRCALPHA)
+        self._cached_size = (sw, sh)
 
     @property
     def visible(self) -> bool:
@@ -108,23 +132,27 @@ class SettingsMenu:
         dc = self._display_config
         sw, sh = screen.get_size()
 
-        overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 180))
-        screen.blit(overlay, (0, 0))
+        # Lazy-init fonts on first render
+        if self._font_lg is None:
+            self._init_fonts()
+
+        # Rebuild cached surfaces if screen size changed
+        if self._cached_size != (sw, sh):
+            self._rebuild_surfaces(sw, sh)
+
+        self._overlay.fill((0, 0, 0, 180))
+        screen.blit(self._overlay, (0, 0))
 
         pw, ph = min(600, int(sw * 0.65)), min(500, int(sh * 0.75))
         px, py = (sw - pw) // 2, (sh - ph) // 2
 
-        panel = pygame.Surface((pw, ph), pygame.SRCALPHA)
-        panel.fill((25, 28, 38, 245))
-        pygame.draw.rect(panel, (100, 110, 140), (0, 0, pw, ph), 2, border_radius=10)
-        screen.blit(panel, (px, py))
+        self._panel.fill((25, 28, 38, 245))
+        pygame.draw.rect(self._panel, (100, 110, 140), (0, 0, pw, ph), 2, border_radius=10)
+        screen.blit(self._panel, (px, py))
 
-        font_lg = pygame.font.Font(None, int(dc.font_size_title * 1.2))
-        title_surf = font_lg.render("⚙ Settings", True, (220, 220, 230))
+        title_surf = self._font_lg.render("⚙ Settings", True, (220, 220, 230))
         screen.blit(title_surf, (px + (pw - title_surf.get_width()) // 2, py + 15))
 
-        font_md = pygame.font.Font(None, int(dc.font_size_large))
         tab_y = py + 50
         tab_w = pw // len(self._tab_names)
         for i, name in enumerate(self._tab_names):
@@ -135,12 +163,11 @@ class SettingsMenu:
             tab_surf = pygame.Surface((tab_w - 4, 28), pygame.SRCALPHA)
             tab_surf.fill(bg_color)
             screen.blit(tab_surf, (tx + 2, tab_y))
-            txt = font_md.render(name, True, color)
+            txt = self._font_md.render(name, True, color)
             screen.blit(txt, (tx + (tab_w - 4 - txt.get_width()) // 2, tab_y + 5))
 
         opt_y = tab_y + 40
         options = self._get_options_for_tab()
-        font_sm = pygame.font.Font(None, int(dc.font_size_normal))
         self._option_rects = []
 
         for i, (opt_name, opt_value, opt_type) in enumerate(options):
@@ -148,7 +175,7 @@ class SettingsMenu:
             if oy > py + ph - 50:
                 break
 
-            name_surf = font_sm.render(opt_name, True, (200, 200, 210))
+            name_surf = self._font_sm.render(opt_name, True, (200, 200, 210))
             screen.blit(name_surf, (px + 20, oy))
 
             val_str = self._format_value(opt_value, opt_type)
@@ -164,24 +191,24 @@ class SettingsMenu:
                 val_color = (200, 120, 120)
             else:
                 val_color = (80, 180, 255) if i == self._selected_option_idx else (140, 200, 140)
-            val_surf = font_sm.render(val_str, True, val_color)
+            val_surf = self._font_sm.render(val_str, True, val_color)
             screen.blit(val_surf, (px + pw - 20 - val_surf.get_width(), oy))
 
             self._option_rects.append((pygame.Rect(px + 15, oy, pw - 30, 28), opt_name))
 
             if i == 0:
                 if self._active_tab == SettingsTab.CONTROLS and self._keybind_manager:
-                    hint = font_sm.render(
+                    hint = self._font_sm.render(
                         "Enter/Click to rebind | ESC to cancel", True, (120, 120, 130)
                     )
                 else:
-                    hint = font_sm.render(
+                    hint = self._font_sm.render(
                         "← → to change | Enter to toggle | ↑↓ to select", True, (120, 120, 130)
                     )
                 screen.blit(hint, (px + 20, oy + 18))
 
         footer_y = py + ph - 35
-        footer = font_sm.render(
+        footer = self._font_sm.render(
             "TAB: switch category | ESC: close | arrows/Enter: change value", True, (140, 140, 150)
         )
         screen.blit(footer, (px + (pw - footer.get_width()) // 2, footer_y))
