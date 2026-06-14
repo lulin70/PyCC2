@@ -5,10 +5,15 @@ from typing import Any, Callable, TypeVar, overload
 
 from .ai_service_protocol import IAIService
 from .bottom_panel_protocol import IBottomPanel
+from .camera_protocol import ICamera
 from .deployment_ui_protocol import IDeploymentUI
 from .display_config import DisplayConfig
+from .input_handler_protocol import IInputHandler
+from .interaction_controller_protocol import IInteractionController
 from .minimap_protocol import IMinimap
+from .renderer_protocol import IRenderer
 from .sound_system_protocol import ISoundSystem
+from .window_manager_protocol import IWindowManager
 
 E = TypeVar("E")
 

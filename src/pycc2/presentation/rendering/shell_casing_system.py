@@ -40,6 +40,7 @@ class ShellCasingSystem:
 
     def __init__(self) -> None:
         self._shell_casings: list[dict] = []
+        self._casing_surf_cache: dict[tuple[int, int], pygame.Surface] = {}
 
     # ------------------------------------------------------------------
     # Public API
@@ -109,9 +110,14 @@ class ShellCasingSystem:
             fade = max(0, 1.0 - c["life"] / c["max_life"])
             alpha = int(255 * (1.0 - fade * 0.7))
             try:
-                surf = pygame.Surface((int(c["size"] * 2), int(c["size"])), pygame.SRCALPHA)
-                pygame.draw.ellipse(surf, (*c["color"], alpha), surf.get_rect())
-                offscreen.blit(surf, (sx - int(c["size"]), sy))
+                sw, sh = int(c["size"] * 2), int(c["size"])
+                casing_surf = self._casing_surf_cache.get((sw, sh))
+                if casing_surf is None:
+                    casing_surf = pygame.Surface((sw, sh), pygame.SRCALPHA)
+                    self._casing_surf_cache[(sw, sh)] = casing_surf
+                casing_surf.fill((0, 0, 0, 0))
+                pygame.draw.ellipse(casing_surf, (*c["color"], alpha), casing_surf.get_rect())
+                offscreen.blit(casing_surf, (sx - int(c["size"]), sy))
             except Exception:
                 pass
 

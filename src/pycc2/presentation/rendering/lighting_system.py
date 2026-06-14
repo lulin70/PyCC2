@@ -47,6 +47,7 @@ class LightingSystem:
         self._max_dynamic_lights = 8
         self._tod_tint_cache: pygame.Surface | None = None
         self._last_time_of_day: str = self._config.time_of_day
+        self._light_surf_cache: dict[int, pygame.Surface] = {}
 
     @property
     def config(self) -> TopDownLightingConfig:
@@ -268,7 +269,11 @@ class LightingSystem:
             # Create radial gradient surface
             size = radius * 2 + 4
             try:
-                light_surf = pygame.Surface((size, size), pygame.SRCALPHA)
+                light_surf = self._light_surf_cache.get(size)
+                if light_surf is None:
+                    light_surf = pygame.Surface((size, size), pygame.SRCALPHA)
+                    self._light_surf_cache[size] = light_surf
+                light_surf.fill((0, 0, 0, 0))
                 center = size // 2
 
                 for r in range(radius, 0, -2):

@@ -99,6 +99,7 @@ class TerrainRenderingSystem:
         self._terrain_tile_cache = getattr(renderer, '_terrain_tile_cache', None)
         self._transition_cache = getattr(renderer, '_transition_cache', {})
         self._overlay_surface_pool = SurfacePool(max_size=20)
+        self._strip_cache: dict[tuple[int, int], pygame.Surface] = {}
 
         # P1-2: 地形静态层缓存 — 将所有可见地形tile合成一张大图
         # 当相机不动且地形未修改时，直接blit缓存的大图，避免每帧逐tile绘制
@@ -659,7 +660,12 @@ class TerrainRenderingSystem:
                     sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
                     strip_width = max(4, tile_screen_size // 8)
-                    strip = pygame.Surface((strip_width, tile_screen_size), pygame.SRCALPHA)
+                    strip_key = (strip_width, tile_screen_size)
+                    strip = self._strip_cache.get(strip_key)
+                    if strip is None:
+                        strip = pygame.Surface(strip_key, pygame.SRCALPHA)
+                        self._strip_cache[strip_key] = strip
+                    strip.fill((0, 0, 0, 0))
 
                     for i in range(strip_width):
                         t = i / strip_width

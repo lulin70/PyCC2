@@ -35,6 +35,8 @@ class AARPanel:
         self._visible: bool = False
         self._result: BattleResult | None = None
         self._scroll_offset: int = 0
+        self._panel_surface: "pygame.Surface | None" = None
+        self._panel_size: tuple[int, int] = (0, 0)
 
     @property
     def visible(self) -> bool:
@@ -68,9 +70,14 @@ class AARPanel:
         cfg = self.config
         result = self._result
 
-        panel = pygame.Surface((cfg.width, cfg.height), pygame.SRCALPHA)
-        panel.fill((*cfg.bg_color, 245))
-        pygame.draw.rect(panel, cfg.border_color, (0, 0, cfg.width, cfg.height), 2, border_radius=8)
+        # Lazy-init or resize panel surface
+        panel_size = (cfg.width, cfg.height)
+        if self._panel_surface is None or self._panel_size != panel_size:
+            self._panel_surface = pygame.Surface(panel_size, pygame.SRCALPHA)
+            self._panel_size = panel_size
+        self._panel_surface.fill((0, 0, 0, 0))
+        self._panel_surface.fill((*cfg.bg_color, 245))
+        pygame.draw.rect(self._panel_surface, cfg.border_color, (0, 0, cfg.width, cfg.height), 2, border_radius=8)
 
         y = 12
 
@@ -80,16 +87,16 @@ class AARPanel:
             title_surf = font.render(
                 f"AFTER ACTION REPORT — {outcome_text}", True, title_color
             )
-            panel.blit(title_surf, (cfg.width // 2 - title_surf.get_width() // 2, y))
+            self._panel_surface.blit(title_surf, (cfg.width // 2 - title_surf.get_width() // 2, y))
         y += 32
 
         if small_font:
             info = f"Mission: {result.mission_name} | Duration: {result.ticks_elapsed // 30}s | VP: {result.victory_points}"
             info_surf = small_font.render(info, True, cfg.text_color)
-            panel.blit(info_surf, (16, y))
+            self._panel_surface.blit(info_surf, (16, y))
         y += 28
 
-        pygame.draw.line(panel, cfg.section_divider, (16, y), (cfg.width - 16, y), 1)
+        pygame.draw.line(self._panel_surface, cfg.section_divider, (16, y), (cfg.width - 16, y), 1)
         y += 12
 
         stats = [
@@ -111,17 +118,17 @@ class AARPanel:
             if small_font:
                 lbl = small_font.render(label, True, cfg.stat_label_color)
                 val = small_font.render(value, True, color)
-                panel.blit(lbl, (20, y))
-                panel.blit(val, (cfg.width - 20 - val.get_width(), y))
+                self._panel_surface.blit(lbl, (20, y))
+                self._panel_surface.blit(val, (cfg.width - 20 - val.get_width(), y))
             y += 22
 
         y += 8
-        pygame.draw.line(panel, cfg.section_divider, (16, y), (cfg.width - 16, y), 1)
+        pygame.draw.line(self._panel_surface, cfg.section_divider, (16, y), (cfg.width - 16, y), 1)
         y += 12
 
         if small_font:
             header = small_font.render("Unit Performance:", True, cfg.title_color)
-            panel.blit(header, (20, y))
+            self._panel_surface.blit(header, (20, y))
         y += 22
 
         ally_records = [r for r in result.unit_records if r.faction == "allies"][:6]
@@ -132,15 +139,15 @@ class AARPanel:
                 line = f"  {status} {record.unit_type} | DMG:{record.damage_dealt:.0f} K:{record.kills} ACC:{eff}"
                 color = cfg.victory_color if record.survived else cfg.defeat_color
                 surf = small_font.render(line, True, color)
-                panel.blit(surf, (24, y))
+                self._panel_surface.blit(surf, (24, y))
             y += 18
 
         y = cfg.height - 36
         if small_font:
             prompt = small_font.render("Press SPACE or CLICK to continue...", True, (140, 140, 150))
-            panel.blit(prompt, (cfg.width // 2 - prompt.get_width() // 2, y))
+            self._panel_surface.blit(prompt, (cfg.width // 2 - prompt.get_width() // 2, y))
 
-        screen.blit(panel, (cfg.x, cfg.y))
+        screen.blit(self._panel_surface, (cfg.x, cfg.y))
 
     def handle_click(self, x: int, y: int) -> bool:
         if not self._visible:

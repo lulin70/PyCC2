@@ -19,10 +19,10 @@ if TYPE_CHECKING:
     from pycc2.domain.interfaces.display_config import DisplayConfig
     from pycc2.domain.interfaces.minimap_protocol import IMinimap
     from pycc2.presentation.audio.sound_system import SoundSystem
-    from pycc2.presentation.input.interaction_controller import InteractionController
-    from pycc2.presentation.rendering.camera import Camera
-    from pycc2.presentation.rendering.render_pipeline import RenderPipeline
-    from pycc2.presentation.rendering.window_config import WindowManager
+    from pycc2.domain.interfaces.interaction_controller_protocol import IInteractionController as InteractionController
+    from pycc2.domain.interfaces.camera_protocol import ICamera as Camera
+    from pycc2.domain.interfaces.renderer_protocol import IRenderer as RenderPipeline
+    from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
     from pycc2.services.event_bus import EventBus
 
     from .game_loop import GameState

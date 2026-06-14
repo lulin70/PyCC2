@@ -87,6 +87,7 @@ class InfantryRenderer:
             base_size: 基础精灵尺寸（默认24x24像素，CC2标准）
         """
         self.base_size = base_size
+        self._body_surf: pygame.Surface | None = None
 
     def create_infantry_sprite(
         self,
@@ -526,9 +527,11 @@ class InfantryRenderer:
             tilt_angle = 30  # 倾斜角度
             
             # 简化表示：用旋转的矩形
-            body_surf = pygame.Surface((10, 6), pygame.SRCALPHA)
-            body_surf.fill(body_color)
-            rotated = pygame.transform.rotate(body_surf, tilt_angle)
+            if self._body_surf is None:
+                self._body_surf = pygame.Surface((10, 6), pygame.SRCALPHA)
+            self._body_surf.fill((0, 0, 0, 0))
+            self._body_surf.fill(body_color)
+            rotated = pygame.transform.rotate(self._body_surf, tilt_angle)
             
             rot_rect = rotated.get_rect(center=(cx, cy))
             surface.blit(rotated, rot_rect.topleft)

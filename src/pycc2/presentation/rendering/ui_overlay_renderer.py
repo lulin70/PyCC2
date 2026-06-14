@@ -50,6 +50,8 @@ class UIOverlayRenderer:
     def __init__(self, ctx: RenderContext):
         self._ctx = ctx
         self._attack_line_system = None
+        self._los_overlay: pygame.Surface | None = None
+        self._los_overlay_size: tuple[int, int] = (0, 0)
 
     def set_attack_line_system(self, attack_line_system) -> None:
         """Set attack line system (dependency injection)."""
@@ -342,11 +344,12 @@ class UIOverlayRenderer:
         uy = unit.position.tile_coord.y
         tile_size = self._ctx.tile_size
 
-        # Create a semi-transparent overlay
-        overlay = pygame.Surface(
-            (game_map.width * tile_size, game_map.height * tile_size),
-            pygame.SRCALPHA,
-        )
+        # Lazy-init or resize LOS overlay surface
+        overlay_size = (game_map.width * tile_size, game_map.height * tile_size)
+        if self._los_overlay is None or self._los_overlay_size != overlay_size:
+            self._los_overlay = pygame.Surface(overlay_size, pygame.SRCALPHA)
+            self._los_overlay_size = overlay_size
+        self._los_overlay.fill((0, 0, 0, 0))
 
         vision_range = getattr(unit, 'vision', None)
         max_range = vision_range.range if vision_range else 10
@@ -363,14 +366,14 @@ class UIOverlayRenderer:
                 screen_y = ty * tile_size
 
                 if can_see:
-                    pygame.draw.rect(overlay, (0, 255, 0, 25), (screen_x, screen_y, tile_size, tile_size))
+                    pygame.draw.rect(self._los_overlay, (0, 255, 0, 25), (screen_x, screen_y, tile_size, tile_size))
                 else:
-                    pygame.draw.rect(overlay, (255, 0, 0, 40), (screen_x, screen_y, tile_size, tile_size))
+                    pygame.draw.rect(self._los_overlay, (255, 0, 0, 40), (screen_x, screen_y, tile_size, tile_size))
 
         # Blit overlay offset by camera
         cam_x = int(camera.offset_x) if hasattr(camera, 'offset_x') else 0
         cam_y = int(camera.offset_y) if hasattr(camera, 'offset_y') else 0
-        surface.blit(overlay, (-cam_x, -cam_y))
+        surface.blit(self._los_overlay, (-cam_x, -cam_y))
 
     # ------------------------------------------------------------------ #
     #  Internal Utilities

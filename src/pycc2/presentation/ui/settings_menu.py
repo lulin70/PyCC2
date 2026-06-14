@@ -90,6 +90,8 @@ class SettingsMenu:
         self._overlay: object | None = None
         self._panel: object | None = None
         self._cached_size: tuple[int, int] = (0, 0)
+        self._tab_surf: object | None = None
+        self._tab_surf_size: tuple[int, int] = (0, 0)
 
     def _init_fonts(self) -> None:
         import pygame
@@ -202,9 +204,14 @@ class SettingsMenu:
             is_active = i == self._active_tab.value
             color = (80, 140, 200) if is_active else (80, 85, 95)
             bg_color = (40, 45, 60) if is_active else (30, 33, 42)
-            tab_surf = pygame.Surface((tab_w - 4, 28), pygame.SRCALPHA)
-            tab_surf.fill(bg_color)
-            screen.blit(tab_surf, (tx + 2, tab_y))
+            # Lazy-init or resize tab surface
+            tab_size = (tab_w - 4, 28)
+            if self._tab_surf is None or self._tab_surf_size != tab_size:
+                self._tab_surf = pygame.Surface(tab_size, pygame.SRCALPHA)
+                self._tab_surf_size = tab_size
+            self._tab_surf.fill((0, 0, 0, 0))
+            self._tab_surf.fill(bg_color)
+            screen.blit(self._tab_surf, (tx + 2, tab_y))
             txt = self._font_md.render(name, True, color)
             screen.blit(txt, (tx + (tab_w - 4 - txt.get_width()) // 2, tab_y + 5))
 

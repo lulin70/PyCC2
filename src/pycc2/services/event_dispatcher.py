@@ -16,8 +16,8 @@ import pygame
 if TYPE_CHECKING:
     from pycc2.presentation.audio.sound_system import SoundSystem
     from pycc2.domain.interfaces.display_config import DisplayConfig
-    from pycc2.presentation.rendering.window_config import WindowManager
-    from pycc2.presentation.input.input_router import InputRouter
+    from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
+    from pycc2.domain.interfaces.input_handler_protocol import IInputHandler as InputRouter
     from pycc2.presentation.ui.time_control import TimeControlUI
     from pycc2.services.deployment_manager import DeploymentManager
     from pycc2.services.event_bus import EventBus

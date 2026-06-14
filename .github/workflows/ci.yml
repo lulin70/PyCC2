@@ -79,6 +79,9 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: false
 
+      - name: Run performance benchmarks
+        run: SDL_VIDEODRIVER=dummy python -m pytest tests/benchmark/test_perf_benchmark.py -v
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -87,3 +90,16 @@ jobs:
           path: |
             junit.xml
             htmlcov/
+
+  docker-build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'pull_request' && github.base_ref == 'main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t pycc2-test .
+
+      - name: Run tests in Docker
+        run: docker run --rm pycc2-test

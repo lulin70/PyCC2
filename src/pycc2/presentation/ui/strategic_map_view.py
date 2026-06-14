@@ -61,6 +61,8 @@ class StrategicMapView:
     sectors: dict[str, Sector] = field(init=False)
     _background_image = None
     _campaign_state: CampaignState | None = None
+    _bg_surface: object | None = field(default=None, init=False, repr=False)
+    _bg_size: tuple[int, int] = field(default=(0, 0), init=False, repr=False)
     
     def __init__(self):
         self.sectors = {}
@@ -138,15 +140,18 @@ class StrategicMapView:
             import pygame
             
             width, height = screen_size
-            
-            bg = pygame.Surface((width, height))
-            bg.fill((30, 35, 45))
+
+            # Lazy-init or resize bg surface
+            if self._bg_surface is None or self._bg_size != (width, height):
+                self._bg_surface = pygame.Surface((width, height))
+                self._bg_size = (width, height)
+            self._bg_surface.fill((30, 35, 45))
             
             font_large = pygame.font.SysFont('arial', 24, bold=True)
             font_small = pygame.font.SysFont('arial', 14)
             
             title = font_large.render("MARKET GARDEN - STRATEGIC MAP", True, (255, 215, 0))
-            bg.blit(title, (width // 2 - title.get_width() // 2, 20))
+            self._bg_surface.blit(title, (width // 2 - title.get_width() // 2, 20))
             
             corridor_color = (60, 70, 80)
             points = [
@@ -159,22 +164,22 @@ class StrategicMapView:
             ]
             
             if len(points) >= 2:
-                pygame.draw.lines(bg, corridor_color, False, points, 3)
+                pygame.draw.lines(self._bg_surface, corridor_color, False, points, 3)
             
             for sector_id, sector in self.sectors.items():
                 x, y = int(sector.position[0]), int(sector.position[1])
                 
-                pygame.draw.circle(bg, sector.color, (x, y), 30)
-                pygame.draw.circle(bg, (255, 255, 255), (x, y), 30, 2)
+                pygame.draw.circle(self._bg_surface, sector.color, (x, y), 30)
+                pygame.draw.circle(self._bg_surface, (255, 255, 255), (x, y), 30, 2)
                 
                 name_surf = font_small.render(sector.name, True, (255, 255, 255))
-                bg.blit(name_surf, (x - name_surf.get_width() // 2, y + 35))
+                self._bg_surface.blit(name_surf, (x - name_surf.get_width() // 2, y + 35))
                 
                 status_text = sector.status.name.replace('_', ' ')
                 status_surf = font_small.render(status_text, True, sector.color)
-                bg.blit(status_surf, (x - status_surf.get_width() // 2, y + 50))
+                self._bg_surface.blit(status_surf, (x - status_surf.get_width() // 2, y + 50))
             
-            surface.blit(bg, (0, 0))
+            surface.blit(self._bg_surface, (0, 0))
             
         except Exception as e:
             logging.debug(f"Strategic map rendering failed: {e}")

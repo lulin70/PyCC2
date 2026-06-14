@@ -48,6 +48,8 @@ class StrategicMapRenderer:
         self.config = config or StrategicMapConfig()
         self._surface = None
         self._selected_bridge: str | None = None
+        self._panel_surface: pygame.Surface | None = None
+        self._panel_size: tuple[int, int] = (0, 0)
 
     def render(
         self,
@@ -64,13 +66,16 @@ class StrategicMapRenderer:
         offset_x = (cx - w) // 2
         offset_y = (cy - h) // 2 + 20
 
-        panel = pygame.Surface((w, h))
-        panel.fill(cfg.bg_color)
-        panel.set_alpha(240)
+        # Lazy-init or resize panel surface
+        if self._panel_surface is None or self._panel_size != (w, h):
+            self._panel_surface = pygame.Surface((w, h))
+            self._panel_size = (w, h)
+        self._panel_surface.fill(cfg.bg_color)
+        self._panel_surface.set_alpha(240)
 
         if len(CORRIDOR_PATH) >= 2:
             pts = [(int(p[0] * w) + offset_x, int(p[1] * h) + offset_y) for p in CORRIDOR_PATH]
-            pygame.draw.lines(panel, cfg.corridor_color, False, pts, 3)
+            pygame.draw.lines(self._panel_surface, cfg.corridor_color, False, pts, 3)
 
         bridges_state = {}
         if campaign_state is not None:
@@ -88,12 +93,12 @@ class StrategicMapRenderer:
                 color = cfg.bridge_neutral_color
 
             if key == self._selected_bridge:
-                pygame.draw.circle(panel, cfg.highlight_color, (bx, by), 18, 2)
+                pygame.draw.circle(self._panel_surface, cfg.highlight_color, (bx, by), 18, 2)
 
-            pygame.draw.circle(panel, color, (bx, by), 12)
-            pygame.draw.circle(panel, (255, 255, 255), (bx, by), 12, 1)
+            pygame.draw.circle(self._panel_surface, color, (bx, by), 12)
+            pygame.draw.circle(self._panel_surface, (255, 255, 255), (bx, by), 12, 1)
 
-        screen.blit(panel, (offset_x, offset_y))
+        screen.blit(self._panel_surface, (offset_x, offset_y))
 
         if font:
             for key, pos in BRIDGE_POSITIONS.items():

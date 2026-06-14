@@ -42,6 +42,8 @@ class RangeIndicator:
     _max_range: float = 0.0
     _visible: bool = False
     _alpha: int = 128  # Semi-transparent
+    _range_surf: object | None = None
+    _range_surf_size: int = 0
 
     def set_unit(self, unit: Unit | None) -> None:
         """Set the currently selected unit for range display."""
@@ -127,22 +129,26 @@ class RangeIndicator:
             max_radius = int(self._max_range * 32 * scale)
             
             if max_radius > 0:
-                s = pygame.Surface((max_radius * 2 + 4, max_radius * 2 + 4), pygame.SRCALPHA)
+                surf_size = max_radius * 2 + 4
+                if self._range_surf is None or self._range_surf_size != surf_size:
+                    self._range_surf = pygame.Surface((surf_size, surf_size), pygame.SRCALPHA)
+                    self._range_surf_size = surf_size
+                self._range_surf.fill((0, 0, 0, 0))
                 center = (max_radius + 2, max_radius + 2)
                 
                 if min_radius > 0:
                     pygame.draw.circle(
-                        s, (255, 255, 0, self._alpha),
+                        self._range_surf, (255, 255, 0, self._alpha),
                         center, min_radius, 2
                     )
                 
                 pygame.draw.circle(
-                    s, (255, 0, 0, self._alpha),
+                    self._range_surf, (255, 0, 0, self._alpha),
                     center, max_radius, 2
                 )
                 
                 surface.blit(
-                    s,
+                    self._range_surf,
                     (int(screen_pos[0]) - max_radius - 2,
                      int(screen_pos[1]) - max_radius - 2),
                 )

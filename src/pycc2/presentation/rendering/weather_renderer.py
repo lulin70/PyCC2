@@ -27,6 +27,9 @@ class WeatherRenderer:
         self.screen_height = screen_height
         self._rain_drops: list[dict] = []
         self._snow_flakes: list[dict] = []
+        self._dark_surf: "pygame.Surface | None" = None
+        self._fog_surf: "pygame.Surface | None" = None
+        self._weather_surf_size: tuple[int, int] = (0, 0)
         self._init_rain()
         self._init_snow()
 
@@ -91,14 +94,17 @@ class WeatherRenderer:
             from pycc2.domain.systems.environment import TimeOfDay
 
             if time_of_day in (TimeOfDay.NIGHT, TimeOfDay.DAWN, TimeOfDay.DUSK):
-                dark_surf = pygame.Surface(
-                    (self.screen_width, self.screen_height), pygame.SRCALPHA
-                )
+                # Lazy-init or resize dark surface
+                cur_size = (self.screen_width, self.screen_height)
+                if self._dark_surf is None or self._weather_surf_size != cur_size:
+                    self._dark_surf = pygame.Surface(cur_size, pygame.SRCALPHA)
+                    self._fog_surf = pygame.Surface(cur_size, pygame.SRCALPHA)
+                    self._weather_surf_size = cur_size
                 alpha = self.NIGHT_DARKEN_ALPHA
                 if time_of_day in (TimeOfDay.DAWN, TimeOfDay.DUSK):
                     alpha = 70
-                dark_surf.fill((0, 0, 15, alpha))
-                screen.blit(dark_surf, (0, 0))
+                self._dark_surf.fill((0, 0, 15, alpha))
+                screen.blit(self._dark_surf, (0, 0))
 
         if weather == WeatherType.RAIN:
             self._render_rain(screen, intensity, camera_offset_x, camera_offset_y)
@@ -124,18 +130,22 @@ class WeatherRenderer:
     def _render_fog(self, screen, intensity: float) -> None:
         import pygame
 
-        fog_surf = pygame.Surface(
-            (self.screen_width, self.screen_height), pygame.SRCALPHA
-        )
+        # Lazy-init or resize fog surface
+        cur_size = (self.screen_width, self.screen_height)
+        if self._fog_surf is None or self._weather_surf_size != cur_size:
+            self._fog_surf = pygame.Surface(cur_size, pygame.SRCALPHA)
+            self._dark_surf = pygame.Surface(cur_size, pygame.SRCALPHA)
+            self._weather_surf_size = cur_size
+        self._fog_surf.fill((0, 0, 0, 0))
         base_alpha = int(self.FOG_ALPHA_BASE * intensity)
-        fog_surf.fill((200, 200, 210, base_alpha))
+        self._fog_surf.fill((200, 200, 210, base_alpha))
         noise_count = int(20 * intensity)
         for _ in range(noise_count):
             fx = random.randint(0, self.screen_width)
             fy = random.randint(0, self.screen_height)
             fr = random.randint(50, 150)
-            pygame.draw.circle(fog_surf, (220, 220, 230, 30), (fx, fy), fr)
-        screen.blit(fog_surf, (0, 0))
+            pygame.draw.circle(self._fog_surf, (220, 220, 230, 30), (fx, fy), fr)
+        screen.blit(self._fog_surf, (0, 0))
 
     def _render_snow(
         self, screen, intensity: float, cam_x: int, cam_y: int

@@ -13,12 +13,12 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.presentation.audio.sound_system import SoundSystem
-    from pycc2.presentation.input.handler import PygameInputHandler
-    from pycc2.presentation.input.interaction_controller import InteractionController
-    from pycc2.presentation.rendering.camera import Camera
+    from pycc2.domain.interfaces.input_handler_protocol import IInputHandler as PygameInputHandler
+    from pycc2.domain.interfaces.interaction_controller_protocol import IInteractionController as InteractionController
+    from pycc2.domain.interfaces.camera_protocol import ICamera as Camera
     from pycc2.domain.interfaces.display_config import DisplayConfig
-    from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-    from pycc2.presentation.rendering.window_config import WindowManager
+    from pycc2.domain.interfaces.renderer_protocol import IRenderer as EnhancedRenderer
+    from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
     from pycc2.domain.interfaces.deployment_ui_protocol import IDeploymentUI
     from pycc2.presentation.ui.time_control import TimeControlUI
     from pycc2.services.ai_service import AIService

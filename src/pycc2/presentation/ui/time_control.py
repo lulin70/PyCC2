@@ -52,6 +52,8 @@ class TimeControlUI:
         self.config = config or TimeControlConfig()
         self._current_speed: TimeSpeed = TimeSpeed.NORMAL
         self._button_rects: dict[TimeSpeed, "pygame.Rect"] = {}
+        self._button_surf: "pygame.Surface | None" = None
+        self._button_surf_size: tuple[int, int] = (0, 0)
 
     @property
     def current_speed(self) -> TimeSpeed:
@@ -116,15 +118,20 @@ class TimeControlUI:
             bg_color = (*info["color"], 220) if is_active else (50, 55, 65, cfg.bg_alpha)
             border_color = (255, 255, 255) if is_active else (80, 85, 95)
 
-            surf = pygame.Surface((cfg.button_width, cfg.button_height), pygame.SRCALPHA)
-            surf.fill(bg_color)
-            pygame.draw.rect(surf, border_color, (0, 0, cfg.button_width, cfg.button_height), 1, border_radius=4)
+            # Lazy-init or resize button surface
+            btn_size = (cfg.button_width, cfg.button_height)
+            if self._button_surf is None or self._button_surf_size != btn_size:
+                self._button_surf = pygame.Surface(btn_size, pygame.SRCALPHA)
+                self._button_surf_size = btn_size
+            self._button_surf.fill((0, 0, 0, 0))
+            self._button_surf.fill(bg_color)
+            pygame.draw.rect(self._button_surf, border_color, (0, 0, cfg.button_width, cfg.button_height), 1, border_radius=4)
 
             if font:
                 label = font.render(info["label"], True, (230, 230, 230))
-                surf.blit(label, (cfg.button_width // 2 - label.get_width() // 2, 5))
+                self._button_surf.blit(label, (cfg.button_width // 2 - label.get_width() // 2, 5))
 
-            screen.blit(surf, (bx, by))
+            screen.blit(self._button_surf, (bx, by))
             self._button_rects[speed] = rect
             clickable.append({"speed": speed, "rect": rect})
 
