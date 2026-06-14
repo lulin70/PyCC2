@@ -172,9 +172,7 @@ class SquadDegradationManager:
         elif leader_rank == LeaderRank.SQUAD_LEADER:
             if record.state.value < SquadState.DEGRADED_MODERATE.value:
                 record.state = SquadState.DEGRADED_MODERATE
-            self._logger.info(
-                f"Squad leader killed: squad {squad_id} enters MODERATE degradation"
-            )
+            self._logger.info(f"Squad leader killed: squad {squad_id} enters MODERATE degradation")
 
         modifiers = SQUAD_STATE_MODIFIERS[record.state]
         for unit in squad_units:
@@ -201,9 +199,7 @@ class SquadDegradationManager:
             if record.recovery_ticks_remaining > 0:
                 record.recovery_ticks_remaining -= 1
                 if record.recovery_ticks_remaining == 0 and record.pending_nco_id is not None:
-                    nco_alive = any(
-                        u.id == record.pending_nco_id and u.is_alive for u in all_units
-                    )
+                    nco_alive = any(u.id == record.pending_nco_id and u.is_alive for u in all_units)
                     if nco_alive:
                         old_state = record.state
                         record.state = SquadState.DEGRADED_MILD
@@ -264,9 +260,7 @@ class NCORallyBehavior:
             return False
         if getattr(unit, "is_squad_leader", False):
             return True
-        if unit.unit_type == UnitType.COMMANDER:
-            return True
-        return False
+        return unit.unit_type == UnitType.COMMANDER
 
     def can_rally(self, nco: Unit) -> bool:
         if not self.is_nco(nco):
@@ -276,9 +270,7 @@ class NCORallyBehavior:
             return False
         if nco.morale.value < RALLY_MORALE_THRESHOLD:
             return False
-        if nco.suppression_level.name != "NONE":
-            return False
-        return True
+        return nco.suppression_level.name == "NONE"
 
     def find_panicked_units(
         self,
@@ -331,7 +323,9 @@ class NCORallyBehavior:
         if not panicked:
             return None
         nco_pos = nco.position.tile_coord
-        in_range = [u for u in panicked if nco_pos.chebyshev_distance(u.position.tile_coord) <= RALLY_RANGE]
+        in_range = [
+            u for u in panicked if nco_pos.chebyshev_distance(u.position.tile_coord) <= RALLY_RANGE
+        ]
         if in_range:
             return None
         nearest = min(

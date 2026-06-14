@@ -5,15 +5,16 @@ Tests victory condition evaluation, faction elimination detection,
 and game-over state management.
 """
 
-import pytest
 from unittest.mock import Mock
 
-from pycc2.services.victory_manager import VictoryManager
+import pytest
 
+from pycc2.services.victory_manager import VictoryManager
 
 # ===========================================================================
 # Stub helpers
 # ===========================================================================
+
 
 class StubEventBus:
     """Minimal event bus stub that records subscriptions."""
@@ -35,6 +36,7 @@ def _make_unit(unit_id, faction_name, alive=True, tile_x=5, tile_y=5):
     unit.faction = faction
 
     from pycc2.domain.value_objects.tile_coord import TileCoord
+
     pos = Mock()
     pos.tile_coord = TileCoord(tile_x, tile_y)
     unit.position = pos
@@ -44,6 +46,7 @@ def _make_unit(unit_id, faction_name, alive=True, tile_x=5, tile_y=5):
 # ===========================================================================
 # Tests
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestVictoryManagerInit:
@@ -189,6 +192,7 @@ class TestBuildObjectivesFromMap:
 
     def test_objectives_from_combat_director_map(self):
         vm = VictoryManager()
+
         # Mock combat_director with a game_map that has objectives
         # The source code does getattr(pos, 'x', pos[0]) which evaluates
         # pos[0] eagerly, so the position must be subscriptable.
@@ -197,6 +201,7 @@ class TestBuildObjectivesFromMap:
         class SubscriptablePos:
             x = 10
             y = 10
+
             def __getitem__(self, idx):
                 return (10, 10)[idx]
 

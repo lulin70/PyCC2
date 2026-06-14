@@ -193,7 +193,7 @@ class TestUnitTypeWeaponShapes:
         sz = renderer.SPRITE_SIZE
         mg_pixels = [mg.get_at((x, y))[:3] for x in range(sz) for y in range(sz)]
         inf_pixels = [inf.get_at((x, y))[:3] for x in range(sz) for y in range(sz)]
-        diff_count = sum(1 for a, b in zip(mg_pixels, inf_pixels) if a != b)
+        diff_count = sum(1 for a, b in zip(mg_pixels, inf_pixels, strict=False) if a != b)
         assert diff_count > sz * sz * 0.05, "MG and infantry should look different"
 
     def test_commander_differs_from_infantry(self):
@@ -203,7 +203,7 @@ class TestUnitTypeWeaponShapes:
         sz = renderer.SPRITE_SIZE
         cmd_pixels = [cmd.get_at((x, y))[:3] for x in range(sz) for y in range(sz)]
         inf_pixels = [inf.get_at((x, y))[:3] for x in range(sz) for y in range(sz)]
-        diff_count = sum(1 for a, b in zip(cmd_pixels, inf_pixels) if a != b)
+        diff_count = sum(1 for a, b in zip(cmd_pixels, inf_pixels, strict=False) if a != b)
         assert diff_count > sz * sz * 0.05, "Commander and infantry should look different"
 
     def test_all_three_unit_types_are_distinct(self):
@@ -229,6 +229,7 @@ class TestTerrainCache:
     def test_terrain_cache_contains_all_terrain_types(self):
         """测试6: 地形缓存包含所有TerrainType值"""
         from pycc2.domain.value_objects.terrain_type import TerrainType
+
         renderer = SpriteRenderer()
         assert len(renderer._terrain_cache) == len(TerrainType)
         for tt in TerrainType:
@@ -637,8 +638,12 @@ class TestInitializeAndShutdown:
         renderer = SpriteRenderer()
         _init_renderer_with_screen(renderer)
         assert renderer._screen is not None
-        assert len(renderer._sprite_cache) >= 48, f"Sprite cache should have at least 48 entries (2 factions × 3 types × 8 dirs), got {len(renderer._sprite_cache)}"
-        assert len(renderer._terrain_cache) >= 12, f"Terrain cache should have at least 12 entries (one per TerrainType), got {len(renderer._terrain_cache)}"
+        assert len(renderer._sprite_cache) >= 48, (
+            f"Sprite cache should have at least 48 entries (2 factions × 3 types × 8 dirs), got {len(renderer._sprite_cache)}"
+        )
+        assert len(renderer._terrain_cache) >= 12, (
+            f"Terrain cache should have at least 12 entries (one per TerrainType), got {len(renderer._terrain_cache)}"
+        )
         renderer.shutdown()
         assert renderer._screen is None
         assert len(renderer._sprite_cache) == 0

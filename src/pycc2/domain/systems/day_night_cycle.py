@@ -92,21 +92,15 @@ class DayNightEffects:
         TimeOfDay.NIGHT: (80, 100, 140),
     }
 
-    def apply_vision_penalty(
-        self, base_range: float, tod: TimeOfDay
-    ) -> float:
+    def apply_vision_penalty(self, base_range: float, tod: TimeOfDay) -> float:
         modifier = self.VISION_MODIFIERS.get(tod, 1.0)
         return base_range * modifier
 
-    def apply_stealth_bonus(
-        self, base_chance: float, tod: TimeOfDay
-    ) -> float:
+    def apply_stealth_bonus(self, base_chance: float, tod: TimeOfDay) -> float:
         bonus = self.STEALTH_BONUSES.get(tod, 0.0)
         return min(1.0, base_chance + bonus)
 
-    def apply_accuracy_modifier(
-        self, base_accuracy: float, tod: TimeOfDay
-    ) -> float:
+    def apply_accuracy_modifier(self, base_accuracy: float, tod: TimeOfDay) -> float:
         modifier = self.ACCURACY_MODIFIERS.get(tod, 1.0)
         return base_accuracy * modifier
 

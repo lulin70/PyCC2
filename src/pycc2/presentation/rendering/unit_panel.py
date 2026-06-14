@@ -40,7 +40,10 @@ class UnitPanel:
         self._font_normal: Font | None = None
         self._selected_unit: Unit | None = None
         self._visible: bool = False
-        self._position: tuple = (int(DEFAULT_POS_X * self._dc.ui_scale), int(DEFAULT_POS_Y * self._dc.ui_scale))
+        self._position: tuple = (
+            int(DEFAULT_POS_X * self._dc.ui_scale),
+            int(DEFAULT_POS_Y * self._dc.ui_scale),
+        )
 
     def initialize(self) -> None:
         """Initialize fonts."""

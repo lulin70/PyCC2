@@ -1,5 +1,6 @@
 """Unit tests for isometric rendering pipeline - Phase 2."""
 
+import contextlib
 from unittest.mock import MagicMock
 
 import pygame
@@ -7,10 +8,8 @@ import pygame
 # Initialize pygame before any surface operations
 pygame.init()
 # Set a tiny display mode so Surface.convert() works
-try:
+with contextlib.suppress(pygame.error):
     pygame.display.set_mode((1, 1))
-except pygame.error:
-    pass
 
 
 from pycc2.presentation.rendering.camera import Camera, ProjectionMode
@@ -32,7 +31,6 @@ from pycc2.presentation.rendering.isometric_transform import (
     TILE_H,
     TILE_W,
 )
-
 
 # ============================================================
 # IsometricRenderer Tests
@@ -91,6 +89,7 @@ class TestIsometricRendererTerrain:
 class TestIsometricRendererRender:
     def _make_camera(self, projection=ProjectionMode.ISOMETRIC):
         from pycc2.domain.value_objects.vec2 import Vec2
+
         return Camera(
             position=Vec2(512, 256),
             zoom=1.0,
@@ -101,6 +100,7 @@ class TestIsometricRendererRender:
 
     def _make_game_map(self, width=20, height=20):
         import numpy as np
+
         game_map = MagicMock()
         game_map.width = width
         game_map.height = height
@@ -147,9 +147,7 @@ class TestIsometricRendererRender:
         camera = self._make_camera()
         game_map = self._make_game_map(50, 50)
 
-        start_x, start_y, end_x, end_y = renderer._visible_tile_range(
-            game_map, camera, 800, 600
-        )
+        start_x, start_y, end_x, end_y = renderer._visible_tile_range(game_map, camera, 800, 600)
         assert start_x >= 0
         assert start_y >= 0
         assert end_x <= game_map.width
@@ -160,10 +158,12 @@ class TestIsometricRendererRender:
         renderer = IsometricRenderer()
         renderer._get_terrain_tile(0)
         renderer._get_building_surface(4, 2, 0)
-        assert len(renderer._tile_cache) >= 1, \
+        assert len(renderer._tile_cache) >= 1, (
             "Should have at least 1 terrain tile cached after generating tile 0"
-        assert len(renderer._building_cache) == 1, \
+        )
+        assert len(renderer._building_cache) == 1, (
             "Should have exactly 1 building surface cached after generating surface (4,2,0)"
+        )
 
         renderer.shutdown()
         assert len(renderer._tile_cache) == 0
@@ -215,9 +215,9 @@ class TestBuildingRendering:
 class TestBuildingTerrainMapping:
     def test_is_building_terrain(self):
         """Building terrain IDs are recognized."""
-        assert is_building_terrain(4) is True   # BUILDING_ENTERABLE
-        assert is_building_terrain(5) is True   # BUILDING_SOLID
-        assert is_building_terrain(8) is True   # WALL
+        assert is_building_terrain(4) is True  # BUILDING_ENTERABLE
+        assert is_building_terrain(5) is True  # BUILDING_SOLID
+        assert is_building_terrain(8) is True  # WALL
         assert is_building_terrain(0) is False  # OPEN
         assert is_building_terrain(6) is False  # WATER
 
@@ -246,18 +246,21 @@ class TestCameraIsometricMode:
     def test_camera_default_orthographic(self):
         """Camera defaults to ORTHOGRAPHIC projection."""
         from pycc2.domain.value_objects.vec2 import Vec2
+
         camera = Camera(position=Vec2(0, 0))
         assert camera.projection == ProjectionMode.ORTHOGRAPHIC
 
     def test_camera_isometric_projection(self):
         """Camera can be set to ISOMETRIC projection."""
         from pycc2.domain.value_objects.vec2 import Vec2
+
         camera = Camera(position=Vec2(0, 0), projection=ProjectionMode.ISOMETRIC)
         assert camera.projection == ProjectionMode.ISOMETRIC
 
     def test_camera_isometric_world_to_screen(self):
         """Isometric world_to_screen produces different results than orthographic."""
         from pycc2.domain.value_objects.vec2 import Vec2
+
         pos = Vec2(100, 100)
 
         cam_ortho = Camera(position=Vec2(0, 0), projection=ProjectionMode.ORTHOGRAPHIC)
@@ -271,6 +274,7 @@ class TestCameraIsometricMode:
     def test_camera_isometric_roundtrip(self):
         """Isometric screen_to_world inverts world_to_screen."""
         from pycc2.domain.value_objects.vec2 import Vec2
+
         camera = Camera(
             position=Vec2(0, 0),
             projection=ProjectionMode.ISOMETRIC,
@@ -292,6 +296,7 @@ class TestProjectionToggle:
     def test_toggle_ortho_to_iso(self):
         """Toggling from ORTHOGRAPHIC switches to ISOMETRIC."""
         from pycc2.domain.value_objects.vec2 import Vec2
+
         camera = Camera(position=Vec2(0, 0), projection=ProjectionMode.ORTHOGRAPHIC)
         if camera.projection == ProjectionMode.ORTHOGRAPHIC:
             camera.projection = ProjectionMode.ISOMETRIC
@@ -300,6 +305,7 @@ class TestProjectionToggle:
     def test_toggle_iso_to_ortho(self):
         """Toggling from ISOMETRIC switches to ORTHOGRAPHIC."""
         from pycc2.domain.value_objects.vec2 import Vec2
+
         camera = Camera(position=Vec2(0, 0), projection=ProjectionMode.ISOMETRIC)
         if camera.projection != ProjectionMode.ORTHOGRAPHIC:
             camera.projection = ProjectionMode.ORTHOGRAPHIC
@@ -308,6 +314,7 @@ class TestProjectionToggle:
     def test_toggle_roundtrip(self):
         """Toggling twice returns to original mode."""
         from pycc2.domain.value_objects.vec2 import Vec2
+
         camera = Camera(position=Vec2(0, 0), projection=ProjectionMode.ORTHOGRAPHIC)
         # Toggle once
         camera.projection = ProjectionMode.ISOMETRIC
@@ -336,7 +343,9 @@ class TestIsometricDepthSorting:
 
     def test_terrain_drawn_before_units(self):
         """Terrain is always drawn before units regardless of position."""
-        terrain = IsometricRenderable(world_x=10, world_y=10, layer=RenderLayer.TERRAIN, data="tile")
+        terrain = IsometricRenderable(
+            world_x=10, world_y=10, layer=RenderLayer.TERRAIN, data="tile"
+        )
         unit = IsometricRenderable(world_x=0, world_y=0, layer=RenderLayer.UNIT, data="unit")
 
         sorted_list = sort_for_isometric([unit, terrain])

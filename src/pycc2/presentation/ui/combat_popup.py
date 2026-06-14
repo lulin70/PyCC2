@@ -1,14 +1,17 @@
 """Floating combat text popups for CC2-style battlefield feedback."""
+
 from __future__ import annotations
 
-import pygame
 import time
 from dataclasses import dataclass, field
+
+import pygame
 
 
 @dataclass
 class CombatPopup:
     """A single floating text popup."""
+
     text: str
     x: float
     y: float
@@ -48,11 +51,17 @@ class CombatPopupManager:
         # Surface pool for popup alpha surfaces
         self._surface_pool: dict[tuple[int, int], pygame.Surface] = {}
 
-    def add_popup(self, text: str, world_x: float, world_y: float,
-                  color: tuple[int, int, int] = (255, 255, 100)) -> None:
+    def add_popup(
+        self,
+        text: str,
+        world_x: float,
+        world_y: float,
+        color: tuple[int, int, int] = (255, 255, 100),
+    ) -> None:
         """Add a new combat popup."""
         if self._font is None:
             from pycc2.presentation.ui.font_helper import safe_init_font
+
             self._font = safe_init_font(13, bold=True)
 
         self._popups.append(CombatPopup(text=text, x=world_x, y=world_y, color=color))
@@ -87,8 +96,8 @@ class CombatPopupManager:
         if not self._popups or self._font is None:
             return
 
-        cam_x = getattr(camera, 'offset_x', 0)
-        cam_y = getattr(camera, 'offset_y', 0)
+        cam_x = getattr(camera, "offset_x", 0)
+        cam_y = getattr(camera, "offset_y", 0)
 
         for popup in self._popups:
             screen_x = popup.x - cam_x

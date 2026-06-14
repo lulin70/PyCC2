@@ -32,10 +32,26 @@ class TestDecorationType:
 
     def test_decoration_type_has_expected_categories(self):
         """Verify all thematic layers are represented."""
-        vegetation = [dt for dt in DecorationType if dt.name.startswith(("BUSH", "TREE", "GRASS", "CROPS", "HEDGE", "FLOWER"))]
-        geology = [dt for dt in DecorationType if dt.name.startswith(("ROCK", "RUBBLE", "SAND", "MUD", "PUDDLE"))]
-        man_made = [dt for dt in DecorationType if dt.name.startswith(("FENCE", "TRENCH", "SANDBAG", "SIGN", "ROAD_BLOCK", "CRATE"))]
-        combat = [dt for dt in DecorationType if dt.name.startswith(("CRATER", "BURN", "WRECKAGE", "BUILDING_RUIN", "SHELL"))]
+        vegetation = [
+            dt
+            for dt in DecorationType
+            if dt.name.startswith(("BUSH", "TREE", "GRASS", "CROPS", "HEDGE", "FLOWER"))
+        ]
+        geology = [
+            dt
+            for dt in DecorationType
+            if dt.name.startswith(("ROCK", "RUBBLE", "SAND", "MUD", "PUDDLE"))
+        ]
+        man_made = [
+            dt
+            for dt in DecorationType
+            if dt.name.startswith(("FENCE", "TRENCH", "SANDBAG", "SIGN", "ROAD_BLOCK", "CRATE"))
+        ]
+        combat = [
+            dt
+            for dt in DecorationType
+            if dt.name.startswith(("CRATER", "BURN", "WRECKAGE", "BUILDING_RUIN", "SHELL"))
+        ]
         assert len(vegetation) >= 5, f"Expected >=5 vegetation types, got {len(vegetation)}"
         assert len(geology) >= 3, f"Expected >=3 geology types, got {len(geology)}"
         assert len(man_made) >= 3, f"Expected >=3 man-made types, got {len(man_made)}"
@@ -220,14 +236,16 @@ class TestEnhancedTile:
 
     def test_to_dict_and_from_dict_roundtrip(self):
         tile = EnhancedTile(base_terrain=3, height=1, variation=2)
-        tile.add_decoration(DecorationInstance(
-            decoration_type=DecorationType.TREE_OAK,
-            offset_x=0.1,
-            offset_y=-0.1,
-            scale=1.05,
-            rotation=90,
-            variant=1,
-        ))
+        tile.add_decoration(
+            DecorationInstance(
+                decoration_type=DecorationType.TREE_OAK,
+                offset_x=0.1,
+                offset_y=-0.1,
+                scale=1.05,
+                rotation=90,
+                variant=1,
+            )
+        )
         d = tile.to_dict()
         restored = EnhancedTile.from_dict(d)
         assert restored.base_terrain == 3
@@ -263,7 +281,9 @@ class TestDecorationLibrary:
 
     def test_library_has_definitions(self):
         lib = DecorationLibrary()
-        assert len(lib.definitions) >= 12, f"Decoration library should have at least 12 definitions (one per major decoration type), got {len(lib.definitions)}"
+        assert len(lib.definitions) >= 12, (
+            f"Decoration library should have at least 12 definitions (one per major decoration type), got {len(lib.definitions)}"
+        )
 
     def test_library_get_definition_existing(self):
         lib = DecorationLibrary()

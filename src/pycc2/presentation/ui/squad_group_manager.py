@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 @dataclass
 class SquadGroup:
     """A group of units assigned to a number key."""
+
     group_number: int
     units: list[Unit] = field(default_factory=list)
 

@@ -26,7 +26,6 @@ from pycc2.services.event_bus import EventBus
 from pycc2.services.event_protocol import UnitAttacked
 from pycc2.services.victory_manager import VictoryManager
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────
 
 
@@ -127,7 +126,9 @@ class TestVictoryManagerInitialize:
         victory_manager.initialize(event_bus=event_bus)
         assert victory_manager.game_result is None
 
-    def test_initialize_with_combat_director(self, victory_manager, event_bus, ally_unit, enemy_unit):
+    def test_initialize_with_combat_director(
+        self, victory_manager, event_bus, ally_unit, enemy_unit
+    ):
         """initialize() with combat_director should store the reference."""
         from tests.conftest import FakeCombatDirector
 
@@ -138,7 +139,9 @@ class TestVictoryManagerInitialize:
 
 @pytest.mark.integration
 class TestVictoryEvaluation:
-    def test_evaluate_returns_none_before_minimum_ticks(self, victory_manager, event_bus, ally_unit, enemy_unit):
+    def test_evaluate_returns_none_before_minimum_ticks(
+        self, victory_manager, event_bus, ally_unit, enemy_unit
+    ):
         """evaluate() should return None before the minimum tick threshold."""
         victory_manager.initialize(event_bus=event_bus)
         units = [ally_unit, enemy_unit]
@@ -165,7 +168,9 @@ class TestVictoryEvaluation:
         game_result, reason = result
         assert game_result.name == "ALLIES_VICTORY"
 
-    def test_evaluate_all_allies_eliminated(self, victory_manager, event_bus, ally_unit, enemy_unit):
+    def test_evaluate_all_allies_eliminated(
+        self, victory_manager, event_bus, ally_unit, enemy_unit
+    ):
         """When all allied units are dead, evaluate should return AXIS_VICTORY."""
         victory_manager.initialize(event_bus=event_bus)
 
@@ -178,7 +183,9 @@ class TestVictoryEvaluation:
         game_result, reason = result
         assert game_result.name == "AXIS_VICTORY"
 
-    def test_evaluate_ongoing_when_both_alive(self, victory_manager, event_bus, ally_unit, enemy_unit):
+    def test_evaluate_ongoing_when_both_alive(
+        self, victory_manager, event_bus, ally_unit, enemy_unit
+    ):
         """When both sides have alive units, evaluate should return None (ongoing)."""
         victory_manager.initialize(event_bus=event_bus)
         units = [ally_unit, enemy_unit]
@@ -186,7 +193,9 @@ class TestVictoryEvaluation:
         result = victory_manager.evaluate(units, tick=600)
         assert result is None
 
-    def test_evaluate_all_enemies_eliminated(self, victory_manager, event_bus, ally_commander, enemy_commander):
+    def test_evaluate_all_enemies_eliminated(
+        self, victory_manager, event_bus, ally_commander, enemy_commander
+    ):
         """When all enemy units are eliminated, allies should win."""
         victory_manager.initialize(event_bus=event_bus)
 
@@ -213,7 +222,9 @@ class TestVictoryEvaluation:
         game_result, reason = result
         assert game_result.name == "ALLIES_VICTORY"
 
-    def test_evaluate_sets_show_post_battle(self, victory_manager, event_bus, ally_unit, enemy_unit):
+    def test_evaluate_sets_show_post_battle(
+        self, victory_manager, event_bus, ally_unit, enemy_unit
+    ):
         """When a result is determined, show_post_battle should be True."""
         victory_manager.initialize(event_bus=event_bus)
 

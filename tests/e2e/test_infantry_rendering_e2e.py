@@ -23,6 +23,7 @@ pygame.init()
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _has_non_transparent_pixels(surface: pygame.Surface) -> bool:
     """Check if a surface has at least one non-transparent pixel."""
     w, h = surface.get_size()
@@ -45,16 +46,23 @@ def _has_non_transparent_pixels(surface: pygame.Surface) -> bool:
 # Tests
 # ---------------------------------------------------------------------------
 
+
 class TestInfantryRenderingE2E:
     """Full E2E test for infantry sprite rendering."""
 
     def test_01_idle_sprite_8_directions(self):
         """Step 1: For each of 8 directions, render idle sprite and verify."""
-        from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D, Direction, Faction
+        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction, PixelArtist3D
 
         directions = [
-            Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
-            Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST,
+            Direction.NORTH,
+            Direction.NORTHEAST,
+            Direction.EAST,
+            Direction.SOUTHEAST,
+            Direction.SOUTH,
+            Direction.SOUTHWEST,
+            Direction.WEST,
+            Direction.NORTHWEST,
         ]
 
         for direction in directions:
@@ -67,12 +75,17 @@ class TestInfantryRenderingE2E:
             assert sprite is not None, f"Sprite should not be None for {direction}"
             w, h = sprite.get_size()
             assert w > 0 and h > 0, f"Sprite size should be > 0 for {direction}, got {w}x{h}"
-            assert _has_non_transparent_pixels(sprite), f"Sprite should have visible pixels for {direction}"
+            assert _has_non_transparent_pixels(sprite), (
+                f"Sprite should have visible pixels for {direction}"
+            )
 
     def test_02_all_animation_states_render(self):
         """Step 2: For each of 8 animation states, render sprite and verify non-empty."""
         from pycc2.presentation.rendering.pixel_artist_3d import (
-            PixelArtist3D, InfantryAnimState, Direction, Faction,
+            Direction,
+            Faction,
+            InfantryAnimState,
+            PixelArtist3D,
         )
 
         anim_states = [
@@ -101,7 +114,8 @@ class TestInfantryRenderingE2E:
     def test_03_full_animation_sheet_dimensions(self):
         """Step 3: Generate full animation sheet and verify dimensions (8x8)."""
         from pycc2.presentation.rendering.pixel_artist_3d import (
-            PixelArtist3D, Faction,
+            Faction,
+            PixelArtist3D,
         )
 
         sheet, direction_order, anim_state_order = PixelArtist3D.create_infantry_animation_sheet(
@@ -140,13 +154,15 @@ class TestInfantryRenderingE2E:
             states_seen.add(animator.state)
 
         # Should have seen walk states
-        assert InfantryAnimState.WALK_1 in states_seen or InfantryAnimState.WALK_2 in states_seen, \
+        assert InfantryAnimState.WALK_1 in states_seen or InfantryAnimState.WALK_2 in states_seen, (
             f"Should have seen walk states, got {states_seen}"
+        )
 
         # Stop walking -> should return to IDLE
         animator.update(dt, is_moving=False)
-        assert animator.state == InfantryAnimState.IDLE, \
+        assert animator.state == InfantryAnimState.IDLE, (
             f"After stopping, should be IDLE, got {animator.state}"
+        )
 
     def test_04_fire_cycle_transition(self):
         """Step 4b: IDLE -> SHOOT -> IDLE (fire cycle)."""
@@ -157,13 +173,15 @@ class TestInfantryRenderingE2E:
 
         # Start firing
         animator.update(0.01, is_firing=True)
-        assert animator.state == InfantryAnimState.SHOOT, \
+        assert animator.state == InfantryAnimState.SHOOT, (
             f"While firing, should be SHOOT, got {animator.state}"
+        )
 
         # Stop firing -> should return to IDLE
         animator.update(0.01, is_firing=False)
-        assert animator.state == InfantryAnimState.IDLE, \
+        assert animator.state == InfantryAnimState.IDLE, (
             f"After firing, should be IDLE, got {animator.state}"
+        )
 
     def test_04_death_sequence_irreversible(self):
         """Step 4c: IDLE -> DIE_1 -> DIE_2 -> DEAD (death sequence, irreversible)."""
@@ -174,26 +192,32 @@ class TestInfantryRenderingE2E:
 
         # Trigger death
         animator.update(0.01, is_dead=True)
-        assert animator.state == InfantryAnimState.DIE_1, \
+        assert animator.state == InfantryAnimState.DIE_1, (
             f"First death frame should be DIE_1, got {animator.state}"
+        )
 
         # Continue death sequence
         animator.update(0.3, is_dead=True)
-        assert animator.state in (InfantryAnimState.DIE_1, InfantryAnimState.DIE_2, InfantryAnimState.DEAD), \
-            f"Should progress through death, got {animator.state}"
+        assert animator.state in (
+            InfantryAnimState.DIE_1,
+            InfantryAnimState.DIE_2,
+            InfantryAnimState.DEAD,
+        ), f"Should progress through death, got {animator.state}"
 
         # Advance to DEAD
         animator.update(0.3, is_dead=True)
         animator.update(0.3, is_dead=True)
 
         # Once DEAD, should stay DEAD regardless of input
-        assert animator.state == InfantryAnimState.DEAD, \
+        assert animator.state == InfantryAnimState.DEAD, (
             f"Should reach DEAD state, got {animator.state}"
+        )
 
         # Try to revive (should not work)
         animator.update(0.01, is_moving=True, is_firing=True)
-        assert animator.state == InfantryAnimState.DEAD, \
+        assert animator.state == InfantryAnimState.DEAD, (
             f"DEAD state should be irreversible, got {animator.state}"
+        )
 
     def test_04_prone_transition(self):
         """Step 4d: IDLE -> PRONE (prone transition)."""
@@ -204,17 +228,19 @@ class TestInfantryRenderingE2E:
 
         # Go prone
         animator.update(0.01, is_prone=True)
-        assert animator.state == InfantryAnimState.PRONE, \
+        assert animator.state == InfantryAnimState.PRONE, (
             f"While prone, should be PRONE, got {animator.state}"
+        )
 
         # Stand up
         animator.update(0.01, is_prone=False)
-        assert animator.state == InfantryAnimState.IDLE, \
+        assert animator.state == InfantryAnimState.IDLE, (
             f"After standing up, should be IDLE, got {animator.state}"
+        )
 
     def test_05_axis_faction_sprites(self):
         """Step 5: Verify axis faction sprites also render correctly."""
-        from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D, Direction, Faction
+        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction, PixelArtist3D
 
         sprite = PixelArtist3D.create_infantry_sprite(
             direction=Direction.SOUTH,

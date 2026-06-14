@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 class WeaponSlot(Enum):
     """Weapon equipment slots for units."""
+
     PRIMARY = "primary"
     SECONDARY = "secondary"
     MELEE = "melee"
@@ -27,6 +28,7 @@ class WeaponSlot(Enum):
 @dataclass(slots=True)
 class WeaponSlotConfig:
     """Configuration for a weapon slot."""
+
     slot: WeaponSlot
     switch_cooldown_ms: int = 500  # Time between switches
     draw_time_ms: int = 300  # Animation time to draw weapon
@@ -46,7 +48,7 @@ class WeaponSwitchSystem:
     - State tracking for UI display
     """
 
-    def __init__(self, unit: "Unit"):
+    def __init__(self, unit: Unit):
         self._unit = unit
         self._active_slot = WeaponSlot.PRIMARY
         self._weapons: dict[WeaponSlot, object] = {}
@@ -66,7 +68,7 @@ class WeaponSwitchSystem:
         from pycc2.domain.components.weapon_component import WeaponComponent
 
         # Primary is the unit's current weapon
-        if hasattr(self._unit, 'weapon'):
+        if hasattr(self._unit, "weapon"):
             self._weapons[WeaponSlot.PRIMARY] = self._unit.weapon
 
         # Create default secondary (pistol) and melee weapons
@@ -124,13 +126,11 @@ class WeaponSwitchSystem:
             return False
 
         import time
+
         current_time = time.perf_counter() * 1000
         config = self._slot_configs.get(self._active_slot)
 
-        if config and (current_time - self._last_switch_time) < config.switch_cooldown_ms:
-            return False
-
-        return True
+        return not (config and current_time - self._last_switch_time < config.switch_cooldown_ms)
 
     def switch_to(self, target_slot: WeaponSlot) -> bool:
         """
@@ -149,11 +149,14 @@ class WeaponSwitchSystem:
         self._active_slot = target_slot
 
         import time
+
         self._last_switch_time = time.perf_counter() * 1000
         self._switch_start_time = self._last_switch_time
         self._is_switching = True
 
-        logger.info("[WeaponSwitch] %s: %s → %s", self._unit.name, old_slot.value, target_slot.value)
+        logger.info(
+            "[WeaponSwitch] %s: %s → %s", self._unit.name, old_slot.value, target_slot.value
+        )
 
         return True
 
@@ -184,6 +187,7 @@ class WeaponSwitchSystem:
             return
 
         import time
+
         current_time = time.perf_counter() * 1000
         config = self._slot_configs.get(self._active_slot)
 
@@ -205,6 +209,7 @@ class WeaponSwitchSystem:
             return 0.0
 
         import time
+
         current_time = time.perf_counter() * 1000
         config = self._slot_configs.get(self._active_slot)
 

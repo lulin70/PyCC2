@@ -70,6 +70,7 @@ _DEFAULT_AT_RANGE: int = 10
 # ATAmbushAI
 # ---------------------------------------------------------------------------
 
+
 class ATAmbushAI(TacticalAIBase):
     """Anti-tank ambush tactical AI.
 
@@ -142,9 +143,7 @@ class ATAmbushAI(TacticalAIBase):
                 continue
 
             eff_range = self._effective_at_range(at_unit)
-            dist = at_unit.position.tile_coord.chebyshev_distance(
-                best_tank.position.tile_coord
-            )
+            dist = at_unit.position.tile_coord.chebyshev_distance(best_tank.position.tile_coord)
 
             # Check if AT unit is already in a good ambush position
             if self._is_in_ambush_position(at_unit, context):
@@ -199,9 +198,7 @@ class ATAmbushAI(TacticalAIBase):
 
         # Phase 4: After engagement, check if repositioning is needed
         for at_unit in at_units:
-            if at_unit.id in assigned_targets and not self._has_concealment(
-                at_unit, context
-            ):
+            if at_unit.id in assigned_targets and not self._has_concealment(at_unit, context):
                 # Find a nearby concealed position
                 reposition = self._find_nearby_concealment(at_unit, context)
                 if reposition is not None:
@@ -232,11 +229,7 @@ class ATAmbushAI(TacticalAIBase):
     @staticmethod
     def _find_enemy_armor(context: TacticalContext) -> list[Unit]:
         """Find enemy tanks and vehicles."""
-        return [
-            u
-            for u in context.enemy_units
-            if u.is_alive and u.unit_type in _ARMOR_TYPES
-        ]
+        return [u for u in context.enemy_units if u.is_alive and u.unit_type in _ARMOR_TYPES]
 
     @staticmethod
     def _predict_tank_route(tank: Unit, context: TacticalContext) -> list[TileCoord]:
@@ -447,9 +440,7 @@ class ATAmbushAI(TacticalAIBase):
         best_dist = float("inf")
 
         for tank in enemy_armor:
-            dist = at_unit.position.tile_coord.chebyshev_distance(
-                tank.position.tile_coord
-            )
+            dist = at_unit.position.tile_coord.chebyshev_distance(tank.position.tile_coord)
             eff_range = ATAmbushAI._effective_at_range(at_unit)
 
             # Prefer tanks within or approaching effective range
@@ -467,9 +458,7 @@ class ATAmbushAI(TacticalAIBase):
         if best is None and enemy_armor:
             best = min(
                 enemy_armor,
-                key=lambda t: at_unit.position.tile_coord.chebyshev_distance(
-                    t.position.tile_coord
-                ),
+                key=lambda t: at_unit.position.tile_coord.chebyshev_distance(t.position.tile_coord),
             )
 
         return best

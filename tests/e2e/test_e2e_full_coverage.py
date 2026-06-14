@@ -39,10 +39,10 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
-import pytest
-import pygame
 from pathlib import Path
 
+import pygame
+import pytest
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -63,6 +63,7 @@ class _GameLoopFactory:
     def __init__(self, screen):
         self.screen = screen
         from pycc2.domain.entities.game_map import GameMap
+        from pycc2.domain.interfaces.display_config import DisplayConfig as DC
         from pycc2.domain.value_objects.vec2 import Vec2
         from pycc2.presentation.input.handler import PygameInputHandler
         from pycc2.presentation.input.interaction_controller import (
@@ -71,14 +72,13 @@ class _GameLoopFactory:
         from pycc2.presentation.rendering.camera import Camera
         from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
         from pycc2.presentation.rendering.window_config import DisplayInfo, WindowManager
-        from pycc2.services.ai_service import AIService
-        from pycc2.services.event_bus import EventBus
-        from pycc2.services.game_loop import GameLoop, GameState
-        from pycc2.domain.interfaces.display_config import DisplayConfig as DC
         from pycc2.presentation.ui.hint_manager import HintManager
         from pycc2.presentation.ui.keybind_manager import KeybindManager
         from pycc2.presentation.ui.settings_menu import SettingsMenu
         from pycc2.presentation.ui.tutorial_system import TutorialOverlay
+        from pycc2.services.ai_service import AIService
+        from pycc2.services.event_bus import EventBus
+        from pycc2.services.game_loop import GameLoop, GameState
 
         map_path = _find_map_path()
         self.game_map = GameMap.from_json(map_path)
@@ -190,10 +190,7 @@ class _GameLoopFactory:
             for tile_x, tile_y in friendly_zone:
                 terrain = dui._get_terrain_at(tile_x, tile_y)
                 if dui.can_place_at(unit, tile_x, tile_y, terrain):
-                    occupied = any(
-                        pu.position == (tile_x, tile_y)
-                        for pu in dui.state.placed_units
-                    )
+                    occupied = any(pu.position == (tile_x, tile_y) for pu in dui.state.placed_units)
                     if not occupied:
                         dui.place_unit(i, tile_x, tile_y)
                         placed += 1
@@ -269,7 +266,9 @@ class EventInjector:
     @staticmethod
     def mouse_drag(start_x, start_y, end_x, end_y):
         EventInjector.mouse_move(start_x, start_y)
-        pygame.event.post(pygame.event.Event(pygame.MOUSEBUTTONDOWN, pos=(start_x, start_y), button=1))
+        pygame.event.post(
+            pygame.event.Event(pygame.MOUSEBUTTONDOWN, pos=(start_x, start_y), button=1)
+        )
         for i in range(1, 5):
             t = i / 5.0
             mx = int(start_x + (end_x - start_x) * t)
@@ -317,8 +316,9 @@ class TestE2ECoverageEveryUserOperation:
         """User clicks infantry unit in roster — gets selected."""
         f = self._factory()
         dui = f.start_deployment()
-        inf_idx = next((i for i, u in enumerate(dui.state.available_units)
-                       if u.unit_type == "infantry"), None)
+        inf_idx = next(
+            (i for i, u in enumerate(dui.state.available_units) if u.unit_type == "infantry"), None
+        )
         assert inf_idx is not None, "Need at least one infantry unit"
         roster_y = 36
         for et, ed in dui._roster_layout:
@@ -336,17 +336,23 @@ class TestE2ECoverageEveryUserOperation:
         """User places a unit on the map via left-click."""
         f = self._factory()
         dui = f.start_deployment()
-        inf_idx = next((i for i, u in enumerate(dui.state.available_units)
-                       if u.unit_type == "infantry" and not u.is_placed), None)
+        inf_idx = next(
+            (
+                i
+                for i, u in enumerate(dui.state.available_units)
+                if u.unit_type == "infantry" and not u.is_placed
+            ),
+            None,
+        )
         assert inf_idx is not None
         zone = dui.state.friendly_zone
         placed = False
         for tx, ty in zone[:30]:
-            if dui.can_place_at(dui.state.available_units[inf_idx], tx, ty,
-                                dui._get_terrain_at(tx, ty)):
-                if dui.place_unit(inf_idx, tx, ty):
-                    placed = True
-                    break
+            if dui.can_place_at(
+                dui.state.available_units[inf_idx], tx, ty, dui._get_terrain_at(tx, ty)
+            ) and dui.place_unit(inf_idx, tx, ty):
+                placed = True
+                break
         assert placed, "Unit should be placeable"
         f.shutdown()
 
@@ -354,12 +360,19 @@ class TestE2ECoverageEveryUserOperation:
         """User removes a placed unit from the map."""
         f = self._factory()
         dui = f.start_deployment()
-        inf_idx = next((i for i, u in enumerate(dui.state.available_units)
-                       if u.unit_type == "infantry" and not u.is_placed), None)
+        inf_idx = next(
+            (
+                i
+                for i, u in enumerate(dui.state.available_units)
+                if u.unit_type == "infantry" and not u.is_placed
+            ),
+            None,
+        )
         zone = dui.state.friendly_zone
         for tx, ty in zone[:30]:
-            if dui.can_place_at(dui.state.available_units[inf_idx], tx, ty,
-                                dui._get_terrain_at(tx, ty)):
+            if dui.can_place_at(
+                dui.state.available_units[inf_idx], tx, ty, dui._get_terrain_at(tx, ty)
+            ):
                 dui.place_unit(inf_idx, tx, ty)
                 break
         assert len(dui.state.placed_units) >= 1
@@ -393,7 +406,9 @@ class TestE2ECoverageEveryUserOperation:
                         placed_types.add(unit.unit_type)
                     break
         f.game_loop.complete_deployment()
-        assert len(f.state.units) >= len(placed_types), f"Expected >= {len(placed_types)} units, got {len(f.state.units)}"
+        assert len(f.state.units) >= len(placed_types), (
+            f"Expected >= {len(placed_types)} units, got {len(f.state.units)}"
+        )
         f.shutdown()
 
     # ======================================================================
@@ -747,12 +762,20 @@ class TestE2ECoverageEveryUserOperation:
         )
 
         standing = create_unit_sprite(
-            faction="allies", unit_type="INFANTRY_SQUAD",
-            direction=0, state="idle", frame=0, size=24,
+            faction="allies",
+            unit_type="INFANTRY_SQUAD",
+            direction=0,
+            state="idle",
+            frame=0,
+            size=24,
         ).to_surface()
         prone = create_unit_sprite(
-            faction="allies", unit_type="INFANTRY_SQUAD",
-            direction=0, state="sneak", frame=0, size=24,
+            faction="allies",
+            unit_type="INFANTRY_SQUAD",
+            direction=0,
+            state="sneak",
+            frame=0,
+            size=24,
         ).to_surface()
 
         s_pixels = pygame.surfarray.array3d(standing).tobytes()
@@ -764,17 +787,24 @@ class TestE2ECoverageEveryUserOperation:
         from pycc2.presentation.rendering.pixel_artist import (
             create_unit_sprite,
         )
+
         for d in range(8):
             spr = create_unit_sprite(
-                faction="allies", unit_type="INFANTRY_SQUAD",
-                direction=d, state="sneak", frame=0, size=24,
+                faction="allies",
+                unit_type="INFANTRY_SQUAD",
+                direction=d,
+                state="sneak",
+                frame=0,
+                size=24,
             ).to_surface()
             assert spr.get_size() == (24, 24)
 
     def test_41_prone_has_elongated_body_shape(self):
         """Prone sprite has elongated body (wider than tall in facing dir)."""
         from pycc2.presentation.rendering.pixel_artist import (
-            PixelCanvas, PaletteSet, UnitSpriteGenerator,
+            PaletteSet,
+            PixelCanvas,
+            UnitSpriteGenerator,
         )
 
         c = PixelCanvas(24, 24)

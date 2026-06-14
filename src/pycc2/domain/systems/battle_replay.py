@@ -19,6 +19,7 @@ from typing import Any
 # Replay event types
 # ========================================================================
 
+
 class ReplayEventType(Enum):
     SHOT_FIRED = auto()
     HIT = auto()
@@ -37,6 +38,7 @@ class ReplayEventType(Enum):
 # ========================================================================
 # Data classes
 # ========================================================================
+
 
 @dataclass(frozen=True, slots=True)
 class UnitSnapshot:
@@ -72,17 +74,17 @@ class ReplayData:
     scenario_name: str
     total_ticks: int
     frames: list[ReplayFrame] = field(default_factory=list)
-    result: str = 'draw'   # 'victory' / 'defeat' / 'draw'
+    result: str = "draw"  # 'victory' / 'defeat' / 'draw'
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            'map_id': self.map_id,
-            'scenario_name': self.scenario_name,
-            'total_ticks': self.total_ticks,
-            'result': self.result,
-            'metadata': self.metadata,
-            'frame_count': len(self.frames),
+            "map_id": self.map_id,
+            "scenario_name": self.scenario_name,
+            "total_ticks": self.total_ticks,
+            "result": self.result,
+            "metadata": self.metadata,
+            "frame_count": len(self.frames),
         }
 
 
@@ -150,9 +152,9 @@ class ReplayRecorder:
 
     def stop_recording(
         self,
-        map_id: str = '',
-        scenario_name: str = '',
-        result: str = 'draw',
+        map_id: str = "",
+        scenario_name: str = "",
+        result: str = "draw",
         metadata: dict[str, Any] | None = None,
     ) -> ReplayData:
         """Finalize recording and return the complete replay data."""
@@ -170,6 +172,7 @@ class ReplayRecorder:
 # ========================================================================
 # ReplayPlayer
 # ========================================================================
+
 
 class ReplayPlayer:
     """Plays back a recorded battle with VCR-style controls."""
@@ -193,9 +196,7 @@ class ReplayPlayer:
         self._frame_index = 0
         self._playing = False
         self._speed = 1.0
-        self._tick_to_index = {
-            frame.tick: idx for idx, frame in enumerate(data.frames)
-        }
+        self._tick_to_index = {frame.tick: idx for idx, frame in enumerate(data.frames)}
 
     # ------------------------------------------------------------------
     # Playback controls

@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 # Enums
 # ========================================================================
 
+
 class ExperienceLevel(Enum):
     CONSCRIPT = auto()
     REGULAR = auto()
@@ -55,6 +56,7 @@ class GamePreset(Enum):
 # Settings Dataclasses
 # ========================================================================
 
+
 @dataclass(frozen=True, slots=True)
 class SideSettings:
     experience_level: ExperienceLevel
@@ -65,13 +67,14 @@ class SideSettings:
 class GameSettings:
     allied_settings: SideSettings
     axis_settings: SideSettings
-    campaign_id: str = 'market_garden'
-    player_side: str = 'allied'
+    campaign_id: str = "market_garden"
+    player_side: str = "allied"
 
 
 # ========================================================================
 # Effects Dataclasses
 # ========================================================================
+
 
 @dataclass(frozen=True, slots=True)
 class ExperienceLevelEffects:
@@ -232,6 +235,7 @@ def _get_experience_to_difficulty_map() -> dict[ExperienceLevel, DifficultyLevel
     global _EXPERIENCE_TO_DIFFICULTY
     if _EXPERIENCE_TO_DIFFICULTY is None:
         from pycc2.domain.ai.difficulty_system import DifficultyLevel as DL
+
         _EXPERIENCE_TO_DIFFICULTY = {
             ExperienceLevel.CONSCRIPT: DL.EASY,
             ExperienceLevel.REGULAR: DL.MEDIUM,
@@ -244,6 +248,7 @@ def _get_experience_to_difficulty_map() -> dict[ExperienceLevel, DifficultyLevel
 # ========================================================================
 # GameSettingsApplier
 # ========================================================================
+
 
 class GameSettingsApplier:
     """Applies GameSettings to the game world.
@@ -269,20 +274,26 @@ class GameSettingsApplier:
 
     def apply_to_campaign(self, campaign: GrandCampaignDefinition) -> GrandCampaignDefinition:
         """Modify requisition points based on supply level for each side."""
-        allied_supply = self.get_supply_effects('allied')
-        axis_supply = self.get_supply_effects('axis')
+        allied_supply = self.get_supply_effects("allied")
+        axis_supply = self.get_supply_effects("axis")
 
         modified_sectors = []
         for sector in campaign.sectors:
             modified_ops = []
             for op in sector.operations:
-                new_allied_rp = int(op.requisition_points_allies * allied_supply.requisition_point_modifier)
-                new_axis_rp = int(op.requisition_points_axis * axis_supply.requisition_point_modifier)
-                modified_ops.append(dataclasses.replace(
-                    op,
-                    requisition_points_allies=new_allied_rp,
-                    requisition_points_axis=new_axis_rp,
-                ))
+                new_allied_rp = int(
+                    op.requisition_points_allies * allied_supply.requisition_point_modifier
+                )
+                new_axis_rp = int(
+                    op.requisition_points_axis * axis_supply.requisition_point_modifier
+                )
+                modified_ops.append(
+                    dataclasses.replace(
+                        op,
+                        requisition_points_allies=new_allied_rp,
+                        requisition_points_axis=new_axis_rp,
+                    )
+                )
             modified_sectors.append(dataclasses.replace(sector, operations=modified_ops))
 
         return dataclasses.replace(campaign, sectors=modified_sectors)
@@ -293,12 +304,12 @@ class GameSettingsApplier:
         supply_effects = self.get_supply_effects(side)
 
         # Set veterancy XP if the unit has a veterancy component
-        veterancy = getattr(unit, 'veterancy', None)
-        if veterancy is not None and hasattr(veterancy, 'add_xp'):
+        veterancy = getattr(unit, "veterancy", None)
+        if veterancy is not None and hasattr(veterancy, "add_xp"):
             veterancy.add_xp(exp_effects.starting_xp)
 
         # Scale starting ammo if the unit has a weapon component
-        weapon = getattr(unit, 'weapon', None)
+        weapon = getattr(unit, "weapon", None)
         if weapon is not None:
             new_ammo = max(1, int(weapon.max_ammo * supply_effects.starting_ammo_modifier))
             weapon.ammo_remaining = new_ammo
@@ -310,7 +321,9 @@ class GameSettingsApplier:
         supply_state.reinforcement_rate *= supply_effects.reinforcement_rate
         supply_state.morale_recovery_rate *= supply_effects.morale_recovery_rate
 
-    def apply_to_difficulty_config(self, difficulty_config: DifficultyConfig, side: str) -> DifficultyConfig:
+    def apply_to_difficulty_config(
+        self, difficulty_config: DifficultyConfig, side: str
+    ) -> DifficultyConfig:
         """Map experience level to AI difficulty and return modified config."""
         from pycc2.domain.ai.difficulty_system import DifficultySystem
 
@@ -323,7 +336,9 @@ class GameSettingsApplier:
 
         # Apply experience-level accuracy modifier on top of the preset
         exp_effects = self.get_experience_effects(side)
-        modified_base_hit = max(0.05, min(0.95, preset_config.base_hit_chance * exp_effects.accuracy_modifier))
+        modified_base_hit = max(
+            0.05, min(0.95, preset_config.base_hit_chance * exp_effects.accuracy_modifier)
+        )
         modified_morale = preset_config.morale_stability * exp_effects.morale_resistance
 
         return dataclasses.replace(
@@ -334,6 +349,6 @@ class GameSettingsApplier:
         )
 
     def _get_side_settings(self, side: str) -> SideSettings:
-        if side == 'allied':
+        if side == "allied":
             return self._settings.allied_settings
         return self._settings.axis_settings

@@ -31,37 +31,41 @@ from pycc2.domain.entities.unit import Faction
 # Layer 1 — Battle: Single engagement on one map
 # ========================================================================
 
+
 @dataclass(frozen=True)
 class VictoryLocationDef:
     """A victory location on a battle map with point value and type."""
+
     vl_id: str
     name: str
     position: tuple[int, int]
-    value: int          # 10 / 20 / 30 / 40
-    vl_type: str        # 'regular', 'landing_zone', 'road', 'bridge'
+    value: int  # 10 / 20 / 30 / 40
+    vl_type: str  # 'regular', 'landing_zone', 'road', 'bridge'
 
 
 @dataclass(frozen=True)
 class BattleDefinition:
     """Single engagement on one map — the atomic unit of the campaign."""
+
     battle_id: str
     map_id: str
     name: str
-    day: int                                    # Day 1-9
-    sector: str                                 # 'arnhem', 'nijmegen', 'eindhoven'
+    day: int  # Day 1-9
+    sector: str  # 'arnhem', 'nijmegen', 'eindhoven'
     operation_id: str
     attacker: Faction
     defender: Faction
     victory_locations: list[VictoryLocationDef]
-    time_of_day: str                            # 'dawn', 'day', 'dusk', 'night'
-    weather: str                                # 'clear', 'overcast', 'rain', 'fog'
+    time_of_day: str  # 'dawn', 'day', 'dusk', 'night'
+    weather: str  # 'clear', 'overcast', 'rain', 'fog'
     reinforcement_turns: dict[str, list[tuple[int, str]]]  # faction -> [(turn, unit_template_id)]
-    map_value: int                              # 10-40 points
+    map_value: int  # 10-40 points
 
 
 # ========================================================================
 # Layer 2 — Operation: Series of 2-5 battles over days in one area
 # ========================================================================
+
 
 @dataclass(frozen=True)
 class OperationDefinition:
@@ -73,6 +77,7 @@ class OperationDefinition:
       - Retreat option (risk of capture)
       - Damaged units slowly replenish between battles
     """
+
     operation_id: str
     name: str
     sector: str
@@ -87,6 +92,7 @@ class OperationDefinition:
 # Layer 3 — SectorCampaign: One of three sectors
 # ========================================================================
 
+
 @dataclass(frozen=True)
 class SectorCampaignDefinition:
     """One of three sectors (Arnhem / Nijmegen / Eindhoven).
@@ -98,16 +104,18 @@ class SectorCampaignDefinition:
       - Germans capturing LZ blocks Allied supply drops
       - Germans can attack highway after XXX Corps passes
     """
-    sector_id: str                              # 'arnhem', 'nijmegen', 'eindhoven'
+
+    sector_id: str  # 'arnhem', 'nijmegen', 'eindhoven'
     name: str
     operations: list[OperationDefinition]
-    scoring_type: str                           # 'holding', 'advance_speed'
-    historical_days: tuple[int, int]            # (start_day, end_day)
+    scoring_type: str  # 'holding', 'advance_speed'
+    historical_days: tuple[int, int]  # (start_day, end_day)
 
 
 # ========================================================================
 # Layer 4 — GrandCampaign: Full Market Garden
 # ========================================================================
+
 
 @dataclass(frozen=True)
 class GrandCampaignDefinition:
@@ -121,10 +129,11 @@ class GrandCampaignDefinition:
         others need airdrops (blocked if LZ lost)
       - Victory: XXX Corps speed to Arnhem + 1st Airborne holding
     """
-    campaign_id: str = 'market_garden'
-    name: str = 'Operation Market Garden'
-    start_date: str = '1944-09-17'
-    end_date: str = '1944-09-26'
+
+    campaign_id: str = "market_garden"
+    name: str = "Operation Market Garden"
+    start_date: str = "1944-09-17"
+    end_date: str = "1944-09-26"
     sectors: list[SectorCampaignDefinition] = field(default_factory=list)
     daily_supply_points: int = 100
 
@@ -133,21 +142,24 @@ class GrandCampaignDefinition:
 # Runtime State Classes
 # ========================================================================
 
+
 @dataclass
 class BattleState:
     """Runtime state of a single battle."""
+
     battle_id: str
-    status: str                                 # 'pending', 'active', 'allied_victory', 'axis_victory', 'draw'
-    vl_control: dict[str, Faction]              # vl_id -> controlling faction
-    casualties: dict[str, dict[str, int]]       # faction_name -> {kia, wounded}
+    status: str  # 'pending', 'active', 'allied_victory', 'axis_victory', 'draw'
+    vl_control: dict[str, Faction]  # vl_id -> controlling faction
+    casualties: dict[str, dict[str, int]]  # faction_name -> {kia, wounded}
     turns_elapsed: int = 0
 
 
 @dataclass
 class OperationState:
     """Runtime state of an operation (series of battles)."""
+
     operation_id: str
-    status: str                                 # 'pending', 'active', 'complete'
+    status: str  # 'pending', 'active', 'complete'
     current_battle_index: int = 0
     battle_results: list[BattleState] = field(default_factory=list)
     total_victory_points: dict[str, int] = field(default_factory=dict)  # faction_name -> points
@@ -158,26 +170,29 @@ class OperationState:
 @dataclass
 class SectorState:
     """Runtime state of a sector campaign."""
+
     sector_id: str
-    status: str                                 # 'pending', 'active', 'complete'
+    status: str  # 'pending', 'active', 'complete'
     operations: list[OperationState] = field(default_factory=list)
     supply_available: bool = True
-    lz_controlled: bool = True                  # For Arnhem sector
+    lz_controlled: bool = True  # For Arnhem sector
 
 
 @dataclass
 class GrandCampaignState:
     """Runtime state of the full grand campaign."""
+
     current_day: int = 1
     sectors: dict[str, SectorState] = field(default_factory=dict)
-    supply_priority_sector: str = 'arnhem'
-    xxx_corps_position: str = 'start'           # How far XXX Corps has advanced
+    supply_priority_sector: str = "arnhem"
+    xxx_corps_position: str = "start"  # How far XXX Corps has advanced
     victory_determined: bool = False
 
 
 # ========================================================================
 # Factory — DEFAULT_MARKET_GARDEN_CAMPAIGN
 # ========================================================================
+
 
 def create_market_garden_campaign() -> GrandCampaignDefinition:
     """Build the full Market Garden campaign with all three sectors (Day 1-9).
@@ -204,204 +219,208 @@ def create_market_garden_campaign() -> GrandCampaignDefinition:
     # ------------------------------------------------------------------
     op_landing_battles: list[BattleDefinition] = [
         BattleDefinition(
-            battle_id='arnhem_d1_oosterbeek_lz',
-            map_id='oosterbeek_lz',
-            name='Oosterbeek Landing Zone',
+            battle_id="arnhem_d1_oosterbeek_lz",
+            map_id="oosterbeek_lz",
+            name="Oosterbeek Landing Zone",
             day=1,
-            sector='arnhem',
-            operation_id='arnhem_landing',
+            sector="arnhem",
+            operation_id="arnhem_landing",
             attacker=Faction.BRITISH,
             defender=Faction.GERMAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_oosterbeek_lz_1',
-                    name='Drop Zone Alpha',
+                    vl_id="vl_oosterbeek_lz_1",
+                    name="Drop Zone Alpha",
                     position=(5, 10),
                     value=20,
-                    vl_type='landing_zone',
+                    vl_type="landing_zone",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_oosterbeek_lz_2',
-                    name='Drop Zone Bravo',
+                    vl_id="vl_oosterbeek_lz_2",
+                    name="Drop Zone Bravo",
                     position=(8, 14),
                     value=20,
-                    vl_type='landing_zone',
+                    vl_type="landing_zone",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_oosterbeek_lz_3',
-                    name='Oosterbeek Church',
+                    vl_id="vl_oosterbeek_lz_3",
+                    name="Oosterbeek Church",
                     position=(12, 8),
                     value=10,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
             ],
-            time_of_day='dawn',
-            weather='clear',
+            time_of_day="dawn",
+            weather="clear",
             reinforcement_turns={
-                'BRITISH': [(1, 'brit_rifle_squad'), (2, 'brit_rifle_squad'), (3, 'brit_mg_team')],
-                'GERMAN': [(3, 'ger_rifle_squad'), (5, 'ger_rifle_squad')],
+                "BRITISH": [(1, "brit_rifle_squad"), (2, "brit_rifle_squad"), (3, "brit_mg_team")],
+                "GERMAN": [(3, "ger_rifle_squad"), (5, "ger_rifle_squad")],
             },
             map_value=20,
         ),
         BattleDefinition(
-            battle_id='arnhem_d1_rail_bridge',
-            map_id='arnhem_rail_bridge',
-            name='Arnhem Rail Bridge',
+            battle_id="arnhem_d1_rail_bridge",
+            map_id="arnhem_rail_bridge",
+            name="Arnhem Rail Bridge",
             day=1,
-            sector='arnhem',
-            operation_id='arnhem_landing',
+            sector="arnhem",
+            operation_id="arnhem_landing",
             attacker=Faction.BRITISH,
             defender=Faction.GERMAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_rail_bridge',
-                    name='Rail Bridge',
+                    vl_id="vl_rail_bridge",
+                    name="Rail Bridge",
                     position=(15, 10),
                     value=30,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_rail_approach',
-                    name='Rail Approach Road',
+                    vl_id="vl_rail_approach",
+                    name="Rail Approach Road",
                     position=(10, 10),
                     value=10,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='day',
-            weather='clear',
+            time_of_day="day",
+            weather="clear",
             reinforcement_turns={
-                'BRITISH': [(1, 'brit_rifle_squad'), (2, 'brit_rifle_squad')],
-                'GERMAN': [(2, 'ger_rifle_squad'), (4, 'ger_at_team')],
+                "BRITISH": [(1, "brit_rifle_squad"), (2, "brit_rifle_squad")],
+                "GERMAN": [(2, "ger_rifle_squad"), (4, "ger_at_team")],
             },
             map_value=30,
         ),
         BattleDefinition(
-            battle_id='arnhem_d1_arnhem_bridge',
-            map_id='arnhem',
-            name='Arnhem Bridge',
+            battle_id="arnhem_d1_arnhem_bridge",
+            map_id="arnhem",
+            name="Arnhem Bridge",
             day=1,
-            sector='arnhem',
-            operation_id='arnhem_landing',
+            sector="arnhem",
+            operation_id="arnhem_landing",
             attacker=Faction.BRITISH,
             defender=Faction.GERMAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_arnhem_bridge_north',
-                    name='Bridge North End',
+                    vl_id="vl_arnhem_bridge_north",
+                    name="Bridge North End",
                     position=(12, 5),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_arnhem_bridge_south',
-                    name='Bridge South End',
+                    vl_id="vl_arnhem_bridge_south",
+                    name="Bridge South End",
                     position=(12, 15),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_bridge_road',
-                    name='Bridge Approach Road',
+                    vl_id="vl_bridge_road",
+                    name="Bridge Approach Road",
                     position=(12, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='dusk',
-            weather='clear',
+            time_of_day="dusk",
+            weather="clear",
             reinforcement_turns={
-                'BRITISH': [(1, 'brit_rifle_squad'), (2, 'brit_rifle_squad'), (3, 'brit_rifle_squad')],
-                'GERMAN': [(2, 'ger_rifle_squad'), (3, 'ger_rifle_squad'), (5, 'ger_armor')],
+                "BRITISH": [
+                    (1, "brit_rifle_squad"),
+                    (2, "brit_rifle_squad"),
+                    (3, "brit_rifle_squad"),
+                ],
+                "GERMAN": [(2, "ger_rifle_squad"), (3, "ger_rifle_squad"), (5, "ger_armor")],
             },
             map_value=40,
         ),
         BattleDefinition(
-            battle_id='arnhem_d1_zoo',
-            map_id='arnhem_zoo',
-            name='Arnhem Zoo',
+            battle_id="arnhem_d1_zoo",
+            map_id="arnhem_zoo",
+            name="Arnhem Zoo",
             day=1,
-            sector='arnhem',
-            operation_id='arnhem_landing',
+            sector="arnhem",
+            operation_id="arnhem_landing",
             attacker=Faction.BRITISH,
             defender=Faction.GERMAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_zoo_gate',
-                    name='Zoo Main Gate',
+                    vl_id="vl_zoo_gate",
+                    name="Zoo Main Gate",
                     position=(8, 10),
                     value=15,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_zoo_walls',
-                    name='Zoo Thick Walls',
+                    vl_id="vl_zoo_walls",
+                    name="Zoo Thick Walls",
                     position=(10, 8),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_zoo_road',
-                    name='Zoo Approach Road',
+                    vl_id="vl_zoo_road",
+                    name="Zoo Approach Road",
                     position=(6, 12),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='day',
-            weather='clear',
+            time_of_day="day",
+            weather="clear",
             reinforcement_turns={
-                'BRITISH': [(1, 'brit_rifle_squad'), (2, 'brit_rifle_squad'), (3, 'brit_mg_team')],
-                'GERMAN': [(2, 'ger_rifle_squad'), (4, 'ger_rifle_squad')],
+                "BRITISH": [(1, "brit_rifle_squad"), (2, "brit_rifle_squad"), (3, "brit_mg_team")],
+                "GERMAN": [(2, "ger_rifle_squad"), (4, "ger_rifle_squad")],
             },
             map_value=19,
         ),
         BattleDefinition(
-            battle_id='arnhem_d1_koepel',
-            map_id='arnhem_koepel',
-            name='Arnhem Koepel',
+            battle_id="arnhem_d1_koepel",
+            map_id="arnhem_koepel",
+            name="Arnhem Koepel",
             day=1,
-            sector='arnhem',
-            operation_id='arnhem_landing',
+            sector="arnhem",
+            operation_id="arnhem_landing",
             attacker=Faction.BRITISH,
             defender=Faction.GERMAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_koepel_church',
-                    name='Koepel Church',
+                    vl_id="vl_koepel_church",
+                    name="Koepel Church",
                     position=(10, 10),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_koepel_square',
-                    name='Church Square',
+                    vl_id="vl_koepel_square",
+                    name="Church Square",
                     position=(12, 8),
                     value=15,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_koepel_road',
-                    name='Koepel Road Junction',
+                    vl_id="vl_koepel_road",
+                    name="Koepel Road Junction",
                     position=(8, 12),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='dusk',
-            weather='overcast',
+            time_of_day="dusk",
+            weather="overcast",
             reinforcement_turns={
-                'BRITISH': [(1, 'brit_rifle_squad'), (2, 'brit_rifle_squad')],
-                'GERMAN': [(2, 'ger_rifle_squad'), (3, 'ger_at_team')],
+                "BRITISH": [(1, "brit_rifle_squad"), (2, "brit_rifle_squad")],
+                "GERMAN": [(2, "ger_rifle_squad"), (3, "ger_at_team")],
             },
             map_value=19,
         ),
     ]
 
     op_landing = OperationDefinition(
-        operation_id='arnhem_landing',
-        name='Landing',
-        sector='arnhem',
+        operation_id="arnhem_landing",
+        name="Landing",
+        sector="arnhem",
         battles=op_landing_battles,
         requisition_points_allies=200,
         requisition_points_axis=120,
@@ -412,333 +431,348 @@ def create_market_garden_campaign() -> GrandCampaignDefinition:
     # ------------------------------------------------------------------
     op_perimeter_battles: list[BattleDefinition] = [
         BattleDefinition(
-            battle_id='arnhem_d2_oosterbeek_caldron',
-            map_id='oosterbeek_caldron',
-            name='Oosterbeek Caldron',
+            battle_id="arnhem_d2_oosterbeek_caldron",
+            map_id="oosterbeek_caldron",
+            name="Oosterbeek Caldron",
             day=2,
-            sector='arnhem',
-            operation_id='arnhem_perimeter',
+            sector="arnhem",
+            operation_id="arnhem_perimeter",
             attacker=Faction.GERMAN,
             defender=Faction.BRITISH,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_caldron_church',
-                    name='Oosterbeek Church',
+                    vl_id="vl_caldron_church",
+                    name="Oosterbeek Church",
                     position=(10, 10),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_caldron_hotel',
-                    name='Hartenstein Hotel',
+                    vl_id="vl_caldron_hotel",
+                    name="Hartenstein Hotel",
                     position=(8, 12),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_caldron_lz',
-                    name='Perimeter LZ',
+                    vl_id="vl_caldron_lz",
+                    name="Perimeter LZ",
                     position=(5, 8),
                     value=20,
-                    vl_type='landing_zone',
+                    vl_type="landing_zone",
                 ),
             ],
-            time_of_day='day',
-            weather='overcast',
+            time_of_day="day",
+            weather="overcast",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_rifle_squad'), (3, 'ger_armor')],
-                'BRITISH': [(3, 'brit_rifle_squad'), (5, 'brit_rifle_squad')],
+                "GERMAN": [(1, "ger_rifle_squad"), (2, "ger_rifle_squad"), (3, "ger_armor")],
+                "BRITISH": [(3, "brit_rifle_squad"), (5, "brit_rifle_squad")],
             },
             map_value=19,
         ),
         BattleDefinition(
-            battle_id='arnhem_d3_oosterbeek_north',
-            map_id='oosterbeek_north',
-            name='Oosterbeek North',
+            battle_id="arnhem_d3_oosterbeek_north",
+            map_id="oosterbeek_north",
+            name="Oosterbeek North",
             day=3,
-            sector='arnhem',
-            operation_id='arnhem_perimeter',
+            sector="arnhem",
+            operation_id="arnhem_perimeter",
             attacker=Faction.GERMAN,
             defender=Faction.BRITISH,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_oosterbeek_north_bridge',
-                    name='Rail-Road Junction Bridge',
+                    vl_id="vl_oosterbeek_north_bridge",
+                    name="Rail-Road Junction Bridge",
                     position=(10, 6),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_oosterbeek_north_road',
-                    name='North Approach Road',
+                    vl_id="vl_oosterbeek_north_road",
+                    name="North Approach Road",
                     position=(8, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_oosterbeek_north_village',
-                    name='North Village',
+                    vl_id="vl_oosterbeek_north_village",
+                    name="North Village",
                     position=(12, 8),
                     value=15,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
             ],
-            time_of_day='dawn',
-            weather='overcast',
+            time_of_day="dawn",
+            weather="overcast",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_rifle_squad'), (3, 'ger_armor')],
-                'BRITISH': [(2, 'brit_rifle_squad'), (4, 'brit_rifle_squad')],
+                "GERMAN": [(1, "ger_rifle_squad"), (2, "ger_rifle_squad"), (3, "ger_armor")],
+                "BRITISH": [(2, "brit_rifle_squad"), (4, "brit_rifle_squad")],
             },
             map_value=40,
         ),
         BattleDefinition(
-            battle_id='arnhem_d4_arnhem_suburbs',
-            map_id='arnhem_suburbs',
-            name='Arnhem Suburbs',
+            battle_id="arnhem_d4_arnhem_suburbs",
+            map_id="arnhem_suburbs",
+            name="Arnhem Suburbs",
             day=4,
-            sector='arnhem',
-            operation_id='arnhem_perimeter',
+            sector="arnhem",
+            operation_id="arnhem_perimeter",
             attacker=Faction.GERMAN,
             defender=Faction.BRITISH,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_suburbs_crossroads',
-                    name='Suburb Crossroads',
+                    vl_id="vl_suburbs_crossroads",
+                    name="Suburb Crossroads",
                     position=(12, 8),
                     value=15,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_suburbs_road',
-                    name='Main Road Junction',
+                    vl_id="vl_suburbs_road",
+                    name="Main Road Junction",
                     position=(10, 12),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_suburbs_station',
-                    name='Railway Station',
+                    vl_id="vl_suburbs_station",
+                    name="Railway Station",
                     position=(14, 6),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
             ],
-            time_of_day='day',
-            weather='rain',
+            time_of_day="day",
+            weather="rain",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_armor'), (4, 'ger_rifle_squad')],
-                'BRITISH': [(2, 'brit_rifle_squad'), (4, 'brit_at_team')],
+                "GERMAN": [(1, "ger_rifle_squad"), (2, "ger_armor"), (4, "ger_rifle_squad")],
+                "BRITISH": [(2, "brit_rifle_squad"), (4, "brit_at_team")],
             },
             map_value=15,
         ),
         BattleDefinition(
-            battle_id='arnhem_d5_tree_road',
-            map_id='arnhem_tree_road',
-            name='Arnhem Tree Road',
+            battle_id="arnhem_d5_tree_road",
+            map_id="arnhem_tree_road",
+            name="Arnhem Tree Road",
             day=5,
-            sector='arnhem',
-            operation_id='arnhem_perimeter',
+            sector="arnhem",
+            operation_id="arnhem_perimeter",
             attacker=Faction.GERMAN,
             defender=Faction.BRITISH,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_tree_road_bridge',
-                    name='River Bridge',
+                    vl_id="vl_tree_road_bridge",
+                    name="River Bridge",
                     position=(10, 10),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_tree_road_south',
-                    name='South Bank Key Area',
+                    vl_id="vl_tree_road_south",
+                    name="South Bank Key Area",
                     position=(10, 14),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_tree_road_north',
-                    name='Tree-Lined Road',
+                    vl_id="vl_tree_road_north",
+                    name="Tree-Lined Road",
                     position=(8, 6),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='day',
-            weather='rain',
+            time_of_day="day",
+            weather="rain",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_rifle_squad'), (3, 'ger_armor')],
-                'BRITISH': [(2, 'brit_rifle_squad'), (4, 'brit_rifle_squad')],
+                "GERMAN": [(1, "ger_rifle_squad"), (2, "ger_rifle_squad"), (3, "ger_armor")],
+                "BRITISH": [(2, "brit_rifle_squad"), (4, "brit_rifle_squad")],
             },
             map_value=40,
         ),
         BattleDefinition(
-            battle_id='arnhem_d5_st_elizabeth',
-            map_id='arnhem_st_elizabeth',
-            name='St Elizabeth Hospital',
+            battle_id="arnhem_d5_st_elizabeth",
+            map_id="arnhem_st_elizabeth",
+            name="St Elizabeth Hospital",
             day=5,
-            sector='arnhem',
-            operation_id='arnhem_perimeter',
+            sector="arnhem",
+            operation_id="arnhem_perimeter",
             attacker=Faction.GERMAN,
             defender=Faction.BRITISH,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_st_elizabeth_main',
-                    name='Hospital Main Building',
+                    vl_id="vl_st_elizabeth_main",
+                    name="Hospital Main Building",
                     position=(10, 10),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_st_elizabeth_ward',
-                    name='Hospital Ward',
+                    vl_id="vl_st_elizabeth_ward",
+                    name="Hospital Ward",
                     position=(12, 8),
                     value=15,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_st_elizabeth_road',
-                    name='Hospital Access Road',
+                    vl_id="vl_st_elizabeth_road",
+                    name="Hospital Access Road",
                     position=(8, 12),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='dusk',
-            weather='overcast',
+            time_of_day="dusk",
+            weather="overcast",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_rifle_squad'), (3, 'ger_armor')],
-                'BRITISH': [(2, 'brit_rifle_squad'), (4, 'brit_mg_team')],
+                "GERMAN": [(1, "ger_rifle_squad"), (2, "ger_rifle_squad"), (3, "ger_armor")],
+                "BRITISH": [(2, "brit_rifle_squad"), (4, "brit_mg_team")],
             },
             map_value=19,
         ),
         BattleDefinition(
-            battle_id='arnhem_d6_west_approach',
-            map_id='arnhem_west_approach',
-            name='Arnhem West Approach',
+            battle_id="arnhem_d6_west_approach",
+            map_id="arnhem_west_approach",
+            name="Arnhem West Approach",
             day=6,
-            sector='arnhem',
-            operation_id='arnhem_perimeter',
+            sector="arnhem",
+            operation_id="arnhem_perimeter",
             attacker=Faction.GERMAN,
             defender=Faction.BRITISH,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_west_road',
-                    name='West Approach Road',
+                    vl_id="vl_west_road",
+                    name="West Approach Road",
                     position=(6, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_west_village',
-                    name='West Village',
+                    vl_id="vl_west_village",
+                    name="West Village",
                     position=(4, 8),
                     value=15,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_west_lz',
-                    name='Western LZ',
+                    vl_id="vl_west_lz",
+                    name="Western LZ",
                     position=(3, 12),
                     value=20,
-                    vl_type='landing_zone',
+                    vl_type="landing_zone",
                 ),
             ],
-            time_of_day='dawn',
-            weather='fog',
+            time_of_day="dawn",
+            weather="fog",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_rifle_squad'), (3, 'ger_armor'), (5, 'ger_armor')],
-                'BRITISH': [(3, 'brit_rifle_squad'), (5, 'brit_rifle_squad')],
-                'POLISH': [(4, 'pol_rifle_squad'), (5, 'pol_rifle_squad')],
+                "GERMAN": [
+                    (1, "ger_rifle_squad"),
+                    (2, "ger_rifle_squad"),
+                    (3, "ger_armor"),
+                    (5, "ger_armor"),
+                ],
+                "BRITISH": [(3, "brit_rifle_squad"), (5, "brit_rifle_squad")],
+                "POLISH": [(4, "pol_rifle_squad"), (5, "pol_rifle_squad")],
             },
             map_value=30,
         ),
         BattleDefinition(
-            battle_id='arnhem_d7_perimeter_shrink',
-            map_id='oosterbeek_perimeter',
-            name='Shrinking Perimeter',
+            battle_id="arnhem_d7_perimeter_shrink",
+            map_id="oosterbeek_perimeter",
+            name="Shrinking Perimeter",
             day=7,
-            sector='arnhem',
-            operation_id='arnhem_perimeter',
+            sector="arnhem",
+            operation_id="arnhem_perimeter",
             attacker=Faction.GERMAN,
             defender=Faction.BRITISH,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_perimeter_hq',
-                    name='Division HQ',
+                    vl_id="vl_perimeter_hq",
+                    name="Division HQ",
                     position=(8, 10),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_perimeter_lz',
-                    name='Supply LZ',
+                    vl_id="vl_perimeter_lz",
+                    name="Supply LZ",
                     position=(6, 8),
                     value=20,
-                    vl_type='landing_zone',
+                    vl_type="landing_zone",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_perimeter_road',
-                    name='Perimeter Road',
+                    vl_id="vl_perimeter_road",
+                    name="Perimeter Road",
                     position=(10, 12),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='day',
-            weather='overcast',
+            time_of_day="day",
+            weather="overcast",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_armor'), (3, 'ger_rifle_squad'), (4, 'ger_armor')],
-                'BRITISH': [(3, 'brit_rifle_squad')],
+                "GERMAN": [
+                    (1, "ger_rifle_squad"),
+                    (2, "ger_armor"),
+                    (3, "ger_rifle_squad"),
+                    (4, "ger_armor"),
+                ],
+                "BRITISH": [(3, "brit_rifle_squad")],
             },
             map_value=19,
         ),
         BattleDefinition(
-            battle_id='arnhem_d8_last_stand',
-            map_id='oosterbeek_last_stand',
-            name='Last Stand at Oosterbeek',
+            battle_id="arnhem_d8_last_stand",
+            map_id="oosterbeek_last_stand",
+            name="Last Stand at Oosterbeek",
             day=8,
-            sector='arnhem',
-            operation_id='arnhem_perimeter',
+            sector="arnhem",
+            operation_id="arnhem_perimeter",
             attacker=Faction.GERMAN,
             defender=Faction.BRITISH,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_last_river_bank',
-                    name='Rhine River Bank',
+                    vl_id="vl_last_river_bank",
+                    name="Rhine River Bank",
                     position=(4, 10),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_last_church',
-                    name='Oosterbeek Church',
+                    vl_id="vl_last_church",
+                    name="Oosterbeek Church",
                     position=(8, 8),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_last_lz',
-                    name='Final LZ',
+                    vl_id="vl_last_lz",
+                    name="Final LZ",
                     position=(6, 6),
                     value=20,
-                    vl_type='landing_zone',
+                    vl_type="landing_zone",
                 ),
             ],
-            time_of_day='dusk',
-            weather='rain',
+            time_of_day="dusk",
+            weather="rain",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_rifle_squad'), (3, 'ger_armor'), (4, 'ger_armor')],
-                'BRITISH': [],
-                'POLISH': [(2, 'pol_rifle_squad')],
+                "GERMAN": [
+                    (1, "ger_rifle_squad"),
+                    (2, "ger_rifle_squad"),
+                    (3, "ger_armor"),
+                    (4, "ger_armor"),
+                ],
+                "BRITISH": [],
+                "POLISH": [(2, "pol_rifle_squad")],
             },
             map_value=19,
         ),
     ]
 
     op_perimeter = OperationDefinition(
-        operation_id='arnhem_perimeter',
-        name='Perimeter Defense',
-        sector='arnhem',
+        operation_id="arnhem_perimeter",
+        name="Perimeter Defense",
+        sector="arnhem",
         battles=op_perimeter_battles,
         requisition_points_allies=300,
         requisition_points_axis=250,
@@ -749,93 +783,93 @@ def create_market_garden_campaign() -> GrandCampaignDefinition:
     # ------------------------------------------------------------------
     op_evacuation_battles: list[BattleDefinition] = [
         BattleDefinition(
-            battle_id='arnhem_d9_driel_ferry',
-            map_id='driel_ferry',
-            name='Driel Ferry Crossing',
+            battle_id="arnhem_d9_driel_ferry",
+            map_id="driel_ferry",
+            name="Driel Ferry Crossing",
             day=9,
-            sector='arnhem',
-            operation_id='arnhem_evacuation',
+            sector="arnhem",
+            operation_id="arnhem_evacuation",
             attacker=Faction.BRITISH,
             defender=Faction.GERMAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_driel_ferry',
-                    name='Driel Ferry',
+                    vl_id="vl_driel_ferry",
+                    name="Driel Ferry",
                     position=(10, 5),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_driel_bank',
-                    name='South Bank',
+                    vl_id="vl_driel_bank",
+                    name="South Bank",
                     position=(10, 15),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_driel_road',
-                    name='Escape Road',
+                    vl_id="vl_driel_road",
+                    name="Escape Road",
                     position=(6, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='night',
-            weather='rain',
+            time_of_day="night",
+            weather="rain",
             reinforcement_turns={
-                'BRITISH': [(1, 'brit_rifle_squad'), (2, 'brit_rifle_squad')],
-                'POLISH': [(1, 'pol_rifle_squad'), (2, 'pol_rifle_squad')],
-                'GERMAN': [(2, 'ger_rifle_squad'), (3, 'ger_rifle_squad'), (4, 'ger_armor')],
+                "BRITISH": [(1, "brit_rifle_squad"), (2, "brit_rifle_squad")],
+                "POLISH": [(1, "pol_rifle_squad"), (2, "pol_rifle_squad")],
+                "GERMAN": [(2, "ger_rifle_squad"), (3, "ger_rifle_squad"), (4, "ger_armor")],
             },
             map_value=30,
         ),
         BattleDefinition(
-            battle_id='arnhem_d9_rail_bridge',
-            map_id='oosterbeek_rail_bridge',
-            name='Oosterbeek Rail Bridge',
+            battle_id="arnhem_d9_rail_bridge",
+            map_id="oosterbeek_rail_bridge",
+            name="Oosterbeek Rail Bridge",
             day=9,
-            sector='arnhem',
-            operation_id='arnhem_evacuation',
+            sector="arnhem",
+            operation_id="arnhem_evacuation",
             attacker=Faction.BRITISH,
             defender=Faction.GERMAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_rail_bridge_evac',
-                    name='Rail Bridge',
+                    vl_id="vl_rail_bridge_evac",
+                    name="Rail Bridge",
                     position=(10, 8),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_rail_bridge_north',
-                    name='North Bank Approach',
+                    vl_id="vl_rail_bridge_north",
+                    name="North Bank Approach",
                     position=(10, 4),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_rail_bridge_south',
-                    name='South Bank Escape Route',
+                    vl_id="vl_rail_bridge_south",
+                    name="South Bank Escape Route",
                     position=(10, 12),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
             ],
-            time_of_day='night',
-            weather='rain',
+            time_of_day="night",
+            weather="rain",
             reinforcement_turns={
-                'BRITISH': [(1, 'brit_rifle_squad'), (2, 'brit_rifle_squad')],
-                'POLISH': [(1, 'pol_rifle_squad')],
-                'GERMAN': [(2, 'ger_rifle_squad'), (3, 'ger_rifle_squad'), (3, 'ger_armor')],
+                "BRITISH": [(1, "brit_rifle_squad"), (2, "brit_rifle_squad")],
+                "POLISH": [(1, "pol_rifle_squad")],
+                "GERMAN": [(2, "ger_rifle_squad"), (3, "ger_rifle_squad"), (3, "ger_armor")],
             },
             map_value=40,
         ),
     ]
 
     op_evacuation = OperationDefinition(
-        operation_id='arnhem_evacuation',
-        name='Evacuation',
-        sector='arnhem',
+        operation_id="arnhem_evacuation",
+        name="Evacuation",
+        sector="arnhem",
         battles=op_evacuation_battles,
         requisition_points_allies=100,
         requisition_points_axis=200,
@@ -845,10 +879,10 @@ def create_market_garden_campaign() -> GrandCampaignDefinition:
     # Arnhem Sector
     # ------------------------------------------------------------------
     arnhem_sector = SectorCampaignDefinition(
-        sector_id='arnhem',
-        name='Arnhem Sector',
+        sector_id="arnhem",
+        name="Arnhem Sector",
         operations=[op_landing, op_perimeter, op_evacuation],
-        scoring_type='holding',
+        scoring_type="holding",
         historical_days=(1, 9),
     )
 
@@ -861,173 +895,185 @@ def create_market_garden_campaign() -> GrandCampaignDefinition:
     # ------------------------------------------------------------------
     op_waal_crossing_battles: list[BattleDefinition] = [
         BattleDefinition(
-            battle_id='nijmegen_d1_groesbeek_lz',
-            map_id='nijmegen',
-            name='Landing at Groesbeek',
+            battle_id="nijmegen_d1_groesbeek_lz",
+            map_id="nijmegen",
+            name="Landing at Groesbeek",
             day=1,
-            sector='nijmegen',
-            operation_id='nijmegen_waal_crossing',
+            sector="nijmegen",
+            operation_id="nijmegen_waal_crossing",
             attacker=Faction.AMERICAN,
             defender=Faction.GERMAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_groesbeek_lz_north',
-                    name='Drop Zone North',
+                    vl_id="vl_groesbeek_lz_north",
+                    name="Drop Zone North",
                     position=(6, 8),
                     value=20,
-                    vl_type='landing_zone',
+                    vl_type="landing_zone",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_groesbeek_lz_south',
-                    name='Drop Zone South',
+                    vl_id="vl_groesbeek_lz_south",
+                    name="Drop Zone South",
                     position=(6, 14),
                     value=20,
-                    vl_type='landing_zone',
+                    vl_type="landing_zone",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_groesbeek_village',
-                    name='Groesbeek Village',
+                    vl_id="vl_groesbeek_village",
+                    name="Groesbeek Village",
                     position=(10, 10),
                     value=15,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
             ],
-            time_of_day='dawn',
-            weather='clear',
+            time_of_day="dawn",
+            weather="clear",
             reinforcement_turns={
-                'AMERICAN': [(1, 'us_para_rifle_squad_82nd'), (2, 'us_para_rifle_squad_82nd'), (3, 'us_para_mg_30cal')],
-                'GERMAN': [(3, 'ger_rifle_squad'), (5, 'ger_rifle_squad')],
+                "AMERICAN": [
+                    (1, "us_para_rifle_squad_82nd"),
+                    (2, "us_para_rifle_squad_82nd"),
+                    (3, "us_para_mg_30cal"),
+                ],
+                "GERMAN": [(3, "ger_rifle_squad"), (5, "ger_rifle_squad")],
             },
             map_value=20,
         ),
         BattleDefinition(
-            battle_id='nijmegen_d2_reichswald_defense',
-            map_id='schijndel_road',
-            name='Defense against Reichswald Counterattack',
+            battle_id="nijmegen_d2_reichswald_defense",
+            map_id="schijndel_road",
+            name="Defense against Reichswald Counterattack",
             day=2,
-            sector='nijmegen',
-            operation_id='nijmegen_waal_crossing',
+            sector="nijmegen",
+            operation_id="nijmegen_waal_crossing",
             attacker=Faction.GERMAN,
             defender=Faction.AMERICAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_reichswald_road',
-                    name='Reichswald Road',
+                    vl_id="vl_reichswald_road",
+                    name="Reichswald Road",
                     position=(8, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_reichswald_woods',
-                    name='Woods Position',
+                    vl_id="vl_reichswald_woods",
+                    name="Woods Position",
                     position=(4, 8),
                     value=15,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_reichswald_crossroads',
-                    name='Groesbeek Crossroads',
+                    vl_id="vl_reichswald_crossroads",
+                    name="Groesbeek Crossroads",
                     position=(12, 12),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
             ],
-            time_of_day='day',
-            weather='overcast',
+            time_of_day="day",
+            weather="overcast",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_rifle_squad'), (3, 'ger_armor')],
-                'AMERICAN': [(3, 'us_para_rifle_squad_82nd'), (5, 'us_para_at_bazooka')],
+                "GERMAN": [(1, "ger_rifle_squad"), (2, "ger_rifle_squad"), (3, "ger_armor")],
+                "AMERICAN": [(3, "us_para_rifle_squad_82nd"), (5, "us_para_at_bazooka")],
             },
             map_value=30,
         ),
         BattleDefinition(
-            battle_id='nijmegen_d3_waal_crossing',
-            map_id='grave',
-            name='Assault Crossing of the Waal River',
+            battle_id="nijmegen_d3_waal_crossing",
+            map_id="grave",
+            name="Assault Crossing of the Waal River",
             day=3,
-            sector='nijmegen',
-            operation_id='nijmegen_waal_crossing',
+            sector="nijmegen",
+            operation_id="nijmegen_waal_crossing",
             attacker=Faction.AMERICAN,
             defender=Faction.GERMAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_waal_north_bank',
-                    name='North Bank Landing',
+                    vl_id="vl_waal_north_bank",
+                    name="North Bank Landing",
                     position=(10, 5),
                     value=20,
-                    vl_type='landing_zone',
+                    vl_type="landing_zone",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_waal_south_bank',
-                    name='South Bank Departure',
+                    vl_id="vl_waal_south_bank",
+                    name="South Bank Departure",
                     position=(10, 15),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_waal_river',
-                    name='Waal River Crossing Point',
+                    vl_id="vl_waal_river",
+                    name="Waal River Crossing Point",
                     position=(10, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='day',
-            weather='clear',
+            time_of_day="day",
+            weather="clear",
             reinforcement_turns={
-                'AMERICAN': [(1, 'us_para_rifle_squad_82nd'), (2, 'us_para_rifle_squad_82nd'), (3, 'us_para_rifle_squad_82nd')],
-                'BRITISH': [(2, 'brit_rifle_squad'), (4, 'brit_armor')],
-                'GERMAN': [(2, 'ger_rifle_squad'), (3, 'ger_rifle_squad'), (5, 'ger_at_team')],
+                "AMERICAN": [
+                    (1, "us_para_rifle_squad_82nd"),
+                    (2, "us_para_rifle_squad_82nd"),
+                    (3, "us_para_rifle_squad_82nd"),
+                ],
+                "BRITISH": [(2, "brit_rifle_squad"), (4, "brit_armor")],
+                "GERMAN": [(2, "ger_rifle_squad"), (3, "ger_rifle_squad"), (5, "ger_at_team")],
             },
             map_value=30,
         ),
         BattleDefinition(
-            battle_id='nijmegen_d4_bridge_capture',
-            map_id='nijmegen',
-            name='Capture of Nijmegen Bridge',
+            battle_id="nijmegen_d4_bridge_capture",
+            map_id="nijmegen",
+            name="Capture of Nijmegen Bridge",
             day=4,
-            sector='nijmegen',
-            operation_id='nijmegen_waal_crossing',
+            sector="nijmegen",
+            operation_id="nijmegen_waal_crossing",
             attacker=Faction.AMERICAN,
             defender=Faction.GERMAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_nijmegen_bridge_north',
-                    name='Bridge North End',
+                    vl_id="vl_nijmegen_bridge_north",
+                    name="Bridge North End",
                     position=(12, 5),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_nijmegen_bridge_south',
-                    name='Bridge South End',
+                    vl_id="vl_nijmegen_bridge_south",
+                    name="Bridge South End",
                     position=(12, 15),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_nijmegen_approach',
-                    name='Bridge Approach Road',
+                    vl_id="vl_nijmegen_approach",
+                    name="Bridge Approach Road",
                     position=(12, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='dusk',
-            weather='clear',
+            time_of_day="dusk",
+            weather="clear",
             reinforcement_turns={
-                'AMERICAN': [(1, 'us_para_rifle_squad_82nd'), (2, 'us_para_rifle_squad_82nd'), (3, 'us_para_at_bazooka')],
-                'BRITISH': [(2, 'brit_armor'), (4, 'brit_rifle_squad')],
-                'GERMAN': [(2, 'ger_rifle_squad'), (3, 'ger_armor'), (5, 'ger_armor')],
+                "AMERICAN": [
+                    (1, "us_para_rifle_squad_82nd"),
+                    (2, "us_para_rifle_squad_82nd"),
+                    (3, "us_para_at_bazooka"),
+                ],
+                "BRITISH": [(2, "brit_armor"), (4, "brit_rifle_squad")],
+                "GERMAN": [(2, "ger_rifle_squad"), (3, "ger_armor"), (5, "ger_armor")],
             },
             map_value=40,
         ),
     ]
 
     op_waal_crossing = OperationDefinition(
-        operation_id='nijmegen_waal_crossing',
-        name='Waal Crossing',
-        sector='nijmegen',
+        operation_id="nijmegen_waal_crossing",
+        name="Waal Crossing",
+        sector="nijmegen",
         battles=op_waal_crossing_battles,
         requisition_points_allies=250,
         requisition_points_axis=150,
@@ -1038,134 +1084,150 @@ def create_market_garden_campaign() -> GrandCampaignDefinition:
     # ------------------------------------------------------------------
     op_bridge_defense_battles: list[BattleDefinition] = [
         BattleDefinition(
-            battle_id='nijmegen_d5_bridge_counterattack',
-            map_id='nijmegen',
-            name='German Counterattack on Nijmegen Bridge',
+            battle_id="nijmegen_d5_bridge_counterattack",
+            map_id="nijmegen",
+            name="German Counterattack on Nijmegen Bridge",
             day=5,
-            sector='nijmegen',
-            operation_id='nijmegen_bridge_defense',
+            sector="nijmegen",
+            operation_id="nijmegen_bridge_defense",
             attacker=Faction.GERMAN,
             defender=Faction.AMERICAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_nijmegen_def_north',
-                    name='Bridge North End',
+                    vl_id="vl_nijmegen_def_north",
+                    name="Bridge North End",
                     position=(12, 5),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_nijmegen_def_south',
-                    name='Bridge South End',
+                    vl_id="vl_nijmegen_def_south",
+                    name="Bridge South End",
                     position=(12, 15),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_nijmegen_def_road',
-                    name='Bridge Approach Road',
+                    vl_id="vl_nijmegen_def_road",
+                    name="Bridge Approach Road",
                     position=(12, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='dawn',
-            weather='overcast',
+            time_of_day="dawn",
+            weather="overcast",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_rifle_squad'), (3, 'ger_armor'), (5, 'ger_armor')],
-                'AMERICAN': [(3, 'us_para_rifle_squad_82nd'), (5, 'us_para_at_bazooka')],
-                'BRITISH': [(2, 'brit_armor'), (4, 'brit_rifle_squad')],
+                "GERMAN": [
+                    (1, "ger_rifle_squad"),
+                    (2, "ger_rifle_squad"),
+                    (3, "ger_armor"),
+                    (5, "ger_armor"),
+                ],
+                "AMERICAN": [(3, "us_para_rifle_squad_82nd"), (5, "us_para_at_bazooka")],
+                "BRITISH": [(2, "brit_armor"), (4, "brit_rifle_squad")],
             },
             map_value=40,
         ),
         BattleDefinition(
-            battle_id='nijmegen_d7_bridgehead_defense',
-            map_id='schijndel_road',
-            name='Defense of the Bridgehead',
+            battle_id="nijmegen_d7_bridgehead_defense",
+            map_id="schijndel_road",
+            name="Defense of the Bridgehead",
             day=7,
-            sector='nijmegen',
-            operation_id='nijmegen_bridge_defense',
+            sector="nijmegen",
+            operation_id="nijmegen_bridge_defense",
             attacker=Faction.GERMAN,
             defender=Faction.BRITISH,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_bridgehead_road',
-                    name='Bridgehead Road',
+                    vl_id="vl_bridgehead_road",
+                    name="Bridgehead Road",
                     position=(8, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_bridgehead_village',
-                    name='Bridgehead Village',
+                    vl_id="vl_bridgehead_village",
+                    name="Bridgehead Village",
                     position=(6, 8),
                     value=15,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_bridgehead_crossroads',
-                    name='Northern Crossroads',
+                    vl_id="vl_bridgehead_crossroads",
+                    name="Northern Crossroads",
                     position=(10, 6),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
             ],
-            time_of_day='day',
-            weather='rain',
+            time_of_day="day",
+            weather="rain",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_armor'), (3, 'ger_rifle_squad'), (4, 'ger_armor')],
-                'BRITISH': [(2, 'brit_rifle_squad'), (4, 'brit_rifle_squad')],
-                'AMERICAN': [(3, 'us_para_rifle_squad_82nd')],
+                "GERMAN": [
+                    (1, "ger_rifle_squad"),
+                    (2, "ger_armor"),
+                    (3, "ger_rifle_squad"),
+                    (4, "ger_armor"),
+                ],
+                "BRITISH": [(2, "brit_rifle_squad"), (4, "brit_rifle_squad")],
+                "AMERICAN": [(3, "us_para_rifle_squad_82nd")],
             },
             map_value=30,
         ),
         BattleDefinition(
-            battle_id='nijmegen_d9_final_assault_repulsed',
-            map_id='nijmegen',
-            name='Final German Assault Repulsed',
+            battle_id="nijmegen_d9_final_assault_repulsed",
+            map_id="nijmegen",
+            name="Final German Assault Repulsed",
             day=9,
-            sector='nijmegen',
-            operation_id='nijmegen_bridge_defense',
+            sector="nijmegen",
+            operation_id="nijmegen_bridge_defense",
             attacker=Faction.GERMAN,
             defender=Faction.AMERICAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_final_bridge_north',
-                    name='Bridge North End',
+                    vl_id="vl_final_bridge_north",
+                    name="Bridge North End",
                     position=(12, 5),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_final_bridge_south',
-                    name='Bridge South End',
+                    vl_id="vl_final_bridge_south",
+                    name="Bridge South End",
                     position=(12, 15),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_final_approach',
-                    name='Bridge Approach Road',
+                    vl_id="vl_final_approach",
+                    name="Bridge Approach Road",
                     position=(12, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='day',
-            weather='overcast',
+            time_of_day="day",
+            weather="overcast",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_rifle_squad'), (3, 'ger_armor'), (4, 'ger_armor'), (5, 'ger_armor')],
-                'AMERICAN': [(3, 'us_para_rifle_squad_82nd'), (5, 'us_para_at_bazooka')],
-                'BRITISH': [(2, 'brit_armor'), (4, 'brit_rifle_squad')],
+                "GERMAN": [
+                    (1, "ger_rifle_squad"),
+                    (2, "ger_rifle_squad"),
+                    (3, "ger_armor"),
+                    (4, "ger_armor"),
+                    (5, "ger_armor"),
+                ],
+                "AMERICAN": [(3, "us_para_rifle_squad_82nd"), (5, "us_para_at_bazooka")],
+                "BRITISH": [(2, "brit_armor"), (4, "brit_rifle_squad")],
             },
             map_value=40,
         ),
     ]
 
     op_bridge_defense = OperationDefinition(
-        operation_id='nijmegen_bridge_defense',
-        name='Bridge Defense',
-        sector='nijmegen',
+        operation_id="nijmegen_bridge_defense",
+        name="Bridge Defense",
+        sector="nijmegen",
         battles=op_bridge_defense_battles,
         requisition_points_allies=300,
         requisition_points_axis=250,
@@ -1175,10 +1237,10 @@ def create_market_garden_campaign() -> GrandCampaignDefinition:
     # Nijmegen Sector
     # ------------------------------------------------------------------
     nijmegen_sector = SectorCampaignDefinition(
-        sector_id='nijmegen',
-        name='Nijmegen Sector',
+        sector_id="nijmegen",
+        name="Nijmegen Sector",
         operations=[op_waal_crossing, op_bridge_defense],
-        scoring_type='advance_speed',
+        scoring_type="advance_speed",
         historical_days=(1, 9),
     )
 
@@ -1191,173 +1253,181 @@ def create_market_garden_campaign() -> GrandCampaignDefinition:
     # ------------------------------------------------------------------
     op_hells_highway_battles: list[BattleDefinition] = [
         BattleDefinition(
-            battle_id='eindhoven_d1_son_bridge',
-            map_id='son_town',
-            name='Son Bridge Capture',
+            battle_id="eindhoven_d1_son_bridge",
+            map_id="son_town",
+            name="Son Bridge Capture",
             day=1,
-            sector='eindhoven',
-            operation_id='eindhoven_hells_highway',
+            sector="eindhoven",
+            operation_id="eindhoven_hells_highway",
             attacker=Faction.AMERICAN,
             defender=Faction.GERMAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_son_bridge_north',
-                    name='Son Bridge North',
+                    vl_id="vl_son_bridge_north",
+                    name="Son Bridge North",
                     position=(10, 5),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_son_bridge_south',
-                    name='Son Bridge South',
+                    vl_id="vl_son_bridge_south",
+                    name="Son Bridge South",
                     position=(10, 15),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_son_road',
-                    name='Son Main Road',
+                    vl_id="vl_son_road",
+                    name="Son Main Road",
                     position=(10, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='dawn',
-            weather='clear',
+            time_of_day="dawn",
+            weather="clear",
             reinforcement_turns={
-                'AMERICAN': [(1, 'us_para_rifle_squad_101st'), (2, 'us_para_rifle_squad_101st'), (3, 'us_para_mg_30cal')],
-                'GERMAN': [(2, 'ger_rifle_squad'), (4, 'ger_at_team'), (5, 'ger_rifle_squad')],
+                "AMERICAN": [
+                    (1, "us_para_rifle_squad_101st"),
+                    (2, "us_para_rifle_squad_101st"),
+                    (3, "us_para_mg_30cal"),
+                ],
+                "GERMAN": [(2, "ger_rifle_squad"), (4, "ger_at_team"), (5, "ger_rifle_squad")],
             },
             map_value=40,
         ),
         BattleDefinition(
-            battle_id='eindhoven_d1_veghel_landing',
-            map_id='veghel',
-            name='Veghel Landing and Defense',
+            battle_id="eindhoven_d1_veghel_landing",
+            map_id="veghel",
+            name="Veghel Landing and Defense",
             day=1,
-            sector='eindhoven',
-            operation_id='eindhoven_hells_highway',
+            sector="eindhoven",
+            operation_id="eindhoven_hells_highway",
             attacker=Faction.AMERICAN,
             defender=Faction.GERMAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_veghel_lz',
-                    name='Veghel Drop Zone',
+                    vl_id="vl_veghel_lz",
+                    name="Veghel Drop Zone",
                     position=(6, 10),
                     value=20,
-                    vl_type='landing_zone',
+                    vl_type="landing_zone",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_veghel_village',
-                    name='Veghel Village',
+                    vl_id="vl_veghel_village",
+                    name="Veghel Village",
                     position=(10, 8),
                     value=15,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_veghel_road',
-                    name='Veghel Crossroads',
+                    vl_id="vl_veghel_road",
+                    name="Veghel Crossroads",
                     position=(8, 12),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='day',
-            weather='clear',
+            time_of_day="day",
+            weather="clear",
             reinforcement_turns={
-                'AMERICAN': [(1, 'us_para_rifle_squad_101st'), (2, 'us_para_rifle_squad_101st'), (3, 'us_para_mg_30cal')],
-                'GERMAN': [(3, 'ger_rifle_squad'), (5, 'ger_rifle_squad')],
+                "AMERICAN": [
+                    (1, "us_para_rifle_squad_101st"),
+                    (2, "us_para_rifle_squad_101st"),
+                    (3, "us_para_mg_30cal"),
+                ],
+                "GERMAN": [(3, "ger_rifle_squad"), (5, "ger_rifle_squad")],
             },
             map_value=20,
         ),
         BattleDefinition(
-            battle_id='eindhoven_d2_xxx_corps_linkup',
-            map_id='eindhoven_city',
-            name='XXX Corps Links Up at Eindhoven',
+            battle_id="eindhoven_d2_xxx_corps_linkup",
+            map_id="eindhoven_city",
+            name="XXX Corps Links Up at Eindhoven",
             day=2,
-            sector='eindhoven',
-            operation_id='eindhoven_hells_highway',
+            sector="eindhoven",
+            operation_id="eindhoven_hells_highway",
             attacker=Faction.BRITISH,
             defender=Faction.GERMAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_eindhoven_center',
-                    name='Eindhoven City Center',
+                    vl_id="vl_eindhoven_center",
+                    name="Eindhoven City Center",
                     position=(12, 10),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_eindhoven_north_road',
-                    name='North Road Junction',
+                    vl_id="vl_eindhoven_north_road",
+                    name="North Road Junction",
                     position=(12, 5),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_eindhoven_south_road',
-                    name='South Road Junction',
+                    vl_id="vl_eindhoven_south_road",
+                    name="South Road Junction",
                     position=(12, 15),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='day',
-            weather='overcast',
+            time_of_day="day",
+            weather="overcast",
             reinforcement_turns={
-                'BRITISH': [(1, 'brit_rifle_squad'), (2, 'brit_armor'), (3, 'brit_rifle_squad')],
-                'AMERICAN': [(2, 'us_para_rifle_squad_101st'), (4, 'us_para_at_bazooka')],
-                'GERMAN': [(2, 'ger_rifle_squad'), (4, 'ger_at_team')],
+                "BRITISH": [(1, "brit_rifle_squad"), (2, "brit_armor"), (3, "brit_rifle_squad")],
+                "AMERICAN": [(2, "us_para_rifle_squad_101st"), (4, "us_para_at_bazooka")],
+                "GERMAN": [(2, "ger_rifle_squad"), (4, "ger_at_team")],
             },
             map_value=30,
         ),
         BattleDefinition(
-            battle_id='eindhoven_d3_corridor_defense',
-            map_id='arnhem_best',
-            name='Defense of the Corridor',
+            battle_id="eindhoven_d3_corridor_defense",
+            map_id="arnhem_best",
+            name="Defense of the Corridor",
             day=3,
-            sector='eindhoven',
-            operation_id='eindhoven_hells_highway',
+            sector="eindhoven",
+            operation_id="eindhoven_hells_highway",
             attacker=Faction.GERMAN,
             defender=Faction.AMERICAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_best_road',
-                    name='Best Road Junction',
+                    vl_id="vl_best_road",
+                    name="Best Road Junction",
                     position=(8, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_best_village',
-                    name='Best Village',
+                    vl_id="vl_best_village",
+                    name="Best Village",
                     position=(6, 8),
                     value=15,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_best_crossroads',
-                    name='Corridor Crossroads',
+                    vl_id="vl_best_crossroads",
+                    name="Corridor Crossroads",
                     position=(10, 12),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
             ],
-            time_of_day='day',
-            weather='overcast',
+            time_of_day="day",
+            weather="overcast",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_rifle_squad'), (3, 'ger_armor')],
-                'AMERICAN': [(2, 'us_para_rifle_squad_101st'), (4, 'us_para_at_bazooka')],
-                'BRITISH': [(3, 'brit_armor')],
+                "GERMAN": [(1, "ger_rifle_squad"), (2, "ger_rifle_squad"), (3, "ger_armor")],
+                "AMERICAN": [(2, "us_para_rifle_squad_101st"), (4, "us_para_at_bazooka")],
+                "BRITISH": [(3, "brit_armor")],
             },
             map_value=30,
         ),
     ]
 
     op_hells_highway = OperationDefinition(
-        operation_id='eindhoven_hells_highway',
+        operation_id="eindhoven_hells_highway",
         name="Hell's Highway",
-        sector='eindhoven',
+        sector="eindhoven",
         battles=op_hells_highway_battles,
         requisition_points_allies=250,
         requisition_points_axis=120,
@@ -1368,134 +1438,144 @@ def create_market_garden_campaign() -> GrandCampaignDefinition:
     # ------------------------------------------------------------------
     op_corridor_defense_battles: list[BattleDefinition] = [
         BattleDefinition(
-            battle_id='eindhoven_d4_veghel_counterattack',
-            map_id='veghel',
-            name='German Counterattack on Veghel',
+            battle_id="eindhoven_d4_veghel_counterattack",
+            map_id="veghel",
+            name="German Counterattack on Veghel",
             day=4,
-            sector='eindhoven',
-            operation_id='eindhoven_corridor_defense',
+            sector="eindhoven",
+            operation_id="eindhoven_corridor_defense",
             attacker=Faction.GERMAN,
             defender=Faction.AMERICAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_veghel_def_lz',
-                    name='Veghel Drop Zone',
+                    vl_id="vl_veghel_def_lz",
+                    name="Veghel Drop Zone",
                     position=(6, 10),
                     value=20,
-                    vl_type='landing_zone',
+                    vl_type="landing_zone",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_veghel_def_village',
-                    name='Veghel Village',
+                    vl_id="vl_veghel_def_village",
+                    name="Veghel Village",
                     position=(10, 8),
                     value=15,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_veghel_def_road',
-                    name='Veghel Crossroads',
+                    vl_id="vl_veghel_def_road",
+                    name="Veghel Crossroads",
                     position=(8, 12),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='dawn',
-            weather='overcast',
+            time_of_day="dawn",
+            weather="overcast",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_rifle_squad'), (3, 'ger_armor')],
-                'AMERICAN': [(2, 'us_para_rifle_squad_101st'), (4, 'us_para_at_bazooka')],
-                'BRITISH': [(3, 'brit_armor')],
+                "GERMAN": [(1, "ger_rifle_squad"), (2, "ger_rifle_squad"), (3, "ger_armor")],
+                "AMERICAN": [(2, "us_para_rifle_squad_101st"), (4, "us_para_at_bazooka")],
+                "BRITISH": [(3, "brit_armor")],
             },
             map_value=30,
         ),
         BattleDefinition(
-            battle_id='eindhoven_d6_schijndel_defense',
-            map_id='schijndel_road',
-            name='Defense of the Corridor near Schijndel',
+            battle_id="eindhoven_d6_schijndel_defense",
+            map_id="schijndel_road",
+            name="Defense of the Corridor near Schijndel",
             day=6,
-            sector='eindhoven',
-            operation_id='eindhoven_corridor_defense',
+            sector="eindhoven",
+            operation_id="eindhoven_corridor_defense",
             attacker=Faction.GERMAN,
             defender=Faction.BRITISH,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_schijndel_road',
-                    name='Schijndel Road',
+                    vl_id="vl_schijndel_road",
+                    name="Schijndel Road",
                     position=(8, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_schijndel_village',
-                    name='Schijndel Village',
+                    vl_id="vl_schijndel_village",
+                    name="Schijndel Village",
                     position=(6, 8),
                     value=15,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_schijndel_crossroads',
-                    name='Corridor Crossroads',
+                    vl_id="vl_schijndel_crossroads",
+                    name="Corridor Crossroads",
                     position=(10, 12),
                     value=19,
-                    vl_type='regular',
+                    vl_type="regular",
                 ),
             ],
-            time_of_day='day',
-            weather='rain',
+            time_of_day="day",
+            weather="rain",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_armor'), (3, 'ger_rifle_squad'), (5, 'ger_armor')],
-                'BRITISH': [(2, 'brit_rifle_squad'), (4, 'brit_rifle_squad')],
-                'AMERICAN': [(3, 'us_para_rifle_squad_101st')],
+                "GERMAN": [
+                    (1, "ger_rifle_squad"),
+                    (2, "ger_armor"),
+                    (3, "ger_rifle_squad"),
+                    (5, "ger_armor"),
+                ],
+                "BRITISH": [(2, "brit_rifle_squad"), (4, "brit_rifle_squad")],
+                "AMERICAN": [(3, "us_para_rifle_squad_101st")],
             },
             map_value=30,
         ),
         BattleDefinition(
-            battle_id='eindhoven_d8_son_assault',
-            map_id='son_town',
-            name='Final German Assault on Corridor',
+            battle_id="eindhoven_d8_son_assault",
+            map_id="son_town",
+            name="Final German Assault on Corridor",
             day=8,
-            sector='eindhoven',
-            operation_id='eindhoven_corridor_defense',
+            sector="eindhoven",
+            operation_id="eindhoven_corridor_defense",
             attacker=Faction.GERMAN,
             defender=Faction.AMERICAN,
             victory_locations=[
                 VictoryLocationDef(
-                    vl_id='vl_son_def_bridge_north',
-                    name='Son Bridge North',
+                    vl_id="vl_son_def_bridge_north",
+                    name="Son Bridge North",
                     position=(10, 5),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_son_def_bridge_south',
-                    name='Son Bridge South',
+                    vl_id="vl_son_def_bridge_south",
+                    name="Son Bridge South",
                     position=(10, 15),
                     value=40,
-                    vl_type='bridge',
+                    vl_type="bridge",
                 ),
                 VictoryLocationDef(
-                    vl_id='vl_son_def_road',
-                    name='Son Main Road',
+                    vl_id="vl_son_def_road",
+                    name="Son Main Road",
                     position=(10, 10),
                     value=30,
-                    vl_type='road',
+                    vl_type="road",
                 ),
             ],
-            time_of_day='dusk',
-            weather='overcast',
+            time_of_day="dusk",
+            weather="overcast",
             reinforcement_turns={
-                'GERMAN': [(1, 'ger_rifle_squad'), (2, 'ger_rifle_squad'), (3, 'ger_armor'), (4, 'ger_armor')],
-                'AMERICAN': [(2, 'us_para_rifle_squad_101st'), (4, 'us_para_at_bazooka')],
-                'BRITISH': [(3, 'brit_armor'), (5, 'brit_rifle_squad')],
+                "GERMAN": [
+                    (1, "ger_rifle_squad"),
+                    (2, "ger_rifle_squad"),
+                    (3, "ger_armor"),
+                    (4, "ger_armor"),
+                ],
+                "AMERICAN": [(2, "us_para_rifle_squad_101st"), (4, "us_para_at_bazooka")],
+                "BRITISH": [(3, "brit_armor"), (5, "brit_rifle_squad")],
             },
             map_value=40,
         ),
     ]
 
     op_corridor_defense = OperationDefinition(
-        operation_id='eindhoven_corridor_defense',
-        name='Corridor Defense',
-        sector='eindhoven',
+        operation_id="eindhoven_corridor_defense",
+        name="Corridor Defense",
+        sector="eindhoven",
         battles=op_corridor_defense_battles,
         requisition_points_allies=300,
         requisition_points_axis=200,
@@ -1505,10 +1585,10 @@ def create_market_garden_campaign() -> GrandCampaignDefinition:
     # Eindhoven Sector
     # ------------------------------------------------------------------
     eindhoven_sector = SectorCampaignDefinition(
-        sector_id='eindhoven',
-        name='Eindhoven Sector',
+        sector_id="eindhoven",
+        name="Eindhoven Sector",
         operations=[op_hells_highway, op_corridor_defense],
-        scoring_type='advance_speed',
+        scoring_type="advance_speed",
         historical_days=(1, 9),
     )
 
@@ -1516,10 +1596,10 @@ def create_market_garden_campaign() -> GrandCampaignDefinition:
     # Grand Campaign
     # ------------------------------------------------------------------
     return GrandCampaignDefinition(
-        campaign_id='market_garden',
-        name='Operation Market Garden',
-        start_date='1944-09-17',
-        end_date='1944-09-26',
+        campaign_id="market_garden",
+        name="Operation Market Garden",
+        start_date="1944-09-17",
+        end_date="1944-09-26",
         sectors=[arnhem_sector, nijmegen_sector, eindhoven_sector],
         daily_supply_points=100,
     )
@@ -1535,10 +1615,10 @@ DEFAULT_MARKET_GARDEN_CAMPAIGN = create_market_garden_campaign()
 
 # Supply line resupply rates (ammo is NOT fully resupplied)
 _SUPPLY_LINE_AMMO_RESUPPLY = {
-    "allies_land": 0.60,     # XXX Corps land supply: 60% ammo resupply
+    "allies_land": 0.60,  # XXX Corps land supply: 60% ammo resupply
     "allies_airdrop": 0.40,  # Airdrop supply: 40% ammo resupply
-    "allies_no_supply": 0.15, # No supply line: 15% ammo resupply (scrounging)
-    "axis_land": 0.50,       # German land supply: 50% ammo resupply
+    "allies_no_supply": 0.15,  # No supply line: 15% ammo resupply (scrounging)
+    "axis_land": 0.50,  # German land supply: 50% ammo resupply
 }
 
 _HP_RECOVERY_PER_DAY = 0.20  # 20% HP recovery between days for wounded
@@ -1547,6 +1627,7 @@ _HP_RECOVERY_PER_DAY = 0.20  # 20% HP recovery between days for wounded
 @dataclass
 class UnitCarryoverState:
     """Persistent state of a unit that carries over between battles."""
+
     unit_id: str
     faction: str
     is_alive: bool = True
@@ -1669,58 +1750,55 @@ class FourLayerCampaignManager:
             units: List of Unit objects from the completed battle
         """
         for unit in units:
-            unit_id = getattr(unit, 'id', None) or getattr(unit, 'unit_id', str(id(unit)))
+            unit_id = getattr(unit, "id", None) or getattr(unit, "unit_id", str(id(unit)))
 
             # Determine faction
             faction = "allies"
-            if hasattr(unit, 'faction'):
+            if hasattr(unit, "faction"):
                 f = unit.faction
-                if hasattr(f, 'name'):
-                    faction = f.name.lower()
-                else:
-                    faction = str(f).lower()
+                faction = f.name.lower() if hasattr(f, "name") else str(f).lower()
 
             # Determine alive status
             is_alive = True
-            if hasattr(unit, 'is_alive'):
+            if hasattr(unit, "is_alive"):
                 is_alive = unit.is_alive
-            elif hasattr(unit, 'health'):
+            elif hasattr(unit, "health"):
                 is_alive = unit.health.is_alive
 
             # Get HP
             current_hp = 100.0
             max_hp = 100.0
-            if hasattr(unit, 'health_component'):
+            if hasattr(unit, "health_component"):
                 current_hp = float(unit.health_component.hp)
                 max_hp = float(unit.health_component.max_hp)
-            elif hasattr(unit, 'health'):
+            elif hasattr(unit, "health"):
                 current_hp = float(unit.health.hp)
                 max_hp = float(unit.health.max_hp)
 
             # Get morale
             morale = 100.0
-            if hasattr(unit, 'morale_component'):
+            if hasattr(unit, "morale_component"):
                 morale = float(unit.morale_component.value)
-            elif hasattr(unit, 'morale'):
-                morale = float(getattr(unit.morale, 'value', 100))
+            elif hasattr(unit, "morale"):
+                morale = float(getattr(unit.morale, "value", 100))
 
             # Get experience
             experience = 0
             kills = 0
-            if hasattr(unit, 'veterancy_component') and unit.veterancy_component is not None:
+            if hasattr(unit, "veterancy_component") and unit.veterancy_component is not None:
                 experience = unit.veterancy_component.xp
                 kills = unit.veterancy_component.kills
-            elif hasattr(unit, 'veterancy') and unit.veterancy is not None:
+            elif hasattr(unit, "veterancy") and unit.veterancy is not None:
                 experience = unit.veterancy.xp
                 kills = unit.veterancy.kills
 
             # Get ammo
             ammo_remaining = 0
             max_ammo = 0
-            if hasattr(unit, 'weapon_component') and unit.weapon_component is not None:
+            if hasattr(unit, "weapon_component") and unit.weapon_component is not None:
                 ammo_remaining = unit.weapon_component.ammo_remaining
                 max_ammo = unit.weapon_component.max_ammo
-            elif hasattr(unit, 'weapon') and unit.weapon is not None:
+            elif hasattr(unit, "weapon") and unit.weapon is not None:
                 ammo_remaining = unit.weapon.ammo_remaining
                 max_ammo = unit.weapon.max_ammo
 
@@ -1736,7 +1814,7 @@ class FourLayerCampaignManager:
             squad_wounded = 0
             squad_dead = 0
             squad_total = 0
-            if hasattr(unit, 'squad_ref') and unit.squad_ref is not None:
+            if hasattr(unit, "squad_ref") and unit.squad_ref is not None:
                 squad = unit.squad_ref
                 squad_alive = squad.alive_count
                 squad_wounded = squad.wounded_count
@@ -1792,7 +1870,7 @@ class FourLayerCampaignManager:
         inherited_count = 0
 
         for unit in units:
-            unit_id = getattr(unit, 'id', None) or getattr(unit, 'unit_id', str(id(unit)))
+            unit_id = getattr(unit, "id", None) or getattr(unit, "unit_id", str(id(unit)))
             saved = self._saved_unit_states.get(unit_id)
 
             if saved is None:
@@ -1800,22 +1878,23 @@ class FourLayerCampaignManager:
 
             if not saved.is_alive:
                 # KIA: Remove from squad permanently
-                if hasattr(unit, 'health_component'):
+                if hasattr(unit, "health_component"):
                     unit.health_component.hp = 0
                     unit.health_component._update_state()
-                elif hasattr(unit, 'health'):
+                elif hasattr(unit, "health"):
                     unit.health.hp = 0
                     unit.health._update_state()
 
-                if hasattr(unit, 'state_machine'):
+                if hasattr(unit, "state_machine"):
                     from pycc2.domain.entities.unit import UnitState
+
                     try:
                         unit.state_machine.force_transition(UnitState.DEAD)
                     except Exception as e:
                         logging.warning(f"Unit state transition to DEAD failed: {e}")
 
                 # Remove dead members from squad
-                if hasattr(unit, 'squad_ref') and unit.squad_ref is not None:
+                if hasattr(unit, "squad_ref") and unit.squad_ref is not None:
                     unit.squad_ref.remove_dead()
 
                 inherited_count += 1
@@ -1832,34 +1911,34 @@ class FourLayerCampaignManager:
                 # Healthy soldiers keep their HP
                 new_hp = saved.current_hp
 
-            if hasattr(unit, 'health_component'):
+            if hasattr(unit, "health_component"):
                 unit.health_component.hp = int(new_hp)
                 unit.health_component._update_state()
-            elif hasattr(unit, 'health'):
+            elif hasattr(unit, "health"):
                 unit.health.hp = int(new_hp)
                 unit.health._update_state()
 
             # Morale: Partial recovery between battles
             morale_recovery = min(20, 10 + self._campaign_state.current_day * 2)
             new_morale = min(100, int(saved.morale + morale_recovery))
-            if hasattr(unit, 'morale_component'):
+            if hasattr(unit, "morale_component"):
                 unit.morale_component.value = new_morale
                 unit.morale_component._update_state()
-            elif hasattr(unit, 'morale'):
+            elif hasattr(unit, "morale"):
                 unit.morale.value = new_morale
                 unit.morale._update_state()
 
             # Experience: Surviving soldiers keep their experience gains
             if saved.experience > 0:
-                if hasattr(unit, 'veterancy_component') and unit.veterancy_component is not None:
+                if hasattr(unit, "veterancy_component") and unit.veterancy_component is not None:
                     unit.veterancy_component.add_xp(saved.experience)
-                elif hasattr(unit, 'veterancy') and unit.veterancy is not None:
+                elif hasattr(unit, "veterancy") and unit.veterancy is not None:
                     unit.veterancy.add_xp(saved.experience)
 
             if saved.kills > 0:
-                if hasattr(unit, 'veterancy_component') and unit.veterancy_component is not None:
+                if hasattr(unit, "veterancy_component") and unit.veterancy_component is not None:
                     unit.veterancy_component.kills += saved.kills
-                elif hasattr(unit, 'veterancy') and unit.veterancy is not None:
+                elif hasattr(unit, "veterancy") and unit.veterancy is not None:
                     unit.veterancy.kills += saved.kills
 
             # Ammo: NOT fully resupplied — partial resupply based on supply lines
@@ -1869,15 +1948,15 @@ class FourLayerCampaignManager:
             ammo_resupply = int(saved.max_ammo * resupply_rate)
             new_ammo = min(saved.max_ammo, saved.ammo_remaining + ammo_resupply)
 
-            if hasattr(unit, 'weapon_component') and unit.weapon_component is not None:
+            if hasattr(unit, "weapon_component") and unit.weapon_component is not None:
                 unit.weapon_component.ammo_remaining = new_ammo
                 unit.weapon_component._update_state()
-            elif hasattr(unit, 'weapon') and unit.weapon is not None:
+            elif hasattr(unit, "weapon") and unit.weapon is not None:
                 unit.weapon.ammo_remaining = new_ammo
                 unit.weapon._update_state()
 
             # Squad-level carryover: Remove KIA members, keep WIA
-            if hasattr(unit, 'squad_ref') and unit.squad_ref is not None:
+            if hasattr(unit, "squad_ref") and unit.squad_ref is not None:
                 squad = unit.squad_ref
                 # Remove dead members from previous battle
                 squad.remove_dead()

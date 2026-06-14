@@ -31,6 +31,7 @@ class Objective:
     instantly captures it — no hold-time required. The enemy must push
     the unit out to recapture.
     """
+
     id: str
     name: str
     position: tuple[int, int]

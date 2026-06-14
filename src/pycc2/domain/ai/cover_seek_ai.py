@@ -58,19 +58,19 @@ logger = logging.getLogger(__name__)
 
 # When to trigger cover seeking
 SUPPRESSION_THRESHOLD: float = 65.0  # HEAVY suppression level
-CONTINUOUS_FIRE_TICKS: int = 15     # Ticks of continuous fire before seeking
+CONTINUOUS_FIRE_TICKS: int = 15  # Ticks of continuous fire before seeking
 
 # Search parameters
-SEARCH_RADIUS: int = 7              # Tiles to search around unit
-MIN_SEARCH_RADIUS: int = 2          # Minimum radius (check close cover first)
-MAX_CANDIDATES: int = 20            # Max tiles to evaluate (performance)
+SEARCH_RADIUS: int = 7  # Tiles to search around unit
+MIN_SEARCH_RADIUS: int = 2  # Minimum radius (check close cover first)
+MAX_CANDIDATES: int = 20  # Max tiles to evaluate (performance)
 
 # Scoring weights (tuned for CC2-authentic behavior)
-COVER_WEIGHT: float = 25.0          # Importance of cover bonus (-1 to +3)
-CONCEAL_WEIGHT: float = 15.0        # Importance of concealment (0.0 to 0.95)
-DISTANCE_PENALTY: float = 2.0       # Cost per tile distance
-LOS_BONUS: float = 30.0             # Bonus for being out of enemy LOS
-OCCUPIED_PENALTY: float = -100.0    # Penalty for occupied tiles
+COVER_WEIGHT: float = 25.0  # Importance of cover bonus (-1 to +3)
+CONCEAL_WEIGHT: float = 15.0  # Importance of concealment (0.0 to 0.95)
+DISTANCE_PENALTY: float = 2.0  # Cost per tile distance
+LOS_BONUS: float = 30.0  # Bonus for being out of enemy LOS
+OCCUPIED_PENALTY: float = -100.0  # Penalty for occupied tiles
 ENEMY_ADJACENT_PENALTY: float = -50.0  # Penalty for tiles next to enemies
 MOVEMENT_COST_PENALTY: float = -10.0  # Penalty per 1.0 movement cost multiplier
 
@@ -79,9 +79,11 @@ MOVEMENT_COST_PENALTY: float = -10.0  # Penalty per 1.0 movement cost multiplier
 # CoverCandidate
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class CoverCandidate:
     """A potential cover position with its evaluation score."""
+
     coord: TileCoord
     score: float
     cover_bonus: int
@@ -92,13 +94,14 @@ class CoverCandidate:
     has_enemy_adjacent: bool
     movement_cost: float
 
-    def __lt__(self, other: "CoverCandidate") -> bool:
+    def __lt__(self, other: CoverCandidate) -> bool:
         return self.score < other.score
 
 
 # ---------------------------------------------------------------------------
 # CoverScoringSystem
 # ---------------------------------------------------------------------------
+
 
 class CoverScoringSystem:
     """
@@ -152,12 +155,12 @@ class CoverScoringSystem:
             return None
 
         # Get candidates
-        candidates = self._get_candidates(
-            unit, enemy_units, friendly_units, search_radius
-        )
+        candidates = self._get_candidates(unit, enemy_units, friendly_units, search_radius)
 
         if not candidates:
-            logger.debug(f"CoverSeek: No valid cover found for unit at ({unit.position_component.x}, {unit.position_component.y})")
+            logger.debug(
+                f"CoverSeek: No valid cover found for unit at ({unit.position_component.x}, {unit.position_component.y})"
+            )
             return None
 
         # Sort by score descending and return best
@@ -233,9 +236,9 @@ class CoverScoringSystem:
                     distance = math.sqrt(dx * dx + dy * dy)
 
                     # Get cover and concealment values
-                    cover_bonus = getattr(tile, 'total_cover_bonus', 0)
-                    concealment = getattr(tile, 'total_concealment', 0.0)
-                    movement_cost = getattr(tile, 'effective_movement_cost', 1.0)
+                    cover_bonus = getattr(tile, "total_cover_bonus", 0)
+                    concealment = getattr(tile, "total_concealment", 0.0)
+                    movement_cost = getattr(tile, "effective_movement_cost", 1.0)
 
                     # Check if passable
                     if movement_cost >= 5.0:  # Impassable
@@ -342,6 +345,7 @@ class CoverScoringSystem:
 # CoverSeekAI
 # ---------------------------------------------------------------------------
 
+
 class CoverSeekAI(TacticalAIBase):
     """
     Evaluates when units should seek cover and generates move orders.
@@ -397,7 +401,7 @@ class CoverSeekAI(TacticalAIBase):
     def _evaluate_unit(self, unit: Unit, context: TacticalContext) -> float:
         """Evaluate single unit's need for cover."""
         # Must be combat-effective
-        if not getattr(unit, 'is_combat_effective', True):
+        if not getattr(unit, "is_combat_effective", True):
             return 0.0
 
         # Check suppression state
@@ -423,7 +427,7 @@ class CoverSeekAI(TacticalAIBase):
             base_priority += 0.15 * (0.5 - hp_ratio) / 0.5
 
         # Boost for continuous fire
-        turns_since_hit = getattr(suppression_state, 'turns_since_last_hit', 0)
+        turns_since_hit = getattr(suppression_state, "turns_since_last_hit", 0)
         if turns_since_hit < self.CONTINUOUS_FIRE_THRESHOLD:
             fire_intensity = 1.0 - (turns_since_hit / self.CONTINUOUS_FIRE_THRESHOLD)
             base_priority += 0.1 * fire_intensity
@@ -489,18 +493,18 @@ class CoverSeekAI(TacticalAIBase):
     def _get_suppression_state(self, unit: Unit) -> SuppressionState | None:
         """Extract suppression state from unit if available."""
         # Try to get from component or attribute
-        if hasattr(unit, 'suppression_state'):
+        if hasattr(unit, "suppression_state"):
             return unit.suppression_state
-        if hasattr(unit, '_suppression_state'):
+        if hasattr(unit, "_suppression_state"):
             return unit._suppression_state
         return None
 
     def _get_hp_ratio(self, unit: Unit) -> float:
         """Get current HP as ratio of max HP."""
-        if hasattr(unit, 'health_component'):
+        if hasattr(unit, "health_component"):
             hc = unit.health_component
-            max_hp = getattr(hc, 'max_hp', None)
-            current_hp = getattr(hc, 'current_hp', None)
+            max_hp = getattr(hc, "max_hp", None)
+            current_hp = getattr(hc, "current_hp", None)
             if max_hp is not None and current_hp is not None:
                 try:
                     if max_hp > 0:
@@ -520,12 +524,12 @@ class CoverSeekAI(TacticalAIBase):
         )
         tile = self._scorer._map.get_tile(pos)
         if tile:
-            return getattr(tile, 'total_cover_bonus', 0)
+            return getattr(tile, "total_cover_bonus", 0)
         return 0
 
     def _is_moving(self, unit: Unit) -> bool:
         """Check if unit is currently moving."""
-        state = getattr(unit, 'state', None)
+        state = getattr(unit, "state", None)
         if state is not None:
-            return str(state).upper() in ('MOVING', 'SPRINTING')
+            return str(state).upper() in ("MOVING", "SPRINTING")
         return False

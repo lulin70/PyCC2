@@ -17,21 +17,22 @@ from enum import Enum, auto
 
 
 class SupplyType(Enum):
-    LAND = auto()      # Via road/rail (XXX Corps or German)
-    AIRDROP = auto()   # Via parachute/glider (requires LZ control)
-    BLOCKED = auto()   # No supply possible
+    LAND = auto()  # Via road/rail (XXX Corps or German)
+    AIRDROP = auto()  # Via parachute/glider (requires LZ control)
+    BLOCKED = auto()  # No supply possible
 
 
 class SupplyLevel(Enum):
-    FULL = auto()      # 100% - normal operations
-    REDUCED = auto()   # 50% - limited ammo/reinforcements
-    MINIMAL = auto()   # 25% - critical shortage
-    NONE = auto()      # 0% - no supply at all
+    FULL = auto()  # 100% - normal operations
+    REDUCED = auto()  # 50% - limited ammo/reinforcements
+    MINIMAL = auto()  # 25% - critical shortage
+    NONE = auto()  # 0% - no supply at all
 
 
 @dataclass
 class SupplyState:
     """Supply state for one sector on one day."""
+
     sector_id: str
     day: int
     supply_type: SupplyType = SupplyType.BLOCKED
@@ -45,9 +46,9 @@ class SupplyState:
     xxx_corps_reached: bool = False
 
     # Supply effects
-    ammo_replenishment_rate: float = 0.0   # 0.0-1.0
-    reinforcement_rate: float = 0.0        # 0.0-1.0
-    morale_recovery_rate: float = 0.0      # 0.0-1.0
+    ammo_replenishment_rate: float = 0.0  # 0.0-1.0
+    reinforcement_rate: float = 0.0  # 0.0-1.0
+    morale_recovery_rate: float = 0.0  # 0.0-1.0
 
     def calculate_supply(self) -> SupplyLevel:
         """Calculate supply level based on conditions."""
@@ -77,13 +78,14 @@ class SupplyState:
 
 class XXXCorpsPosition(Enum):
     """XXX Corps advance positions along Hell's Highway."""
-    START = auto()           # Day 1 start
-    VEGHEL = auto()          # Day 2
-    SON = auto()             # Day 3
-    GRAVE = auto()           # Day 4
-    NIJMEGEN = auto()        # Day 5-6
-    ELST = auto()            # Day 7-8
-    ARNHEM_SOUTH = auto()    # Day 9+ (if they make it)
+
+    START = auto()  # Day 1 start
+    VEGHEL = auto()  # Day 2
+    SON = auto()  # Day 3
+    GRAVE = auto()  # Day 4
+    NIJMEGEN = auto()  # Day 5-6
+    ELST = auto()  # Day 7-8
+    ARNHEM_SOUTH = auto()  # Day 9+ (if they make it)
 
 
 # XXX Corps advance timeline (historical)
@@ -120,7 +122,7 @@ class SupplyLineManager:
     xxx_corps_position: XXXCorpsPosition = XXXCorpsPosition.START
 
     # Priority sector chosen by player
-    priority_sector: str = 'arnhem'
+    priority_sector: str = "arnhem"
 
     def advance_day(self) -> None:
         """Advance to next day, update XXX Corps position and supply."""
@@ -142,13 +144,17 @@ class SupplyLineManager:
             # (handled separately - this is Allied supply)
 
             # Check XXX Corps connection
-            if sector_id == 'eindhoven':
+            if sector_id == "eindhoven":
                 supply.xxx_corps_reached = self.current_day >= 2
-                supply.supply_type = SupplyType.LAND if supply.xxx_corps_reached else SupplyType.AIRDROP
-            elif sector_id == 'nijmegen':
+                supply.supply_type = (
+                    SupplyType.LAND if supply.xxx_corps_reached else SupplyType.AIRDROP
+                )
+            elif sector_id == "nijmegen":
                 supply.xxx_corps_reached = self.current_day >= 5
-                supply.supply_type = SupplyType.LAND if supply.xxx_corps_reached else SupplyType.AIRDROP
-            elif sector_id == 'arnhem':
+                supply.supply_type = (
+                    SupplyType.LAND if supply.xxx_corps_reached else SupplyType.AIRDROP
+                )
+            elif sector_id == "arnhem":
                 supply.xxx_corps_reached = self.current_day >= 9
                 supply.supply_type = SupplyType.AIRDROP  # Never gets land supply historically
 
@@ -186,24 +192,30 @@ class SupplyLineManager:
         )
 
     @classmethod
-    def create_default(cls) -> 'SupplyLineManager':
+    def create_default(cls) -> "SupplyLineManager":
         """Create default Market Garden supply configuration."""
         manager = cls()
         manager.sector_supply = {
-            'arnhem': SupplyState(
-                sector_id='arnhem', day=1,
+            "arnhem": SupplyState(
+                sector_id="arnhem",
+                day=1,
                 supply_type=SupplyType.AIRDROP,
-                lz_controlled=True, lz_name='LZ-S/DZ-X',
+                lz_controlled=True,
+                lz_name="LZ-S/DZ-X",
             ),
-            'nijmegen': SupplyState(
-                sector_id='nijmegen', day=1,
+            "nijmegen": SupplyState(
+                sector_id="nijmegen",
+                day=1,
                 supply_type=SupplyType.AIRDROP,
-                lz_controlled=True, lz_name='LZ-T',
+                lz_controlled=True,
+                lz_name="LZ-T",
             ),
-            'eindhoven': SupplyState(
-                sector_id='eindhoven', day=1,
+            "eindhoven": SupplyState(
+                sector_id="eindhoven",
+                day=1,
                 supply_type=SupplyType.AIRDROP,
-                lz_controlled=True, lz_name='LZ-W',
+                lz_controlled=True,
+                lz_name="LZ-W",
             ),
         }
         for supply in manager.sector_supply.values():

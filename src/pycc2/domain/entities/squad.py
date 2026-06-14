@@ -12,7 +12,7 @@ CC2 Original Features (from screenshot analysis):
 Example from CC2 screenshots:
 ┌─────────────────────────────────────┐
 │ [👤👤👤] Ness        Hide  G1    │  ← 3-man rifle squad
-│ [👤👤👤👤] Robbers    Hide  G2    │  ← 4-man squad  
+│ [👤👤👤👤] Robbers    Hide  G2    │  ← 4-man squad
 │ [👤👤👤👤👤] Golf      Wait  G1    │  ← 5-man squad (1 pinned)
 │ [👤👤]   Devotion    Hide  G3    │  ← 2-man squad (casualties!)
 └─────────────────────────────────────┘
@@ -24,27 +24,104 @@ Key Mechanics:
 4. Experience affects accuracy, morale recovery, and leadership
 """
 
-from enum import Enum
-from dataclasses import dataclass, field
 import random
-
+from dataclasses import dataclass, field
+from enum import Enum
 
 # WWII soldier name generator
 _ALLIED_FIRST_NAMES = [
-    "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Wilson", "Moore",
-    "Taylor", "Anderson", "Thomas", "Jackson", "White", "Harris", "Martin", "Thompson",
-    "Garcia", "Martinez", "Robinson", "Clark", "Rodriguez", "Lewis", "Lee", "Walker",
-    "Hall", "Allen", "Young", "King", "Wright", "Scott", "Green", "Adams", "Baker",
-    "Nelson", "Carter", "Mitchell", "Perez", "Roberts", "Turner", "Phillips", "Campbell",
-    "Parker", "Evans", "Edwards", "Collins", "Stewart", "Sanchez", "Morris", "Rogers"
+    "Johnson",
+    "Williams",
+    "Brown",
+    "Jones",
+    "Miller",
+    "Davis",
+    "Wilson",
+    "Moore",
+    "Taylor",
+    "Anderson",
+    "Thomas",
+    "Jackson",
+    "White",
+    "Harris",
+    "Martin",
+    "Thompson",
+    "Garcia",
+    "Martinez",
+    "Robinson",
+    "Clark",
+    "Rodriguez",
+    "Lewis",
+    "Lee",
+    "Walker",
+    "Hall",
+    "Allen",
+    "Young",
+    "King",
+    "Wright",
+    "Scott",
+    "Green",
+    "Adams",
+    "Baker",
+    "Nelson",
+    "Carter",
+    "Mitchell",
+    "Perez",
+    "Roberts",
+    "Turner",
+    "Phillips",
+    "Campbell",
+    "Parker",
+    "Evans",
+    "Edwards",
+    "Collins",
+    "Stewart",
+    "Sanchez",
+    "Morris",
+    "Rogers",
 ]
 
 _AXIS_FIRST_NAMES = [
-    "Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker",
-    "Schulz", "Hoffmann", "Koch", "Bauer", "Richter", "Klein", "Wolf", "Schröder",
-    "Neumann", "Schwarz", "Braun", "Zimmermann", "Krüger", "Hartmann", "Lange", "Werner",
-    "Krause", "Lehmann", "Schäfer", "Köhler", "Herrmann", "König", "Walter", "Mayer",
-    "Huber", "Kaiser", "Fuchs", "Peters", "Lang", "Scholz", "Möller", "Weiß"
+    "Müller",
+    "Schmidt",
+    "Schneider",
+    "Fischer",
+    "Weber",
+    "Meyer",
+    "Wagner",
+    "Becker",
+    "Schulz",
+    "Hoffmann",
+    "Koch",
+    "Bauer",
+    "Richter",
+    "Klein",
+    "Wolf",
+    "Schröder",
+    "Neumann",
+    "Schwarz",
+    "Braun",
+    "Zimmermann",
+    "Krüger",
+    "Hartmann",
+    "Lange",
+    "Werner",
+    "Krause",
+    "Lehmann",
+    "Schäfer",
+    "Köhler",
+    "Herrmann",
+    "König",
+    "Walter",
+    "Mayer",
+    "Huber",
+    "Kaiser",
+    "Fuchs",
+    "Peters",
+    "Lang",
+    "Scholz",
+    "Möller",
+    "Weiß",
 ]
 
 _RANKS = {
@@ -73,10 +150,11 @@ _RANKS = {
 
 class MemberState(Enum):
     """Individual soldier state in CC2."""
-    HEALTHY = "healthy"       # Full combat capability
-    WOUNDED = "wounded"       # Reduced capability (50% effectiveness)
-    PINNED = "pinned"         # Cannot move/shoot (suppressed)
-    DEAD = "dead"             # Permanent loss
+
+    HEALTHY = "healthy"  # Full combat capability
+    WOUNDED = "wounded"  # Reduced capability (50% effectiveness)
+    PINNED = "pinned"  # Cannot move/shoot (suppressed)
+    DEAD = "dead"  # Permanent loss
     SURRENDERED = "surrendered"  # Captured (removed from squad)
 
 
@@ -92,6 +170,7 @@ class SquadMember:
         role: Specialization (rifleman/mg/AT/officer/etc.)
         name: Personal name (e.g., "Pvt. Johnson", "Cpl. Müller")
     """
+
     member_id: str
     state: MemberState = MemberState.HEALTHY
     experience: int = 0
@@ -136,13 +215,14 @@ class SquadMember:
 
 class SquadType(Enum):
     """Types of squads in CC2."""
-    RIFLE_SQUAD = "rifle_squad"           # 9-12 men (US) / 10 men (DE)
-    MG_TEAM = "mg_team"                   # 4-6 men (machine gun)
-    AT_TEAM = "at_team"                   # 4-5 men (anti-tank)
-    MORTAR_TEAM = "mortar_team"           # 4-6 men (mortar)
-    SNIPER_TEAM = "sniper_team"           # 2-3 men (sniper + spotter)
-    OFFICER_TEAM = "officer_team"         # 2-4 men (command)
-    VEHICLE_CREW = "vehicle_crew"         # 4-5 men (tank/vehicle crew)
+
+    RIFLE_SQUAD = "rifle_squad"  # 9-12 men (US) / 10 men (DE)
+    MG_TEAM = "mg_team"  # 4-6 men (machine gun)
+    AT_TEAM = "at_team"  # 4-5 men (anti-tank)
+    MORTAR_TEAM = "mortar_team"  # 4-6 men (mortar)
+    SNIPER_TEAM = "sniper_team"  # 2-3 men (sniper + spotter)
+    OFFICER_TEAM = "officer_team"  # 2-4 men (command)
+    VEHICLE_CREW = "vehicle_crew"  # 4-5 men (tank/vehicle crew)
 
 
 @dataclass
@@ -159,6 +239,7 @@ class Squad:
         members: List of individual soldiers
         name: Display name (e.g., "Ness", "Robbers", "Golf")
     """
+
     squad_id: str
     squad_type: SquadType
     faction: str  # "allies" or "axis"
@@ -191,10 +272,9 @@ class Squad:
         - hard: 0-15 XP per member
         - veteran: 30-50 XP per member
         """
-        base_size = self.INITIAL_SIZES.get(
-            self.squad_type,
-            {"allies": 8, "axis": 8}
-        ).get(self.faction, 8)
+        base_size = self.INITIAL_SIZES.get(self.squad_type, {"allies": 8, "axis": 8}).get(
+            self.faction, 8
+        )
 
         # XP range based on difficulty
         xp_ranges = {
@@ -227,32 +307,55 @@ class Squad:
     def _get_role_distribution(self) -> list[str]:
         """Get role distribution for this squad type."""
         role_maps = {
-            SquadType.RIFLE_SQUAD: ["rifleman", "rifleman", "rifleman",
-                                     "rifleman", "grenadier", "team_leader"],
-            SquadType.MG_TEAM: ["mg_gunner", "mg_assistant", "ammo_bearer",
-                               "rifleman", "team_leader"],
-            SquadType.AT_TEAM: ["at_gunner", "at_assistant", "rifleman",
-                              "rifleman", "team_leader"],
-            SquadType.MORTAR_TEAM: ["mortar_gunner", "ammo_bearer",
-                                   "rifleman", "rifleman", "team_leader"],
+            SquadType.RIFLE_SQUAD: [
+                "rifleman",
+                "rifleman",
+                "rifleman",
+                "rifleman",
+                "grenadier",
+                "team_leader",
+            ],
+            SquadType.MG_TEAM: [
+                "mg_gunner",
+                "mg_assistant",
+                "ammo_bearer",
+                "rifleman",
+                "team_leader",
+            ],
+            SquadType.AT_TEAM: ["at_gunner", "at_assistant", "rifleman", "rifleman", "team_leader"],
+            SquadType.MORTAR_TEAM: [
+                "mortar_gunner",
+                "ammo_bearer",
+                "rifleman",
+                "rifleman",
+                "team_leader",
+            ],
             SquadType.SNIPER_TEAM: ["sniper", "spotter"],
             SquadType.OFFICER_TEAM: ["officer", "radioman", "runner"],
-            SquadType.VEHICLE_CREW: ["commander", "gunner", "loader",
-                                    "driver", "assistant_driver"],
+            SquadType.VEHICLE_CREW: ["commander", "gunner", "loader", "driver", "assistant_driver"],
         }
         return role_maps.get(self.squad_type, ["rifleman"])
 
     def _generate_random_name(self) -> str:
         """Generate a random squad name (like CC2's "Ness", "Robbers")."""
         prefixes = [
-            "Alpha", "Bravo", "Charlie", "Delta", "Echo",
-            "Ness", "Robbers", "Golf", "Devotion", "Vengeance",
-            "Iron", "Steel", "Thunder", "Lightning", "Storm"
+            "Alpha",
+            "Bravo",
+            "Charlie",
+            "Delta",
+            "Echo",
+            "Ness",
+            "Robbers",
+            "Golf",
+            "Devotion",
+            "Vengeance",
+            "Iron",
+            "Steel",
+            "Thunder",
+            "Lightning",
+            "Storm",
         ]
-        suffixes = [
-            "", " One", " Two", " Prime", " Squad",
-            " Team", " Element", " Section"
-        ]
+        suffixes = ["", " One", " Two", " Prime", " Squad", " Team", " Element", " Section"]
         return random.choice(prefixes) + random.choice(suffixes)
 
     def _generate_soldier_name(self, role: str) -> str:
@@ -279,8 +382,7 @@ class Squad:
     @property
     def alive_count(self) -> int:
         """Number of living members (healthy + wounded)."""
-        return sum(1 for m in self.members
-                   if m.state in [MemberState.HEALTHY, MemberState.WOUNDED])
+        return sum(1 for m in self.members if m.state in [MemberState.HEALTHY, MemberState.WOUNDED])
 
     @property
     def healthy_count(self) -> int:
@@ -332,13 +434,13 @@ class Squad:
             return "destroyed"
         ratio = self.alive_count / self.size
         if ratio > 0.8:
-            return "good"      # < 20% casualties
+            return "good"  # < 20% casualties
         elif ratio > 0.5:
-            return "shaken"    # 20-50% casualties
+            return "shaken"  # 20-50% casualties
         elif ratio > 0.25:
-            return "broken"    # 50-75% casualties
+            return "broken"  # 50-75% casualties
         else:
-            return "routing"   # > 75% casualties
+            return "routing"  # > 75% casualties
 
     # === Combat Actions ===
 
@@ -399,7 +501,7 @@ class Squad:
             if member.is_combat_effective:
                 old_xp = member.experience
                 member.gain_experience(xp_per_member)
-                self.total_experience_earned += (member.experience - old_xp)
+                self.total_experience_earned += member.experience - old_xp
 
     # === Reinforcement (Between Battles) ===
 
@@ -420,7 +522,7 @@ class Squad:
         xp_min, xp_max = xp_ranges.get(difficulty, (10, 25))
         roles = self._get_role_distribution()
 
-        for i in range(num_reinforcements):
+        for _i in range(num_reinforcements):
             role = roles[len(self.members) % len(roles)] if roles else "rifleman"
             new_member = SquadMember(
                 member_id=f"{self.squad_id}_reinforce_{len(self.members)}",
@@ -462,7 +564,7 @@ class Squad:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> 'Squad':
+    def from_dict(cls, data: dict) -> "Squad":
         """Recreate squad from dictionary."""
         squad = cls(
             squad_id=data["squad_id"],
@@ -504,9 +606,8 @@ class Squad:
 
     def get_experience_grade(self) -> str:
         """Get experience grade letter (G1-G5 like CC2)."""
-        avg_exp = (
-            sum(m.experience for m in self.members if m.is_combat_effective)
-            / max(1, self.alive_count)
+        avg_exp = sum(m.experience for m in self.members if m.is_combat_effective) / max(
+            1, self.alive_count
         )
         if avg_exp >= 80:
             return "G5"
@@ -520,6 +621,8 @@ class Squad:
             return "G1"
 
     def __repr__(self) -> str:
-        return (f"Squad({self.name}, {self.squad_type.value}, "
-                f"{self.alive_count}/{self.size} alive, "
-                f"eff={self.combat_effectiveness:.0%})")
+        return (
+            f"Squad({self.name}, {self.squad_type.value}, "
+            f"{self.alive_count}/{self.size} alive, "
+            f"eff={self.combat_effectiveness:.0%})"
+        )

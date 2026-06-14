@@ -12,9 +12,10 @@ Integrates with existing ShadowRenderingSystem and LightingEffectsSystem.
 """
 
 import math
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import pygame
+
 from pycc2.presentation.rendering.surface_pool import SurfacePool
 
 if TYPE_CHECKING:
@@ -34,8 +35,8 @@ class DynamicShadowSystem:
     def __init__(self, tile_size: int = 48):
         self.TILE_SIZE = tile_size
         self._time_of_day: float = 0.5
-        self._shadow_surface: Optional[pygame.Surface] = None
-        self._cached_size: Optional[Tuple[int, int]] = None
+        self._shadow_surface: pygame.Surface | None = None
+        self._cached_size: tuple[int, int] | None = None
         self._surface_pool = SurfacePool(max_size=20)
 
     def _get_pooled_surface(self, w: int, h: int) -> pygame.Surface:
@@ -47,7 +48,7 @@ class DynamicShadowSystem:
         """Set time of day (0.0=midnight, 0.25=dawn, 0.5=noon, 0.75=dusk)."""
         self._time_of_day = max(0.0, min(1.0, tod))
 
-    def get_shadow_direction(self) -> Tuple[float, float]:
+    def get_shadow_direction(self) -> tuple[float, float]:
         """Calculate shadow direction based on sun position."""
         sun_angle = self._time_of_day * 2 * math.pi
         dx = math.cos(sun_angle)
@@ -136,7 +137,10 @@ class DynamicShadowSystem:
 
         shadow_surf = self._get_pooled_surface(ellipse_w, ellipse_h)
         pygame.draw.ellipse(shadow_surf, (0, 0, 0, alpha), (0, 0, ellipse_w, ellipse_h))
-        surface.blit(shadow_surf, (screen_x + offset_x - ellipse_w // 2, screen_y + offset_y - ellipse_h // 2))
+        surface.blit(
+            shadow_surf,
+            (screen_x + offset_x - ellipse_w // 2, screen_y + offset_y - ellipse_h // 2),
+        )
 
     def render_unit_shadow(
         self,
@@ -152,10 +156,7 @@ class DynamicShadowSystem:
         length_mult = self.get_shadow_length_multiplier()
         alpha = self.get_shadow_alpha()
 
-        if is_vehicle:
-            shadow_size = max(unit_width, unit_height)
-        else:
-            shadow_size = min(unit_width, unit_height)
+        shadow_size = max(unit_width, unit_height) if is_vehicle else min(unit_width, unit_height)
 
         offset_x = int(dx * shadow_size * length_mult * 0.3)
         offset_y = int(dy * shadow_size * length_mult * 0.3)

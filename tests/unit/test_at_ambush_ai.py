@@ -22,6 +22,7 @@ from pycc2.domain.value_objects.tile_coord import TileCoord
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_unit(
     uid: str = "u1",
     faction: Faction = Faction.ALLIES,
@@ -51,9 +52,7 @@ def _make_map(w: int = 40, h: int = 30) -> GameMap:
     return GameMap(id="test", name="test", width=w, height=h, tile_grid=grid)
 
 
-def _make_map_with_woods(
-    woods_x: int = 10, woods_y: int = 10, w: int = 40, h: int = 30
-) -> GameMap:
+def _make_map_with_woods(woods_x: int = 10, woods_y: int = 10, w: int = 40, h: int = 30) -> GameMap:
     grid = np.zeros((h, w), dtype=np.int8)
     grid[woods_y, woods_x] = TerrainType.WOODS
     return GameMap(id="test", name="test_woods", width=w, height=h, tile_grid=grid)
@@ -90,6 +89,7 @@ def _make_context(
 # Test: evaluate — no enemy armor
 # ---------------------------------------------------------------------------
 
+
 class TestEvaluateNoEnemyArmor:
     def test_returns_zero_when_no_enemies(self):
         ai = ATAmbushAI()
@@ -109,6 +109,7 @@ class TestEvaluateNoEnemyArmor:
 # Test: evaluate — no AT units
 # ---------------------------------------------------------------------------
 
+
 class TestEvaluateNoATUnits:
     def test_returns_zero_when_no_friendly_units(self):
         ai = ATAmbushAI()
@@ -127,6 +128,7 @@ class TestEvaluateNoATUnits:
 # ---------------------------------------------------------------------------
 # Test: evaluate — high score when tanks are close
 # ---------------------------------------------------------------------------
+
 
 class TestEvaluateProximity:
     def test_high_score_when_tanks_close(self):
@@ -159,6 +161,7 @@ class TestEvaluateProximity:
 # Test: evaluate — engagement penalty
 # ---------------------------------------------------------------------------
 
+
 class TestEvaluateEngagementPenalty:
     def test_engaged_at_units_lower_score(self):
         ai = ATAmbushAI()
@@ -182,6 +185,7 @@ class TestEvaluateEngagementPenalty:
 # Test: _find_at_units
 # ---------------------------------------------------------------------------
 
+
 class TestFindATUnits:
     def test_finds_at_gun_team(self):
         ai = ATAmbushAI()
@@ -193,9 +197,7 @@ class TestFindATUnits:
 
     def test_finds_infantry_with_at_weapon(self):
         ai = ATAmbushAI()
-        inf_with_piat = _make_unit(
-            "inf_at", unit_type=UnitType.INFANTRY_SQUAD, weapon_id="piat"
-        )
+        inf_with_piat = _make_unit("inf_at", unit_type=UnitType.INFANTRY_SQUAD, weapon_id="piat")
         ctx = _make_context(friendly=[inf_with_piat])
         result = ai._find_at_units(ctx)
         assert len(result) == 1
@@ -227,6 +229,7 @@ class TestFindATUnits:
 # Test: _find_enemy_armor
 # ---------------------------------------------------------------------------
 
+
 class TestFindEnemyArmor:
     def test_finds_tanks(self):
         ai = ATAmbushAI()
@@ -238,18 +241,14 @@ class TestFindEnemyArmor:
 
     def test_excludes_dead_tanks(self):
         ai = ATAmbushAI()
-        dead_tank = _make_unit(
-            "dead_tank", faction=Faction.AXIS, unit_type=UnitType.TANK, hp=0
-        )
+        dead_tank = _make_unit("dead_tank", faction=Faction.AXIS, unit_type=UnitType.TANK, hp=0)
         ctx = _make_context(enemy=[dead_tank])
         result = ai._find_enemy_armor(ctx)
         assert len(result) == 0
 
     def test_excludes_infantry(self):
         ai = ATAmbushAI()
-        enemy_inf = _make_unit(
-            "e_inf", faction=Faction.AXIS, unit_type=UnitType.INFANTRY_SQUAD
-        )
+        enemy_inf = _make_unit("e_inf", faction=Faction.AXIS, unit_type=UnitType.INFANTRY_SQUAD)
         ctx = _make_context(enemy=[enemy_inf])
         result = ai._find_enemy_armor(ctx)
         assert len(result) == 0
@@ -268,6 +267,7 @@ class TestFindEnemyArmor:
 # ---------------------------------------------------------------------------
 # Test: _predict_tank_route
 # ---------------------------------------------------------------------------
+
 
 class TestPredictTankRoute:
     def test_returns_list_of_coords(self):
@@ -304,6 +304,7 @@ class TestPredictTankRoute:
 # ---------------------------------------------------------------------------
 # Test: _find_ambush_position
 # ---------------------------------------------------------------------------
+
 
 class TestFindAmbushPosition:
     def test_returns_none_for_empty_route(self):
@@ -344,6 +345,7 @@ class TestFindAmbushPosition:
 # Test: _is_in_ambush_position
 # ---------------------------------------------------------------------------
 
+
 class TestIsInAmbushPosition:
     def test_in_woods_is_ambush(self):
         ai = ATAmbushAI()
@@ -372,6 +374,7 @@ class TestIsInAmbushPosition:
 # ---------------------------------------------------------------------------
 # Test: _effective_at_range
 # ---------------------------------------------------------------------------
+
 
 class TestEffectiveATRange:
     def test_piat_range(self):
@@ -409,6 +412,7 @@ class TestEffectiveATRange:
 # Test: execute — positioning AT units in ambush
 # ---------------------------------------------------------------------------
 
+
 class TestExecutePositioning:
     def test_at_unit_in_ambush_holds_position(self):
         ai = ATAmbushAI()
@@ -437,6 +441,7 @@ class TestExecutePositioning:
 # Test: execute — holds fire until tanks in range
 # ---------------------------------------------------------------------------
 
+
 class TestExecuteHoldFire:
     def test_holds_fire_when_tank_out_of_range(self):
         ai = ATAmbushAI()
@@ -448,8 +453,7 @@ class TestExecuteHoldFire:
         intents = ai.execute(ctx)
         # Should NOT have an ATTACK intent since tank is out of range
         attack_intents = [
-            i for i in intents
-            if i.unit_id == "at1" and i.tactic_type == TacticType.ATTACK
+            i for i in intents if i.unit_id == "at1" and i.tactic_type == TacticType.ATTACK
         ]
         assert len(attack_intents) == 0
 
@@ -463,8 +467,7 @@ class TestExecuteHoldFire:
         intents = ai.execute(ctx)
         # Should have an ATTACK intent
         attack_intents = [
-            i for i in intents
-            if i.unit_id == "at1" and i.tactic_type == TacticType.ATTACK
+            i for i in intents if i.unit_id == "at1" and i.tactic_type == TacticType.ATTACK
         ]
         assert len(attack_intents) == 1
         assert attack_intents[0].target_unit_id == "tank1"
@@ -473,6 +476,7 @@ class TestExecuteHoldFire:
 # ---------------------------------------------------------------------------
 # Test: execute — empty context
 # ---------------------------------------------------------------------------
+
 
 class TestExecuteEmptyContext:
     def test_no_intents_with_no_at_units(self):
@@ -495,6 +499,7 @@ class TestExecuteEmptyContext:
 # Test: execute — reposition after firing
 # ---------------------------------------------------------------------------
 
+
 class TestExecuteReposition:
     def test_reposition_when_no_concealment_after_firing(self):
         ai = ATAmbushAI()
@@ -513,6 +518,7 @@ class TestExecuteReposition:
 # ---------------------------------------------------------------------------
 # Test: execute — multiple AT units
 # ---------------------------------------------------------------------------
+
 
 class TestExecuteMultipleATUnits:
     def test_each_at_unit_gets_intent(self):
@@ -533,17 +539,14 @@ class TestExecuteMultipleATUnits:
 # Test: _best_target_for
 # ---------------------------------------------------------------------------
 
+
 class TestBestTargetFor:
     def test_selects_closest_tank_with_los(self):
         ai = ATAmbushAI()
         gm = _make_map()
         at_unit = _make_unit("at1", unit_type=UnitType.AT_GUN_TEAM, x=10, y=10)
-        tank_close = _make_unit(
-            "close", faction=Faction.AXIS, unit_type=UnitType.TANK, x=15, y=10
-        )
-        tank_far = _make_unit(
-            "far", faction=Faction.AXIS, unit_type=UnitType.TANK, x=30, y=10
-        )
+        tank_close = _make_unit("close", faction=Faction.AXIS, unit_type=UnitType.TANK, x=15, y=10)
+        tank_far = _make_unit("far", faction=Faction.AXIS, unit_type=UnitType.TANK, x=30, y=10)
         ctx = _make_context(friendly=[at_unit], enemy=[tank_close, tank_far], game_map=gm)
         best = ai._best_target_for(at_unit, [tank_close, tank_far], ctx)
         assert best is not None
@@ -553,9 +556,7 @@ class TestBestTargetFor:
         ai = ATAmbushAI()
         gm = _make_map()
         at_unit = _make_unit("at1", unit_type=UnitType.AT_GUN_TEAM, x=10, y=10)
-        tank = _make_unit(
-            "tank1", faction=Faction.AXIS, unit_type=UnitType.TANK, x=30, y=10
-        )
+        tank = _make_unit("tank1", faction=Faction.AXIS, unit_type=UnitType.TANK, x=30, y=10)
         ctx = _make_context(friendly=[at_unit], enemy=[tank], game_map=gm)
         best = ai._best_target_for(at_unit, [tank], ctx)
         assert best is not None

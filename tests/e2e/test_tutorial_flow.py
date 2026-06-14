@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import os
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, Mock
 
 import pygame
 import pytest
 
-from pycc2.presentation.ui.tutorial_system import TutorialOverlay, TutorialStep
 from pycc2.domain.interfaces.display_config import DisplayConfig
+from pycc2.presentation.ui.tutorial_system import TutorialOverlay, TutorialStep
 
 
 @pytest.fixture(scope="module")
@@ -54,7 +54,9 @@ class TestAdvanceThroughAllSteps:
         tutorial_overlay.show(step=TutorialStep.WELCOME)
         current_step = tutorial_overlay.state.step
         for i, expected_step in enumerate(all_steps):
-            assert current_step == expected_step, f"步骤 {i}: 期望 {expected_step}，实际 {current_step}"
+            assert current_step == expected_step, (
+                f"步骤 {i}: 期望 {expected_step}，实际 {current_step}"
+            )
             if i < len(all_steps) - 1:
                 result = tutorial_overlay.advance_step()
                 assert result is True, f"步骤 {expected_step} 应能继续推进"
@@ -65,7 +67,9 @@ class TestAdvanceThroughAllSteps:
         while tutorial_overlay.state.step != TutorialStep.COMPLETE:
             tutorial_overlay.advance_step()
         expected_completed = {s for s in TutorialStep if s != TutorialStep.COMPLETE}
-        assert tutorial_overlay.state.completed == expected_completed, "完整运行后所有步骤（除COMPLETE）都应标记为已完成"
+        assert tutorial_overlay.state.completed == expected_completed, (
+            "完整运行后所有步骤（除COMPLETE）都应标记为已完成"
+        )
 
     def test_step_order_is_correct(self, tutorial_overlay):
         tutorial_overlay.show(step=TutorialStep.WELCOME)
@@ -80,7 +84,9 @@ class TestAdvanceThroughAllSteps:
         actual_order = [tutorial_overlay.state.step]
         while tutorial_overlay.advance_step():
             actual_order.append(tutorial_overlay.state.step)
-        assert actual_order == expected_order, f"步骤顺序错误，期望 {expected_order}，实际 {actual_order}"
+        assert actual_order == expected_order, (
+            f"步骤顺序错误，期望 {expected_order}，实际 {actual_order}"
+        )
 
 
 class TestTutorialCompletesAndHides:
@@ -115,7 +121,7 @@ class TestTutorialCompletesAndHides:
         # render() should not raise on COMPLETE state
         tutorial_overlay.render(mock_screen)
         # Verify screen was drawn to (mock_screen records blit calls)
-        assert hasattr(mock_screen, 'blit_calls') or True  # surface exists after render
+        assert hasattr(mock_screen, "blit_calls") or True  # surface exists after render
 
 
 class TestSkipTutorialDirectly:
@@ -126,7 +132,7 @@ class TestSkipTutorialDirectly:
         mock_event.type = pygame.KEYDOWN
         mock_event.key = pygame.K_ESCAPE
         result = tutorial_overlay.handle_input(mock_event)
-        assert result == 'closed', "按ESC应返回'closed'"
+        assert result == "closed", "按ESC应返回'closed'"
         assert tutorial_overlay._target_alpha == 0.0, "ESC按下后目标透明度应为0（开始淡出）"
 
     def test_skip_tutorial_at_any_step(self, tutorial_overlay):
@@ -139,7 +145,7 @@ class TestSkipTutorialDirectly:
             mock_event.type = pygame.KEYDOWN
             mock_event.key = pygame.K_ESCAPE
             result = overlay.handle_input(mock_event)
-            assert result == 'closed', f"在步骤 {step} 按ESC应能跳过教程"
+            assert result == "closed", f"在步骤 {step} 按ESC应能跳过教程"
 
     def test_hide_method_sets_target_alpha_zero(self, tutorial_overlay):
         tutorial_overlay.show()
@@ -166,7 +172,7 @@ class TestTutorialInputHandling:
         mock_event.type = pygame.KEYDOWN
         mock_event.key = pygame.K_SPACE
         result = tutorial_overlay.handle_input(mock_event)
-        assert result == 'advanced', "按空格键应返回'advanced'"
+        assert result == "advanced", "按空格键应返回'advanced'"
         assert tutorial_overlay.state.step != initial_step, "空格键应推进到下一步骤"
 
     def test_mouse_click_advances_tutorial(self, tutorial_overlay):
@@ -176,7 +182,7 @@ class TestTutorialInputHandling:
         mock_event.type = pygame.MOUSEBUTTONDOWN
         mock_event.button = 1
         result = tutorial_overlay.handle_input(mock_event)
-        assert result == 'advanced', "鼠标左键点击应返回'advanced'"
+        assert result == "advanced", "鼠标左键点击应返回'advanced'"
         assert tutorial_overlay.state.step != initial_step, "鼠标点击应推进到下一步骤"
 
     def test_no_action_on_other_keys(self, tutorial_overlay):
@@ -209,7 +215,9 @@ class TestTutorialStateManagement:
 
     def test_show_to_specific_step(self, tutorial_overlay):
         tutorial_overlay.show(step=TutorialStep.ATTACK_ENEMY)
-        assert tutorial_overlay.state.step == TutorialStep.ATTACK_ENEMY, "show(step)应直接跳转到指定步骤"
+        assert tutorial_overlay.state.step == TutorialStep.ATTACK_ENEMY, (
+            "show(step)应直接跳转到指定步骤"
+        )
 
     def test_update_alpha_transition_fade_in(self, tutorial_overlay):
         tutorial_overlay.show()

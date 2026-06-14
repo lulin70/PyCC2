@@ -158,7 +158,9 @@ def camera():
 
 
 @pytest.fixture
-def full_combat_state(combat_map, ally_infantry, enemy_infantry, weak_enemy, ally_commander, enemy_commander, camera):
+def full_combat_state(
+    combat_map, ally_infantry, enemy_infantry, weak_enemy, ally_commander, enemy_commander, camera
+):
     units = [ally_infantry, enemy_infantry, weak_enemy, ally_commander, enemy_commander]
     return GameState(
         game_map=combat_map,
@@ -229,7 +231,9 @@ class TestUnitDeathAfterZeroHP:
             combat_game_loop._update_logic(1.0 / 30.0)
             if not weak_enemy.is_alive or weak_enemy.health.hp <= 0:
                 break
-        assert weak_enemy.is_alive is False or weak_enemy.health.hp <= 0, "单位HP降到0后应进入死亡状态"
+        assert weak_enemy.is_alive is False or weak_enemy.health.hp <= 0, (
+            "单位HP降到0后应进入死亡状态"
+        )
 
 
 class TestVictoryWhenAllEnemiesEliminated:
@@ -269,7 +273,9 @@ class TestDefeatWhenCommanderKilled:
 
 
 class TestForceMoraleCollapseCausesRout:
-    def test_force_morale_collapse_causes_rout(self, combat_game_loop, enemy_infantry, weak_enemy, enemy_commander):
+    def test_force_morale_collapse_causes_rout(
+        self, combat_game_loop, enemy_infantry, weak_enemy, enemy_commander
+    ):
         evaluator = VictoryConditionEvaluator(
             conditions=[VictoryConditionType.FORCE_MORALE_COLLAPSE],
             force_morale_threshold=15,
@@ -291,11 +297,15 @@ class TestForceMoraleCollapseCausesRout:
             game_map=combat_game_loop.state.game_map,
             dt=1.0 / 30.0,
         )
-        assert enemy_infantry.morale.value <= enemy_infantry.morale.panic_threshold, "低士气单位应处于恐慌状态"
+        assert enemy_infantry.morale.value <= enemy_infantry.morale.panic_threshold, (
+            "低士气单位应处于恐慌状态"
+        )
 
 
 class TestCombatDirectorIntegration:
-    def test_director_processes_attack_command(self, combat_director, combat_map, ally_infantry, enemy_infantry):
+    def test_director_processes_attack_command(
+        self, combat_director, combat_map, ally_infantry, enemy_infantry
+    ):
         units = [ally_infantry, enemy_infantry]
         combat_director.set_context(units, combat_map)
         initial_hp = enemy_infantry.health.hp
@@ -309,9 +319,13 @@ class TestCombatDirectorIntegration:
                 units=units,
                 game_map=combat_map,
             )
-        assert enemy_infantry.health.hp <= initial_hp, "战斗导演应正确处理攻击命令（可能未命中或造成伤害）"
+        assert enemy_infantry.health.hp <= initial_hp, (
+            "战斗导演应正确处理攻击命令（可能未命中或造成伤害）"
+        )
 
-    def test_director_records_battle_stats_on_kill(self, combat_director, combat_map, ally_infantry, weak_enemy):
+    def test_director_records_battle_stats_on_kill(
+        self, combat_director, combat_map, ally_infantry, weak_enemy
+    ):
         units = [ally_infantry, weak_enemy]
         combat_director.set_context(units, combat_map)
         stats = BattleStats()
@@ -329,7 +343,9 @@ class TestCombatDirectorIntegration:
         if not weak_enemy.is_alive:
             assert stats.axis_units_lost >= 1, "击杀敌军后战斗统计应记录轴心国损失"
 
-    def test_friendly_fire_prevented(self, combat_director, combat_map, ally_infantry, ally_commander):
+    def test_friendly_fire_prevented(
+        self, combat_director, combat_map, ally_infantry, ally_commander
+    ):
         units = [ally_infantry, ally_commander]
         combat_director.set_context(units, combat_map)
         initial_hp = ally_commander.health.hp

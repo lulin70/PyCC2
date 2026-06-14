@@ -32,16 +32,17 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 from .enhanced_tile import (
-    EnhancedTile,
-    DecorationType,
     DecorationInstance,
     DecorationLibrary,
+    DecorationType,
+    EnhancedTile,
     TileConverter,
 )
 
 
 class BiomeType(Enum):
     """Terrain biome categories for context-aware generation."""
+
     GRASSLAND = auto()
     FOREST = auto()
     URBAN = auto()
@@ -56,27 +57,27 @@ class GenerationConfig:
     """Configuration parameters for detail generation."""
 
     # Decoration densities (0.0 to 1.0)
-    vegetation_density: float = 0.25        # Trees, bushes, grass
-    rock_density: float = 0.08              # Rocks, boulders
-    combat_damage_density: float = 0.12     # Craters, rubble, burn marks
-    man_made_density: float = 0.06          # Fences, signs, obstacles
+    vegetation_density: float = 0.25  # Trees, bushes, grass
+    rock_density: float = 0.08  # Rocks, boulders
+    combat_damage_density: float = 0.12  # Craters, rubble, burn marks
+    man_made_density: float = 0.06  # Fences, signs, obstacles
 
     # Height variation
     enable_height: bool = True
-    max_height_variation: int = 2           # Max height difference from base
-    height_smoothness: float = 0.3          # Lower = smoother terrain
+    max_height_variation: int = 2  # Max height difference from base
+    height_smoothness: float = 0.3  # Lower = smoother terrain
 
     # Visual variation
     enable_variations: bool = True
-    max_variations_per_terrain: int = 8     # Visual variants per terrain type
+    max_variations_per_terrain: int = 8  # Visual variants per terrain type
 
     # Tactical features
-    generate_cover_positions: bool = True   # Add tactical cover spots
-    generate_concealment_zones: bool = True # Add hiding spots
+    generate_cover_positions: bool = True  # Add tactical cover spots
+    generate_concealment_zones: bool = True  # Add hiding spots
 
     # Performance limits
-    max_decorations_per_tile: int = 4       # Safety limit
-    total_decoration_budget: int = 5000     # Max total decorations per map
+    max_decorations_per_tile: int = 4  # Safety limit
+    total_decoration_budget: int = 5000  # Max total decorations per map
 
 
 class TerrainDetailGenerator:
@@ -106,20 +107,18 @@ class TerrainDetailGenerator:
         Returns:
             Enhanced map data with decorations, height, and variation
         """
-        width = map_data['width']
-        height = map_data['height']
+        width = map_data["width"]
+        height = map_data["height"]
 
-        logger.info("🎨 Generating terrain details for %s (%d×%d)",
-                    map_data['id'], width, height)
+        logger.info("🎨 Generating terrain details for %s (%d×%d)", map_data["id"], width, height)
 
         # Convert to enhanced tile format if needed
-        if 'tiles_enhanced' not in map_data:
+        if "tiles_enhanced" not in map_data:
             map_data = TileConverter.convert_map_data(map_data)
 
         # Load enhanced tiles
         enhanced_tiles = [
-            [EnhancedTile.from_dict(td) for td in row]
-            for row in map_data['tiles_enhanced']
+            [EnhancedTile.from_dict(td) for td in row] for row in map_data["tiles_enhanced"]
         ]
 
         # Generate biome map for context-aware placement
@@ -148,16 +147,12 @@ class TerrainDetailGenerator:
         logger.debug("  ✓ %s tactical features added", tactical_count)
 
         # Update map data with enhanced tiles
-        map_data['tiles_enhanced'] = [
-            [tile.to_dict() for tile in row]
-            for row in enhanced_tiles
-        ]
-        map_data['_detail_generated'] = True
-        map_data['_generation_seed'] = self.seed
-        map_data['_decoration_count'] = deco_count + tactical_count
+        map_data["tiles_enhanced"] = [[tile.to_dict() for tile in row] for row in enhanced_tiles]
+        map_data["_detail_generated"] = True
+        map_data["_generation_seed"] = self.seed
+        map_data["_decoration_count"] = deco_count + tactical_count
 
-        logger.info("✅ Enhancement complete: %s total details added",
-                    deco_count + tactical_count)
+        logger.info("✅ Enhancement complete: %s total details added", deco_count + tactical_count)
 
         return map_data
 
@@ -176,15 +171,18 @@ class TerrainDetailGenerator:
 
                 # Direct classification from terrain type
                 direct_biome = {
-                    0: BiomeType.GRASSLAND, 1: BiomeType.GRASSLAND, 2: BiomeType.GRASSLAND,
+                    0: BiomeType.GRASSLAND,
+                    1: BiomeType.GRASSLAND,
+                    2: BiomeType.GRASSLAND,
                     3: BiomeType.FOREST,
                     4: BiomeType.ROCKY,
                     5: BiomeType.URBAN,
-                    6: BiomeType.WATERFRONT, 10: BiomeType.WATERFRONT,
+                    6: BiomeType.WATERFRONT,
+                    10: BiomeType.WATERFRONT,
                     7: BiomeType.GRASSLAND,  # Trench can appear anywhere
-                    9: BiomeType.MIXED,      # Rough ground
-                    8: BiomeType.URBAN,       # Urban variant
-                    11: BiomeType.WETLAND,   # Beach/sand
+                    9: BiomeType.MIXED,  # Rough ground
+                    8: BiomeType.URBAN,  # Urban variant
+                    11: BiomeType.WETLAND,  # Beach/sand
                 }
 
                 primary = direct_biome.get(terrain, BiomeType.MIXED)
@@ -196,6 +194,7 @@ class TerrainDetailGenerator:
                 # If most neighbors agree, use dominant biome
                 if len(neighbor_biomes) >= 3:
                     from collections import Counter
+
                     counts = Counter(neighbor_biomes)
                     dominant, count = counts.most_common(1)[0]
                     if count >= 3:
@@ -220,21 +219,23 @@ class TerrainDetailGenerator:
         return neighbors
 
     def _generate_height_map(
-        self, tiles: list[list[EnhancedTile]], w: int, h: int,
-        biome_map: list[list[BiomeType]]
+        self, tiles: list[list[EnhancedTile]], w: int, h: int, biome_map: list[list[BiomeType]]
     ) -> None:
         """Generate natural-looking height variation across the map."""
 
         # Base height from terrain type
         base_heights = {
-            0: 0, 1: 0, 2: 0,         # Flat ground
-            3: 1,                       # Forest slightly elevated
-            4: 2,                       # Rocky/hilly
-            5: 0, 8: 0,               # Buildings on flat ground
-            6: -1,                      # Below water level
-            7: -1,                      # Trenches depressed
-            9: 1,                       # Rough ground uneven
-            11: 0,                      # Beach flat
+            0: 0,
+            1: 0,
+            2: 0,  # Flat ground
+            3: 1,  # Forest slightly elevated
+            4: 2,  # Rocky/hilly
+            5: 0,
+            8: 0,  # Buildings on flat ground
+            6: -1,  # Below water level
+            7: -1,  # Trenches depressed
+            9: 1,  # Rough ground uneven
+            11: 0,  # Beach flat
         }
 
         # Generate smooth noise for natural variation
@@ -248,28 +249,27 @@ class TerrainDetailGenerator:
                 noise_offset = int((noise_val - 0.5) * self.config.max_height_variation * 2)
 
                 # Clamp to allowed range
-                final_height = max(-self.config.max_height_variation,
-                                   min(self.config.max_height_variation, base + noise_offset))
+                final_height = max(
+                    -self.config.max_height_variation,
+                    min(self.config.max_height_variation, base + noise_offset),
+                )
 
                 tiles[y][x].height = final_height
 
-    def _assign_visual_variations(
-        self, tiles: list[list[EnhancedTile]], w: int, h: int
-    ) -> None:
+    def _assign_visual_variations(self, tiles: list[list[EnhancedTile]], w: int, h: int) -> None:
         """Assign visual variation IDs to break up monotony."""
         for y in range(h):
             for x in range(w):
                 terrain = tiles[y][x].base_terrain
 
                 # Use position-based hash for deterministic but varied results
-                hash_val = hash((x * 17 + y * 31 + terrain * 7 + self.seed)) % 100
+                hash_val = hash(x * 17 + y * 31 + terrain * 7 + self.seed) % 100
                 variation = hash_val % self.config.max_variations_per_terrain
 
                 tiles[y][x].variation = variation
 
     def _place_decorations(
-        self, tiles: list[list[EnhancedTile]], w: int, h: int,
-        biome_map: list[list[BiomeType]]
+        self, tiles: list[list[EnhancedTile]], w: int, h: int, biome_map: list[list[BiomeType]]
     ) -> int:
         """
         Place decorations based on biome rules and noise distribution.
@@ -320,7 +320,9 @@ class TerrainDetailGenerator:
 
         return total_placed
 
-    def _get_eligible_decorations(self, biome: BiomeType, terrain: int) -> list[tuple[DecorationType, float]]:
+    def _get_eligible_decorations(
+        self, biome: BiomeType, terrain: int
+    ) -> list[tuple[DecorationType, float]]:
         """
         Get list of (decoration_type, base_density) tuples eligible for this location.
         """
@@ -384,11 +386,11 @@ class TerrainDetailGenerator:
     def _get_density_modifier(self, biome: BiomeType) -> float:
         """Adjust decoration density based on biome characteristics."""
         modifiers = {
-            BiomeType.FOREST: 1.3,      # Forests are dense
-            BiomeType.URBAN: 0.9,        # Urban has less nature
-            BiomeType.WATERFRONT: 1.1,   # Water edges have some vegetation
-            BiomeType.ROCKY: 0.7,        # Sparse rock areas
-            BiomeType.WETLAND: 1.2,      # Wetlands lush
+            BiomeType.FOREST: 1.3,  # Forests are dense
+            BiomeType.URBAN: 0.9,  # Urban has less nature
+            BiomeType.WATERFRONT: 1.1,  # Water edges have some vegetation
+            BiomeType.ROCKY: 0.7,  # Sparse rock areas
+            BiomeType.WETLAND: 1.2,  # Wetlands lush
         }
         return modifiers.get(biome, 1.0)
 
@@ -397,8 +399,8 @@ class TerrainDetailGenerator:
     ) -> DecorationInstance:
         """Create a decoration instance with randomized properties."""
         definition = self.deco_library.get_definition(deco_type)
-        size_min, size_max = definition.get('size_range', (0.8, 1.2))
-        num_variants = definition.get('variants', 1)
+        size_min, size_max = definition.get("size_range", (0.8, 1.2))
+        num_variants = definition.get("variants", 1)
 
         return DecorationInstance(
             decoration_type=deco_type,
@@ -409,14 +411,12 @@ class TerrainDetailGenerator:
             variant=self.rng.randint(0, max(0, num_variants - 1)),
         )
 
-    def _generate_tactical_covers(
-        self, tiles: list[list[EnhancedTile]], w: int, h: int
-    ) -> int:
+    def _generate_tactical_covers(self, tiles: list[list[EnhancedTile]], w: int, h: int) -> int:
         """
-        Generate tactical cover positions (sandbags, trenches, etc.)
-in strategic locations.
+                Generate tactical cover positions (sandbags, trenches, etc.)
+        in strategic locations.
 
-        Places near objectives, between open areas, and along likely approach routes.
+                Places near objectives, between open areas, and along likely approach routes.
         """
         placed = 0
 
@@ -431,10 +431,13 @@ in strategic locations.
 
                 # Check if this is an exposed position (few neighboring covers)
                 neighbor_covers = sum(
-                    1 for dy in [-1, 0, 1] for dx in [-1, 0, 1]
-                    if (dx != 0 or dy != 0) and
-                    0 <= x+dx < w and 0 <= y+dy < h and
-                    tiles[y+dy][x+dx].total_cover_bonus >= 2
+                    1
+                    for dy in [-1, 0, 1]
+                    for dx in [-1, 0, 1]
+                    if (dx != 0 or dy != 0)
+                    and 0 <= x + dx < w
+                    and 0 <= y + dy < h
+                    and tiles[y + dy][x + dx].total_cover_bonus >= 2
                 )
 
                 # If exposed and noise says yes, add cover
@@ -453,9 +456,7 @@ in strategic locations.
 
         return placed
 
-    def _generate_concealment_zones(
-        self, tiles: list[list[EnhancedTile]], w: int, h: int
-    ) -> int:
+    def _generate_concealment_zones(self, tiles: list[list[EnhancedTile]], w: int, h: int) -> int:
         """
         Generate concealment zones (bushes, camo nets) for ambush positions.
 
@@ -468,13 +469,11 @@ in strategic locations.
                 tile = tiles[y][x]
 
                 # Look for transition zones (forest next to open)
-                is_forest_edge = (
-                    tile.base_terrain in [0, 1, 2] and
-                    any(
-                        tiles[y+dy][x+dx].base_terrain == 3
-                        for dy in [-1, 0, 1] for dx in [-1, 0, 1]
-                        if (dx != 0 or dy != 0) and 0 <= x+dx < w and 0 <= y+dy < h
-                    )
+                is_forest_edge = tile.base_terrain in [0, 1, 2] and any(
+                    tiles[y + dy][x + dx].base_terrain == 3
+                    for dy in [-1, 0, 1]
+                    for dx in [-1, 0, 1]
+                    if (dx != 0 or dy != 0) and 0 <= x + dx < w and 0 <= y + dy < h
                 )
 
                 if is_forest_edge:
@@ -505,7 +504,7 @@ in strategic locations.
 
         # Hash-based pseudo-random values at grid points
         def hash_noise(ix: int, iy: int) -> float:
-            n = (ix * 374761393 + iy * 668265263 + self.seed * 1274126177) & 0x7fffffff
+            n = (ix * 374761393 + iy * 668265263 + self.seed * 1274126177) & 0x7FFFFFFF
             return (n >> 16) / 32767.0
 
         # Bilinear interpolation
@@ -528,7 +527,7 @@ def batch_enhance_maps(
     input_dir: str,
     output_dir: str | None = None,
     seed: int = 42,
-    config: GenerationConfig | None = None
+    config: GenerationConfig | None = None,
 ) -> dict[str, Any]:
     """
     Batch process all maps in a directory.
@@ -547,42 +546,37 @@ def batch_enhance_maps(
 
     generator = TerrainDetailGenerator(seed=seed, config=config)
 
-    results = {
-        'processed': 0,
-        'total_decorations': 0,
-        'maps': {}
-    }
+    results = {"processed": 0, "total_decorations": 0, "maps": {}}
 
-    for map_file in sorted(in_path.glob('*.json')):
-        if map_file.name.startswith('_'):
+    for map_file in sorted(in_path.glob("*.json")):
+        if map_file.name.startswith("_"):
             continue
 
         try:
-            with open(map_file, 'r') as f:
+            with open(map_file) as f:
                 map_data = json.load(f)
 
             enhanced = generator.enhance_map(map_data)
 
             out_file = out_path / map_file.name
-            with open(out_file, 'w') as f:
+            with open(out_file, "w") as f:
                 json.dump(enhanced, f, indent=2)
 
-            results['processed'] += 1
-            results['total_decorations'] += enhanced.get('_decoration_count', 0)
-            results['maps'][map_data['id']] = {
-                'size': f"{enhanced['width']}×{enhanced['height']}",
-                'decorations': enhanced.get('_decoration_count', 0)
+            results["processed"] += 1
+            results["total_decorations"] += enhanced.get("_decoration_count", 0)
+            results["maps"][map_data["id"]] = {
+                "size": f"{enhanced['width']}×{enhanced['height']}",
+                "decorations": enhanced.get("_decoration_count", 0),
             }
 
         except Exception as e:
             logger.error("❌ Error processing %s: %s", map_file.name, e)
-            results['maps'][map_file.stem] = {'error': str(e)}
+            results["maps"][map_file.stem] = {"error": str(e)}
 
     return results
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     # Default: enhance all maps in data/maps directory
     default_input = str(Path(__file__).resolve().parent.parent.parent.parent / "data" / "maps")
 
@@ -597,7 +591,6 @@ if __name__ == '__main__':
     logger.debug("")
     logger.debug("=" * 80)
     logger.debug("🎉 BATCH ENHANCEMENT COMPLETE")
-    logger.debug("   Maps processed: %s", results['processed'])
-    logger.debug("   Total decorations generated: %s",
-                 results['total_decorations'])
+    logger.debug("   Maps processed: %s", results["processed"])
+    logger.debug("   Total decorations generated: %s", results["total_decorations"])
     logger.debug("=" * 80)

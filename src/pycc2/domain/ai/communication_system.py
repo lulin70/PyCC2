@@ -52,20 +52,20 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-HQ_RADIO_RANGE: int = 999        # Unlimited range
-HQ_RADIO_DELAY: int = 0          # No delay
+HQ_RADIO_RANGE: int = 999  # Unlimited range
+HQ_RADIO_DELAY: int = 0  # No delay
 
-OFFICER_RADIO_RANGE: int = 15    # 15 tile range
-OFFICER_RADIO_DELAY: int = 1     # 1 tick delay
+OFFICER_RADIO_RANGE: int = 15  # 15 tile range
+OFFICER_RADIO_DELAY: int = 1  # 1 tick delay
 
-SQUAD_RADIO_RANGE: int = 8       # 8 tile range
-SQUAD_RADIO_DELAY: int = 2       # 2 tick delay
+SQUAD_RADIO_RANGE: int = 8  # 8 tile range
+SQUAD_RADIO_DELAY: int = 2  # 2 tick delay
 
-RUNNER_DELAY: int = 5            # +5 ticks when out of radio range
-RELAY_DELAY_PER_HOP: int = 3    # +3 ticks per relay hop
-MAX_RELAY_HOPS: int = 2         # Max 2 hops before order is lost
+RUNNER_DELAY: int = 5  # +5 ticks when out of radio range
+RELAY_DELAY_PER_HOP: int = 3  # +3 ticks per relay hop
+MAX_RELAY_HOPS: int = 2  # Max 2 hops before order is lost
 
-WEATHER_DELAY: int = 2           # +2 ticks in RAIN/FOG
+WEATHER_DELAY: int = 2  # +2 ticks in RAIN/FOG
 
 # Unit types with radio capabilities
 _OFFICER_TYPES: set[UnitType] = {UnitType.COMMANDER}
@@ -83,40 +83,44 @@ _SQUAD_TYPES: set[UnitType] = {
 # Radio type
 # ---------------------------------------------------------------------------
 
+
 class RadioType(Enum):
-    HQ = auto()         # Commander/HQ — unlimited range
-    OFFICER = auto()    # Officer with radio — 15 tile range
-    SQUAD = auto()      # Infantry squad radio — 8 tile range
-    NONE = auto()       # No radio — must use runner
+    HQ = auto()  # Commander/HQ — unlimited range
+    OFFICER = auto()  # Officer with radio — 15 tile range
+    SQUAD = auto()  # Infantry squad radio — 8 tile range
+    NONE = auto()  # No radio — must use runner
 
 
 # ---------------------------------------------------------------------------
 # Communication status
 # ---------------------------------------------------------------------------
 
+
 class CommStatus(Enum):
-    DIRECT = auto()       # Direct radio contact with HQ
-    RELAYED = auto()      # Contact via relay through officer
-    RUNNER = auto()       # No radio — runner being sent
-    LOST = auto()         # Communication lost (order not delivered)
-    AUTONOMOUS = auto()   # Operating without comms (last orders + BT)
+    DIRECT = auto()  # Direct radio contact with HQ
+    RELAYED = auto()  # Contact via relay through officer
+    RUNNER = auto()  # No radio — runner being sent
+    LOST = auto()  # Communication lost (order not delivered)
+    AUTONOMOUS = auto()  # Operating without comms (last orders + BT)
 
 
 # ---------------------------------------------------------------------------
 # Pending message
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class CommMessage:
     """A message (order) being transmitted through the comm system."""
+
     message_id: str
-    sender_id: str          # Unit sending the order (usually HQ/officer)
-    recipient_id: str       # Unit receiving the order
+    sender_id: str  # Unit sending the order (usually HQ/officer)
+    recipient_id: str  # Unit receiving the order
     intent: TacticIntent
-    total_delay: int        # Total ticks before delivery
-    ticks_remaining: int    # Ticks until delivery
+    total_delay: int  # Total ticks before delivery
+    ticks_remaining: int  # Ticks until delivery
     status: CommStatus = CommStatus.DIRECT
-    relay_hops: int = 0     # Number of relay hops
+    relay_hops: int = 0  # Number of relay hops
 
     @property
     def is_delivered(self) -> bool:
@@ -131,15 +135,17 @@ class CommMessage:
 # Unit comm state
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class UnitCommState:
     """Communication state for a single unit."""
+
     unit_id: str
     radio_type: RadioType
-    has_contact: bool = True         # Whether unit has radio contact
-    last_contact_tick: int = 0       # Last tick with confirmed contact
+    has_contact: bool = True  # Whether unit has radio contact
+    last_contact_tick: int = 0  # Last tick with confirmed contact
     last_orders: TacticIntent | None = None  # Last received orders
-    autonomous: bool = False         # Whether operating autonomously
+    autonomous: bool = False  # Whether operating autonomously
 
     @property
     def can_transmit(self) -> bool:
@@ -149,6 +155,7 @@ class UnitCommState:
 # ---------------------------------------------------------------------------
 # CommunicationRelay
 # ---------------------------------------------------------------------------
+
 
 class CommunicationRelay:
     """Handles message relay through officer units.
@@ -223,6 +230,7 @@ class CommunicationRelay:
 # ---------------------------------------------------------------------------
 # CommunicationSystem
 # ---------------------------------------------------------------------------
+
 
 class CommunicationSystem:
     """Manages radio communication between all units.
@@ -301,6 +309,7 @@ class CommunicationSystem:
         # Apply weather interference
         if environment is not None:
             from pycc2.domain.systems.environment import WeatherCondition
+
             if environment.weather in (WeatherCondition.RAIN, WeatherCondition.FOG):
                 delay += WEATHER_DELAY
 
@@ -351,9 +360,7 @@ class CommunicationSystem:
                 )
 
         # Remove delivered messages
-        self._message_queue = [
-            m for m in self._message_queue if not m.is_delivered
-        ]
+        self._message_queue = [m for m in self._message_queue if not m.is_delivered]
 
         return delivered
 
@@ -365,10 +372,7 @@ class CommunicationSystem:
         lost: list[str] = []
 
         # Find living officers
-        living_officers = [
-            u for u in all_units
-            if u.is_alive and u.unit_type in _OFFICER_TYPES
-        ]
+        living_officers = [u for u in all_units if u.is_alive and u.unit_type in _OFFICER_TYPES]
 
         # Check each unit's comm status
         for unit_id, state in self._unit_states.items():
@@ -390,9 +394,7 @@ class CommunicationSystem:
                 hq = self._find_unit(self._hq_id, all_units)
                 if hq is not None and hq.is_alive:
                     hq_range = self._get_radio_range(state.radio_type)
-                    dist = unit.position.tile_coord.chebyshev_distance(
-                        hq.position.tile_coord
-                    )
+                    dist = unit.position.tile_coord.chebyshev_distance(hq.position.tile_coord)
                     if dist <= hq_range:
                         has_contact = True
 
@@ -400,9 +402,7 @@ class CommunicationSystem:
             if not has_contact and living_officers:
                 for officer in living_officers:
                     off_range = self._get_radio_range(state.radio_type)
-                    dist = unit.position.tile_coord.chebyshev_distance(
-                        officer.position.tile_coord
-                    )
+                    dist = unit.position.tile_coord.chebyshev_distance(officer.position.tile_coord)
                     if dist <= off_range:
                         has_contact = True
                         break
@@ -411,9 +411,7 @@ class CommunicationSystem:
                 state.has_contact = False
                 state.autonomous = True
                 lost.append(unit_id)
-                self._logger.info(
-                    f"Unit {unit_id} lost communication — now autonomous"
-                )
+                self._logger.info(f"Unit {unit_id} lost communication — now autonomous")
 
         return lost
 
@@ -448,6 +446,7 @@ class CommunicationSystem:
 
         if environment is not None:
             from pycc2.domain.systems.environment import WeatherCondition
+
             if environment.weather in (WeatherCondition.RAIN, WeatherCondition.FOG):
                 delay += WEATHER_DELAY
 
@@ -457,9 +456,7 @@ class CommunicationSystem:
         """Get the communication status for a unit."""
         return self._unit_states.get(unit_id)
 
-    def is_artillery_available(
-        self, caller: Unit, all_units: list[Unit]
-    ) -> bool:
+    def is_artillery_available(self, caller: Unit, all_units: list[Unit]) -> bool:
         """Check if artillery can be called by this unit.
 
         Artillery call-in requires an officer with radio in range of HQ.
@@ -470,18 +467,14 @@ class CommunicationSystem:
             if self._hq_id is not None:
                 hq = self._find_unit(self._hq_id, all_units)
                 if hq is not None and hq.is_alive:
-                    dist = caller.position.tile_coord.chebyshev_distance(
-                        hq.position.tile_coord
-                    )
+                    dist = caller.position.tile_coord.chebyshev_distance(hq.position.tile_coord)
                     return bool(dist <= OFFICER_RADIO_RANGE)
             return False
 
         # Non-officer needs an officer in range to relay
         for unit in all_units:
             if unit.is_alive and unit.unit_type in _OFFICER_TYPES:
-                dist = caller.position.tile_coord.chebyshev_distance(
-                    unit.position.tile_coord
-                )
+                dist = caller.position.tile_coord.chebyshev_distance(unit.position.tile_coord)
                 if dist <= SQUAD_RADIO_RANGE and self._hq_id is not None:
                     hq = self._find_unit(self._hq_id, all_units)
                     if hq is not None and hq.is_alive:
@@ -510,9 +503,7 @@ class CommunicationSystem:
             return (HQ_RADIO_DELAY, CommStatus.DIRECT, 0)
 
         # Calculate distance
-        dist = sender.position.tile_coord.chebyshev_distance(
-            recipient.position.tile_coord
-        )
+        dist = sender.position.tile_coord.chebyshev_distance(recipient.position.tile_coord)
 
         # Direct radio contact
         sender_range = self._get_radio_range(sender_state.radio_type)
@@ -522,13 +513,12 @@ class CommunicationSystem:
 
         # Try relay through officers
         officers = [
-            u for u in all_units
+            u
+            for u in all_units
             if u.is_alive and u.unit_type in _OFFICER_TYPES and u.id != sender.id
         ]
 
-        relay_path = self._relay.find_relay_path(
-            sender, recipient, officers, all_units
-        )
+        relay_path = self._relay.find_relay_path(sender, recipient, officers, all_units)
 
         if relay_path:
             hops = len(relay_path)

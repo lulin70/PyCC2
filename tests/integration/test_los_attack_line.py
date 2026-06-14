@@ -47,7 +47,6 @@ from pycc2.presentation.input.attack_line_system import (
 from pycc2.presentation.rendering.camera import Camera
 from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 
-
 # ── Helpers ──────────────────────────────────────────────────────────
 
 
@@ -361,9 +360,7 @@ class TestAttackLineStatus:
 class TestAttackLineRendererPipeline:
     """Test the full LOS → AttackLine → EnhancedRenderer pipeline."""
 
-    def test_attack_line_renders_on_enhanced_renderer(
-        self, pygame_screen, camera, open_map
-    ):
+    def test_attack_line_renders_on_enhanced_renderer(self, pygame_screen, camera, open_map):
         """攻击线在EnhancedRenderer上渲染不崩溃。"""
         renderer = EnhancedRenderer()
         renderer.initialize(pygame_screen)
@@ -413,7 +410,9 @@ class TestAttackLineRendererPipeline:
         }
         for status, expected_color in expected.items():
             actual = als.get_line_color(status)
-            assert actual == expected_color, f"Color mismatch for {status}: {actual} != {expected_color}"
+            assert actual == expected_color, (
+                f"Color mismatch for {status}: {actual} != {expected_color}"
+            )
 
     def test_confirmed_attack_line_draws_from_attacker_to_target(
         self, pygame_screen, camera, open_map

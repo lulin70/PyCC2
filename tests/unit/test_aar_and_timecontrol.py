@@ -337,30 +337,35 @@ class TestAARDataIntegration:
 
     def test_victory_outcome_is_victory(self):
         for outcome in (BattleOutcome.VICTORY, BattleOutcome.TIME_OUT_VICTORY):
-            r = BattleResult(
-                mission_id="m1", mission_name="M", outcome=outcome, ticks_elapsed=100
-            )
+            r = BattleResult(mission_id="m1", mission_name="M", outcome=outcome, ticks_elapsed=100)
             assert r.is_victory is True
 
     def test_defeat_outcome_is_not_victory(self):
         for outcome in (BattleOutcome.DEFEAT, BattleOutcome.TIME_OUT_DEFEAT, BattleOutcome.DRAW):
-            r = BattleResult(
-                mission_id="m1", mission_name="M", outcome=outcome, ticks_elapsed=100
-            )
+            r = BattleResult(mission_id="m1", mission_name="M", outcome=outcome, ticks_elapsed=100)
             assert r.is_victory is False
 
     def test_accuracy_zero_when_no_shots(self):
         r = BattleResult(
-            mission_id="m1", mission_name="M", outcome=BattleOutcome.VICTORY, ticks_elapsed=100,
-            total_shots_fired_allies=0, total_shots_hit_allies=0,
+            mission_id="m1",
+            mission_name="M",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=100,
+            total_shots_fired_allies=0,
+            total_shots_hit_allies=0,
         )
         assert r.allies_accuracy == 0.0
 
     def test_accuracy_calculation(self):
         r = BattleResult(
-            mission_id="m1", mission_name="M", outcome=BattleOutcome.VICTORY, ticks_elapsed=100,
-            total_shots_fired_allies=200, total_shots_hit_allies=150,
-            total_shots_fired_axis=100, total_shots_hit_axis=40,
+            mission_id="m1",
+            mission_name="M",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=100,
+            total_shots_fired_allies=200,
+            total_shots_hit_allies=150,
+            total_shots_fired_axis=100,
+            total_shots_hit_axis=40,
         )
         assert abs(r.allies_accuracy - 0.75) < 1e-6
         assert abs(r.axis_accuracy - 0.4) < 1e-6
@@ -371,7 +376,10 @@ class TestAARDataIntegration:
             UnitBattleRecord("u2", "MG", "allies", True, 80, 60, 50, 20, 2, 30, 15),
         ]
         r = BattleResult(
-            mission_id="m1", mission_name="M", outcome=BattleOutcome.VICTORY, ticks_elapsed=100,
+            mission_id="m1",
+            mission_name="M",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=100,
             unit_records=records,
         )
         assert abs(r.survival_rate_allies - 1.0) < 1e-6
@@ -382,7 +390,10 @@ class TestAARDataIntegration:
             UnitBattleRecord("u2", "MG", "allies", False, 80, 0, 50, 80, 2, 30, 15),
         ]
         r = BattleResult(
-            mission_id="m1", mission_name="M", outcome=BattleOutcome.VICTORY, ticks_elapsed=100,
+            mission_id="m1",
+            mission_name="M",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=100,
             unit_records=records,
         )
         assert abs(r.survival_rate_allies - 0.5) < 1e-6
@@ -390,7 +401,10 @@ class TestAARDataIntegration:
     def test_survival_rate_no_allies(self):
         axis_record = UnitBattleRecord("a1", "AxisRifle", "axis", True, 100, 100, 0, 0, 0, 10, 8)
         r = BattleResult(
-            mission_id="m1", mission_name="M", outcome=BattleOutcome.VICTORY, ticks_elapsed=100,
+            mission_id="m1",
+            mission_name="M",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=100,
             unit_records=[axis_record],
         )
         assert r.survival_rate_allies == 0.0
@@ -405,8 +419,14 @@ class TestAARDataIntegration:
 
     def test_calculate_vp_basic_victory(self):
         r = BattleResult(
-            mission_id="m1", mission_name="M", outcome=BattleOutcome.VICTORY, ticks_elapsed=1800,
-            axis_killed=5, axis_routed=2, allies_killed=1, allies_routed=0,
+            mission_id="m1",
+            mission_name="M",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=1800,
+            axis_killed=5,
+            axis_routed=2,
+            allies_killed=1,
+            allies_routed=0,
             objectives_completed=3,
             unit_records=[
                 UnitBattleRecord("u1", "Rifle", "allies", True, 100, 90, 0, 10, 0, 0, 0),

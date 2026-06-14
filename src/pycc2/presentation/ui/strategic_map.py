@@ -4,6 +4,7 @@ Shows bridge status, unit positions, and campaign progress at a strategic level.
 """
 
 from __future__ import annotations
+
 import math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -53,7 +54,7 @@ class StrategicMapRenderer:
 
     def render(
         self,
-        screen: "pygame.Surface",
+        screen: pygame.Surface,
         campaign_state=None,
         font=None,
     ) -> None:
@@ -87,10 +88,7 @@ class StrategicMapRenderer:
 
             captured = bridges_state.get(key, False)
 
-            if captured:
-                color = cfg.bridge_allied_color
-            else:
-                color = cfg.bridge_neutral_color
+            color = cfg.bridge_allied_color if captured else cfg.bridge_neutral_color
 
             if key == self._selected_bridge:
                 pygame.draw.circle(self._panel_surface, cfg.highlight_color, (bx, by), 18, 2)

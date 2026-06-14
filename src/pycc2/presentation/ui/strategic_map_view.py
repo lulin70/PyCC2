@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
 class SectorStatus(Enum):
     """Control status of a sector."""
+
     ALLIED_CONTROL = auto()
     AXIS_CONTROL = auto()
     CONTESTED = auto()
@@ -24,6 +25,7 @@ class SectorStatus(Enum):
 @dataclass
 class Sector:
     """A strategic sector in Market Garden."""
+
     name: str
     position: tuple[float, float]  # Screen position on strategic map
     status: SectorStatus = SectorStatus.CONTESTED
@@ -95,11 +97,11 @@ class StrategicMapView:
             return
 
         for sector_id, sector in self.sectors.items():
-            if hasattr(self._campaign_state, 'sectors_controlled'):
+            if hasattr(self._campaign_state, "sectors_controlled"):
                 control = self._campaign_state.sectors_controlled.get(sector_id)
-                if control == 'allied':
+                if control == "allied":
                     sector.status = SectorStatus.ALLIED_CONTROL
-                elif control == 'axis':
+                elif control == "axis":
                     sector.status = SectorStatus.AXIS_CONTROL
                 else:
                     sector.status = SectorStatus.CONTESTED
@@ -147,8 +149,8 @@ class StrategicMapView:
                 self._bg_size = (width, height)
             self._bg_surface.fill((30, 35, 45))
 
-            font_large = pygame.font.SysFont('arial', 24, bold=True)
-            font_small = pygame.font.SysFont('arial', 14)
+            font_large = pygame.font.SysFont("arial", 24, bold=True)
+            font_small = pygame.font.SysFont("arial", 14)
 
             title = font_large.render("MARKET GARDEN - STRATEGIC MAP", True, (255, 215, 0))
             self._bg_surface.blit(title, (width // 2 - title.get_width() // 2, 20))
@@ -166,7 +168,7 @@ class StrategicMapView:
             if len(points) >= 2:
                 pygame.draw.lines(self._bg_surface, corridor_color, False, points, 3)
 
-            for sector_id, sector in self.sectors.items():
+            for _sector_id, sector in self.sectors.items():
                 x, y = int(sector.position[0]), int(sector.position[1])
 
                 pygame.draw.circle(self._bg_surface, sector.color, (x, y), 30)
@@ -175,7 +177,7 @@ class StrategicMapView:
                 name_surf = font_small.render(sector.name, True, (255, 255, 255))
                 self._bg_surface.blit(name_surf, (x - name_surf.get_width() // 2, y + 35))
 
-                status_text = sector.status.name.replace('_', ' ')
+                status_text = sector.status.name.replace("_", " ")
                 status_surf = font_small.render(status_text, True, sector.color)
                 self._bg_surface.blit(status_surf, (x - status_surf.get_width() // 2, y + 50))
 
@@ -194,8 +196,16 @@ class StrategicMapView:
 
     @property
     def allied_sectors(self) -> list[str]:
-        return [sid for sid, sector in self.sectors.items() if sector.status == SectorStatus.ALLIED_CONTROL]
+        return [
+            sid
+            for sid, sector in self.sectors.items()
+            if sector.status == SectorStatus.ALLIED_CONTROL
+        ]
 
     @property
     def axis_sectors(self) -> list[str]:
-        return [sid for sid, sector in self.sectors.items() if sector.status == SectorStatus.AXIS_CONTROL]
+        return [
+            sid
+            for sid, sector in self.sectors.items()
+            if sector.status == SectorStatus.AXIS_CONTROL
+        ]

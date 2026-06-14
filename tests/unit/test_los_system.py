@@ -6,16 +6,17 @@ Bresenham ray casting, and building visibility bonuses.
 """
 
 import math
-import pytest
 from unittest.mock import Mock
 
-from pycc2.domain.systems.los_system import Lossystem, LosStatus, LosResult
-from pycc2.domain.value_objects.tile_coord import TileCoord
+import pytest
 
+from pycc2.domain.systems.los_system import LosResult, LosStatus, Lossystem
+from pycc2.domain.value_objects.tile_coord import TileCoord
 
 # ===========================================================================
 # Stub helpers
 # ===========================================================================
+
 
 class StubTerrain:
     """Minimal terrain stub."""
@@ -41,7 +42,7 @@ def _make_game_map(terrain_map=None, enhanced_tiles=None, width=30, height=30):
         return terrain_map.get((coord.x, coord.y), StubTerrain("grass", False))
 
     def get_enhanced_tile(x, y):
-        return enhanced_tiles.get((x, y), None)
+        return enhanced_tiles.get((x, y))
 
     def is_within_bounds(coord):
         return 0 <= coord.x < width and 0 <= coord.y < height
@@ -56,6 +57,7 @@ def _make_game_map(terrain_map=None, enhanced_tiles=None, width=30, height=30):
 # ===========================================================================
 # Tests — Bresenham Line
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestBresenhamLine:
@@ -86,6 +88,7 @@ class TestBresenhamLine:
 # ===========================================================================
 # Tests — LOS Check
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestCheckLos:
@@ -140,6 +143,7 @@ class TestCheckLos:
 # Tests — Height Blocking
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestHeightBlocking:
     """Test height-based LOS blocking."""
@@ -175,6 +179,7 @@ class TestHeightBlocking:
 # Tests — Building Visibility Bonus
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestBuildingVisibilityBonus:
     """Test building floor-based visibility bonus."""
@@ -207,6 +212,7 @@ class TestBuildingVisibilityBonus:
 # Tests — Attack Line Integration
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestAttackLineIntegration:
     """Test LOS result to attack line status conversion."""
@@ -235,6 +241,7 @@ class TestAttackLineIntegration:
 # Tests — Angle Difference
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestAngleDiff:
     """Test the angle difference helper."""
@@ -254,6 +261,7 @@ class TestAngleDiff:
 # ===========================================================================
 # Tests — Get Blocking Terrain
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestGetBlockingTerrain:

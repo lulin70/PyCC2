@@ -11,9 +11,11 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from pycc2.domain.ai.at_ambush_ai import ATAmbushAI
 from pycc2.domain.ai.behavior_tree import BTNode, NodeStatus
 from pycc2.domain.ai.blackboard import Blackboard
 from pycc2.domain.ai.perception_system import PerceptionSystem
+from pycc2.domain.ai.retreat_ai import RetreatDecisionAI
 from pycc2.domain.ai.tactic_executor import TacticExecutor
 from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
 from pycc2.domain.ai.tactical_ai import (
@@ -24,8 +26,6 @@ from pycc2.domain.ai.tactical_ai import (
     TacticalOrchestrator,
     VictoryPointAI,
 )
-from pycc2.domain.ai.retreat_ai import RetreatDecisionAI
-from pycc2.domain.ai.at_ambush_ai import ATAmbushAI
 from pycc2.domain.ai.tick_scheduler import AITickScheduler
 from pycc2.domain.entities.unit import Unit
 from pycc2.services.event_bus import EventBus
@@ -400,9 +400,7 @@ class AIService:
         self._unit_entities.clear()
         self._logger.info("AI service shut down")
 
-    def _run_tactical_orchestrator(
-        self, all_units: list[Unit], game_map
-    ) -> list[TacticIntent]:
+    def _run_tactical_orchestrator(self, all_units: list[Unit], game_map) -> list[TacticIntent]:
         """Build a TacticalContext and run the TacticalOrchestrator.
 
         Args:
@@ -422,9 +420,7 @@ class AIService:
             game_map=game_map,
             current_tick=self._current_tick,
             blackboards=self._blackboards,
-            difficulty_config=self._difficulty_system.config
-            if self._difficulty_system
-            else None,
+            difficulty_config=self._difficulty_system.config if self._difficulty_system else None,
         )
 
         return self._tactical_orchestrator.tick(context)

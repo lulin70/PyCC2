@@ -69,7 +69,7 @@ class ParticleEffectsRenderer:
         - heavy: Thick smoke + orange fire glow (6+ particles)
         - destroyed: Intense fire + thick black smoke
         """
-        if not hasattr(unit, 'damage_state'):
+        if not hasattr(unit, "damage_state"):
             return
 
         state = unit.damage_state
@@ -77,17 +77,17 @@ class ParticleEffectsRenderer:
             return
 
         # Ensure VFX particles are generated
-        if hasattr(unit, 'update_damage_vfx'):
-            if not getattr(unit, '_smoke_particles', None):
+        if hasattr(unit, "update_damage_vfx"):
+            if not getattr(unit, "_smoke_particles", None):
                 unit.update_damage_vfx()
 
         # Draw smoke particles
-        smoke_particles = getattr(unit, '_smoke_particles', [])
+        smoke_particles = getattr(unit, "_smoke_particles", [])
         for particle in smoke_particles[:8]:  # Limit to 8 for performance
-            px = cx + particle.get('x', 0)
-            py = cy + particle.get('y', 0)
-            alpha = particle.get('alpha', 100)
-            size = particle.get('size', 3)
+            px = cx + particle.get("x", 0)
+            py = cy + particle.get("y", 0)
+            alpha = particle.get("alpha", 100)
+            size = particle.get("size", 3)
 
             # Smoke color: gray with transparency
             smoke_color = (120, 120, 120)
@@ -99,12 +99,12 @@ class ParticleEffectsRenderer:
                 self._offscreen.blit(smoke_surf, (px - size, py - size))
 
         # Draw fire particles (for heavy/destroyed)
-        fire_particles = getattr(unit, '_fire_particles', [])
+        fire_particles = getattr(unit, "_fire_particles", [])
         for particle in fire_particles[:6]:  # Limit to 6 for performance
-            px = cx + particle.get('x', 0)
-            py = cy + particle.get('y', 0)
-            color = particle.get('color', (220, 120, 20))
-            size = particle.get('size', 3)
+            px = cx + particle.get("x", 0)
+            py = cy + particle.get("y", 0)
+            color = particle.get("color", (220, 120, 20))
+            size = particle.get("size", 3)
 
             # Fire glow effect (pooled - PERF-001)
             if self._get_pooled_surface and self._offscreen:
@@ -161,8 +161,9 @@ class ParticleEffectsRenderer:
         if self._particle_system:
             self._particle_system.update(dt_ms)
 
-    def spawn_explosion_ring(self, position, max_radius=40, duration_ms=500,
-                             color=(255, 200, 50)) -> None:
+    def spawn_explosion_ring(
+        self, position, max_radius=40, duration_ms=500, color=(255, 200, 50)
+    ) -> None:
         """Spawn explosion ring effect at position.
 
         CC2 Authentic: Yellow/orange circular expanding ring (not 3D fireball)
@@ -175,8 +176,8 @@ class ParticleEffectsRenderer:
             color: Base color tuple (default yellow-orange)
         """
         if self._particle_system:
-            x = position[0] if hasattr(position, '__getitem__') else position.x
-            y = position[1] if hasattr(position, '__getitem__') else position.y
+            x = position[0] if hasattr(position, "__getitem__") else position.x
+            y = position[1] if hasattr(position, "__getitem__") else position.y
 
             self._particle_system.spawn_explosion_ring(x, y, max_radius, duration_ms, color)
 
@@ -186,8 +187,8 @@ class ParticleEffectsRenderer:
         CC2 Authentic: White dot flash + short line along fire direction
         """
         if self._particle_system:
-            x = position[0] if hasattr(position, '__getitem__') else position.x
-            y = position[1] if hasattr(position, '__getitem__') else position.y
+            x = position[0] if hasattr(position, "__getitem__") else position.x
+            y = position[1] if hasattr(position, "__getitem__") else position.y
 
             self._particle_system.spawn_muzzle_flash(x, y, direction)
 
@@ -207,7 +208,7 @@ class ParticleEffectsRenderer:
         if self._particle_system:
             self._particle_system.spawn_blood_pool(x, y, size)
 
-    def spawn_hit_marker(self, x: float, y: float, damage_type: str = 'normal') -> None:
+    def spawn_hit_marker(self, x: float, y: float, damage_type: str = "normal") -> None:
         """Spawn hit marker visual feedback at position (delegates to TopDownParticleSystem).
 
         Args:

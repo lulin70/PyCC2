@@ -27,27 +27,27 @@ from dataclasses import field
 logger = logging.getLogger(__name__)
 
 # Import extracted modules (SRP refactoring v0.3.29)
+from pycc2.domain.entities.game_map import GameMap
+from pycc2.presentation.rendering.camera import Camera
 from pycc2.presentation.ui.deployment_factory import (
     build_default_roster,
     build_force_pool_from_settings,
     generate_ai_deployment,
 )
 from pycc2.presentation.ui.deployment_los import DeploymentLOSSystem
-from pycc2.presentation.ui.deployment_renderer import DeploymentRenderer
 
 # Import extracted models and constants
 from pycc2.presentation.ui.deployment_models import (
+    TERRAIN_BUILDING_SOLID,
+    # Constants (backward compatible aliases)
+    TERRAIN_OPEN,
+    TERRAIN_WATER,
     DeploymentPhase,
     DeploymentState,
     DeploymentUnit,
     ZoneType,
-    # Constants (backward compatible aliases)
-    TERRAIN_OPEN,
-    TERRAIN_BUILDING_SOLID,
-    TERRAIN_WATER,
 )
-from pycc2.presentation.rendering.camera import Camera
-from pycc2.domain.entities.game_map import GameMap
+from pycc2.presentation.ui.deployment_renderer import DeploymentRenderer
 
 # ---------------------------------------------------------------------------
 # Pygame – imported lazily so the module can be imported in headless tests
@@ -128,7 +128,9 @@ class DeploymentUI:
         self._is_dragging: bool = False
 
         # === Pre-battle orders (GAP-8) ===
-        self._pending_orders: dict[str, tuple[int, int]] = {}  # unit_template_id -> (target_x, target_y)
+        self._pending_orders: dict[
+            str, tuple[int, int]
+        ] = {}  # unit_template_id -> (target_x, target_y)
         self._selected_placed_unit: DeploymentUnit | None = None  # For setting orders
         self._highlight_surface_cache: dict[int, pygame.Surface] = {}
 
@@ -402,9 +404,7 @@ class DeploymentUI:
             return None
 
         # Right-click on map
-        map_pos = self.screen_to_map(
-            screen_x, screen_y, map_offset_x, map_offset_y, tile_size
-        )
+        map_pos = self.screen_to_map(screen_x, screen_y, map_offset_x, map_offset_y, tile_size)
         if map_pos is None:
             return None
 
@@ -526,12 +526,9 @@ class DeploymentUI:
             return False
 
         # Check 2: Only truly impassable terrains are blocked
-        if terrain == TERRAIN_WATER or terrain == TERRAIN_BUILDING_SOLID:
-            return False
-
         # Check 3: Everything else is ALLOWED!
         # No more restrictions on roads, rough terrain, buildings, hedges, etc.
-        return True
+        return terrain not in (TERRAIN_WATER, TERRAIN_BUILDING_SOLID)
 
     def is_deployment_complete(self) -> bool:
         """Check if at least one unit is placed (minimum to begin battle)."""
@@ -548,9 +545,7 @@ class DeploymentUI:
         """
         self._state.phase = DeploymentPhase.ACTIVE
 
-        infantry_count = sum(
-            1 for u in self._state.placed_units if u.unit_type == "infantry"
-        )
+        infantry_count = sum(1 for u in self._state.placed_units if u.unit_type == "infantry")
         support_count = sum(
             1 for u in self._state.placed_units if u.unit_type in ("support", "vehicle")
         )
@@ -786,10 +781,10 @@ class DeploymentUI:
     # ------------------------------------------------------------------
 
     # LOS preview color constants (matching AttackLineSystem 4-color scheme)
-    _LOS_COLOR_HIGH: tuple[int, int, int, int] = (0, 255, 0, 160)       # Green (60-100% hit)
-    _LOS_COLOR_MODERATE: tuple[int, int, int, int] = (255, 255, 0, 160) # Yellow (30-59% hit)
-    _LOS_COLOR_LOW: tuple[int, int, int, int] = (255, 50, 50, 160)      # Red (10-29% hit)
-    _LOS_COLOR_IMPOSSIBLE: tuple[int, int, int, int] = (0, 0, 0, 160)   # Black (0-9% hit)
+    _LOS_COLOR_HIGH: tuple[int, int, int, int] = (0, 255, 0, 160)  # Green (60-100% hit)
+    _LOS_COLOR_MODERATE: tuple[int, int, int, int] = (255, 255, 0, 160)  # Yellow (30-59% hit)
+    _LOS_COLOR_LOW: tuple[int, int, int, int] = (255, 50, 50, 160)  # Red (10-29% hit)
+    _LOS_COLOR_IMPOSSIBLE: tuple[int, int, int, int] = (0, 0, 0, 160)  # Black (0-9% hit)
     _LOS_DEFAULT_RANGE: int = 15  # Default visual range in tiles
 
     def _render_los_preview(self, screen, ox: int, oy: int, ts: int) -> None:
@@ -807,7 +802,12 @@ class DeploymentUI:
     ) -> float:
         """Delegate to DeploymentLOSSystem for hit probability estimation."""
         return self._renderer._estimate_deployment_hit_probability(
-            src_x, src_y, dst_x, dst_y, distance, unit,
+            src_x,
+            src_y,
+            dst_x,
+            dst_y,
+            distance,
+            unit,
         )
 
     def _hit_probability_to_los_color(self, hit_prob: float) -> tuple[int, int, int, int]:
@@ -824,7 +824,9 @@ class DeploymentUI:
         gap_length: int = 4,
     ) -> None:
         """Delegate to DeploymentLOSSystem.draw_dashed_line (via rendering_utils)."""
-        return DeploymentRenderer._draw_dashed_line(surface, color, start, end, dash_length=dash_length, gap_length=gap_length)
+        return DeploymentRenderer._draw_dashed_line(
+            surface, color, start, end, dash_length=dash_length, gap_length=gap_length
+        )
 
     @staticmethod
     def _draw_arrowhead(
@@ -906,9 +908,7 @@ class DeploymentUI:
         return int(self._tile_grid[y][x])
 
     def _check_unit_limits(self, unit: DeploymentUnit) -> bool:
-        infantry_count = sum(
-            1 for u in self._state.placed_units if u.unit_type == "infantry"
-        )
+        infantry_count = sum(1 for u in self._state.placed_units if u.unit_type == "infantry")
         support_count = sum(
             1 for u in self._state.placed_units if u.unit_type in ("support", "vehicle")
         )
@@ -1062,9 +1062,7 @@ class DeploymentUI:
 
         # Try to place at current position if over map
         if screen_x >= self._roster_width:
-            map_pos = self.screen_to_map(
-                screen_x, screen_y, map_offset_x, map_offset_y, tile_size
-            )
+            map_pos = self.screen_to_map(screen_x, screen_y, map_offset_x, map_offset_y, tile_size)
 
             if map_pos is not None and self._dragging_unit_index is not None:
                 map_x, map_y = map_pos
@@ -1195,12 +1193,11 @@ class DeploymentUI:
             return None
 
         # Check detail panel button (PLACE ON MAP / REMOVE FROM MAP)
-        if hasattr(self, '_detail_panel_btn_rect') and self._detail_panel_btn_rect:
+        if hasattr(self, "_detail_panel_btn_rect") and self._detail_panel_btn_rect:
             btn_x, btn_y, btn_w, btn_h = self._detail_panel_btn_rect
-            if (btn_x <= screen_x <= btn_x + btn_w and 
-                btn_y <= screen_y <= btn_y + btn_h):
+            if btn_x <= screen_x <= btn_x + btn_w and btn_y <= screen_y <= btn_y + btn_h:
                 # Button was clicked!
-                action = getattr(self, '_detail_panel_btn_action', None)
+                action = getattr(self, "_detail_panel_btn_action", None)
                 if action == "remove" and self._selected_unit_index is not None:
                     # Execute remove
                     unit = self._state.available_units[self._selected_unit_index]
@@ -1229,9 +1226,7 @@ class DeploymentUI:
             return None
 
         # Map click
-        map_pos = self.screen_to_map(
-            screen_x, screen_y, map_offset_x, map_offset_y, tile_size
-        )
+        map_pos = self.screen_to_map(screen_x, screen_y, map_offset_x, map_offset_y, tile_size)
         if map_pos is None:
             return None
 
@@ -1277,6 +1272,4 @@ class DeploymentUI:
 
     def update_button_hover(self, mouse_x: int, mouse_y: int) -> None:
         """Update the Start Battle button hover state based on mouse position."""
-        self._button_hovered = bool(
-            self._button_rect and self._is_in_button(mouse_x, mouse_y)
-        )
+        self._button_hovered = bool(self._button_rect and self._is_in_button(mouse_x, mouse_y))

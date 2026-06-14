@@ -22,9 +22,9 @@ from __future__ import annotations
 
 from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
 from pycc2.domain.ai.tactical_ai import TacticalAIBase, TacticalContext
-from pycc2.domain.entities.unit import UnitType
-from pycc2.domain.value_objects.tile_coord import TileCoord
+from pycc2.domain.entities.unit import Unit, UnitType
 from pycc2.domain.value_objects.terrain_type import TerrainType
+from pycc2.domain.value_objects.tile_coord import TileCoord
 
 
 class RetreatDecisionAI(TacticalAIBase):
@@ -93,20 +93,16 @@ class RetreatDecisionAI(TacticalAIBase):
             alive_enemies = [e for e in context.enemy_units if e.is_alive]
             if alive_enemies:
                 # Suppress the closest enemy to the retreating group
-                retreat_centroid_x = sum(
-                    u.position.tile_coord.x for u in retreat_units
-                ) / len(retreat_units)
-                retreat_centroid_y = sum(
-                    u.position.tile_coord.y for u in retreat_units
-                ) / len(retreat_units)
-                retreat_centroid = TileCoord(
-                    int(retreat_centroid_x), int(retreat_centroid_y)
+                retreat_centroid_x = sum(u.position.tile_coord.x for u in retreat_units) / len(
+                    retreat_units
                 )
+                retreat_centroid_y = sum(u.position.tile_coord.y for u in retreat_units) / len(
+                    retreat_units
+                )
+                retreat_centroid = TileCoord(int(retreat_centroid_x), int(retreat_centroid_y))
                 nearest_enemy = min(
                     alive_enemies,
-                    key=lambda e: e.position.tile_coord.chebyshev_distance(
-                        retreat_centroid
-                    ),
+                    key=lambda e: e.position.tile_coord.chebyshev_distance(retreat_centroid),
                 )
                 for mg in covering_units:
                     intents.append(
@@ -179,8 +175,7 @@ class RetreatDecisionAI(TacticalAIBase):
                 1
                 for e in context.enemy_units
                 if e.is_alive
-                and e.position.tile_coord.chebyshev_distance(vl_pos)
-                <= self.BRIDGE_THREAT_RADIUS
+                and e.position.tile_coord.chebyshev_distance(vl_pos) <= self.BRIDGE_THREAT_RADIUS
             )
             if enemies_near > 0:
                 threatened.append((vl_pos, owner, vl_val))
@@ -194,8 +189,7 @@ class RetreatDecisionAI(TacticalAIBase):
             if u.is_alive
             and u.can_act
             and (
-                u.health.hp_ratio < self.LOW_HP_RATIO
-                or u.morale.value < self.LOW_MORALE_THRESHOLD
+                u.health.hp_ratio < self.LOW_HP_RATIO or u.morale.value < self.LOW_MORALE_THRESHOLD
             )
         ]
 
@@ -211,15 +205,9 @@ class RetreatDecisionAI(TacticalAIBase):
             and u.morale.is_combat_effective
         ]
 
-    def _find_retreat_destination(
-        self, unit: Unit, context: TacticalContext
-    ) -> TileCoord | None:
+    def _find_retreat_destination(self, unit: Unit, context: TacticalContext) -> TileCoord | None:
         """Find the nearest safe point: friendly-held VL or map edge."""
-        faction_name = (
-            context.friendly_units[0].faction.name
-            if context.friendly_units
-            else None
-        )
+        faction_name = context.friendly_units[0].faction.name if context.friendly_units else None
 
         # Prefer nearest friendly-held VL that is not under threat
         safe_vls: list[tuple[TileCoord, int]] = []
@@ -230,8 +218,7 @@ class RetreatDecisionAI(TacticalAIBase):
                 1
                 for e in context.enemy_units
                 if e.is_alive
-                and e.position.tile_coord.chebyshev_distance(vl_pos)
-                <= self.BRIDGE_THREAT_RADIUS
+                and e.position.tile_coord.chebyshev_distance(vl_pos) <= self.BRIDGE_THREAT_RADIUS
             )
             if enemies_near == 0:
                 dist = unit.position.tile_coord.chebyshev_distance(vl_pos)
@@ -245,9 +232,9 @@ class RetreatDecisionAI(TacticalAIBase):
         gm = context.game_map
         unit_pos = unit.position.tile_coord
         candidates = [
-            TileCoord(self.MAP_EDGE_MARGIN, unit_pos.y),           # left edge
+            TileCoord(self.MAP_EDGE_MARGIN, unit_pos.y),  # left edge
             TileCoord(gm.width - 1 - self.MAP_EDGE_MARGIN, unit_pos.y),  # right edge
-            TileCoord(unit_pos.x, self.MAP_EDGE_MARGIN),           # top edge
+            TileCoord(unit_pos.x, self.MAP_EDGE_MARGIN),  # top edge
             TileCoord(unit_pos.x, gm.height - 1 - self.MAP_EDGE_MARGIN),  # bottom edge
         ]
         # Pick the closest edge point that is within bounds

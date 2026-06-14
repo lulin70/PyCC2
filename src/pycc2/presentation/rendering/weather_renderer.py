@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     import pygame
 
 
-from pycc2.domain.systems.weather_effects import WeatherType, WeatherState
+from pycc2.domain.systems.weather_effects import WeatherState, WeatherType
 
 
 class WeatherRenderer:
@@ -27,8 +27,8 @@ class WeatherRenderer:
         self.screen_height = screen_height
         self._rain_drops: list[dict] = []
         self._snow_flakes: list[dict] = []
-        self._dark_surf: "pygame.Surface | None" = None
-        self._fog_surf: "pygame.Surface | None" = None
+        self._dark_surf: pygame.Surface | None = None
+        self._fog_surf: pygame.Surface | None = None
         self._weather_surf_size: tuple[int, int] = (0, 0)
         self._init_rain()
         self._init_snow()
@@ -113,9 +113,7 @@ class WeatherRenderer:
         elif weather == WeatherType.SNOW:
             self._render_snow(screen, intensity, camera_offset_x, camera_offset_y)
 
-    def _render_rain(
-        self, screen, intensity: float, cam_x: int, cam_y: int
-    ) -> None:
+    def _render_rain(self, screen, intensity: float, cam_x: int, cam_y: int) -> None:
         import pygame
 
         active_drops = self._rain_drops[: int(self.RAIN_DROP_COUNT * intensity)]
@@ -147,9 +145,7 @@ class WeatherRenderer:
             pygame.draw.circle(self._fog_surf, (220, 220, 230, 30), (fx, fy), fr)
         screen.blit(self._fog_surf, (0, 0))
 
-    def _render_snow(
-        self, screen, intensity: float, cam_x: int, cam_y: int
-    ) -> None:
+    def _render_snow(self, screen, intensity: float, cam_x: int, cam_y: int) -> None:
         import pygame
 
         active_flakes = self._snow_flakes[: int(self.SNOW_FLAKE_COUNT * intensity)]

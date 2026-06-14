@@ -1,12 +1,13 @@
 """
 Swiss Cheese Damage Model — probabilistic squad-level casualty system.
-Instead of simple HP subtraction, each hit resolves into individual 
+Instead of simple HP subtraction, each hit resolves into individual
 casualty outcomes per squad member.
 
 CC2 Original: A hit "punches holes in Swiss cheese" — some soldiers get hit, others don't.
 """
 
 from __future__ import annotations
+
 import random
 from dataclasses import dataclass, field
 from enum import Enum, auto
@@ -77,7 +78,9 @@ class SwissCheeseResult:
         total = self.kia_count + self.wia_count + self.pinned_count + self.ok_count
         if total == 0:
             return 0.0
-        effective = sum(1 for s in self.member_outcomes if s in (CasualtyStatus.OK, CasualtyStatus.WIA))
+        effective = sum(
+            1 for s in self.member_outcomes if s in (CasualtyStatus.OK, CasualtyStatus.WIA)
+        )
         return effective / total
 
 
@@ -100,7 +103,9 @@ class SwissCheeseEngine:
         cover_bonus: float = 0.0,
         target_morale: float = 100.0,
     ) -> SwissCheeseResult:
-        unit_type_str = target.unit_type.name if hasattr(target.unit_type, 'name') else str(target.unit_type)
+        unit_type_str = (
+            target.unit_type.name if hasattr(target.unit_type, "name") else str(target.unit_type)
+        )
         squad_size = UNIT_SQUAD_SIZES.get(unit_type_str, SquadSize.MEDIUM).value
 
         if squad_size == 1:
@@ -122,11 +127,14 @@ class SwissCheeseEngine:
             pinned_count=0,
             ok_count=0 if hp_loss >= target.health.hp else 1,
             raw_damage=raw_damage,
-            member_outcomes=[CasualtyStatus.KIA if hp_loss >= target.health.hp else CasualtyStatus.OK],
+            member_outcomes=[
+                CasualtyStatus.KIA if hp_loss >= target.health.hp else CasualtyStatus.OK
+            ],
         )
 
-    def _calculate_probabilities(self, raw_damage: float, cover_bonus: float,
-                                  target_morale: float, is_ap: bool) -> tuple[float, float, float]:
+    def _calculate_probabilities(
+        self, raw_damage: float, cover_bonus: float, target_morale: float, is_ap: bool
+    ) -> tuple[float, float, float]:
         """Calculate KIA/WIA/PINNED probabilities based on damage and conditions."""
         kia_prob = self._KIA_BASE_PROB + raw_damage * self._KIA_DAMAGE_SCALE
         wia_prob = self._WIA_BASE_PROB + raw_damage * self._WIA_DAMAGE_SCALE
@@ -153,13 +161,16 @@ class SwissCheeseEngine:
 
         return kia_prob, wia_prob, pinned_prob
 
-    def _resolve_members(self, squad_size: int, kia_prob: float,
-                         wia_prob: float, pinned_prob: float) -> list[CasualtyStatus]:
+    def _resolve_members(
+        self, squad_size: int, kia_prob: float, wia_prob: float, pinned_prob: float
+    ) -> list[CasualtyStatus]:
         """Resolve each squad member's status using probability rolls."""
-        rng = random.Random(hash(id(object())) + int(kia_prob * 1000 + wia_prob * 100 + pinned_prob * 10))
+        rng = random.Random(
+            hash(id(object())) + int(kia_prob * 1000 + wia_prob * 100 + pinned_prob * 10)
+        )
 
         outcomes = []
-        for i in range(squad_size):
+        for _i in range(squad_size):
             roll = rng.random()
             cumulative = kia_prob
             if roll < cumulative:
@@ -172,8 +183,9 @@ class SwissCheeseEngine:
                 outcomes.append(CasualtyStatus.OK)
         return outcomes
 
-    def _build_result(self, target: Unit, raw_damage: float,
-                      squad_size: int, outcomes: list[CasualtyStatus]) -> SwissCheeseResult:
+    def _build_result(
+        self, target: Unit, raw_damage: float, squad_size: int, outcomes: list[CasualtyStatus]
+    ) -> SwissCheeseResult:
         """Build SwissCheeseResult from resolved member outcomes."""
         kia = sum(1 for s in outcomes if s == CasualtyStatus.KIA)
         wia = sum(1 for s in outcomes if s == CasualtyStatus.WIA)
@@ -182,9 +194,9 @@ class SwissCheeseEngine:
 
         hp_per_member = target.health.max_hp // squad_size
         hp_loss = (
-            kia * hp_per_member +
-            int(wia * hp_per_member * 0.5) +
-            int(pinned * hp_per_member * 0.25)
+            kia * hp_per_member
+            + int(wia * hp_per_member * 0.5)
+            + int(pinned * hp_per_member * 0.25)
         )
         hp_loss = min(hp_loss, target.health.hp)
 

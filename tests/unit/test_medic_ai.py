@@ -5,28 +5,38 @@ Tests medic behavior, healing target selection, treatment priority,
 and treatment lifecycle.
 """
 
-import pytest
 from unittest.mock import Mock
 
+import pytest
+
 from pycc2.domain.ai.medic_ai import (
+    MIN_TREATMENT_TICKS,
     MedicAI,
     TreatmentPriority,
     _treatment_priority,
-    MIN_TREATMENT_TICKS,
 )
-from pycc2.domain.entities.unit import Faction, UnitType
 from pycc2.domain.ai.tactic_intent import TacticType
 from pycc2.domain.ai.tactical_ai import TacticalContext
+from pycc2.domain.entities.unit import Faction, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
-
 
 # ===========================================================================
 # Stub helpers
 # ===========================================================================
 
-def _make_unit(unit_id, faction=Faction.ALLIES, unit_type=UnitType.INFANTRY_SQUAD,
-               tile_x=10, tile_y=10, alive=True, can_act=True,
-               hp=100, max_hp=100, suppressed=False):
+
+def _make_unit(
+    unit_id,
+    faction=Faction.ALLIES,
+    unit_type=UnitType.INFANTRY_SQUAD,
+    tile_x=10,
+    tile_y=10,
+    alive=True,
+    can_act=True,
+    hp=100,
+    max_hp=100,
+    suppressed=False,
+):
     """Create a mock unit for medic testing."""
     unit = Mock()
     unit.id = unit_id
@@ -53,37 +63,47 @@ def _make_unit(unit_id, faction=Faction.ALLIES, unit_type=UnitType.INFANTRY_SQUA
     unit.suppression_level = Mock()
     if suppressed:
         from pycc2.domain.systems.combat_mechanics_enhanced import SuppressionEffect
+
         unit.suppression_level = SuppressionEffect.HEAVY
     else:
         from pycc2.domain.systems.combat_mechanics_enhanced import SuppressionEffect
+
         unit.suppression_level = SuppressionEffect.NONE
 
     return unit
 
 
-def _make_medic(unit_id="medic1", tile_x=10, tile_y=10, suppressed=False,
-                hp=100, max_hp=100):
+def _make_medic(unit_id="medic1", tile_x=10, tile_y=10, suppressed=False, hp=100, max_hp=100):
     """Create a mock medic unit."""
     return _make_unit(
-        unit_id, unit_type=UnitType.MEDIC_TEAM,
-        tile_x=tile_x, tile_y=tile_y,
-        hp=hp, max_hp=max_hp, suppressed=suppressed,
+        unit_id,
+        unit_type=UnitType.MEDIC_TEAM,
+        tile_x=tile_x,
+        tile_y=tile_y,
+        hp=hp,
+        max_hp=max_hp,
+        suppressed=suppressed,
     )
 
 
-def _make_wounded(unit_id="wounded1", tile_x=11, tile_y=10, hp=50,
-                  unit_type=UnitType.INFANTRY_SQUAD):
+def _make_wounded(
+    unit_id="wounded1", tile_x=11, tile_y=10, hp=50, unit_type=UnitType.INFANTRY_SQUAD
+):
     """Create a mock wounded unit."""
     return _make_unit(
-        unit_id, unit_type=unit_type,
-        tile_x=tile_x, tile_y=tile_y,
-        hp=hp, max_hp=100,
+        unit_id,
+        unit_type=unit_type,
+        tile_x=tile_x,
+        tile_y=tile_y,
+        hp=hp,
+        max_hp=100,
     )
 
 
 # ===========================================================================
 # Tests — Treatment Priority
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestTreatmentPriority:
@@ -109,6 +129,7 @@ class TestTreatmentPriority:
 # ===========================================================================
 # Tests — Find Medics and Wounded
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestFindMedicsAndWounded:
@@ -183,6 +204,7 @@ class TestFindMedicsAndWounded:
 # Tests — Evaluate
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestMedicEvaluate:
     """Test MedicAI evaluate scoring."""
@@ -224,6 +246,7 @@ class TestMedicEvaluate:
 # ===========================================================================
 # Tests — Execute
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestMedicExecute:
@@ -287,6 +310,7 @@ class TestMedicExecute:
 # ===========================================================================
 # Tests — Treatment Lifecycle
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestTreatmentLifecycle:
@@ -378,6 +402,7 @@ class TestTreatmentLifecycle:
 # ===========================================================================
 # Tests — Path Safety
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestPathSafety:

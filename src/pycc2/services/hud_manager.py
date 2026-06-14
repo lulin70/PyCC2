@@ -15,13 +15,15 @@ if TYPE_CHECKING:
 
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.interfaces.bottom_panel_protocol import IBottomPanel
-    from pycc2.domain.interfaces.display_config import DisplayConfig
-    from pycc2.domain.interfaces.minimap_protocol import IMinimap
-    from pycc2.presentation.audio.sound_system import SoundSystem
-    from pycc2.domain.interfaces.interaction_controller_protocol import IInteractionController as InteractionController
     from pycc2.domain.interfaces.camera_protocol import ICamera as Camera
+    from pycc2.domain.interfaces.display_config import DisplayConfig
+    from pycc2.domain.interfaces.interaction_controller_protocol import (
+        IInteractionController as InteractionController,
+    )
+    from pycc2.domain.interfaces.minimap_protocol import IMinimap
     from pycc2.domain.interfaces.renderer_protocol import IRenderer as RenderPipeline
     from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
+    from pycc2.presentation.audio.sound_system import SoundSystem
     from pycc2.services.event_bus import EventBus
 
     from .game_loop import GameState
@@ -99,9 +101,7 @@ class HUDManager:
         state.camera.viewport_width = dc.window_width
         state.camera.viewport_height = dc.window_height
 
-        optimal_zoom = dc.compute_default_zoom(
-            state.game_map.width, state.game_map.height
-        )
+        optimal_zoom = dc.compute_default_zoom(state.game_map.width, state.game_map.height)
         state.camera.zoom = optimal_zoom
 
         if hasattr(renderer, "_display_config"):
@@ -110,9 +110,8 @@ class HUDManager:
             renderer.SPRITE_SIZE = dc.effective_sprite_size
 
         screen = window_manager.get_screen()
-        if screen is not None:
-            if self._cc2_panel:
-                self._cc2_panel.initialize()
+        if screen is not None and self._cc2_panel:
+            self._cc2_panel.initialize()
 
         # Render pipeline不再使用旧的分散式UI
         render_pipeline.hud_manager = None
@@ -170,7 +169,9 @@ class HUDManager:
                             unit_id=selected_id,
                             source_pos=source_pos,
                         )
-                        logger.info(f"[ATTACK LINE] Started from {selected_unit.display_name} at ({source_pos.x:.0f},{source_pos.y:.0f})")
+                        logger.info(
+                            f"[ATTACK LINE] Started from {selected_unit.display_name} at ({source_pos.x:.0f},{source_pos.y:.0f})"
+                        )
 
         def on_hold():
             if sound_system:
@@ -204,6 +205,7 @@ class HUDManager:
                 sound_system.play_ui_command()
             if interaction_controller:
                 from pycc2.domain.value_objects.audio_enums import InteractionMode
+
                 interaction_controller.set_mode(InteractionMode.MOVE, fast=True)
                 logger.info("[COMMAND] Fast Move activated")
 
@@ -212,6 +214,7 @@ class HUDManager:
                 sound_system.play_ui_command()
             if interaction_controller:
                 from pycc2.domain.value_objects.audio_enums import InteractionMode
+
                 interaction_controller.set_mode(InteractionMode.MOVE, sneak=True)
                 logger.info("[COMMAND] Sneak Move activated")
 
@@ -282,7 +285,9 @@ class HUDManager:
         def execute_move(unit_ids: set[str], target):
             from pycc2.domain.value_objects.tile_coord import TileCoord
 
-            logger.info(f"[COMMAND] Move {len(unit_ids)} unit(s) to ({target.x:.0f}, {target.y:.0f})")
+            logger.info(
+                f"[COMMAND] Move {len(unit_ids)} unit(s) to ({target.x:.0f}, {target.y:.0f})"
+            )
 
             # Set move targets (units will move each tick via update_movement)
             for unit in state.units:
@@ -299,19 +304,23 @@ class HUDManager:
                         f"({old_tile.x},{old_tile.y}) -> ({tile_x},{tile_y})"
                     )
 
-            event_bus.publish(PlayerCommand(
-                command="move",
-                unit_ids=list(unit_ids),
-                target=(target.x, target.y),
-            ))
+            event_bus.publish(
+                PlayerCommand(
+                    command="move",
+                    unit_ids=list(unit_ids),
+                    target=(target.x, target.y),
+                )
+            )
 
         def execute_attack(unit_ids: set[str], target_id: str):
             logger.info(f"[COMMAND] Attacking target {target_id} with {len(unit_ids)} unit(s)")
-            event_bus.publish(PlayerCommand(
-                command="attack",
-                unit_ids=list(unit_ids),
-                target_id=target_id,
-            ))
+            event_bus.publish(
+                PlayerCommand(
+                    command="attack",
+                    unit_ids=list(unit_ids),
+                    target_id=target_id,
+                )
+            )
 
         interaction_controller.register_on_move(execute_move)
         interaction_controller.register_on_attack(execute_attack)
@@ -323,10 +332,11 @@ class HUDManager:
     def center_camera_on_unit(self, units: list[Unit], unit_id: str, camera: Camera) -> None:
         """Center camera (and minimap view) on selected unit."""
         unit = next((u for u in units if u.id == unit_id), None)
-        if unit and hasattr(unit, 'position') and unit.position is not None:
+        if unit and hasattr(unit, "position") and unit.position is not None:
             # Center camera on unit's position
             pos = unit.position.pixel_position
             from pycc2.domain.value_objects.vec2 import Vec2
+
             viewport_w = camera.viewport_width
             viewport_h = camera.viewport_height
 
@@ -354,13 +364,20 @@ class HUDManager:
                 self._cc2_panel.set_selected_unit(selected_id)
 
                 # 同步选择状态：game_state → interaction_controller
-                if self._interaction_controller and hasattr(self._interaction_controller, '_selected_ids'):
+                if self._interaction_controller and hasattr(
+                    self._interaction_controller, "_selected_ids"
+                ):
                     self._interaction_controller._selected_ids = set(game_state.selected_unit_ids)
 
                 # 显示友军单位（ALLIES + POLISH 都是盟军）
                 try:
                     from pycc2.domain.entities.unit import Faction as UnitFaction
-                    allied_factions = (UnitFaction.ALLIES, UnitFaction.POLISH) if hasattr(UnitFaction, 'POLISH') else (UnitFaction.ALLIES,)
+
+                    allied_factions = (
+                        (UnitFaction.ALLIES, UnitFaction.POLISH)
+                        if hasattr(UnitFaction, "POLISH")
+                        else (UnitFaction.ALLIES,)
+                    )
                     friendly_units = [u for u in game_state.units if u.faction in allied_factions]
                     self._cc2_panel.set_friendly_units(friendly_units)
                 except Exception as e:
@@ -377,9 +394,12 @@ class HUDManager:
         except Exception as e:
             logger.error(f"HUDManager.render() crashed: {e}")
             import traceback
+
             traceback.print_exc()
 
-    def render_fallback(self, screen: pygame.Surface, camera: Camera, game_state: GameState) -> None:
+    def render_fallback(
+        self, screen: pygame.Surface, camera: Camera, game_state: GameState
+    ) -> None:
         """Fallback HUD renderer - CC2面板失败时的最后手段"""
         # 旧UI已完全禁用，此方法仅记录错误
         logger.error("CC2面板渲染失败且无可用Fallback！")

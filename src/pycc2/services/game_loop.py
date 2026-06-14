@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import logging
 import time
 from dataclasses import dataclass, field
@@ -12,13 +13,16 @@ from pycc2.domain.entities.unit import UnitState
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
-    from pycc2.presentation.audio.sound_system import SoundSystem
-    from pycc2.domain.interfaces.input_handler_protocol import IInputHandler as PygameInputHandler
-    from pycc2.domain.interfaces.interaction_controller_protocol import IInteractionController as InteractionController
     from pycc2.domain.interfaces.camera_protocol import ICamera as Camera
     from pycc2.domain.interfaces.display_config import DisplayConfig
+    from pycc2.domain.interfaces.input_handler_protocol import IInputHandler as PygameInputHandler
+    from pycc2.domain.interfaces.interaction_controller_protocol import (
+        IInteractionController as InteractionController,
+    )
     from pycc2.domain.interfaces.renderer_protocol import IRenderer as EnhancedRenderer
     from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
+    from pycc2.presentation.audio.sound_system import SoundSystem
+    from pycc2.presentation.ui.deployment_ui import DeploymentUI
     from pycc2.presentation.ui.time_control import TimeControlUI
     from pycc2.services.ai_service import AIService
     from pycc2.services.deployment_manager import DeploymentManager
@@ -172,6 +176,7 @@ class GameLoop:
                 camera_offset = self._effect_stack.get_total_offset()
                 if camera_offset != (0.0, 0.0):
                     from pycc2.domain.value_objects.vec2 import Vec2
+
                     self.state.camera.position = Vec2(
                         self.state.camera.position.x + camera_offset[0],
                         self.state.camera.position.y + camera_offset[1],
@@ -206,7 +211,11 @@ class GameLoop:
             if self.settings_menu and self.settings_menu.visible:
                 if screen:
                     self.settings_menu.render(screen)
-            elif self._deployment_manager.is_active and self._deployment_manager.deployment_ui is not None and screen:
+            elif (
+                self._deployment_manager.is_active
+                and self._deployment_manager.deployment_ui is not None
+                and screen
+            ):
                 # === 部署阶段渲染 ===
                 deployment_ui = self._deployment_manager.deployment_ui
 
@@ -228,7 +237,9 @@ class GameLoop:
                 # Step 2: 渲染天气/光照效果
                 if self._weather_renderer is not None:
                     if self._weather_state is not None:
-                        self._weather_renderer.render(screen, self.state.camera, self._weather_state)
+                        self._weather_renderer.render(
+                            screen, self.state.camera, self._weather_state
+                        )
                 if self._lighting_renderer is not None:
                     if self._day_night_time is not None:
                         self._lighting_renderer.render(screen, self._day_night_time)
@@ -237,8 +248,10 @@ class GameLoop:
                 dc = self.display_config
                 tile_size = dc.base_tile_size if dc else 16
                 deployment_ui.render(
-                    screen, font=None,
-                    map_offset_x=0, map_offset_y=0,
+                    screen,
+                    font=None,
+                    map_offset_x=0,
+                    map_offset_y=0,
                     tile_size=tile_size,
                 )
 
@@ -263,15 +276,16 @@ class GameLoop:
                 # Step 2: 渲染天气/光照效果
                 if self._weather_renderer is not None:
                     if self._weather_state is not None:
-                        self._weather_renderer.render(screen, self.state.camera, self._weather_state)
+                        self._weather_renderer.render(
+                            screen, self.state.camera, self._weather_state
+                        )
                 if self._lighting_renderer is not None:
                     if self._day_night_time is not None:
                         self._lighting_renderer.render(screen, self._day_night_time)
 
                 # Step 3: 渲染CC2统一底部HUD面板（单位列表+详情+小地图+命令栏）
-                if screen:
-                    if self._hud_manager:
-                        self._hud_manager.render(screen, self.state.camera, self.state)
+                if screen and self._hud_manager:
+                    self._hud_manager.render(screen, self.state.camera, self.state)
 
             if self.hint_manager and screen:
                 self.hint_manager.render(screen)
@@ -286,9 +300,13 @@ class GameLoop:
                 if self.interaction_controller.ctrl_held and self.state.selected_unit_ids:
                     selected_id = next(iter(self.state.selected_unit_ids), None)
                     if selected_id:
-                        selected_unit = next((u for u in self.state.units if u.id == selected_id), None)
+                        selected_unit = next(
+                            (u for u in self.state.units if u.id == selected_id), None
+                        )
                         if selected_unit:
-                            self.renderer.render_los_overlay(screen, selected_unit, self.state.game_map, self.state.camera)
+                            self.renderer.render_los_overlay(
+                                screen, selected_unit, self.state.game_map, self.state.camera
+                            )
                 # Radial menu and other interaction overlays
                 self.interaction_controller.render_overlay(screen, self.state.camera)
 
@@ -299,6 +317,7 @@ class GameLoop:
             # Restore camera position after cinematic effects
             if camera_offset != (0.0, 0.0):
                 from pycc2.domain.value_objects.vec2 import Vec2
+
                 self.state.camera.position = Vec2(
                     self.state.camera.position.x - camera_offset[0],
                     self.state.camera.position.y - camera_offset[1],
@@ -333,11 +352,10 @@ class GameLoop:
             self._weather_system.update(dt)
 
         # Apply weather effects to game state
-        if self._weather_effects is not None:
-            if self._weather_state is not None:
-                # Weather modifiers are read by Unit.get_accuracy_modifier() etc.
-                # Store current weather type for unit queries
-                self.state.current_weather = self._weather_state.weather_type
+        if self._weather_effects is not None and self._weather_state is not None:
+            # Weather modifiers are read by Unit.get_accuracy_modifier() etc.
+            # Store current weather type for unit queries
+            self.state.current_weather = self._weather_state.weather_type
 
         # Update day-night cycle
         if self._day_night_cycle is not None:
@@ -353,17 +371,15 @@ class GameLoop:
 
         # Update environmental ambient audio system
         if self._environmental_audio is not None:
-            try:
+            with contextlib.suppress(Exception):
                 self._environmental_audio.update(dt)
-            except Exception:
-                pass
 
         # Sync environmental audio context with game state
         if self._environmental_audio is not None:
             try:
                 # Sync time-of-day from day-night cycle
                 if self._day_night_cycle is not None:
-                    tod = getattr(self._day_night_cycle, 'time_of_day', None)
+                    tod = getattr(self._day_night_cycle, "time_of_day", None)
                     if tod is not None:
                         hour = int(tod * 24) % 24
                         self._environmental_audio.set_time_of_day(hour)
@@ -373,14 +389,15 @@ class GameLoop:
 
                 # Sync weather (rain)
                 if self._weather_state is not None:
-                    weather_type = getattr(self._weather_state, 'weather_type', None)
+                    weather_type = getattr(self._weather_state, "weather_type", None)
                     if weather_type is not None:
-                        is_raining = 'rain' in str(weather_type).lower()
+                        is_raining = "rain" in str(weather_type).lower()
                         self._environmental_audio.set_weather_rain(is_raining)
 
                 # Estimate combat intensity from unit states
                 attacking_count = sum(
-                    1 for u in self.state.units
+                    1
+                    for u in self.state.units
                     if u.is_alive and u.state_machine.current == UnitState.ATTACKING
                 )
                 total_alive = sum(1 for u in self.state.units if u.is_alive)
@@ -393,10 +410,10 @@ class GameLoop:
         # Update unit movements (smooth movement toward targets)
         for unit in self.state.units:
             # Update movement mode timers (Fast Move, Sneak, Defend)
-            if hasattr(unit, 'update_movement_mode'):
+            if hasattr(unit, "update_movement_mode"):
                 unit.update_movement_mode()
 
-            if hasattr(unit, 'move_target') and unit.move_target is not None:
+            if hasattr(unit, "move_target") and unit.move_target is not None:
                 arrived = unit.update_movement(dt)
                 if arrived:
                     logger.debug(f"[MOVEMENT] {unit.display_name} arrived at destination")
@@ -451,23 +468,23 @@ class GameLoop:
 
     def _update_visual_effects(self, dt: float) -> None:
         # P2-03: Update screen flash overlay alpha (fade-out)
-        if hasattr(self.renderer, 'update_flash'):
+        if hasattr(self.renderer, "update_flash"):
             self.renderer.update_flash(dt)
 
         # P3-01: Update weather atmosphere animation
-        if hasattr(self.renderer, 'update_weather'):
+        if hasattr(self.renderer, "update_weather"):
             self.renderer.update_weather(dt)
 
         # P3-02: Update shell casing physics
-        if hasattr(self.renderer, 'update_shell_casings'):
+        if hasattr(self.renderer, "update_shell_casings"):
             self.renderer.update_shell_casings(dt)
 
         # Suppression overlay: update red edge flash for pinned/broken player units
-        if hasattr(self.renderer, 'update_suppression_overlay'):
+        if hasattr(self.renderer, "update_suppression_overlay"):
             self.renderer.update_suppression_overlay(dt, self.state.units)
 
         # P2-04: Smooth unit position interpolation (lerp toward real positions)
-        if hasattr(self.renderer, '_smooth_positions'):
+        if hasattr(self.renderer, "_smooth_positions"):
             self.renderer._smooth_positions(self.state.units, dt)
 
         # Update cinematic camera effect stack
@@ -483,14 +500,13 @@ class GameLoop:
             if self._day_night_time is not None:
                 self._dynamic_shadow_sys.set_time_of_day(self._day_night_time)
             elif self._day_night_cycle is not None:
-                tod = getattr(self._day_night_cycle, 'time_of_day', 0.5)
+                tod = getattr(self._day_night_cycle, "time_of_day", 0.5)
                 self._dynamic_shadow_sys.set_time_of_day(tod)
 
     def _update_hud(self, dt: float) -> None:
         # P2-05: Update UI fade transitions (HUDManager panel/minimap fades)
-        if self._hud_manager is not None:
-            if hasattr(self._hud_manager, 'update'):
-                self._hud_manager.update(dt)
+        if self._hud_manager is not None and hasattr(self._hud_manager, "update"):
+            self._hud_manager.update(dt)
 
     def _update_ai(self, dt: float) -> None:
         if self.ai_service is not None and self.ai_service.managed_unit_count > 0:
@@ -512,11 +528,14 @@ class GameLoop:
             self.state.paused = True
 
             # Publish BattleWon named event for camera effects and achievement tracking
-            self.event_bus.publish_named("BattleWon", {
-                "result": result.name,
-                "reason": reason,
-                "duration_seconds": self.state.tick * LOGIC_DT,
-            })
+            self.event_bus.publish_named(
+                "BattleWon",
+                {
+                    "result": result.name,
+                    "reason": reason,
+                    "duration_seconds": self.state.tick * LOGIC_DT,
+                },
+            )
 
             if self.sound_system:
                 from pycc2.domain.value_objects.audio_enums import SoundType
@@ -538,12 +557,14 @@ class GameLoop:
         target_id = data.get("target_id")
         if target_id and self._popup_manager:
             target = next((u for u in self.state.units if u.id == target_id), None)
-            if target and hasattr(target, 'position') and target.position is not None:
+            if target and hasattr(target, "position") and target.position is not None:
                 pp = target.position.pixel_position
                 self._popup_manager.add_taking_fire(pp.x, pp.y)
 
     def _on_unit_attacked_for_stats(self, data: dict) -> None:
-        self._combat_director.record_stats(data, self.state.units, self._victory_manager.battle_stats)
+        self._combat_director.record_stats(
+            data, self.state.units, self._victory_manager.battle_stats
+        )
 
     def _on_projectile_fired(self, data: dict) -> None:
         """Handle ProjectileFired event — add trail to ProjectileTrailSystem."""
@@ -566,22 +587,22 @@ class GameLoop:
 
     def _process_combat_popups(self) -> None:
         """Scan units for combat events and trigger floating popups."""
-        from pycc2.domain.systems.morale_system import MoraleSystem, MoraleState
+        from pycc2.domain.systems.morale_system import MoraleState, MoraleSystem
 
         for unit in self.state.units:
             if not unit.is_alive:
                 continue
             # Get pixel position for popup placement
             px, py = 0.0, 0.0
-            if hasattr(unit, 'position') and unit.position is not None:
+            if hasattr(unit, "position") and unit.position is not None:
                 pp = unit.position.pixel_position
                 px, py = pp.x, pp.y
 
             # Check morale state changes → popup
-            if hasattr(unit, 'morale') and unit.morale is not None:
+            if hasattr(unit, "morale") and unit.morale is not None:
                 morale_state = MoraleSystem.get_state(unit.morale.value)
                 # Track previous state to detect transitions
-                prev_state = getattr(unit, '_prev_morale_state', None)
+                prev_state = getattr(unit, "_prev_morale_state", None)
                 if prev_state is not None and prev_state != morale_state:
                     if morale_state == MoraleState.BROKEN:
                         self._popup_manager.add_breaking(px, py)
@@ -590,20 +611,22 @@ class GameLoop:
                 unit._prev_morale_state = morale_state
 
             # Check for out-of-ammo
-            if hasattr(unit, 'weapon') and unit.weapon is not None:
-                weapon_state = getattr(unit.weapon, 'state', None)
-                if weapon_state is not None and hasattr(weapon_state, 'name'):
-                    if weapon_state.name == 'EMPTY' and not getattr(unit, '_ammo_popup_shown', False):
+            if hasattr(unit, "weapon") and unit.weapon is not None:
+                weapon_state = getattr(unit.weapon, "state", None)
+                if weapon_state is not None and hasattr(weapon_state, "name"):
+                    if weapon_state.name == "EMPTY" and not getattr(
+                        unit, "_ammo_popup_shown", False
+                    ):
                         self._popup_manager.add_out_of_ammo(px, py)
                         unit._ammo_popup_shown = True
-                    elif weapon_state.name != 'EMPTY':
+                    elif weapon_state.name != "EMPTY":
                         unit._ammo_popup_shown = False
 
         # Check for KIA (newly dead units)
         for unit in self.state.units:
-            if not unit.is_alive and not getattr(unit, '_kia_popup_shown', False):
+            if not unit.is_alive and not getattr(unit, "_kia_popup_shown", False):
                 px, py = 0.0, 0.0
-                if hasattr(unit, 'position') and unit.position is not None:
+                if hasattr(unit, "position") and unit.position is not None:
                     pp = unit.position.pixel_position
                     px, py = pp.x, pp.y
                 self._popup_manager.add_kia(px, py)
@@ -686,10 +709,8 @@ class GameLoop:
         if self._achievement_bridge is not None:
             self._achievement_bridge._manager.save()
         if self._environmental_audio is not None:
-            try:
+            with contextlib.suppress(Exception):
                 self._environmental_audio.stop_all()
-            except Exception:
-                pass
         if self.sound_system is not None:
             self.sound_system.shutdown()
         if self.ai_service is not None:

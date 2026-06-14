@@ -8,7 +8,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
-
 # VP calculation weights
 VP_VICTORY_BASE = 100
 VP_OBJECTIVE_COMPLETE = 25
@@ -148,9 +147,7 @@ class BattleResult:
 
     @classmethod
     def from_dict(cls, data: dict) -> BattleResult:
-        records = [
-            UnitBattleRecord(**r) for r in data.get("unit_records", [])
-        ]
+        records = [UnitBattleRecord(**r) for r in data.get("unit_records", [])]
         return cls(
             mission_id=data["mission_id"],
             mission_name=data.get("mission_name", ""),
@@ -202,16 +199,12 @@ class BattleEventTracker:
                 f"[{time_sec:.0f}s] {unit_name}'s morale collapsed — {new_state.upper()}!"
             )
         elif new_state == "routing":
-            self._key_events.append(
-                f"[{time_sec:.0f}s] {unit_name} is routing!"
-            )
+            self._key_events.append(f"[{time_sec:.0f}s] {unit_name} is routing!")
 
     def record_vl_capture(self, unit_name: str, vl_name: str, tick: int) -> None:
         """Record a victory location capture."""
         time_sec = tick / 60
-        self._key_events.append(
-            f"[{time_sec:.0f}s] {unit_name} captured {vl_name}"
-        )
+        self._key_events.append(f"[{time_sec:.0f}s] {unit_name} captured {vl_name}")
 
     def record_allied_kia(self, soldier_name: str) -> None:
         """Record an allied soldier killed in action."""
@@ -224,9 +217,7 @@ class BattleEventTracker:
     def record_last_stand(self, unit_name: str, tick: int) -> None:
         """Record a last stand event."""
         time_sec = tick / 60
-        self._key_events.append(
-            f"[{time_sec:.0f}s] {unit_name} made a last stand!"
-        )
+        self._key_events.append(f"[{time_sec:.0f}s] {unit_name} made a last stand!")
         self._heroic_actions.append(f"{unit_name} held the line to the last man")
 
     def get_narrative_data(self) -> dict:

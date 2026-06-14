@@ -117,9 +117,9 @@ class CampaignState:
     current_battle_number: int = 0
     total_battles_played: int = 0
 
-    bridges_captured: dict[str, bool] = field(default_factory=lambda: {
-        k: False for k in BRIDGE_NAMES
-    })
+    bridges_captured: dict[str, bool] = field(
+        default_factory=lambda: {k: False for k in BRIDGE_NAMES}
+    )
     total_vp: int = 0
 
     allied_units: list[PersistentUnit] = field(default_factory=list)
@@ -156,8 +156,12 @@ class CampaignState:
         alive = [u for u in self.allied_units if u.is_alive]
         if not alive:
             return 0.0
-        ranks = {VeteranRank.RECRUIT: 0, VeteranRank.REGULAR: 1,
-                 VeteranRank.VETERAN: 2, VeteranRank.ELITE: 3}
+        ranks = {
+            VeteranRank.RECRUIT: 0,
+            VeteranRank.REGULAR: 1,
+            VeteranRank.VETERAN: 2,
+            VeteranRank.ELITE: 3,
+        }
         avg = sum(ranks.get(u.veterancy.rank, 0) for u in alive) / len(alive)
         return avg
 
@@ -184,19 +188,18 @@ class CampaignState:
             self._apply_unit_record(record)
 
     def _apply_unit_record(self, record) -> None:
-        target_pool = (
-            self.allied_units if record.faction == "allies"
-            else self.axis_units
-        )
+        target_pool = self.allied_units if record.faction == "allies" else self.axis_units
         for pu in target_pool:
             if pu.unit_id == record.unit_id:
-                pu.apply_battle_result({
-                    "hp_end": record.hp_end,
-                    "survived": record.survived,
-                    "xp_gained": record.xp_gained,
-                    "kills": record.kills,
-                    "ammo_used": record.shots_fired // 3,
-                })
+                pu.apply_battle_result(
+                    {
+                        "hp_end": record.hp_end,
+                        "survived": record.survived,
+                        "xp_gained": record.xp_gained,
+                        "kills": record.kills,
+                        "ammo_used": record.shots_fired // 3,
+                    }
+                )
                 break
 
     def replenish_all_units(self) -> None:
@@ -219,9 +222,7 @@ class CampaignState:
             return True
         if self.alive_allied_count == 0:
             return True
-        if self.current_day == OperationPhase.DAY_6_SEPT22 and self.bridges_held == 0:
-            return True
-        return False
+        return bool(self.current_day == OperationPhase.DAY_6_SEPT22 and self.bridges_held == 0)
 
     @property
     def campaign_outcome(self) -> str:
@@ -289,7 +290,11 @@ class CampaignState:
             ("A-103", "Cmd Group", "COMMANDER"),
         ]
         for uid, uname, utype in starting_allies:
-            state.allied_units.append(PersistentUnit(
-                unit_id=uid, name=uname, unit_type=utype,
-            ))
+            state.allied_units.append(
+                PersistentUnit(
+                    unit_id=uid,
+                    name=uname,
+                    unit_type=utype,
+                )
+            )
         return state

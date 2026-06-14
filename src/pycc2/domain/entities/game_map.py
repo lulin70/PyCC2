@@ -96,7 +96,10 @@ class GameMap:
         elif isinstance(first_tile, dict):
             # Rich tile format: {"terrain_type": "open", "elevation": 0, ...}
             grid = np.array(
-                [[_TERRAIN_NAME_MAP.get(t.get("terrain_type", "open").lower(), 0) for t in row] for row in raw_tiles],
+                [
+                    [_TERRAIN_NAME_MAP.get(t.get("terrain_type", "open").lower(), 0) for t in row]
+                    for row in raw_tiles
+                ],
                 dtype=np.int8,
             )
         else:
@@ -192,7 +195,9 @@ class GameMap:
         return True
 
     def _check_window_firing_arc(
-        self, from_coord: TileCoord, to_coord: TileCoord,
+        self,
+        from_coord: TileCoord,
+        to_coord: TileCoord,
     ) -> bool:
         """Check if a unit inside a building can fire through a window toward the target.
 
@@ -238,13 +243,16 @@ class GameMap:
         half_arc = math.pi / 4  # 45-degree half-arc → 90 degree total arc
         for window in windows:
             wall = window["wall"]
-            if wall == "east" and abs(_angle_diff(angle, 0.0)) < half_arc:
-                return True
-            elif wall == "south" and abs(_angle_diff(angle, math.pi / 2)) < half_arc:
-                return True
-            elif wall == "west" and abs(_angle_diff(angle, math.pi)) < half_arc:
-                return True
-            elif wall == "north" and abs(_angle_diff(angle, -math.pi / 2)) < half_arc:
+            if (
+                wall == "east"
+                and abs(_angle_diff(angle, 0.0)) < half_arc
+                or wall == "south"
+                and abs(_angle_diff(angle, math.pi / 2)) < half_arc
+                or wall == "west"
+                and abs(_angle_diff(angle, math.pi)) < half_arc
+                or wall == "north"
+                and abs(_angle_diff(angle, -math.pi / 2)) < half_arc
+            ):
                 return True
 
         return False  # No window faces the target direction
@@ -402,4 +410,3 @@ class GameMap:
         height_diff = from_height - to_height
 
         return height_diff * 2.0  # Each level of advantage = +2 tiles range
-

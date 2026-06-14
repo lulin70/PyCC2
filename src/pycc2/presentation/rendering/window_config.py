@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import logging
 import ctypes
+import logging
 import platform
 from dataclasses import dataclass, field
 from enum import Enum, auto

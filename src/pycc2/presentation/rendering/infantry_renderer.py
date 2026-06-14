@@ -27,8 +27,8 @@ from typing import TYPE_CHECKING
 
 import pygame
 
-from pycc2.domain.value_objects.direction import Direction
 from pycc2.domain.entities.unit import Faction
+from pycc2.domain.value_objects.direction import Direction
 from pycc2.presentation.rendering.pixel_artist_enums import InfantryType
 
 logger = logging.getLogger(__name__)
@@ -39,6 +39,7 @@ if TYPE_CHECKING:
 
 class InfantryAnimationState(Enum):
     """步兵动画状态枚举"""
+
     IDLE = auto()
     WALKING = auto()
     RUNNING = auto()
@@ -65,19 +66,19 @@ class InfantryRenderer:
     """
 
     # CC2 步兵基础调色板 (从原版截图分析)
-    ALLIES_BASE_COLOR = (98, 115, 82)      # 盟军：橄榄绿
-    AXIS_BASE_COLOR = (119, 111, 95)       # 轴心国：灰绿色
+    ALLIES_BASE_COLOR = (98, 115, 82)  # 盟军：橄榄绿
+    AXIS_BASE_COLOR = (119, 111, 95)  # 轴心国：灰绿色
 
     # 身体部位颜色偏移
-    SKIN_TONE = (210, 175, 145)           # 肤色
-    HELMET_COLOR_ALLIES = (72, 86, 63)    # 盔甲绿（盟军）
-    HELMET_COLOR_AXIS = (105, 100, 85)    # 灰色（轴心国）
-    BOOT_COLOR = (62, 50, 42)             # 棕色靴子
-    GEAR_COLOR = (80, 75, 65)             # 装备灰褐色
+    SKIN_TONE = (210, 175, 145)  # 肤色
+    HELMET_COLOR_ALLIES = (72, 86, 63)  # 盔甲绿（盟军）
+    HELMET_COLOR_AXIS = (105, 100, 85)  # 灰色（轴心国）
+    BOOT_COLOR = (62, 50, 42)  # 棕色靴子
+    GEAR_COLOR = (80, 75, 65)  # 装备灰褐色
 
     # 武器颜色
-    WEAPON_METAL = (120, 120, 118)         # 金属灰色
-    WOOD_STOCK = (139, 109, 76)           # 木托
+    WEAPON_METAL = (120, 120, 118)  # 金属灰色
+    WOOD_STOCK = (139, 109, 76)  # 木托
 
     def __init__(self, base_size: int = 24):
         """
@@ -96,7 +97,7 @@ class InfantryRenderer:
         direction: Direction = Direction.SOUTH,
         animation_state: InfantryAnimationState = InfantryAnimationState.IDLE,
         is_wounded: bool = False,
-        frame_offset: int = 0
+        frame_offset: int = 0,
     ) -> pygame.Surface:
         """
         创建步兵精灵（主入口方法）。
@@ -136,8 +137,13 @@ class InfantryRenderer:
         elif animation_state == InfantryAnimationState.PRONE:
             self._draw_infantry_prone_topdown(surface, dir_params, base_color, faction)
         elif animation_state in [InfantryAnimationState.DYING, InfantryAnimationState.DEAD]:
-            self._draw_infantry_death_topdown(surface, dir_params, base_color, faction, 
-                                              animation_state == InfantryAnimationState.DEAD)
+            self._draw_infantry_death_topdown(
+                surface,
+                dir_params,
+                base_color,
+                faction,
+                animation_state == InfantryAnimationState.DEAD,
+            )
         else:
             # 待机/站立姿势
             self._draw_body(surface, dir_params, base_color, helmet_color)
@@ -146,14 +152,15 @@ class InfantryRenderer:
         if animation_state not in [InfantryAnimationState.DYING, InfantryAnimationState.DEAD]:
             weapon_type = self._get_weapon_for_type(infantry_type)
             self._draw_infantry_weapon(
-                surface, dir_params, weapon_type, 
-                animation_state == InfantryAnimationState.SHOOTING
+                surface, dir_params, weapon_type, animation_state == InfantryAnimationState.SHOOTING
             )
 
         # 3. 头部/头盔（最上层）
-        if animation_state not in [InfantryAnimationState.PRONE, 
-                                   InfantryAnimationState.DYING, 
-                                   InfantryAnimationState.DEAD]:
+        if animation_state not in [
+            InfantryAnimationState.PRONE,
+            InfantryAnimationState.DYING,
+            InfantryAnimationState.DEAD,
+        ]:
             self._draw_head(surface, dir_params, helmet_color, self.SKIN_TONE)
 
         # 应用受伤效果叠加层
@@ -182,6 +189,7 @@ class InfantryRenderer:
 
         # 添加随机血迹像素
         import random
+
         random.seed(42)  # 固定种子保证一致性
 
         for _ in range(5):  # 5个血迹点
@@ -222,67 +230,63 @@ class InfantryRenderer:
         """
         params = {
             Direction.NORTH: {
-                'body_offset': (12, 8),
-                'facing': (0, -1),
-                'flip': False,
-                'visibility': 0.7  # 背面略暗
+                "body_offset": (12, 8),
+                "facing": (0, -1),
+                "flip": False,
+                "visibility": 0.7,  # 背面略暗
             },
             Direction.SOUTH: {
-                'body_offset': (12, 14),
-                'facing': (0, 1),
-                'flip': False,
-                'visibility': 1.0  # 正面全亮
+                "body_offset": (12, 14),
+                "facing": (0, 1),
+                "flip": False,
+                "visibility": 1.0,  # 正面全亮
             },
             Direction.EAST: {
-                'body_offset': (14, 12),
-                'facing': (1, 0),
-                'flip': False,
-                'visibility': 0.9
+                "body_offset": (14, 12),
+                "facing": (1, 0),
+                "flip": False,
+                "visibility": 0.9,
             },
             Direction.WEST: {
-                'body_offset': (10, 12),
-                'facing': (-1, 0),
-                'flip': True,
-                'visibility': 0.9
+                "body_offset": (10, 12),
+                "facing": (-1, 0),
+                "flip": True,
+                "visibility": 0.9,
             },
             Direction.NORTHEAST: {
-                'body_offset': (13, 9),
-                'facing': (0.7, -0.7),
-                'flip': False,
-                'visibility': 0.8
+                "body_offset": (13, 9),
+                "facing": (0.7, -0.7),
+                "flip": False,
+                "visibility": 0.8,
             },
             Direction.SOUTHEAST: {
-                'body_offset': (13, 13),
-                'facing': (0.7, 0.7),
-                'flip': False,
-                'visibility': 0.95
+                "body_offset": (13, 13),
+                "facing": (0.7, 0.7),
+                "flip": False,
+                "visibility": 0.95,
             },
             Direction.SOUTHWEST: {
-                'body_offset': (11, 13),
-                'facing': (-0.7, 0.7),
-                'flip': True,
-                'visibility': 0.95
+                "body_offset": (11, 13),
+                "facing": (-0.7, 0.7),
+                "flip": True,
+                "visibility": 0.95,
             },
             Direction.NORTHWEST: {
-                'body_offset': (11, 9),
-                'facing': (-0.7, -0.7),
-                'flip': True,
-                'visibility': 0.8
-            }
+                "body_offset": (11, 9),
+                "facing": (-0.7, -0.7),
+                "flip": True,
+                "visibility": 0.8,
+            },
         }
 
         return params.get(direction, params[Direction.SOUTH])
 
     def _draw_body(
-        self, 
-        surface: pygame.Surface, 
-        params: dict, 
-        base_color: tuple, 
-        helmet_color: tuple
+        self, surface: pygame.Surface, params: dict, base_color: tuple, helmet_color: tuple
     ) -> None:
         """绘制站立姿态的身体。"""
-        cx, cy = params['body_offset']
-        vis = params['visibility']
+        cx, cy = params["body_offset"]
+        vis = params["visibility"]
 
         # 调整颜色亮度基于可见性
         body_color = tuple(int(c * vis) for c in base_color)
@@ -297,15 +301,11 @@ class InfantryRenderer:
         pygame.draw.rect(surface, leg_color, (cx + 1, cy + 7, 2, 6))  # 右腿
 
     def _draw_head(
-        self, 
-        surface: pygame.Surface, 
-        params: dict, 
-        helmet_color: tuple, 
-        skin_color: tuple
+        self, surface: pygame.Surface, params: dict, helmet_color: tuple, skin_color: tuple
     ) -> None:
         """绘制头部和头盔。"""
-        cx, cy = params['body_offset']
-        vis = params['visibility']
+        cx, cy = params["body_offset"]
+        vis = params["visibility"]
 
         # 头盔（圆形）
         helmet_radius = 4
@@ -318,14 +318,10 @@ class InfantryRenderer:
             pygame.draw.circle(surface, face_color, (cx, cy - 3), 2)
 
     def _draw_legs(
-        self, 
-        surface: pygame.Surface, 
-        params: dict, 
-        base_color: tuple, 
-        frame_offset: int
+        self, surface: pygame.Surface, params: dict, base_color: tuple, frame_offset: int
     ) -> None:
         """绘制行走/跑步状态的腿部动画。"""
-        cx, cy = params['body_offset']
+        cx, cy = params["body_offset"]
 
         # 简单的腿部摆动动画
         swing = math.sin(frame_offset * 0.5) * 3  # 摆动幅度
@@ -341,11 +337,7 @@ class InfantryRenderer:
         pygame.draw.rect(surface, leg_color, (right_leg_x, cy + 7, 2, 6))
 
     def _draw_infantry_weapon(
-        self,
-        surface: pygame.Surface,
-        params: dict,
-        weapon_type: str,
-        is_firing: bool = False
+        self, surface: pygame.Surface, params: dict, weapon_type: str, is_firing: bool = False
     ) -> None:
         """
         绘制步兵武器。
@@ -363,72 +355,66 @@ class InfantryRenderer:
             weapon_type: 武器类型字符串
             is_firing: 是否正在射击（显示枪口焰）
         """
-        cx, cy = params['body_offset']
-        fx, fy = params['facing']
+        cx, cy = params["body_offset"]
+        fx, fy = params["facing"]
 
         # 武器基础位置（右手位置）
         weapon_x = cx + int(fx * 6)
         weapon_y = cy + int(fy * 2)
 
         # 根据武器类型调整大小和形状
-        if weapon_type == 'rifle':
+        if weapon_type == "rifle":
             # 步枪：长条形
             length = 14
             end_x = weapon_x + int(fx * length)
             end_y = weapon_y + int(fy * length)
-            pygame.draw.line(surface, self.WEAPON_METAL, 
-                           (weapon_x, weapon_y), (end_x, end_y), 2)
+            pygame.draw.line(surface, self.WEAPON_METAL, (weapon_x, weapon_y), (end_x, end_y), 2)
             # 枪托
             stock_x = weapon_x - int(fx * 3)
             stock_y = weapon_y - int(fy * 1)
-            pygame.draw.line(surface, self.WOOD_STOCK,
-                           (weapon_x, weapon_y), (stock_x, stock_y), 2)
+            pygame.draw.line(surface, self.WOOD_STOCK, (weapon_x, weapon_y), (stock_x, stock_y), 2)
 
-        elif weapon_type == 'mg':
+        elif weapon_type == "mg":
             # 机枪：更粗更长
             length = 16
             end_x = weapon_x + int(fx * length)
             end_y = weapon_y + int(fy * length)
-            pygame.draw.line(surface, self.WEAPON_METAL,
-                           (weapon_x, weapon_y), (end_x, end_y), 3)
+            pygame.draw.line(surface, self.WEAPON_METAL, (weapon_x, weapon_y), (end_x, end_y), 3)
             # 两脚架
             bipod_y = weapon_y + 4
-            pygame.draw.line(surface, self.WEAPON_METAL,
-                           (weapon_x - 2, bipod_y), (weapon_x - 4, bipod_y + 4), 1)
-            pygame.draw.line(surface, self.WEAPON_METAL,
-                           (weapon_x + 2, bipod_y), (weapon_x + 4, bipod_y + 4), 1)
+            pygame.draw.line(
+                surface, self.WEAPON_METAL, (weapon_x - 2, bipod_y), (weapon_x - 4, bipod_y + 4), 1
+            )
+            pygame.draw.line(
+                surface, self.WEAPON_METAL, (weapon_x + 2, bipod_y), (weapon_x + 4, bipod_y + 4), 1
+            )
 
-        elif weapon_type == 'at':
+        elif weapon_type == "at":
             # 反坦克火箭：短粗 + 圆筒发射器
             tube_length = 8
             end_x = weapon_x + int(fx * tube_length)
             end_y = weapon_y + int(fy * tube_length)
-            pygame.draw.line(surface, self.WEAPON_METAL,
-                           (weapon_x, weapon_y), (end_x, end_y), 4)
+            pygame.draw.line(surface, self.WEAPON_METAL, (weapon_x, weapon_y), (end_x, end_y), 4)
             # 护木
-            pygame.draw.rect(surface, self.WOOD_STOCK,
-                           (weapon_x - 2, weapon_y - 1, 4, 3))
+            pygame.draw.rect(surface, self.WOOD_STOCK, (weapon_x - 2, weapon_y - 1, 4, 3))
 
-        elif weapon_type == 'smg':
+        elif weapon_type == "smg":
             # 冲锋枪：中等长度
             length = 10
             end_x = weapon_x + int(fx * length)
             end_y = weapon_y + int(fy * length)
-            pygame.draw.line(surface, self.WEAPON_METAL,
-                           (weapon_x, weapon_y), (end_x, end_y), 2)
+            pygame.draw.line(surface, self.WEAPON_METAL, (weapon_x, weapon_y), (end_x, end_y), 2)
             # 弹匣
             mag_x = weapon_x + int(fx * 4)
             mag_y = weapon_y + 2
-            pygame.draw.rect(surface, self.WEAPON_METAL,
-                           (mag_x, mag_y, 2, 4))
+            pygame.draw.rect(surface, self.WEAPON_METAL, (mag_x, mag_y, 2, 4))
 
-        elif weapon_type == 'sniper':
+        elif weapon_type == "sniper":
             # 狙击枪：长 + 瞄准镜
             length = 16
             end_x = weapon_x + int(fx * length)
             end_y = weapon_y + int(fy * length)
-            pygame.draw.line(surface, self.WEAPON_METAL,
-                           (weapon_x, weapon_y), (end_x, end_y), 2)
+            pygame.draw.line(surface, self.WEAPON_METAL, (weapon_x, weapon_y), (end_x, end_y), 2)
             # 瞄准镜（中段凸起）
             scope_x = weapon_x + int(fx * 8)
             scope_y = weapon_y + int(fy * 8) - 1
@@ -443,11 +429,7 @@ class InfantryRenderer:
             pygame.draw.circle(surface, (255, 100, 0), (muzzle_x, muzzle_y), 2)
 
     def _draw_infantry_prone_topdown(
-        self,
-        surface: pygame.Surface,
-        params: dict,
-        base_color: tuple,
-        faction: Faction
+        self, surface: pygame.Surface, params: dict, base_color: tuple, faction: Faction
     ) -> None:
         """
         绘制趴伏状态的步兵俯视图。
@@ -461,13 +443,13 @@ class InfantryRenderer:
             base_color: 基础颜色
             faction: 阵营
         """
-        cx, cy = params['body_offset']
-        vis = params['visibility']
+        cx, cy = params["body_offset"]
+        vis = params["visibility"]
         body_color = tuple(int(c * vis) for c in base_color)
 
         # 身体（水平椭圆，用多边形近似）
         points = [
-            (cx - 8, cy),     # 头部左侧
+            (cx - 8, cy),  # 头部左侧
             (cx + 6, cy - 2),  # 脚部右侧
             (cx + 6, cy + 2),  # 脚部右下
             (cx - 8, cy + 4),  # 头部右下
@@ -476,7 +458,9 @@ class InfantryRenderer:
 
         # 头部（小圆）
         head_x = cx - 6
-        head_color = self.HELMET_COLOR_ALLIES if faction == Faction.ALLIES else self.HELMET_COLOR_AXIS
+        head_color = (
+            self.HELMET_COLOR_ALLIES if faction == Faction.ALLIES else self.HELMET_COLOR_AXIS
+        )
         head_color = tuple(int(c * vis) for c in head_color)
         pygame.draw.circle(surface, head_color, (head_x, cy + 2), 3)
 
@@ -486,7 +470,7 @@ class InfantryRenderer:
         params: dict,
         base_color: tuple,
         faction: Faction,
-        is_dead: bool = False
+        is_dead: bool = False,
     ) -> None:
         """
         绘制死亡状态的步兵俯视图。
@@ -502,7 +486,7 @@ class InfantryRenderer:
             faction: 阵营
             is_dead: 是否完全死亡
         """
-        cx, cy = params['body_offset']
+        cx, cy = params["body_offset"]
 
         # 死亡时颜色变暗
         darkness = 0.5 if is_dead else 0.7
@@ -520,8 +504,7 @@ class InfantryRenderer:
 
             # 武器掉落在一旁
             weapon_color = (100, 100, 98)
-            pygame.draw.line(surface, weapon_color, 
-                           (cx + 4, cy + 1), (cx + 9, cy + 4), 1)
+            pygame.draw.line(surface, weapon_color, (cx + 4, cy + 1), (cx + 9, cy + 4), 1)
         else:
             # 正在倒下：倾斜姿态
             tilt_angle = 30  # 倾斜角度
@@ -539,21 +522,21 @@ class InfantryRenderer:
     def _get_weapon_for_type(self, infantry_type: InfantryType) -> str:
         """根据步兵类型获取对应武器类型。"""
         weapon_map = {
-            InfantryType.RIFLEMAN: 'rifle',
-            InfantryType.MG: 'mg',
-            InfantryType.AT: 'at',
-            InfantryType.OFFICER: 'smg',   # 冲锋枪
-            InfantryType.SNIPER: 'sniper',
-            InfantryType.MEDIC: 'smg',     # 卡宾枪/冲锋枪
-            InfantryType.ENGINEER: 'smg',  # 工程师冲锋枪
+            InfantryType.RIFLEMAN: "rifle",
+            InfantryType.MG: "mg",
+            InfantryType.AT: "at",
+            InfantryType.OFFICER: "smg",  # 冲锋枪
+            InfantryType.SNIPER: "sniper",
+            InfantryType.MEDIC: "smg",  # 卡宾枪/冲锋枪
+            InfantryType.ENGINEER: "smg",  # 工程师冲锋枪
         }
-        return weapon_map.get(infantry_type, 'rifle')
+        return weapon_map.get(infantry_type, "rifle")
 
     def create_infantry_animation_sheet(
         self,
         infantry_type: InfantryType = InfantryType.RIFLEMAN,
         faction: Faction = Faction.ALLIES,
-        include_all_states: bool = True
+        include_all_states: bool = True,
     ) -> dict[InfantryAnimationState, list[pygame.Surface]]:
         """
         创建完整的步兵动画帧表。
@@ -569,8 +552,11 @@ class InfantryRenderer:
         Returns:
             字典：{动画状态: [8个方向的精灵列表]}
         """
-        states = list(InfantryAnimationState) if include_all_states else \
-                 [InfantryAnimationState.IDLE, InfantryAnimationState.WALKING]
+        states = (
+            list(InfantryAnimationState)
+            if include_all_states
+            else [InfantryAnimationState.IDLE, InfantryAnimationState.WALKING]
+        )
 
         animation_sheet = {}
 
@@ -578,15 +564,18 @@ class InfantryRenderer:
             direction_sprites = []
             for direction in Direction:
                 # 计算帧偏移（用于行走/跑步动画）
-                frame_offset = 0 if state == InfantryAnimationState.IDLE else \
-                              list(Direction).index(direction) * 2
+                frame_offset = (
+                    0
+                    if state == InfantryAnimationState.IDLE
+                    else list(Direction).index(direction) * 2
+                )
 
                 sprite = self.create_infantry_sprite(
                     infantry_type=infantry_type,
                     faction=faction,
                     direction=direction,
                     animation_state=state,
-                    frame_offset=frame_offset
+                    frame_offset=frame_offset,
                 )
                 direction_sprites.append(sprite)
 

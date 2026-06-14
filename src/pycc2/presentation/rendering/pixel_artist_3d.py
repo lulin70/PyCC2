@@ -18,18 +18,29 @@ from __future__ import annotations
 import logging
 import math
 import random
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
 
 # Import domain value objects
+from pycc2.domain.entities.unit import Faction
 from pycc2.domain.value_objects.direction import (
-    Direction,
     DIRECTION_ANGLES,
     DIRECTION_VECTORS,
     DIRECTION_VECTORS_REVERSE,
+    Direction,
 )
-from pycc2.domain.entities.unit import Faction
+from pycc2.presentation.rendering.infantry_pixel_renderer import (
+    InfantryAnimator as _InfantryAnimator,
+)
+from pycc2.presentation.rendering.infantry_pixel_renderer import (
+    InfantryPixelRenderer,
+)
+
+# Import extracted color palettes
+from pycc2.presentation.rendering.pixel_artist_color_palette import (
+    CC2_PALETTE,
+)
 
 # Import extracted enums
 from pycc2.presentation.rendering.pixel_artist_enums import (
@@ -38,17 +49,8 @@ from pycc2.presentation.rendering.pixel_artist_enums import (
     TankType,
 )
 
-# Import extracted color palettes
-from pycc2.presentation.rendering.pixel_artist_color_palette import (
-    CC2_PALETTE,
-)
-
 # Import extracted renderers
 from pycc2.presentation.rendering.tank_pixel_renderer import TankPixelRenderer
-from pycc2.presentation.rendering.infantry_pixel_renderer import (
-    InfantryPixelRenderer,
-    InfantryAnimator as _InfantryAnimator,
-)
 
 if TYPE_CHECKING:
     pass
@@ -74,7 +76,7 @@ class PixelArtist3D:
     PIXEL_SCALE = 1
 
     # ===== Rotation Pre-cache (delegates to TankPixelRenderer) =====
-    _rotation_cache: Dict[tuple, 'pygame.Surface'] = {}
+    _rotation_cache: dict[tuple, pygame.Surface] = {}
     _PRECACHE_ANGLES = [i * 15 for i in range(24)]
 
     # ------------------------------------------------------------------ #
@@ -82,7 +84,7 @@ class PixelArtist3D:
     # ------------------------------------------------------------------ #
 
     @classmethod
-    def _get_rotated_surface(cls, base: 'pygame.Surface', angle: float) -> 'pygame.Surface':
+    def _get_rotated_surface(cls, base: pygame.Surface, angle: float) -> pygame.Surface:
         """Cached rotation operation. Delegates to TankPixelRenderer."""
         return TankPixelRenderer.get_rotated_surface(base, angle)
 
@@ -110,11 +112,15 @@ class PixelArtist3D:
     ):
         """Create an infantry sprite (24x24 px). Delegates to InfantryPixelRenderer."""
         return InfantryPixelRenderer.create_infantry_sprite(
-            direction, faction, state, frame, infantry_type,
+            direction,
+            faction,
+            state,
+            frame,
+            infantry_type,
         )
 
     @staticmethod
-    def apply_wounded_overlay(surface, hp_ratio: float) -> 'pygame.Surface':
+    def apply_wounded_overlay(surface, hp_ratio: float) -> pygame.Surface:
         """Apply wounded visual overlay based on HP ratio. Delegates to InfantryPixelRenderer."""
         return InfantryPixelRenderer.apply_wounded_overlay(surface, hp_ratio)
 
@@ -135,35 +141,81 @@ class PixelArtist3D:
 
     @staticmethod
     def _draw_infantry_weapon(
-        surface, direction, infantry_type, cx, cy,
-        weapon_color, weapon_metal, weapon_wood, equip_color, equip_dark,
+        surface,
+        direction,
+        infantry_type,
+        cx,
+        cy,
+        weapon_color,
+        weapon_metal,
+        weapon_wood,
+        equip_color,
+        equip_dark,
     ):
         """Draw differentiated weapon by infantry type. Delegates to InfantryPixelRenderer."""
         return InfantryPixelRenderer._draw_infantry_weapon(
-            surface, direction, infantry_type, cx, cy,
-            weapon_color, weapon_metal, weapon_wood, equip_color, equip_dark,
+            surface,
+            direction,
+            infantry_type,
+            cx,
+            cy,
+            weapon_color,
+            weapon_metal,
+            weapon_wood,
+            equip_color,
+            equip_dark,
         )
 
     @staticmethod
     def _draw_infantry_prone_topdown(
-        surface, direction, state, frame, palette, infantry_type,
-        body_color, weapon_color, weapon_metal, boots_color,
+        surface,
+        direction,
+        state,
+        frame,
+        palette,
+        infantry_type,
+        body_color,
+        weapon_color,
+        weapon_metal,
+        boots_color,
     ):
         """Draw prone soldier top-down. Delegates to InfantryPixelRenderer."""
         return InfantryPixelRenderer._draw_infantry_prone_topdown(
-            surface, direction, state, frame, palette, infantry_type,
-            body_color, weapon_color, weapon_metal, boots_color,
+            surface,
+            direction,
+            state,
+            frame,
+            palette,
+            infantry_type,
+            body_color,
+            weapon_color,
+            weapon_metal,
+            boots_color,
         )
 
     @staticmethod
     def _draw_infantry_death_topdown(
-        surface, direction, frame, palette, infantry_type,
-        body_color, helmet_color, weapon_color, boots_color,
+        surface,
+        direction,
+        frame,
+        palette,
+        infantry_type,
+        body_color,
+        helmet_color,
+        weapon_color,
+        boots_color,
     ):
         """Draw death animation top-down. Delegates to InfantryPixelRenderer."""
         return InfantryPixelRenderer._draw_infantry_death_topdown(
-            surface, direction, frame, palette, infantry_type,
-            body_color, helmet_color, weapon_color, boots_color,
+            surface,
+            direction,
+            frame,
+            palette,
+            infantry_type,
+            body_color,
+            helmet_color,
+            weapon_color,
+            boots_color,
         )
 
     @staticmethod
@@ -194,7 +246,12 @@ class PixelArtist3D:
     ):
         """Create a tank sprite. Delegates to TankPixelRenderer."""
         return TankPixelRenderer.create_tank_sprite(
-            direction, faction, turret_direction, state, frame, tank_type,
+            direction,
+            faction,
+            turret_direction,
+            state,
+            frame,
+            tank_type,
         )
 
     @staticmethod
@@ -209,17 +266,23 @@ class PixelArtist3D:
     @staticmethod
     def _draw_sherman_m4(surface, direction, turret_direction, state, frame, tp, cx, cy):
         """Draw Sherman M4. Delegates to TankPixelRenderer."""
-        return TankPixelRenderer._draw_sherman_m4(surface, direction, turret_direction, state, frame, tp, cx, cy)
+        return TankPixelRenderer._draw_sherman_m4(
+            surface, direction, turret_direction, state, frame, tp, cx, cy
+        )
 
     @staticmethod
     def _draw_panther_ausfg(surface, direction, turret_direction, state, frame, tp, cx, cy):
         """Draw Panther Ausf.G. Delegates to TankPixelRenderer."""
-        return TankPixelRenderer._draw_panther_ausfg(surface, direction, turret_direction, state, frame, tp, cx, cy)
+        return TankPixelRenderer._draw_panther_ausfg(
+            surface, direction, turret_direction, state, frame, tp, cx, cy
+        )
 
     @staticmethod
     def _draw_tiger_i(surface, direction, turret_direction, state, frame, tp, cx, cy):
         """Draw Tiger I. Delegates to TankPixelRenderer."""
-        return TankPixelRenderer._draw_tiger_i(surface, direction, turret_direction, state, frame, tp, cx, cy)
+        return TankPixelRenderer._draw_tiger_i(
+            surface, direction, turret_direction, state, frame, tp, cx, cy
+        )
 
     @staticmethod
     def _draw_star(surface, cx, cy, radius, color):
@@ -292,11 +355,21 @@ class PixelArtist3D:
         track_line_fine = (35, 40, 32)
         for ty in range(track_y + 1, track_y + track_h - 1, 4):
             if ty < track_y + track_h:
-                pygame.draw.line(temp, track_line_fine, (track_x + 1, ty), (track_x + track_w - 1, ty), 1)
+                pygame.draw.line(
+                    temp, track_line_fine, (track_x + 1, ty), (track_x + track_w - 1, ty), 1
+                )
 
         track_edge_light = (55, 60, 50)
-        pygame.draw.line(temp, track_edge_light, (track_x, track_y), (track_x, track_y + track_h), 1)
-        pygame.draw.line(temp, track_edge_light, (track_x + track_w - 1, track_y), (track_x + track_w - 1, track_y + track_h), 1)
+        pygame.draw.line(
+            temp, track_edge_light, (track_x, track_y), (track_x, track_y + track_h), 1
+        )
+        pygame.draw.line(
+            temp,
+            track_edge_light,
+            (track_x + track_w - 1, track_y),
+            (track_x + track_w - 1, track_y + track_h),
+            1,
+        )
 
         wheel_radius = 3
         wheel_y = body_y + 4
@@ -316,8 +389,20 @@ class PixelArtist3D:
         pygame.draw.rect(temp, cargo_color, (cargo_x, cargo_y, cargo_w, cargo_h), 1)
 
         cargo_brace = (70, 88, 36)
-        pygame.draw.line(temp, cargo_brace, (cargo_x + 2, cargo_y + 2), (cargo_x + cargo_w - 2, cargo_y + cargo_h - 2), 1)
-        pygame.draw.line(temp, cargo_brace, (cargo_x + cargo_w - 2, cargo_y + 2), (cargo_x + 2, cargo_y + cargo_h - 2), 1)
+        pygame.draw.line(
+            temp,
+            cargo_brace,
+            (cargo_x + 2, cargo_y + 2),
+            (cargo_x + cargo_w - 2, cargo_y + cargo_h - 2),
+            1,
+        )
+        pygame.draw.line(
+            temp,
+            cargo_brace,
+            (cargo_x + cargo_w - 2, cargo_y + 2),
+            (cargo_x + 2, cargo_y + cargo_h - 2),
+            1,
+        )
 
         mg_mount_color = (45, 45, 45)
         mg_barrel_color = (35, 35, 35)
@@ -336,14 +421,34 @@ class PixelArtist3D:
         seam_color = tuple(max(0, c - 18) for c in dark_color)
 
         hood_seam_y = body_y + body_h // 3
-        pygame.draw.line(temp, seam_color, (body_x + 1, hood_seam_y), (body_x + body_w - 1, hood_seam_y), 1)
+        pygame.draw.line(
+            temp, seam_color, (body_x + 1, hood_seam_y), (body_x + body_w - 1, hood_seam_y), 1
+        )
 
         center_seam_x = tcx
-        pygame.draw.line(temp, seam_color, (center_seam_x, body_y + 2), (center_seam_x, body_y + body_h - track_h - 2), 1)
+        pygame.draw.line(
+            temp,
+            seam_color,
+            (center_seam_x, body_y + 2),
+            (center_seam_x, body_y + body_h - track_h - 2),
+            1,
+        )
 
         door_seam_offset = body_w // 4
-        pygame.draw.line(temp, seam_color, (body_x + door_seam_offset, hood_seam_y + 2), (body_x + door_seam_offset, body_y + body_h - track_h - 2), 1)
-        pygame.draw.line(temp, seam_color, (body_x + body_w - door_seam_offset, hood_seam_y + 2), (body_x + body_w - door_seam_offset, body_y + body_h - track_h - 2), 1)
+        pygame.draw.line(
+            temp,
+            seam_color,
+            (body_x + door_seam_offset, hood_seam_y + 2),
+            (body_x + door_seam_offset, body_y + body_h - track_h - 2),
+            1,
+        )
+        pygame.draw.line(
+            temp,
+            seam_color,
+            (body_x + body_w - door_seam_offset, hood_seam_y + 2),
+            (body_x + body_w - door_seam_offset, body_y + body_h - track_h - 2),
+            1,
+        )
 
         fender_y = wheel_y + wheel_radius + 1
         if fender_y < body_y + body_h:
@@ -415,7 +520,9 @@ class PixelArtist3D:
 
         windshield_v_color = (60, 68, 35) if faction == Faction.ALLIES else (65, 70, 62)
         pygame.draw.line(temp, windshield_v_color, (body_x + 2, body_y + 5), (tcx, body_y + 2), 1)
-        pygame.draw.line(temp, windshield_v_color, (tcx, body_y + 2), (body_x + body_w - 2, body_y + 5), 1)
+        pygame.draw.line(
+            temp, windshield_v_color, (tcx, body_y + 2), (body_x + body_w - 2, body_y + 5), 1
+        )
 
         pygame.draw.line(temp, dark_color, (body_x + 3, body_y + 6), (tcx, body_y + 3), 1)
         pygame.draw.line(temp, dark_color, (tcx, body_y + 3), (body_x + body_w - 3, body_y + 6), 1)
@@ -436,24 +543,46 @@ class PixelArtist3D:
         seam_color = tuple(max(0, c - 15) for c in dark_color)
 
         hood_seam_y = body_y + body_h // 3
-        pygame.draw.line(temp, seam_color, (body_x + 1, hood_seam_y), (body_x + body_w - 1, hood_seam_y), 1)
+        pygame.draw.line(
+            temp, seam_color, (body_x + 1, hood_seam_y), (body_x + body_w - 1, hood_seam_y), 1
+        )
 
         door_seam_x = tcx
-        pygame.draw.line(temp, seam_color, (door_seam_x, hood_seam_y + 2), (door_seam_x, body_y + body_h - 3), 1)
+        pygame.draw.line(
+            temp, seam_color, (door_seam_x, hood_seam_y + 2), (door_seam_x, body_y + body_h - 3), 1
+        )
 
         rear_seam_y = body_y + int(0.75 * body_h)
-        pygame.draw.line(temp, seam_color, (body_x + 1, rear_seam_y), (body_x + body_w - 1, rear_seam_y), 1)
+        pygame.draw.line(
+            temp, seam_color, (body_x + 1, rear_seam_y), (body_x + body_w - 1, rear_seam_y), 1
+        )
 
         side_seam_offset = body_w // 4
-        pygame.draw.line(temp, seam_color, (body_x + side_seam_offset, hood_seam_y + 1), (body_x + side_seam_offset, rear_seam_y - 1), 1)
-        pygame.draw.line(temp, seam_color, (body_x + body_w - side_seam_offset, hood_seam_y + 1), (body_x + body_w - side_seam_offset, rear_seam_y - 1), 1)
+        pygame.draw.line(
+            temp,
+            seam_color,
+            (body_x + side_seam_offset, hood_seam_y + 1),
+            (body_x + side_seam_offset, rear_seam_y - 1),
+            1,
+        )
+        pygame.draw.line(
+            temp,
+            seam_color,
+            (body_x + body_w - side_seam_offset, hood_seam_y + 1),
+            (body_x + body_w - side_seam_offset, rear_seam_y - 1),
+            1,
+        )
 
         fender_y_front = body_y + wheel_offset_y_front + 3
         if fender_y_front < body_y + body_h:
-            pygame.draw.line(temp, dark_color, (body_x, fender_y_front), (body_x + body_w, fender_y_front), 1)
+            pygame.draw.line(
+                temp, dark_color, (body_x, fender_y_front), (body_x + body_w, fender_y_front), 1
+            )
 
         tailgate_y = body_y + body_h - 2
-        pygame.draw.line(temp, seam_color, (body_x + 2, tailgate_y), (body_x + body_w - 2, tailgate_y), 1)
+        pygame.draw.line(
+            temp, seam_color, (body_x + 2, tailgate_y), (body_x + body_w - 2, tailgate_y), 1
+        )
 
         angle = DIRECTION_ANGLES.get(direction, 0)
         if angle != 0:
@@ -509,8 +638,20 @@ class PixelArtist3D:
 
         leg_length = 8
         leg_spread = 5
-        pygame.draw.line(temp, dark_color, (tcx - 1, base_y + base_h), (tcx - leg_spread, base_y + base_h + leg_length), 2)
-        pygame.draw.line(temp, dark_color, (tcx + 1, base_y + base_h), (tcx + leg_spread, base_y + base_h + leg_length), 2)
+        pygame.draw.line(
+            temp,
+            dark_color,
+            (tcx - 1, base_y + base_h),
+            (tcx - leg_spread, base_y + base_h + leg_length),
+            2,
+        )
+        pygame.draw.line(
+            temp,
+            dark_color,
+            (tcx + 1, base_y + base_h),
+            (tcx + leg_spread, base_y + base_h + leg_length),
+            2,
+        )
 
         angle = DIRECTION_ANGLES.get(direction, 0)
         if angle != 0:
@@ -542,9 +683,9 @@ class PixelArtist3D:
         surface.fill((0, 0, 0, 0))
 
         palette = CC2_PALETTE["allies" if faction == Faction.ALLIES else "axis"]
-        uniform_color = palette['uniform']
-        helmet_color = palette['helmet']
-        weapon_color = palette['weapon']
+        uniform_color = palette["uniform"]
+        helmet_color = palette["helmet"]
+        weapon_color = palette["weapon"]
 
         cx, cy = 11, 12
 
@@ -575,24 +716,34 @@ class PixelArtist3D:
         tube_end_x = tube_start_x + math.cos(tube_angle) * tube_length
         tube_end_y = tube_start_y + math.sin(tube_angle) * tube_length
 
-        pygame.draw.line(surface, weapon_color,
-                        (int(tube_start_x), int(tube_start_y)),
-                        (int(tube_end_x), int(tube_end_y)),
-                        tube_width)
+        pygame.draw.line(
+            surface,
+            weapon_color,
+            (int(tube_start_x), int(tube_start_y)),
+            (int(tube_end_x), int(tube_end_y)),
+            tube_width,
+        )
 
-        pygame.draw.circle(surface, (60, 60, 60),
-                          (int(tube_end_x), int(tube_end_y)), 2)
+        pygame.draw.circle(surface, (60, 60, 60), (int(tube_end_x), int(tube_end_y)), 2)
 
         leg1_end_x = cx - 3
         leg1_end_y = cy + 5
         leg2_end_x = cx + 3
         leg2_end_y = cy + 5
-        pygame.draw.line(surface, (60, 60, 60),
-                        (int(tube_start_x), int(tube_start_y)),
-                        (leg1_end_x, leg1_end_y), 1)
-        pygame.draw.line(surface, (60, 60, 60),
-                        (int(tube_start_x), int(tube_start_y)),
-                        (leg2_end_x, leg2_end_y), 1)
+        pygame.draw.line(
+            surface,
+            (60, 60, 60),
+            (int(tube_start_x), int(tube_start_y)),
+            (leg1_end_x, leg1_end_y),
+            1,
+        )
+        pygame.draw.line(
+            surface,
+            (60, 60, 60),
+            (int(tube_start_x), int(tube_start_y)),
+            (leg2_end_x, leg2_end_y),
+            1,
+        )
 
         crew1_x = cx - 5
         crew1_y = cy + 2
@@ -606,10 +757,16 @@ class PixelArtist3D:
 
         if state == "shoot" and frame == 1:
             flash_size = 3
-            pygame.draw.ellipse(surface, (255, 255, 100),
-                              (int(tube_end_x) - flash_size // 2,
-                               int(tube_end_y) - flash_size // 2,
-                               flash_size, flash_size))
+            pygame.draw.ellipse(
+                surface,
+                (255, 255, 100),
+                (
+                    int(tube_end_x) - flash_size // 2,
+                    int(tube_end_y) - flash_size // 2,
+                    flash_size,
+                    flash_size,
+                ),
+            )
 
         return surface
 
@@ -648,10 +805,14 @@ class PixelArtist3D:
         shadow_w = canopy_radius * 2 - 4
         shadow_h = canopy_radius * 1.5 - 2
         pygame.draw.ellipse(
-            shadow_surface, (0, 0, 0, 50),
-            (cx - shadow_w // 2 + shadow_offset_x,
-             cy - shadow_h // 2 + shadow_offset_y,
-             shadow_w, shadow_h),
+            shadow_surface,
+            (0, 0, 0, 50),
+            (
+                cx - shadow_w // 2 + shadow_offset_x,
+                cy - shadow_h // 2 + shadow_offset_y,
+                shadow_w,
+                shadow_h,
+            ),
         )
         surface.blit(shadow_surface, (0, 0))
 
@@ -768,8 +929,12 @@ class PixelArtist3D:
 
                     cross_x = win_x + 2
                     cross_y = win_y + 2
-                    pygame.draw.line(surface, dark_color, (cross_x, cross_y - 1), (cross_x, cross_y + 1), 1)
-                    pygame.draw.line(surface, dark_color, (cross_x - 1, cross_y), (cross_x + 1, cross_y), 1)
+                    pygame.draw.line(
+                        surface, dark_color, (cross_x, cross_y - 1), (cross_x, cross_y + 1), 1
+                    )
+                    pygame.draw.line(
+                        surface, dark_color, (cross_x - 1, cross_y), (cross_x + 1, cross_y), 1
+                    )
 
         elif building_type == "factory":
             wall_color = (120, 115, 105)
@@ -798,7 +963,9 @@ class PixelArtist3D:
                 smoke_alpha = max(20, 80 - i * 25)
                 smoke_surf = pygame.Surface((smoke_r * 2, smoke_r * 2), pygame.SRCALPHA)
                 smoke_surf.fill((0, 0, 0, 0))
-                pygame.draw.circle(smoke_surf, (180, 180, 175, smoke_alpha), (smoke_r, smoke_r), smoke_r)
+                pygame.draw.circle(
+                    smoke_surf, (180, 180, 175, smoke_alpha), (smoke_r, smoke_r), smoke_r
+                )
                 surface.blit(smoke_surf, (smoke_x - smoke_r, smoke_y - smoke_r))
 
             for bx in range(wall_x + 2, wall_x + wall_w - 2, 6):
@@ -814,7 +981,9 @@ class PixelArtist3D:
             bunker_w, bunker_h = 22, 18
             bunker_x = cx - bunker_w // 2
             bunker_y = cy - bunker_h // 2
-            pygame.draw.rect(surface, wall_color, (bunker_x, bunker_y, bunker_w, bunker_h), border_radius=2)
+            pygame.draw.rect(
+                surface, wall_color, (bunker_x, bunker_y, bunker_w, bunker_h), border_radius=2
+            )
             pygame.draw.rect(surface, dark_color, (bunker_x, bunker_y, bunker_w, bunker_h), 2)
 
             bagstone_rng = random.Random(variant + 99)
@@ -858,7 +1027,14 @@ InfantryAnimator = _InfantryAnimator
 #  Module-level convenience functions (unchanged API)
 # ====================================================================== #
 
-def create_cc2_infantry_sprite(direction: int, faction: str = "allies", state: str = "idle", frame: int = 0, infantry_type: str = "rifleman"):
+
+def create_cc2_infantry_sprite(
+    direction: int,
+    faction: str = "allies",
+    state: str = "idle",
+    frame: int = 0,
+    infantry_type: str = "rifleman",
+):
     """
     Convenience function: create a CC2-style infantry sprite.
 
@@ -876,7 +1052,9 @@ def create_cc2_infantry_sprite(direction: int, faction: str = "allies", state: s
     faction_enum = Faction.ALLIES if faction == "allies" else Faction.AXIS
     type_map = {t.value: t for t in InfantryType}
     type_enum = type_map.get(infantry_type, InfantryType.RIFLEMAN)
-    return InfantryPixelRenderer.create_infantry_sprite(dir_enum, faction_enum, state, frame, type_enum)
+    return InfantryPixelRenderer.create_infantry_sprite(
+        dir_enum, faction_enum, state, frame, type_enum
+    )
 
 
 def create_cc2_tank_sprite(
@@ -946,6 +1124,7 @@ if __name__ == "__main__":
     test_surface.blit(building_sprite, (180, 200))
 
     import tempfile as _tf
+
     _preview_path = str(_tf.gettempdir() / "cc2_style_preview.png")
     pygame.image.save(test_surface, _preview_path)
     logger.info("Preview saved to %s", _preview_path)

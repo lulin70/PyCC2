@@ -3,6 +3,7 @@
 Generates procedural music and ambient sounds using numpy waveform synthesis.
 No external audio files are needed.
 """
+
 from __future__ import annotations
 
 from enum import Enum, auto
@@ -26,20 +27,57 @@ class MusicMood(Enum):
 
 # Musical note frequencies (Hz) for melody generation
 _NOTE_FREQS: dict[str, float] = {
-    "C3": 130.81, "D3": 146.83, "E3": 164.81, "F3": 174.61,
-    "G3": 196.00, "A3": 220.00, "B3": 246.94,
-    "C4": 261.63, "D4": 293.66, "E4": 329.63, "F4": 349.23,
-    "G4": 392.00, "A4": 440.00, "B4": 493.88,
-    "C5": 523.25, "D5": 587.33, "E5": 659.25,
+    "C3": 130.81,
+    "D3": 146.83,
+    "E3": 164.81,
+    "F3": 174.61,
+    "G3": 196.00,
+    "A3": 220.00,
+    "B3": 246.94,
+    "C4": 261.63,
+    "D4": 293.66,
+    "E4": 329.63,
+    "F4": 349.23,
+    "G4": 392.00,
+    "A4": 440.00,
+    "B4": 493.88,
+    "C5": 523.25,
+    "D5": 587.33,
+    "E5": 659.25,
 }
 
 # Chord progressions (root notes per bar) for each mood
 _CHORD_PROGRESSIONS: dict[MusicMood, list[list[str]]] = {
-    MusicMood.MENU: [["C4", "E4", "G4"], ["F4", "A4", "C5"], ["G4", "B4", "D5"], ["C4", "E4", "G4"]],
-    MusicMood.BATTLE_LIGHT: [["A3", "C4", "E4"], ["F3", "A3", "C4"], ["D3", "F3", "A3"], ["E3", "G3", "B3"]],
-    MusicMood.BATTLE_INTENSE: [["A3", "C4", "E4"], ["B3", "D4", "F4"], ["C4", "E4", "G4"], ["A3", "C4", "E4"]],
-    MusicMood.VICTORY: [["C4", "E4", "G4"], ["F4", "A4", "C5"], ["G4", "B4", "D5"], ["C4", "E4", "G4"]],
-    MusicMood.DEFEAT: [["A3", "C4", "E4"], ["F3", "A3", "C4"], ["D3", "F3", "A3"], ["A3", "C4", "E4"]],
+    MusicMood.MENU: [
+        ["C4", "E4", "G4"],
+        ["F4", "A4", "C5"],
+        ["G4", "B4", "D5"],
+        ["C4", "E4", "G4"],
+    ],
+    MusicMood.BATTLE_LIGHT: [
+        ["A3", "C4", "E4"],
+        ["F3", "A3", "C4"],
+        ["D3", "F3", "A3"],
+        ["E3", "G3", "B3"],
+    ],
+    MusicMood.BATTLE_INTENSE: [
+        ["A3", "C4", "E4"],
+        ["B3", "D4", "F4"],
+        ["C4", "E4", "G4"],
+        ["A3", "C4", "E4"],
+    ],
+    MusicMood.VICTORY: [
+        ["C4", "E4", "G4"],
+        ["F4", "A4", "C5"],
+        ["G4", "B4", "D5"],
+        ["C4", "E4", "G4"],
+    ],
+    MusicMood.DEFEAT: [
+        ["A3", "C4", "E4"],
+        ["F3", "A3", "C4"],
+        ["D3", "F3", "A3"],
+        ["A3", "C4", "E4"],
+    ],
 }
 
 # BPM and parameters per mood
@@ -182,7 +220,9 @@ class BGMGenerator:
                 wave[beat_start_sample:end] += snare[: end - beat_start_sample]
 
             # Hi-hat on every beat for intense, every other for light
-            if mood == MusicMood.BATTLE_INTENSE or (mood == MusicMood.BATTLE_LIGHT and beat % 2 == 0):
+            if mood == MusicMood.BATTLE_INTENSE or (
+                mood == MusicMood.BATTLE_LIGHT and beat % 2 == 0
+            ):
                 hihat = cls._make_hihat(beat_duration * 0.05)
                 end = min(beat_start_sample + len(hihat), n_samples)
                 wave[beat_start_sample:end] += hihat[: end - beat_start_sample]

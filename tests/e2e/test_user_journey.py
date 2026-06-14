@@ -35,6 +35,7 @@ from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
+from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.domain.systems.victory_conditions import (
     BattleStats,
     GameResult,
@@ -58,9 +59,8 @@ from pycc2.presentation.input.interaction_controller import (
     InteractionMode,
 )
 from pycc2.presentation.rendering.camera import Camera
-from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.presentation.rendering.minimap import Minimap
-from pycc2.presentation.ui.deployment_ui import DeploymentUI, DeploymentPhase
+from pycc2.presentation.ui.deployment_ui import DeploymentPhase, DeploymentUI
 
 # ---------------------------------------------------------------------------
 # Service imports
@@ -68,7 +68,6 @@ from pycc2.presentation.ui.deployment_ui import DeploymentUI, DeploymentPhase
 from pycc2.services.combat_director import CombatDirector
 from pycc2.services.event_bus import EventBus
 from pycc2.services.victory_manager import VictoryManager
-
 
 # ============================================================================
 # Helpers
@@ -151,6 +150,7 @@ def camera() -> Camera:
 @pytest.fixture
 def ic(camera: Camera, game_map: GameMap, event_bus: EventBus) -> InteractionController:
     from pycc2.presentation.ui.keybind_manager import KeybindManager
+
     controller = InteractionController(camera=camera, game_map=game_map, event_bus=event_bus)
     controller.set_keybind_manager(KeybindManager())
     return controller
@@ -168,12 +168,16 @@ def ally_commander() -> Unit:
 
 @pytest.fixture
 def enemy_unit() -> Unit:
-    return make_unit("enemy_1", "Axis Squad", Faction.AXIS, UnitType.INFANTRY_SQUAD, tile_x=8, tile_y=8)
+    return make_unit(
+        "enemy_1", "Axis Squad", Faction.AXIS, UnitType.INFANTRY_SQUAD, tile_x=8, tile_y=8
+    )
 
 
 @pytest.fixture
 def enemy_commander() -> Unit:
-    return make_unit("enemy_cmd", "Axis Commander", Faction.AXIS, UnitType.COMMANDER, tile_x=9, tile_y=9)
+    return make_unit(
+        "enemy_cmd", "Axis Commander", Faction.AXIS, UnitType.COMMANDER, tile_x=9, tile_y=9
+    )
 
 
 # ============================================================================
@@ -276,10 +280,16 @@ class TestDeployment:
     def test_units_have_correct_attributes(self) -> None:
         """单位属性正确(HP/武器/位置)。"""
         unit = make_unit(
-            "attr_test", "Test Squad", Faction.ALLIES,
-            hp=100, max_hp=100, morale=85,
-            tile_x=3, tile_y=7,
-            weapon_id="rifle", max_ammo=120,
+            "attr_test",
+            "Test Squad",
+            Faction.ALLIES,
+            hp=100,
+            max_hp=100,
+            morale=85,
+            tile_x=3,
+            tile_y=7,
+            weapon_id="rifle",
+            max_ammo=120,
         )
         assert unit.health.hp == 100
         assert unit.health.max_hp == 100
@@ -366,7 +376,9 @@ class TestUnitSelection:
 class TestSevenActions:
     """用户通过快捷键执行7种Action: Move/Fast/Sneak/Attack/Smoke/Defend/Cancel。"""
 
-    def test_move_command(self, ic: InteractionController, ally_unit: Unit, game_map: GameMap) -> None:
+    def test_move_command(
+        self, ic: InteractionController, ally_unit: Unit, game_map: GameMap
+    ) -> None:
         """Move命令 - 选中单位→按M→点击目标→单位设置移动目标。"""
         units = [ally_unit]
         # 选中单位
@@ -452,9 +464,14 @@ class TestSevenActions:
 
         # 验证攻击命令被发布（通过EventBus或回调）
         # 至少攻击线系统被激活过
-        assert ic.attack_line.state.active is False or ic.attack_line.state.confirmed_target is not None
+        assert (
+            ic.attack_line.state.active is False
+            or ic.attack_line.state.confirmed_target is not None
+        )
 
-    def test_smoke_command(self, ic: InteractionController, ally_unit: Unit, event_bus: EventBus) -> None:
+    def test_smoke_command(
+        self, ic: InteractionController, ally_unit: Unit, event_bus: EventBus
+    ) -> None:
         """Smoke命令 - 选中单位→按K→deploy_smoke命令发布到EventBus。"""
         units = [ally_unit]
         screen_pos = ic.camera.world_to_screen(ally_unit.position.pixel_position)
@@ -472,7 +489,9 @@ class TestSevenActions:
         assert len(smoke_events) >= 1
         assert ally_unit.id in smoke_events[0]["unit_ids"]
 
-    def test_defend_command(self, ic: InteractionController, ally_unit: Unit, event_bus: EventBus) -> None:
+    def test_defend_command(
+        self, ic: InteractionController, ally_unit: Unit, event_bus: EventBus
+    ) -> None:
         """Defend命令 - 选中单位→按D→defend命令发布到EventBus。"""
         units = [ally_unit]
         screen_pos = ic.camera.world_to_screen(ally_unit.position.pixel_position)
@@ -486,7 +505,9 @@ class TestSevenActions:
         ic.handle_shortcut_key(pygame.K_d)
 
         # 验证事件发布
-        defend_events = [e for e in received if isinstance(e, dict) and e.get("command") == "defend"]
+        defend_events = [
+            e for e in received if isinstance(e, dict) and e.get("command") == "defend"
+        ]
         assert len(defend_events) >= 1
         assert ally_unit.id in defend_events[0]["unit_ids"]
 
@@ -679,7 +700,9 @@ class TestBattleEndAndSettlement:
         ally_cmd = make_unit("ally_cmd", faction=Faction.ALLIES, unit_type=UnitType.COMMANDER)
         ally_inf = make_unit("ally_inf", faction=Faction.ALLIES)
         # 敌方全灭
-        enemy_cmd = make_unit("enemy_cmd", faction=Faction.AXIS, unit_type=UnitType.COMMANDER, hp=0, max_hp=100)
+        enemy_cmd = make_unit(
+            "enemy_cmd", faction=Faction.AXIS, unit_type=UnitType.COMMANDER, hp=0, max_hp=100
+        )
 
         result, reason = evaluator.evaluate([ally_cmd, ally_inf, enemy_cmd], tick=600)
         assert result == GameResult.ALLIES_VICTORY
@@ -776,10 +799,30 @@ class TestFullJourney:
         assert deploy_result["phase"] == DeploymentPhase.ACTIVE
 
         # === 步骤2: 创建战斗单位 ===
-        ally = make_unit("ally_1", "Rifle Squad", Faction.ALLIES, UnitType.INFANTRY_SQUAD, tile_x=3, tile_y=3)
-        ally_cmd = make_unit("ally_cmd", "Commander", Faction.ALLIES, UnitType.COMMANDER, tile_x=2, tile_y=2)
-        enemy = make_unit("enemy_1", "Axis Squad", Faction.AXIS, UnitType.INFANTRY_SQUAD, tile_x=10, tile_y=10, hp=30)
-        enemy_cmd = make_unit("enemy_cmd", "Axis Commander", Faction.AXIS, UnitType.COMMANDER, tile_x=11, tile_y=11, hp=20)
+        ally = make_unit(
+            "ally_1", "Rifle Squad", Faction.ALLIES, UnitType.INFANTRY_SQUAD, tile_x=3, tile_y=3
+        )
+        ally_cmd = make_unit(
+            "ally_cmd", "Commander", Faction.ALLIES, UnitType.COMMANDER, tile_x=2, tile_y=2
+        )
+        enemy = make_unit(
+            "enemy_1",
+            "Axis Squad",
+            Faction.AXIS,
+            UnitType.INFANTRY_SQUAD,
+            tile_x=10,
+            tile_y=10,
+            hp=30,
+        )
+        enemy_cmd = make_unit(
+            "enemy_cmd",
+            "Axis Commander",
+            Faction.AXIS,
+            UnitType.COMMANDER,
+            tile_x=11,
+            tile_y=11,
+            hp=20,
+        )
 
         units = [ally, ally_cmd, enemy, enemy_cmd]
         game_map = make_game_map()
@@ -839,10 +882,18 @@ class TestFullJourney:
         assert deploy_result is not None
 
         # === 步骤2: 创建战斗单位 ===
-        ally = make_unit("ally_1", "Rifle Squad", Faction.ALLIES, UnitType.INFANTRY_SQUAD, hp=10, morale=5)
-        ally_cmd = make_unit("ally_cmd", "Commander", Faction.ALLIES, UnitType.COMMANDER, hp=10, morale=5)
-        enemy = make_unit("enemy_1", "Axis Squad", Faction.AXIS, UnitType.INFANTRY_SQUAD, tile_x=10, tile_y=10)
-        enemy_cmd = make_unit("enemy_cmd", "Axis Commander", Faction.AXIS, UnitType.COMMANDER, tile_x=11, tile_y=11)
+        ally = make_unit(
+            "ally_1", "Rifle Squad", Faction.ALLIES, UnitType.INFANTRY_SQUAD, hp=10, morale=5
+        )
+        ally_cmd = make_unit(
+            "ally_cmd", "Commander", Faction.ALLIES, UnitType.COMMANDER, hp=10, morale=5
+        )
+        enemy = make_unit(
+            "enemy_1", "Axis Squad", Faction.AXIS, UnitType.INFANTRY_SQUAD, tile_x=10, tile_y=10
+        )
+        enemy_cmd = make_unit(
+            "enemy_cmd", "Axis Commander", Faction.AXIS, UnitType.COMMANDER, tile_x=11, tile_y=11
+        )
 
         units = [ally, ally_cmd, enemy, enemy_cmd]
 

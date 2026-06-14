@@ -27,7 +27,7 @@ RANK_BONUSES = {
     VeteranRank.RECRUIT: {"accuracy": 1.0, "morale_resist": 1.0, "panic_chance": 1.0},
     VeteranRank.REGULAR: {"accuracy": 1.08, "morale_resist": 1.1, "panic_chance": 0.92},
     VeteranRank.VETERAN: {"accuracy": 1.15, "morale_resist": 1.2, "panic_chance": 0.80},
-    VeteranRank.ELITE:   {"accuracy": 1.22, "morale_resist": 1.35, "panic_chance": 0.65},
+    VeteranRank.ELITE: {"accuracy": 1.22, "morale_resist": 1.35, "panic_chance": 0.65},
 }
 
 

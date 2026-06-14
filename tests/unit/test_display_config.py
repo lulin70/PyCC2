@@ -180,9 +180,9 @@ class TestDefaultValues:
         assert dc.dpi_scale > 0
 
     def test_default_matches_medium_preset(self):
-        dc = DisplayConfig()
-        medium = DisplayConfig.from_preset(QualityPreset.MEDIUM)
-        assert dc.base_tile_size != medium.base_tile_size or True
+        DisplayConfig()
+        DisplayConfig.from_preset(QualityPreset.MEDIUM)
+        assert True
 
 
 class TestQualityPresets:
@@ -260,4 +260,6 @@ class TestDisplayConfigWithSpriteRenderer:
         # SPRITE_SIZE is fixed at 32 for CC2-style small units (scaled from old 24)
         for key, surf in renderer._sprite_cache.items():
             size = surf.get_size()
-            assert size[0] in (14, 22, 24, 28, 32, 36, 38, 40, 48), f"Sprite {key} size {size} unexpected"
+            assert size[0] in (14, 22, 24, 28, 32, 36, 38, 40, 48), (
+                f"Sprite {key} size {size} unexpected"
+            )

@@ -16,14 +16,15 @@ Integration points:
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import logging
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ class ResourceCacheManager:
         """Load cache index from disk."""
         if self._index_path.exists():
             try:
-                with open(self._index_path, "r", encoding="utf-8") as f:
+                with open(self._index_path, encoding="utf-8") as f:
                     self._index = json.load(f)
             except (json.JSONDecodeError, OSError) as exc:
                 logger.warning("Failed to load cache index: %s", exc)
@@ -156,10 +157,8 @@ class ResourceCacheManager:
         for meta in self._index.values():
             p = Path(meta["local_path"])
             if p.exists():
-                try:
+                with contextlib.suppress(OSError):
                     total_size += p.stat().st_size
-                except OSError:
-                    pass
         return {
             "cached_items": len(self._index),
             "total_size_bytes": total_size,
@@ -174,9 +173,7 @@ class ResourceCacheManager:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _check_cache(
-        self, url: str, expected_sha256: str | None
-    ) -> Path | None:
+    def _check_cache(self, url: str, expected_sha256: str | None) -> Path | None:
         """Check cache for a valid entry. Returns path or None."""
         if url not in self._index:
             return None
@@ -193,7 +190,9 @@ class ResourceCacheManager:
         if age >= self._ttl:
             logger.debug(
                 "Cache expired for %s (age=%.0fs, ttl=%ds)",
-                url, age, self._ttl,
+                url,
+                age,
+                self._ttl,
             )
             return None
 
@@ -257,7 +256,9 @@ class ResourceCacheManager:
         if expected_sha256 and actual_hash != expected_sha256.lower():
             logger.error(
                 "SHA256 mismatch for %s: expected %s, got %s",
-                url, expected_sha256, actual_hash,
+                url,
+                expected_sha256,
+                actual_hash,
             )
             local_path.unlink(missing_ok=True)
             return None
@@ -333,10 +334,8 @@ class ResourceCacheManager:
         for meta in self._index.values():
             p = Path(meta["local_path"])
             if p.exists():
-                try:
+                with contextlib.suppress(OSError):
                     total += p.stat().st_size
-                except OSError:
-                    pass
 
         if total <= self._max_bytes:
             return
@@ -362,7 +361,9 @@ class ResourceCacheManager:
         self._save_index()
         logger.info(
             "Cache eviction: removed %d entries (remaining %d bytes / %d MB limit)",
-            evicted, total, self._max_bytes // (1024 * 1024),
+            evicted,
+            total,
+            self._max_bytes // (1024 * 1024),
         )
 
 

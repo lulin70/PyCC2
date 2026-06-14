@@ -58,16 +58,20 @@ class ShellCasingSystem:
         eject_angle = direction_rad + math.pi / 2 + random.uniform(-0.3, 0.3)
         vx = math.cos(eject_angle) * eject_speed
         vy = math.sin(eject_angle) * eject_speed - random.uniform(30, 80)  # upward arc
-        self._shell_casings.append({
-            "x": x, "y": y,
-            "vx": vx, "vy": vy,
-            "gravity": 400,  # pixels/s^2
-            "life": 0.0,
-            "max_life": random.uniform(1.5, 3.0),
-            "size": random.uniform(2, 4),
-            "color": random.choice([(210, 190, 140), (190, 170, 120), (220, 200, 150)]),
-            "bounced": False,
-        })
+        self._shell_casings.append(
+            {
+                "x": x,
+                "y": y,
+                "vx": vx,
+                "vy": vy,
+                "gravity": 400,  # pixels/s^2
+                "life": 0.0,
+                "max_life": random.uniform(1.5, 3.0),
+                "size": random.uniform(2, 4),
+                "color": random.choice([(210, 190, 140), (190, 170, 120), (220, 200, 150)]),
+                "bounced": False,
+            }
+        )
 
     def update(self, dt: float) -> None:
         """Update shell casing physics simulation.

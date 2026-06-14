@@ -48,14 +48,14 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-MOUNT_RANGE: int = 2            # Max tiles to mount a tank
-MOUNT_TICKS: int = 3            # Ticks to complete mounting
-DISMOUNT_TICKS: int = 1         # Ticks to complete dismounting
-MAX_RIDERS_PER_TANK: int = 4    # Maximum riders per tank
-COMBAT_FREE_RADIUS: int = 10    # No enemies within this range to mount
+MOUNT_RANGE: int = 2  # Max tiles to mount a tank
+MOUNT_TICKS: int = 3  # Ticks to complete mounting
+DISMOUNT_TICKS: int = 1  # Ticks to complete dismounting
+MAX_RIDERS_PER_TANK: int = 4  # Maximum riders per tank
+COMBAT_FREE_RADIUS: int = 10  # No enemies within this range to mount
 AUTO_DISMOUNT_ENEMY_RADIUS: int = 8  # Auto-dismount when enemy this close
 INJURY_CHANCE_ON_THROWN: float = 0.10  # 10% injury when thrown off
-HE_DAMAGE_BONUS: float = 0.50   # +50% HE damage to riders
+HE_DAMAGE_BONUS: float = 0.50  # +50% HE damage to riders
 ACCURACY_PENALTY: float = 0.30  # -30% accuracy while riding
 
 _INFANTRY_TYPES: set[UnitType] = {
@@ -70,36 +70,36 @@ _INFANTRY_TYPES: set[UnitType] = {
 # Rider state
 # ---------------------------------------------------------------------------
 
+
 class RiderStatus(Enum):
-    APPROACHING = auto()   # Moving toward tank
-    MOUNTING = auto()      # Mounting in progress
-    RIDING = auto()        # Actively riding
-    DISMOUNTING = auto()   # Dismounting in progress
-    DISMOUNTED = auto()    # Just dismounted
+    APPROACHING = auto()  # Moving toward tank
+    MOUNTING = auto()  # Mounting in progress
+    RIDING = auto()  # Actively riding
+    DISMOUNTING = auto()  # Dismounting in progress
+    DISMOUNTED = auto()  # Just dismounted
 
 
 @dataclass(slots=True)
 class RiderSlot:
     """Tracks a single infantry unit riding (or mounting) a tank."""
+
     rider_id: str
     tank_id: str
     status: RiderStatus = RiderStatus.APPROACHING
-    mount_progress: int = 0       # 0 to MOUNT_TICKS
-    dismount_progress: int = 0    # 0 to DISMOUNT_TICKS
+    mount_progress: int = 0  # 0 to MOUNT_TICKS
+    dismount_progress: int = 0  # 0 to DISMOUNT_TICKS
 
 
 @dataclass(slots=True)
 class TankRiderManifest:
     """Tracks all riders for a single tank."""
+
     tank_id: str
     riders: list[RiderSlot] = field(default_factory=list)
 
     @property
     def active_rider_count(self) -> int:
-        return sum(
-            1 for r in self.riders
-            if r.status in (RiderStatus.MOUNTING, RiderStatus.RIDING)
-        )
+        return sum(1 for r in self.riders if r.status in (RiderStatus.MOUNTING, RiderStatus.RIDING))
 
     @property
     def has_capacity(self) -> bool:
@@ -109,6 +109,7 @@ class TankRiderManifest:
 # ---------------------------------------------------------------------------
 # TankRiderSystem
 # ---------------------------------------------------------------------------
+
 
 class TankRiderSystem:
     """Manages the tank riding process for all infantry-tank pairs.
@@ -150,9 +151,7 @@ class TankRiderSystem:
             return False
 
         # Must be within mount range
-        dist = rider.position.tile_coord.chebyshev_distance(
-            tank.position.tile_coord
-        )
+        dist = rider.position.tile_coord.chebyshev_distance(tank.position.tile_coord)
         if dist > MOUNT_RANGE:
             return False
 
@@ -243,9 +242,7 @@ class TankRiderSystem:
                         slot.status = RiderStatus.RIDING
                         slot.mount_progress = MOUNT_TICKS
                         completed.append(slot)
-                        logger.debug(
-                            f"Unit {slot.rider_id} mounted tank {tank_id}"
-                        )
+                        logger.debug(f"Unit {slot.rider_id} mounted tank {tank_id}")
 
                 elif slot.status == RiderStatus.RIDING:
                     # Move rider with tank
@@ -284,12 +281,14 @@ class TankRiderSystem:
         for slot in list(manifest.riders):
             if slot.status in (RiderStatus.MOUNTING, RiderStatus.RIDING):
                 rider = self._find_unit(slot.rider_id, all_units)
-                if rider is not None and rider.is_alive and random.random() < INJURY_CHANCE_ON_THROWN:
+                if (
+                    rider is not None
+                    and rider.is_alive
+                    and random.random() < INJURY_CHANCE_ON_THROWN
+                ):
                     # 10% injury chance
                     rider.take_damage(5)
-                    logger.info(
-                        f"Rider {slot.rider_id} injured when thrown from tank {tank_id}"
-                    )
+                    logger.info(f"Rider {slot.rider_id} injured when thrown from tank {tank_id}")
 
                 self._remove_rider(manifest, slot)
                 thrown.append(slot.rider_id)
@@ -320,20 +319,23 @@ class TankRiderSystem:
         if manifest is None:
             return []
         return [
-            s.rider_id for s in manifest.riders
+            s.rider_id
+            for s in manifest.riders
             if s.status in (RiderStatus.MOUNTING, RiderStatus.RIDING)
         ]
 
     # -- internal helpers --
 
     @staticmethod
-    def _enemies_nearby(
-        unit: Unit, all_units: list[Unit], radius: int
-    ) -> bool:
+    def _enemies_nearby(unit: Unit, all_units: list[Unit], radius: int) -> bool:
         """Check if any enemy unit is within radius of the given unit."""
         pos = unit.position.tile_coord
         for u in all_units:
-            if u.is_alive and u.faction != unit.faction and pos.chebyshev_distance(u.position.tile_coord) <= radius:
+            if (
+                u.is_alive
+                and u.faction != unit.faction
+                and pos.chebyshev_distance(u.position.tile_coord) <= radius
+            ):
                 return True
         return False
 
@@ -357,22 +359,19 @@ class TankRiderSystem:
         if slot in manifest.riders:
             manifest.riders.remove(slot)
 
-    def _complete_dismount(
-        self, manifest: TankRiderManifest, slot: RiderSlot
-    ) -> None:
+    def _complete_dismount(self, manifest: TankRiderManifest, slot: RiderSlot) -> None:
         """Complete the dismount process for a rider."""
         slot.status = RiderStatus.DISMOUNTED
         self._rider_to_tank.pop(slot.rider_id, None)
         if slot in manifest.riders:
             manifest.riders.remove(slot)
-        logger.debug(
-            f"Unit {slot.rider_id} dismounted from tank {slot.tank_id}"
-        )
+        logger.debug(f"Unit {slot.rider_id} dismounted from tank {slot.tank_id}")
 
 
 # ---------------------------------------------------------------------------
 # TankRiderAI
 # ---------------------------------------------------------------------------
+
 
 class TankRiderAI(TacticalAIBase):
     """Evaluate when infantry should ride tanks and issue MOUNT_TANK orders.
@@ -435,11 +434,11 @@ class TankRiderAI(TacticalAIBase):
 
             # Find nearby infantry that could mount
             nearby_inf = [
-                i for i in infantry
+                i
+                for i in infantry
                 if i.id not in assigned_infantry
-                and i.position.tile_coord.chebyshev_distance(
-                    tank.position.tile_coord
-                ) <= MOUNT_RANGE
+                and i.position.tile_coord.chebyshev_distance(tank.position.tile_coord)
+                <= MOUNT_RANGE
             ]
 
             for inf in nearby_inf[:MAX_RIDERS_PER_TANK]:
@@ -466,9 +465,7 @@ class TankRiderAI(TacticalAIBase):
                 manifest = self._system._manifests.get(tank.id)
                 if manifest is not None and not manifest.has_capacity:
                     continue
-                dist = inf.position.tile_coord.chebyshev_distance(
-                    tank.position.tile_coord
-                )
+                dist = inf.position.tile_coord.chebyshev_distance(tank.position.tile_coord)
                 if dist < best_dist:
                     best_dist = dist
                     best_tank = tank
@@ -492,14 +489,16 @@ class TankRiderAI(TacticalAIBase):
     @staticmethod
     def _find_tanks(context: TacticalContext) -> list[Unit]:
         return [
-            u for u in context.friendly_units
+            u
+            for u in context.friendly_units
             if u.is_alive and u.can_act and u.unit_type == UnitType.TANK
         ]
 
     @staticmethod
     def _find_available_infantry(context: TacticalContext) -> list[Unit]:
         return [
-            u for u in context.friendly_units
+            u
+            for u in context.friendly_units
             if u.is_alive
             and u.can_act
             and u.unit_type in _INFANTRY_TYPES
@@ -517,28 +516,18 @@ class TankRiderAI(TacticalAIBase):
             return 0.0
 
         # Average distance from infantry to nearest uncontrolled VL
-        faction_name = (
-            context.friendly_faction.name if context.friendly_faction else None
-        )
-        uncontrolled = [
-            v for v in context.vl_positions
-            if v[1] is None or v[1] != faction_name
-        ]
+        faction_name = context.friendly_faction.name if context.friendly_faction else None
+        uncontrolled = [v for v in context.vl_positions if v[1] is None or v[1] != faction_name]
         if not uncontrolled:
             return 0.0
 
-        infantry = [
-            u for u in friendlies if u.unit_type in _INFANTRY_TYPES
-        ]
+        infantry = [u for u in friendlies if u.unit_type in _INFANTRY_TYPES]
         if not infantry:
             return 0.0
 
         avg_dist = 0.0
         for inf in infantry:
-            min_dist = min(
-                inf.position.tile_coord.chebyshev_distance(v[0])
-                for v in uncontrolled
-            )
+            min_dist = min(inf.position.tile_coord.chebyshev_distance(v[0]) for v in uncontrolled)
             avg_dist += min_dist
         avg_dist /= len(infantry)
 

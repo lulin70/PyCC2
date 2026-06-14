@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
 class SupplyType(Enum):
     """Types of supply crates."""
+
     AMMO = auto()
     MEDIKIT = auto()
     RATIONS = auto()
@@ -23,6 +24,7 @@ class SupplyType(Enum):
 @dataclass
 class SupplyCrate:
     """A supply crate dropped by C-47."""
+
     position: tuple[float, float]
     supply_type: SupplyType
     quantity: int = 10
@@ -117,8 +119,8 @@ class AirdropSupplySystem:
             SupplyCrate if one is available, None otherwise
         """
         unit_pos = (
-            getattr(unit.position_component, 'x', 0.0),
-            getattr(unit.position_component, 'y', 0.0),
+            getattr(unit.position_component, "x", 0.0),
+            getattr(unit.position_component, "y", 0.0),
         )
 
         for supply in self.supplies:
@@ -142,23 +144,23 @@ class AirdropSupplySystem:
             return False
 
         if crate.supply_type == SupplyType.AMMO:
-            weapon = getattr(unit, 'weapon_component', None)
+            weapon = getattr(unit, "weapon_component", None)
             if weapon:
-                current = getattr(weapon, 'current_ammo', 0)
-                max_ammo = getattr(weapon, 'max_ammo', 10)
+                current = getattr(weapon, "current_ammo", 0)
+                max_ammo = getattr(weapon, "max_ammo", 10)
                 weapon.current_ammo = min(max_ammo, current + crate.quantity)
 
         elif crate.supply_type == SupplyType.MEDIKIT:
-            health = getattr(unit, 'health_component', None)
+            health = getattr(unit, "health_component", None)
             if health:
-                current = getattr(health, 'current_hp', 0)
-                max_hp = getattr(health, 'max_hp', 100)
+                current = getattr(health, "current_hp", 0)
+                max_hp = getattr(health, "max_hp", 100)
                 health.current_hp = min(max_hp, current + 20)
 
         elif crate.supply_type == SupplyType.RATIONS:
-            morale = getattr(unit, 'morale_component', None)
+            morale = getattr(unit, "morale_component", None)
             if morale:
-                current = getattr(morale, 'current_morale', 50.0)
+                current = getattr(morale, "current_morale", 50.0)
                 morale.current_morale = min(100.0, current + 15.0)
 
         crate.picked_up = True

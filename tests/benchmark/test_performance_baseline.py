@@ -13,15 +13,13 @@ Output:
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import json
 import os
 import statistics
 import time
 import tracemalloc
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +28,7 @@ import pytest
 
 try:
     import pygame
+
     PYGAME_AVAILABLE = True
 except ImportError:
     PYGAME_AVAILABLE = False
@@ -43,7 +42,6 @@ from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.systems.pathfinder import PathFinder
 from pycc2.domain.value_objects.tile_coord import TileCoord
-
 
 # ========================================================================
 # Configuration & Constants
@@ -61,6 +59,7 @@ VERSION = "0.3.0"
 @dataclass
 class BenchmarkResult:
     """Single benchmark measurement result."""
+
     name: str
     category: str
     priority: str
@@ -87,12 +86,13 @@ class BenchmarkResult:
         if len(self.measurements) > 1:
             self.std_dev = statistics.stdev(self.measurements)
         self.passed = self.median_ms <= self.threshold
-        self.timestamp = datetime.now(timezone.utc).isoformat()
+        self.timestamp = datetime.now(UTC).isoformat()
 
 
 @dataclass
 class BaselineReport:
     """Complete baseline test report."""
+
     version: str = VERSION
     timestamp: str = ""
     environment: str = ""
@@ -137,11 +137,7 @@ def _make_map(width: int, height: int) -> GameMap:
 
 
 def _run_benchmark(
-    func,
-    *args,
-    warmup: int = WARMUP_RUNS,
-    runs: int = MEASUREMENT_RUNS,
-    **kwargs
+    func, *args, warmup: int = WARMUP_RUNS, runs: int = MEASUREMENT_RUNS, **kwargs
 ) -> list[float]:
     """
     Run a benchmark with warmup and multiple measurements.
@@ -168,23 +164,23 @@ def _save_result(result: BenchmarkResult) -> None:
     results = []
     if RESULTS_FILE.exists():
         try:
-            with open(RESULTS_FILE, 'r') as f:
+            with open(RESULTS_FILE) as f:
                 data = json.load(f)
-                results = data.get('results', [])
+                results = data.get("results", [])
         except (json.JSONDecodeError, KeyError):
             results = []
 
     results.append(asdict(result))
 
     report = {
-        'version': VERSION,
-        'timestamp': datetime.now(timezone.utc).isoformat(),
-        'environment': os.uname().sysname if hasattr(os, 'uname') else 'unknown',
-        'results': results,
-        'summary': _compute_summary(results)
+        "version": VERSION,
+        "timestamp": datetime.now(UTC).isoformat(),
+        "environment": os.uname().sysname if hasattr(os, "uname") else "unknown",
+        "results": results,
+        "summary": _compute_summary(results),
     }
 
-    with open(RESULTS_FILE, 'w') as f:
+    with open(RESULTS_FILE, "w") as f:
         json.dump(report, f, indent=2, default=str)
 
 
@@ -194,18 +190,18 @@ def _compute_summary(results: list[dict]) -> dict:
         return {}
 
     total = len(results)
-    passed = sum(1 for r in results if r.get('passed', False))
+    passed = sum(1 for r in results if r.get("passed", False))
     categories = {}
     for r in results:
-        cat = r.get('category', 'unknown')
+        cat = r.get("category", "unknown")
         categories[cat] = categories.get(cat, 0) + 1
 
     return {
-        'total_benchmarks': total,
-        'passed': passed,
-        'failed': total - passed,
-        'pass_rate': f"{(passed / total * 100):.1f}%" if total > 0 else "0%",
-        'by_category': categories
+        "total_benchmarks": total,
+        "passed": passed,
+        "failed": total - passed,
+        "pass_rate": f"{(passed / total * 100):.1f}%" if total > 0 else "0%",
+        "by_category": categories,
     }
 
 
@@ -229,10 +225,10 @@ def pygame_init():
 def benchmark_maps():
     """Pre-create maps of various sizes for benchmarks."""
     return {
-        '16x16': _make_map(16, 16),
-        '32x32': _make_map(32, 32),
-        '64x64': _make_map(64, 64),
-        '50x42': _make_map(50, 42),
+        "16x16": _make_map(16, 16),
+        "32x32": _make_map(32, 32),
+        "64x64": _make_map(64, 64),
+        "50x42": _make_map(50, 42),
     }
 
 
@@ -255,12 +251,12 @@ class TestRenderingPerformance:
     @pytest.mark.benchmark
     def test_render_16x16_map_time(self, pygame_init, benchmark_maps):
         """Render 16×16 map should complete in <100ms."""
-        from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-        from pycc2.presentation.rendering.camera import Camera
         from pycc2.domain.value_objects.vec2 import Vec2
+        from pycc2.presentation.rendering.camera import Camera
+        from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 
         screen = pygame_init
-        game_map = benchmark_maps['16x16']
+        game_map = benchmark_maps["16x16"]
 
         renderer = EnhancedRenderer()
         renderer.initialize(screen)
@@ -283,19 +279,18 @@ class TestRenderingPerformance:
         _save_result(result)
 
         assert result.passed, (
-            f"16×16 render median={result.median_ms:.2f}ms "
-            f"(threshold: {result.threshold}ms)"
+            f"16×16 render median={result.median_ms:.2f}ms (threshold: {result.threshold}ms)"
         )
 
     @pytest.mark.benchmark
     def test_render_64x64_map_time(self, pygame_init, benchmark_maps):
         """Render 64×64 map should complete in <500ms."""
-        from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-        from pycc2.presentation.rendering.camera import Camera
         from pycc2.domain.value_objects.vec2 import Vec2
+        from pycc2.presentation.rendering.camera import Camera
+        from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 
         screen = pygame_init
-        game_map = benchmark_maps['64x64']
+        game_map = benchmark_maps["64x64"]
 
         renderer = EnhancedRenderer()
         renderer.initialize(screen)
@@ -318,8 +313,7 @@ class TestRenderingPerformance:
         _save_result(result)
 
         assert result.passed, (
-            f"64×64 render median={result.median_ms:.2f}ms "
-            f"(threshold: {result.threshold}ms)"
+            f"64×64 render median={result.median_ms:.2f}ms (threshold: {result.threshold}ms)"
         )
 
     @pytest.mark.benchmark
@@ -369,8 +363,7 @@ class TestRenderingPerformance:
         _save_result(result)
 
         assert result.passed, (
-            f"Surface pool hit rate={hit_rate:.1f}% "
-            f"(threshold: {result.threshold}%)"
+            f"Surface pool hit rate={hit_rate:.1f}% (threshold: {result.threshold}%)"
         )
         assert final_pool_size <= renderer._MAX_SURFACE_POOL_SIZE, (
             f"Pool size {final_pool_size} exceeded max {renderer._MAX_SURFACE_POOL_SIZE}"
@@ -379,12 +372,12 @@ class TestRenderingPerformance:
     @pytest.mark.benchmark
     def test_viewport_culling_effectiveness(self, pygame_init, benchmark_maps):
         """Viewport culling should skip >70% of off-screen tiles."""
-        from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-        from pycc2.presentation.rendering.camera import Camera
         from pycc2.domain.value_objects.vec2 import Vec2
+        from pycc2.presentation.rendering.camera import Camera
+        from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 
         screen = pygame_init
-        game_map = benchmark_maps['64x64']  # Large map
+        game_map = benchmark_maps["64x64"]  # Large map
 
         renderer = EnhancedRenderer()
         renderer.initialize(screen)
@@ -397,9 +390,11 @@ class TestRenderingPerformance:
 
         # Estimate visible tiles based on camera viewport
         # This is a simplified calculation - actual culling happens in renderer
-        viewport_tiles = int((camera.viewport_width / (renderer.TILE_SIZE * camera.zoom)) *
-                           (camera.viewport_height / (renderer.TILE_SIZE * camera.zoom)))
-        skipped_percent = ((total_tiles - viewport_tiles) / total_tiles * 100)
+        viewport_tiles = int(
+            (camera.viewport_width / (renderer.TILE_SIZE * camera.zoom))
+            * (camera.viewport_height / (renderer.TILE_SIZE * camera.zoom))
+        )
+        skipped_percent = (total_tiles - viewport_tiles) / total_tiles * 100
         if skipped_percent < 0:
             skipped_percent = 0
 
@@ -440,11 +435,14 @@ class TestGameLogicPerformance:
 
         class SimpleAttackNode(BTNode):
             def tick(self, bb: Blackboard) -> NodeStatus:
-                bb.set("current_intent", TacticIntent(
-                    unit_id=bb.get("unit_id", "unknown"),
-                    tactic_type=TacticType.ATTACK,
-                    priority=5,
-                ))
+                bb.set(
+                    "current_intent",
+                    TacticIntent(
+                        unit_id=bb.get("unit_id", "unknown"),
+                        tactic_type=TacticType.ATTACK,
+                        priority=5,
+                    ),
+                )
                 return NodeStatus.SUCCESS
 
         units = sample_units[:50]
@@ -479,14 +477,13 @@ class TestGameLogicPerformance:
         _save_result(result)
 
         assert result.passed, (
-            f"AI tick (50 units) median={result.median_ms:.2f}ms "
-            f"(threshold: {result.threshold}ms)"
+            f"AI tick (50 units) median={result.median_ms:.2f}ms (threshold: {result.threshold}ms)"
         )
 
     @pytest.mark.benchmark
     def test_pathfinding_50_tiles(self, benchmark_maps):
         """Pathfinding 50 tiles should complete in <50ms."""
-        game_map = benchmark_maps['50x42']
+        game_map = benchmark_maps["50x42"]
         pathfinder = PathFinder()
 
         # Create paths that are ~50 tiles long
@@ -525,7 +522,7 @@ class TestGameLogicPerformance:
         from pycc2.services.random_context import RandomContext
 
         rng = RandomContext.from_seed(42)
-        game_map = benchmark_maps['50x42']
+        game_map = benchmark_maps["50x42"]
 
         # Small combat scenario: 5 vs 5
         allies = sample_units[:5]
@@ -563,24 +560,25 @@ class TestGameLogicPerformance:
     @pytest.mark.benchmark
     def test_save_load_time(self, benchmark_maps):
         """Save/Load for 60 units should complete in <2s."""
-        from pycc2.infrastructure.save_system import SecureSaveManager
         import tempfile
 
-        game_map = benchmark_maps['50x42']
+        from pycc2.infrastructure.save_system import SecureSaveManager
+
+        game_map = benchmark_maps["50x42"]
 
         with tempfile.TemporaryDirectory() as tmpdir:
             save_mgr = SecureSaveManager(base_dir=tmpdir)
 
             # Create simplified game state (avoid complex nested objects with Enums)
             game_state = {
-                'units': [{'id': f'unit_{i}', 'hp': 100, 'x': i, 'y': 0} for i in range(60)],
-                'map_data': {
-                    'width': game_map.width,
-                    'height': game_map.height,
-                    'tile_grid': game_map.tile_grid.tolist(),
+                "units": [{"id": f"unit_{i}", "hp": 100, "x": i, "y": 0} for i in range(60)],
+                "map_data": {
+                    "width": game_map.width,
+                    "height": game_map.height,
+                    "tile_grid": game_map.tile_grid.tolist(),
                 },
-                'tick': 1000,
-                'mission_id': 'benchmark_mission',
+                "tick": 1000,
+                "mission_id": "benchmark_mission",
             }
 
             def save_and_load():
@@ -591,8 +589,8 @@ class TestGameLogicPerformance:
                 # Load
                 loaded_state, meta, status = save_mgr.load_game(1)
                 assert loaded_state is not None
-                assert loaded_state['tick'] == 1000
-                assert len(loaded_state['units']) == 60
+                assert loaded_state["tick"] == 1000
+                assert len(loaded_state["units"]) == 60
 
             times = _run_benchmark(save_and_load, warmup=1, runs=3)  # Fewer runs for I/O
 
@@ -624,12 +622,12 @@ class TestMemoryUsage:
     @pytest.mark.benchmark
     def test_memory_after_100_frames(self, pygame_init, benchmark_maps):
         """Memory usage after 100 frames should be stable (<50MB growth)."""
-        from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-        from pycc2.presentation.rendering.camera import Camera
         from pycc2.domain.value_objects.vec2 import Vec2
+        from pycc2.presentation.rendering.camera import Camera
+        from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 
         screen = pygame_init
-        game_map = benchmark_maps['32x32']
+        game_map = benchmark_maps["32x32"]
 
         tracemalloc.start()
 
@@ -723,7 +721,7 @@ class TestStartupPerformance:
         import sys
 
         # Create a simple script that measures cold startup
-        startup_script = '''
+        startup_script = """
 import time
 start = time.perf_counter()
 
@@ -736,20 +734,20 @@ from pycc2.infrastructure.save_system import SecureSaveManager
 
 elapsed = (time.perf_counter() - start) * 1000
 print(f"COLD_START_TIME_MS={elapsed:.2f}")
-'''
+"""
 
         times = []
         for _ in range(MEASUREMENT_RUNS):
             result = subprocess.run(
-                [sys.executable, '-c', startup_script],
+                [sys.executable, "-c", startup_script],
                 capture_output=True,
                 text=True,
                 cwd=str(Path(__file__).resolve().parents[2]),
             )
 
-            for line in result.stdout.split('\\n'):
-                if 'COLD_START_TIME_MS=' in line:
-                    ms = float(line.split('=')[1])
+            for line in result.stdout.split("\\n"):
+                if "COLD_START_TIME_MS=" in line:
+                    ms = float(line.split("=")[1])
                     times.append(ms)
                     break
 
@@ -768,8 +766,7 @@ print(f"COLD_START_TIME_MS={elapsed:.2f}")
         _save_result(result)
 
         assert result.passed, (
-            f"Cold startup median={result.median_ms:.2f}ms "
-            f"(threshold: {result.threshold}ms)"
+            f"Cold startup median={result.median_ms:.2f}ms (threshold: {result.threshold}ms)"
         )
 
     @pytest.mark.benchmark
@@ -779,12 +776,13 @@ print(f"COLD_START_TIME_MS={elapsed:.2f}")
         start = time.perf_counter()
 
         # Initialize key components
-        benchmark_maps['50x42']
+        benchmark_maps["50x42"]
         PathFinder()
         units = sample_units[:10]
 
         # Simulate minimal game state setup
         from pycc2.domain.systems.spatial_hash import SpatialHash
+
         spatial = SpatialHash(cell_size=10)
         for u in units:
             spatial.insert(u.id, u.position.tile_coord, u.faction)
@@ -804,10 +802,7 @@ print(f"COLD_START_TIME_MS={elapsed:.2f}")
         result.passed = elapsed <= result.threshold
         _save_result(result)
 
-        assert result.passed, (
-            f"Hot startup time={elapsed:.2f}ms "
-            f"(threshold: {result.threshold}ms)"
-        )
+        assert result.passed, f"Hot startup time={elapsed:.2f}ms (threshold: {result.threshold}ms)"
 
 
 # ========================================================================
@@ -820,43 +815,43 @@ def test_generate_baseline_report():
     if not RESULTS_FILE.exists():
         pytest.skip("No baseline results generated yet")
 
-    with open(RESULTS_FILE, 'r') as f:
+    with open(RESULTS_FILE) as f:
         report = json.load(f)
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("PYCC2 PERFORMANCE BASELINE REPORT")
-    print("="*80)
+    print("=" * 80)
     print(f"Version: {report.get('version', 'unknown')}")
     print(f"Timestamp: {report.get('timestamp', 'unknown')}")
     print(f"Environment: {report.get('environment', 'unknown')}")
-    print("-"*80)
+    print("-" * 80)
 
-    summary = report.get('summary', {})
-    print(f"\nSummary:")
+    summary = report.get("summary", {})
+    print("\nSummary:")
     print(f"  Total Benchmarks: {summary.get('total_benchmarks', 0)}")
     print(f"  Passed: {summary.get('passed', 0)}")
     print(f"  Failed: {summary.get('failed', 0)}")
     print(f"  Pass Rate: {summary.get('pass_rate', '0%')}")
 
-    print(f"\nBy Category:")
-    for cat, count in summary.get('by_category', {}).items():
+    print("\nBy Category:")
+    for cat, count in summary.get("by_category", {}).items():
         print(f"  {cat}: {count}")
 
-    print(f"\nDetailed Results:")
-    print("-"*80)
-    for result in report.get('results', []):
-        status = "✅ PASS" if result.get('passed') else "❌ FAIL"
-        print(f"{status} | {result.get('name', 'unknown'):40s} | "
-              f"median={result.get('median_ms', 0):8.2f}{result.get('unit', 'ms'):5s} | "
-              f"threshold={result.get('threshold', 0):8.2f}{result.get('unit', 'ms'):5s}")
+    print("\nDetailed Results:")
+    print("-" * 80)
+    for result in report.get("results", []):
+        status = "✅ PASS" if result.get("passed") else "❌ FAIL"
+        print(
+            f"{status} | {result.get('name', 'unknown'):40s} | "
+            f"median={result.get('median_ms', 0):8.2f}{result.get('unit', 'ms'):5s} | "
+            f"threshold={result.get('threshold', 0):8.2f}{result.get('unit', 'ms'):5s}"
+        )
 
-    print("="*80 + "\n")
+    print("=" * 80 + "\n")
 
     # Assert overall pass rate > 80%
-    total = summary.get('total_benchmarks', 0)
-    passed = summary.get('passed', 0)
+    total = summary.get("total_benchmarks", 0)
+    passed = summary.get("passed", 0)
     if total > 0:
         pass_rate = passed / total * 100
-        assert pass_rate >= 80, (
-            f"Overall pass rate {pass_rate:.1f}% is below 80%"
-        )
+        assert pass_rate >= 80, f"Overall pass rate {pass_rate:.1f}% is below 80%"

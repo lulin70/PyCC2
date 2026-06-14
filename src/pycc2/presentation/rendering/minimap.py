@@ -4,16 +4,16 @@ Minimap Component
 Renders a tactical minimap showing unit positions and terrain overview.
 """
 
-from pygame import Rect, Surface, draw
 import pygame
+from pygame import Rect, Surface, draw
 
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit
-from pycc2.domain.value_objects.tile_coord import TileCoord
-from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.interfaces.display_config import DisplayConfig
-from pycc2.presentation.rendering.visual_spec import VisualSpec
+from pycc2.domain.value_objects.terrain_type import TerrainType
+from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.presentation.rendering.fade_transition import FadeTransition
+from pycc2.presentation.rendering.visual_spec import VisualSpec
 
 
 class Minimap:
@@ -30,7 +30,9 @@ class Minimap:
         self._render_y: int = 0
         self._is_isometric: bool = False
         self._selected_unit_id: str | None = None
-        self._camera_viewport: tuple[float, float, float, float] | None = None  # (x, y, w, h) in world coords
+        self._camera_viewport: tuple[float, float, float, float] | None = (
+            None  # (x, y, w, h) in world coords
+        )
 
         # Fade transition for smooth show/hide
         self._fade = FadeTransition(fade_duration=0.2)
@@ -159,14 +161,24 @@ class Minimap:
                     if x + 1 < map_width:
                         neighbor_e = self._game_map.get_terrain(TileCoord(x + 1, y))
                         if neighbor_e in road_types:
-                            draw.line(self._surface, line_color,
-                                      (rect.right, cy), (rect.right + int(tile_w), cy), 1)
+                            draw.line(
+                                self._surface,
+                                line_color,
+                                (rect.right, cy),
+                                (rect.right + int(tile_w), cy),
+                                1,
+                            )
                     # 垂直方向连接
                     if y + 1 < map_height:
                         neighbor_s = self._game_map.get_terrain(TileCoord(x, y + 1))
                         if neighbor_s in road_types:
-                            draw.line(self._surface, line_color,
-                                      (cx, rect.bottom), (cx, rect.bottom + int(tile_h)), 1)
+                            draw.line(
+                                self._surface,
+                                line_color,
+                                (cx, rect.bottom),
+                                (cx, rect.bottom + int(tile_h)),
+                                1,
+                            )
 
                 elif terrain in building_types:
                     # 建筑用深褐色 + 浅色边框轮廓（比普通tile略小，留出间隙）
@@ -212,7 +224,7 @@ class Minimap:
         """Draw simplified terrain on minimap (isometric/diamond tiles)."""
         if not self._game_map or not self._surface:
             return
-        from pycc2.presentation.rendering.isometric_transform import TILE_W, TILE_H
+        from pycc2.presentation.rendering.isometric_transform import TILE_H, TILE_W
 
         map_width = self._game_map.width
         map_height = self._game_map.height
@@ -221,7 +233,11 @@ class Minimap:
         # Isometric map bounding box: width = (w+h)*TILE_W/2, height = (w+h)*TILE_H/2
         iso_total_w = (map_width + map_height) * TILE_W / 2
         iso_total_h = (map_width + map_height) * TILE_H / 2
-        scale = min(self.size / iso_total_w, self.size / iso_total_h) if iso_total_w > 0 and iso_total_h > 0 else 1.0
+        scale = (
+            min(self.size / iso_total_w, self.size / iso_total_h)
+            if iso_total_w > 0 and iso_total_h > 0
+            else 1.0
+        )
 
         # Offset to center the isometric map in the minimap
         offset_x = (self.size - iso_total_w * scale) / 2
@@ -241,9 +257,9 @@ class Minimap:
                 half_h = TILE_H / 2 * scale
                 points = [
                     (int(cx), int(cy - half_h)),  # top
-                    (int(cx + half_w), int(cy)),   # right
-                    (int(cx), int(cy + half_h)),   # bottom
-                    (int(cx - half_w), int(cy)),   # left
+                    (int(cx + half_w), int(cy)),  # right
+                    (int(cx), int(cy + half_h)),  # bottom
+                    (int(cx - half_w), int(cy)),  # left
                 ]
                 draw.polygon(self._surface, color, points)
 
@@ -268,19 +284,24 @@ class Minimap:
             draw.circle(self._surface, color, (dot_x, dot_y), dot_radius)
 
             # R9: Draw unit facing direction indicator
-            facing = getattr(unit, 'facing', 0.0)
-            if facing != 0.0 or True:  # Always draw direction
+            getattr(unit, "facing", 0.0)
+            if True:  # Always draw direction
                 import math
-                facing_rad = math.radians(getattr(unit, 'facing', 0.0))
+
+                facing_rad = math.radians(getattr(unit, "facing", 0.0))
                 dir_len = dot_radius + 3
                 end_x = int(dot_x + math.cos(facing_rad) * dir_len)
                 end_y = int(dot_y + math.sin(facing_rad) * dir_len)
                 draw.line(self._surface, color, (dot_x, dot_y), (end_x, end_y), 1)
 
             # Draw selection highlight ring for selected unit
-            if self._selected_unit_id and unit.id == self._selected_unit_id:  # FIX: unit.unit_id → unit.id
+            if (
+                self._selected_unit_id and unit.id == self._selected_unit_id
+            ):  # FIX: unit.unit_id → unit.id
                 highlight_radius = dot_radius + 2
-                draw.circle(self._surface, self.spec.selection_color, (dot_x, dot_y), highlight_radius, 1)
+                draw.circle(
+                    self._surface, self.spec.selection_color, (dot_x, dot_y), highlight_radius, 1
+                )
 
     def _draw_camera_viewport(self) -> None:
         """Draw camera viewport rectangle on minimap."""
@@ -336,6 +357,7 @@ class Minimap:
 
         # Center camera on the world position
         from pycc2.domain.value_objects.vec2 import Vec2
+
         camera.focus_on(Vec2(world_x, world_y))
         return True
 

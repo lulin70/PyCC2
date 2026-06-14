@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 @dataclass
 class TooltipData:
     """Data to display in tooltip."""
+
     name: str = ""
     unit_type: str = ""
     hp: int = 0
@@ -94,26 +95,26 @@ class Tooltip:
 
     def _update_data(self, unit: Unit) -> None:
         """Extract display data from unit."""
-        self._data.name = getattr(unit, 'name', 'Unknown')
-        self._data.unit_type = getattr(unit, 'unit_type', 'Infantry')
+        self._data.name = getattr(unit, "name", "Unknown")
+        self._data.unit_type = getattr(unit, "unit_type", "Infantry")
 
-        health = getattr(unit, 'health_component', None)
+        health = getattr(unit, "health_component", None)
         if health:
-            self._data.hp = getattr(health, 'current_hp', 0)
-            self._data.max_hp = getattr(health, 'max_hp', 100)
+            self._data.hp = getattr(health, "current_hp", 0)
+            self._data.max_hp = getattr(health, "max_hp", 100)
 
-        morale = getattr(unit, 'morale_component', None)
+        morale = getattr(unit, "morale_component", None)
         if morale:
-            self._data.morale = getattr(morale, 'current_morale', 100.0)
+            self._data.morale = getattr(morale, "current_morale", 100.0)
 
-        weapon = getattr(unit, 'weapon_component', None)
+        weapon = getattr(unit, "weapon_component", None)
         if weapon:
-            self._data.ammo = getattr(weapon, 'current_ammo', 0)
-            self._data.max_ammo = getattr(weapon, 'max_ammo', 10)
+            self._data.ammo = getattr(weapon, "current_ammo", 0)
+            self._data.max_ammo = getattr(weapon, "max_ammo", 10)
 
-        self._data.status = getattr(unit, 'status', 'Normal')
+        self._data.status = getattr(unit, "status", "Normal")
 
-        pos_comp = getattr(unit, 'position_component', None)
+        pos_comp = getattr(unit, "position_component", None)
         if pos_comp:
             self._data.position = (pos_comp.x, pos_comp.y)
 
@@ -143,7 +144,7 @@ class Tooltip:
             if not lines:
                 return
 
-            font = pygame.font.SysFont('arial', self.FONT_SIZE)
+            font = pygame.font.SysFont("arial", self.FONT_SIZE)
 
             padding = self.PADDING
             line_h = self.LINE_HEIGHT
@@ -162,7 +163,10 @@ class Tooltip:
             y = max(0, min(y, screen_size[1] - height))
 
             tooltip_size = (width, height)
-            if self._tooltip_surface_cache is None or self._tooltip_surface_cache_size != tooltip_size:
+            if (
+                self._tooltip_surface_cache is None
+                or self._tooltip_surface_cache_size != tooltip_size
+            ):
                 self._tooltip_surface_cache = pygame.Surface(tooltip_size, pygame.SRCALPHA)
                 self._tooltip_surface_cache_size = tooltip_size
             tooltip_surface = self._tooltip_surface_cache
@@ -240,13 +244,13 @@ class Tooltip:
     def _get_status_color(status: str) -> tuple[int, int, int]:
         """Get color based on unit status."""
         status_lower = status.lower()
-        if 'suppressed' in status_lower or 'pinned' in status_lower:
+        if "suppressed" in status_lower or "pinned" in status_lower:
             return (255, 100, 100)
-        elif 'moving' in status_lower:
+        elif "moving" in status_lower:
             return (100, 200, 255)
-        elif 'combat' in status_lower or 'attacking' in status_lower:
+        elif "combat" in status_lower or "attacking" in status_lower:
             return (255, 180, 50)
-        elif 'hidden' in status_lower or 'sneaking' in status_lower:
+        elif "hidden" in status_lower or "sneaking" in status_lower:
             return (100, 255, 150)
         else:
             return (200, 200, 200)

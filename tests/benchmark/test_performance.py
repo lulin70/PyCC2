@@ -161,11 +161,14 @@ def test_ai_tick_performance():
     # Create a simple behavior tree that always succeeds
     class SimpleAttackNode(BTNode):
         def tick(self, bb: Blackboard) -> NodeStatus:
-            bb.set("current_intent", TacticIntent(
-                unit_id=bb.get("unit_id", "unknown"),
-                tactic_type=TacticType.ATTACK,
-                priority=5,
-            ))
+            bb.set(
+                "current_intent",
+                TacticIntent(
+                    unit_id=bb.get("unit_id", "unknown"),
+                    tactic_type=TacticType.ATTACK,
+                    priority=5,
+                ),
+            )
             return NodeStatus.SUCCESS
 
     units = [_make_unit(f"ai_{i}", Faction.AXIS, 10 + i % 10, 10 + i // 10) for i in range(30)]

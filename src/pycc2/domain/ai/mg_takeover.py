@@ -36,8 +36,8 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-TAKEOVER_RANGE: int = 3          # Max tiles to search for a replacement
-TAKEOVER_TICKS: int = 5          # Ticks to complete the takeover
+TAKEOVER_RANGE: int = 3  # Max tiles to search for a replacement
+TAKEOVER_TICKS: int = 5  # Ticks to complete the takeover
 MG_ACCURACY_PENALTY: float = 0.15  # -15% accuracy for unfamiliar MG
 
 
@@ -45,16 +45,18 @@ MG_ACCURACY_PENALTY: float = 0.15  # -15% accuracy for unfamiliar MG
 # Takeover state
 # ---------------------------------------------------------------------------
 
+
 class TakeoverState(Enum):
-    PENDING = auto()       # Waiting to start (unit moving to MG)
-    IN_PROGRESS = auto()   # Unit is taking over the MG
-    COMPLETED = auto()     # Takeover finished
-    ABANDONED = auto()     # No one could take over; MG abandoned
+    PENDING = auto()  # Waiting to start (unit moving to MG)
+    IN_PROGRESS = auto()  # Unit is taking over the MG
+    COMPLETED = auto()  # Takeover finished
+    ABANDONED = auto()  # No one could take over; MG abandoned
 
 
 @dataclass(slots=True)
 class TakeoverRecord:
     """Tracks an in-progress MG takeover."""
+
     dead_gunner_id: str
     mg_position_x: int
     mg_position_y: int
@@ -66,6 +68,7 @@ class TakeoverRecord:
 # ---------------------------------------------------------------------------
 # MGTakeoverSystem
 # ---------------------------------------------------------------------------
+
 
 class MGTakeoverSystem:
     """When an MG gunner dies, find a nearby squad member to take over.
@@ -118,9 +121,7 @@ class MGTakeoverSystem:
         mg_pos = dead_gunner.position.tile_coord
 
         # Find nearest living squad member within range
-        replacement = self._find_nearest_replacement(
-            dead_gunner, squad_members
-        )
+        replacement = self._find_nearest_replacement(dead_gunner, squad_members)
 
         if replacement is None:
             # Abandon the MG — register in fallen cache
@@ -171,9 +172,7 @@ class MGTakeoverSystem:
                 completed.append(record)
                 del self._active_takeovers[gunner_id]
                 self._apply_takeover(replacement, record)
-                self._logger.info(
-                    f"MG takeover completed: unit {replacement.id} now operates MG"
-                )
+                self._logger.info(f"MG takeover completed: unit {replacement.id} now operates MG")
 
         return completed
 
@@ -223,18 +222,19 @@ class MGTakeoverSystem:
         """Register the MG as abandoned in the FallenUnitCache."""
         self._fallen_cache.register(dead_gunner, current_tick)
 
-        self.event_bus.publish_named("MGAbandoned", {
-            "action": "mg_abandoned",
-            "unit_id": dead_gunner.id,
-            "position": (
-                dead_gunner.position.tile_coord.x,
-                dead_gunner.position.tile_coord.y,
-            ),
-        })
-
-        self._logger.info(
-            f"MG abandoned: no replacement found for {dead_gunner.id}"
+        self.event_bus.publish_named(
+            "MGAbandoned",
+            {
+                "action": "mg_abandoned",
+                "unit_id": dead_gunner.id,
+                "position": (
+                    dead_gunner.position.tile_coord.x,
+                    dead_gunner.position.tile_coord.y,
+                ),
+            },
         )
+
+        self._logger.info(f"MG abandoned: no replacement found for {dead_gunner.id}")
 
     def _apply_takeover(self, replacement: Unit, record: TakeoverRecord) -> None:
         """Apply the effects of a completed MG takeover.
@@ -251,7 +251,7 @@ class MGTakeoverSystem:
         replacement.weapon.primary_weapon_id = "mg42"
         replacement.weapon.ammo_remaining = 50  # MG standard ammo
         replacement.weapon.max_ammo = 50
-        if hasattr(replacement.weapon, '_update_state'):
+        if hasattr(replacement.weapon, "_update_state"):
             replacement.weapon._update_state()
 
         # Apply accuracy penalty for unfamiliar MG
@@ -266,12 +266,15 @@ class MGTakeoverSystem:
         replacement.unit_type = UnitType.MACHINE_GUN_SQUAD
 
         # Publish takeover event
-        self.event_bus.publish_named("MGTakeover", {
-            "action": "mg_takeover",
-            "replacement_id": replacement.id,
-            "dead_gunner_id": record.dead_gunner_id,
-            "position": (record.mg_position_x, record.mg_position_y),
-        })
+        self.event_bus.publish_named(
+            "MGTakeover",
+            {
+                "action": "mg_takeover",
+                "replacement_id": replacement.id,
+                "dead_gunner_id": record.dead_gunner_id,
+                "position": (record.mg_position_x, record.mg_position_y),
+            },
+        )
 
     @staticmethod
     def _find_unit(unit_id: str, all_units: list[Unit]) -> Unit | None:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from pycc2.domain.ai.tactical_ai import TacticalContext
 from pycc2.domain.ai.trench_digging import (
     DIG_DURATION,
     STATIONARY_THRESHOLD,
@@ -11,7 +12,6 @@ from pycc2.domain.ai.trench_digging import (
     TrenchDiggingAI,
     TrenchDiggingSystem,
 )
-from pycc2.domain.ai.tactical_ai import TacticalContext
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent
 from pycc2.domain.components.position_component import PositionComponent
@@ -20,13 +20,13 @@ from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.systems.enhanced_tile import DecorationType
-from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.value_objects.terrain_type import TerrainType
-
+from pycc2.domain.value_objects.tile_coord import TileCoord
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_unit(
     uid: str = "u1",
@@ -79,6 +79,7 @@ def _make_context(
 # Test: DigProgress dataclass
 # ---------------------------------------------------------------------------
 
+
 class TestDigProgress:
     def test_initial_state(self):
         dp = DigProgress(unit_id="u1")
@@ -108,6 +109,7 @@ class TestDigProgress:
 # ---------------------------------------------------------------------------
 # Test: TrenchDiggingSystem — can_dig conditions
 # ---------------------------------------------------------------------------
+
 
 class TestCanDig:
     def test_infantry_on_grass_can_dig(self):
@@ -157,7 +159,7 @@ class TestCanDig:
         unit = _make_unit()
         gm = _make_map()
         # Manually add trench decoration to simulate existing trench
-        gm.tiles_enhanced["10,10"] = {'decorations': [{'type': DecorationType.TRENCH_SECTION.name}]}
+        gm.tiles_enhanced["10,10"] = {"decorations": [{"type": DecorationType.TRENCH_SECTION.name}]}
         assert sys.can_dig(unit, gm) is False
 
     def test_sniper_can_dig(self):
@@ -176,6 +178,7 @@ class TestCanDig:
 # ---------------------------------------------------------------------------
 # Test: TrenchDiggingSystem — start_digging / tick / interrupt
 # ---------------------------------------------------------------------------
+
 
 class TestDiggingProcess:
     def test_start_digging_creates_progress(self):
@@ -211,7 +214,7 @@ class TestDiggingProcess:
         gm = _make_map()
         sys.start_digging(unit)
         completed = False
-        for i in range(DIG_DURATION + 5):
+        for _i in range(DIG_DURATION + 5):
             if sys.tick(unit, gm):
                 completed = True
                 break
@@ -248,15 +251,17 @@ class TestDiggingProcess:
         unit = _make_unit(x=15, y=20)
         gm = _make_map()
         # Pre-initialize enhanced tile data so completion can write to it
-        gm.tiles_enhanced["15,20"] = {'decorations': []}
+        gm.tiles_enhanced["15,20"] = {"decorations": []}
         sys.start_digging(unit)
         for _ in range(DIG_DURATION):
             sys.tick(unit, gm)
         # Check that trench decoration was added
         enhanced = gm.get_enhanced_tile(15, 20)
         assert enhanced is not None
-        decorations = enhanced.get('decorations', [])
-        trench_types = [d for d in decorations if d.get('type') == DecorationType.TRENCH_SECTION.name]
+        decorations = enhanced.get("decorations", [])
+        trench_types = [
+            d for d in decorations if d.get("type") == DecorationType.TRENCH_SECTION.name
+        ]
         assert len(trench_types) >= 1
 
     def test_tick_without_start_returns_false(self):
@@ -278,6 +283,7 @@ class TestDiggingProcess:
 # ---------------------------------------------------------------------------
 # Test: TrenchDiggingAI — evaluate heuristic
 # ---------------------------------------------------------------------------
+
 
 class TestTrenchDiggingAIEvaluate:
     def test_no_infantry_returns_zero(self):
@@ -311,7 +317,7 @@ class TestTrenchDiggingAIEvaluate:
 
     def test_multiple_candidates_increases_score(self):
         ai = TrenchDiggingAI()
-        infs = [_make_unit(uid=f"u{i}", x=i*3, y=i*3) for i in range(4)]
+        infs = [_make_unit(uid=f"u{i}", x=i * 3, y=i * 3) for i in range(4)]
         ctx_few = _make_context(friendly=[infs[0]])
         ctx_many = _make_context(friendly=infs)
         assert ai.evaluate(ctx_many) > ai.evaluate(ctx_few)
@@ -321,6 +327,7 @@ class TestTrenchDiggingAIEvaluate:
 # Test: TrenchDiggingAI — execute issues dig orders
 # ---------------------------------------------------------------------------
 
+
 class TestTrenchDiggingAIExecute:
     def test_issues_dig_intent_for_stationary_unit(self):
         ai = TrenchDiggingAI()
@@ -328,20 +335,22 @@ class TestTrenchDiggingAIExecute:
         # Create context with blackboard showing stationary > threshold
         ctx = _make_context(friendly=[inf])
         from pycc2.domain.ai.blackboard import Blackboard
+
         bb = Blackboard()
-        bb.set('stationary_ticks', STATIONARY_THRESHOLD + 10)
+        bb.set("stationary_ticks", STATIONARY_THRESHOLD + 10)
         ctx.blackboards = {"u1": bb}
         intents = ai.execute(ctx)
         assert len(intents) >= 1
-        assert intents[0].tactic_type.name == 'DIG_TRENCH'
+        assert intents[0].tactic_type.name == "DIG_TRENCH"
 
     def test_no_intent_if_not_stationary_long_enough(self):
         ai = TrenchDiggingAI()
         inf = _make_unit()
         ctx = _make_context(friendly=[inf])
         from pycc2.domain.ai.blackboard import Blackboard
+
         bb = Blackboard()
-        bb.set('stationary_ticks', STATIONARY_THRESHOLD - 5)  # Not enough
+        bb.set("stationary_ticks", STATIONARY_THRESHOLD - 5)  # Not enough
         ctx.blackboards = {"u1": bb}
         intents = ai.execute(ctx)
         assert len(intents) == 0
@@ -351,8 +360,9 @@ class TestTrenchDiggingAIExecute:
         inf = _make_unit()
         ctx = _make_context(friendly=[inf])
         from pycc2.domain.ai.blackboard import Blackboard
+
         bb = Blackboard()
-        bb.set('stationary_ticks', STATIONARY_THRESHOLD + 10)
+        bb.set("stationary_ticks", STATIONARY_THRESHOLD + 10)
         ctx.blackboards = {"u1": bb}
         intents = ai.execute(ctx)
         assert intents[0].priority == 3  # Low priority as specified
@@ -361,6 +371,7 @@ class TestTrenchDiggingAIExecute:
 # ---------------------------------------------------------------------------
 # Integration: Full digging lifecycle
 # ---------------------------------------------------------------------------
+
 
 class TestFullLifecycle:
     def test_dig_lifecycle_from_ai_to_completion(self):
@@ -374,8 +385,9 @@ class TestFullLifecycle:
         # Phase 1: AI evaluation (should want to dig)
         ctx = _make_context(friendly=[unit], game_map=gm)
         from pycc2.domain.ai.blackboard import Blackboard
+
         bb = Blackboard()
-        bb.set('stationary_ticks', STATIONARY_THRESHOLD + 50)
+        bb.set("stationary_ticks", STATIONARY_THRESHOLD + 50)
         ctx.blackboards = {unit.id: bb}
 
         score = ai.evaluate(ctx)
@@ -388,7 +400,7 @@ class TestFullLifecycle:
         # Phase 3: System starts digging
         assert sys.can_dig(unit, gm) is True
         # Pre-initialize enhanced tile data for completion to write to
-        gm.tiles_enhanced["8,12"] = {'decorations': []}
+        gm.tiles_enhanced["8,12"] = {"decorations": []}
         sys.start_digging(unit)
 
         # Phase 4: Tick until complete
@@ -402,20 +414,18 @@ class TestFullLifecycle:
         # Phase 5: Verify trench exists on map
         enhanced = gm.get_enhanced_tile(8, 12)
         assert enhanced is not None
-        decorations = enhanced.get('decorations', [])
-        assert any(d['type'] == DecorationType.TRENCH_SECTION.name for d in decorations)
+        decorations = enhanced.get("decorations", [])
+        assert any(d["type"] == DecorationType.TRENCH_SECTION.name for d in decorations)
 
     def test_multiple_units_dig_simultaneously(self):
         sys = TrenchDiggingSystem()
-        units = [
-            _make_unit(uid=f"u{i}", x=i*5, y=i*5) for i in range(3)
-        ]
+        units = [_make_unit(uid=f"u{i}", x=i * 5, y=i * 5) for i in range(3)]
         gm = _make_map()
 
         # Pre-initialize enhanced tile data for all unit positions
         for u in units:
             key = f"{u.position.tile_coord.x},{u.position.tile_coord.y}"
-            gm.tiles_enhanced[key] = {'decorations': []}
+            gm.tiles_enhanced[key] = {"decorations": []}
 
         for u in units:
             sys.start_digging(u)
@@ -432,5 +442,5 @@ class TestFullLifecycle:
         for u in units:
             enhanced = gm.get_enhanced_tile(u.position.tile_coord.x, u.position.tile_coord.y)
             assert enhanced is not None
-            decorations = enhanced.get('decorations', [])
-            assert any(d['type'] == DecorationType.TRENCH_SECTION.name for d in decorations)
+            decorations = enhanced.get("decorations", [])
+            assert any(d["type"] == DecorationType.TRENCH_SECTION.name for d in decorations)

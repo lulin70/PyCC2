@@ -5,35 +5,44 @@ Tests melee engagement conditions, damage resolution,
 weapon selection, hit chance calculation, and counter-attack mechanics.
 """
 
-import pytest
 from unittest.mock import Mock
 
+import pytest
+
 from pycc2.domain.ai.melee_combat import (
-    MeleeCombatSystem,
-    MeleeCombatAI,
-    MeleeWeaponType,
-    MeleeResult,
+    BASE_HIT_CHANCE,
     BAYONET_DAMAGE,
     BUTT_STROKE_DAMAGE,
-    FISTS_DAMAGE,
-    BASE_HIT_CHANCE,
     CHARGE_BONUS,
-    WOUNDED_PENALTY,
     COUNTER_ATTACK_RATIO,
+    FISTS_DAMAGE,
+    WOUNDED_PENALTY,
+    MeleeCombatAI,
+    MeleeCombatSystem,
+    MeleeResult,
+    MeleeWeaponType,
 )
-from pycc2.domain.entities.unit import Faction, UnitType
 from pycc2.domain.ai.tactic_intent import TacticType
 from pycc2.domain.ai.tactical_ai import TacticalContext
+from pycc2.domain.entities.unit import Faction, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
-
 
 # ===========================================================================
 # Stub helpers
 # ===========================================================================
 
-def _make_unit(unit_id, faction=Faction.ALLIES, unit_type=UnitType.INFANTRY_SQUAD,
-               tile_x=5, tile_y=5, alive=True, can_act=True,
-               ammo_ratio=0.02, hp_ratio=1.0):
+
+def _make_unit(
+    unit_id,
+    faction=Faction.ALLIES,
+    unit_type=UnitType.INFANTRY_SQUAD,
+    tile_x=5,
+    tile_y=5,
+    alive=True,
+    can_act=True,
+    ammo_ratio=0.02,
+    hp_ratio=1.0,
+):
     """Create a mock unit for melee testing."""
     unit = Mock()
     unit.id = unit_id
@@ -78,6 +87,7 @@ def _make_unit(unit_id, faction=Faction.ALLIES, unit_type=UnitType.INFANTRY_SQUA
 # Tests — Melee Weapon Selection
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestMeleeWeaponSelection:
     """Test get_melee_weapon for different unit types."""
@@ -107,6 +117,7 @@ class TestMeleeWeaponSelection:
 # Tests — Weapon Damage
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestWeaponDamage:
     """Test get_weapon_damage for melee weapon types."""
@@ -115,7 +126,9 @@ class TestWeaponDamage:
         assert MeleeCombatSystem.get_weapon_damage(MeleeWeaponType.BAYONET) == BAYONET_DAMAGE
 
     def test_butt_stroke_damage(self):
-        assert MeleeCombatSystem.get_weapon_damage(MeleeWeaponType.BUTT_STROKE) == BUTT_STROKE_DAMAGE
+        assert (
+            MeleeCombatSystem.get_weapon_damage(MeleeWeaponType.BUTT_STROKE) == BUTT_STROKE_DAMAGE
+        )
 
     def test_fists_damage(self):
         assert MeleeCombatSystem.get_weapon_damage(MeleeWeaponType.FISTS) == FISTS_DAMAGE
@@ -127,6 +140,7 @@ class TestWeaponDamage:
 # ===========================================================================
 # Tests — Hit Chance Calculation
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestHitChanceCalculation:
@@ -162,12 +176,14 @@ class TestHitChanceCalculation:
 # Tests — Melee Resolution
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestMeleeResolution:
     """Test resolve_melee method."""
 
     def test_melee_hit_deals_damage(self):
         import random
+
         random.seed(42)
         attacker = _make_unit("a1", tile_x=5, tile_y=5)
         defender = _make_unit("d1", tile_x=5, tile_y=6)
@@ -180,6 +196,7 @@ class TestMeleeResolution:
     def test_melee_counter_attack(self):
         """Counter-attack can happen when defender survives."""
         import random
+
         random.seed(42)
         attacker = _make_unit("a1", tile_x=5, tile_y=5)
         defender = _make_unit("d1", tile_x=5, tile_y=6)
@@ -191,6 +208,7 @@ class TestMeleeResolution:
 
     def test_melee_result_structure(self):
         import random
+
         random.seed(42)
         attacker = _make_unit("a1", tile_x=5, tile_y=5)
         defender = _make_unit("d1", tile_x=5, tile_y=6)
@@ -206,6 +224,7 @@ class TestMeleeResolution:
 # ===========================================================================
 # Tests — Can Melee
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestCanMelee:
@@ -245,6 +264,7 @@ class TestCanMelee:
 # ===========================================================================
 # Tests — MeleeCombatAI
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestMeleeCombatAI:

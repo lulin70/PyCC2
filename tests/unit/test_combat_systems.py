@@ -5,15 +5,16 @@ Tests friendly fire detection, penalty application,
 ricochet mechanics, and damage calculation.
 """
 
-import pytest
 from unittest.mock import Mock
 
-from pycc2.domain.systems.combat_systems import FriendlyFireSystem, RicochetSystem
+import pytest
 
+from pycc2.domain.systems.combat_systems import FriendlyFireSystem, RicochetSystem
 
 # ===========================================================================
 # Tests — FriendlyFireSystem
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestFriendlyFireCheck:
@@ -99,31 +100,21 @@ class TestPointNearLine:
     """Test the geometric point-near-line calculation."""
 
     def test_point_on_line(self):
-        assert FriendlyFireSystem._point_near_line(
-            (0, 0), (10, 0), (5, 0), threshold=0.5
-        ) is True
+        assert FriendlyFireSystem._point_near_line((0, 0), (10, 0), (5, 0), threshold=0.5) is True
 
     def test_point_near_line(self):
-        assert FriendlyFireSystem._point_near_line(
-            (0, 0), (10, 0), (5, 0.3), threshold=0.5
-        ) is True
+        assert FriendlyFireSystem._point_near_line((0, 0), (10, 0), (5, 0.3), threshold=0.5) is True
 
     def test_point_far_from_line(self):
-        assert FriendlyFireSystem._point_near_line(
-            (0, 0), (10, 0), (5, 5), threshold=0.5
-        ) is False
+        assert FriendlyFireSystem._point_near_line((0, 0), (10, 0), (5, 5), threshold=0.5) is False
 
     def test_zero_length_line(self):
         # When start == end, check distance to point
-        assert FriendlyFireSystem._point_near_line(
-            (5, 5), (5, 5), (5, 5), threshold=0.5
-        ) is True
+        assert FriendlyFireSystem._point_near_line((5, 5), (5, 5), (5, 5), threshold=0.5) is True
 
     def test_point_beyond_line_end(self):
         # Point beyond the line segment should not be near
-        assert FriendlyFireSystem._point_near_line(
-            (0, 0), (5, 0), (10, 0), threshold=0.5
-        ) is False
+        assert FriendlyFireSystem._point_near_line((0, 0), (5, 0), (10, 0), threshold=0.5) is False
 
 
 @pytest.mark.unit
@@ -187,6 +178,7 @@ class TestFriendlyFirePenalty:
 # Tests — RicochetSystem
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestRicochetCheck:
     """Test ricochet probability and mechanics."""
@@ -203,6 +195,7 @@ class TestRicochetCheck:
         # 80 degrees is above threshold — may ricochet
         # Use seeded random to force ricochet
         import random
+
         random.seed(0)
         is_ricochet, suppression = rs.check_ricochet(80.0, armor_slope=0.0)
         # Result depends on random, but function should not error
@@ -222,6 +215,7 @@ class TestRicochetCheck:
         rs = RicochetSystem()
         # Very high angle should cap suppression at 0.8
         import random
+
         random.seed(42)
         is_ricochet, suppression = rs.check_ricochet(89.0, armor_slope=0.0)
         if is_ricochet:

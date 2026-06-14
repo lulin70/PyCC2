@@ -15,6 +15,7 @@ otherwise fully self-contained.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import math
 import random
@@ -133,10 +134,8 @@ class WeatherSystem:
             color = (160, 140, 110) if self._mode == "dust" else (80, 75, 70)
             alpha = int(self._alpha * 200)
             for px, py, _, sz in self._particles:
-                try:
+                with contextlib.suppress(Exception):
                     pygame.draw.circle(offscreen, (*color, alpha), (int(px), int(py)), int(sz))
-                except Exception:
-                    pass
 
     # ------------------------------------------------------------------
     # Read-only properties
@@ -155,7 +154,12 @@ class WeatherSystem:
         """Initialize drifting dust particle positions."""
         w, h = self._screen_size
         self._particles = [
-            (random.randint(0, w), random.randint(0, h), random.uniform(10, 40), random.uniform(1, 3))
+            (
+                random.randint(0, w),
+                random.randint(0, h),
+                random.uniform(10, 40),
+                random.uniform(1, 3),
+            )
             for _ in range(30)
         ]
 
@@ -163,7 +167,12 @@ class WeatherSystem:
         """Initialize drifting smoke particle positions."""
         w, h = self._screen_size
         self._particles = [
-            (random.randint(0, w), random.randint(0, h), random.uniform(5, 20), random.uniform(3, 8))
+            (
+                random.randint(0, w),
+                random.randint(0, h),
+                random.uniform(5, 20),
+                random.uniform(3, 8),
+            )
             for _ in range(20)
         ]
 

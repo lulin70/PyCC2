@@ -42,6 +42,7 @@ if TYPE_CHECKING:
 # Shared data structures
 # ---------------------------------------------------------------------------
 
+
 class FlankSide(Enum):
     LEFT = auto()
     RIGHT = auto()
@@ -57,9 +58,7 @@ class TacticalContext:
     current_tick: int
     blackboards: dict[str, Blackboard] = field(default_factory=dict)
     difficulty_config: DifficultyConfig | None = None
-    vl_positions: list[tuple[TileCoord, str | None, int]] = field(
-        default_factory=list
-    )
+    vl_positions: list[tuple[TileCoord, str | None, int]] = field(default_factory=list)
 
     @property
     def friendly_faction(self) -> Faction | None:
@@ -168,6 +167,7 @@ def _nearest_vl(
 # Abstract base
 # ---------------------------------------------------------------------------
 
+
 class TacticalAIBase(ABC):
     """Base class for composable tactical AI modules.
 
@@ -188,6 +188,7 @@ class TacticalAIBase(ABC):
 # ---------------------------------------------------------------------------
 # 1. FlankingAI
 # ---------------------------------------------------------------------------
+
 
 class FlankingAI(TacticalAIBase):
     """Move units around the side of enemy positions.
@@ -266,9 +267,7 @@ class FlankingAI(TacticalAIBase):
         right_flank = flank_units[len(flank_units) // 2 + 1 :]
 
         for u in left_flank:
-            dest = _flank_position(
-                target_pos, facing, FlankSide.LEFT, self.FLANK_OFFSET
-            )
+            dest = _flank_position(target_pos, facing, FlankSide.LEFT, self.FLANK_OFFSET)
             if context.game_map.is_within_bounds(dest) and self._validate_flank_path(
                 u.position.tile_coord, dest, context.game_map, enemy_positions
             ):
@@ -300,9 +299,7 @@ class FlankingAI(TacticalAIBase):
                     )
 
         for u in right_flank:
-            dest = _flank_position(
-                target_pos, facing, FlankSide.RIGHT, self.FLANK_OFFSET
-            )
+            dest = _flank_position(target_pos, facing, FlankSide.RIGHT, self.FLANK_OFFSET)
             if context.game_map.is_within_bounds(dest) and self._validate_flank_path(
                 u.position.tile_coord, dest, context.game_map, enemy_positions
             ):
@@ -381,7 +378,7 @@ class FlankingAI(TacticalAIBase):
             (start.y + flank_dest.y) // 2,
         )
         for ep in enemy_positions:
-            if hasattr(game_map, 'has_line_of_sight'):
+            if hasattr(game_map, "has_line_of_sight"):
                 if game_map.has_line_of_sight(ep, mid):
                     return False  # Path midpoint exposed to enemy fire
             else:
@@ -393,7 +390,7 @@ class FlankingAI(TacticalAIBase):
         # 3. Check destination cover value
         terrain = game_map.get_terrain(flank_dest)
         if terrain is not None:
-            cover = getattr(terrain, 'cover_modifier', 0.0)
+            cover = getattr(terrain, "cover_modifier", 0.0)
             if cover < 0.1:
                 return False  # No cover at destination
 
@@ -403,6 +400,7 @@ class FlankingAI(TacticalAIBase):
 # ---------------------------------------------------------------------------
 # 2. SuppressionAI
 # ---------------------------------------------------------------------------
+
 
 class SuppressionAI(TacticalAIBase):
     """Prioritize MG fire on high-threat targets.
@@ -476,9 +474,7 @@ class SuppressionAI(TacticalAIBase):
                     assigned_targets.add(target.id)
 
             # Check if friendly infantry is advancing toward this target
-            infantry_advancing = self._infantry_advancing_on(
-                target, context.friendly_units
-            )
+            infantry_advancing = self._infantry_advancing_on(target, context.friendly_units)
 
             if infantry_advancing:
                 # Maintain suppression while infantry closes
@@ -561,22 +557,22 @@ class SuppressionAI(TacticalAIBase):
           - A higher-priority moving enemy exists
         """
         # Check if target is already neutralized
-        morale_val = getattr(target.morale, 'value', 100)
+        morale_val = getattr(target.morale, "value", 100)
         if morale_val < 15:
             return False  # Target is panicked/routing
 
         # Check if target is pinned via suppression state
-        suppression = getattr(target, 'suppression_state', None)
+        suppression = getattr(target, "suppression_state", None)
         if suppression is not None:
-            is_pinned = getattr(suppression, 'is_pinned', False)
+            is_pinned = getattr(suppression, "is_pinned", False)
             if is_pinned:
                 return False  # Target already pinned
 
         # Check for higher-priority moving enemies
         moving_enemies = [
-            e for e in context.enemy_units
-            if e.is_alive and e.id != target.id
-            and SuppressionAI._is_moving(e, context)
+            e
+            for e in context.enemy_units
+            if e.is_alive and e.id != target.id and SuppressionAI._is_moving(e, context)
         ]
         if moving_enemies:
             # Moving enemies are higher priority — switch if current target isn't moving
@@ -594,9 +590,9 @@ class SuppressionAI(TacticalAIBase):
         """
         bb = context.blackboards.get(unit.id)
         if bb is not None:
-            return bool(bb.get('is_moving', False))
+            return bool(bb.get("is_moving", False))
         # Fallback: check if unit has a pending move order
-        return getattr(unit, '_is_moving', False)
+        return getattr(unit, "_is_moving", False)
 
     @staticmethod
     def _suppression_target_score(
@@ -625,11 +621,11 @@ class SuppressionAI(TacticalAIBase):
         for e in ranked_enemies:
             if e.id in already_assigned:
                 continue
-            morale_val = getattr(e.morale, 'value', 100)
+            morale_val = getattr(e.morale, "value", 100)
             if morale_val < 15:
                 continue  # Already panicked
-            suppression = getattr(e, 'suppression_state', None)
-            if suppression is not None and getattr(suppression, 'is_pinned', False):
+            suppression = getattr(e, "suppression_state", None)
+            if suppression is not None and getattr(suppression, "is_pinned", False):
                 continue  # Already pinned
             dist = mg.position.tile_coord.chebyshev_distance(e.position.tile_coord)
             if dist <= 12:
@@ -640,6 +636,7 @@ class SuppressionAI(TacticalAIBase):
 # ---------------------------------------------------------------------------
 # 3. InfantryTankCoordAI
 # ---------------------------------------------------------------------------
+
 
 class InfantryTankCoordAI(TacticalAIBase):
     """Coordinate infantry and armor operations.
@@ -713,15 +710,14 @@ class InfantryTankCoordAI(TacticalAIBase):
             nearby_infantry = [
                 i
                 for i in infantry
-                if i.position.tile_coord.chebyshev_distance(tank.position.tile_coord) <= self.INFANTRY_SUPPORT_RANGE
+                if i.position.tile_coord.chebyshev_distance(tank.position.tile_coord)
+                <= self.INFANTRY_SUPPORT_RANGE
             ]
 
             if nearby_infantry:
                 # Tank advances with infantry support
                 # Plan route preferring roads (CC2 Patch 2.0 improvement)
-                advance_pos = self._plan_tank_advance(
-                    tank.position.tile_coord, target_pos, context
-                )
+                advance_pos = self._plan_tank_advance(tank.position.tile_coord, target_pos, context)
                 intents.append(
                     TacticIntent(
                         unit_id=tank.id,
@@ -788,9 +784,7 @@ class InfantryTankCoordAI(TacticalAIBase):
         return [
             u
             for u in context.friendly_units
-            if u.is_alive
-            and u.can_act
-            and u.unit_type in _ARMOR_TYPES
+            if u.is_alive and u.can_act and u.unit_type in _ARMOR_TYPES
         ]
 
     @staticmethod
@@ -890,11 +884,11 @@ class InfantryTankCoordAI(TacticalAIBase):
 
             score = 1.0
             # Road bonus (CC2: tanks prefer roads)
-            terrain_type = getattr(terrain, 'terrain_type', '')
-            if terrain_type in ('road', 'bridge', 'path'):
+            terrain_type = getattr(terrain, "terrain_type", "")
+            if terrain_type in ("road", "bridge", "path"):
                 score += 3.0
             # Cover bonus (partial cover preferred for hull-down)
-            cover = getattr(terrain, 'cover_modifier', 0.0)
+            cover = getattr(terrain, "cover_modifier", 0.0)
             if 0.1 <= cover <= 0.4:
                 score += 1.0  # Hull-down position
             # Distance to target (closer is better)
@@ -913,6 +907,7 @@ class InfantryTankCoordAI(TacticalAIBase):
 # ---------------------------------------------------------------------------
 # 4. VictoryPointAI
 # ---------------------------------------------------------------------------
+
 
 class VictoryPointAI(TacticalAIBase):
     """Prioritize capturing and defending Victory Locations.
@@ -938,15 +933,9 @@ class VictoryPointAI(TacticalAIBase):
         if not context.vl_positions:
             return 0.0
 
-        faction_name = (
-            context.friendly_faction.name if context.friendly_faction else None
-        )
-        uncontrolled = [
-            v for v in context.vl_positions if v[1] is None or v[1] != faction_name
-        ]
-        held = [
-            v for v in context.vl_positions if v[1] == faction_name
-        ]
+        faction_name = context.friendly_faction.name if context.friendly_faction else None
+        uncontrolled = [v for v in context.vl_positions if v[1] is None or v[1] != faction_name]
+        held = [v for v in context.vl_positions if v[1] == faction_name]
 
         if not uncontrolled and not held:
             return 0.0
@@ -962,8 +951,7 @@ class VictoryPointAI(TacticalAIBase):
                 1
                 for e in context.enemy_units
                 if e.is_alive
-                and e.position.tile_coord.chebyshev_distance(vl_pos)
-                <= self.DEFEND_RADIUS
+                and e.position.tile_coord.chebyshev_distance(vl_pos) <= self.DEFEND_RADIUS
             )
             if enemies_near > 0:
                 threatened += vl_val
@@ -982,9 +970,7 @@ class VictoryPointAI(TacticalAIBase):
         if not context.vl_positions:
             return []
 
-        faction_name = (
-            context.friendly_faction.name if context.friendly_faction else None
-        )
+        faction_name = context.friendly_faction.name if context.friendly_faction else None
         available = [
             u
             for u in context.friendly_units
@@ -1039,8 +1025,7 @@ class VictoryPointAI(TacticalAIBase):
                 e
                 for e in context.enemy_units
                 if e.is_alive
-                and e.position.tile_coord.chebyshev_distance(vl_pos)
-                <= self.DEFEND_RADIUS
+                and e.position.tile_coord.chebyshev_distance(vl_pos) <= self.DEFEND_RADIUS
             ]
             if not enemies_near:
                 continue
@@ -1050,8 +1035,7 @@ class VictoryPointAI(TacticalAIBase):
                 u
                 for u in available
                 if u.id not in assigned
-                and u.position.tile_coord.chebyshev_distance(vl_pos)
-                <= self.DEFEND_RADIUS
+                and u.position.tile_coord.chebyshev_distance(vl_pos) <= self.DEFEND_RADIUS
             ]
 
             # Need more defenders if outnumbered
@@ -1087,14 +1071,12 @@ class VictoryPointAI(TacticalAIBase):
                 1
                 for e in context.enemy_units
                 if e.is_alive
-                and e.position.tile_coord.chebyshev_distance(vl_pos)
-                <= self.DEFEND_RADIUS
+                and e.position.tile_coord.chebyshev_distance(vl_pos) <= self.DEFEND_RADIUS
             )
             friendly_count = sum(
                 1
                 for u in available
-                if u.position.tile_coord.chebyshev_distance(vl_pos)
-                <= self.DEFEND_RADIUS
+                if u.position.tile_coord.chebyshev_distance(vl_pos) <= self.DEFEND_RADIUS
             )
             # Heavily outnumbered — retreat to nearest stronger VL
             if enemy_count >= 3 and friendly_count <= 1:
@@ -1102,8 +1084,7 @@ class VictoryPointAI(TacticalAIBase):
                 if safer_vl is not None:
                     for u in available:
                         if (
-                            u.position.tile_coord.chebyshev_distance(vl_pos)
-                            <= self.DEFEND_RADIUS
+                            u.position.tile_coord.chebyshev_distance(vl_pos) <= self.DEFEND_RADIUS
                             and u.id not in assigned
                         ):
                             assigned.add(u.id)
@@ -1135,8 +1116,7 @@ class VictoryPointAI(TacticalAIBase):
             enemies_near = sum(
                 1
                 for e in context.enemy_units
-                if e.is_alive
-                and e.position.tile_coord.chebyshev_distance(vl_pos) <= 5
+                if e.is_alive and e.position.tile_coord.chebyshev_distance(vl_pos) <= 5
             )
             if enemies_near <= 1:
                 safe.append((vl_pos, current_vl.chebyshev_distance(vl_pos)))
@@ -1149,6 +1129,7 @@ class VictoryPointAI(TacticalAIBase):
 # ---------------------------------------------------------------------------
 # 5. TacticalOrchestrator
 # ---------------------------------------------------------------------------
+
 
 @dataclass(slots=True)
 class _UnitAssignment:
@@ -1220,9 +1201,7 @@ class TacticalOrchestrator:
                 continue
             intents = ai.execute(context)
             for intent in intents:
-                all_prioritized.append(
-                    PrioritizedIntent(intent=intent, ai_name=name, score=score)
-                )
+                all_prioritized.append(PrioritizedIntent(intent=intent, ai_name=name, score=score))
 
         # Phase 3: Resolve conflicts — each unit assigned to at most one AI
         assignments: dict[str, _UnitAssignment] = {}

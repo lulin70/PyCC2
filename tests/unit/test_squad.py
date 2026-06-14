@@ -5,10 +5,10 @@ Tests for Squad Entity - CC2 Multi-Member Squad System
 from __future__ import annotations
 
 from pycc2.domain.entities.squad import (
+    MemberState,
     Squad,
     SquadMember,
     SquadType,
-    MemberState,
 )
 
 

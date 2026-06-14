@@ -10,16 +10,16 @@ Integration points:
 - EffectStack on Camera executes the visual effects
 """
 
-from typing import Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 
 from pycc2.domain.interfaces import IEventPublisher
 from pycc2.presentation.rendering.camera_effects import (
     EffectStack,
-    create_shake,
-    create_zoom_impact,
-    create_slow_motion,
     create_push_pull,
     create_screen_freeze,
+    create_shake,
+    create_slow_motion,
+    create_zoom_impact,
 )
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ class CombatCameraController:
 
     def __init__(self, camera: Optional["Camera"] = None):
         self._camera = camera
-        self._effect_stack: Optional[EffectStack] = None
+        self._effect_stack: EffectStack | None = None
         self._enabled = True
         self._kill_count = 0
 

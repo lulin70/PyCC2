@@ -15,10 +15,10 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
-import pytest
-import pygame
 from pathlib import Path
 
+import pygame
+import pytest
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -48,34 +48,24 @@ class TestInteractiveSmoke:
 
     def _inject_click(self, x, y, button=1):
         """Post a mouse click (down + up) at (x, y)."""
-        pygame.event.post(
-            pygame.event.Event(pygame.MOUSEBUTTONDOWN, pos=(x, y), button=button)
-        )
-        pygame.event.post(
-            pygame.event.Event(pygame.MOUSEBUTTONUP, pos=(x, y), button=button)
-        )
+        pygame.event.post(pygame.event.Event(pygame.MOUSEBUTTONDOWN, pos=(x, y), button=button))
+        pygame.event.post(pygame.event.Event(pygame.MOUSEBUTTONUP, pos=(x, y), button=button))
 
     def _inject_key(self, key, mod=0):
         """Post a key press (down + up)."""
-        pygame.event.post(
-            pygame.event.Event(pygame.KEYDOWN, key=key, mod=mod)
-        )
-        pygame.event.post(
-            pygame.event.Event(pygame.KEYUP, key=key, mod=mod)
-        )
+        pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=key, mod=mod))
+        pygame.event.post(pygame.event.Event(pygame.KEYUP, key=key, mod=mod))
 
     def _inject_mouse_move(self, x, y):
         """Post a mouse motion event."""
-        pygame.event.post(
-            pygame.event.Event(pygame.MOUSEMOTION, pos=(x, y), rel=(0, 0)
-            )
-        )
+        pygame.event.post(pygame.event.Event(pygame.MOUSEMOTION, pos=(x, y), rel=(0, 0)))
 
     # -- Component factory (mirrors main.py) --------------------------------
 
     def _create_game_loop(self):
         """Create a fully wired GameLoop exactly as main.py does."""
         from pycc2.domain.entities.game_map import GameMap
+        from pycc2.domain.interfaces.display_config import DisplayConfig as DC
         from pycc2.domain.value_objects.vec2 import Vec2
         from pycc2.presentation.input.handler import PygameInputHandler
         from pycc2.presentation.input.interaction_controller import (
@@ -84,14 +74,13 @@ class TestInteractiveSmoke:
         from pycc2.presentation.rendering.camera import Camera
         from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
         from pycc2.presentation.rendering.window_config import DisplayInfo, WindowManager
-        from pycc2.services.ai_service import AIService
-        from pycc2.services.event_bus import EventBus
-        from pycc2.services.game_loop import GameLoop, GameState
-        from pycc2.domain.interfaces.display_config import DisplayConfig as DC
         from pycc2.presentation.ui.hint_manager import HintManager
         from pycc2.presentation.ui.keybind_manager import KeybindManager
         from pycc2.presentation.ui.settings_menu import SettingsMenu
         from pycc2.presentation.ui.tutorial_system import TutorialOverlay
+        from pycc2.services.ai_service import AIService
+        from pycc2.services.event_bus import EventBus
+        from pycc2.services.game_loop import GameLoop, GameState
 
         # Load a real map
         map_path = _find_map_path()
@@ -226,7 +215,9 @@ class TestInteractiveSmoke:
         # ---- Step 3: Simulate user selecting & placing units ----
         # Find an unplaced infantry unit in the roster
         available = deployment_ui.state.available_units
-        assert len(available) >= 6, f"Should have at least 6 available units in roster, got {len(available)}"
+        assert len(available) >= 6, (
+            f"Should have at least 6 available units in roster, got {len(available)}"
+        )
 
         # Find first unplaced infantry unit
         inf_idx = None
@@ -250,17 +241,21 @@ class TestInteractiveSmoke:
 
         # Click on the roster unit to select it
         select_result = deployment_ui.handle_click_full(
-            screen_x=50, screen_y=roster_y + 10,
-            map_offset_x=0, map_offset_y=0,
+            screen_x=50,
+            screen_y=roster_y + 10,
+            map_offset_x=0,
+            map_offset_y=0,
             tile_size=16,
         )
-        assert select_result is not None, f"Click on roster unit should return action, got None"
+        assert select_result is not None, "Click on roster unit should return action, got None"
         assert "select_unit" in select_result, f"Expected select_unit, got {select_result}"
 
         # Now place the unit on a friendly zone tile
         # Find a valid placement position in friendly zone
         friendly_zone = deployment_ui.state.friendly_zone
-        assert len(friendly_zone) >= 10, f"Should have at least 10 friendly zone tiles, got {len(friendly_zone)}"
+        assert len(friendly_zone) >= 10, (
+            f"Should have at least 10 friendly zone tiles, got {len(friendly_zone)}"
+        )
 
         placed = False
         for tile_x, tile_y in friendly_zone[:20]:  # Try first 20 tiles
@@ -269,8 +264,7 @@ class TestInteractiveSmoke:
             if deployment_ui.can_place_at(unit, tile_x, tile_y, terrain):
                 # Check not already occupied
                 occupied = any(
-                    pu.position == (tile_x, tile_y)
-                    for pu in deployment_ui.state.placed_units
+                    pu.position == (tile_x, tile_y) for pu in deployment_ui.state.placed_units
                 )
                 if not occupied:
                     # Convert tile coords to screen coords for click
@@ -278,8 +272,10 @@ class TestInteractiveSmoke:
                     screen_x = deployment_ui._roster_width + tile_x * 16
                     screen_y = tile_y * 16
                     place_result = deployment_ui.handle_click_full(
-                        screen_x=screen_x, screen_y=screen_y,
-                        map_offset_x=0, map_offset_y=0,
+                        screen_x=screen_x,
+                        screen_y=screen_y,
+                        map_offset_x=0,
+                        map_offset_y=0,
                         tile_size=16,
                     )
                     if place_result and "place_unit" in place_result:
@@ -287,7 +283,9 @@ class TestInteractiveSmoke:
                         break
 
         assert placed, "Should successfully place at least one unit on the map"
-        assert deployment_ui.is_deployment_complete(), "Deployment should be complete (≥1 unit placed)"
+        assert deployment_ui.is_deployment_complete(), (
+            "Deployment should be complete (≥1 unit placed)"
+        )
 
         # Place a second unit (support type) for variety
         support_idx = None
@@ -308,8 +306,10 @@ class TestInteractiveSmoke:
                     roster_y2 += deployment_ui._roster_item_height + 2
 
             deployment_ui.handle_click_full(
-                screen_x=50, screen_y=roster_y2 + 10,
-                map_offset_x=0, map_offset_y=0,
+                screen_x=50,
+                screen_y=roster_y2 + 10,
+                map_offset_x=0,
+                map_offset_y=0,
                 tile_size=16,
             )
 
@@ -319,15 +319,16 @@ class TestInteractiveSmoke:
                 unit = available[support_idx]
                 if deployment_ui.can_place_at(unit, tile_x, tile_y, terrain):
                     occupied = any(
-                        pu.position == (tile_x, tile_y)
-                        for pu in deployment_ui.state.placed_units
+                        pu.position == (tile_x, tile_y) for pu in deployment_ui.state.placed_units
                     )
                     if not occupied:
                         screen_x = deployment_ui._roster_width + tile_x * 16
                         screen_y = tile_y * 16
                         deployment_ui.handle_click_full(
-                            screen_x=screen_x, screen_y=screen_y,
-                            map_offset_x=0, map_offset_y=0,
+                            screen_x=screen_x,
+                            screen_y=screen_y,
+                            map_offset_x=0,
+                            map_offset_y=0,
                             tile_size=16,
                         )
                         break
@@ -348,7 +349,9 @@ class TestInteractiveSmoke:
         print(f"[SMOKE] Player units: {len(player_units)}, AI units: {len(ai_units)}")
 
         # Deployment should no longer be active
-        assert not game_loop.deployment_phase_active, "Deployment should be inactive after completion"
+        assert not game_loop.deployment_phase_active, (
+            "Deployment should be inactive after completion"
+        )
 
         # ---- Step 5: Run battle phase — 300 ticks of _update_logic ----
         dt = 1.0 / 30.0
@@ -383,9 +386,7 @@ class TestInteractiveSmoke:
                     self._inject_key(pygame.K_LCTRL, mod=pygame.KMOD_CTRL)
                 elif tick == 260:
                     # Release Ctrl
-                    pygame.event.post(
-                        pygame.event.Event(pygame.KEYUP, key=pygame.K_LCTRL, mod=0)
-                    )
+                    pygame.event.post(pygame.event.Event(pygame.KEYUP, key=pygame.K_LCTRL, mod=0))
 
                 # Process events through the event dispatcher
                 game_loop._event_dispatcher.process_events()
@@ -404,8 +405,7 @@ class TestInteractiveSmoke:
         if errors:
             error_summary = "\n".join(f"  Tick {t}: {msg}" for t, msg in errors[:5])
             pytest.fail(
-                f"_update_logic crashed on {len(errors)}/300 ticks. First errors:\n"
-                f"{error_summary}"
+                f"_update_logic crashed on {len(errors)}/300 ticks. First errors:\n{error_summary}"
             )
 
         # ---- Step 6: Verify game state is still healthy ----
@@ -465,7 +465,9 @@ class TestInteractiveSmoke:
         dui.start_deployment(map_data=map_data, faction="ally")
 
         # Verify roster was built
-        assert len(dui.state.available_units) >= 6, f"Should have at least 6 units in roster, got {len(dui.state.available_units)}"
+        assert len(dui.state.available_units) >= 6, (
+            f"Should have at least 6 units in roster, got {len(dui.state.available_units)}"
+        )
 
         # Find first infantry unit index
         inf_idx = None
@@ -486,8 +488,10 @@ class TestInteractiveSmoke:
                 roster_y += dui._roster_item_height + 2
 
         result = dui.handle_click_full(
-            screen_x=50, screen_y=roster_y + 10,
-            map_offset_x=0, map_offset_y=0,
+            screen_x=50,
+            screen_y=roster_y + 10,
+            map_offset_x=0,
+            map_offset_y=0,
             tile_size=16,
         )
         assert result is not None
@@ -499,8 +503,10 @@ class TestInteractiveSmoke:
         screen_x = dui._roster_width + 1 * 16  # tile (1, 1)
         screen_y = 1 * 16
         result = dui.handle_click_full(
-            screen_x=screen_x, screen_y=screen_y,
-            map_offset_x=0, map_offset_y=0,
+            screen_x=screen_x,
+            screen_y=screen_y,
+            map_offset_x=0,
+            map_offset_y=0,
             tile_size=16,
         )
         assert result is not None
@@ -512,8 +518,10 @@ class TestInteractiveSmoke:
 
         # Right-click on the placed unit — first right-click selects it
         result = dui.handle_click_full(
-            screen_x=screen_x, screen_y=screen_y,
-            map_offset_x=0, map_offset_y=0,
+            screen_x=screen_x,
+            screen_y=screen_y,
+            map_offset_x=0,
+            map_offset_y=0,
             tile_size=16,
             right_click=True,
         )
@@ -527,13 +535,17 @@ class TestInteractiveSmoke:
 
         # Place again for begin_battle test
         dui.handle_click_full(
-            screen_x=50, screen_y=roster_y + 10,
-            map_offset_x=0, map_offset_y=0,
+            screen_x=50,
+            screen_y=roster_y + 10,
+            map_offset_x=0,
+            map_offset_y=0,
             tile_size=16,
         )
         dui.handle_click_full(
-            screen_x=screen_x, screen_y=screen_y,
-            map_offset_x=0, map_offset_y=0,
+            screen_x=screen_x,
+            screen_y=screen_y,
+            map_offset_x=0,
+            map_offset_y=0,
             tile_size=16,
         )
         assert dui.is_deployment_complete()
@@ -628,10 +640,7 @@ class TestInteractiveSmoke:
             for tile_x, tile_y in friendly_zone:
                 terrain = dui._get_terrain_at(tile_x, tile_y)
                 if dui.can_place_at(unit, tile_x, tile_y, terrain):
-                    occupied = any(
-                        pu.position == (tile_x, tile_y)
-                        for pu in dui.state.placed_units
-                    )
+                    occupied = any(pu.position == (tile_x, tile_y) for pu in dui.state.placed_units)
                     if not occupied:
                         dui.place_unit(i, tile_x, tile_y)
                         placed_count += 1
@@ -645,7 +654,7 @@ class TestInteractiveSmoke:
 
         # Run battle ticks
         dt = 1.0 / 30.0
-        for tick in range(150):
+        for _tick in range(150):
             game_loop._update_logic(dt)
             state.tick += 1
 

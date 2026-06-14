@@ -83,49 +83,49 @@ class FactionPalette(Enum):
 # 阵营主色调 (用于调色板替换的目标颜色)
 FACTION_COLORS: dict[str, dict[str, tuple[int, int, int]]] = {
     "allies": {
-        "primary": (74, 144, 60),      # 盟军绿
-        "secondary": (95, 165, 80),     # 浅绿
-        "dark": (50, 100, 40),          # 深绿
-        "accent": (120, 180, 100),      # 亮绿
+        "primary": (74, 144, 60),  # 盟军绿
+        "secondary": (95, 165, 80),  # 浅绿
+        "dark": (50, 100, 40),  # 深绿
+        "accent": (120, 180, 100),  # 亮绿
     },
     "axis": {
-        "primary": (100, 100, 105),     # 轴心国灰
-        "secondary": (130, 130, 135),   # 浅灰
-        "dark": (65, 65, 70),           # 深灰
-        "accent": (160, 160, 165),      # 亮灰
+        "primary": (100, 100, 105),  # 轴心国灰
+        "secondary": (130, 130, 135),  # 浅灰
+        "dark": (65, 65, 70),  # 深灰
+        "accent": (160, 160, 165),  # 亮灰
     },
     "allies_uk": {
-        "primary": (60, 80, 140),       # 英军蓝
+        "primary": (60, 80, 140),  # 英军蓝
         "secondary": (80, 100, 160),
         "dark": (40, 55, 100),
         "accent": (100, 120, 180),
     },
     "allies_us": {
-        "primary": (80, 120, 60),       # 美军橄榄绿
+        "primary": (80, 120, 60),  # 美军橄榄绿
         "secondary": (100, 140, 80),
         "dark": (55, 85, 40),
         "accent": (120, 160, 100),
     },
     "allies_poland": {
-        "primary": (140, 60, 60),       # 波兰军红
+        "primary": (140, 60, 60),  # 波兰军红
         "secondary": (160, 80, 80),
         "dark": (100, 40, 40),
         "accent": (180, 100, 100),
     },
     "axis_germany": {
-        "primary": (80, 80, 85),        # 德军深灰
+        "primary": (80, 80, 85),  # 德军深灰
         "secondary": (100, 100, 105),
         "dark": (55, 55, 60),
         "accent": (120, 120, 125),
     },
     "axis_italy": {
-        "primary": (140, 120, 60),      # 意军沙色
+        "primary": (140, 120, 60),  # 意军沙色
         "secondary": (160, 140, 80),
         "dark": (100, 85, 40),
         "accent": (180, 160, 100),
     },
     "resistance": {
-        "primary": (100, 70, 100),      # 抵抗军紫
+        "primary": (100, 70, 100),  # 抵抗军紫
         "secondary": (120, 90, 120),
         "dark": (70, 45, 70),
         "accent": (140, 110, 140),
@@ -193,22 +193,22 @@ for _pv_name, _pycc2_type in PIXVOXEL_TO_PYCC2.items():
 # PixVoxel 4 方向 → PyCC2 8 方向索引
 # PixVoxel 等距精灵有 4 个方向: N, E, S, W
 PIXVOXEL_DIR_TO_INDEX: dict[str, int] = {
-    "N": 0,   # North
-    "E": 2,   # East
-    "S": 4,   # South
-    "W": 6,   # West
+    "N": 0,  # North
+    "E": 2,  # East
+    "S": 4,  # South
+    "W": 6,  # West
 }
 
 # PyCC2 8 方向 → PixVoxel 4 方向（最近方向映射）
 PYCC2_DIR_TO_PIXVOXEL: dict[int, str] = {
-    0: "N",   # North
-    1: "N",   # Northeast → 近似 North
-    2: "E",   # East
-    3: "E",   # Southeast → 近似 East
-    4: "S",   # South
-    5: "S",   # Southwest → 近似 South
-    6: "W",   # West
-    7: "W",   # Northwest → 近似 West
+    0: "N",  # North
+    1: "N",  # Northeast → 近似 North
+    2: "E",  # East
+    3: "E",  # Southeast → 近似 East
+    4: "S",  # South
+    5: "S",  # Southwest → 近似 South
+    6: "W",  # West
+    7: "W",  # Northwest → 近似 West
 }
 
 # 动画类型映射
@@ -225,14 +225,8 @@ ANIMATION_MAP: dict[str, str] = {
 }
 
 # PixVoxel asset pack download URLs (CC0 licensed from OpenGameArt)
-PIXVOXEL_ISO_URL = (
-    "https://opengameart.org/sites/default/files/"
-    "Revised_PixVoxel_Wargame_1.7z"
-)
-PIXVOXEL_ORTHO_URL = (
-    "https://opengameart.org/sites/default/files/"
-    "PixVoxel_Ortho_Wargame.7z"
-)
+PIXVOXEL_ISO_URL = "https://opengameart.org/sites/default/files/Revised_PixVoxel_Wargame_1.7z"
+PIXVOXEL_ORTHO_URL = "https://opengameart.org/sites/default/files/PixVoxel_Ortho_Wargame.7z"
 
 
 class PixVoxelLoader:
@@ -265,12 +259,12 @@ class PixVoxelLoader:
         # 清单数据
         self._manifest: dict | None = None
         # 是否有可用的 PixVoxel 资源
-        self._iso_available: bool = self.iso_dir.exists() and (
-            self.iso_dir / "manifest.json"
-        ).exists()
-        self._ortho_available: bool = self.ortho_dir.exists() and (
-            self.ortho_dir / "manifest.json"
-        ).exists()
+        self._iso_available: bool = (
+            self.iso_dir.exists() and (self.iso_dir / "manifest.json").exists()
+        )
+        self._ortho_available: bool = (
+            self.ortho_dir.exists() and (self.ortho_dir / "manifest.json").exists()
+        )
 
         if self._iso_available:
             logger.info("PixVoxel isometric sprites available: %s", self.iso_dir)
@@ -315,8 +309,7 @@ class PixVoxelLoader:
             if self._extract_and_organize(archive_path, self.iso_dir, "isometric"):
                 # Re-check availability after extraction
                 self._iso_available = (
-                    self.iso_dir.exists()
-                    and (self.iso_dir / "manifest.json").exists()
+                    self.iso_dir.exists() and (self.iso_dir / "manifest.json").exists()
                 )
                 if self._iso_available:
                     logger.info(
@@ -336,15 +329,12 @@ class PixVoxelLoader:
             archive_path = cache_mgr.get(PIXVOXEL_ORTHO_URL)
 
             if archive_path is None:
-                logger.warning(
-                    "Auto-download failed for PixVoxel orthographic assets."
-                )
+                logger.warning("Auto-download failed for PixVoxel orthographic assets.")
                 return
 
             if self._extract_and_organize(archive_path, self.ortho_dir, "orthographic"):
                 self._ortho_available = (
-                    self.ortho_dir.exists()
-                    and (self.ortho_dir / "manifest.json").exists()
+                    self.ortho_dir.exists() and (self.ortho_dir / "manifest.json").exists()
                 )
                 if self._ortho_available:
                     logger.info(
@@ -421,14 +411,10 @@ class PixVoxelLoader:
                     return True
                 logger.warning("%s extraction failed: %s", tool, result.stderr)
 
-        logger.error(
-            "No 7z extraction tool available. Install with: pip install py7zr"
-        )
+        logger.error("No 7z extraction tool available. Install with: pip install py7zr")
         return False
 
-    def _organize_isometric_sprites(
-        self, extracted_dir: Path, output_dir: Path
-    ) -> None:
+    def _organize_isometric_sprites(self, extracted_dir: Path, output_dir: Path) -> None:
         """Organize extracted isometric sprites into PyCC2 directory structure.
 
         Mirrors the logic from scripts/download_pixvoxel_assets.py
@@ -474,23 +460,22 @@ class PixVoxelLoader:
                         direction = parts[0] if len(parts) >= 2 else "N"
                         frame = parts[1] if len(parts) >= 2 else "0"
 
-                        rel_path = (
-                            f"{faction}/{pycc2_type}/{anim_name}/"
-                            f"{direction}_{frame}.png"
-                        )
+                        rel_path = f"{faction}/{pycc2_type}/{anim_name}/{direction}_{frame}.png"
                         target_path = output_dir / rel_path
                         target_path.parent.mkdir(parents=True, exist_ok=True)
                         shutil.copy2(sprite_file, target_path)
 
-                        manifest_entries.append({
-                            "pixvoxel_name": unit_name,
-                            "pycc2_type": pycc2_type,
-                            "faction": faction,
-                            "animation": anim_name,
-                            "direction": direction,
-                            "frame": frame,
-                            "path": rel_path,
-                        })
+                        manifest_entries.append(
+                            {
+                                "pixvoxel_name": unit_name,
+                                "pycc2_type": pycc2_type,
+                                "faction": faction,
+                                "animation": anim_name,
+                                "direction": direction,
+                                "frame": frame,
+                                "path": rel_path,
+                            }
+                        )
 
         # Copy special directories
         for special in ("palettes", "blank"):
@@ -504,9 +489,7 @@ class PixVoxelLoader:
         # Write manifest
         self._write_manifest(output_dir, manifest_entries, "isometric")
 
-    def _organize_ortho_sprites(
-        self, extracted_dir: Path, output_dir: Path
-    ) -> None:
+    def _organize_ortho_sprites(self, extracted_dir: Path, output_dir: Path) -> None:
         """Organize extracted orthographic sprites into PyCC2 structure."""
         output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -548,23 +531,22 @@ class PixVoxelLoader:
                         direction = parts[0] if len(parts) >= 2 else "N"
                         frame = parts[1] if len(parts) >= 2 else "0"
 
-                        rel_path = (
-                            f"{faction}/{pycc2_type}/{anim_name}/"
-                            f"{direction}_{frame}.png"
-                        )
+                        rel_path = f"{faction}/{pycc2_type}/{anim_name}/{direction}_{frame}.png"
                         target_path = output_dir / rel_path
                         target_path.parent.mkdir(parents=True, exist_ok=True)
                         shutil.copy2(sprite_file, target_path)
 
-                        manifest_entries.append({
-                            "pixvoxel_name": unit_name,
-                            "pycc2_type": pycc2_type,
-                            "faction": faction,
-                            "animation": anim_name,
-                            "direction": direction,
-                            "frame": frame,
-                            "path": rel_path,
-                        })
+                        manifest_entries.append(
+                            {
+                                "pixvoxel_name": unit_name,
+                                "pycc2_type": pycc2_type,
+                                "faction": faction,
+                                "animation": anim_name,
+                                "direction": direction,
+                                "frame": frame,
+                                "path": rel_path,
+                            }
+                        )
 
         for special in ("palettes", "blank"):
             src = root / special
@@ -588,8 +570,7 @@ class PixVoxelLoader:
             "source": "PixVoxel Revised Isometric Wargame Sprites",
             "license": "CC0",
             "author": "Thomas Ettinger (TEttinger)",
-            "url": "https://opengameart.org/content/"
-                   "pixvoxel-revised-isometric-wargame-sprites",
+            "url": "https://opengameart.org/content/pixvoxel-revised-isometric-wargame-sprites",
             "total_sprites": len(entries),
             "sprites": entries,
         }
@@ -668,8 +649,13 @@ class PixVoxelLoader:
 
         # 尝试多种路径格式
         possible_paths = self._build_sprite_paths(
-            base_dir, faction, unit_type, pixvoxel_name,
-            anim_name, pv_direction, frame,
+            base_dir,
+            faction,
+            unit_type,
+            pixvoxel_name,
+            anim_name,
+            pv_direction,
+            frame,
         )
 
         for sprite_path in possible_paths:
@@ -693,15 +679,20 @@ class PixVoxelLoader:
 
         # 尝试从清单文件查找
         sprite = self._load_from_manifest(
-            base_dir, faction, unit_type, anim_name, pv_direction, frame, size,
+            base_dir,
+            faction,
+            unit_type,
+            anim_name,
+            pv_direction,
+            frame,
+            size,
         )
         if sprite is not None:
             self._cache[cache_key] = sprite
             return sprite
 
         logger.debug(
-            f"未找到 PixVoxel 精灵: {faction}/{unit_type}/"
-            f"{anim_name}/{pv_direction}_{frame}"
+            f"未找到 PixVoxel 精灵: {faction}/{unit_type}/{anim_name}/{pv_direction}_{frame}"
         )
         return None
 
@@ -720,14 +711,10 @@ class PixVoxelLoader:
 
         # 格式1: 有组织后的目录结构 (download_pixvoxel_assets.py 生成的)
         # {faction}/{PYCC2_TYPE}/{Animation}/{DIR}_{frame}.png
-        paths.append(
-            base_dir / faction / unit_type / anim_name / f"{direction}_{frame}.png"
-        )
+        paths.append(base_dir / faction / unit_type / anim_name / f"{direction}_{frame}.png")
 
         # 格式2: 使用 PixVoxel 原始名称
-        paths.append(
-            base_dir / faction / pixvoxel_name / anim_name / f"{direction}_{frame}.png"
-        )
+        paths.append(base_dir / faction / pixvoxel_name / anim_name / f"{direction}_{frame}.png")
 
         # 格式3: color 目录结构 (PixVoxel 原始结构)
         # color1/Infantry/Standing/N_0.png
@@ -742,21 +729,16 @@ class PixVoxelLoader:
             "resistance": "color8",
         }
         color = color_map.get(faction, "color1")
-        paths.append(
-            base_dir / color / pixvoxel_name / anim_name / f"{direction}_{frame}.png"
-        )
+        paths.append(base_dir / color / pixvoxel_name / anim_name / f"{direction}_{frame}.png")
 
         # 格式4: Super 单位变体
         if "Super" not in pixvoxel_name:
             paths.append(
-                base_dir / color / f"Super{pixvoxel_name}" / anim_name
-                / f"{direction}_{frame}.png"
+                base_dir / color / f"Super{pixvoxel_name}" / anim_name / f"{direction}_{frame}.png"
             )
 
         # 格式5: 扁平目录结构
-        paths.append(
-            base_dir / f"{pixvoxel_name}_{direction}_{frame}.png"
-        )
+        paths.append(base_dir / f"{pixvoxel_name}_{direction}_{frame}.png")
 
         return paths
 
@@ -855,25 +837,30 @@ class PixVoxelLoader:
             diff_g = arr[:, :, 1].astype(int) - src_g
             diff_b = arr[:, :, 2].astype(int) - src_b
 
-            distance = (
-                diff_r * diff_r + diff_g * diff_g + diff_b * diff_b
-            )
+            distance = diff_r * diff_r + diff_g * diff_g + diff_b * diff_b
             mask = distance <= (tolerance * tolerance * 3)
 
             # 计算亮度比例
             src_brightness = (src_r + src_g + src_b) / 3.0
             if src_brightness > 0:
                 brightness_ratio = (
-                    (arr[:, :, 0].astype(float) + arr[:, :, 1].astype(float) + arr[:, :, 2].astype(float))
-                    / (3.0 * src_brightness)
-                )
+                    arr[:, :, 0].astype(float)
+                    + arr[:, :, 1].astype(float)
+                    + arr[:, :, 2].astype(float)
+                ) / (3.0 * src_brightness)
             else:
                 brightness_ratio = np.ones_like(arr[:, :, 0], dtype=float)
 
             # 应用替换
-            arr[:, :, 0] = np.where(mask, np.clip(tgt_r * brightness_ratio, 0, 255).astype(np.uint8), arr[:, :, 0])
-            arr[:, :, 1] = np.where(mask, np.clip(tgt_g * brightness_ratio, 0, 255).astype(np.uint8), arr[:, :, 1])
-            arr[:, :, 2] = np.where(mask, np.clip(tgt_b * brightness_ratio, 0, 255).astype(np.uint8), arr[:, :, 2])
+            arr[:, :, 0] = np.where(
+                mask, np.clip(tgt_r * brightness_ratio, 0, 255).astype(np.uint8), arr[:, :, 0]
+            )
+            arr[:, :, 1] = np.where(
+                mask, np.clip(tgt_g * brightness_ratio, 0, 255).astype(np.uint8), arr[:, :, 1]
+            )
+            arr[:, :, 2] = np.where(
+                mask, np.clip(tgt_b * brightness_ratio, 0, 255).astype(np.uint8), arr[:, :, 2]
+            )
 
             del arr  # 释放 surfarray 锁
         except (ImportError, Exception):
@@ -952,26 +939,35 @@ class PixVoxelLoader:
 
         # Fallback: 使用 PixelArtist3D
         try:
-            from pycc2.domain.value_objects.direction import Direction
             from pycc2.domain.entities.unit import Faction
+            from pycc2.domain.value_objects.direction import Direction
             from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
 
             dir_enum = list(Direction)[direction] if direction < 8 else Direction.SOUTH
             fac_enum = Faction.ALLIES if faction.startswith("allies") else Faction(faction)
 
             is_vehicle = unit_type in (
-                "TANK", "LIGHT_TANK", "MEDIUM_TANK", "HEAVY_TANK",
-                "HALFTRACK", "JEEP", "AT_GUN_TEAM",
+                "TANK",
+                "LIGHT_TANK",
+                "MEDIUM_TANK",
+                "HEAVY_TANK",
+                "HALFTRACK",
+                "JEEP",
+                "AT_GUN_TEAM",
             )
             if is_vehicle:
                 return PixelArtist3D.create_tank_sprite(
-                    direction=dir_enum, faction=fac_enum,
-                    state="idle", frame=0,
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    state="idle",
+                    frame=0,
                 )
             else:
                 return PixelArtist3D.create_infantry_sprite(
-                    direction=dir_enum, faction=fac_enum,
-                    state="idle", frame=0,
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    state="idle",
+                    frame=0,
                 )
         except Exception as e:
             logger.debug(f"PixelArtist3D fallback 失败: {e}")

@@ -99,18 +99,12 @@ def game_map():
 
 @pytest.fixture()
 def units_5():
-    return [
-        make_unit(unit_id=f"u{i}", name=f"Squad {i}", morale=60 + i * 8)
-        for i in range(5)
-    ]
+    return [make_unit(unit_id=f"u{i}", name=f"Squad {i}", morale=60 + i * 8) for i in range(5)]
 
 
 @pytest.fixture()
 def units_8():
-    return [
-        make_unit(unit_id=f"u{i}", name=f"Squad {i}", morale=50 + i * 6)
-        for i in range(8)
-    ]
+    return [make_unit(unit_id=f"u{i}", name=f"Squad {i}", morale=50 + i * 6) for i in range(8)]
 
 
 # ===========================================================================
@@ -120,7 +114,6 @@ def units_8():
 
 @pytest.mark.unit
 class TestPanelLayout:
-
     def test_panel_constants_are_consistent(self):
         assert CC2BottomPanel.PANEL_HEIGHT == 130  # Updated to match CC2 original (~120-130px)
         assert CC2BottomPanel.ROSTER_WIDTH == 170
@@ -169,14 +162,25 @@ class TestPanelLayout:
 
 @pytest.mark.unit
 class TestCommandButtons:
-
-    EXPECTED_IDS = ["move", "fast", "sneak", "attack", "smoke", "defend", "hide", "cancel", "end_battle"]
+    EXPECTED_IDS = [
+        "move",
+        "fast",
+        "sneak",
+        "attack",
+        "smoke",
+        "defend",
+        "hide",
+        "cancel",
+        "end_battle",
+    ]
 
     def test_command_buttons_exist(self, panel):
         ids = [cmd["id"] for cmd in panel._commands]
         assert ids == self.EXPECTED_IDS
 
-    def test_command_button_click_returns_command_id(self, panel, surface, camera, game_map, units_5):
+    def test_command_button_click_returns_command_id(
+        self, panel, surface, camera, game_map, units_5
+    ):
         panel.set_friendly_units(units_5)
         panel.set_selected_unit("u0")
         panel.render(surface, camera, game_map)
@@ -184,9 +188,13 @@ class TestCommandButtons:
         for cmd_id, rect in panel._button_rects.items():
             cx, cy = rect.centerx, rect.centery
             result = panel.handle_click((cx, cy))
-            assert result == f"command:{cmd_id}", f"Click on {cmd_id} should return command:{cmd_id}"
+            assert result == f"command:{cmd_id}", (
+                f"Click on {cmd_id} should return command:{cmd_id}"
+            )
 
-    def test_command_button_click_triggers_callback(self, panel, surface, camera, game_map, units_5):
+    def test_command_button_click_triggers_callback(
+        self, panel, surface, camera, game_map, units_5
+    ):
         panel.set_friendly_units(units_5)
         panel.set_selected_unit("u0")
         panel.render(surface, camera, game_map)
@@ -196,7 +204,7 @@ class TestCommandButtons:
         for cmd_id in self.EXPECTED_IDS:
             panel.register_callback(cmd_id, lambda cid=cmd_id: triggered.append(cid))
 
-        for cmd_id, rect in panel._button_rects.items():
+        for _cmd_id, rect in panel._button_rects.items():
             cx, cy = rect.centerx, rect.centery
             panel.handle_click((cx, cy))
 
@@ -230,7 +238,6 @@ class TestCommandButtons:
 
 @pytest.mark.unit
 class TestRoster:
-
     def test_set_friendly_units_populates_roster(self, panel, units_5):
         panel.set_friendly_units(units_5)
         assert len(panel._friendly_units) == 5
@@ -252,7 +259,7 @@ class TestRoster:
         selected_ids = []
         panel._on_unit_select = lambda uid: selected_ids.append(uid)
 
-        for rect, unit_id in panel._roster_item_rects:
+        for rect, _unit_id in panel._roster_item_rects:
             panel.handle_click((rect.centerx, rect.centery))
 
         assert len(selected_ids) >= 1
@@ -289,7 +296,6 @@ class TestRoster:
 
 @pytest.mark.unit
 class TestMinimapZoom:
-
     def test_zoom_in_increases_level(self, panel):
         initial = panel.get_zoom_level()
         new_level = panel.zoom_in()
@@ -322,7 +328,9 @@ class TestMinimapZoom:
             assert result.startswith("zoom:")
         # Click zoom-out button
         if panel._zoom_out_rect:
-            result = panel.handle_click((panel._zoom_out_rect.centerx, panel._zoom_out_rect.centery))
+            result = panel.handle_click(
+                (panel._zoom_out_rect.centerx, panel._zoom_out_rect.centery)
+            )
             assert result is not None
             assert result.startswith("zoom:")
 
@@ -334,7 +342,6 @@ class TestMinimapZoom:
 
 @pytest.mark.unit
 class TestUrgencyIndicator:
-
     def test_urgency_critical_when_low_hp_and_morale(self, panel, surface, camera, game_map):
         unit = make_unit(unit_id="u1", hp=10, max_hp=100, morale=5)
         panel.set_friendly_units([unit])
@@ -369,11 +376,11 @@ class TestUrgencyIndicator:
         """Test all 5 urgency levels with different HP/morale combinations."""
         test_cases = [
             # (hp, max_hp, morale, expected_level)
-            (10, 100, 5, "CRITICAL"),    # urgency >= 80
-            (30, 100, 20, "HIGH"),       # urgency >= 60
-            (50, 100, 50, "MEDIUM"),     # urgency >= 40
-            (70, 100, 70, "LOW"),        # urgency >= 20
-            (100, 100, 100, "SAFE"),     # urgency < 20
+            (10, 100, 5, "CRITICAL"),  # urgency >= 80
+            (30, 100, 20, "HIGH"),  # urgency >= 60
+            (50, 100, 50, "MEDIUM"),  # urgency >= 40
+            (70, 100, 70, "LOW"),  # urgency >= 20
+            (100, 100, 100, "SAFE"),  # urgency < 20
         ]
 
         for hp, max_hp, morale, expected in test_cases:
@@ -408,7 +415,6 @@ class TestUrgencyIndicator:
 
 @pytest.mark.unit
 class TestMouseHover:
-
     def test_handle_mouse_move_updates_hover(self, panel, surface, camera, game_map, units_5):
         panel.set_friendly_units(units_5)
         panel.set_selected_unit("u0")
@@ -443,7 +449,6 @@ class TestMouseHover:
 
 @pytest.mark.unit
 class TestRendering:
-
     def test_render_does_not_crash(self, panel, surface, camera, game_map):
         panel.render(surface, camera, game_map)
 

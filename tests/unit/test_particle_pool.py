@@ -23,9 +23,9 @@ class TestParticlePoolAcquire:
         pool = ParticlePool(preallocate=10)
         p = pool.acquire()
         assert p is not None
-        assert hasattr(p, 'x')
-        assert hasattr(p, 'y')
-        assert hasattr(p, 'life')
+        assert hasattr(p, "x")
+        assert hasattr(p, "y")
+        assert hasattr(p, "life")
         assert pool.active_count == 1
         assert pool.pool_size == 9
 

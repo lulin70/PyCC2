@@ -15,6 +15,7 @@ Legacy Campaign System for PyCC2.
             → campaign_four_layer.CC2UnitTemplate instances
         - CampaignManager    → campaign_four_layer.FourLayerCampaignManager
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -22,7 +23,7 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pycc2.domain.systems.campaign_state import CampaignState, BattleResult
+    from pycc2.domain.systems.campaign_state import BattleResult, CampaignState
 
 
 class MissionDifficulty(Enum):
@@ -83,14 +84,16 @@ class CampaignManager:
         self._campaign_state: CampaignState | None = None
         if use_campaign_state:
             from pycc2.domain.systems.campaign_state import CampaignState
+
             self._campaign_state = CampaignState.create_default()
 
     @property
-    def campaign_state(self) -> "CampaignState | None":
+    def campaign_state(self) -> CampaignState | None:
         return self._campaign_state
 
     def enable_campaign_mode(self) -> None:
         from pycc2.domain.systems.campaign_state import CampaignState
+
         if self._campaign_state is None:
             self._campaign_state = CampaignState.create_default()
 

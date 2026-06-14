@@ -11,6 +11,7 @@ Tests cover:
 from __future__ import annotations
 
 import os
+
 import pytest
 
 # Ensure SDL dummy drivers are set before pygame imports
@@ -24,11 +25,13 @@ class TestTrenchTerrainGeneration:
     @pytest.fixture()
     def palette_gen(self):
         from pycc2.presentation.rendering.enhanced_renderer import PaletteGenerator
+
         return PaletteGenerator()
 
     def test_trench_terrain_generates(self, palette_gen, pygame_display):
         """Test that trench terrain generates without error."""
         import pygame
+
         from pycc2.presentation.rendering.enhanced_renderer import ProceduralTextureGenerator
 
         surface = ProceduralTextureGenerator.generate_terrain_texture(
@@ -77,8 +80,7 @@ class TestTrenchTerrainGeneration:
                 bitmask=bitmask,
             )
             assert surface is not None, f"Trench failed for bitmask={bitmask}"
-            assert surface.get_size() == (48, 48), \
-                f"Trench has wrong size for bitmask={bitmask}"
+            assert surface.get_size() == (48, 48), f"Trench has wrong size for bitmask={bitmask}"
 
     def test_trench_has_dark_brown_color(self, palette_gen, pygame_display):
         """Test that trench contains expected dark brown color (#3A2818)."""
@@ -139,6 +141,7 @@ class TestProceduralTextureGeneratorIntegration:
     @pytest.fixture()
     def palette_gen(self):
         from pycc2.presentation.rendering.enhanced_renderer import PaletteGenerator
+
         return PaletteGenerator()
 
     def test_all_terrain_ids_generate(self, palette_gen, pygame_display):
@@ -153,8 +156,9 @@ class TestProceduralTextureGeneratorIntegration:
                 bitmask=0,
             )
             assert surface is not None, f"Failed to generate terrain ID {tid}"
-            assert surface.get_size() == (48, 48), \
+            assert surface.get_size() == (48, 48), (
                 f"Terrain ID {tid} has wrong size: {surface.get_size()}"
+            )
 
     def test_terrain_cache_consistency(self, palette_gen, pygame_display):
         """Test that same parameters produce consistent results."""
@@ -186,14 +190,14 @@ class TestCC2TerrainPalette:
         """Test that trench color keys exist in CC2_TERRAIN_PALETTE."""
         from pycc2.presentation.rendering.terrain_tile_cache import CC2_TERRAIN_PALETTE
 
-        assert 'trench_main' in CC2_TERRAIN_PALETTE, "Missing 'trench_main' color"
-        assert 'trench_embankment' in CC2_TERRAIN_PALETTE, "Missing 'trench_embankment' color"
+        assert "trench_main" in CC2_TERRAIN_PALETTE, "Missing 'trench_main' color"
+        assert "trench_embankment" in CC2_TERRAIN_PALETTE, "Missing 'trench_embankment' color"
 
     def test_trench_main_color_value(self):
         """Test that trench_main matches spec (#3A2818)."""
         from pycc2.presentation.rendering.terrain_tile_cache import CC2_TERRAIN_PALETTE
 
-        trench_main = CC2_TERRAIN_PALETTE['trench_main']
+        trench_main = CC2_TERRAIN_PALETTE["trench_main"]
         # Should be approximately #3A2818 (dark earth brown)
         assert abs(trench_main[0] - 58) <= 5, f"R value off: {trench_main[0]}"
         assert abs(trench_main[1] - 40) <= 5, f"G value off: {trench_main[1]}"
@@ -203,7 +207,7 @@ class TestCC2TerrainPalette:
         """Test that trench_embankment matches spec (#5A4830)."""
         from pycc2.presentation.rendering.terrain_tile_cache import CC2_TERRAIN_PALETTE
 
-        trench_embankment = CC2_TERRAIN_PALETTE['trench_embankment']
+        trench_embankment = CC2_TERRAIN_PALETTE["trench_embankment"]
         # Should be approximately #5A4830 (lighter embankment)
         assert abs(trench_embankment[0] - 90) <= 5, f"R value off: {trench_embankment[0]}"
         assert abs(trench_embankment[1] - 72) <= 5, f"G value off: {trench_embankment[1]}"
@@ -214,8 +218,9 @@ class TestCC2TerrainPalette:
         from pycc2.presentation.rendering.terrain_tile_cache import TERRAIN_PALETTE_MAP
 
         assert 13 in TERRAIN_PALETTE_MAP, "Missing terrain ID 13 (TRENCH)"
-        assert TERRAIN_PALETTE_MAP[13] == 'trench_main', \
+        assert TERRAIN_PALETTE_MAP[13] == "trench_main", (
             f"ID 13 should map to 'trench_main', got {TERRAIN_PALETTE_MAP[13]}"
+        )
 
 
 if __name__ == "__main__":

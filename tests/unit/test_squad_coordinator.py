@@ -142,7 +142,9 @@ class TestFireConcentration:
         order = coord.evaluate_squad_tactics("alpha", bbs, friends + enemies, _make_map())
         assert order is not None
         intents = coord.distribute_squad_order(order)
-        assert len(intents) >= 2, f"Fire concentration order should produce at least 2 intents, got {len(intents)}"
+        assert len(intents) >= 2, (
+            f"Fire concentration order should produce at least 2 intents, got {len(intents)}"
+        )
         types = {i.tactic_type for i in intents}
         assert TacticType.ATTACK in types
         assert TacticType.SUPPRESS_FIRE in types
@@ -190,8 +192,8 @@ class TestBoundingOverwatch:
         intents2 = coord.distribute_squad_order(order)
         move_types_1 = [i.tactic_type for i in intents1 if i.tactic_type == TacticType.MOVE_TO]
         move_types_2 = [i.tactic_type for i in intents2 if i.tactic_type == TacticType.MOVE_TO]
-        assert len(move_types_1) >= 1, f"First distribute should have at least 1 MOVE_TO intent"
-        assert len(move_types_2) >= 1, f"Second distribute should have at least 1 MOVE_TO intent"
+        assert len(move_types_1) >= 1, "First distribute should have at least 1 MOVE_TO intent"
+        assert len(move_types_2) >= 1, "Second distribute should have at least 1 MOVE_TO intent"
 
 
 class TestCrossfire:

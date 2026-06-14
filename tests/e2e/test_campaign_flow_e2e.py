@@ -54,6 +54,7 @@ def unique_map_ids(all_battles: list[BattleDefinition]) -> set[str]:
 # 1. Campaign creation
 # ---------------------------------------------------------------------------
 
+
 class TestCampaignCreation:
     def test_campaign_creation(self, campaign: GrandCampaignDefinition) -> None:
         assert campaign.campaign_id == "market_garden"
@@ -66,11 +67,7 @@ class TestCampaignCreation:
         total_ops = sum(len(s.operations) for s in campaign.sectors)
         assert total_ops == 7, f"Expected 7 operations, got {total_ops}"
 
-        total_battles = sum(
-            len(op.battles)
-            for s in campaign.sectors
-            for op in s.operations
-        )
+        total_battles = sum(len(op.battles) for s in campaign.sectors for op in s.operations)
         assert total_battles == 29, f"Expected 29 battles, got {total_battles}"
 
 
@@ -78,30 +75,24 @@ class TestCampaignCreation:
 # 2. All battle map_ids resolve to loadable JSON files
 # ---------------------------------------------------------------------------
 
+
 class TestBattleMapResolution:
-    def test_all_battle_map_ids_resolve(
-        self, all_battles: list[BattleDefinition]
-    ) -> None:
+    def test_all_battle_map_ids_resolve(self, all_battles: list[BattleDefinition]) -> None:
         missing: list[str] = []
         for battle in all_battles:
             map_path = MAPS_DIR / f"{battle.map_id}.json"
             if not map_path.exists():
-                missing.append(
-                    f"{battle.battle_id} -> {battle.map_id}.json"
-                )
-        assert not missing, (
-            f"Missing map files for {len(missing)} battles: {missing[:5]}"
-        )
+                missing.append(f"{battle.battle_id} -> {battle.map_id}.json")
+        assert not missing, f"Missing map files for {len(missing)} battles: {missing[:5]}"
 
 
 # ---------------------------------------------------------------------------
 # 3. All maps load successfully via GameMap.from_json()
 # ---------------------------------------------------------------------------
 
+
 class TestMapLoading:
-    def test_all_maps_load_successfully(
-        self, unique_map_ids: set[str]
-    ) -> None:
+    def test_all_maps_load_successfully(self, unique_map_ids: set[str]) -> None:
         errors: list[str] = []
         for map_id in sorted(unique_map_ids):
             map_path = MAPS_DIR / f"{map_id}.json"
@@ -118,10 +109,9 @@ class TestMapLoading:
 # 4. Victory locations within map bounds
 # ---------------------------------------------------------------------------
 
+
 class TestVictoryLocationBounds:
-    def test_victory_locations_within_map_bounds(
-        self, all_battles: list[BattleDefinition]
-    ) -> None:
+    def test_victory_locations_within_map_bounds(self, all_battles: list[BattleDefinition]) -> None:
         violations: list[str] = []
         for battle in all_battles:
             map_path = MAPS_DIR / f"{battle.map_id}.json"
@@ -135,14 +125,13 @@ class TestVictoryLocationBounds:
                         f"{battle.battle_id}/{vl.vl_id} pos=({x},{y}) "
                         f"exceeds map {battle.map_id} ({game_map.width}x{game_map.height})"
                     )
-        assert not violations, (
-            f"VL out-of-bounds in {len(violations)} cases: {violations[:5]}"
-        )
+        assert not violations, f"VL out-of-bounds in {len(violations)} cases: {violations[:5]}"
 
 
 # ---------------------------------------------------------------------------
 # 5. Campaign day coverage
 # ---------------------------------------------------------------------------
+
 
 class TestCampaignDayCoverage:
     def test_campaign_day_coverage(self, campaign: GrandCampaignDefinition) -> None:
@@ -174,10 +163,9 @@ class TestCampaignDayCoverage:
 # 6. Battle factions valid
 # ---------------------------------------------------------------------------
 
+
 class TestBattleFactions:
-    def test_battle_factions_valid(
-        self, all_battles: list[BattleDefinition]
-    ) -> None:
+    def test_battle_factions_valid(self, all_battles: list[BattleDefinition]) -> None:
         valid_factions = {Faction.AMERICAN, Faction.BRITISH, Faction.POLISH, Faction.GERMAN}
         for battle in all_battles:
             assert battle.attacker in valid_factions, (
@@ -195,10 +183,9 @@ class TestBattleFactions:
 # 7. Requisition points positive
 # ---------------------------------------------------------------------------
 
+
 class TestRequisitionPoints:
-    def test_requisition_points_positive(
-        self, campaign: GrandCampaignDefinition
-    ) -> None:
+    def test_requisition_points_positive(self, campaign: GrandCampaignDefinition) -> None:
         for sector in campaign.sectors:
             for op in sector.operations:
                 assert op.requisition_points_allies > 0, (
@@ -213,6 +200,7 @@ class TestRequisitionPoints:
 # 8. GrandCampaignState initialization
 # ---------------------------------------------------------------------------
 
+
 class TestCampaignStateInitialization:
     def test_campaign_state_initialization(self) -> None:
         state = GrandCampaignState()
@@ -226,6 +214,7 @@ class TestCampaignStateInitialization:
 # ---------------------------------------------------------------------------
 # 9. Sector state transitions
 # ---------------------------------------------------------------------------
+
 
 class TestSectorStateTransitions:
     def test_sector_state_transitions(self) -> None:
@@ -242,6 +231,7 @@ class TestSectorStateTransitions:
 # ---------------------------------------------------------------------------
 # 10. Battle result persistence
 # ---------------------------------------------------------------------------
+
 
 class TestBattleResultPersistence:
     def test_battle_result_persistence(self) -> None:

@@ -24,7 +24,6 @@ from typing import Any
 
 from pycc2.presentation.rendering.isometric_transform import depth_sort_key
 
-
 # ============================================================
 # Render Layer
 # ============================================================
@@ -134,9 +133,7 @@ def unit_to_renderable(unit: Any) -> IsometricRenderable:
     )
 
 
-def effect_to_renderable(
-    x: float, y: float, z: float, effect_data: Any
-) -> IsometricRenderable:
+def effect_to_renderable(x: float, y: float, z: float, effect_data: Any) -> IsometricRenderable:
     """Convert a visual effect to a renderable.
 
     Args:

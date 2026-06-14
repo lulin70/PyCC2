@@ -32,7 +32,7 @@ class TestVec2Construction:
 
     def test_from_tile_factory(self):
         v = Vec2.from_tile(2, 3)
-        assert v.x == 96.0   # 2 * 48 (CC2 tile size)
+        assert v.x == 96.0  # 2 * 48 (CC2 tile size)
         assert v.y == 144.0  # 3 * 48
 
     def test_tile_size_constant(self):

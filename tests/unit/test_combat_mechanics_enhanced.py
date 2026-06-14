@@ -212,11 +212,15 @@ class TestCalculateSuppressionFromAttack:
 
     def test_explosive_doubles_suppression(self):
         normal = calculate_suppression_from_attack(0.5, hit_success=True, damage_amount=20)
-        explosive = calculate_suppression_from_attack(0.5, hit_success=True, damage_amount=20, is_explosive=True)
+        explosive = calculate_suppression_from_attack(
+            0.5, hit_success=True, damage_amount=20, is_explosive=True
+        )
         assert explosive > normal
 
     def test_near_miss_still_suppresses(self):
-        result = calculate_suppression_from_attack(0.5, hit_success=False, damage_amount=0, is_near_miss=True)
+        result = calculate_suppression_from_attack(
+            0.5, hit_success=False, damage_amount=0, is_near_miss=True
+        )
         assert result > 0.0, f"Near-miss suppression should be positive, got {result}"
 
     def test_capped_at_25(self):
@@ -404,9 +408,13 @@ class TestVisionSystem:
         vs = VisionSystem()
         terrain = [[0] * 10 for _ in range(10)]
         result = vs.has_line_of_sight(
-            observer_pos=(0, 0), observer_height=0,
-            target_pos=(5, 0), target_height=0,
-            terrain_grid=terrain, map_width=10, map_height=10,
+            observer_pos=(0, 0),
+            observer_height=0,
+            target_pos=(5, 0),
+            target_height=0,
+            terrain_grid=terrain,
+            map_width=10,
+            map_height=10,
         )
         assert result is True
 
@@ -415,9 +423,13 @@ class TestVisionSystem:
         terrain = [[0] * 10 for _ in range(10)]
         terrain[0][3] = 5  # Building at (3,0)
         result = vs.has_line_of_sight(
-            observer_pos=(0, 0), observer_height=0,
-            target_pos=(6, 0), target_height=0,
-            terrain_grid=terrain, map_width=10, map_height=10,
+            observer_pos=(0, 0),
+            observer_height=0,
+            target_pos=(6, 0),
+            target_height=0,
+            terrain_grid=terrain,
+            map_width=10,
+            map_height=10,
         )
         assert result is False
 
@@ -450,9 +462,7 @@ class TestCombatState:
 
     def test_process_attack_received(self):
         cs = CombatState()
-        result = cs.process_attack_received(
-            weapon_suppress_ability=0.8, hit=True, damage=25.0
-        )
+        result = cs.process_attack_received(weapon_suppress_ability=0.8, hit=True, damage=25.0)
         assert "suppression_effect" in result
         assert "current_suppression" in result
         assert "accuracy_penalty" in result

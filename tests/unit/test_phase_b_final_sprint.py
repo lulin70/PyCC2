@@ -16,37 +16,39 @@ from dataclasses import dataclass
 
 import pytest
 
-# Import systems under test
-from pycc2.domain.systems.weapon_switch_system import (
-    WeaponSlot,
-    WeaponSlotConfig,
-    WeaponSwitchSystem,
-)
 from pycc2.domain.systems.ammo_type_system import (
-    AmmoType,
-    AmmoInventory,
     AMMO_EFFECTS_CONFIG,
+    AmmoInventory,
+    AmmoType,
+)
+from pycc2.domain.systems.casualty_system import (
+    Casualty,
+    CasualtyConfig,
+    CasualtyManager,
+    CasualtyState,
 )
 from pycc2.domain.systems.vehicle_crew_system import (
     CrewRole,
     CrewStatus,
     VehicleCrew,
 )
-from pycc2.domain.systems.casualty_system import (
-    CasualtyState,
-    CasualtyConfig,
-    Casualty,
-    CasualtyManager,
-)
 
+# Import systems under test
+from pycc2.domain.systems.weapon_switch_system import (
+    WeaponSlot,
+    WeaponSlotConfig,
+    WeaponSwitchSystem,
+)
 
 # =============================================================================
 # Mock Unit for testing
 # =============================================================================
 
+
 @dataclass
 class MockUnit:
     """Minimal mock unit for testing."""
+
     id: str = "test_unit_1"
     name: str = "Test Soldier"
     faction: object = None  # Mock Faction.ALLIES
@@ -82,15 +84,16 @@ class MockUnit:
 # TEST CLASS 1: SpritesheetParser Tests
 # =============================================================================
 
+
 class TestSpritesheetParser:
     """Test suite for SpritesheetParser functionality."""
 
     def test_parser_initialization(self):
         """Test parser can be initialized without image."""
         from pycc2.presentation.rendering.spritesheet_parser import (
-            SpritesheetParser,
             SpritesheetConfig,
             SpritesheetLayout,
+            SpritesheetParser,
         )
 
         config = SpritesheetConfig(
@@ -113,15 +116,19 @@ class TestSpritesheetParser:
         assert result is False
         assert not parser.is_loaded
 
-    @pytest.mark.skipif(not os.path.exists("assets/sprites/units/allies/soldier_ww2_8dir.png"),
-                       reason="8-direction spritesheet not available")
+    @pytest.mark.skipif(
+        not os.path.exists("assets/sprites/units/allies/soldier_ww2_8dir.png"),
+        reason="8-direction spritesheet not available",
+    )
     def test_parser_loads_real_spritesheet(self):
         """Test parser loads the actual 8-direction spritesheet."""
         import os
-        os.environ['SDL_VIDEODRIVER'] = 'dummy'
-        os.environ['SDL_AUDIODRIVER'] = 'dummy'
+
+        os.environ["SDL_VIDEODRIVER"] = "dummy"
+        os.environ["SDL_AUDIODRIVER"] = "dummy"
 
         import pygame
+
         pygame.display.set_mode((1, 1), flags=pygame.HIDDEN)
 
         from pycc2.presentation.rendering.spritesheet_parser import (
@@ -134,7 +141,9 @@ class TestSpritesheetParser:
         # May fail in test environment without display
         if result:
             assert parser.is_loaded
-            assert parser.frame_count >= 1, f"Loaded spritesheet should have at least 1 frame, got {parser.frame_count}"
+            assert parser.frame_count >= 1, (
+                f"Loaded spritesheet should have at least 1 frame, got {parser.frame_count}"
+            )
             print(f"\n✅ Loaded {parser.frame_count} frames from real spritesheet")
             print(f"   Directions found: {parser.directions_found}")
             print(f"   Sprite size: {parser.sprite_size}")
@@ -151,7 +160,7 @@ class TestSpritesheetParser:
         result = create_direction_sprite_set_from_spritesheet("/nonexistent.png")
 
         assert result is not None
-        assert hasattr(result, 'directions')
+        assert hasattr(result, "directions")
 
     def test_spritesheet_layout_enum(self):
         """Test SpritesheetLayout enum has all expected values."""
@@ -171,6 +180,7 @@ class TestSpritesheetParser:
     def test_frame_info_dataclass(self):
         """Test FrameInfo dataclass structure."""
         import pygame
+
         from pycc2.presentation.rendering.spritesheet_parser import FrameInfo
 
         rect = pygame.Rect(0, 0, 32, 32)
@@ -210,6 +220,7 @@ class TestSpritesheetParser:
 # =============================================================================
 # TEST CLASS 2: WeaponSwitchSystem Tests (B6) - Target: 20 tests
 # =============================================================================
+
 
 class TestWeaponSwitchSystem:
     """Test suite for B6: Weapon Switch System."""
@@ -252,7 +263,10 @@ class TestWeaponSwitchSystem:
     def test_switch_by_hotkey_1(self):
         """Test hotkey 1 switches to primary."""
         # First switch away from primary (if possible)
-        if len(self.ws_system.available_slots) > 1 and WeaponSlot.SECONDARY in self.ws_system.available_slots:
+        if (
+            len(self.ws_system.available_slots) > 1
+            and WeaponSlot.SECONDARY in self.ws_system.available_slots
+        ):
             self.ws_system.switch_to(WeaponSlot.SECONDARY)
 
             result = self.ws_system.switch_by_hotkey(1)
@@ -365,6 +379,7 @@ class TestWeaponSwitchSystem:
 # =============================================================================
 # TEST CLASS 3: AmmoTypeSystem Tests (B7) - Target: 20 tests
 # =============================================================================
+
 
 class TestAmmoTypeSystem:
     """Test suite for B7: Ammo Type Differentiation System."""
@@ -505,11 +520,15 @@ class TestAmmoTypeSystem:
         self.ammo_sys.set_ammo_type(AmmoType.SMOKE)
         self.ammo_sys.deploy_smoke((5, 10))
 
-        assert len(self.ammo_sys._smoke_clouds) >= 1, f"After deploying smoke, should have at least 1 cloud, got {len(self.ammo_sys._smoke_clouds)}"
+        assert len(self.ammo_sys._smoke_clouds) >= 1, (
+            f"After deploying smoke, should have at least 1 cloud, got {len(self.ammo_sys._smoke_clouds)}"
+        )
 
         # Update shouldn't remove immediately
         self.ammo_sys.update_smoke_clouds(turn_increment=1)
-        assert len(self.ammo_sys._smoke_clouds) >= 1, f"Smoke cloud should persist after 1 update, got {len(self.ammo_sys._smoke_clouds)}"
+        assert len(self.ammo_sys._smoke_clouds) >= 1, (
+            f"Smoke cloud should persist after 1 update, got {len(self.ammo_sys._smoke_clouds)}"
+        )
 
     def test_position_in_smoke_detection(self):
         """Test detecting if position is within smoke cloud."""
@@ -559,6 +578,7 @@ class TestAmmoTypeSystem:
 # TEST CLASS 4: VehicleCrewSystem Tests (B10) - Target: 15 tests
 # =============================================================================
 
+
 class TestVehicleCrewSystem:
     """Test suite for B10: Vehicle Crew System."""
 
@@ -566,7 +586,7 @@ class TestVehicleCrewSystem:
     def setup(self):
         """Set up test fixtures."""
         self.vehicle = MockUnit()
-        self.vehicle.unit_type = type('UnitType', (), {'__str__': lambda s: 'TANK'})()
+        self.vehicle.unit_type = type("UnitType", (), {"__str__": lambda s: "TANK"})()
         self.crew = VehicleCrew(self.vehicle)
 
     def test_initialization_with_default_crew(self):
@@ -606,7 +626,9 @@ class TestVehicleCrewSystem:
         """Test applying lethal damage kills crew member."""
         result = self.crew.apply_damage(damage=200)
 
-        assert result["damage_dealt"] >= 1.0, f"200 damage should deal at least 1.0, got {result['damage_dealt']}"
+        assert result["damage_dealt"] >= 1.0, (
+            f"200 damage should deal at least 1.0, got {result['damage_dealt']}"
+        )
         assert result["member_hit"] is not None
 
         if result["was_kill"]:
@@ -710,7 +732,9 @@ class TestVehicleCrewSystem:
         if self.crew.is_crew_alive:
             evacuated = self.crew.evacuate_crew()
 
-            assert len(evacuated) >= 1, f"Evacuation should return at least 1 crew member when alive, got {len(evacuated)}"
+            assert len(evacuated) >= 1, (
+                f"Evacuation should return at least 1 crew member when alive, got {len(evacuated)}"
+            )
             assert self.crew.alive_count == 0
 
     def test_crew_ratio_calculation(self):
@@ -749,6 +773,7 @@ class TestVehicleCrewSystem:
 # =============================================================================
 # TEST CLASS 5: CasualtySystem Tests (B11) - Target: 15 tests
 # =============================================================================
+
 
 class TestCasualtySystem:
     """Test suite for B11: Casualty Drag System."""
@@ -808,7 +833,11 @@ class TestCasualtySystem:
         """Test starting drag changes state to DRAGGING."""
         self.casualty.become_wounded()
 
-        medic = MockUnit(id="medic_1", name="Medic", unit_type=type('UT', (), {'__str__': lambda s: 'MEDIC_TEAM'})())
+        medic = MockUnit(
+            id="medic_1",
+            name="Medic",
+            unit_type=type("UT", (), {"__str__": lambda s: "MEDIC_TEAM"})(),
+        )
 
         result = self.casualty.start_dragging(medic)
 
@@ -819,7 +848,11 @@ class TestCasualtySystem:
     def test_stop_dragging_returns_to_wounded(self):
         """Test stopping drag returns to WOUNDED state."""
         self.casualty.become_wounded()
-        medic = MockUnit(id="medic_1", name="Medic", unit_type=type('UT', (), {'__str__': lambda s: 'MEDIC_TEAM'})())
+        medic = MockUnit(
+            id="medic_1",
+            name="Medic",
+            unit_type=type("UT", (), {"__str__": lambda s: "MEDIC_TEAM"})(),
+        )
         self.casualty.start_dragging(medic)
 
         result = self.casualty.stop_dragging()
@@ -830,7 +863,11 @@ class TestCasualtySystem:
     def test_begin_evacuation_from_dragging(self):
         """Test evacuation begins from dragging state."""
         self.casualty.become_wounded()
-        medic = MockUnit(id="medic_1", name="Medic", unit_type=type('UT', (), {'__str__': lambda s: 'MEDIC_TEAM'})())
+        medic = MockUnit(
+            id="medic_1",
+            name="Medic",
+            unit_type=type("UT", (), {"__str__": lambda s: "MEDIC_TEAM"})(),
+        )
         self.casualty.start_dragging(medic)
 
         result = self.casualty.begin_evacuation()
@@ -841,7 +878,11 @@ class TestCasualtySystem:
     def test_complete_evacuation_success(self):
         """Test evacuation completes successfully."""
         self.casualty.become_wounded()
-        medic = MockUnit(id="medic_1", name="Medic", unit_type=type('UT', (), {'__str__': lambda s: 'MEDIC_TEAM'})())
+        medic = MockUnit(
+            id="medic_1",
+            name="Medic",
+            unit_type=type("UT", (), {"__str__": lambda s: "MEDIC_TEAM"})(),
+        )
         self.casualty.start_dragging(medic)
         self.casualty.begin_evacuation()
 
@@ -928,6 +969,7 @@ class TestCasualtySystem:
 # TEST CLASS 6: EnhancedSoundBridge Tests - Target: 10 tests
 # =============================================================================
 
+
 class TestEnhancedSoundBridge:
     """Test suite for Enhanced Sound Bridge system."""
 
@@ -972,8 +1014,8 @@ class TestEnhancedSoundBridge:
     def test_sound_file_mapping_structure(self):
         """Test SoundFileMapping dataclass structure."""
         from pycc2.presentation.audio.enhanced_sound_bridge import (
-            SoundFileMapping,
             CombatSoundEvent,
+            SoundFileMapping,
         )
 
         mapping = SoundFileMapping(
@@ -996,17 +1038,15 @@ class TestEnhancedSoundBridge:
         """Test playing event before initialization returns False."""
         from pycc2.presentation.audio.enhanced_sound_bridge import CombatSoundEvent
 
-        result = self.sound_sys.play_combat_event(
-            CombatSoundEvent.RIFLE_FIRE
-        )
+        result = self.sound_sys.play_combat_event(CombatSoundEvent.RIFLE_FIRE)
         assert result is False
 
     def test_convenience_methods_exist(self):
         """Test convenience methods are defined."""
-        assert hasattr(self.sound_sys, 'play_rifle_fire')
-        assert hasattr(self.sound_sys, 'play_explosion')
-        assert hasattr(self.sound_sys, 'play_unit_death')
-        assert hasattr(self.sound_sys, 'play_hit_confirmation')
+        assert hasattr(self.sound_sys, "play_rifle_fire")
+        assert hasattr(self.sound_sys, "play_explosion")
+        assert hasattr(self.sound_sys, "play_unit_death")
+        assert hasattr(self.sound_sys, "play_hit_confirmation")
 
     def test_shutdown_clears_cache(self):
         """Test shutdown clears sound cache."""
@@ -1029,7 +1069,7 @@ class TestEnhancedSoundBridge:
 
     @pytest.mark.skipif(
         not os.path.exists("data/sounds/weapons/explosion.wav"),
-        reason="Explosion sound file not available"
+        reason="Explosion sound file not available",
     )
     def test_load_real_explosion_sound(self):
         """Test loading actual explosion WAV file."""
@@ -1050,6 +1090,7 @@ class TestEnhancedSoundBridge:
 # =============================================================================
 # Integration-style tests that verify systems work together
 # =============================================================================
+
 
 class TestSystemIntegration:
     """Tests verifying multiple systems work together coherently."""
@@ -1075,7 +1116,7 @@ class TestSystemIntegration:
     def test_crew_and_casualty_interaction(self):
         """Test vehicle crew and casualty systems can interact."""
         vehicle = MockUnit()
-        vehicle.unit_type = type('UnitType', (), {'__str__': lambda s: 'TANK'})()
+        vehicle.unit_type = type("UnitType", (), {"__str__": lambda s: "TANK"})()
 
         crew = VehicleCrew(vehicle)
 

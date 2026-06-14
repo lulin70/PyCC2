@@ -170,13 +170,17 @@ class DeploymentManager:
             # Calculate requisition points with faction asymmetry (G6)
             # Attacker gets more RP (must advance and capture VLs)
             # Defender gets less RP (but has positional advantage near VLs)
-            is_attacker = faction in ("ally", "allied") and self.attacker_faction == "allied" or \
-                          faction == "axis" and self.attacker_faction == "axis"
+            is_attacker = (
+                faction in ("ally", "allied")
+                and self.attacker_faction == "allied"
+                or faction == "axis"
+                and self.attacker_faction == "axis"
+            )
             base_rp = self.ATTACKER_BASE_RP if is_attacker else self.DEFENDER_BASE_RP
 
             requisition_points = base_rp
-            max_infantry = 15   # Increased for better gameplay
-            max_support = 10    # Increased for better gameplay
+            max_infantry = 15  # Increased for better gameplay
+            max_support = 10  # Increased for better gameplay
             force_pool = None
 
             if game_settings is not None:
@@ -191,7 +195,8 @@ class DeploymentManager:
 
                 # Build force pool based on faction
                 force_pool = build_force_pool_from_settings(
-                    faction=faction, requisition_points=requisition_points,
+                    faction=faction,
+                    requisition_points=requisition_points,
                 )
 
             self.deployment_ui.start_deployment_with_settings(
@@ -217,10 +222,14 @@ class DeploymentManager:
                 enemy_supply_effects = SUPPLY_EFFECTS[enemy_supply]
 
                 # AI also gets asymmetric RP (G6)
-                is_enemy_attacker = enemy_faction == self.attacker_faction or \
-                    (enemy_faction == "allied" and self.attacker_faction == "allied") or \
-                    (enemy_faction == "axis" and self.attacker_faction == "axis")
-                enemy_base_rp = self.AI_ATTACKER_BASE_RP if is_enemy_attacker else self.AI_DEFENDER_BASE_RP
+                is_enemy_attacker = (
+                    enemy_faction == self.attacker_faction
+                    or (enemy_faction == "allied" and self.attacker_faction == "allied")
+                    or (enemy_faction == "axis" and self.attacker_faction == "axis")
+                )
+                enemy_base_rp = (
+                    self.AI_ATTACKER_BASE_RP if is_enemy_attacker else self.AI_DEFENDER_BASE_RP
+                )
                 enemy_rp = int(enemy_base_rp * enemy_supply_effects.requisition_point_modifier)
 
                 try:
@@ -240,12 +249,17 @@ class DeploymentManager:
 
             logger.info(
                 "Deployment phase started — faction=%s, attacker=%s, RP=%d, AI deployments=%d, AI units pre-created=%d",
-                faction, self.attacker_faction, requisition_points, len(self._ai_deployments), len(self._ai_units),
+                faction,
+                self.attacker_faction,
+                requisition_points,
+                len(self._ai_deployments),
+                len(self._ai_units),
             )
 
         except Exception as e:
             logger.error(f"Failed to start deployment: {e}")
             import traceback
+
             traceback.print_exc()
             self.deployment_phase_active = False
             raise  # Re-raise to let caller handle it
@@ -396,9 +410,7 @@ class DeploymentManager:
                         applied += 1
                     break
 
-        logger.info(
-            "Applied %d/%d pending orders to units", applied, len(self._pending_orders)
-        )
+        logger.info("Applied %d/%d pending orders to units", applied, len(self._pending_orders))
         self._pending_orders.clear()
 
     # ------------------------------------------------------------------
@@ -438,7 +450,9 @@ class DeploymentManager:
                 return None
 
             if not isinstance(pos, (tuple, list)):
-                logger.warning(f"Placement {template_id} has invalid position type ({type(pos)}), skipping")
+                logger.warning(
+                    f"Placement {template_id} has invalid position type ({type(pos)}), skipping"
+                )
                 return None
 
             if len(pos) < 2:
@@ -450,10 +464,14 @@ class DeploymentManager:
                 x = int(pos[0])
                 y = int(pos[1])
             except (ValueError, TypeError) as e:
-                logger.warning(f"Placement {template_id} has invalid coordinates ({pos}): {e}, skipping")
+                logger.warning(
+                    f"Placement {template_id} has invalid coordinates ({pos}): {e}, skipping"
+                )
                 return None
 
-            unit_type = template_type_map.get(template_id, type_map.get(unit_type_str, UnitType.INFANTRY_SQUAD))
+            unit_type = template_type_map.get(
+                template_id, type_map.get(unit_type_str, UnitType.INFANTRY_SQUAD)
+            )
             weapon_id, max_ammo = self._TEMPLATE_WEAPON_MAP.get(
                 template_id, self._WEAPON_MAP.get(unit_type_str, ("rifle", 120))
             )
@@ -584,9 +602,7 @@ class DeploymentManager:
             if unit is not None:
                 units.append(unit)
 
-        logger.info(
-            "Pre-created %d AI units (enemy_faction=%s)", len(units), enemy_faction
-        )
+        logger.info("Pre-created %d AI units (enemy_faction=%s)", len(units), enemy_faction)
         return units
 
     # ------------------------------------------------------------------
@@ -640,7 +656,9 @@ class DeploymentManager:
                 axis_cx = (axis_zone.get("x_min", 0) + axis_zone.get("x_max", 0)) / 2
 
                 # Calculate VL center
-                vl_xs = [vl["position"][0] for vl in vls if "position" in vl and len(vl["position"]) >= 1]
+                vl_xs = [
+                    vl["position"][0] for vl in vls if "position" in vl and len(vl["position"]) >= 1
+                ]
                 if vl_xs:
                     vl_cx = sum(vl_xs) / len(vl_xs)
 

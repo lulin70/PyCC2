@@ -57,7 +57,9 @@ from pycc2.domain.components.veterancy_component import VeteranRank
 from pycc2.domain.entities.unit import UnitType
 
 if TYPE_CHECKING:
+    from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
+    from pycc2.domain.value_objects.tile_coord import TileCoord
 
 
 logger = logging.getLogger(__name__)
@@ -66,6 +68,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # GrenadeSystem (B5 - NEW)
 # ---------------------------------------------------------------------------
+
 
 class GrenadeSystem:
     """
@@ -89,7 +92,7 @@ class GrenadeSystem:
     @staticmethod
     def get_grenade_count(unit: Unit) -> int:
         """Get remaining grenade count for a unit."""
-        val = getattr(unit, '_grenade_count', None)
+        val = getattr(unit, "_grenade_count", None)
         if val is None:
             return GRENADE_MAX_COUNT
         try:
@@ -105,11 +108,11 @@ class GrenadeSystem:
     @staticmethod
     def can_throw_grenade(
         unit: Unit,
-        target_coord: "TileCoord",
-        game_map: "GameMap" = None,
+        target_coord: TileCoord,
+        game_map: GameMap = None,
     ) -> bool:
         """Check if unit can throw a grenade to target location."""
-        if not unit.is_alive or not getattr(unit, 'can_act', True):
+        if not unit.is_alive or not getattr(unit, "can_act", True):
             return False
 
         if unit.unit_type not in _INFANTRY_TYPES:
@@ -120,7 +123,9 @@ class GrenadeSystem:
 
         # Check range
         import math
+
         from pycc2.domain.value_objects.tile_coord import TileCoord as _TC
+
         start_pos = _TC(
             int(unit.position_component.x),
             int(unit.position_component.y),
@@ -135,6 +140,7 @@ class GrenadeSystem:
         # Optional: check LOS (grenades can arc over some obstacles)
         if game_map is not None:
             from pycc2.domain.value_objects.tile_coord import TileCoord
+
             TileCoord(
                 int(unit.position_component.x),
                 int(unit.position_component.y),
@@ -147,7 +153,7 @@ class GrenadeSystem:
     @staticmethod
     def throw_grenade(
         unit: Unit,
-        target_coord: "TileCoord",
+        target_coord: TileCoord,
         nearby_units: list[Unit],
     ) -> GrenadeResult:
         """
@@ -165,8 +171,9 @@ class GrenadeSystem:
         Returns:
             GrenadeResult with damage details for each target
         """
-        import random
         import math
+        import random
+
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
         thrower_id = unit.id
@@ -190,8 +197,7 @@ class GrenadeSystem:
                 int(target.position_component.y),
             )
             distance = math.sqrt(
-                (target_pos.x - target_coord.x) ** 2 +
-                (target_pos.y - target_coord.y) ** 2
+                (target_pos.x - target_coord.x) ** 2 + (target_pos.y - target_coord.y) ** 2
             )
 
             if distance > GRENADE_AOE_RADIUS:
@@ -208,10 +214,7 @@ class GrenadeSystem:
             killed = False
 
             if hit:
-                if is_center_hit:
-                    damage = GRENADE_CENTER_DAMAGE
-                else:
-                    damage = GRENADE_EDGE_DAMAGE
+                damage = GRENADE_CENTER_DAMAGE if is_center_hit else GRENADE_EDGE_DAMAGE
 
                 suppression = GRENADE_SUPPRESSION
 
@@ -220,7 +223,7 @@ class GrenadeSystem:
                 killed = not target.is_alive
 
                 # Apply suppression
-                if hasattr(target, 'suppression_state'):
+                if hasattr(target, "suppression_state"):
                     target.suppression_state.apply_suppression(suppression)
 
                 total_damage += damage
@@ -259,12 +262,13 @@ class GrenadeSystem:
 
     @staticmethod
     def get_units_in_radius(
-        center: "TileCoord",
+        center: TileCoord,
         radius: float,
         units: list[Unit],
     ) -> list[Unit]:
         """Get all units within given radius of center point."""
         import math
+
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
         result = []
@@ -275,9 +279,7 @@ class GrenadeSystem:
                 int(unit.position_component.x),
                 int(unit.position_component.y),
             )
-            dist = math.sqrt(
-                (pos.x - center.x) ** 2 + (pos.y - center.y) ** 2
-            )
+            dist = math.sqrt((pos.x - center.x) ** 2 + (pos.y - center.y) ** 2)
             if dist <= radius:
                 result.append(unit)
 
@@ -309,22 +311,22 @@ BUTT_STROKE_DAMAGE: int = 10
 FISTS_DAMAGE: int = 8
 
 BASE_HIT_CHANCE: float = 0.70
-CHARGE_BONUS: float = 0.20       # +20% if charging
+CHARGE_BONUS: float = 0.20  # +20% if charging
 EXHAUSTED_PENALTY: float = 0.20  # -20% if exhausted
-VETERAN_BONUS: float = 0.15      # +15% if veteran/elite
-WOUNDED_PENALTY: float = 0.15    # -15% if wounded
+VETERAN_BONUS: float = 0.15  # +15% if veteran/elite
+WOUNDED_PENALTY: float = 0.15  # -15% if wounded
 COUNTER_ATTACK_RATIO: float = 0.5  # Defender counter-attacks at 50% damage
 
-AMMO_THRESHOLD: float = 0.05     # Below 5% ammo = melee possible
-MELEE_RANGE: int = 1             # Must be within 1 tile
+AMMO_THRESHOLD: float = 0.05  # Below 5% ammo = melee possible
+MELEE_RANGE: int = 1  # Must be within 1 tile
 
 # --- B5 Grenade Constants (NEW) ---
-GRENADE_MAX_COUNT: int = 2       # Max grenades per unit
-GRENADE_MIN_RANGE: int = 2       # Min throw distance
-GRENADE_MAX_RANGE: int = 3       # Max throw distance
+GRENADE_MAX_COUNT: int = 2  # Max grenades per unit
+GRENADE_MIN_RANGE: int = 2  # Min throw distance
+GRENADE_MAX_RANGE: int = 3  # Max throw distance
 GRENADE_AOE_RADIUS: float = 1.5  # AOE blast radius (tiles)
-GRENADE_CENTER_DAMAGE: int = 40   # Damage at explosion center
-GRENADE_EDGE_DAMAGE: int = 20    # Damage at edge of blast (50%)
+GRENADE_CENTER_DAMAGE: int = 40  # Damage at explosion center
+GRENADE_EDGE_DAMAGE: int = 20  # Damage at edge of blast (50%)
 GRENADE_SUPPRESSION: float = 30.0  # Suppression applied to all in radius
 GRENADE_HIT_CHANCE: float = 0.85  # High hit chance (area effect)
 
@@ -333,20 +335,24 @@ GRENADE_HIT_CHANCE: float = 0.85  # High hit chance (area effect)
 # MeleeWeaponType
 # ---------------------------------------------------------------------------
 
+
 class MeleeWeaponType(Enum):
     """Types of melee weapons available to infantry."""
-    BAYONET = auto()      # Rifle with bayonet — highest damage
+
+    BAYONET = auto()  # Rifle with bayonet — highest damage
     BUTT_STROKE = auto()  # Rifle butt / pistol whip — medium damage
-    FISTS = auto()        # Bare hands / knife — lowest damage
+    FISTS = auto()  # Bare hands / knife — lowest damage
 
 
 # ---------------------------------------------------------------------------
 # MeleeResult
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class MeleeResult:
     """Result of a melee attack."""
+
     attacker_id: str
     defender_id: str
     attacker_weapon: MeleeWeaponType
@@ -360,11 +366,13 @@ class MeleeResult:
 
 # --- B5 Grenade Data Classes (NEW) ---
 
+
 @dataclass(slots=True)
 class GrenadeTargetResult:
     """Result of grenade damage on a single target."""
+
     target_id: str
-    is_center_hit: bool      # True if at explosion center
+    is_center_hit: bool  # True if at explosion center
     hit: bool
     damage: int
     suppression_applied: float
@@ -374,8 +382,9 @@ class GrenadeTargetResult:
 @dataclass(slots=True)
 class GrenadeResult:
     """Result of a grenade throw with AOE effects."""
+
     thrower_id: str
-    target_coord: "TileCoord"  # Where grenade landed
+    target_coord: TileCoord  # Where grenade landed
     grenades_remaining: int
     targets_hit: list[GrenadeTargetResult]
     total_damage: int = 0
@@ -386,6 +395,7 @@ class GrenadeResult:
 # ---------------------------------------------------------------------------
 # MeleeCombatSystem
 # ---------------------------------------------------------------------------
+
 
 class MeleeCombatSystem:
     """Manages melee combat resolution between units.
@@ -433,14 +443,15 @@ class MeleeCombatSystem:
             chance += CHARGE_BONUS
 
         # Fatigue penalty
-        fatigue = getattr(attacker, 'fatigue', None)
+        fatigue = getattr(attacker, "fatigue", None)
         if fatigue is not None:
             from pycc2.domain.components.fatigue_component import FatigueLevel
+
             if fatigue.level in (FatigueLevel.EXHAUSTED, FatigueLevel.SPENT):
                 chance -= EXHAUSTED_PENALTY
 
         # Veterancy bonus
-        veterancy = getattr(attacker, 'veterancy', None)
+        veterancy = getattr(attacker, "veterancy", None)
         if veterancy is not None and veterancy.rank in (VeteranRank.VETERAN, VeteranRank.ELITE):
             chance += VETERAN_BONUS
 
@@ -528,9 +539,7 @@ class MeleeCombatSystem:
             return False
 
         # Must be within melee range
-        dist = unit.position.tile_coord.chebyshev_distance(
-            enemy.position.tile_coord
-        )
+        dist = unit.position.tile_coord.chebyshev_distance(enemy.position.tile_coord)
         if dist > MELEE_RANGE:
             return False
 
@@ -542,6 +551,7 @@ class MeleeCombatSystem:
 # ---------------------------------------------------------------------------
 # MeleeCombatAI
 # ---------------------------------------------------------------------------
+
 
 class MeleeCombatAI(TacticalAIBase):
     """Evaluate when to initiate melee combat and issue MELEE_ATTACK orders.
@@ -567,8 +577,7 @@ class MeleeCombatAI(TacticalAIBase):
 
         # Increase if many units are out of ammo
         out_of_ammo = sum(
-            1 for u in context.friendly_units
-            if u.is_alive and u.weapon.ammo_ratio < AMMO_THRESHOLD
+            1 for u in context.friendly_units if u.is_alive and u.weapon.ammo_ratio < AMMO_THRESHOLD
         )
         if out_of_ammo > 0:
             ammo_urgency = min(out_of_ammo / 3.0, 1.0)
@@ -628,9 +637,7 @@ class MeleeCombatAI(TacticalAIBase):
             for e in context.enemy_units:
                 if not e.is_alive:
                     continue
-                dist = u.position.tile_coord.chebyshev_distance(
-                    e.position.tile_coord
-                )
+                dist = u.position.tile_coord.chebyshev_distance(e.position.tile_coord)
                 if dist <= MELEE_RANGE:
                     result.append((u, e))
                     break  # One target per unit
@@ -648,9 +655,7 @@ class MeleeCombatAI(TacticalAIBase):
             for e in context.enemy_units:
                 if not e.is_alive:
                     continue
-                dist = u.position.tile_coord.chebyshev_distance(
-                    e.position.tile_coord
-                )
+                dist = u.position.tile_coord.chebyshev_distance(e.position.tile_coord)
                 if dist <= MELEE_RANGE:
                     return True
         return False

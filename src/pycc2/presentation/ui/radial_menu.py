@@ -7,9 +7,9 @@ Appears when right-click-holding on a selected unit.
 from __future__ import annotations
 
 import math
+from enum import Enum, auto
 
 import pygame
-from enum import Enum, auto
 
 
 class RadialCommand(Enum):
@@ -24,13 +24,13 @@ class RadialCommand(Enum):
 
 # Command display properties
 COMMAND_PROPS = {
-    RadialCommand.MOVE:      {"label": "MOVE",  "hotkey": "Z", "color": (100, 200, 100)},
-    RadialCommand.MOVE_FAST: {"label": "FAST",  "hotkey": "X", "color": (200, 200, 100)},
-    RadialCommand.SNEAK:     {"label": "SNEAK", "hotkey": "S", "color": (100, 150, 200)},
-    RadialCommand.FIRE:      {"label": "FIRE",  "hotkey": "C", "color": (200, 100, 100)},
-    RadialCommand.SMOKE:     {"label": "SMOKE", "hotkey": "V", "color": (180, 180, 180)},
-    RadialCommand.DEFEND:    {"label": "DEFEND","hotkey": "D", "color": (150, 150, 200)},
-    RadialCommand.HIDE:      {"label": "HIDE",  "hotkey": "H", "color": (120, 120, 120)},
+    RadialCommand.MOVE: {"label": "MOVE", "hotkey": "Z", "color": (100, 200, 100)},
+    RadialCommand.MOVE_FAST: {"label": "FAST", "hotkey": "X", "color": (200, 200, 100)},
+    RadialCommand.SNEAK: {"label": "SNEAK", "hotkey": "S", "color": (100, 150, 200)},
+    RadialCommand.FIRE: {"label": "FIRE", "hotkey": "C", "color": (200, 100, 100)},
+    RadialCommand.SMOKE: {"label": "SMOKE", "hotkey": "V", "color": (180, 180, 180)},
+    RadialCommand.DEFEND: {"label": "DEFEND", "hotkey": "D", "color": (150, 150, 200)},
+    RadialCommand.HIDE: {"label": "HIDE", "hotkey": "H", "color": (120, 120, 120)},
 }
 
 # Commands arranged in order around the circle (clockwise from top)
@@ -57,7 +57,9 @@ class RadialMenu:
         self._font: pygame.font.Font | None = None
         self._available_commands: list[RadialCommand] = list(COMMAND_ORDER)
 
-    def show(self, center: tuple[int, int], available_commands: list[RadialCommand] | None = None) -> None:
+    def show(
+        self, center: tuple[int, int], available_commands: list[RadialCommand] | None = None
+    ) -> None:
         """Show the radial menu at the given screen position."""
         self._center = center
         self._visible = True
@@ -65,6 +67,7 @@ class RadialMenu:
         self._available_commands = available_commands or list(COMMAND_ORDER)
         if self._font is None:
             from pycc2.presentation.ui.font_helper import safe_init_font
+
             self._font = safe_init_font(11, bold=True)
 
     def hide(self) -> None:
@@ -132,7 +135,7 @@ class RadialMenu:
             iy = cy + int(self._radius * math.sin(angle))
 
             props = COMMAND_PROPS[cmd]
-            is_hovered = (cmd == self._hovered_command)
+            is_hovered = cmd == self._hovered_command
 
             # Draw command circle
             color = props["color"]
@@ -147,7 +150,9 @@ class RadialMenu:
 
             # Draw label
             if self._font:
-                text_surf = self._font.render(props["label"], True, (255, 255, 255) if is_hovered else (200, 200, 200))
+                text_surf = self._font.render(
+                    props["label"], True, (255, 255, 255) if is_hovered else (200, 200, 200)
+                )
                 text_rect = text_surf.get_rect(center=(ix, iy))
                 surface.blit(text_surf, text_rect)
 

@@ -28,7 +28,6 @@ from pycc2.services.deployment_manager import DeploymentManager
 from pycc2.services.event_bus import EventBus
 from pycc2.services.game_loop import GameState
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────
 
 
@@ -123,12 +122,16 @@ class TestDeploymentStart:
 
 @pytest.mark.integration
 class TestDeploymentComplete:
-    def test_complete_returns_none_when_not_active(self, deployment_manager, ai_service, game_state):
+    def test_complete_returns_none_when_not_active(
+        self, deployment_manager, ai_service, game_state
+    ):
         """complete() should return None if no deployment is active."""
         result = deployment_manager.complete(ai_service=ai_service, state=game_state)
         assert result is None
 
-    def test_complete_deactivates_phase(self, deployment_manager, map_data, ai_service, game_state, deployment_ui):
+    def test_complete_deactivates_phase(
+        self, deployment_manager, map_data, ai_service, game_state, deployment_ui
+    ):
         """After complete(), the deployment phase should be deactivated."""
         deployment_manager.start(map_data=map_data, faction="ally", deployment_ui=deployment_ui)
         # Simulate at least one placement so begin_battle() returns a result
@@ -136,12 +139,16 @@ class TestDeploymentComplete:
         deployment_manager.complete(ai_service=ai_service, state=game_state)
         assert deployment_manager.is_active is False
 
-    def test_complete_creates_units_in_state(self, deployment_manager, map_data, ai_service, game_state, deployment_ui):
+    def test_complete_creates_units_in_state(
+        self, deployment_manager, map_data, ai_service, game_state, deployment_ui
+    ):
         """complete() should create Unit entities and add them to game state."""
         deployment_manager.start(map_data=map_data, faction="ally", deployment_ui=deployment_ui)
         self._add_placement(deployment_manager)
         deployment_manager.complete(ai_service=ai_service, state=game_state)
-        assert len(game_state.units) >= 1, f"complete() should create at least 1 unit in game state, got {len(game_state.units)}"
+        assert len(game_state.units) >= 1, (
+            f"complete() should create at least 1 unit in game state, got {len(game_state.units)}"
+        )
 
     def _add_placement(self, dm: DeploymentManager) -> None:
         """Inject a player placement into the DeploymentUI for testing."""
@@ -325,10 +332,12 @@ class TestUnitAttributeSetup:
 
 @pytest.mark.integration
 class TestAIServiceInitialization:
-    def test_ai_service_initialized_with_units(self, deployment_manager, map_data, game_state, deployment_ui):
+    def test_ai_service_initialized_with_units(
+        self, deployment_manager, map_data, game_state, deployment_ui
+    ):
         """After complete(), AI service should have registered AI units."""
-        from pycc2.services.ai_service import AIService
         from pycc2.presentation.ui.deployment_models import DeploymentUnit
+        from pycc2.services.ai_service import AIService
 
         ai_service = AIService(event_bus=EventBus())
         deployment_manager.start(map_data=map_data, faction="ally", deployment_ui=deployment_ui)
@@ -364,7 +373,9 @@ class TestAIServiceInitialization:
         # AI service should have registered at least one unit (the AI one)
         assert ai_service.managed_unit_count >= 1
 
-    def test_ai_service_none_does_not_crash(self, deployment_manager, map_data, game_state, deployment_ui):
+    def test_ai_service_none_does_not_crash(
+        self, deployment_manager, map_data, game_state, deployment_ui
+    ):
         """complete() with ai_service=None should not crash."""
         deployment_manager.start(map_data=map_data, faction="ally", deployment_ui=deployment_ui)
         # Should not raise

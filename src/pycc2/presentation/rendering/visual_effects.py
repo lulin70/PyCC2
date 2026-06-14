@@ -10,24 +10,26 @@ Module structure:
 - cc2_combat_effects.py: EnhancedParticleSystem, SurrenderFlagEffect,
   CC2ExplosionEffect, CC2SmokeEffect, CC2HitSparkEffect, CC2MuzzleFlashEffect
 """
+
 from __future__ import annotations
 
-# Re-export all public classes for backward compatibility
-from pycc2.presentation.rendering.weather_effects import (
-    EnhancedWeatherSystem,
-    WeatherType,
-    WeatherParticle,
+from pycc2.presentation.rendering.cc2_combat_effects import (
+    CC2ExplosionEffect,
+    CC2HitSparkEffect,
+    CC2MuzzleFlashEffect,
+    CC2SmokeEffect,
+    EnhancedParticleSystem,
+    SurrenderFlagEffect,
 )
 from pycc2.presentation.rendering.post_processing import (
     PostProcessingEffects,
 )
-from pycc2.presentation.rendering.cc2_combat_effects import (
-    EnhancedParticleSystem,
-    SurrenderFlagEffect,
-    CC2ExplosionEffect,
-    CC2SmokeEffect,
-    CC2HitSparkEffect,
-    CC2MuzzleFlashEffect,
+
+# Re-export all public classes for backward compatibility
+from pycc2.presentation.rendering.weather_effects import (
+    EnhancedWeatherSystem,
+    WeatherParticle,
+    WeatherType,
 )
 
 __all__ = [

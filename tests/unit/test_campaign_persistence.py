@@ -8,9 +8,9 @@ from __future__ import annotations
 import pytest
 
 from pycc2.domain.components.veterancy_component import (
+    RANK_BONUSES,
     VeterancyComponent,
     VeteranRank,
-    RANK_BONUSES,
 )
 from pycc2.domain.systems.battle_result import (
     BattleOutcome,
@@ -18,10 +18,10 @@ from pycc2.domain.systems.battle_result import (
     UnitBattleRecord,
 )
 from pycc2.domain.systems.campaign_state import (
-    CampaignState,
-    PersistentUnit,
-    OperationPhase,
     BRIDGE_NAMES,
+    CampaignState,
+    OperationPhase,
+    PersistentUnit,
 )
 
 
@@ -187,8 +187,14 @@ class TestVeterancyProgression:
 
 class TestVeterancySerialization:
     def test_roundtrip_dict(self):
-        v = VeterancyComponent(xp=250, kills=5, battles_survived=3,
-                               shots_fired=40, shots_hit=28, total_damage_dealt=140.5)
+        v = VeterancyComponent(
+            xp=250,
+            kills=5,
+            battles_survived=3,
+            shots_fired=40,
+            shots_hit=28,
+            total_damage_dealt=140.5,
+        )
         d = v.to_dict()
         restored = VeterancyComponent.from_dict(d)
         assert restored.xp == 250
@@ -213,37 +219,65 @@ class TestVeterancySerialization:
 class TestUnitBattleRecord:
     def test_efficiency_all_hits(self):
         r = UnitBattleRecord(
-            unit_id="u1", unit_type="INFANTRY", faction="allies",
-            survived=True, hp_start=100, hp_end=80,
-            damage_dealt=45.0, damage_taken=20, kills=2,
-            shots_fired=10, shots_hit=8,
+            unit_id="u1",
+            unit_type="INFANTRY",
+            faction="allies",
+            survived=True,
+            hp_start=100,
+            hp_end=80,
+            damage_dealt=45.0,
+            damage_taken=20,
+            kills=2,
+            shots_fired=10,
+            shots_hit=8,
         )
         assert r.efficiency == pytest.approx(0.8)
 
     def test_efficiency_no_shots(self):
         r = UnitBattleRecord(
-            unit_id="u1", unit_type="INFANTRY", faction="allies",
-            survived=True, hp_start=100, hp_end=100,
-            damage_dealt=0, damage_taken=0, kills=0,
-            shots_fired=0, shots_hit=0,
+            unit_id="u1",
+            unit_type="INFANTRY",
+            faction="allies",
+            survived=True,
+            hp_start=100,
+            hp_end=100,
+            damage_dealt=0,
+            damage_taken=0,
+            kills=0,
+            shots_fired=0,
+            shots_hit=0,
         )
         assert r.efficiency == 0.0
 
     def test_survived_true(self):
         r = UnitBattleRecord(
-            unit_id="u1", unit_type="TANK", faction="axis",
-            survived=True, hp_start=150, hp_end=30,
-            damage_dealt=120.0, damage_taken=120, kills=3,
-            shots_fired=15, shots_hit=12,
+            unit_id="u1",
+            unit_type="TANK",
+            faction="axis",
+            survived=True,
+            hp_start=150,
+            hp_end=30,
+            damage_dealt=120.0,
+            damage_taken=120,
+            kills=3,
+            shots_fired=15,
+            shots_hit=12,
         )
         assert r.survived is True
 
     def test_default_xp_gained(self):
         r = UnitBattleRecord(
-            unit_id="u1", unit_type="INFANTRY", faction="allies",
-            survived=True, hp_start=100, hp_end=90,
-            damage_dealt=30.0, damage_taken=10, kills=1,
-            shots_fired=5, shots_hit=4,
+            unit_id="u1",
+            unit_type="INFANTRY",
+            faction="allies",
+            survived=True,
+            hp_start=100,
+            hp_end=90,
+            damage_dealt=30.0,
+            damage_taken=10,
+            kills=1,
+            shots_fired=5,
+            shots_hit=4,
         )
         assert r.xp_gained == 0
 
@@ -251,8 +285,10 @@ class TestUnitBattleRecord:
 class TestBattleResultConstruction:
     def test_basic_construction(self):
         br = BattleResult(
-            mission_id="m1", mission_name="Test Mission",
-            outcome=BattleOutcome.VICTORY, ticks_elapsed=3000,
+            mission_id="m1",
+            mission_name="Test Mission",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=3000,
         )
         assert br.mission_id == "m1"
         assert br.outcome == BattleOutcome.VICTORY
@@ -260,22 +296,28 @@ class TestBattleResultConstruction:
 
     def test_defeat_not_victory(self):
         br = BattleResult(
-            mission_id="m2", mission_name="Loss",
-            outcome=BattleOutcome.DEFEAT, ticks_elapsed=1500,
+            mission_id="m2",
+            mission_name="Loss",
+            outcome=BattleOutcome.DEFEAT,
+            ticks_elapsed=1500,
         )
         assert br.is_victory is False
 
     def test_timeout_victory_counts_as_win(self):
         br = BattleResult(
-            mission_id="m3", mission_name="Timeout Win",
-            outcome=BattleOutcome.TIME_OUT_VICTORY, ticks_elapsed=5400,
+            mission_id="m3",
+            mission_name="Timeout Win",
+            outcome=BattleOutcome.TIME_OUT_VICTORY,
+            ticks_elapsed=5400,
         )
         assert br.is_victory is True
 
     def test_timeout_defeat_not_win(self):
         br = BattleResult(
-            mission_id="m4", mission_name="Timeout Loss",
-            outcome=BattleOutcome.TIME_OUT_DEFEAT, ticks_elapsed=5400,
+            mission_id="m4",
+            mission_name="Timeout Loss",
+            outcome=BattleOutcome.TIME_OUT_DEFEAT,
+            ticks_elapsed=5400,
         )
         assert br.is_victory is False
 
@@ -283,23 +325,30 @@ class TestBattleResultConstruction:
 class TestBattleResultStats:
     def test_allies_accuracy(self):
         br = BattleResult(
-            mission_id="m1", mission_name="Stat Test",
-            outcome=BattleOutcome.VICTORY, ticks_elapsed=2000,
-            total_shots_fired_allies=100, total_shots_hit_allies=65,
+            mission_id="m1",
+            mission_name="Stat Test",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=2000,
+            total_shots_fired_allies=100,
+            total_shots_hit_allies=65,
         )
         assert br.allies_accuracy == pytest.approx(0.65)
 
     def test_axis_accuracy_zero_when_no_shots(self):
         br = BattleResult(
-            mission_id="m1", mission_name="No Shots",
-            outcome=BattleOutcome.DRAW, ticks_elapsed=500,
+            mission_id="m1",
+            mission_name="No Shots",
+            outcome=BattleOutcome.DRAW,
+            ticks_elapsed=500,
         )
         assert br.axis_accuracy == 0.0
 
     def test_survival_rate_all_units_live(self):
         br = BattleResult(
-            mission_id="m1", mission_name="Perfect",
-            outcome=BattleOutcome.VICTORY, ticks_elapsed=1000,
+            mission_id="m1",
+            mission_name="Perfect",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=1000,
             unit_records=[
                 UnitBattleRecord("a1", "INF", "allies", True, 100, 100, 0, 0, 0, 0, 0),
                 UnitBattleRecord("a2", "INF", "allies", True, 100, 90, 0, 10, 1, 5, 3),
@@ -310,8 +359,10 @@ class TestBattleResultStats:
 
     def test_survival_rate_partial_losses(self):
         br = BattleResult(
-            mission_id="m1", mission_name="Casualties",
-            outcome=BattleOutcome.VICTORY, ticks_elapsed=2000,
+            mission_id="m1",
+            mission_name="Casualties",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=2000,
             unit_records=[
                 UnitBattleRecord("a1", "INF", "allies", True, 100, 60, 20, 40, 1, 10, 7),
                 UnitBattleRecord("a2", "INF", "allies", False, 100, 0, 5, 100, 0, 3, 1),
@@ -322,8 +373,10 @@ class TestBattleResultStats:
 
     def test_survival_rate_no_ally_records(self):
         br = BattleResult(
-            mission_id="m1", mission_name="Empty Allies",
-            outcome=BattleOutcome.DEFEAT, ticks_elapsed=500,
+            mission_id="m1",
+            mission_name="Empty Allies",
+            outcome=BattleOutcome.DEFEAT,
+            ticks_elapsed=500,
             unit_records=[
                 UnitBattleRecord("x1", "INF", "axis", True, 100, 80, 0, 20, 0, 0, 0),
             ],
@@ -334,10 +387,14 @@ class TestBattleResultStats:
 class TestBattleResultVPCalculation:
     def test_vp_clean_victory(self):
         br = BattleResult(
-            mission_id="m1", mission_name="Clean Win",
-            outcome=BattleOutcome.VICTORY, ticks_elapsed=1800,
-            axis_killed=5, allies_killed=0,
-            objectives_completed=2, objectives_total=2,
+            mission_id="m1",
+            mission_name="Clean Win",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=1800,
+            axis_killed=5,
+            allies_killed=0,
+            objectives_completed=2,
+            objectives_total=2,
             unit_records=[
                 UnitBattleRecord("a1", "INF", "allies", True, 100, 95, 0, 5, 0, 0, 0),
                 UnitBattleRecord("a2", "INF", "allies", True, 100, 90, 0, 10, 0, 0, 0),
@@ -350,9 +407,13 @@ class TestBattleResultVPCalculation:
 
     def test_vp_pyrrhic_victory(self):
         br = BattleResult(
-            mission_id="m1", mission_name="Pyrrhic",
-            outcome=BattleOutcome.VICTORY, ticks_elapsed=4000,
-            axis_killed=8, allies_killed=6, allies_routed=2,
+            mission_id="m1",
+            mission_name="Pyrrhic",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=4000,
+            axis_killed=8,
+            allies_killed=6,
+            allies_routed=2,
             objectives_completed=1,
             unit_records=[
                 UnitBattleRecord("a1", "INF", "allies", False, 100, 0, 30, 100, 2, 15, 10),
@@ -366,9 +427,13 @@ class TestBattleResultVPCalculation:
 
     def test_vp_defeat_is_non_negative(self):
         br = BattleResult(
-            mission_id="m1", mission_name="Crushing Defeat",
-            outcome=BattleOutcome.DEFEAT, ticks_elapsed=800,
-            axis_killed=0, allies_killed=10, allies_routed=3,
+            mission_id="m1",
+            mission_name="Crushing Defeat",
+            outcome=BattleOutcome.DEFEAT,
+            ticks_elapsed=800,
+            axis_killed=0,
+            allies_killed=10,
+            allies_routed=3,
             unit_records=[
                 UnitBattleRecord(f"a{i}", "INF", "allies", False, 100, 0, 0, 100, 0, 0, 0)
                 for i in range(5)
@@ -379,10 +444,14 @@ class TestBattleResultVPCalculation:
 
     def test_vp_survival_bonus_high(self):
         br = BattleResult(
-            mission_id="m1", mission_name="Survivors",
-            outcome=BattleOutcome.VICTORY, ticks_elapsed=2000,
+            mission_id="m1",
+            mission_name="Survivors",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=2000,
             unit_records=[
-                UnitBattleRecord(f"a{i}", "INF", "allies", True, 100, 90 + i * 2, 0, 10 - i * 2, 0, 5, 3)
+                UnitBattleRecord(
+                    f"a{i}", "INF", "allies", True, 100, 90 + i * 2, 0, 10 - i * 2, 0, 5, 3
+                )
                 for i in range(5)
             ],
         )
@@ -394,10 +463,15 @@ class TestBattleResultVPCalculation:
 class TestBattleResultSerialization:
     def test_roundtrip_dict(self):
         br = BattleResult(
-            mission_id="m1", mission_name="Serialize Test",
-            outcome=BattleOutcome.TIME_OUT_VICTORY, ticks_elapsed=5400,
+            mission_id="m1",
+            mission_name="Serialize Test",
+            outcome=BattleOutcome.TIME_OUT_VICTORY,
+            ticks_elapsed=5400,
             date_in_campaign=3,
-            allies_killed=2, axis_killed=7, allies_routed=1, axis_routed=3,
+            allies_killed=2,
+            axis_killed=7,
+            allies_routed=1,
+            axis_routed=3,
             victory_points=145,
             unit_records=[
                 UnitBattleRecord("a1", "INF", "allies", True, 100, 70, 55.5, 30, 3, 20, 14, 45),
@@ -427,24 +501,28 @@ class TestPersistentUnit:
         assert pu.battles_participated == 0
 
     def test_hp_ratio_calculation(self):
-        pu = PersistentUnit(unit_id="A-102", name="Bravo", unit_type="TANK",
-                            current_hp=60, max_hp=100)
+        pu = PersistentUnit(
+            unit_id="A-102", name="Bravo", unit_type="TANK", current_hp=60, max_hp=100
+        )
         assert pu.hp_ratio == 0.6
 
     def test_ammo_ratio_calculation(self):
-        pu = PersistentUnit(unit_id="A-103", name="Charlie", unit_type="MG",
-                            current_ammo=30, max_ammo=80)
+        pu = PersistentUnit(
+            unit_id="A-103", name="Charlie", unit_type="MG", current_ammo=30, max_ammo=80
+        )
         assert pu.ammo_ratio == pytest.approx(0.375)
 
     def test_apply_battle_result_survives(self):
         pu = PersistentUnit(unit_id="A-101", name="Alpha", unit_type="INFANTRY")
-        pu.apply_battle_result({
-            "hp_end": 75,
-            "survived": True,
-            "xp_gained": 40,
-            "kills": 2,
-            "ammo_used": 12,
-        })
+        pu.apply_battle_result(
+            {
+                "hp_end": 75,
+                "survived": True,
+                "xp_gained": 40,
+                "kills": 2,
+                "ammo_used": 12,
+            }
+        )
         assert pu.current_hp == 75
         assert pu.is_alive is True
         assert pu.current_ammo == 88
@@ -459,31 +537,57 @@ class TestPersistentUnit:
         assert pu.current_hp == 0
 
     def test_replenish_recovers_hp_and_ammo(self):
-        pu = PersistentUnit(unit_id="A-101", name="Wounded", unit_type="INFANTRY",
-                            current_hp=40, max_hp=100, current_ammo=20, max_ammo=100)
+        pu = PersistentUnit(
+            unit_id="A-101",
+            name="Wounded",
+            unit_type="INFANTRY",
+            current_hp=40,
+            max_hp=100,
+            current_ammo=20,
+            max_ammo=100,
+        )
         pu.replenish(hp_pct=0.5, ammo_pct=0.6)
         assert pu.current_hp == 90
         assert pu.current_ammo == 80
 
     def test_replenish_does_not_exceed_max(self):
-        pu = PersistentUnit(unit_id="A-101", name="Healthy", unit_type="INFANTRY",
-                            current_hp=90, max_hp=100, current_ammo=95, max_ammo=100)
+        pu = PersistentUnit(
+            unit_id="A-101",
+            name="Healthy",
+            unit_type="INFANTRY",
+            current_hp=90,
+            max_hp=100,
+            current_ammo=95,
+            max_ammo=100,
+        )
         pu.replenish(hp_pct=1.0, ammo_pct=1.0)
         assert pu.current_hp == 100
         assert pu.current_ammo == 100
 
     def test_replenish_dead_unit_no_effect(self):
-        pu = PersistentUnit(unit_id="A-301", name="KIA", unit_type="INFANTRY",
-                            is_alive=False, current_hp=0, max_hp=100,
-                            current_ammo=0, max_ammo=100)
+        pu = PersistentUnit(
+            unit_id="A-301",
+            name="KIA",
+            unit_type="INFANTRY",
+            is_alive=False,
+            current_hp=0,
+            max_hp=100,
+            current_ammo=0,
+            max_ammo=100,
+        )
         pu.replenish()
         assert pu.current_hp == 0
         assert pu.current_ammo == 0
 
     def test_serialization_roundtrip(self):
         pu = PersistentUnit(
-            unit_id="A-101", name="Veteran Squad", unit_type="INFANTRY_SQUAD",
-            current_hp=72, max_hp=100, current_ammo=55, max_ammo=80,
+            unit_id="A-101",
+            name="Veteran Squad",
+            unit_type="INFANTRY_SQUAD",
+            current_hp=72,
+            max_hp=100,
+            current_ammo=55,
+            max_ammo=80,
             battles_participated=5,
         )
         pu.veterancy.add_xp(350)
@@ -592,8 +696,10 @@ class TestCampaignStateBattleRecording:
     def test_record_battle_increments_counters(self):
         state = CampaignState.create_default()
         br = BattleResult(
-            mission_id="m1", mission_name="First Blood",
-            outcome=BattleOutcome.VICTORY, ticks_elapsed=2000,
+            mission_id="m1",
+            mission_name="First Blood",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=2000,
             victory_points=120,
         )
         state.record_battle(br)
@@ -606,7 +712,8 @@ class TestCampaignStateBattleRecording:
         state = CampaignState.create_default()
         for i in range(3):
             br = BattleResult(
-                mission_id=f"m{i}", mission_name=f"Battle {i}",
+                mission_id=f"m{i}",
+                mission_name=f"Battle {i}",
                 outcome=BattleOutcome.VICTORY if i % 2 == 0 else BattleOutcome.DEFEAT,
                 ticks_elapsed=1000 * (i + 1),
                 victory_points=50 + i * 30,
@@ -619,8 +726,10 @@ class TestCampaignStateBattleRecording:
         state = CampaignState.create_default()
         for _ in range(3):
             br = BattleResult(
-                mission_id="win", mission_name="Win",
-                outcome=BattleOutcome.VICTORY, ticks_elapsed=1000,
+                mission_id="win",
+                mission_name="Win",
+                outcome=BattleOutcome.VICTORY,
+                ticks_elapsed=1000,
                 victory_points=100,
             )
             state.record_battle(br)
@@ -630,8 +739,10 @@ class TestCampaignStateBattleRecording:
         state = CampaignState.create_default()
         for _ in range(3):
             br = BattleResult(
-                mission_id="loss", mission_name="Loss",
-                outcome=BattleOutcome.DEFEAT, ticks_elapsed=800,
+                mission_id="loss",
+                mission_name="Loss",
+                outcome=BattleOutcome.DEFEAT,
+                ticks_elapsed=800,
                 victory_points=10,
             )
             state.record_battle(br)
@@ -641,8 +752,10 @@ class TestCampaignStateBattleRecording:
         state = CampaignState.create_default()
         for _ in range(10):
             br = BattleResult(
-                mission_id="big_loss", mission_name="Bad",
-                outcome=BattleOutcome.DEFEAT, ticks_elapsed=200,
+                mission_id="big_loss",
+                mission_name="Bad",
+                outcome=BattleOutcome.DEFEAT,
+                ticks_elapsed=200,
                 victory_points=0,
             )
             state.record_battle(br)
@@ -651,8 +764,10 @@ class TestCampaignStateBattleRecording:
     def test_unit_records_applied_to_persistent_units(self):
         state = CampaignState.create_default()
         br = BattleResult(
-            mission_id="m1", mission_name="Apply Units",
-            outcome=BattleOutcome.VICTORY, ticks_elapsed=1500,
+            mission_id="m1",
+            mission_name="Apply Units",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=1500,
             unit_records=[
                 UnitBattleRecord("A-101", "INF", "allies", True, 100, 70, 30, 30, 2, 15, 10, 40),
                 UnitBattleRecord("A-102", "INF", "allies", True, 100, 45, 20, 55, 1, 10, 6, 25),
@@ -750,10 +865,14 @@ class TestCampaignStateSerialization:
         state.advance_day()
         state.allied_units[0].veterancy.add_xp(200)
         br = BattleResult(
-            mission_id="m1", mission_name="Saved Battle",
-            outcome=BattleOutcome.VICTORY, ticks_elapsed=2500,
-            date_in_campaign=2, victory_points=95,
-            allies_killed=1, axis_killed=4,
+            mission_id="m1",
+            mission_name="Saved Battle",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=2500,
+            date_in_campaign=2,
+            victory_points=95,
+            allies_killed=1,
+            axis_killed=4,
             unit_records=[
                 UnitBattleRecord("A-101", "INF", "allies", True, 100, 80, 35, 20, 2, 12, 8, 50),
             ],
@@ -786,10 +905,15 @@ class TestCampaignStateIntegration:
         state = CampaignState.create_default()
 
         battle1 = BattleResult(
-            mission_id="m_son", mission_name="Son Bridge",
-            outcome=BattleOutcome.VICTORY, ticks_elapsed=2800,
-            date_in_campaign=1, axis_killed=6, allies_killed=1,
-            objectives_completed=1, objectives_total=1,
+            mission_id="m_son",
+            mission_name="Son Bridge",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=2800,
+            date_in_campaign=1,
+            axis_killed=6,
+            allies_killed=1,
+            objectives_completed=1,
+            objectives_total=1,
             victory_points=130,
             unit_records=[
                 UnitBattleRecord("A-101", "INF", "allies", True, 100, 70, 40, 30, 3, 18, 12, 55),
@@ -808,10 +932,15 @@ class TestCampaignStateIntegration:
         state.advance_day()
 
         battle2 = BattleResult(
-            mission_id="m_veghel", mission_name="Veghel",
-            outcome=BattleOutcome.VICTORY, ticks_elapsed=3200,
-            date_in_campaign=2, axis_killed=8, allies_killed=2,
-            objectives_completed=1, objectives_total=1,
+            mission_id="m_veghel",
+            mission_name="Veghel",
+            outcome=BattleOutcome.VICTORY,
+            ticks_elapsed=3200,
+            date_in_campaign=2,
+            axis_killed=8,
+            allies_killed=2,
+            objectives_completed=1,
+            objectives_total=1,
             victory_points=115,
             unit_records=[
                 UnitBattleRecord("A-101", "INF", "allies", True, 78, 60, 30, 18, 2, 10, 7, 40),

@@ -33,26 +33,28 @@ if TYPE_CHECKING:
 # Enums
 # ========================================================================
 
+
 class SkirmishType(Enum):
-    MEETING_ENGAGEMENT = auto()   # Both sides start from edges, symmetric
-    ATTACK_DEFEND = auto()        # One side defends, other attacks
-    BREAKTHROUGH = auto()         # Attacker must cross map, defender blocks
-    HOLD_GROUND = auto()          # Defender holds VLs, attacker has more points
+    MEETING_ENGAGEMENT = auto()  # Both sides start from edges, symmetric
+    ATTACK_DEFEND = auto()  # One side defends, other attacks
+    BREAKTHROUGH = auto()  # Attacker must cross map, defender blocks
+    HOLD_GROUND = auto()  # Defender holds VLs, attacker has more points
 
 
 # ========================================================================
 # Configuration
 # ========================================================================
 
+
 @dataclass(frozen=True, slots=True)
 class SkirmishConfig:
-    map_id: str = 'random'
+    map_id: str = "random"
     allied_points: int = 200
     axis_points: int = 200
     allied_experience: ExperienceLevel = ExperienceLevel.REGULAR
     axis_experience: ExperienceLevel = ExperienceLevel.REGULAR
-    time_of_day: str = 'random'       # 'random' or specific name
-    weather: str = 'random'           # 'random' or specific name
+    time_of_day: str = "random"  # 'random' or specific name
+    weather: str = "random"  # 'random' or specific name
     battle_type: SkirmishType = SkirmishType.MEETING_ENGAGEMENT
 
 
@@ -60,11 +62,12 @@ class SkirmishConfig:
 # Output dataclasses
 # ========================================================================
 
+
 @dataclass
 class VictoryLocation:
     position: tuple[int, int]
     name: str
-    strategic_value: int = 1   # 1 = minor, 2 = major
+    strategic_value: int = 1  # 1 = minor, 2 = major
 
 
 @dataclass
@@ -102,39 +105,49 @@ class SkirmishSetup:
 # ========================================================================
 
 _FORCE_COMPOSITION: dict[str, float] = {
-    'infantry': 0.60,
-    'support': 0.20,    # MG / AT
-    'armor': 0.10,
-    'recon': 0.10,
+    "infantry": 0.60,
+    "support": 0.20,  # MG / AT
+    "armor": 0.10,
+    "recon": 0.10,
 }
 
 # Experience level → point efficiency multiplier
 # Higher experience = fewer but better units per point
 _EXP_COST_MULTIPLIER: dict[ExperienceLevel, float] = {
-    ExperienceLevel.CONSCRIPT: 0.80,   # Cheaper units, can buy more
+    ExperienceLevel.CONSCRIPT: 0.80,  # Cheaper units, can buy more
     ExperienceLevel.REGULAR: 1.00,
-    ExperienceLevel.VETERAN: 1.20,     # More expensive, fewer units
+    ExperienceLevel.VETERAN: 1.20,  # More expensive, fewer units
     ExperienceLevel.ELITE: 1.50,
 }
 
 # Infantry roles for each category
 _INFANTRY_ROLES: set[InfantryRole] = {
-    InfantryRole.RIFLE, InfantryRole.HEAVY_ASSAULT,
-    InfantryRole.ENGINEER, InfantryRole.FLAMETHROWER,
-    InfantryRole.OFFICER, InfantryRole.RESERVE,
+    InfantryRole.RIFLE,
+    InfantryRole.HEAVY_ASSAULT,
+    InfantryRole.ENGINEER,
+    InfantryRole.FLAMETHROWER,
+    InfantryRole.OFFICER,
+    InfantryRole.RESERVE,
 }
 _SUPPORT_ROLES: set[InfantryRole] = {
-    InfantryRole.MACHINE_GUN, InfantryRole.ANTI_TANK,
-    InfantryRole.MORTAR, InfantryRole.SNIPER,
+    InfantryRole.MACHINE_GUN,
+    InfantryRole.ANTI_TANK,
+    InfantryRole.MORTAR,
+    InfantryRole.SNIPER,
 }
 _RECON_ROLES: set[InfantryRole] = {
-    InfantryRole.SCOUT, InfantryRole.RECON,
+    InfantryRole.SCOUT,
+    InfantryRole.RECON,
 }
 _ARMOR_TYPES: set[VehicleType] = {
-    VehicleType.TANK_LIGHT, VehicleType.TANK_MEDIUM,
-    VehicleType.TANK_HEAVY, VehicleType.TANK_DESTROYER,
-    VehicleType.HALFTRACK, VehicleType.ARMORED_CAR,
-    VehicleType.FLAME_TANK, VehicleType.SP_ARTILLERY,
+    VehicleType.TANK_LIGHT,
+    VehicleType.TANK_MEDIUM,
+    VehicleType.TANK_HEAVY,
+    VehicleType.TANK_DESTROYER,
+    VehicleType.HALFTRACK,
+    VehicleType.ARMORED_CAR,
+    VehicleType.FLAME_TANK,
+    VehicleType.SP_ARTILLERY,
 }
 
 # Strategic terrain types for victory location detection
@@ -147,6 +160,7 @@ _STRATEGIC_TERRAIN: set[TerrainType] = {
 # ========================================================================
 # SkirmishGenerator
 # ========================================================================
+
 
 class SkirmishGenerator:
     """Generate a complete skirmish battle setup from a configuration."""
@@ -165,24 +179,29 @@ class SkirmishGenerator:
 
         victory_locations = self._find_victory_locations(game_map)
         allied_zone, axis_zone = self._generate_deployment_zones(
-            game_map, config.battle_type,
+            game_map,
+            config.battle_type,
         )
 
         # Adjust points for HOLD_GROUND (attacker gets more)
         allied_pts = config.allied_points
         axis_pts = config.axis_points
         if config.battle_type == SkirmishType.HOLD_GROUND:
-            axis_pts = int(axis_pts * 1.3)   # Attacker bonus
+            axis_pts = int(axis_pts * 1.3)  # Attacker bonus
         elif config.battle_type == SkirmishType.BREAKTHROUGH:
             allied_pts = int(allied_pts * 1.2)  # Attacker bonus for allies
 
         allied_units = self._purchase_units(
-            allied_pts, config.allied_experience,
-            self._allied_factions(), allied_zone,
+            allied_pts,
+            config.allied_experience,
+            self._allied_factions(),
+            allied_zone,
         )
         axis_units = self._purchase_units(
-            axis_pts, config.axis_experience,
-            {Faction.GERMAN}, axis_zone,
+            axis_pts,
+            config.axis_experience,
+            {Faction.GERMAN},
+            axis_zone,
         )
 
         allied_spent = sum(u.template.deployment_cost for u in allied_units)
@@ -207,7 +226,7 @@ class SkirmishGenerator:
     # ------------------------------------------------------------------
 
     def _resolve_map(self, map_id: str) -> GameMap:
-        if map_id == 'random':
+        if map_id == "random":
             if not self._maps:
                 raise ValueError("No maps registered for skirmish generation")
             return random.choice(list(self._maps.values()))
@@ -221,13 +240,13 @@ class SkirmishGenerator:
 
     @staticmethod
     def _resolve_time_of_day(spec: str) -> TimeOfDay:
-        if spec == 'random':
+        if spec == "random":
             return random.choice(list(TimeOfDay))
         return TimeOfDay[spec.upper()]
 
     @staticmethod
     def _resolve_weather(spec: str) -> WeatherCondition:
-        if spec == 'random':
+        if spec == "random":
             return random.choice(list(WeatherCondition))
         return WeatherCondition[spec.upper()]
 
@@ -242,11 +261,13 @@ class SkirmishGenerator:
         # 1. Use existing map objectives if present
         if game_map.objectives:
             for obj in game_map.objectives:
-                locations.append(VictoryLocation(
-                    position=(obj.position.x, obj.position.y),
-                    name=obj.name,
-                    strategic_value=2,
-                ))
+                locations.append(
+                    VictoryLocation(
+                        position=(obj.position.x, obj.position.y),
+                        name=obj.name,
+                        strategic_value=2,
+                    )
+                )
             return locations
 
         # 2. Auto-detect from terrain
@@ -259,8 +280,7 @@ class SkirmishGenerator:
                 if terrain in _STRATEGIC_TERRAIN:
                     # Avoid clustering: skip if too close to existing VL
                     if any(
-                        abs(x - vl.position[0]) + abs(y - vl.position[1]) < 8
-                        for vl in locations
+                        abs(x - vl.position[0]) + abs(y - vl.position[1]) < 8 for vl in locations
                     ):
                         continue
                     vl_index += 1
@@ -270,9 +290,13 @@ class SkirmishGenerator:
                     else:
                         name = f"Building {vl_index}"
                         value = 1
-                    locations.append(VictoryLocation(
-                        position=(x, y), name=name, strategic_value=value,
-                    ))
+                    locations.append(
+                        VictoryLocation(
+                            position=(x, y),
+                            name=name,
+                            strategic_value=value,
+                        )
+                    )
 
         # 3. If still no VLs, place them at road junctions
         if not locations:
@@ -283,11 +307,13 @@ class SkirmishGenerator:
             mid_x = width // 2
             for i in range(3):
                 y = height * (i + 1) // 4
-                locations.append(VictoryLocation(
-                    position=(mid_x, y),
-                    name=f"Objective {i + 1}",
-                    strategic_value=2 if i == 1 else 1,
-                ))
+                locations.append(
+                    VictoryLocation(
+                        position=(mid_x, y),
+                        name=f"Objective {i + 1}",
+                        strategic_value=2 if i == 1 else 1,
+                    )
+                )
 
         return locations
 
@@ -304,20 +330,23 @@ class SkirmishGenerator:
                 adj_roads = 0
                 for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
                     nx, ny = x + dx, y + dy
-                    if 0 <= nx < width and 0 <= ny < height and TerrainType(int(game_map.tile_grid[ny, nx])) == TerrainType.ROAD:
+                    if (
+                        0 <= nx < width
+                        and 0 <= ny < height
+                        and TerrainType(int(game_map.tile_grid[ny, nx])) == TerrainType.ROAD
+                    ):
                         adj_roads += 1
                 if adj_roads >= 3:
-                    if any(
-                        abs(x - j.position[0]) + abs(y - j.position[1]) < 8
-                        for j in junctions
-                    ):
+                    if any(abs(x - j.position[0]) + abs(y - j.position[1]) < 8 for j in junctions):
                         continue
                     idx += 1
-                    junctions.append(VictoryLocation(
-                        position=(x, y),
-                        name=f"Junction {idx}",
-                        strategic_value=2,
-                    ))
+                    junctions.append(
+                        VictoryLocation(
+                            position=(x, y),
+                            name=f"Junction {idx}",
+                            strategic_value=2,
+                        )
+                    )
         return junctions
 
     # ------------------------------------------------------------------
@@ -380,21 +409,21 @@ class SkirmishGenerator:
 
         # Allocate points by category
         category_budgets = {
-            'infantry': int(points * _FORCE_COMPOSITION['infantry']),
-            'support': int(points * _FORCE_COMPOSITION['support']),
-            'armor': int(points * _FORCE_COMPOSITION['armor']),
-            'recon': int(points * _FORCE_COMPOSITION['recon']),
+            "infantry": int(points * _FORCE_COMPOSITION["infantry"]),
+            "support": int(points * _FORCE_COMPOSITION["support"]),
+            "armor": int(points * _FORCE_COMPOSITION["armor"]),
+            "recon": int(points * _FORCE_COMPOSITION["recon"]),
         }
 
         remaining = points - sum(category_budgets.values())
-        category_budgets['infantry'] += remaining  # leftover goes to infantry
+        category_budgets["infantry"] += remaining  # leftover goes to infantry
 
         # Buy from each category
         for cat_name, pool in [
-            ('infantry', infantry_pool),
-            ('support', support_pool),
-            ('armor', armor_pool),
-            ('recon', recon_pool),
+            ("infantry", infantry_pool),
+            ("support", support_pool),
+            ("armor", armor_pool),
+            ("recon", recon_pool),
         ]:
             budget = category_budgets[cat_name]
             spent = 0
@@ -409,27 +438,29 @@ class SkirmishGenerator:
                 adjusted_cost = int(template.deployment_cost * cost_mult)
                 if spent + adjusted_cost > budget:
                     # Try a cheaper unit
-                    cheaper = [u for u in pool if int(u.deployment_cost * cost_mult) <= budget - spent]
+                    cheaper = [
+                        u for u in pool if int(u.deployment_cost * cost_mult) <= budget - spent
+                    ]
                     if not cheaper:
                         break
                     template = random.choice(cheaper)
                     adjusted_cost = int(template.deployment_cost * cost_mult)
 
                 # Respect max_per_battle
-                current_count = sum(
-                    1 for p in purchases if p.template_id == template.template_id
-                )
+                current_count = sum(1 for p in purchases if p.template_id == template.template_id)
                 if current_count >= template.max_per_battle:
                     pool = [u for u in pool if u.template_id != template.template_id]
                     continue
 
                 # Random position within deployment zone
                 pos = self._random_position_in_zone(zone)
-                purchases.append(UnitPurchase(
-                    template_id=template.template_id,
-                    template=template,
-                    deployment_position=pos,
-                ))
+                purchases.append(
+                    UnitPurchase(
+                        template_id=template.template_id,
+                        template=template,
+                        deployment_position=pos,
+                    )
+                )
                 spent += adjusted_cost
 
         return purchases

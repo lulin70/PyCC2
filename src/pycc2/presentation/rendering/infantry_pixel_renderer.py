@@ -16,17 +16,21 @@ from __future__ import annotations
 
 import logging
 import math
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pygame
 
 logger = logging.getLogger(__name__)
 
-from pycc2.domain.value_objects.direction import Direction
 from pycc2.domain.entities.unit import Faction
+from pycc2.domain.value_objects.direction import Direction
+from pycc2.presentation.rendering.pixel_artist_color_palette import (
+    CC2_PALETTE,
+)
 from pycc2.presentation.rendering.pixel_artist_enums import (
     InfantryAnimState,
     InfantryType,
-)
-from pycc2.presentation.rendering.pixel_artist_color_palette import (
-    CC2_PALETTE,
 )
 
 
@@ -83,26 +87,41 @@ class InfantryPixelRenderer:
 
         faction_key = faction.name.lower()
         palette = CC2_PALETTE.get(faction_key, CC2_PALETTE.get("allies"))
-        body_color = palette['uniform']
-        body_dark = palette['uniform_dark']
-        helmet_color = palette['helmet']
-        weapon_color = palette['weapon']
-        weapon_metal = palette['weapon_metal']
-        boots_color = palette['boots']
+        body_color = palette["uniform"]
+        body_dark = palette["uniform_dark"]
+        helmet_color = palette["helmet"]
+        weapon_color = palette["weapon"]
+        weapon_metal = palette["weapon_metal"]
+        boots_color = palette["boots"]
 
-        prone_states = {'crawl', 'defend', 'attack', 'sneak', 'hide'}
+        prone_states = {"crawl", "defend", "attack", "sneak", "hide"}
         is_prone = state in prone_states
 
         if is_prone and state != "die":
             return InfantryPixelRenderer._draw_infantry_prone_topdown(
-                surface, direction, state, frame, palette, infantry_type,
-                body_color, weapon_color, weapon_metal, boots_color,
+                surface,
+                direction,
+                state,
+                frame,
+                palette,
+                infantry_type,
+                body_color,
+                weapon_color,
+                weapon_metal,
+                boots_color,
             )
 
         if state == "die":
             return InfantryPixelRenderer._draw_infantry_death_topdown(
-                surface, direction, frame, palette, infantry_type,
-                body_color, helmet_color, weapon_color, boots_color,
+                surface,
+                direction,
+                frame,
+                palette,
+                infantry_type,
+                body_color,
+                helmet_color,
+                weapon_color,
+                boots_color,
             )
 
         cx, cy = 12, 12
@@ -128,18 +147,18 @@ class InfantryPixelRenderer:
         base_angle = math.radians(dir_angles.get(direction, 0))
 
         # --- Helmet: apply direction-specific size and highlight offset ---
-        helmet_r = 3 + dp['helmet_size_mod']
+        helmet_r = 3 + dp["helmet_size_mod"]
         hx = cx + int(math.cos(base_angle + math.pi / 2) * offset * 0.3)
         hy = cy - 2 + int(math.sin(base_angle + math.pi / 2) * offset * 0.3)
         pygame.draw.circle(surface, helmet_color, (hx, hy), helmet_r)
 
-        hl_color = palette.get('helmet_highlight', tuple(min(255, c + 40) for c in helmet_color))
-        hl_dx, hl_dy = dp['helmet_highlight_offset']
+        hl_color = palette.get("helmet_highlight", tuple(min(255, c + 40) for c in helmet_color))
+        hl_dx, hl_dy = dp["helmet_highlight_offset"]
         pygame.draw.circle(surface, hl_color, (hx + hl_dx, hy + hl_dy), 1)
 
         # --- Body: apply direction-specific width/height correction ---
-        body_w = 8 + dp['body_width_mod']
-        body_h = 5 + dp['body_height_mod']
+        body_w = 8 + dp["body_width_mod"]
+        body_h = 5 + dp["body_height_mod"]
         bx = cx - body_w // 2 + int(math.cos(base_angle + math.pi / 2) * offset * 0.5)
         by = cy + int(math.sin(base_angle + math.pi / 2) * offset * 0.5)
         pygame.draw.ellipse(surface, body_color, (bx, by, body_w, body_h))
@@ -147,7 +166,7 @@ class InfantryPixelRenderer:
             pygame.draw.ellipse(surface, body_dark, (bx + 1, by + 1, body_w - 2, body_h - 2))
 
         # --- Weapon: apply direction angle correction and hand-side difference ---
-        weapon_angle_rad = base_angle + math.radians(dp['weapon_angle_mod'])
+        weapon_angle_rad = base_angle + math.radians(dp["weapon_angle_mod"])
         weapon_len = 10
         wx = cx + int(math.cos(weapon_angle_rad) * weapon_len)
         wy = cy + int(math.sin(weapon_angle_rad) * weapon_len)
@@ -155,8 +174,8 @@ class InfantryPixelRenderer:
         pygame.draw.line(surface, weapon_color, (cx, cy), (wx, wy), weapon_width)
 
         # --- Equipment/backpack: only visible for rear-facing directions (S/SW) ---
-        equip_color = palette.get('equipment', tuple(max(0, c - 20) for c in body_color))
-        if dp['equipment_visibility'] > 0.8:
+        equip_color = palette.get("equipment", tuple(max(0, c - 20) for c in body_color))
+        if dp["equipment_visibility"] > 0.8:
             pack_x = cx + int(math.cos(weapon_angle_rad) * (-3))
             pack_y = cy + int(math.sin(weapon_angle_rad) * (-3))
             pygame.draw.ellipse(surface, equip_color, (pack_x - 2, pack_y - 1, 4, 3))
@@ -180,20 +199,25 @@ class InfantryPixelRenderer:
 
         # --- Legs: apply direction-specific leg spread ---
         leg_len = 4
-        spread = dp['leg_spread_mod']
+        spread = dp["leg_spread_mod"]
         back_angle = base_angle + math.pi
         perp_leg = base_angle + math.pi / 2
         lx1 = cx + int(math.cos(back_angle) * leg_len) + int(math.cos(perp_leg) * spread)
         ly1 = cy + int(math.sin(back_angle) * leg_len) + int(math.sin(perp_leg) * spread)
-        lx2 = cx + int(math.cos(back_angle + 0.4) * leg_len * 0.7) - int(math.cos(perp_leg) * spread)
-        ly2 = cy + int(math.sin(back_angle + 0.4) * leg_len * 0.7) - int(math.sin(perp_leg) * spread)
+        lx2 = (
+            cx + int(math.cos(back_angle + 0.4) * leg_len * 0.7) - int(math.cos(perp_leg) * spread)
+        )
+        ly2 = (
+            cy + int(math.sin(back_angle + 0.4) * leg_len * 0.7) - int(math.sin(perp_leg) * spread)
+        )
         pygame.draw.circle(surface, boots_color, (lx1, ly1), 1)
         pygame.draw.circle(surface, boots_color, (lx2, ly2), 1)
 
         shadow_surface = pygame.Surface((24, 24), pygame.SRCALPHA)
-        shadow_ox, shadow_oy = dp['shadow_offset']
-        pygame.draw.ellipse(shadow_surface, (0, 0, 0, 35),
-                           (cx - 4 + shadow_ox, cy + 5 + shadow_oy, 8, 3))
+        shadow_ox, shadow_oy = dp["shadow_offset"]
+        pygame.draw.ellipse(
+            shadow_surface, (0, 0, 0, 35), (cx - 4 + shadow_ox, cy + 5 + shadow_oy, 8, 3)
+        )
         surface.blit(shadow_surface, (0, 0))
 
         if state == "shoot" and frame == 1:
@@ -209,7 +233,7 @@ class InfantryPixelRenderer:
         return surface
 
     @staticmethod
-    def apply_wounded_overlay(surface, hp_ratio: float) -> 'pygame.Surface':
+    def apply_wounded_overlay(surface, hp_ratio: float) -> pygame.Surface:
         """Apply wounded visual overlay based on HP ratio.
 
         HP < 50%: Red cross/bandage icon on head
@@ -272,124 +296,124 @@ class InfantryPixelRenderer:
         """
         params = {
             Direction.NORTH: {
-                'helmet_highlight_offset': (0, -2),
-                'body_width_mod': -2,
-                'body_height_mod': 1,
-                'weapon_angle_mod': -20,
-                'shadow_offset': (0, 4),
-                'visibility_factor': 1.0,
-                'helmet_size_mod': 1,
-                'leg_spread_mod': 3,
-                'shoulder_tilt': -10,
-                'equipment_visibility': 0.9,
-                'helmet_shape': 'circle',
-                'weapon_base_angle': 0,
-                'description': 'Front view: round helmet max visible, shoulders level, legs apart, weapon up',
+                "helmet_highlight_offset": (0, -2),
+                "body_width_mod": -2,
+                "body_height_mod": 1,
+                "weapon_angle_mod": -20,
+                "shadow_offset": (0, 4),
+                "visibility_factor": 1.0,
+                "helmet_size_mod": 1,
+                "leg_spread_mod": 3,
+                "shoulder_tilt": -10,
+                "equipment_visibility": 0.9,
+                "helmet_shape": "circle",
+                "weapon_base_angle": 0,
+                "description": "Front view: round helmet max visible, shoulders level, legs apart, weapon up",
             },
             Direction.NORTHEAST: {
-                'helmet_highlight_offset': (2, -2),
-                'body_width_mod': -1,
-                'body_height_mod': 0,
-                'weapon_angle_mod': -5,
-                'shadow_offset': (-3, 3),
-                'visibility_factor': 0.9,
-                'helmet_size_mod': 0,
-                'leg_spread_mod': 1,
-                'shoulder_tilt': -5,
-                'equipment_visibility': 0.7,
-                'helmet_shape': 'oval',
-                'weapon_base_angle': 45,
-                'description': 'Right-front 45deg: body rotated, left shoulder back, right leg forward, weapon 45deg',
+                "helmet_highlight_offset": (2, -2),
+                "body_width_mod": -1,
+                "body_height_mod": 0,
+                "weapon_angle_mod": -5,
+                "shadow_offset": (-3, 3),
+                "visibility_factor": 0.9,
+                "helmet_size_mod": 0,
+                "leg_spread_mod": 1,
+                "shoulder_tilt": -5,
+                "equipment_visibility": 0.7,
+                "helmet_shape": "oval",
+                "weapon_base_angle": 45,
+                "description": "Right-front 45deg: body rotated, left shoulder back, right leg forward, weapon 45deg",
             },
             Direction.EAST: {
-                'helmet_highlight_offset': (3, 0),
-                'body_width_mod': 0,
-                'body_height_mod': -1,
-                'weapon_angle_mod': 15,
-                'shadow_offset': (-4, 0),
-                'visibility_factor': 0.8,
-                'helmet_size_mod': -1,
-                'leg_spread_mod': 0,
-                'shoulder_tilt': 0,
-                'equipment_visibility': 0.5,
-                'helmet_shape': 'side_oval',
-                'weapon_base_angle': 90,
-                'description': 'Right profile: widest body, side-view helmet oval, weapon horizontal right',
+                "helmet_highlight_offset": (3, 0),
+                "body_width_mod": 0,
+                "body_height_mod": -1,
+                "weapon_angle_mod": 15,
+                "shadow_offset": (-4, 0),
+                "visibility_factor": 0.8,
+                "helmet_size_mod": -1,
+                "leg_spread_mod": 0,
+                "shoulder_tilt": 0,
+                "equipment_visibility": 0.5,
+                "helmet_shape": "side_oval",
+                "weapon_base_angle": 90,
+                "description": "Right profile: widest body, side-view helmet oval, weapon horizontal right",
             },
             Direction.SOUTHEAST: {
-                'helmet_highlight_offset': (2, 2),
-                'body_width_mod': -1,
-                'body_height_mod': -1,
-                'weapon_angle_mod': 25,
-                'shadow_offset': (-3, -3),
-                'visibility_factor': 0.7,
-                'helmet_size_mod': -1,
-                'leg_spread_mod': 1,
-                'shoulder_tilt': 8,
-                'equipment_visibility': 0.4,
-                'helmet_shape': 'oval',
-                'weapon_base_angle': 135,
-                'description': 'Right-rear 45deg: back starting visible, right shoulder forward, weapon 135deg',
+                "helmet_highlight_offset": (2, 2),
+                "body_width_mod": -1,
+                "body_height_mod": -1,
+                "weapon_angle_mod": 25,
+                "shadow_offset": (-3, -3),
+                "visibility_factor": 0.7,
+                "helmet_size_mod": -1,
+                "leg_spread_mod": 1,
+                "shoulder_tilt": 8,
+                "equipment_visibility": 0.4,
+                "helmet_shape": "oval",
+                "weapon_base_angle": 135,
+                "description": "Right-rear 45deg: back starting visible, right shoulder forward, weapon 135deg",
             },
             Direction.SOUTH: {
-                'helmet_highlight_offset': (0, 3),
-                'body_width_mod': -2,
-                'body_height_mod': -2,
-                'weapon_angle_mod': 35,
-                'shadow_offset': (0, -4),
-                'visibility_factor': 0.6,
-                'helmet_size_mod': 0,
-                'leg_spread_mod': 3,
-                'shoulder_tilt': 12,
-                'equipment_visibility': 1.0,
-                'helmet_shape': 'circle',
-                'weapon_base_angle': 180,
-                'description': 'Back view: helmet/back visible, weapon over shoulder pointing down, gear fully visible',
+                "helmet_highlight_offset": (0, 3),
+                "body_width_mod": -2,
+                "body_height_mod": -2,
+                "weapon_angle_mod": 35,
+                "shadow_offset": (0, -4),
+                "visibility_factor": 0.6,
+                "helmet_size_mod": 0,
+                "leg_spread_mod": 3,
+                "shoulder_tilt": 12,
+                "equipment_visibility": 1.0,
+                "helmet_shape": "circle",
+                "weapon_base_angle": 180,
+                "description": "Back view: helmet/back visible, weapon over shoulder pointing down, gear fully visible",
             },
             Direction.SOUTHWEST: {
-                'helmet_highlight_offset': (-2, 2),
-                'body_width_mod': -1,
-                'body_height_mod': -1,
-                'weapon_angle_mod': 155,
-                'shadow_offset': (3, -3),
-                'visibility_factor': 0.7,
-                'helmet_size_mod': -1,
-                'leg_spread_mod': 1,
-                'shoulder_tilt': 8,
-                'equipment_visibility': 0.4,
-                'helmet_shape': 'oval',
-                'weapon_base_angle': 225,
-                'description': 'Left-rear 45deg: SE mirror, left shoulder forward, weapon 225deg',
+                "helmet_highlight_offset": (-2, 2),
+                "body_width_mod": -1,
+                "body_height_mod": -1,
+                "weapon_angle_mod": 155,
+                "shadow_offset": (3, -3),
+                "visibility_factor": 0.7,
+                "helmet_size_mod": -1,
+                "leg_spread_mod": 1,
+                "shoulder_tilt": 8,
+                "equipment_visibility": 0.4,
+                "helmet_shape": "oval",
+                "weapon_base_angle": 225,
+                "description": "Left-rear 45deg: SE mirror, left shoulder forward, weapon 225deg",
             },
             Direction.WEST: {
-                'helmet_highlight_offset': (-3, 0),
-                'body_width_mod': 0,
-                'body_height_mod': -1,
-                'weapon_angle_mod': 165,
-                'shadow_offset': (4, 0),
-                'visibility_factor': 0.8,
-                'helmet_size_mod': -1,
-                'leg_spread_mod': 0,
-                'shoulder_tilt': 0,
-                'equipment_visibility': 0.5,
-                'helmet_shape': 'side_oval',
-                'weapon_base_angle': 270,
-                'description': 'Left profile: full E mirror, widest body, weapon horizontal left',
+                "helmet_highlight_offset": (-3, 0),
+                "body_width_mod": 0,
+                "body_height_mod": -1,
+                "weapon_angle_mod": 165,
+                "shadow_offset": (4, 0),
+                "visibility_factor": 0.8,
+                "helmet_size_mod": -1,
+                "leg_spread_mod": 0,
+                "shoulder_tilt": 0,
+                "equipment_visibility": 0.5,
+                "helmet_shape": "side_oval",
+                "weapon_base_angle": 270,
+                "description": "Left profile: full E mirror, widest body, weapon horizontal left",
             },
             Direction.NORTHWEST: {
-                'helmet_highlight_offset': (-2, -2),
-                'body_width_mod': -1,
-                'body_height_mod': 0,
-                'weapon_angle_mod': 200,
-                'shadow_offset': (3, 3),
-                'visibility_factor': 0.9,
-                'helmet_size_mod': 0,
-                'leg_spread_mod': 1,
-                'shoulder_tilt': -5,
-                'equipment_visibility': 0.7,
-                'helmet_shape': 'oval',
-                'weapon_base_angle': 315,
-                'description': 'Left-front 45deg: NE mirror, right shoulder back, weapon 315deg',
+                "helmet_highlight_offset": (-2, -2),
+                "body_width_mod": -1,
+                "body_height_mod": 0,
+                "weapon_angle_mod": 200,
+                "shadow_offset": (3, 3),
+                "visibility_factor": 0.9,
+                "helmet_size_mod": 0,
+                "leg_spread_mod": 1,
+                "shoulder_tilt": -5,
+                "equipment_visibility": 0.7,
+                "helmet_shape": "oval",
+                "weapon_base_angle": 315,
+                "description": "Left-front 45deg: NE mirror, right shoulder back, weapon 315deg",
             },
         }
         return params.get(direction, params[Direction.NORTH])
@@ -438,8 +462,16 @@ class InfantryPixelRenderer:
 
     @staticmethod
     def _draw_infantry_weapon(
-        surface, direction, infantry_type, cx, cy,
-        weapon_color, weapon_metal, weapon_wood, equip_color, equip_dark,
+        surface,
+        direction,
+        infantry_type,
+        cx,
+        cy,
+        weapon_color,
+        weapon_metal,
+        weapon_wood,
+        equip_color,
+        equip_dark,
     ):
         """Draw differentiated weapons based on infantry type."""
         import pygame
@@ -450,28 +482,41 @@ class InfantryPixelRenderer:
             pygame.draw.line(surface, weapon_color, weapon_start, weapon_end, 3)
             mid_x = (weapon_start[0] + weapon_end[0]) / 2
             mid_y = (weapon_start[1] + weapon_end[1]) / 2
-            pygame.draw.line(surface, weapon_metal,
-                             (int(mid_x) - 1, int(mid_y)), (int(mid_x) + 1, int(mid_y)), 1)
+            pygame.draw.line(
+                surface, weapon_metal, (int(mid_x) - 1, int(mid_y)), (int(mid_x) + 1, int(mid_y)), 1
+            )
             ammo_box_x = cx + (4 if direction.value <= 4 else -4)
             ammo_box_y = cy + 1
             pygame.draw.rect(surface, equip_color, (ammo_box_x - 2, ammo_box_y - 1, 4, 3))
             pygame.draw.rect(surface, equip_dark, (ammo_box_x - 2, ammo_box_y - 1, 4, 3), 1)
             tripod_base_x = int(weapon_end[0])
             tripod_base_y = int(weapon_end[1])
-            pygame.draw.line(surface, weapon_metal,
-                             (tripod_base_x, tripod_base_y),
-                             (tripod_base_x - 2, tripod_base_y + 3), 1)
-            pygame.draw.line(surface, weapon_metal,
-                             (tripod_base_x, tripod_base_y),
-                             (tripod_base_x + 2, tripod_base_y + 3), 1)
+            pygame.draw.line(
+                surface,
+                weapon_metal,
+                (tripod_base_x, tripod_base_y),
+                (tripod_base_x - 2, tripod_base_y + 3),
+                1,
+            )
+            pygame.draw.line(
+                surface,
+                weapon_metal,
+                (tripod_base_x, tripod_base_y),
+                (tripod_base_x + 2, tripod_base_y + 3),
+                1,
+            )
 
         elif infantry_type == InfantryType.AT:
             at_length = 12
             angles = {
-                Direction.NORTH: 270, Direction.NORTHEAST: 315,
-                Direction.EAST: 0, Direction.SOUTHEAST: 45,
-                Direction.SOUTH: 90, Direction.SOUTHWEST: 135,
-                Direction.WEST: 180, Direction.NORTHWEST: 225,
+                Direction.NORTH: 270,
+                Direction.NORTHEAST: 315,
+                Direction.EAST: 0,
+                Direction.SOUTHEAST: 45,
+                Direction.SOUTH: 90,
+                Direction.SOUTHWEST: 135,
+                Direction.WEST: 180,
+                Direction.NORTHWEST: 225,
             }
             angle_rad = math.radians(angles.get(direction, 0))
             at_start = (cx + math.cos(angle_rad) * 2, cy - 2 + math.sin(angle_rad) * 2)
@@ -484,17 +529,21 @@ class InfantryPixelRenderer:
             pygame.draw.circle(surface, weapon_metal, (end_x, end_y), 2)
             shoulder_x = int(at_start[0])
             shoulder_y = int(at_start[1])
-            pygame.draw.line(surface, weapon_wood,
-                             (shoulder_x, shoulder_y),
-                             (shoulder_x, shoulder_y + 3), 1)
+            pygame.draw.line(
+                surface, weapon_wood, (shoulder_x, shoulder_y), (shoulder_x, shoulder_y + 3), 1
+            )
 
         elif infantry_type == InfantryType.OFFICER:
             pistol_length = 5
             angles = {
-                Direction.NORTH: 270, Direction.NORTHEAST: 315,
-                Direction.EAST: 0, Direction.SOUTHEAST: 45,
-                Direction.SOUTH: 90, Direction.SOUTHWEST: 135,
-                Direction.WEST: 180, Direction.NORTHWEST: 225,
+                Direction.NORTH: 270,
+                Direction.NORTHEAST: 315,
+                Direction.EAST: 0,
+                Direction.SOUTHEAST: 45,
+                Direction.SOUTH: 90,
+                Direction.SOUTHWEST: 135,
+                Direction.WEST: 180,
+                Direction.NORTHWEST: 225,
             }
             angle_rad = math.radians(angles.get(direction, 0))
             p_start = (cx + math.cos(angle_rad) * 3, cy + math.sin(angle_rad) * 3)
@@ -505,16 +554,19 @@ class InfantryPixelRenderer:
             pygame.draw.line(surface, weapon_color, p_start, p_end, 2)
             grip_x = int((p_start[0] + p_end[0]) / 2)
             grip_y = int((p_start[1] + p_end[1]) / 2)
-            pygame.draw.line(surface, weapon_wood,
-                             (grip_x, grip_y), (grip_x, grip_y + 2), 1)
+            pygame.draw.line(surface, weapon_wood, (grip_x, grip_y), (grip_x, grip_y + 2), 1)
 
         elif infantry_type == InfantryType.SNIPER:
             sniper_length = 12
             angles = {
-                Direction.NORTH: 270, Direction.NORTHEAST: 315,
-                Direction.EAST: 0, Direction.SOUTHEAST: 45,
-                Direction.SOUTH: 90, Direction.SOUTHWEST: 135,
-                Direction.WEST: 180, Direction.NORTHWEST: 225,
+                Direction.NORTH: 270,
+                Direction.NORTHEAST: 315,
+                Direction.EAST: 0,
+                Direction.SOUTHEAST: 45,
+                Direction.SOUTH: 90,
+                Direction.SOUTHWEST: 135,
+                Direction.WEST: 180,
+                Direction.NORTHWEST: 225,
             }
             angle_rad = math.radians(angles.get(direction, 0))
             s_start = (cx + math.cos(angle_rad) * 3, cy + math.sin(angle_rad) * 3)
@@ -525,21 +577,25 @@ class InfantryPixelRenderer:
             pygame.draw.line(surface, weapon_color, s_start, s_end, 2)
             stock_x = int(s_start[0])
             stock_y = int(s_start[1])
-            pygame.draw.line(surface, weapon_wood,
-                             (stock_x, stock_y), (stock_x - 1, stock_y + 2), 2)
+            pygame.draw.line(
+                surface, weapon_wood, (stock_x, stock_y), (stock_x - 1, stock_y + 2), 2
+            )
             mid_x = int((s_start[0] + s_end[0]) / 2)
             mid_y = int((s_start[1] + s_end[1]) / 2)
-            pygame.draw.line(surface, weapon_metal,
-                             (mid_x, mid_y), (mid_x, mid_y - 2), 1)
+            pygame.draw.line(surface, weapon_metal, (mid_x, mid_y), (mid_x, mid_y - 2), 1)
             pygame.draw.circle(surface, weapon_metal, (mid_x, mid_y - 2), 1)
 
         elif infantry_type == InfantryType.MEDIC:
             carbine_length = 7
             angles = {
-                Direction.NORTH: 270, Direction.NORTHEAST: 315,
-                Direction.EAST: 0, Direction.SOUTHEAST: 45,
-                Direction.SOUTH: 90, Direction.SOUTHWEST: 135,
-                Direction.WEST: 180, Direction.NORTHWEST: 225,
+                Direction.NORTH: 270,
+                Direction.NORTHEAST: 315,
+                Direction.EAST: 0,
+                Direction.SOUTHEAST: 45,
+                Direction.SOUTH: 90,
+                Direction.SOUTHWEST: 135,
+                Direction.WEST: 180,
+                Direction.NORTHWEST: 225,
             }
             angle_rad = math.radians(angles.get(direction, 0))
             c_start = (cx + math.cos(angle_rad) * 3, cy + math.sin(angle_rad) * 3)
@@ -550,27 +606,32 @@ class InfantryPixelRenderer:
             pygame.draw.line(surface, weapon_color, c_start, c_end, 2)
             stock_x = int(c_start[0])
             stock_y = int(c_start[1])
-            pygame.draw.line(surface, weapon_wood,
-                             (stock_x, stock_y), (stock_x - 1, stock_y + 2), 1)
+            pygame.draw.line(
+                surface, weapon_wood, (stock_x, stock_y), (stock_x - 1, stock_y + 2), 1
+            )
 
         elif infantry_type == InfantryType.ENGINEER:
             pygame.draw.line(surface, weapon_color, weapon_start, weapon_end, 2)
             stock_x = int(weapon_start[0])
             stock_y = int(weapon_start[1])
-            pygame.draw.line(surface, weapon_wood,
-                             (stock_x, stock_y), (stock_x - 1, stock_y + 2), 2)
+            pygame.draw.line(
+                surface, weapon_wood, (stock_x, stock_y), (stock_x - 1, stock_y + 2), 2
+            )
             mid_x = int((weapon_start[0] + weapon_end[0]) / 2)
             mid_y = int((weapon_start[1] + weapon_end[1]) / 2)
-            pygame.draw.line(surface, weapon_metal,
-                             (mid_x - 1, mid_y), (mid_x + 1, mid_y), 1)
+            pygame.draw.line(surface, weapon_metal, (mid_x - 1, mid_y), (mid_x + 1, mid_y), 1)
 
         elif infantry_type == InfantryType.SCOUT:
             scout_length = 6
             angles = {
-                Direction.NORTH: 270, Direction.NORTHEAST: 315,
-                Direction.EAST: 0, Direction.SOUTHEAST: 45,
-                Direction.SOUTH: 90, Direction.SOUTHWEST: 135,
-                Direction.WEST: 180, Direction.NORTHWEST: 225,
+                Direction.NORTH: 270,
+                Direction.NORTHEAST: 315,
+                Direction.EAST: 0,
+                Direction.SOUTHEAST: 45,
+                Direction.SOUTH: 90,
+                Direction.SOUTHWEST: 135,
+                Direction.WEST: 180,
+                Direction.NORTHWEST: 225,
             }
             angle_rad = math.radians(angles.get(direction, 0))
             sc_start = (cx + math.cos(angle_rad) * 3, cy + math.sin(angle_rad) * 3)
@@ -581,19 +642,18 @@ class InfantryPixelRenderer:
             pygame.draw.line(surface, weapon_color, sc_start, sc_end, 2)
             grip_x = int((sc_start[0] + sc_end[0]) / 2)
             grip_y = int((sc_start[1] + sc_end[1]) / 2)
-            pygame.draw.line(surface, weapon_wood,
-                             (grip_x, grip_y), (grip_x, grip_y + 2), 1)
+            pygame.draw.line(surface, weapon_wood, (grip_x, grip_y), (grip_x, grip_y + 2), 1)
 
         else:
             pygame.draw.line(surface, weapon_color, weapon_start, weapon_end, 2)
             stock_x = int(weapon_start[0])
             stock_y = int(weapon_start[1])
-            pygame.draw.line(surface, weapon_wood,
-                             (stock_x, stock_y), (stock_x - 1, stock_y + 2), 2)
+            pygame.draw.line(
+                surface, weapon_wood, (stock_x, stock_y), (stock_x - 1, stock_y + 2), 2
+            )
             mid_x = int((weapon_start[0] + weapon_end[0]) / 2)
             mid_y = int((weapon_start[1] + weapon_end[1]) / 2)
-            pygame.draw.line(surface, weapon_metal,
-                             (mid_x - 1, mid_y), (mid_x + 1, mid_y), 1)
+            pygame.draw.line(surface, weapon_metal, (mid_x - 1, mid_y), (mid_x + 1, mid_y), 1)
             pygame.draw.circle(surface, weapon_metal, (int(weapon_end[0]), int(weapon_end[1])), 1)
 
     # ------------------------------------------------------------------ #
@@ -602,12 +662,21 @@ class InfantryPixelRenderer:
 
     @staticmethod
     def _draw_infantry_prone_topdown(
-        surface, direction, state, frame, palette, infantry_type,
-        body_color, weapon_color, weapon_metal, boots_color,
+        surface,
+        direction,
+        state,
+        frame,
+        palette,
+        infantry_type,
+        body_color,
+        weapon_color,
+        weapon_metal,
+        boots_color,
     ):
         """Pure top-down prone soldier - elongated ellipse body along facing direction."""
-        import pygame
         import math
+
+        import pygame
 
         cx, cy = 12, 12
 
@@ -648,12 +717,20 @@ class InfantryPixelRenderer:
 
     @staticmethod
     def _draw_infantry_death_topdown(
-        surface, direction, frame, palette, infantry_type,
-        body_color, helmet_color, weapon_color, boots_color,
+        surface,
+        direction,
+        frame,
+        palette,
+        infantry_type,
+        body_color,
+        helmet_color,
+        weapon_color,
+        boots_color,
     ):
         """Pure top-down death animation - flattened body, no weapon."""
-        import pygame
         import math
+
+        import pygame
 
         cx, cy = 12, 12
 
@@ -661,10 +738,14 @@ class InfantryPixelRenderer:
             pygame.draw.circle(surface, helmet_color, (cx, cy - 2), 3)
             pygame.draw.ellipse(surface, body_color, (cx - 4, cy, 8, 5))
             dir_angles = {
-                Direction.NORTH: 270, Direction.NORTHEAST: 315,
-                Direction.EAST: 0, Direction.SOUTHEAST: 45,
-                Direction.SOUTH: 90, Direction.SOUTHWEST: 135,
-                Direction.WEST: 180, Direction.NORTHWEST: 225,
+                Direction.NORTH: 270,
+                Direction.NORTHEAST: 315,
+                Direction.EAST: 0,
+                Direction.SOUTHEAST: 45,
+                Direction.SOUTH: 90,
+                Direction.SOUTHWEST: 135,
+                Direction.WEST: 180,
+                Direction.NORTHWEST: 225,
             }
             angle = math.radians(dir_angles.get(direction, 0))
             wx = cx + int(math.cos(angle) * 10)
@@ -747,13 +828,24 @@ class InfantryPixelRenderer:
         sheet.fill((0, 0, 0, 0))
 
         direction_order = [
-            Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
-            Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST,
+            Direction.NORTH,
+            Direction.NORTHEAST,
+            Direction.EAST,
+            Direction.SOUTHEAST,
+            Direction.SOUTH,
+            Direction.SOUTHWEST,
+            Direction.WEST,
+            Direction.NORTHWEST,
         ]
         anim_state_order = [
-            InfantryAnimState.IDLE, InfantryAnimState.WALK_1, InfantryAnimState.WALK_2,
-            InfantryAnimState.SHOOT, InfantryAnimState.PRONE, InfantryAnimState.DIE_1,
-            InfantryAnimState.DIE_2, InfantryAnimState.DEAD,
+            InfantryAnimState.IDLE,
+            InfantryAnimState.WALK_1,
+            InfantryAnimState.WALK_2,
+            InfantryAnimState.SHOOT,
+            InfantryAnimState.PRONE,
+            InfantryAnimState.DIE_1,
+            InfantryAnimState.DIE_2,
+            InfantryAnimState.DEAD,
         ]
 
         for row, direction in enumerate(direction_order):
@@ -774,6 +866,7 @@ class InfantryPixelRenderer:
 # ====================================================================== #
 #  InfantryAnimator - extracted from PixelArtist3D
 # ====================================================================== #
+
 
 class InfantryAnimator:
     """

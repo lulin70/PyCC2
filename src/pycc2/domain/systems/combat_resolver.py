@@ -66,7 +66,7 @@ class CombatResolver:
         if target.current_building_pos is not None:
             # R1: Multi-floor combat modifiers
             # Upper floors: better LOS (already in building) but more vulnerable to artillery
-            floor = getattr(target, 'building_floor', 0)
+            floor = getattr(target, "building_floor", 0)
             if floor > 0:
                 # Upper floor: less cover from direct fire (windows expose more)
                 cover_reduction = 1.0 - floor * 0.15  # 15% less cover per floor
@@ -183,7 +183,8 @@ class CombatResolver:
             # Query enemies within weapon range using spatial hash
             weapon_range = self._get_weapon_range(attacker)
             enemies_nearby = spatial.query_radius(
-                attacker.position.tile_coord, weapon_range,
+                attacker.position.tile_coord,
+                weapon_range,
                 exclude_faction=attacker.faction,
             )
             if not enemies_nearby:

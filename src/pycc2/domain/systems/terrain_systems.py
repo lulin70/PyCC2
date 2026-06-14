@@ -22,10 +22,10 @@ class DestructibleTerrain:
     def __post_init__(self):
         self._terrain_hp = {}
         self._max_hp_defaults = {
-            'building': 100,
-            'bridge': 150,
-            'wall': 30,
-            'tree': 15,
+            "building": 100,
+            "bridge": 150,
+            "wall": 30,
+            "tree": 15,
         }
         self._rubble_tiles = set()
 

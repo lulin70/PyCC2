@@ -21,6 +21,7 @@ from pycc2.domain.systems.battle_result import BattleOutcome, BattleResult
 # Data classes
 # ========================================================================
 
+
 @dataclass
 class BasicStats:
     kills_allied: int = 0
@@ -41,8 +42,8 @@ class UnitAARStats:
     damage_dealt: float = 0.0
     damage_taken: float = 0.0
     distance_moved: float = 0.0
-    time_suppressed: int = 0       # ticks
-    time_in_combat: int = 0        # ticks
+    time_suppressed: int = 0  # ticks
+    time_in_combat: int = 0  # ticks
     ammo_consumed: int = 0
     enemies_spotted: int = 0
     mvp_score: float = 0.0
@@ -113,23 +114,26 @@ class EnhancedAARStats:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            'basic': {
-                'kills_allied': self.basic.kills_allied,
-                'kills_axis': self.basic.kills_axis,
-                'casualties_allied': self.basic.casualties_allied,
-                'casualties_axis': self.basic.casualties_axis,
-                'outcome': self.basic.outcome.name,
+            "basic": {
+                "kills_allied": self.basic.kills_allied,
+                "kills_axis": self.basic.kills_axis,
+                "casualties_allied": self.basic.casualties_allied,
+                "casualties_axis": self.basic.casualties_axis,
+                "outcome": self.basic.outcome.name,
             },
-            'unit_count': len(self.unit_stats),
-            'weapon_count': len(self.weapon_stats),
-            'timeline_events': len(self.timeline),
-            'mvp': max(self.unit_stats.values(), key=lambda u: u.mvp_score).unit_name if self.unit_stats else None,
+            "unit_count": len(self.unit_stats),
+            "weapon_count": len(self.weapon_stats),
+            "timeline_events": len(self.timeline),
+            "mvp": max(self.unit_stats.values(), key=lambda u: u.mvp_score).unit_name
+            if self.unit_stats
+            else None,
         }
 
 
 # ========================================================================
 # EnhancedAARCollector
 # ========================================================================
+
 
 class EnhancedAARCollector:
     """Collects detailed battle statistics during combat.
@@ -191,9 +195,7 @@ class EnhancedAARCollector:
             w.shots_hit += 1
 
         # Heatmap
-        self._heatmap.shots_fired_map[position] = (
-            self._heatmap.shots_fired_map.get(position, 0) + 1
-        )
+        self._heatmap.shots_fired_map[position] = self._heatmap.shots_fired_map.get(position, 0) + 1
 
     def record_hit(
         self,
@@ -233,22 +235,22 @@ class EnhancedAARCollector:
         if weapon_type in self._weapon_stats:
             self._weapon_stats[weapon_type].kills += 1
 
-        if killer_faction in ('allies', 'ALLIES'):
+        if killer_faction in ("allies", "ALLIES"):
             self._kills_allied += 1
             self._casualties_axis += 1
         else:
             self._kills_axis += 1
             self._casualties_allied += 1
 
-        self._heatmap.kills_map[position] = (
-            self._heatmap.kills_map.get(position, 0) + 1
-        )
+        self._heatmap.kills_map[position] = self._heatmap.kills_map.get(position, 0) + 1
 
-        self._timeline.append(AARTimelineEvent(
-            tick=tick,
-            event='KILL',
-            description=f"{killer_name} killed {victim_name}",
-        ))
+        self._timeline.append(
+            AARTimelineEvent(
+                tick=tick,
+                event="KILL",
+                description=f"{killer_name} killed {victim_name}",
+            )
+        )
 
     def record_movement(
         self,
@@ -263,9 +265,7 @@ class EnhancedAARCollector:
         dist = math.sqrt(dx * dx + dy * dy)
         self._unit_stats[unit_id].distance_moved += dist
 
-        self._heatmap.movement_map[to_pos] = (
-            self._heatmap.movement_map.get(to_pos, 0) + 1
-        )
+        self._heatmap.movement_map[to_pos] = self._heatmap.movement_map.get(to_pos, 0) + 1
         self._unit_positions[unit_id] = to_pos
 
     def record_suppression(
@@ -310,9 +310,13 @@ class EnhancedAARCollector:
         self._unit_stats[spotter_id].enemies_spotted += 1
 
     def record_timeline_event(self, tick: int, event: str, description: str) -> None:
-        self._timeline.append(AARTimelineEvent(
-            tick=tick, event=event, description=description,
-        ))
+        self._timeline.append(
+            AARTimelineEvent(
+                tick=tick,
+                event=event,
+                description=description,
+            )
+        )
 
     # ------------------------------------------------------------------
     # Report generation
@@ -402,7 +406,7 @@ class EnhancedAARCollector:
     def get_mvp(self) -> UnitAARStats:
         """Return the unit with the highest MVP score."""
         if not self._unit_stats:
-            return UnitAARStats(unit_id='', unit_name='')
+            return UnitAARStats(unit_id="", unit_name="")
         return max(self._unit_stats.values(), key=lambda u: u.mvp_score)
 
     def get_heatmap(self, heatmap_type: str) -> dict[tuple[int, int], float]:
@@ -410,12 +414,12 @@ class EnhancedAARCollector:
 
         heatmap_type: 'shots_fired' | 'kills' | 'movement' | 'suppression'
         """
-        if heatmap_type == 'shots_fired':
+        if heatmap_type == "shots_fired":
             return {k: float(v) for k, v in self._heatmap.shots_fired_map.items()}
-        if heatmap_type == 'kills':
+        if heatmap_type == "kills":
             return {k: float(v) for k, v in self._heatmap.kills_map.items()}
-        if heatmap_type == 'movement':
+        if heatmap_type == "movement":
             return {k: float(v) for k, v in self._heatmap.movement_map.items()}
-        if heatmap_type == 'suppression':
+        if heatmap_type == "suppression":
             return dict(self._heatmap.suppression_map)
         return {}

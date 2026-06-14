@@ -1,4 +1,5 @@
 """Unit tests for the voice command system."""
+
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -7,13 +8,12 @@ import numpy as np
 
 from pycc2.domain.entities.unit import Faction
 from pycc2.infrastructure.audio.voice_commands import (
+    _GERMAN_COMMANDS,
     SAMPLE_RATE,
     VoiceCommand,
     VoiceCommandGenerator,
-    _GERMAN_COMMANDS,
     play_command,
 )
-
 
 # -----------------------------------------------------------------------
 # VoiceCommand enum
@@ -23,10 +23,20 @@ from pycc2.infrastructure.audio.voice_commands import (
 class TestVoiceCommandEnum:
     def test_all_commands_defined(self):
         expected = {
-            "MOVE_OUT", "FIRE", "TAKE_COVER", "RETREAT",
-            "ENEMY_SPOTTED", "FLANK_LEFT", "FLANK_RIGHT",
-            "SUPPRESS", "HOLD_POSITION", "DEMOLISH",
-            "WAVERING", "PINNED", "BROKEN", "ROUTING",
+            "MOVE_OUT",
+            "FIRE",
+            "TAKE_COVER",
+            "RETREAT",
+            "ENEMY_SPOTTED",
+            "FLANK_LEFT",
+            "FLANK_RIGHT",
+            "SUPPRESS",
+            "HOLD_POSITION",
+            "DEMOLISH",
+            "WAVERING",
+            "PINNED",
+            "BROKEN",
+            "ROUTING",
         }
         actual = {cmd.name for cmd in VoiceCommand}
         assert actual == expected
@@ -106,35 +116,27 @@ class TestDurationComputation:
 
 class TestSoundGeneration:
     def test_generate_command_returns_int16(self):
-        result = VoiceCommandGenerator.generate_command(
-            VoiceCommand.FIRE, Faction.ALLIES
-        )
+        result = VoiceCommandGenerator.generate_command(VoiceCommand.FIRE, Faction.ALLIES)
         assert isinstance(result, np.ndarray)
         assert result.dtype == np.int16
 
     def test_generate_command_non_empty(self):
-        result = VoiceCommandGenerator.generate_command(
-            VoiceCommand.MOVE_OUT, Faction.ALLIES
+        result = VoiceCommandGenerator.generate_command(VoiceCommand.MOVE_OUT, Faction.ALLIES)
+        assert len(result) >= 1, (
+            f"Generated command should have at least 1 sample, got {len(result)}"
         )
-        assert len(result) >= 1, f"Generated command should have at least 1 sample, got {len(result)}"
         assert np.any(result != 0)
 
     def test_generate_command_sample_count(self):
         text = VoiceCommand.FIRE.value
         dur = VoiceCommandGenerator._compute_duration(text)
-        result = VoiceCommandGenerator.generate_command(
-            VoiceCommand.FIRE, Faction.ALLIES
-        )
+        result = VoiceCommandGenerator.generate_command(VoiceCommand.FIRE, Faction.ALLIES)
         expected = int(SAMPLE_RATE * dur)
         assert len(result) == expected
 
     def test_axis_command_different_from_allies(self):
-        allies = VoiceCommandGenerator.generate_command(
-            VoiceCommand.FIRE, Faction.ALLIES
-        )
-        axis = VoiceCommandGenerator.generate_command(
-            VoiceCommand.FIRE, Faction.AXIS
-        )
+        allies = VoiceCommandGenerator.generate_command(VoiceCommand.FIRE, Faction.ALLIES)
+        axis = VoiceCommandGenerator.generate_command(VoiceCommand.FIRE, Faction.AXIS)
         # Different text → different duration or different waveform
         assert not np.array_equal(allies, axis)
 
@@ -152,12 +154,8 @@ class TestVolumeScaling:
         assert np.all(result == 0)
 
     def test_volume_half_reduces_amplitude(self):
-        full = VoiceCommandGenerator.generate_command(
-            VoiceCommand.FIRE, Faction.ALLIES, volume=1.0
-        )
-        half = VoiceCommandGenerator.generate_command(
-            VoiceCommand.FIRE, Faction.ALLIES, volume=0.5
-        )
+        full = VoiceCommandGenerator.generate_command(VoiceCommand.FIRE, Faction.ALLIES, volume=1.0)
+        half = VoiceCommandGenerator.generate_command(VoiceCommand.FIRE, Faction.ALLIES, volume=0.5)
         assert np.max(np.abs(half)) <= np.max(np.abs(full))
 
     def test_volume_one_non_silent(self):
@@ -174,7 +172,9 @@ class TestVolumeScaling:
 
 class TestPlayCommand:
     def test_play_command_with_mocked_pygame(self):
-        with patch("pycc2.infrastructure.audio.voice_commands.VoiceCommandGenerator.generate_command") as mock_gen:
+        with patch(
+            "pycc2.infrastructure.audio.voice_commands.VoiceCommandGenerator.generate_command"
+        ) as mock_gen:
             mock_gen.return_value = np.zeros(1000, dtype=np.int16)
             with patch("pygame.mixer.init"):
                 with patch("pygame.mixer.get_init", return_value=True):
@@ -185,7 +185,9 @@ class TestPlayCommand:
 
     def test_play_command_graceful_without_pygame(self):
         # Should not raise even if pygame is unavailable
-        with patch("pycc2.infrastructure.audio.voice_commands.VoiceCommandGenerator.generate_command") as mock_gen:
+        with patch(
+            "pycc2.infrastructure.audio.voice_commands.VoiceCommandGenerator.generate_command"
+        ) as mock_gen:
             mock_gen.return_value = np.zeros(1000, dtype=np.int16)
             with patch.dict("sys.modules", {"pygame": None}):
                 # This will trigger the except branch in play_command

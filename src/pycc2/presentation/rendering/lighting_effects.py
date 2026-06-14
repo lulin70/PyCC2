@@ -12,6 +12,7 @@
 Created: v0.3.9 (extracted from enhanced_renderer.py ~280 lines)
 """
 
+import contextlib
 import logging
 from typing import TYPE_CHECKING
 
@@ -45,10 +46,10 @@ class LightingEffectsSystem:
     """
 
     def __init__(
-        self, 
-        lighting_config: 'TopDownLightingConfig',
+        self,
+        lighting_config: "TopDownLightingConfig",
         tile_size: int = 32,
-        max_dynamic_lights: int = 8
+        max_dynamic_lights: int = 8,
     ):
         """
         初始化光照效果系统。
@@ -96,11 +97,9 @@ class LightingEffectsSystem:
         color = base_color
 
         hp_ratio = 1.0
-        if hasattr(unit, 'health') and unit.health:
-            try:
+        if hasattr(unit, "health") and unit.health:
+            with contextlib.suppress(AttributeError, ZeroDivisionError):
                 hp_ratio = unit.health.hp / max(unit.health.max_hp, 1)
-            except (AttributeError, ZeroDivisionError):
-                pass
 
         if hp_ratio > 0.75:
             pass  # 健康状态，不修改颜色
@@ -150,6 +149,7 @@ class LightingEffectsSystem:
 
         try:
             import numpy as np
+
             arr = pygame.surfarray.pixels3d(result)
             float_arr = arr.astype(np.float32) * brightness_factor
             np.clip(float_arr, 0, 255, out=float_arr)
@@ -261,14 +261,14 @@ class LightingEffectsSystem:
         arr = arr * 0.85 + gray * 0.15
 
         # 3. 轻微偏暖 (增加红色通道5%)
-        arr[:,:,0] = np.clip(arr[:,:,0] * 1.05, 0, 255)
+        arr[:, :, 0] = np.clip(arr[:, :, 0] * 1.05, 0, 255)
 
         # 4. 轻微增加对比度 (S-curve midtone boost)
         arr = np.clip(arr * 1.05 - 10, 0, 255)
 
         # 转回 uint8 并写回 surface
         arr = arr.astype(np.uint8)
-        pygame.surfarray.blit_array(surface, arr.swapaxes(0,1))
+        pygame.surfarray.blit_array(surface, arr.swapaxes(0, 1))
 
     def apply_cc2_color_grading_cached(self, surface: pygame.Surface) -> None:
         """
@@ -290,12 +290,12 @@ class LightingEffectsSystem:
         self.apply_cc2_color_grading(surface)
 
     def spawn_dynamic_light(
-        self, 
-        position: tuple[int, int], 
-        radius: float, 
+        self,
+        position: tuple[int, int],
+        radius: float,
         intensity: float,
         color: tuple[int, int, int] = (255, 255, 200),
-        duration_ms: int = 200
+        duration_ms: int = 200,
     ) -> None:
         """
         注册一个动态点光源。
@@ -320,14 +320,16 @@ class LightingEffectsSystem:
         MAX_RADIUS = 200
         capped_radius = min(radius, MAX_RADIUS)
 
-        self._dynamic_lights.append({
-            'position': position,
-            'radius': capped_radius,
-            'intensity': max(0.0, min(1.0, intensity)),
-            'color': color,
-            'remaining_ms': duration_ms,
-            'max_duration': duration_ms,
-        })
+        self._dynamic_lights.append(
+            {
+                "position": position,
+                "radius": capped_radius,
+                "intensity": max(0.0, min(1.0, intensity)),
+                "color": color,
+                "remaining_ms": duration_ms,
+                "max_duration": duration_ms,
+            }
+        )
 
     def update_dynamic_lights(self, dt_ms: int) -> None:
         """
@@ -343,8 +345,8 @@ class LightingEffectsSystem:
 
         expired = []
         for light in self._dynamic_lights:
-            light['remaining_ms'] -= dt_ms
-            if light['remaining_ms'] <= 0:
+            light["remaining_ms"] -= dt_ms
+            if light["remaining_ms"] <= 0:
                 expired.append(light)
 
         for light in expired:
@@ -376,13 +378,13 @@ class LightingEffectsSystem:
 
         for light in self._dynamic_lights:
             # 计算生命周期进度 (1.0 = 刚生成, 0.0 = 即将过期)
-            progress = light['remaining_ms'] / light['max_duration']
+            progress = light["remaining_ms"] / light["max_duration"]
 
             # 强度随时间衰减（线性衰减）
-            current_intensity = light['intensity'] * progress
+            current_intensity = light["intensity"] * progress
 
             # 半径先扩大后收缩（视觉效果）
-            radius = int(light['radius'] * (2.0 - progress * 0.5))
+            radius = int(light["radius"] * (2.0 - progress * 0.5))
 
             # 为此光源创建表面
             light_surf = self._get_light_surface(radius * 2, radius * 2)
@@ -398,13 +400,11 @@ class LightingEffectsSystem:
                 alpha = int(current_intensity * 255 * (1.0 - r_factor) * 0.5)
                 alpha = min(255, max(0, alpha))  # 限制到有效范围
 
-                color = (*light['color'], alpha)
+                color = (*light["color"], alpha)
                 pygame.draw.circle(light_surf, color, (radius, radius), r)
 
             # 使用加法混合绘制到目标表面（发光效果）
-            pos = light['position']
+            pos = light["position"]
             surface.blit(
-                light_surf, 
-                (pos[0] - radius, pos[1] - radius),
-                special_flags=pygame.BLEND_RGBA_ADD
+                light_surf, (pos[0] - radius, pos[1] - radius), special_flags=pygame.BLEND_RGBA_ADD
             )

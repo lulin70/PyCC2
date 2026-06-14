@@ -7,10 +7,14 @@ Provides unified interface for combat event sound triggering.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
-from typing import Callable
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +23,7 @@ from pygame import mixer
 
 class CombatSoundEvent(Enum):
     """Sound events triggered by combat actions."""
+
     RIFLE_FIRE = auto()
     MG_FIRE = auto()
     PISTOL_FIRE = auto()
@@ -55,6 +60,7 @@ class CombatSoundEvent(Enum):
 @dataclass(slots=True)
 class SoundFileMapping:
     """Maps combat events to actual audio file paths."""
+
     event: CombatSoundEvent
     file_path: str
     volume: float = 1.0
@@ -319,7 +325,6 @@ class EnhancedSoundSystem:
     ) -> mixer.Sound | None:
         """Generate CC2-specific combat sounds procedurally."""
         try:
-
             generators = {
                 CombatSoundEvent.TANK_CANNON_FIRE: self._gen_tank_cannon_fire,
                 CombatSoundEvent.AT_ROCKET_FIRE: self._gen_at_rocket_fire,
@@ -362,8 +367,10 @@ class EnhancedSoundSystem:
         decay = int(samples * 0.15)
         envelope = np.ones(samples)
         envelope[:attack] = np.linspace(0, 1, attack)
-        envelope[attack:attack + decay] = np.exp(-3 * np.arange(decay) / decay)
-        envelope[attack + decay:] *= np.exp(-1.5 * np.arange(samples - attack - decay) / (samples - attack - decay))
+        envelope[attack : attack + decay] = np.exp(-3 * np.arange(decay) / decay)
+        envelope[attack + decay :] *= np.exp(
+            -1.5 * np.arange(samples - attack - decay) / (samples - attack - decay)
+        )
 
         base_freq = 60
         fundamental = np.sin(2 * np.pi * base_freq * t) * 0.6
@@ -404,12 +411,9 @@ class EnhancedSoundSystem:
         if explosion_start < samples:
             exp_samples = samples - explosion_start
             exp_t = np.linspace(0, exp_samples / 44100, exp_samples)
-            explosion[explosion_start:] = (
-                np.random.uniform(-1, 1, exp_samples) * 0.8 *
-                np.exp(-4 * exp_t / (exp_samples / 44100)) +
-                np.sin(2 * np.pi * 45 * exp_t) * 0.4 *
-                np.exp(-5 * exp_t / (exp_samples / 44100))
-            )
+            explosion[explosion_start:] = np.random.uniform(-1, 1, exp_samples) * 0.8 * np.exp(
+                -4 * exp_t / (exp_samples / 44100)
+            ) + np.sin(2 * np.pi * 45 * exp_t) * 0.4 * np.exp(-5 * exp_t / (exp_samples / 44100))
 
         signal = np.zeros(samples)
         signal[:launch_duration] = whoosh
@@ -432,8 +436,8 @@ class EnhancedSoundSystem:
 
         thump = np.zeros(samples)
         thump[:thump_samples] = (
-            np.sin(2 * np.pi * 80 * np.linspace(0, 0.05, thump_samples)) * 0.7 +
-            np.random.uniform(-0.4, 0.4, thump_samples)
+            np.sin(2 * np.pi * 80 * np.linspace(0, 0.05, thump_samples)) * 0.7
+            + np.random.uniform(-0.4, 0.4, thump_samples)
         ) * np.exp(-8 * np.arange(thump_samples) / thump_samples)
 
         whistle = np.zeros(samples)
@@ -442,10 +446,9 @@ class EnhancedSoundSystem:
             whistle_t = np.linspace(0, whistle_samples / 44100, whistle_samples)
             freq = np.linspace(400, 150, whistle_samples)
             phase = np.cumsum(2 * np.pi * freq / 44100)
-            whistle[whistle_start:] = (
-                np.sin(phase) * 0.4 +
-                np.sin(phase * 1.5) * 0.2
-            ) * np.exp(-1.2 * whistle_t / (duration_ms / 1000))
+            whistle[whistle_start:] = (np.sin(phase) * 0.4 + np.sin(phase * 1.5) * 0.2) * np.exp(
+                -1.2 * whistle_t / (duration_ms / 1000)
+            )
 
         impact = np.zeros(samples)
         impact_start = int(0.85 * samples)
@@ -453,8 +456,9 @@ class EnhancedSoundSystem:
             impact_samples = samples - impact_start
             impact_t = np.linspace(0, impact_samples / 44100, impact_samples)
             impact[impact_start:] = (
-                np.random.uniform(-1, 1, impact_samples) * 0.6 *
-                np.exp(-6 * impact_t / (impact_samples / 44100))
+                np.random.uniform(-1, 1, impact_samples)
+                * 0.6
+                * np.exp(-6 * impact_t / (impact_samples / 44100))
             )
 
         signal = thump + whistle + impact
@@ -477,10 +481,10 @@ class EnhancedSoundSystem:
 
         base_freq = 150
         signal = (
-            np.sin(2 * np.pi * base_freq * t) * 0.5 +
-            np.sin(2 * np.pi * base_freq * 2.1 * t) * 0.3 +
-            np.sin(2 * np.pi * base_freq * 3.5 * t) * 0.2 +
-            np.random.uniform(-1, 1, samples) * 0.6
+            np.sin(2 * np.pi * base_freq * t) * 0.5
+            + np.sin(2 * np.pi * base_freq * 2.1 * t) * 0.3
+            + np.sin(2 * np.pi * base_freq * 3.5 * t) * 0.2
+            + np.random.uniform(-1, 1, samples) * 0.6
         ) * envelope
 
         signal = np.clip(signal, -1, 1)
@@ -511,12 +515,13 @@ class EnhancedSoundSystem:
             attack = min(int(actual_samples * 0.02), actual_samples)
             envelope = np.ones(actual_samples)
             envelope[:attack] = np.linspace(0, 1, attack)
-            envelope[attack:] *= np.exp(-5 * np.arange(actual_samples - attack) / (actual_samples - attack))
+            envelope[attack:] *= np.exp(
+                -5 * np.arange(actual_samples - attack) / (actual_samples - attack)
+            )
 
             explosion = (
-                np.random.uniform(-1, 1, actual_samples) * 0.9 *
-                envelope +
-                np.sin(2 * np.pi * 55 * t) * 0.4 * envelope
+                np.random.uniform(-1, 1, actual_samples) * 0.9 * envelope
+                + np.sin(2 * np.pi * 55 * t) * 0.4 * envelope
             )
 
             volume_factor = 1.0 - (offset_ms / 600) * 0.3
@@ -541,8 +546,8 @@ class EnhancedSoundSystem:
 
             crank = np.zeros(samples)
             crank[:crank_duration] = (
-                np.sin(2 * np.pi * 8 * np.linspace(0, 0.4, crank_duration)) * 0.5 +
-                np.random.uniform(-0.3, 0.3, crank_duration)
+                np.sin(2 * np.pi * 8 * np.linspace(0, 0.4, crank_duration)) * 0.5
+                + np.random.uniform(-0.3, 0.3, crank_duration)
             ) * np.repeat(np.linspace(1, 0.6, crank_duration), 1)
 
             engine_rpm = np.linspace(400, 700, samples)
@@ -561,9 +566,9 @@ class EnhancedSoundSystem:
 
             base_rpm = 500
             engine = (
-                np.sin(2 * np.pi * base_rpm * t) * 0.4 +
-                np.sin(2 * np.pi * base_rpm * 2 * t) * 0.2 +
-                np.sin(2 * np.pi * base_rpm * 0.5 * t) * 0.3
+                np.sin(2 * np.pi * base_rpm * t) * 0.4
+                + np.sin(2 * np.pi * base_rpm * 2 * t) * 0.2
+                + np.sin(2 * np.pi * base_rpm * 0.5 * t) * 0.3
             )
             pulse = 0.15 * np.sin(2 * np.pi * 12 * t)
             rumble = np.random.uniform(-0.1, 0.1, samples) * 0.5
@@ -587,7 +592,9 @@ class EnhancedSoundSystem:
             clatter_interval = int(44100 / 30)
             for i in range(0, samples - 50, clatter_interval):
                 end = min(i + 50, samples)
-                track_clatter[i:end] = np.random.uniform(-0.2, 0.2, end - i) * np.exp(-0.5 * np.arange(end - i) / 50)
+                track_clatter[i:end] = np.random.uniform(-0.2, 0.2, end - i) * np.exp(
+                    -0.5 * np.arange(end - i) / 50
+                )
 
             signal = engine + track_clatter
             signal = np.clip(signal, -1, 1)
@@ -609,9 +616,9 @@ class EnhancedSoundSystem:
         envelope[attack:] *= np.exp(-8 * np.arange(samples - attack) / (samples - attack))
 
         metal_strike = (
-            np.sin(2 * np.pi * 2500 * t) * 0.5 +
-            np.sin(2 * np.pi * 3200 * t) * 0.3 +
-            np.sin(2 * np.pi * 4100 * t) * 0.2
+            np.sin(2 * np.pi * 2500 * t) * 0.5
+            + np.sin(2 * np.pi * 3200 * t) * 0.3
+            + np.sin(2 * np.pi * 4100 * t) * 0.2
         )
         screech = np.sin(2 * np.pi * 6000 * t) * 0.3 * np.exp(-15 * t / (duration_ms / 1000))
 
@@ -622,8 +629,9 @@ class EnhancedSoundSystem:
             ring_t = np.linspace(0, ring_samples / 44100, ring_samples)
             ring_freq = 1800
             ring_decay[ring_start:] = (
-                np.sin(2 * np.pi * ring_freq * ring_t) * 0.25 *
-                np.exp(-3 * ring_t / (ring_samples / 44100))
+                np.sin(2 * np.pi * ring_freq * ring_t)
+                * 0.25
+                * np.exp(-3 * ring_t / (ring_samples / 44100))
             )
 
         signal = (metal_strike + screech + ring_decay) * envelope
@@ -646,8 +654,7 @@ class EnhancedSoundSystem:
 
         hit_t = np.linspace(0, initial_hit / 44100, initial_hit)
         signal[:initial_hit] = (
-            np.sin(2 * np.pi * 1200 * hit_t) * 0.6 +
-            np.random.uniform(-0.3, 0.3, initial_hit)
+            np.sin(2 * np.pi * 1200 * hit_t) * 0.6 + np.random.uniform(-0.3, 0.3, initial_hit)
         ) * np.exp(-10 * np.arange(initial_hit) / initial_hit)
 
         for bounce_start in [bounce1_start, bounce2_start]:
@@ -656,9 +663,9 @@ class EnhancedSoundSystem:
                 bounce_t = np.linspace(0, bounce_len / 44100, bounce_len)
                 freq = 900 if bounce_start == bounce1_start else 650
                 amplitude = 0.35 if bounce_start == bounce1_start else 0.2
-                signal[bounce_start:bounce_start + bounce_len] += (
-                    np.sin(2 * np.pi * freq * bounce_t) * amplitude +
-                    np.random.uniform(-0.15, 0.15, bounce_len) * amplitude
+                signal[bounce_start : bounce_start + bounce_len] += (
+                    np.sin(2 * np.pi * freq * bounce_t) * amplitude
+                    + np.random.uniform(-0.15, 0.15, bounce_len) * amplitude
                 ) * np.exp(-8 * np.arange(bounce_len) / bounce_len)
 
         echo_decay = np.exp(-2 * t / (duration_ms / 1000))
@@ -704,7 +711,9 @@ class EnhancedSoundSystem:
 
         hiss_start = int(0.02 * 44100)
         burst = np.zeros(samples)
-        burst[:hiss_start] = raw_noise[:hiss_start] * 0.8 * np.exp(-20 * np.arange(hiss_start) / hiss_start)
+        burst[:hiss_start] = (
+            raw_noise[:hiss_start] * 0.8 * np.exp(-20 * np.arange(hiss_start) / hiss_start)
+        )
 
         sustained = raw_noise * 0.4 * np.exp(-0.8 * t / (duration_ms / 1000))
 
@@ -736,11 +745,11 @@ class EnhancedSoundSystem:
             burst_env = np.exp(-15 * np.arange(burst_len) / burst_len)
 
             shot = (
-                np.sin(2 * np.pi * 180 * burst_t) * 0.5 * burst_env +
-                np.random.uniform(-0.4, 0.4, burst_len) * burst_env
+                np.sin(2 * np.pi * 180 * burst_t) * 0.5 * burst_env
+                + np.random.uniform(-0.4, 0.4, burst_len) * burst_env
             )
 
-            signal[burst_start:burst_start + burst_len] += shot
+            signal[burst_start : burst_start + burst_len] += shot
 
         overall_envelope = np.ones(samples)
         fade_out = int(samples * 0.85)
@@ -767,12 +776,20 @@ class EnhancedSoundSystem:
             generators = {
                 CombatSoundEvent.RIFLE_FIRE: lambda: ProceduralSoundGenerator.generate_rifle_shot(),
                 CombatSoundEvent.MG_FIRE: lambda: ProceduralSoundGenerator.generate_mg_burst(),
-                CombatSoundEvent.PISTOL_FIRE: lambda: ProceduralSoundGenerator.generate_rifle_shot(duration_ms=80),
+                CombatSoundEvent.PISTOL_FIRE: lambda: ProceduralSoundGenerator.generate_rifle_shot(
+                    duration_ms=80
+                ),
                 CombatSoundEvent.EXPLOSION: lambda: ProceduralSoundGenerator.generate_explosion(),
-                CombatSoundEvent.HIT_CONFIRM: lambda: ProceduralSoundGenerator.generate_hit_confirm(),
-                CombatSoundEvent.HIT_CRITICAL: lambda: ProceduralSoundGenerator.generate_hit_confirm(duration_ms=120),
+                CombatSoundEvent.HIT_CONFIRM: lambda: (
+                    ProceduralSoundGenerator.generate_hit_confirm()
+                ),
+                CombatSoundEvent.HIT_CRITICAL: lambda: (
+                    ProceduralSoundGenerator.generate_hit_confirm(duration_ms=120)
+                ),
                 CombatSoundEvent.UNIT_DEATH: lambda: ProceduralSoundGenerator.generate_death_cry(),
-                CombatSoundEvent.WEAPON_RELOAD: lambda: ProceduralSoundGenerator.click(duration_ms=50, frequency=400),
+                CombatSoundEvent.WEAPON_RELOAD: lambda: ProceduralSoundGenerator.click(
+                    duration_ms=50, frequency=400
+                ),
             }
 
             generator = generators.get(event)

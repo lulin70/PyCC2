@@ -11,15 +11,15 @@ Provides 5 camera effect types for immersive gameplay:
 All effects managed by EffectStack with priority queuing.
 """
 
-from enum import Enum, auto
-from dataclasses import dataclass
 import math
 import random
-from typing import List, Tuple
+from dataclasses import dataclass
+from enum import Enum, auto
 
 
 class EffectType(Enum):
     """Camera effect type enumeration."""
+
     SHAKE = auto()
     ZOOM_IMPACT = auto()
     SLOW_MOTION = auto()
@@ -30,6 +30,7 @@ class EffectType(Enum):
 @dataclass
 class CameraEffect:
     """Single camera effect configuration and state."""
+
     effect_type: EffectType
     intensity: float = 1.0
     duration: float = 0.3
@@ -74,7 +75,7 @@ class CameraEffect:
         else:
             return t
 
-    def get_offset(self) -> Tuple[float, float]:
+    def get_offset(self) -> tuple[float, float]:
         """Calculate current offset based on effect type and progress."""
         progress = self.apply_easing(self.get_progress())
 
@@ -93,13 +94,11 @@ class CameraEffect:
                 offset = self.push_distance * (1 - pull_progress) * self.intensity
                 return (-offset * 0.5, -offset * 0.5)
 
-        elif self.effect_type == EffectType.ZOOM_IMPACT:
-            return (0.0, 0.0)
-
-        elif self.effect_type == EffectType.SLOW_MOTION:
-            return (0.0, 0.0)
-
-        elif self.effect_type == EffectType.SCREEN_FREEZE:
+        elif (
+            self.effect_type == EffectType.ZOOM_IMPACT
+            or self.effect_type == EffectType.SLOW_MOTION
+            or self.effect_type == EffectType.SCREEN_FREEZE
+        ):
             return (0.0, 0.0)
 
         return (0.0, 0.0)
@@ -109,7 +108,7 @@ class EffectStack:
     """Manages multiple simultaneous camera effects with priority queuing."""
 
     def __init__(self, max_effects: int = 8):
-        self._effects: List[CameraEffect] = []
+        self._effects: list[CameraEffect] = []
         self._max_effects = max_effects
 
     def push(self, effect: CameraEffect) -> None:
@@ -132,7 +131,7 @@ class EffectStack:
     def is_empty(self) -> bool:
         return len(self._effects) == 0
 
-    def get_total_offset(self) -> Tuple[float, float]:
+    def get_total_offset(self) -> tuple[float, float]:
         """Calculate combined offset from all active effects."""
         total_x = 0.0
         total_y = 0.0
@@ -171,9 +170,7 @@ class EffectStack:
     def is_frozen(self) -> bool:
         """Check if any SCREEN_FREEZE effect is active."""
         return any(
-            e.effect_type == EffectType.SCREEN_FREEZE 
-            for e in self._effects
-            if not e.is_complete()
+            e.effect_type == EffectType.SCREEN_FREEZE for e in self._effects if not e.is_complete()
         )
 
     def __len__(self) -> int:
@@ -182,6 +179,7 @@ class EffectStack:
 
 # Convenience factory functions for common effects
 
+
 def create_shake(intensity: float = 3.0, duration: float = 0.15, priority: int = 5) -> CameraEffect:
     """Create a screen shake effect."""
     return CameraEffect(
@@ -189,15 +187,12 @@ def create_shake(intensity: float = 3.0, duration: float = 0.15, priority: int =
         intensity=intensity,
         duration=duration,
         easing="ease_out",
-        priority=priority
+        priority=priority,
     )
 
 
 def create_zoom_impact(
-    zoom_factor: float = 0.8,
-    duration: float = 0.15,
-    recover: float = 0.5,
-    priority: int = 10
+    zoom_factor: float = 0.8, duration: float = 0.15, recover: float = 0.5, priority: int = 10
 ) -> CameraEffect:
     """Create a zoom impact effect (quick zoom out + slow recover)."""
     return CameraEffect(
@@ -207,14 +202,12 @@ def create_zoom_impact(
         easing="ease_in_out",
         priority=priority,
         zoom_factor=zoom_factor,
-        recover_duration=recover
+        recover_duration=recover,
     )
 
 
 def create_slow_motion(
-    time_scale: float = 0.3,
-    duration: float = 1.0,
-    priority: int = 15
+    time_scale: float = 0.3, duration: float = 1.0, priority: int = 15
 ) -> CameraEffect:
     """Create a slow motion effect."""
     return CameraEffect(
@@ -223,14 +216,12 @@ def create_slow_motion(
         duration=duration,
         easing="ease_in_out",
         priority=priority,
-        time_scale=time_scale
+        time_scale=time_scale,
     )
 
 
 def create_push_pull(
-    distance: float = 30.0,
-    duration: float = 0.4,
-    priority: int = 8
+    distance: float = 30.0, duration: float = 0.4, priority: int = 8
 ) -> CameraEffect:
     """Create a push-pull camera effect."""
     return CameraEffect(
@@ -239,7 +230,7 @@ def create_push_pull(
         duration=duration,
         easing="ease_out",
         priority=priority,
-        push_distance=distance
+        push_distance=distance,
     )
 
 
@@ -250,5 +241,5 @@ def create_screen_freeze(duration: float = 0.3, priority: int = 20) -> CameraEff
         intensity=1.0,
         duration=duration,
         easing="linear",
-        priority=priority
+        priority=priority,
     )

@@ -59,40 +59,43 @@ _OBSERVER_TYPES: set[UnitType] = {
     UnitType.SNIPER_TEAM,
 }
 
-CALL_DELAY_TICKS: int = 10         # Radio communication time
-FIRE_DELAY_TICKS: int = 30         # Artillery travel time
-CORRECTION_DELAY_TICKS: int = 5    # Correction for second salvo
-IMPACT_RADIUS: int = 1             # 3x3 area (Chebyshev radius 1)
-DAMAGE_PER_TILE: int = 15          # Damage per tile in impact zone
-SUPPRESSION_PER_TILE: float = 20.0 # Suppression per tile in impact zone
-MAX_FIRE_MISSIONS: int = 2         # Limited ammo per battle
-MINIMUM_RANGE: int = 10            # Cannot call in own sector
-FOG_SCATTER: int = 3               # Extra scatter in fog
-RAIN_SCATTER: int = 2              # Extra scatter in rain
+CALL_DELAY_TICKS: int = 10  # Radio communication time
+FIRE_DELAY_TICKS: int = 30  # Artillery travel time
+CORRECTION_DELAY_TICKS: int = 5  # Correction for second salvo
+IMPACT_RADIUS: int = 1  # 3x3 area (Chebyshev radius 1)
+DAMAGE_PER_TILE: int = 15  # Damage per tile in impact zone
+SUPPRESSION_PER_TILE: float = 20.0  # Suppression per tile in impact zone
+MAX_FIRE_MISSIONS: int = 2  # Limited ammo per battle
+MINIMUM_RANGE: int = 10  # Cannot call in own sector
+FOG_SCATTER: int = 3  # Extra scatter in fog
+RAIN_SCATTER: int = 2  # Extra scatter in rain
 
 
 # ---------------------------------------------------------------------------
 # ArtilleryState
 # ---------------------------------------------------------------------------
 
+
 class ArtilleryPhase(Enum):
     """Phases of an artillery call-in."""
-    AVAILABLE = auto()     # Observer available, no mission active
-    CALLING = auto()       # Radio call in progress
-    INCOMING = auto()      # Shells in the air
-    CORRECTION = auto()    # Observer adjusting for second salvo
-    COMPLETE = auto()      # Mission finished
+
+    AVAILABLE = auto()  # Observer available, no mission active
+    CALLING = auto()  # Radio call in progress
+    INCOMING = auto()  # Shells in the air
+    CORRECTION = auto()  # Observer adjusting for second salvo
+    COMPLETE = auto()  # Mission finished
 
 
 @dataclass(slots=True)
 class ArtilleryMission:
     """Tracks a single artillery fire mission."""
+
     observer_id: str
     target_pos: TileCoord
     phase: ArtilleryPhase = ArtilleryPhase.CALLING
     timer: int = 0
     salvos_fired: int = 0
-    scatter: int = 0       # Current scatter from weather/correction
+    scatter: int = 0  # Current scatter from weather/correction
 
     def advance(self) -> None:
         """Advance the mission by one tick."""
@@ -116,6 +119,7 @@ class ArtilleryMission:
 # ---------------------------------------------------------------------------
 # ArtilleryManager
 # ---------------------------------------------------------------------------
+
 
 class ArtilleryManager:
     """Manages all artillery missions for a faction.
@@ -189,7 +193,9 @@ class ArtilleryManager:
         return impacted
 
     def calculate_impact_area(
-        self, mission: ArtilleryMission, game_map: GameMap,
+        self,
+        mission: ArtilleryMission,
+        game_map: GameMap,
     ) -> list[TileCoord]:
         """Calculate the actual impact tiles for a mission.
 
@@ -201,6 +207,7 @@ class ArtilleryManager:
         # Apply scatter offset
         if scatter > 0:
             import random
+
             dx = random.randint(-scatter, scatter)
             dy = random.randint(-scatter, scatter)
             actual_center = TileCoord(target.x + dx, target.y + dy)
@@ -228,9 +235,7 @@ class ArtilleryManager:
         Returns list of effect dicts for event publishing.
         """
         effects: list[dict] = []
-        impact_set: set[tuple[int, int]] = {
-            (t.x, t.y) for t in impact_tiles
-        }
+        impact_set: set[tuple[int, int]] = {(t.x, t.y) for t in impact_tiles}
 
         for unit in units:
             if not unit.is_alive:
@@ -240,18 +245,20 @@ class ArtilleryManager:
                 # Apply damage
                 damage = unit.take_damage(DAMAGE_PER_TILE)
                 # Apply heavy suppression
-                combat_state = getattr(unit, 'combat_state', None)
+                combat_state = getattr(unit, "combat_state", None)
                 if combat_state is not None:
-                    suppression = getattr(combat_state, 'suppression', None)
+                    suppression = getattr(combat_state, "suppression", None)
                     if suppression is not None:
                         suppression.apply_suppression(SUPPRESSION_PER_TILE)
 
-                effects.append({
-                    'unit_id': unit.id,
-                    'damage': damage,
-                    'suppression': SUPPRESSION_PER_TILE,
-                    'source': 'artillery',
-                })
+                effects.append(
+                    {
+                        "unit_id": unit.id,
+                        "damage": damage,
+                        "suppression": SUPPRESSION_PER_TILE,
+                        "source": "artillery",
+                    }
+                )
 
         return effects
 
@@ -262,6 +269,7 @@ class ArtilleryManager:
             return 0
 
         from pycc2.domain.systems.environment import WeatherCondition
+
         if environment.weather == WeatherCondition.FOG:
             return FOG_SCATTER
         elif environment.weather == WeatherCondition.RAIN:
@@ -272,6 +280,7 @@ class ArtilleryManager:
 # ---------------------------------------------------------------------------
 # ArtilleryCallinAI
 # ---------------------------------------------------------------------------
+
 
 class ArtilleryCallinAI(TacticalAIBase):
     """Evaluate when to call artillery and issue CALL_ARTILLERY orders.
@@ -334,9 +343,7 @@ class ArtilleryCallinAI(TacticalAIBase):
             return []
 
         # Check LOS
-        if not context.game_map.has_line_of_sight(
-            best_observer.position.tile_coord, target
-        ):
+        if not context.game_map.has_line_of_sight(best_observer.position.tile_coord, target):
             return []
 
         # Check for friendly units in impact zone
@@ -358,7 +365,8 @@ class ArtilleryCallinAI(TacticalAIBase):
     def _available_observers(context: TacticalContext) -> list[Unit]:
         """Find available forward observers."""
         return [
-            u for u in context.friendly_units
+            u
+            for u in context.friendly_units
             if u.is_alive
             and u.can_act
             and u.unit_type in _OBSERVER_TYPES
@@ -380,10 +388,10 @@ class ArtilleryCallinAI(TacticalAIBase):
         best_density = 0
         for e in enemies:
             nearby = sum(
-                1 for other in enemies
-                if other.position.tile_coord.chebyshev_distance(
-                    e.position.tile_coord
-                ) <= IMPACT_RADIUS + 1
+                1
+                for other in enemies
+                if other.position.tile_coord.chebyshev_distance(e.position.tile_coord)
+                <= IMPACT_RADIUS + 1
             )
             best_density = max(best_density, nearby)
 
@@ -391,7 +399,8 @@ class ArtilleryCallinAI(TacticalAIBase):
 
     @staticmethod
     def _any_observer_has_los(
-        observers: list[Unit], context: TacticalContext,
+        observers: list[Unit],
+        context: TacticalContext,
     ) -> float:
         """Check if any observer has LOS to an enemy concentration.
 
@@ -423,7 +432,8 @@ class ArtilleryCallinAI(TacticalAIBase):
         for e in enemies:
             pos = e.position.tile_coord
             nearby = sum(
-                1 for other in enemies
+                1
+                for other in enemies
                 if other.position.tile_coord.chebyshev_distance(pos) <= IMPACT_RADIUS + 1
             )
             if nearby > best_count:
@@ -444,9 +454,7 @@ class ArtilleryCallinAI(TacticalAIBase):
         """
         candidates: list[tuple[Unit, int]] = []
         for obs in observers:
-            if not context.game_map.has_line_of_sight(
-                obs.position.tile_coord, target
-            ):
+            if not context.game_map.has_line_of_sight(obs.position.tile_coord, target):
                 continue
             dist = obs.position.tile_coord.chebyshev_distance(target)
             if dist < MINIMUM_RANGE:
@@ -461,7 +469,8 @@ class ArtilleryCallinAI(TacticalAIBase):
 
     @staticmethod
     def _friendly_in_impact_zone(
-        target: TileCoord, context: TacticalContext,
+        target: TileCoord,
+        context: TacticalContext,
     ) -> bool:
         """Check if any friendly units are in the potential impact zone."""
         for u in context.friendly_units:

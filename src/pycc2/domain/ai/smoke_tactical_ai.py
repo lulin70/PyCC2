@@ -75,6 +75,7 @@ _NEBELTRUPP_WEAPON_ID: str = "nebeltrupp_smoke"
 # SmokeDeployment
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class SmokeDeployment:
     """Tracks an active smoke cloud on the battlefield."""
@@ -113,6 +114,7 @@ class SmokeDeployment:
 # ---------------------------------------------------------------------------
 # SmokeManager
 # ---------------------------------------------------------------------------
+
 
 class SmokeManager:
     """Manages all active smoke deployments on the battlefield.
@@ -156,10 +158,7 @@ class SmokeManager:
         A smoke cloud blocks LOS if the line between the two positions
         passes through the cloud's radius.
         """
-        for smoke in self._deployments:
-            if self._line_intersects_smoke(pos_a, pos_b, smoke):
-                return True
-        return False
+        return any(self._line_intersects_smoke(pos_a, pos_b, smoke) for smoke in self._deployments)
 
     @staticmethod
     def _line_intersects_smoke(
@@ -194,7 +193,9 @@ class SmokeManager:
         return False
 
     def accuracy_modifier_through_smoke(
-        self, pos_a: tuple[int, int], pos_b: tuple[int, int],
+        self,
+        pos_a: tuple[int, int],
+        pos_b: tuple[int, int],
     ) -> float:
         """Return accuracy modifier for shots from pos_a to pos_b.
 
@@ -209,6 +210,7 @@ class SmokeManager:
 # ---------------------------------------------------------------------------
 # SmokeGrenadeCapability
 # ---------------------------------------------------------------------------
+
 
 @dataclass(slots=True)
 class SmokeGrenadeCapability:
@@ -253,6 +255,7 @@ class SmokeGrenadeCapability:
 # ---------------------------------------------------------------------------
 # SmokeTacticalAI
 # ---------------------------------------------------------------------------
+
 
 class SmokeTacticalAI(TacticalAIBase):
     """Evaluate when to deploy smoke screens and issue deployment orders.
@@ -428,10 +431,10 @@ class SmokeTacticalAI(TacticalAIBase):
             if u.morale.suppression > 0:
                 return True
             # Also check combat_state suppression
-            combat_state = getattr(u, 'combat_state', None)
+            combat_state = getattr(u, "combat_state", None)
             if combat_state is not None:
-                supp = getattr(combat_state, 'suppression', None)
-                if supp is not None and getattr(supp, 'current_suppression', 0) > 25:
+                supp = getattr(combat_state, "suppression", None)
+                if supp is not None and getattr(supp, "current_suppression", 0) > 25:
                     return True
         return False
 
@@ -452,7 +455,7 @@ class SmokeTacticalAI(TacticalAIBase):
             for e in context.enemy_units:
                 if not e.is_alive:
                     continue
-                if hasattr(game_map, 'has_line_of_sight'):
+                if hasattr(game_map, "has_line_of_sight"):
                     if game_map.has_line_of_sight(e.position.tile_coord, pos):
                         return True
                 else:
@@ -464,10 +467,7 @@ class SmokeTacticalAI(TacticalAIBase):
     @staticmethod
     def _is_retreat_active(context: TacticalContext) -> bool:
         """Check if RetreatDecisionAI is active by examining blackboards."""
-        for bb in context.blackboards.values():
-            if bb.get('retreat_active', False):
-                return True
-        return False
+        return any(bb.get("retreat_active", False) for bb in context.blackboards.values())
 
     @staticmethod
     def _tank_needs_smoke_past_at(context: TacticalContext) -> bool:
@@ -489,11 +489,11 @@ class SmokeTacticalAI(TacticalAIBase):
 
         Uses environment wind data if available; otherwise returns False.
         """
-        env = getattr(context, 'environment', None)
+        env = getattr(context, "environment", None)
         if env is None:
             return False
-        getattr(env, 'wind_direction', (0, 0))
-        wind_speed = getattr(env, 'wind_speed', 0)
+        getattr(env, "wind_direction", (0, 0))
+        wind_speed = getattr(env, "wind_speed", 0)
         # If wind speed is significant (> 2), smoke drifts noticeably
         return wind_speed > 2
 
@@ -534,10 +534,10 @@ class SmokeTacticalAI(TacticalAIBase):
             if u.morale.suppression > 0:
                 result.append(u)
                 continue
-            combat_state = getattr(u, 'combat_state', None)
+            combat_state = getattr(u, "combat_state", None)
             if combat_state is not None:
-                supp = getattr(combat_state, 'suppression', None)
-                if supp is not None and getattr(supp, 'current_suppression', 0) > 25:
+                supp = getattr(combat_state, "suppression", None)
+                if supp is not None and getattr(supp, "current_suppression", 0) > 25:
                     result.append(u)
         return result
 
@@ -558,7 +558,7 @@ class SmokeTacticalAI(TacticalAIBase):
             for e in context.enemy_units:
                 if not e.is_alive:
                     continue
-                if hasattr(game_map, 'has_line_of_sight'):
+                if hasattr(game_map, "has_line_of_sight"):
                     if game_map.has_line_of_sight(e.position.tile_coord, pos):
                         result.append(u)
                         break
@@ -588,17 +588,12 @@ class SmokeTacticalAI(TacticalAIBase):
     @staticmethod
     def _nearest_at_to(tank: Unit, context: TacticalContext) -> Unit | None:
         """Find the nearest enemy AT unit to a tank."""
-        at_units = [
-            e for e in context.enemy_units
-            if e.is_alive and e.unit_type in _AT_TYPES
-        ]
+        at_units = [e for e in context.enemy_units if e.is_alive and e.unit_type in _AT_TYPES]
         if not at_units:
             return None
         return min(
             at_units,
-            key=lambda e: tank.position.tile_coord.chebyshev_distance(
-                e.position.tile_coord
-            ),
+            key=lambda e: tank.position.tile_coord.chebyshev_distance(e.position.tile_coord),
         )
 
     @staticmethod
@@ -609,7 +604,7 @@ class SmokeTacticalAI(TacticalAIBase):
             if not u.is_alive:
                 continue
             bb = context.blackboards.get(u.id)
-            if bb is not None and bb.get('is_retreating', False):
+            if bb is not None and bb.get("is_retreating", False):
                 result.append(u)
         return result
 
@@ -628,9 +623,7 @@ class SmokeTacticalAI(TacticalAIBase):
             return None
         return min(
             candidates,
-            key=lambda d: d.position.tile_coord.chebyshev_distance(
-                target.position.tile_coord
-            ),
+            key=lambda d: d.position.tile_coord.chebyshev_distance(target.position.tile_coord),
         )
 
     def _calculate_smoke_position(
@@ -700,9 +693,7 @@ class SmokeTacticalAI(TacticalAIBase):
             return None
         return min(
             enemies,
-            key=lambda e: unit.position.tile_coord.chebyshev_distance(
-                e.position.tile_coord
-            ),
+            key=lambda e: unit.position.tile_coord.chebyshev_distance(e.position.tile_coord),
         )
 
     @staticmethod
@@ -711,10 +702,10 @@ class SmokeTacticalAI(TacticalAIBase):
 
         Returns (dx, dy) where each component is -1, 0, or 1.
         """
-        env = getattr(context, 'environment', None)
+        env = getattr(context, "environment", None)
         if env is None:
             return (0, 0)
-        wind = getattr(env, 'wind_direction', (0, 0))
+        wind = getattr(env, "wind_direction", (0, 0))
         # Normalize to unit direction
         wx, wy = wind
         length = math.sqrt(wx * wx + wy * wy)

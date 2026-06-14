@@ -82,9 +82,11 @@ class Unit:
     armor_rear: float = 0.40
     armor_top: float = 0.50
     combat_state: CombatState | None = None
-    move_target: "TileCoord | None" = field(default=None, init=False)  # Movement destination
+    move_target: TileCoord | None = field(default=None, init=False)  # Movement destination
     facing: float = 0.0  # Facing direction in degrees (0=East, 90=South, 180=West, 270=North)
-    current_building_pos: tuple[int, int] | None = None  # None = not in building; set when on BUILDING_ENTERABLE tile
+    current_building_pos: tuple[int, int] | None = (
+        None  # None = not in building; set when on BUILDING_ENTERABLE tile
+    )
     building_floor: int = 0  # 0=ground, 1=2nd floor, 2=3rd floor, etc.
 
     # R6: Vehicle fuel tracking
@@ -98,7 +100,7 @@ class Unit:
     _sneak_speed_multiplier: float = 0.6
     _fast_speed_multiplier: float = 1.5
     _defend_accuracy_bonus: float = 0.25  # +25% accuracy when defending
-    _defend_mobility_penalty: float = 0.5   # 50% slower when defending
+    _defend_mobility_penalty: float = 0.5  # 50% slower when defending
 
     # Command queue (Shift+right-click queued commands)
     _command_queue: list[dict] = field(default_factory=list)
@@ -109,14 +111,16 @@ class Unit:
 
     # P1-7 Fix: Smoke grenade capability
     has_smoke_grenades: bool = False  # Set True for units with smoke capability
-    smoke_grenade_count: int = 0     # Remaining smoke grenades (0=unlimited in CC2)
+    smoke_grenade_count: int = 0  # Remaining smoke grenades (0=unlimited in CC2)
     _ammo_popup_shown: bool = field(init=False, default=False)
 
     # STEP A-2: Damage visualization system (CC2-style vehicle/infantry damage states)
-    _damage_state: str = field(init=False, default="undamaged")  # undamaged/light/moderate/heavy/destroyed
+    _damage_state: str = field(
+        init=False, default="undamaged"
+    )  # undamaged/light/moderate/heavy/destroyed
     _smoke_particles: list = field(init=False, default_factory=list)  # Smoke effect positions
-    _fire_particles: list = field(init=False, default_factory=list)   # Fire effect positions
-    _damage_vfx_timer: int = field(init=False, default=0)            # Animation timer
+    _fire_particles: list = field(init=False, default_factory=list)  # Fire effect positions
+    _damage_vfx_timer: int = field(init=False, default=0)  # Animation timer
 
     @property
     def movement_mode(self) -> str:
@@ -141,7 +145,7 @@ class Unit:
     @property
     def can_use_smoke(self) -> bool:
         """Check if unit can deploy smoke (has smoke grenades)."""
-        if not hasattr(self, 'weapon') or self.weapon is None:
+        if not hasattr(self, "weapon") or self.weapon is None:
             return False
         # Most infantry and support units have smoke capability
         return self.unit_type in (
@@ -166,7 +170,7 @@ class Unit:
     def can_hide(self) -> bool:
         """Check if unit can hide (take cover)."""
         # All infantry-sized units can hide
-        return not getattr(self, 'is_vehicle', False)
+        return not getattr(self, "is_vehicle", False)
 
     def set_movement_mode(self, mode: str, duration_ticks: int = -1) -> None:
         """
@@ -191,9 +195,7 @@ class Unit:
             self._movement_mode_ticks_remaining = 0  # Immediate reset
 
         if old_mode != mode:
-            logger.info(
-                f"[COMMAND] {self.name or self.id} mode change: {old_mode} -> {mode}"
-            )
+            logger.info(f"[COMMAND] {self.name or self.id} mode change: {old_mode} -> {mode}")
 
     def get_speed_multiplier(self) -> float:
         """
@@ -271,14 +273,13 @@ class Unit:
                 # Reset to normal when duration expires
                 self._movement_mode = "normal"
 
-    def queue_command(self, command_type: str, target_x: float = 0, target_y: float = 0, **kwargs) -> None:
+    def queue_command(
+        self, command_type: str, target_x: float = 0, target_y: float = 0, **kwargs
+    ) -> None:
         """Add a command to the execution queue (Shift+right-click)."""
-        self._command_queue.append({
-            'type': command_type,
-            'target_x': target_x,
-            'target_y': target_y,
-            **kwargs
-        })
+        self._command_queue.append(
+            {"type": command_type, "target_x": target_x, "target_y": target_y, **kwargs}
+        )
 
     def get_next_queued_command(self) -> dict | None:
         """Get and remove the next command from the queue."""
@@ -295,13 +296,14 @@ class Unit:
 
     def _execute_queued_command(self, cmd: dict) -> None:
         """Execute the next queued command after current one completes."""
-        cmd_type = cmd.get('type', 'move')
-        if cmd_type == 'move':
-            tx = cmd.get('target_x', 0)
-            ty = cmd.get('target_y', 0)
+        cmd_type = cmd.get("type", "move")
+        if cmd_type == "move":
+            tx = cmd.get("target_x", 0)
+            ty = cmd.get("target_y", 0)
             from pycc2.domain.value_objects.tile_coord import TileCoord
+
             self.set_move_target(TileCoord(int(tx), int(ty)))
-        elif cmd_type == 'attack':
+        elif cmd_type == "attack":
             try:
                 self.state_machine.transition(UnitState.ATTACKING)
             except Exception as e:
@@ -313,8 +315,18 @@ class Unit:
         self.state_machine = StateMachine(
             initial=UnitState.IDLE,
             transitions={
-                UnitState.IDLE: {UnitState.MOVING, UnitState.ATTACKING, UnitState.DEAD, UnitState.SURRENDERED},
-                UnitState.MOVING: {UnitState.IDLE, UnitState.ATTACKING, UnitState.DEAD, UnitState.SURRENDERED},
+                UnitState.IDLE: {
+                    UnitState.MOVING,
+                    UnitState.ATTACKING,
+                    UnitState.DEAD,
+                    UnitState.SURRENDERED,
+                },
+                UnitState.MOVING: {
+                    UnitState.IDLE,
+                    UnitState.ATTACKING,
+                    UnitState.DEAD,
+                    UnitState.SURRENDERED,
+                },
                 UnitState.ATTACKING: {
                     UnitState.IDLE,
                     UnitState.MOVING,
@@ -322,13 +334,19 @@ class Unit:
                     UnitState.DEAD,
                     UnitState.SURRENDERED,
                 },
-                UnitState.RELOADING: {UnitState.IDLE, UnitState.ATTACKING, UnitState.DEAD, UnitState.SURRENDERED},
+                UnitState.RELOADING: {
+                    UnitState.IDLE,
+                    UnitState.ATTACKING,
+                    UnitState.DEAD,
+                    UnitState.SURRENDERED,
+                },
                 UnitState.SURRENDERED: set(),
                 UnitState.DEAD: set(),
             },
         )
         if self.combat_state is None:
             from pycc2.domain.systems.combat_mechanics_enhanced import CombatState
+
             self.combat_state = CombatState()
 
         # Auto-create component instances
@@ -339,6 +357,7 @@ class Unit:
         # Crew only for vehicles
         if self.crew is None and self.unit_type == UnitType.TANK:
             from pycc2.domain.systems.vehicle_crew_system import VehicleCrew
+
             self.crew = VehicleCrew(self.id)
         # R6: Initialize fuel for vehicle units
         if self.fuel < 0 and self.unit_type == UnitType.TANK:
@@ -393,7 +412,7 @@ class Unit:
         Returns one of: undamaged / light / moderate / heavy / destroyed
         Used for visual feedback (smoke, fire, appearance changes).
         """
-        if not hasattr(self, 'health') or self.health is None:
+        if not hasattr(self, "health") or self.health is None:
             return "undamaged"
 
         hp_ratio = self.health.hp / self.health.max_hp if self.health.max_hp > 0 else 1.0
@@ -401,11 +420,11 @@ class Unit:
         if hp_ratio <= 0:
             return "destroyed"
         elif hp_ratio <= 0.25:
-            return "heavy"      # 🔥 Heavy damage: fire + thick smoke
+            return "heavy"  # 🔥 Heavy damage: fire + thick smoke
         elif hp_ratio <= 0.50:
-            return "moderate"   # 💨 Moderate: smoke + visible damage
+            return "moderate"  # 💨 Moderate: smoke + visible damage
         elif hp_ratio <= 0.75:
-            return "light"      # ☁️ Light: light smoke wisps
+            return "light"  # ☁️ Light: light smoke wisps
         else:
             return "undamaged"
 
@@ -437,6 +456,7 @@ class Unit:
 
         # Generate new particles based on damage state
         import random as _rng
+
         rng = _rng.Random(self.id + self._damage_vfx_timer)
 
         if state in ("light", "moderate", "heavy", "destroyed"):
@@ -445,13 +465,17 @@ class Unit:
             for _ in range(num_smoke):
                 offset_x = rng.randint(-8, 8)
                 offset_y = rng.randint(-10, -2)  # Smoke rises upward
-                alpha = rng.randint(80, 180)       # Semi-transparent
+                alpha = rng.randint(80, 180)  # Semi-transparent
                 size = rng.randint(2, 5)
-                self._smoke_particles.append({
-                    'x': offset_x, 'y': offset_y,
-                    'alpha': alpha, 'size': size,
-                    'life': rng.randint(15, 30),  # Ticks until fade
-                })
+                self._smoke_particles.append(
+                    {
+                        "x": offset_x,
+                        "y": offset_y,
+                        "alpha": alpha,
+                        "size": size,
+                        "life": rng.randint(15, 30),  # Ticks until fade
+                    }
+                )
 
         if state in ("heavy", "destroyed"):
             # Fire particles (only for heavy damage or destroyed)
@@ -459,17 +483,23 @@ class Unit:
             for _ in range(num_fire):
                 offset_x = rng.randint(-6, 6)
                 offset_y = rng.randint(-4, 4)
-                color_var = rng.choice([
-                    (220, 120, 20),   # Orange
-                    (240, 200, 50),   # Yellow
-                    (180, 50, 10),    # Red-orange
-                ])
+                color_var = rng.choice(
+                    [
+                        (220, 120, 20),  # Orange
+                        (240, 200, 50),  # Yellow
+                        (180, 50, 10),  # Red-orange
+                    ]
+                )
                 size = rng.randint(2, 4)
-                self._fire_particles.append({
-                    'x': offset_x, 'y': offset_y,
-                    'color': color_var, 'size': size,
-                    'life': rng.randint(8, 20),
-                })
+                self._fire_particles.append(
+                    {
+                        "x": offset_x,
+                        "y": offset_y,
+                        "color": color_var,
+                        "size": size,
+                        "life": rng.randint(8, 20),
+                    }
+                )
 
     @property
     def can_act(self) -> bool:
@@ -491,7 +521,7 @@ class Unit:
     @property
     def is_broken(self) -> bool:
         """Check if unit is in broken state (morale < 20)."""
-        if hasattr(self, 'morale') and self.morale is not None:
+        if hasattr(self, "morale") and self.morale is not None:
             return self.morale.value < 20
         return False
 
@@ -499,9 +529,11 @@ class Unit:
     def morale_state(self):
         """Get current morale state from MoraleSystem."""
         from pycc2.domain.systems.morale_system import MoraleSystem
-        if hasattr(self, 'morale') and self.morale is not None:
+
+        if hasattr(self, "morale") and self.morale is not None:
             return MoraleSystem.get_state(self.morale.value)
         from pycc2.domain.systems.morale_system import MoraleState
+
         return MoraleState.RALLYED
 
     def can_move(self) -> bool:
@@ -517,7 +549,7 @@ class Unit:
             return False
 
         # Use MoraleSystem for detailed check
-        if hasattr(self, 'morale') and self.morale is not None:
+        if hasattr(self, "morale") and self.morale is not None:
             return MoraleSystem.can_move(self)
 
         return True
@@ -525,7 +557,8 @@ class Unit:
     def can_accept_orders(self) -> bool:
         """Check if unit will accept orders."""
         from pycc2.domain.systems.morale_system import MoraleSystem
-        if hasattr(self, 'morale') and self.morale is not None:
+
+        if hasattr(self, "morale") and self.morale is not None:
             return MoraleSystem.can_accept_orders(self)
         return True
 
@@ -534,6 +567,7 @@ class Unit:
         if self.combat_state is not None:
             return self.combat_state.suppression.get_current_effect()
         from pycc2.domain.systems.combat_mechanics_enhanced import SuppressionEffect
+
         return SuppressionEffect.NONE
 
     @property
@@ -550,6 +584,7 @@ class Unit:
         status is cleared.
         """
         from pycc2.domain.value_objects.terrain_type import TerrainType
+
         tc = self.position.tile_coord
         if 0 <= tc.x < game_map.width and 0 <= tc.y < game_map.height:
             terrain = game_map.get_terrain(tc)
@@ -563,7 +598,7 @@ class Unit:
     def move_to_tile(self, tile: TileCoord) -> None:
         self.position.move_to_tile(tile)
 
-    def set_move_target(self, tile: "TileCoord") -> None:
+    def set_move_target(self, tile: TileCoord) -> None:
         """Set movement target (unit will move toward it each tick)."""
         self.move_target = tile
         if self.state_machine.current != UnitState.MOVING:
@@ -609,28 +644,28 @@ class Unit:
         # Calculate direction
         dx = target.x - current.x
         dy = target.y - current.y
-        dist = (dx*dx + dy*dy) ** 0.5
+        dist = (dx * dx + dy * dy) ** 0.5
 
         # Move based on speed (tiles per tick)
         # Speed affected by: base speed, fatigue, morale, unit type
-        base_speed = getattr(self, 'movement_speed', 3.0)
+        base_speed = getattr(self, "movement_speed", 3.0)
 
         # Apply modifiers
         speed_modifier = 1.0
 
         # Apply movement mode speed multiplier (Fast Move, Sneak, Defend)
-        if hasattr(self, 'get_speed_multiplier'):
+        if hasattr(self, "get_speed_multiplier"):
             speed_modifier *= self.get_speed_multiplier()
 
         # Fatigue reduces speed (if fatigue system exists)
-        if hasattr(self, 'fatigue'):
-            fatigue_val = getattr(self.fatigue, 'current', 0) if self.fatigue else 0
+        if hasattr(self, "fatigue"):
+            fatigue_val = getattr(self.fatigue, "current", 0) if self.fatigue else 0
             # Fatigue 0-100: at 100, speed reduced by 50%
-            speed_modifier *= (1.0 - (fatigue_val / 200))
+            speed_modifier *= 1.0 - (fatigue_val / 200)
 
         # Low morale slightly reduces speed
-        if hasattr(self, 'morale'):
-            morale_val = getattr(self.morale, 'current', 75) if self.morale else 75
+        if hasattr(self, "morale"):
+            morale_val = getattr(self.morale, "current", 75) if self.morale else 75
             # Morale < 30: panic, slower movement
             if morale_val < 30:
                 speed_modifier *= 0.6
@@ -667,10 +702,7 @@ class Unit:
                 self.fuel = max(0.0, self.fuel - self.fuel_per_tile * speed / max(dist, 1.0))
             move_x = int(dx / dist * speed)
             move_y = int(dy / dist * speed)
-            new_tile = type(target)(
-                x=current.x + move_x,
-                y=current.y + move_y
-            )
+            new_tile = type(target)(x=current.x + move_x, y=current.y + move_y)
             self.move_to_tile(new_tile)
             return False  # Still moving
 

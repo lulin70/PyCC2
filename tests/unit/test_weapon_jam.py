@@ -5,24 +5,30 @@ Tests jam probability, unjam mechanics, captured weapon penalties,
 and per-weapon-type configurations.
 """
 
-import pytest
 from unittest.mock import Mock
 
+import pytest
+
 from pycc2.domain.ai.weapon_jam import (
-    WeaponJamSystem,
-    JamConfig,
     WEAPON_JAM_CONFIGS,
+    JamConfig,
+    WeaponJamSystem,
 )
 from pycc2.domain.components.weapon_component import WeaponState
 from pycc2.domain.entities.unit import Faction
-
 
 # ===========================================================================
 # Stub helpers
 # ===========================================================================
 
-def _make_unit(unit_id, weapon_id="rifle", faction=Faction.ALLIES,
-               weapon_state=WeaponState.READY, ammo_remaining=100):
+
+def _make_unit(
+    unit_id,
+    weapon_id="rifle",
+    faction=Faction.ALLIES,
+    weapon_state=WeaponState.READY,
+    ammo_remaining=100,
+):
     """Create a mock unit for jam testing."""
     unit = Mock()
     unit.id = unit_id
@@ -41,6 +47,7 @@ def _make_unit(unit_id, weapon_id="rifle", faction=Faction.ALLIES,
 # ===========================================================================
 # Tests — JamConfig Lookup
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestJamConfigLookup:
@@ -75,12 +82,14 @@ class TestJamConfigLookup:
 # Tests — Check Jam on Fire
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestCheckJamOnFire:
     """Test jam checking when unit fires."""
 
     def test_no_jam_with_rng_high(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 1.0  # Always above jam probability
         system = WeaponJamSystem(rng=rng)
@@ -90,6 +99,7 @@ class TestCheckJamOnFire:
 
     def test_jam_with_rng_low(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0  # Always below jam probability
         system = WeaponJamSystem(rng=rng)
@@ -100,6 +110,7 @@ class TestCheckJamOnFire:
 
     def test_unknown_weapon_no_jam(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0
         system = WeaponJamSystem(rng=rng)
@@ -109,6 +120,7 @@ class TestCheckJamOnFire:
 
     def test_jam_sets_clear_timer(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0
         system = WeaponJamSystem(rng=rng)
@@ -118,6 +130,7 @@ class TestCheckJamOnFire:
 
     def test_sten_jam_clear_ticks(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0
         system = WeaponJamSystem(rng=rng)
@@ -130,12 +143,14 @@ class TestCheckJamOnFire:
 # Tests — Captured Weapon Penalty
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestCapturedWeaponPenalty:
     """Test captured weapon jam and clear time penalties."""
 
     def test_captured_weapon_higher_jam_chance(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0
         system = WeaponJamSystem(rng=rng)
@@ -145,25 +160,31 @@ class TestCapturedWeaponPenalty:
         # checks for "de_" prefix). Let's use a weapon that IS captured.
         # Actually, mg42 doesn't start with "de_" so it won't be detected as captured.
         # Use a custom weapon ID that starts with "de_" and is in configs.
-        system._configs["de_mg42"] = JamConfig(weapon_type="de_mg42", jam_probability=0.01, jam_clear_ticks=8)
+        system._configs["de_mg42"] = JamConfig(
+            weapon_type="de_mg42", jam_probability=0.01, jam_clear_ticks=8
+        )
         unit2 = _make_unit("u2", weapon_id="de_mg42", faction=Faction.ALLIES)
         result = system.check_jam_on_fire(unit2)
         assert result is True
 
     def test_captured_weapon_longer_clear_time(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0
         system = WeaponJamSystem(rng=rng)
         unit = _make_unit("u1", weapon_id="de_mg42", faction=Faction.ALLIES)
         # Need to add de_mg42 to configs for this test
-        system._configs["de_mg42"] = JamConfig(weapon_type="de_mg42", jam_probability=0.01, jam_clear_ticks=8)
+        system._configs["de_mg42"] = JamConfig(
+            weapon_type="de_mg42", jam_probability=0.01, jam_clear_ticks=8
+        )
         system.check_jam_on_fire(unit)
         # Captured weapon: 8 * 1.5 = 12 ticks
         assert system.get_jam_clear_remaining("u1") == 12
 
     def test_native_weapon_no_penalty(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0
         system = WeaponJamSystem(rng=rng)
@@ -178,12 +199,14 @@ class TestCapturedWeaponPenalty:
 # Tests — Tick (Unjam Mechanics)
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestTickUnjam:
     """Test jam clearing over time."""
 
     def test_tick_decrements_clear_timer(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0
         system = WeaponJamSystem(rng=rng)
@@ -197,6 +220,7 @@ class TestTickUnjam:
 
     def test_jam_cleared_after_ticks(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0
         system = WeaponJamSystem(rng=rng)
@@ -224,6 +248,7 @@ class TestTickUnjam:
 # Tests — Custom Jam Configs
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestCustomJamConfigs:
     """Test using custom jam configurations."""
@@ -238,6 +263,7 @@ class TestCustomJamConfigs:
         }
         system = WeaponJamSystem(jam_configs=custom)
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0
         system._rng = rng
@@ -251,6 +277,7 @@ class TestCustomJamConfigs:
 # ===========================================================================
 # Tests — Is Captured Weapon
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestIsCapturedWeapon:

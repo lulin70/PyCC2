@@ -22,8 +22,8 @@ import traceback
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
-import pytest
 import pygame
+import pytest
 
 pygame.init()
 
@@ -39,7 +39,7 @@ from pycc2.presentation.input.interaction_controller import InteractionControlle
 from pycc2.presentation.rendering.camera import Camera
 from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 from pycc2.presentation.rendering.window_config import DisplayInfo, WindowManager
-from pycc2.presentation.ui.new_game_menu import NewGameMenu, MenuScreen
+from pycc2.presentation.ui.new_game_menu import MenuScreen, NewGameMenu
 from pycc2.services.ai_service import AIService
 from pycc2.services.event_bus import EventBus
 from pycc2.services.game_loop import GameLoop, GameState
@@ -171,7 +171,9 @@ def _build_game_loop(
 
     # Interaction controller
     interaction_controller = InteractionController(
-        camera=camera, game_map=game_map, event_bus=event_bus,
+        camera=camera,
+        game_map=game_map,
+        event_bus=event_bus,
     )
 
     # UI systems
@@ -233,6 +235,7 @@ def _start_deployment(game_loop: GameLoop, game_map: GameMap, menu: NewGameMenu)
                 continue
             try:
                 import json
+
                 with open(sp) as f:
                     scenario = json.load(f)
                 if scenario.get("map_id") == scenario_stem:
@@ -244,6 +247,7 @@ def _start_deployment(game_loop: GameLoop, game_map: GameMap, menu: NewGameMenu)
     if scenario_path.exists():
         try:
             import json
+
             with open(scenario_path) as f:
                 scenario_data = json.load(f)
             map_data["victory_locations"] = scenario_data.get("victory_locations", [])
@@ -303,13 +307,16 @@ class TestFullUserJourney:
 
             # Find and click "New Campaign" button
             new_campaign_rect = _find_button_rect(menu, "new_campaign")
-            assert new_campaign_rect is not None, "Could not find 'New Campaign' button in main menu"
+            assert new_campaign_rect is not None, (
+                "Could not find 'New Campaign' button in main menu"
+            )
 
             click_pos = new_campaign_rect.center
             action = menu.handle_click(click_pos)
             # Clicking "New Campaign" transitions to CAMPAIGN screen, returns None
-            assert menu.current_screen == MenuScreen.CAMPAIGN, \
+            assert menu.current_screen == MenuScreen.CAMPAIGN, (
                 f"Expected CAMPAIGN screen, got {menu.current_screen}"
+            )
             print(f"  ✓ Clicked 'New Campaign' at {click_pos}, now on CAMPAIGN screen")
 
         except Exception as e:
@@ -331,8 +338,7 @@ class TestFullUserJourney:
 
             click_pos = start_rect.center
             action = menu.handle_click(click_pos)
-            assert action == "start_campaign", \
-                f"Expected 'start_campaign' action, got {action}"
+            assert action == "start_campaign", f"Expected 'start_campaign' action, got {action}"
             print(f"  ✓ Clicked 'Start Campaign' at {click_pos}")
 
         except Exception as e:
@@ -354,6 +360,7 @@ class TestFullUserJourney:
             if not game_map.spawn_points:
                 from pycc2.domain.entities.game_map import SpawnPoint
                 from pycc2.domain.value_objects.tile_coord import TileCoord
+
                 game_map.spawn_points = [
                     SpawnPoint(
                         id="friendly_default",
@@ -368,7 +375,7 @@ class TestFullUserJourney:
                         units_max=9,
                     ),
                 ]
-                print(f"  Added default spawn points")
+                print("  Added default spawn points")
 
             # Build game loop (reuse existing screen)
             game_loop = _build_game_loop(game_map, screen, menu)
@@ -377,7 +384,7 @@ class TestFullUserJourney:
             _start_deployment(game_loop, game_map, menu)
             assert game_loop.deployment_phase_active, "Deployment phase should be active"
             assert game_loop.deployment_ui is not None, "Deployment UI should exist"
-            print(f"  ✓ Game initialized, deployment phase active")
+            print("  ✓ Game initialized, deployment phase active")
 
         except Exception as e:
             errors.append(f"STEP 3 FAILED: {e}\n{traceback.format_exc()}")
@@ -393,13 +400,17 @@ class TestFullUserJourney:
             tile_size = dc.base_tile_size if dc else 16
 
             # Render deployment UI to populate button rects
-            deployment_ui.render(screen, font=None, map_offset_x=0, map_offset_y=0, tile_size=tile_size)
+            deployment_ui.render(
+                screen, font=None, map_offset_x=0, map_offset_y=0, tile_size=tile_size
+            )
             _save_screenshot(screen, "user_journey_step4_deployment_start.png")
 
             # Get available units
             available = deployment_ui.state.available_units
             print(f"  Available units: {len(available)}")
-            assert len(available) >= 6, f"Expected at least 6 available units for deployment, got {len(available)}"
+            assert len(available) >= 6, (
+                f"Expected at least 6 available units for deployment, got {len(available)}"
+            )
 
             # Find unplaced units
             unplaced_indices = [i for i, u in enumerate(available) if not u.is_placed]
@@ -414,7 +425,9 @@ class TestFullUserJourney:
             for deploy_idx in range(units_to_deploy):
                 unit_idx = unplaced_indices[deploy_idx]
                 unit = available[unit_idx]
-                print(f"  Deploying unit {deploy_idx + 1}: {unit.display_name} (idx={unit_idx}, type={unit.unit_type}, cost={unit.deployment_cost})")
+                print(
+                    f"  Deploying unit {deploy_idx + 1}: {unit.display_name} (idx={unit_idx}, type={unit.unit_type}, cost={unit.deployment_cost})"
+                )
 
                 # Select the unit in the roster
                 deployment_ui._selected_unit_index = unit_idx
@@ -425,7 +438,9 @@ class TestFullUserJourney:
                     terrain = deployment_ui._get_terrain_at(fx, fy)
                     if deployment_ui.can_place_at(unit, fx, fy, terrain):
                         # Check not already occupied
-                        occupied = any(pu.position == (fx, fy) for pu in deployment_ui.state.placed_units)
+                        occupied = any(
+                            pu.position == (fx, fy) for pu in deployment_ui.state.placed_units
+                        )
                         if not occupied:
                             success = deployment_ui.place_unit(unit_idx, fx, fy)
                             if success:
@@ -441,7 +456,9 @@ class TestFullUserJourney:
             assert placed_count >= 1, "Must place at least 1 unit to start battle"
 
             # Re-render to show placed units
-            deployment_ui.render(screen, font=None, map_offset_x=0, map_offset_y=0, tile_size=tile_size)
+            deployment_ui.render(
+                screen, font=None, map_offset_x=0, map_offset_y=0, tile_size=tile_size
+            )
             _save_screenshot(screen, "user_journey_step4_deployment_placed.png")
 
             # Verify deployment is complete (at least 1 unit placed)
@@ -467,6 +484,7 @@ class TestFullUserJourney:
 
             # Verify we have both player and AI units
             from pycc2.domain.entities.unit import Faction
+
             player_units = [u for u in game_loop.state.units if u.faction == Faction.ALLIES]
             ai_units = [u for u in game_loop.state.units if u.faction == Faction.AXIS]
             print(f"  Allied units: {len(player_units)}")
@@ -489,7 +507,7 @@ class TestFullUserJourney:
                 battle_stats=None,
             )
             _save_screenshot(screen, "user_journey_step5_battle_start.png")
-            print(f"  ✓ Battle started successfully")
+            print("  ✓ Battle started successfully")
 
         except Exception as e:
             errors.append(f"STEP 5 FAILED: {e}\n{traceback.format_exc()}")
@@ -504,7 +522,9 @@ class TestFullUserJourney:
 
             # Find a player unit to select
             player_units = [u for u in game_loop.state.units if u.faction == Faction.ALLIES]
-            assert len(player_units) >= 1, f"Should have at least 1 player unit to command, got {len(player_units)}"
+            assert len(player_units) >= 1, (
+                f"Should have at least 1 player unit to command, got {len(player_units)}"
+            )
 
             target_unit = player_units[0]
             print(f"  Selecting unit: {target_unit.name} (id={target_unit.id})")
@@ -516,13 +536,16 @@ class TestFullUserJourney:
             # Z key = Move mode
             game_loop.interaction_controller.handle_shortcut_key(pygame.K_z)
             from pycc2.presentation.input.interaction_controller import InteractionMode
-            assert game_loop.interaction_controller.mode == InteractionMode.MOVE, \
+
+            assert game_loop.interaction_controller.mode == InteractionMode.MOVE, (
                 f"Should be in MOVE mode after pressing Z, got {game_loop.interaction_controller.mode}"
-            print(f"  ✓ Pressed Z → MOVE mode")
+            )
+            print("  ✓ Pressed Z → MOVE mode")
 
             # Set a move target for the unit
             # Calculate a valid move target (a few tiles away)
             from pycc2.domain.value_objects.tile_coord import TileCoord
+
             current_tile = target_unit.position.tile_coord
             move_tx = min(current_tile.x + 3, game_map.width - 1)
             move_ty = min(current_tile.y + 2, game_map.height - 1)
@@ -535,18 +558,20 @@ class TestFullUserJourney:
             )
             # Reset to SELECT mode
             from pycc2.presentation.input.interaction_controller import InteractionMode
+
             game_loop.interaction_controller.set_mode(InteractionMode.SELECT)
 
             # Issue a fire command via shortcut key
             # C key = Fire/Attack mode
             game_loop.interaction_controller.handle_shortcut_key(pygame.K_c)
-            assert game_loop.interaction_controller.mode == InteractionMode.ATTACK, \
+            assert game_loop.interaction_controller.mode == InteractionMode.ATTACK, (
                 f"Should be in ATTACK mode after pressing C, got {game_loop.interaction_controller.mode}"
-            print(f"  ✓ Pressed C → ATTACK mode")
+            )
+            print("  ✓ Pressed C → ATTACK mode")
 
             # Reset to SELECT mode
             game_loop.interaction_controller.set_mode(InteractionMode.SELECT)
-            print(f"  ✓ Reset to SELECT mode")
+            print("  ✓ Reset to SELECT mode")
 
         except Exception as e:
             errors.append(f"STEP 6 FAILED: {e}\n{traceback.format_exc()}")
@@ -569,7 +594,7 @@ class TestFullUserJourney:
 
                 game_loop.state.tick += 1
 
-            print(f"  ✓ Ran 300 ticks without crash")
+            print("  ✓ Ran 300 ticks without crash")
 
             # Check unit states
             alive_count = sum(1 for u in game_loop.state.units if u.is_alive)
@@ -604,7 +629,7 @@ class TestFullUserJourney:
             game_loop._pause_menu.toggle()
             assert game_loop._pause_menu.is_active, "Pause menu should be active"
             game_loop.state.paused = True
-            print(f"  ✓ Opened pause menu")
+            print("  ✓ Opened pause menu")
 
             # Render pause menu
             game_loop._pause_menu.render(screen)
@@ -620,7 +645,7 @@ class TestFullUserJourney:
 
             # Set game to not running (simulating what event_dispatcher does)
             game_loop.state.running = False
-            print(f"  ✓ Battle ended, game shutting down")
+            print("  ✓ Battle ended, game shutting down")
 
         except Exception as e:
             errors.append(f"STEP 8 FAILED: {e}\n{traceback.format_exc()}")
@@ -639,7 +664,7 @@ class TestFullUserJourney:
                 game_loop.ai_service.shutdown()
             if game_loop.sound_system is not None:
                 game_loop.sound_system.shutdown()
-            print(f"  ✓ Game components shut down cleanly")
+            print("  ✓ Game components shut down cleanly")
 
         except Exception as e:
             errors.append(f"STEP 9 FAILED: {e}\n{traceback.format_exc()}")
@@ -653,7 +678,7 @@ class TestFullUserJourney:
             for err in errors:
                 print(err)
         else:
-            print(f"\n=== FULL USER JOURNEY COMPLETED SUCCESSFULLY ===")
+            print("\n=== FULL USER JOURNEY COMPLETED SUCCESSFULLY ===")
 
     def test_menu_navigation_via_events(self, pygame_display):
         """Test menu navigation by injecting pygame events (more realistic)."""
@@ -705,11 +730,20 @@ class TestFullUserJourney:
         if not game_map.spawn_points:
             from pycc2.domain.entities.game_map import SpawnPoint
             from pycc2.domain.value_objects.tile_coord import TileCoord
+
             game_map.spawn_points = [
-                SpawnPoint(id="friendly_default", side="allies",
-                           position=TileCoord(5, game_map.height // 2), units_max=9),
-                SpawnPoint(id="enemy_default", side="axis",
-                           position=TileCoord(game_map.width - 5, game_map.height // 2), units_max=9),
+                SpawnPoint(
+                    id="friendly_default",
+                    side="allies",
+                    position=TileCoord(5, game_map.height // 2),
+                    units_max=9,
+                ),
+                SpawnPoint(
+                    id="enemy_default",
+                    side="axis",
+                    position=TileCoord(game_map.width - 5, game_map.height // 2),
+                    units_max=9,
+                ),
             ]
 
         game_loop = _build_game_loop(game_map, screen, menu)
@@ -729,11 +763,12 @@ class TestFullUserJourney:
             for fx, fy in deployment_ui.state.friendly_zone:
                 terrain = deployment_ui._get_terrain_at(fx, fy)
                 if deployment_ui.can_place_at(unit, fx, fy, terrain):
-                    occupied = any(pu.position == (fx, fy) for pu in deployment_ui.state.placed_units)
-                    if not occupied:
-                        if deployment_ui.place_unit(idx, fx, fy):
-                            placed += 1
-                            break
+                    occupied = any(
+                        pu.position == (fx, fy) for pu in deployment_ui.state.placed_units
+                    )
+                    if not occupied and deployment_ui.place_unit(idx, fx, fy):
+                        placed += 1
+                        break
 
         assert placed >= 1, f"Could not place any units (tried {len(unplaced[:5])})"
 
@@ -757,11 +792,12 @@ class TestFullUserJourney:
             game_loop._update_logic(dt)
             game_loop.state.tick += 1
 
-        print(f"  ✓ Processed 100 frames via event dispatcher without crash")
+        print("  ✓ Processed 100 frames via event dispatcher without crash")
 
         # Test keyboard commands through event dispatcher
         # Select a player unit first
         from pycc2.domain.entities.unit import Faction
+
         player_units = [u for u in game_loop.state.units if u.faction == Faction.ALLIES]
         if player_units:
             game_loop.state.selected_unit_ids = {player_units[0].id}
@@ -789,7 +825,7 @@ class TestFullUserJourney:
             game_loop.ai_service.shutdown()
         if game_loop.sound_system is not None:
             game_loop.sound_system.shutdown()
-        print(f"  ✓ Clean shutdown after event-driven battle")
+        print("  ✓ Clean shutdown after event-driven battle")
 
     def test_deployment_click_flow(self, pygame_display):
         """Test deployment by clicking through the UI (click roster → click map)."""
@@ -808,11 +844,20 @@ class TestFullUserJourney:
         if not game_map.spawn_points:
             from pycc2.domain.entities.game_map import SpawnPoint
             from pycc2.domain.value_objects.tile_coord import TileCoord
+
             game_map.spawn_points = [
-                SpawnPoint(id="friendly_default", side="allies",
-                           position=TileCoord(5, game_map.height // 2), units_max=9),
-                SpawnPoint(id="enemy_default", side="axis",
-                           position=TileCoord(game_map.width - 5, game_map.height // 2), units_max=9),
+                SpawnPoint(
+                    id="friendly_default",
+                    side="allies",
+                    position=TileCoord(5, game_map.height // 2),
+                    units_max=9,
+                ),
+                SpawnPoint(
+                    id="enemy_default",
+                    side="axis",
+                    position=TileCoord(game_map.width - 5, game_map.height // 2),
+                    units_max=9,
+                ),
             ]
 
         game_loop = _build_game_loop(game_map, screen, menu)
@@ -828,7 +873,9 @@ class TestFullUserJourney:
         # Find an unplaced unit and click it in the roster
         available = deployment_ui.state.available_units
         unplaced = [(i, u) for i, u in enumerate(available) if not u.is_placed]
-        assert len(unplaced) >= 3, f"Need at least 3 unplaced units for deployment click flow test, got {len(unplaced)}"
+        assert len(unplaced) >= 3, (
+            f"Need at least 3 unplaced units for deployment click flow test, got {len(unplaced)}"
+        )
 
         unit_idx, unit = unplaced[0]
 
@@ -849,12 +896,16 @@ class TestFullUserJourney:
         click_y = roster_y + deployment_ui._roster_item_height // 2
 
         result = deployment_ui.handle_click_full(
-            click_x, click_y,
-            map_offset_x=0, map_offset_y=0, tile_size=tile_size,
+            click_x,
+            click_y,
+            map_offset_x=0,
+            map_offset_y=0,
+            tile_size=tile_size,
         )
         print(f"  Roster click result: {result}")
-        assert result is not None and result.startswith("select_unit"), \
+        assert result is not None and result.startswith("select_unit"), (
             f"Expected 'select_unit:...', got {result}"
+        )
 
         # Now click on the map to place the unit
         # Find a valid friendly zone position
@@ -870,10 +921,15 @@ class TestFullUserJourney:
                     map_screen_y = fy * tile_size + tile_size // 2
 
                     result = deployment_ui.handle_click_full(
-                        map_screen_x, map_screen_y,
-                        map_offset_x=0, map_offset_y=0, tile_size=tile_size,
+                        map_screen_x,
+                        map_screen_y,
+                        map_offset_x=0,
+                        map_offset_y=0,
+                        tile_size=tile_size,
                     )
-                    print(f"  Map click at ({map_screen_x}, {map_screen_y}) → map tile ({fx}, {fy}), result: {result}")
+                    print(
+                        f"  Map click at ({map_screen_x}, {map_screen_y}) → map tile ({fx}, {fy}), result: {result}"
+                    )
                     if result and result.startswith("place_unit"):
                         placed = True
                         break
@@ -881,15 +937,20 @@ class TestFullUserJourney:
         assert placed, "Could not place unit by clicking on map"
 
         # Verify unit is placed
-        assert deployment_ui.is_deployment_complete(), "Deployment should be complete after placing unit"
+        assert deployment_ui.is_deployment_complete(), (
+            "Deployment should be complete after placing unit"
+        )
 
         # Click "Start Battle" button
         deployment_ui.render(screen, font=None, map_offset_x=0, map_offset_y=0, tile_size=tile_size)
         if deployment_ui._button_rect:
             btn_x, btn_y, btn_w, btn_h = deployment_ui._button_rect
             result = deployment_ui.handle_click_full(
-                btn_x + btn_w // 2, btn_y + btn_h // 2,
-                map_offset_x=0, map_offset_y=0, tile_size=tile_size,
+                btn_x + btn_w // 2,
+                btn_y + btn_h // 2,
+                map_offset_x=0,
+                map_offset_y=0,
+                tile_size=tile_size,
             )
             print(f"  Start Battle button click result: {result}")
             assert result == "begin_battle", f"Expected 'begin_battle', got {result}"
@@ -901,11 +962,11 @@ class TestFullUserJourney:
         # Run a few battle ticks
         dt = 1.0 / 30.0
         game_loop.state.paused = False
-        for tick in range(50):
+        for _tick in range(50):
             game_loop._update_logic(dt)
             game_loop.state.tick += 1
 
-        print(f"  ✓ Deployment click flow + 50 battle ticks completed")
+        print("  ✓ Deployment click flow + 50 battle ticks completed")
 
         # Clean shutdown (don't call game_loop.shutdown() as it calls pygame.quit())
         game_loop.state.running = False

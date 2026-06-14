@@ -18,41 +18,48 @@ Import from this package or directly from submodules as needed.
 """
 
 from pycc2.presentation.rendering.camera import Camera
+from pycc2.presentation.rendering.decoration_renderer import DecorationRenderer
 from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-from pycc2.presentation.rendering.sprite_generator import SpriteGenerator as SpriteGenerator
-from pycc2.presentation.rendering.particle_system import TopDownParticleSystem as TopDownParticleSystem
+from pycc2.presentation.rendering.hud import HUDManager
 from pycc2.presentation.rendering.lighting_system import (
-    TopDownLightingConfig as TopDownLightingConfig,
     LightingSystem,
 )
+from pycc2.presentation.rendering.lighting_system import (
+    TopDownLightingConfig as TopDownLightingConfig,
+)
+from pycc2.presentation.rendering.minimap import Minimap
 from pycc2.presentation.rendering.palette_generator import PaletteGenerator as PaletteGenerator
-from pycc2.presentation.rendering.procedural_texture_generator import ProceduralTextureGenerator as ProceduralTextureGenerator
+from pycc2.presentation.rendering.particle_system import (
+    TopDownParticleSystem as TopDownParticleSystem,
+)
+from pycc2.presentation.rendering.procedural_texture_generator import (
+    ProceduralTextureGenerator as ProceduralTextureGenerator,
+)
+from pycc2.presentation.rendering.renderer import IRenderer
+from pycc2.presentation.rendering.sprite_generator import SpriteGenerator as SpriteGenerator
+from pycc2.presentation.rendering.terrain_renderer import TerrainRenderer
 from pycc2.presentation.rendering.terrain_tile_cache import (
-    TerrainTileCache as TerrainTileCache,
     CC2_TERRAIN_PALETTE as CC2_TERRAIN_PALETTE,
+)
+from pycc2.presentation.rendering.terrain_tile_cache import (
     TERRAIN_PALETTE_MAP as TERRAIN_PALETTE_MAP,
 )
-from pycc2.presentation.rendering.terrain_renderer import TerrainRenderer
+from pycc2.presentation.rendering.terrain_tile_cache import (
+    TerrainTileCache as TerrainTileCache,
+)
 from pycc2.presentation.rendering.unit_renderer import UnitRenderer
-from pycc2.presentation.rendering.decoration_renderer import DecorationRenderer
-from pycc2.presentation.rendering.hud import HUDManager
-from pycc2.presentation.rendering.minimap import Minimap
-from pycc2.presentation.rendering.renderer import IRenderer
 from pycc2.presentation.rendering.visual_spec import VisualSpec
 
 __all__ = [
     # Core renderer
     "EnhancedRenderer",
     "IRenderer",
-
     # Camera & utilities
     "Camera",
     "VisualSpec",
-
     # UI Components
     "HUDManager",
     "Minimap",
-
     # Refactored sub-modules (new architecture)
     "SpriteGenerator",
     "TopDownParticleSystem",
@@ -61,7 +68,6 @@ __all__ = [
     "TerrainRenderer",
     "UnitRenderer",
     "DecorationRenderer",
-
     # Supporting classes (backward compatible)
     "PaletteGenerator",
     "ProceduralTextureGenerator",

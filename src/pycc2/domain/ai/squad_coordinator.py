@@ -75,7 +75,9 @@ class SquadCoordinator:
 
         visible_enemies = self._get_visible_enemies(unit_blackboards, alive_units, all_units)
         if len(visible_enemies) >= 2 and len(alive_units) >= 3:
-            if "CROSSFIRE" in available_tactics and self._should_crossfire(visible_enemies, alive_units):
+            if "CROSSFIRE" in available_tactics and self._should_crossfire(
+                visible_enemies, alive_units
+            ):
                 order = self._create_crossfire_order(squad_id, visible_enemies, alive_units)
                 if order:
                     return order
@@ -83,7 +85,9 @@ class SquadCoordinator:
             if order:
                 return order
 
-        if "BOUNDING_OVERWATCH" in available_tactics and self._should_bounding_overwatch(unit_blackboards, alive_units, game_map):
+        if "BOUNDING_OVERWATCH" in available_tactics and self._should_bounding_overwatch(
+            unit_blackboards, alive_units, game_map
+        ):
             order = self._create_bounding_overwatch_order(squad_id, alive_units, game_map)
             if order:
                 return order
@@ -316,7 +320,7 @@ class SquadCoordinator:
             return intents
 
         attack_count = max(2, (len(units) * 2) // 3)
-        for i, unit_id in enumerate(units[:attack_count]):
+        for _i, unit_id in enumerate(units[:attack_count]):
             intents.append(
                 TacticIntent(
                     unit_id=unit_id,
@@ -530,6 +534,12 @@ class SquadCoordinator:
 
     def _get_available_tactics(self, squad_id: str) -> set[str]:
         if self._degradation_manager is None:
-            return {"BOUNDING_OVERWATCH", "CROSSFIRE", "FLANKING", "FIRE_CONCENTRATION", "DEFENSIVE_LINE"}
+            return {
+                "BOUNDING_OVERWATCH",
+                "CROSSFIRE",
+                "FLANKING",
+                "FIRE_CONCENTRATION",
+                "DEFENSIVE_LINE",
+            }
         tactics = self._degradation_manager.get_available_tactics(squad_id)
         return set(tactics)

@@ -26,14 +26,15 @@ pygame.init()
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_unit(unit_id: str = "test_1", faction=None):
     """Create a test unit."""
-    from pycc2.domain.entities.unit import Unit, Faction, UnitType
-    from pycc2.domain.components.position_component import PositionComponent
     from pycc2.domain.components.health_component import HealthComponent
+    from pycc2.domain.components.morale_component import MoraleComponent
+    from pycc2.domain.components.position_component import PositionComponent
     from pycc2.domain.components.vision_component import VisionComponent
     from pycc2.domain.components.weapon_component import WeaponComponent
-    from pycc2.domain.components.morale_component import MoraleComponent
+    from pycc2.domain.entities.unit import Faction, Unit, UnitType
     from pycc2.domain.value_objects.tile_coord import TileCoord
 
     return Unit(
@@ -67,6 +68,7 @@ def _make_surface(width: int = 1024, height: int = 768) -> pygame.Surface:
 # Tests
 # ---------------------------------------------------------------------------
 
+
 class TestUIButtonsE2E:
     """Full E2E test for all UI button interactions."""
 
@@ -77,8 +79,9 @@ class TestUIButtonsE2E:
         panel = _make_panel()
         command_ids = [cmd["id"] for cmd in panel._commands]
         expected = {"move", "fast", "sneak", "attack", "smoke", "defend", "cancel"}
-        assert expected.issubset(set(command_ids)), \
+        assert expected.issubset(set(command_ids)), (
             f"Missing commands: {expected - set(command_ids)}"
+        )
 
     def test_02_click_each_command_button(self):
         """Simulate click on each command button and verify correct command mode."""
@@ -88,14 +91,18 @@ class TestUIButtonsE2E:
         panel.set_selected_unit(unit.id)
 
         # Render to populate button rects
-        from pycc2.presentation.rendering.camera import Camera
-        from pycc2.domain.entities.game_map import GameMap
         import numpy as np
+
+        from pycc2.domain.entities.game_map import GameMap
+        from pycc2.presentation.rendering.camera import Camera
 
         surface = _make_surface()
         camera = Camera(position=None, viewport_width=1024, viewport_height=768)
         game_map = GameMap(
-            id="test", name="test", width=20, height=15,
+            id="test",
+            name="test",
+            width=20,
+            height=15,
             tile_grid=np.zeros((15, 20), dtype=np.int8),
         )
         panel.render(surface, camera, game_map)
@@ -129,14 +136,18 @@ class TestUIButtonsE2E:
         panel.set_event_bus(event_bus)
 
         # Render to populate button rects
-        from pycc2.presentation.rendering.camera import Camera
-        from pycc2.domain.entities.game_map import GameMap
         import numpy as np
+
+        from pycc2.domain.entities.game_map import GameMap
+        from pycc2.presentation.rendering.camera import Camera
 
         surface = _make_surface()
         camera = Camera(position=None, viewport_width=1024, viewport_height=768)
         game_map = GameMap(
-            id="test", name="test", width=20, height=15,
+            id="test",
+            name="test",
+            width=20,
+            height=15,
             tile_grid=np.zeros((15, 20), dtype=np.int8),
         )
         panel.render(surface, camera, game_map)
@@ -164,14 +175,18 @@ class TestUIButtonsE2E:
         panel = _make_panel()
 
         # Render to populate toggle button rects
-        from pycc2.presentation.rendering.camera import Camera
-        from pycc2.domain.entities.game_map import GameMap
         import numpy as np
+
+        from pycc2.domain.entities.game_map import GameMap
+        from pycc2.presentation.rendering.camera import Camera
 
         surface = _make_surface()
         camera = Camera(position=None, viewport_width=1024, viewport_height=768)
         game_map = GameMap(
-            id="test", name="test", width=20, height=15,
+            id="test",
+            name="test",
+            width=20,
+            height=15,
             tile_grid=np.zeros((15, 20), dtype=np.int8),
         )
         panel.render(surface, camera, game_map)
@@ -204,7 +219,7 @@ class TestUIButtonsE2E:
 
     def test_07_radial_menu_hover_sectors(self):
         """Move mouse to each sector and verify correct command is hovered."""
-        from pycc2.presentation.ui.radial_menu import RadialMenu, COMMAND_ORDER
+        from pycc2.presentation.ui.radial_menu import COMMAND_ORDER, RadialMenu
 
         menu = RadialMenu()
         menu.show(center=(400, 300))
@@ -236,18 +251,19 @@ class TestUIButtonsE2E:
 
     def test_08_soldier_monitor_with_squad_ref(self):
         """Select a unit with squad_ref and verify soldier details are rendered."""
-        from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
-        from pycc2.domain.entities.unit import Unit, Faction, UnitType
-        from pycc2.domain.components.position_component import PositionComponent
+        import numpy as np
+
         from pycc2.domain.components.health_component import HealthComponent
+        from pycc2.domain.components.morale_component import MoraleComponent
+        from pycc2.domain.components.position_component import PositionComponent
         from pycc2.domain.components.vision_component import VisionComponent
         from pycc2.domain.components.weapon_component import WeaponComponent
-        from pycc2.domain.components.morale_component import MoraleComponent
+        from pycc2.domain.entities.game_map import GameMap
+        from pycc2.domain.entities.squad import MemberState, Squad, SquadMember, SquadType
+        from pycc2.domain.entities.unit import Faction, Unit, UnitType
         from pycc2.domain.value_objects.tile_coord import TileCoord
         from pycc2.presentation.rendering.camera import Camera
-        from pycc2.domain.entities.game_map import GameMap
-        from pycc2.domain.entities.squad import Squad, SquadMember, SquadType, MemberState
-        import numpy as np
+        from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
 
         # Create unit with squad_ref
         unit = Unit(
@@ -269,9 +285,15 @@ class TestUIButtonsE2E:
             faction="allies",
         )
         squad.members = [
-            SquadMember(member_id="m1", role="rifleman", hp=100, state=MemberState.HEALTHY, experience=20),
-            SquadMember(member_id="m2", role="mg_gunner", hp=80, state=MemberState.HEALTHY, experience=35),
-            SquadMember(member_id="m3", role="rifleman", hp=60, state=MemberState.WOUNDED, experience=15),
+            SquadMember(
+                member_id="m1", role="rifleman", hp=100, state=MemberState.HEALTHY, experience=20
+            ),
+            SquadMember(
+                member_id="m2", role="mg_gunner", hp=80, state=MemberState.HEALTHY, experience=35
+            ),
+            SquadMember(
+                member_id="m3", role="rifleman", hp=60, state=MemberState.WOUNDED, experience=15
+            ),
         ]
         unit.squad_ref = squad
 
@@ -284,7 +306,10 @@ class TestUIButtonsE2E:
         surface = _make_surface()
         camera = Camera(position=None, viewport_width=1024, viewport_height=768)
         game_map = GameMap(
-            id="test", name="test", width=20, height=15,
+            id="test",
+            name="test",
+            width=20,
+            height=15,
             tile_grid=np.zeros((15, 20), dtype=np.int8),
         )
 
@@ -298,14 +323,18 @@ class TestUIButtonsE2E:
         panel = _make_panel()
         panel.set_battle_timer(300)  # 5 minutes
 
-        from pycc2.presentation.rendering.camera import Camera
-        from pycc2.domain.entities.game_map import GameMap
         import numpy as np
+
+        from pycc2.domain.entities.game_map import GameMap
+        from pycc2.presentation.rendering.camera import Camera
 
         surface = _make_surface()
         camera = Camera(position=None, viewport_width=1024, viewport_height=768)
         game_map = GameMap(
-            id="test", name="test", width=20, height=15,
+            id="test",
+            name="test",
+            width=20,
+            height=15,
             tile_grid=np.zeros((15, 20), dtype=np.int8),
         )
 
@@ -316,13 +345,17 @@ class TestUIButtonsE2E:
 
     def test_10_minimap_renders(self):
         """Verify minimap renders without crash."""
-        from pycc2.presentation.rendering.minimap import Minimap
-        from pycc2.domain.entities.game_map import GameMap
         import numpy as np
+
+        from pycc2.domain.entities.game_map import GameMap
+        from pycc2.presentation.rendering.minimap import Minimap
 
         minimap = Minimap()
         game_map = GameMap(
-            id="test", name="test", width=20, height=15,
+            id="test",
+            name="test",
+            width=20,
+            height=15,
             tile_grid=np.zeros((15, 20), dtype=np.int8),
         )
         minimap.set_map(game_map)
@@ -333,13 +366,17 @@ class TestUIButtonsE2E:
 
     def test_11_minimap_viewport_indicator(self):
         """Verify viewport indicator is drawn."""
-        from pycc2.presentation.rendering.minimap import Minimap
-        from pycc2.domain.entities.game_map import GameMap
         import numpy as np
+
+        from pycc2.domain.entities.game_map import GameMap
+        from pycc2.presentation.rendering.minimap import Minimap
 
         minimap = Minimap()
         game_map = GameMap(
-            id="test", name="test", width=20, height=15,
+            id="test",
+            name="test",
+            width=20,
+            height=15,
             tile_grid=np.zeros((15, 20), dtype=np.int8),
         )
         minimap.set_map(game_map)

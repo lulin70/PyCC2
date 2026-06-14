@@ -19,14 +19,16 @@ if TYPE_CHECKING:
 
 class PathDangerLevel(Enum):
     """Danger level for path segments."""
-    SAFE = auto()       # Green - no enemy LOS
-    WARNING = auto()    # Yellow - partial exposure
-    DANGER = auto()     # Red - in enemy LOS
+
+    SAFE = auto()  # Green - no enemy LOS
+    WARNING = auto()  # Yellow - partial exposure
+    DANGER = auto()  # Red - in enemy LOS
 
 
 @dataclass
 class PathSegment:
     """A segment of the path with danger assessment."""
+
     start: tuple[int, int]
     end: tuple[int, int]
     danger: PathDangerLevel = PathDangerLevel.SAFE
@@ -36,6 +38,7 @@ class PathSegment:
 @dataclass
 class PreviewPath:
     """Complete path preview data."""
+
     segments: list[PathSegment] = field(default_factory=list)
     total_distance: int = 0
     total_time: float = 0.0
@@ -116,23 +119,20 @@ class PathPreview:
             seg_start = (raw_path[i].x, raw_path[i].y)
             seg_end = (raw_path[i + 1].x, raw_path[i + 1].y)
 
-            danger = self._assess_segment_danger(
-                seg_end, enemy_units, game_map
-            )
+            danger = self._assess_segment_danger(seg_end, enemy_units, game_map)
 
-            speed = getattr(unit, 'movement_speed', 3.0)  # tiles per second
-            dist = math.sqrt(
-                (seg_end[0] - seg_start[0]) ** 2 +
-                (seg_end[1] - seg_start[1]) ** 2
-            )
+            speed = getattr(unit, "movement_speed", 3.0)  # tiles per second
+            dist = math.sqrt((seg_end[0] - seg_start[0]) ** 2 + (seg_end[1] - seg_start[1]) ** 2)
             time_est = dist / speed if speed > 0 else 1.0
 
-            segments.append(PathSegment(
-                start=seg_start,
-                end=seg_end,
-                danger=danger,
-                estimated_time=time_est,
-            ))
+            segments.append(
+                PathSegment(
+                    start=seg_start,
+                    end=seg_end,
+                    danger=danger,
+                    estimated_time=time_est,
+                )
+            )
 
         total_dist = len(raw_path) - 1
         total_time = sum(seg.estimated_time for seg in segments)
@@ -155,6 +155,7 @@ class PathPreview:
             return PathDangerLevel.SAFE
 
         from pycc2.domain.value_objects.tile_coord import TileCoord
+
         pos = TileCoord(position[0], position[1])
 
         danger_count = 0
@@ -210,12 +211,12 @@ class PathPreview:
 
         Draws dashed lines with color coding:
         - Green (#00FF00): Safe segments
-        - Yellow (#FFFF00): Warning segments  
+        - Yellow (#FFFF00): Warning segments
         - Red (#FF0000): Dangerous segments
 
         Also shows estimated time at waypoints.
         """
-        if not path or not path.is_visible if hasattr(path, 'is_visible') else True:
+        if not path or not path.is_visible if hasattr(path, "is_visible") else True:
             return
 
         render_path = path or self._current_path
@@ -223,9 +224,9 @@ class PathPreview:
             return
 
         color_map = {
-            PathDangerLevel.SAFE: (0, 255, 0, 180),     # Green
-            PathDangerLevel.WARNING: (255, 255, 0, 180), # Yellow
-            PathDangerLevel.DANGER: (255, 0, 0, 180),    # Red
+            PathDangerLevel.SAFE: (0, 255, 0, 180),  # Green
+            PathDangerLevel.WARNING: (255, 255, 0, 180),  # Yellow
+            PathDangerLevel.DANGER: (255, 0, 0, 180),  # Red
         }
 
         try:
@@ -248,7 +249,7 @@ class PathPreview:
 
                 if i % 3 == 0:  # Show time every 3rd segment
                     time_text = f"{segment.estimated_time:.1f}s"
-                    font = pygame.font.SysFont('arial', 12)
+                    font = pygame.font.SysFont("arial", 12)
                     text_surf = font.render(time_text, True, (255, 255, 255))
                     surface.blit(text_surf, (end_screen[0] + 5, end_screen[1] - 5))
 
@@ -266,8 +267,9 @@ class PathPreview:
     ) -> None:
         """Draw a dashed line between two points."""
         try:
-            import pygame
             import math
+
+            import pygame
 
             dx = end[0] - start[0]
             dy = end[1] - start[1]
@@ -302,4 +304,5 @@ class PathPreview:
 def __vec2(pos: tuple[int, int]):
     """Helper to create Vec2 from tuple."""
     from pycc2.domain.value_objects.vec2 import Vec2
+
     return Vec2(float(pos[0]), float(pos[1]))

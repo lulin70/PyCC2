@@ -7,13 +7,15 @@ the correct destination without jumping to (0,0) or other incorrect positions.
 This test addresses the P0 bug reported by users:
 "战斗单元移动出问题，移动后单位出现在左上角"
 """
+
 import pytest
-from pycc2.domain.entities.unit import Unit, Faction, UnitType
+
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent
 from pycc2.domain.components.position_component import PositionComponent
 from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
+from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
 
@@ -48,9 +50,7 @@ class TestUnitMovementE2E:
         assert actual_pos != (0, 0), (
             f"BUG REPRODUCED: Unit jumped to (0,0) instead of ({destination_x}, {destination_y})"
         )
-        assert actual_pos != (initial_x, initial_y), (
-            "Unit did not move from initial position"
-        )
+        assert actual_pos != (initial_x, initial_y), "Unit did not move from initial position"
         assert actual_pos == (destination_x, destination_y), (
             f"Unit at {actual_pos}, expected ({destination_x}, {destination_y})"
         )
@@ -128,13 +128,9 @@ class TestUnitMovementE2E:
             unit_type=UnitType.INFANTRY_SQUAD,
             health=HealthComponent(hp=100, max_hp=100),
             morale=MoraleComponent(value=100),
-            weapon=WeaponComponent(
-                primary_weapon_id="rifle",
-                max_ammo=30,
-                ammo_remaining=30
-            ),
+            weapon=WeaponComponent(primary_weapon_id="rifle", max_ammo=30, ammo_remaining=30),
             position=PositionComponent(tile_coord=TileCoord(x, y)),
-            vision=VisionComponent()
+            vision=VisionComponent(),
         )
 
 

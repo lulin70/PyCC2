@@ -86,7 +86,7 @@ class UIOverlayRenderer:
         offscreen = self._ctx.offscreen
         tile_size = self._ctx.tile_size
 
-        objectives = getattr(game_map, 'objectives', [])
+        objectives = getattr(game_map, "objectives", [])
         if not objectives:
             return
 
@@ -100,28 +100,30 @@ class UIOverlayRenderer:
             sp = camera.world_to_screen(Vec2(tile_x, tile_y))
             sx, sy = int(sp[0]), int(sp[1])
 
-            owner = getattr(obj, 'owner', None) or 'neutral'
+            owner = getattr(obj, "owner", None) or "neutral"
             margin = 60
-            on_screen = (-margin < sx < screen_w + margin and -margin < sy < screen_h + margin)
+            on_screen = -margin < sx < screen_w + margin and -margin < sy < screen_h + margin
 
             if on_screen:
                 # Simple flag drawing
                 pygame.draw.line(offscreen, (80, 80, 80), (sx, sy), (sx, sy - 20), 2)
-                if owner == 'allies':
+                if owner == "allies":
                     flag_color = (60, 100, 200)
-                elif owner == 'axis':
+                elif owner == "axis":
                     flag_color = (200, 60, 60)
                 else:
                     flag_color = (200, 200, 200)
                 flag_points = [
-                    (sx + 1, sy - 20), (sx + 14, sy - 17),
-                    (sx + 13, sy - 10), (sx + 1, sy - 13),
+                    (sx + 1, sy - 20),
+                    (sx + 14, sy - 17),
+                    (sx + 13, sy - 10),
+                    (sx + 1, sy - 13),
                 ]
                 pygame.draw.polygon(offscreen, flag_color, flag_points)
                 pygame.draw.polygon(offscreen, (0, 0, 0), flag_points, 1)
 
                 # VP number with pulse animation (yellow + shadow outline + scale)
-                vp_value = getattr(obj, 'points', None)
+                vp_value = getattr(obj, "points", None)
                 if vp_value is not None and isinstance(vp_value, (int, float)):
                     try:
                         font = pygame.font.Font(None, 38)
@@ -130,7 +132,8 @@ class UIOverlayRenderer:
                         pulse_scale = math.sin(_time.time() * 3.0) * 0.05 + 1.0
                         pulse_alpha = int(
                             self.PULSE_BASE_ALPHA
-                            + self.PULSE_AMPLITUDE * abs(math.sin(_time.time() * self.PULSE_FREQUENCY))
+                            + self.PULSE_AMPLITUDE
+                            * abs(math.sin(_time.time() * self.PULSE_FREQUENCY))
                         )
 
                         text_color = (255, 220, 100)
@@ -156,7 +159,9 @@ class UIOverlayRenderer:
                             text_surf = pygame.transform.scale(text_surf, (new_w, new_h))
 
                         final_x = int(base_x - (text_surf.get_width() - font.size(vp_text)[0]) // 2)
-                        final_y = int(base_y - (text_surf.get_height() - font.size(vp_text)[1]) // 2)
+                        final_y = int(
+                            base_y - (text_surf.get_height() - font.size(vp_text)[1]) // 2
+                        )
                         offscreen.blit(text_surf, (final_x, final_y))
                     except (AttributeError, ValueError):
                         pass
@@ -183,8 +188,10 @@ class UIOverlayRenderer:
             cx = max(arrow_margin, min(screen_w - arrow_margin, sx))
             cy = max(arrow_margin, min(screen_h - arrow_margin, sy))
             color = (
-                (60, 100, 200) if owner == 'allies'
-                else (200, 60, 60) if owner == 'axis'
+                (60, 100, 200)
+                if owner == "allies"
+                else (200, 60, 60)
+                if owner == "axis"
                 else (200, 200, 200)
             )
             angle = math.atan2(sy - cy, sx - cx)
@@ -195,11 +202,15 @@ class UIOverlayRenderer:
             left_y = cy + arrow_size * math.sin(angle + 2.5)
             right_x = cx + arrow_size * math.cos(angle - 2.5)
             right_y = cy + arrow_size * math.sin(angle - 2.5)
-            pygame.draw.polygon(offscreen, color, [
-                (int(tip_x), int(tip_y)),
-                (int(left_x), int(left_y)),
-                (int(right_x), int(right_y)),
-            ])
+            pygame.draw.polygon(
+                offscreen,
+                color,
+                [
+                    (int(tip_x), int(tip_y)),
+                    (int(left_x), int(left_y)),
+                    (int(right_x), int(right_y)),
+                ],
+            )
 
     # ------------------------------------------------------------------ #
     #  Attack Lines
@@ -220,6 +231,7 @@ class UIOverlayRenderer:
             return
 
         import pygame as pg
+
         from pycc2.presentation.input.attack_line_system import AttackLineStatus
 
         offscreen = self._ctx.offscreen
@@ -245,25 +257,37 @@ class UIOverlayRenderer:
                 elif status == AttackLineStatus.OUT_OF_RANGE:
                     self._draw_dashed_line(start_pos, end_pos, (255, 50, 50), dash_len=8)
                     size = 6
-                    pg.draw.line(offscreen, (255, 50, 50),
-                                (end_pos[0] - size, end_pos[1] - size),
-                                (end_pos[0] + size, end_pos[1] + size), 2)
-                    pg.draw.line(offscreen, (255, 50, 50),
-                                (end_pos[0] - size, end_pos[1] + size),
-                                (end_pos[0] + size, end_pos[1] - size), 2)
+                    pg.draw.line(
+                        offscreen,
+                        (255, 50, 50),
+                        (end_pos[0] - size, end_pos[1] - size),
+                        (end_pos[0] + size, end_pos[1] + size),
+                        2,
+                    )
+                    pg.draw.line(
+                        offscreen,
+                        (255, 50, 50),
+                        (end_pos[0] - size, end_pos[1] + size),
+                        (end_pos[0] + size, end_pos[1] - size),
+                        2,
+                    )
                 elif status == AttackLineStatus.BLOCKED:
                     self._draw_dashed_line(start_pos, end_pos, (255, 140, 0), dash_len=8)
                     pg.draw.circle(offscreen, (255, 140, 0), end_pos, 8, 2)
-                    pg.draw.line(offscreen, (255, 140, 0),
-                                (end_pos[0] - 4, end_pos[1]),
-                                (end_pos[0] + 4, end_pos[1]), 2)
+                    pg.draw.line(
+                        offscreen,
+                        (255, 140, 0),
+                        (end_pos[0] - 4, end_pos[1]),
+                        (end_pos[0] + 4, end_pos[1]),
+                        2,
+                    )
 
         # Draw confirmed attacks (tracking lines)
         for _unit_id, confirmed_target in attack_line._confirmed_attacks.items():
             if not confirmed_target.unit_id:
                 continue
 
-            source_pos = getattr(attack_line, '_active_source', None)
+            source_pos = getattr(attack_line, "_active_source", None)
             if source_pos is not None:
                 source_screen = camera.world_to_screen(source_pos)
             else:
@@ -294,26 +318,28 @@ class UIOverlayRenderer:
         offscreen = self._ctx.offscreen
 
         for unit in units:
-            if not hasattr(unit, 'has_queued_commands') or not unit.has_queued_commands:
+            if not hasattr(unit, "has_queued_commands") or not unit.has_queued_commands:
                 continue
 
-            upos = unit.position.pixel_position if hasattr(unit.position, 'pixel_position') else None
+            upos = (
+                unit.position.pixel_position if hasattr(unit.position, "pixel_position") else None
+            )
             if upos is None:
                 continue
 
             prev_screen = camera.world_to_screen(upos)
 
             for cmd in unit._command_queue:
-                tx = cmd.get('target_x', 0)
-                ty = cmd.get('target_y', 0)
+                tx = cmd.get("target_x", 0)
+                ty = cmd.get("target_y", 0)
                 target_world = Vec2(tx * 32, ty * 32)
                 target_screen = camera.world_to_screen(target_world)
 
                 start_pos = (int(prev_screen[0]), int(prev_screen[1]))
                 end_pos = (int(target_screen[0]), int(target_screen[1]))
 
-                cmd_type = cmd.get('type', 'move')
-                if cmd_type == 'attack':
+                cmd_type = cmd.get("type", "move")
+                if cmd_type == "attack":
                     self._draw_dashed_line(start_pos, end_pos, (255, 165, 0), dash_len=6)
                 else:
                     self._draw_dashed_line(start_pos, end_pos, (0, 220, 220), dash_len=6)
@@ -327,7 +353,9 @@ class UIOverlayRenderer:
     #  LOS Overlay
     # ------------------------------------------------------------------ #
 
-    def render_los_overlay(self, surface: pygame.Surface, unit, game_map: GameMap, camera: Camera) -> None:
+    def render_los_overlay(
+        self, surface: pygame.Surface, unit, game_map: GameMap, camera: Camera
+    ) -> None:
         """Render line-of-sight visualization for the selected unit.
 
         Called when Ctrl key is held down. Shows visible/hidden areas.
@@ -350,7 +378,7 @@ class UIOverlayRenderer:
             self._los_overlay_size = overlay_size
         self._los_overlay.fill((0, 0, 0, 0))
 
-        vision_range = getattr(unit, 'vision', None)
+        vision_range = getattr(unit, "vision", None)
         max_range = vision_range.range if vision_range else 10
 
         for ty in range(max(0, uy - max_range), min(game_map.height, uy + max_range + 1)):
@@ -365,13 +393,21 @@ class UIOverlayRenderer:
                 screen_y = ty * tile_size
 
                 if can_see:
-                    pygame.draw.rect(self._los_overlay, (0, 255, 0, 25), (screen_x, screen_y, tile_size, tile_size))
+                    pygame.draw.rect(
+                        self._los_overlay,
+                        (0, 255, 0, 25),
+                        (screen_x, screen_y, tile_size, tile_size),
+                    )
                 else:
-                    pygame.draw.rect(self._los_overlay, (255, 0, 0, 40), (screen_x, screen_y, tile_size, tile_size))
+                    pygame.draw.rect(
+                        self._los_overlay,
+                        (255, 0, 0, 40),
+                        (screen_x, screen_y, tile_size, tile_size),
+                    )
 
         # Blit overlay offset by camera
-        cam_x = int(camera.offset_x) if hasattr(camera, 'offset_x') else 0
-        cam_y = int(camera.offset_y) if hasattr(camera, 'offset_y') else 0
+        cam_x = int(camera.offset_x) if hasattr(camera, "offset_x") else 0
+        cam_y = int(camera.offset_y) if hasattr(camera, "offset_y") else 0
         surface.blit(self._los_overlay, (-cam_x, -cam_y))
 
     # ------------------------------------------------------------------ #
@@ -388,4 +424,6 @@ class UIOverlayRenderer:
         """Draw a dashed line on the offscreen buffer."""
         if self._ctx.offscreen is None:
             return
-        draw_dashed_line(self._ctx.offscreen, color, start, end, dash_length=dash_len, gap_length=dash_len)
+        draw_dashed_line(
+            self._ctx.offscreen, color, start, end, dash_length=dash_len, gap_length=dash_len
+        )

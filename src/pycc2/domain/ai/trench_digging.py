@@ -67,7 +67,7 @@ _INFANTRY_TYPES: set[UnitType] = {
     UnitType.MACHINE_GUN_SQUAD,
 }
 
-DIG_DURATION: int = 90          # Ticks to complete trench
+DIG_DURATION: int = 90  # Ticks to complete trench
 STATIONARY_THRESHOLD: int = 30  # Ticks before digging can start
 
 
@@ -75,11 +75,13 @@ STATIONARY_THRESHOLD: int = 30  # Ticks before digging can start
 # TrenchDiggingSystem
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class DigProgress:
     """Tracks digging progress for a single unit."""
+
     unit_id: str
-    progress: int = 0       # 0 to DIG_DURATION
+    progress: int = 0  # 0 to DIG_DURATION
     position: TileCoord | None = None  # Position where digging started
     interrupted: bool = False
 
@@ -120,13 +122,18 @@ class TrenchDiggingSystem:
             return False
 
         # Must not be suppressed
-        combat_state = getattr(unit, 'combat_state', None)
+        combat_state = getattr(unit, "combat_state", None)
         if combat_state is not None:
-            suppression = getattr(combat_state, 'suppression', None)
+            suppression = getattr(combat_state, "suppression", None)
             if suppression is not None:
                 effect = suppression.get_current_effect()
                 from pycc2.domain.systems.combat_mechanics_enhanced import SuppressionEffect
-                if effect in (SuppressionEffect.HEAVY, SuppressionEffect.PINNED, SuppressionEffect.PANIC):
+
+                if effect in (
+                    SuppressionEffect.HEAVY,
+                    SuppressionEffect.PINNED,
+                    SuppressionEffect.PANIC,
+                ):
                     return False
 
         # Must not already be in a trench
@@ -165,13 +172,18 @@ class TrenchDiggingSystem:
             return False
 
         # Check for interruption: unit is taking fire (suppression increased)
-        combat_state = getattr(unit, 'combat_state', None)
+        combat_state = getattr(unit, "combat_state", None)
         if combat_state is not None:
-            suppression = getattr(combat_state, 'suppression', None)
+            suppression = getattr(combat_state, "suppression", None)
             if suppression is not None:
                 from pycc2.domain.systems.combat_mechanics_enhanced import SuppressionEffect
+
                 effect = suppression.get_current_effect()
-                if effect in (SuppressionEffect.HEAVY, SuppressionEffect.PINNED, SuppressionEffect.PANIC):
+                if effect in (
+                    SuppressionEffect.HEAVY,
+                    SuppressionEffect.PINNED,
+                    SuppressionEffect.PANIC,
+                ):
                     self.interrupt(unit.id)
                     return False
 
@@ -202,29 +214,27 @@ class TrenchDiggingSystem:
         # Add TRENCH_SECTION decoration via enhanced tile data
         enhanced = game_map.get_enhanced_tile(pos.x, pos.y)
         if enhanced is not None:
-            decorations = enhanced.get('decorations', [])
-            decorations.append({
-                'type': DecorationType.TRENCH_SECTION.name,
-                'offset_x': 0.0,
-                'offset_y': 0.0,
-                'scale': 1.0,
-                'rotation': 0,
-                'variant': 0,
-            })
-            enhanced['decorations'] = decorations
+            decorations = enhanced.get("decorations", [])
+            decorations.append(
+                {
+                    "type": DecorationType.TRENCH_SECTION.name,
+                    "offset_x": 0.0,
+                    "offset_y": 0.0,
+                    "scale": 1.0,
+                    "rotation": 0,
+                    "variant": 0,
+                }
+            )
+            enhanced["decorations"] = decorations
 
         # Also update unit's concealment to reflect trench cover
-        combat_state = getattr(unit, 'combat_state', None)
+        combat_state = getattr(unit, "combat_state", None)
         if combat_state is not None:
-            concealment = getattr(combat_state, 'concealment', None)
+            concealment = getattr(combat_state, "concealment", None)
             if concealment is not None:
-                concealment.terrain_concealment = min(
-                    0.95, concealment.terrain_concealment + 0.4
-                )
+                concealment.terrain_concealment = min(0.95, concealment.terrain_concealment + 0.4)
 
-        logger.info(
-            f"Unit {unit.id} completed trench at ({pos.x}, {pos.y})"
-        )
+        logger.info(f"Unit {unit.id} completed trench at ({pos.x}, {pos.y})")
 
     @staticmethod
     def _is_in_trench(pos: TileCoord, game_map: GameMap) -> bool:
@@ -232,16 +242,14 @@ class TrenchDiggingSystem:
         enhanced = game_map.get_enhanced_tile(pos.x, pos.y)
         if enhanced is None:
             return False
-        decorations = enhanced.get('decorations', [])
-        return any(
-            d.get('type') == DecorationType.TRENCH_SECTION.name
-            for d in decorations
-        )
+        decorations = enhanced.get("decorations", [])
+        return any(d.get("type") == DecorationType.TRENCH_SECTION.name for d in decorations)
 
 
 # ---------------------------------------------------------------------------
 # TrenchDiggingAI
 # ---------------------------------------------------------------------------
+
 
 class TrenchDiggingAI(TacticalAIBase):
     """Evaluate when infantry should dig trenches and issue DIG_TRENCH orders.
@@ -285,7 +293,7 @@ class TrenchDiggingAI(TacticalAIBase):
             bb = context.blackboards.get(unit.id)
             stationary_ticks = 0
             if bb is not None:
-                stationary_ticks = bb.get('stationary_ticks', 0)
+                stationary_ticks = bb.get("stationary_ticks", 0)
 
             if stationary_ticks < STATIONARY_THRESHOLD:
                 continue
@@ -307,7 +315,8 @@ class TrenchDiggingAI(TacticalAIBase):
     def _dig_candidates(context: TacticalContext) -> list[Unit]:
         """Find infantry units that could potentially dig."""
         return [
-            u for u in context.friendly_units
+            u
+            for u in context.friendly_units
             if u.is_alive
             and u.can_act
             and u.unit_type in _INFANTRY_TYPES
@@ -324,7 +333,7 @@ class TrenchDiggingAI(TacticalAIBase):
         if not friendlies:
             return 1.0
 
-        min_dist = float('inf')
+        min_dist = float("inf")
         for f in friendlies[:5]:
             for e in enemies[:5]:
                 d = f.position.tile_coord.chebyshev_distance(e.position.tile_coord)
@@ -343,8 +352,7 @@ class TrenchDiggingAI(TacticalAIBase):
     def _no_cover_ratio(context: TacticalContext) -> float:
         """Ratio of friendly infantry in positions with no cover."""
         infantry = [
-            u for u in context.friendly_units
-            if u.is_alive and u.unit_type in _INFANTRY_TYPES
+            u for u in context.friendly_units if u.is_alive and u.unit_type in _INFANTRY_TYPES
         ]
         if not infantry:
             return 0.0

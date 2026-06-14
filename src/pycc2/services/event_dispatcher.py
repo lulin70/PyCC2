@@ -8,16 +8,17 @@ input are each delegated to dedicated private methods.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 import pygame
 
 if TYPE_CHECKING:
-    from pycc2.presentation.audio.sound_system import SoundSystem
     from pycc2.domain.interfaces.display_config import DisplayConfig
-    from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
     from pycc2.domain.interfaces.input_handler_protocol import IInputHandler as InputRouter
+    from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
+    from pycc2.presentation.audio.sound_system import SoundSystem
     from pycc2.presentation.ui.time_control import TimeControlUI
     from pycc2.services.deployment_manager import DeploymentManager
     from pycc2.services.event_bus import EventBus
@@ -104,7 +105,7 @@ class EventDispatcher:
         Returns *True* if the event was consumed.
         """
         # Access campaign_ui via the game_loop reference if available
-        campaign_ui = getattr(self, '_campaign_ui_ref', None)
+        campaign_ui = getattr(self, "_campaign_ui_ref", None)
         if campaign_ui is None or not campaign_ui.is_visible:
             return False
 
@@ -128,9 +129,8 @@ class EventDispatcher:
         if self.settings_menu and self.settings_menu.visible:
             mouse_pos = pygame.mouse.get_pos()
             result = self.settings_menu.handle_input(event, mouse_pos)
-            if result == "applied":
-                if hasattr(self.settings_menu, "apply_to_systems"):
-                    self.settings_menu.apply_to_systems(sound_system=self.sound_system)
+            if result == "applied" and hasattr(self.settings_menu, "apply_to_systems"):
+                self.settings_menu.apply_to_systems(sound_system=self.sound_system)
             return True
         return False
 
@@ -228,16 +228,20 @@ class EventDispatcher:
             mouse_pos = pygame.mouse.get_pos()
             if event.button == 1:  # Left click
                 drag_result = deployment_ui.handle_mouse_down(
-                    mouse_pos[0], mouse_pos[1],
-                    map_offset_x=0, map_offset_y=0,
+                    mouse_pos[0],
+                    mouse_pos[1],
+                    map_offset_x=0,
+                    map_offset_y=0,
                     tile_size=tile_size,
                 )
                 if drag_result and drag_result.startswith("drag_start"):
                     pass  # Drag started — will handle on MOUSEBUTTONUP
                 else:
                     result = deployment_ui.handle_click_full(
-                        mouse_pos[0], mouse_pos[1],
-                        map_offset_x=0, map_offset_y=0,
+                        mouse_pos[0],
+                        mouse_pos[1],
+                        map_offset_x=0,
+                        map_offset_y=0,
                         tile_size=tile_size,
                     )
                     if result == "begin_battle":
@@ -245,8 +249,10 @@ class EventDispatcher:
                             self.complete_deployment_fn()
             elif event.button == 3:  # Right click
                 result = deployment_ui.handle_click_full(
-                    mouse_pos[0], mouse_pos[1],
-                    map_offset_x=0, map_offset_y=0,
+                    mouse_pos[0],
+                    mouse_pos[1],
+                    map_offset_x=0,
+                    map_offset_y=0,
                     tile_size=tile_size,
                     right_click=True,
                 )
@@ -264,15 +270,19 @@ class EventDispatcher:
             mouse_pos = pygame.mouse.get_pos()
             deployment_ui.update_button_hover(*mouse_pos)
             deployment_ui.handle_mouse_move(
-                mouse_pos[0], mouse_pos[1],
-                map_offset_x=0, map_offset_y=0,
+                mouse_pos[0],
+                mouse_pos[1],
+                map_offset_x=0,
+                map_offset_y=0,
                 tile_size=tile_size,
             )
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             mouse_pos = pygame.mouse.get_pos()
             deployment_ui.handle_mouse_up(
-                mouse_pos[0], mouse_pos[1],
-                map_offset_x=0, map_offset_y=0,
+                mouse_pos[0],
+                mouse_pos[1],
+                map_offset_x=0,
+                map_offset_y=0,
                 tile_size=tile_size,
             )
 
@@ -293,9 +303,12 @@ class EventDispatcher:
             self.input_router.show_post_battle = self.victory_manager.show_post_battle
 
         # Check for minimap click before routing to input
-        if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
-                and self.hud_manager is not None
-                and self.hud_manager.minimap is not None):
+        if (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and event.button == 1
+            and self.hud_manager is not None
+            and self.hud_manager.minimap is not None
+        ):
             mouse_pos = pygame.mouse.get_pos()
             if self.hud_manager.minimap.contains_point(mouse_pos):
                 self.hud_manager.minimap.handle_click(mouse_pos, self.state.camera)
@@ -304,7 +317,11 @@ class EventDispatcher:
         # Route to input router
         try:
             result = self.input_router.route_input(event)
-            if not self.deployment_manager.is_active and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if (
+                not self.deployment_manager.is_active
+                and event.type == pygame.MOUSEBUTTONDOWN
+                and event.button == 1
+            ):
                 logger.info(f"[BATTLE MODE] route_input returned: {result}")
         except Exception as e:
             logger.error(f"[BATTLE MODE] Error in route_input: {e}")

@@ -25,48 +25,48 @@ class CCPalette(Enum):
 
     # Grass — DARK military olive green (exact from CC2 screenshot)
     # 2026-05-29 Phase 5 Fix: 再降8%到CC2精确值（对比12张CC2截图确认）
-    GRASS_BASE = (68, 110, 32)       # 原(76,122,37) → 再降8%→#6E6E20
-    GRASS_LIGHT = (82, 126, 39)      # 原(90,139,45) → 再降8%→#527E27
-    GRASS_DARK = (52, 88, 23)        # 原(58,98,26) → 再降8%→#345817
+    GRASS_BASE = (68, 110, 32)  # 原(76,122,37) → 再降8%→#6E6E20
+    GRASS_LIGHT = (82, 126, 39)  # 原(90,139,45) → 再降8%→#527E27
+    GRASS_DARK = (52, 88, 23)  # 原(58,98,26) → 再降8%→#345817
 
     # Road — grey-brown, NOT orange-brown
-    ROAD = (105, 89, 65)             # 原始(105,89,64) → 去饱和5%
-    DIRT_ROAD = (93, 79, 56)         # 原始(93,79,55) → 去饱和5%
-    DIRT = (128, 100, 59)            # 原始(129,100,58) → 去饱和5%
+    ROAD = (105, 89, 65)  # 原始(105,89,64) → 去饱和5%
+    DIRT_ROAD = (93, 79, 56)  # 原始(93,79,55) → 去饱和5%
+    DIRT = (128, 100, 59)  # 原始(129,100,58) → 去饱和5%
 
     # Water — dark blue-grey, semi-transparent
-    WATER_DEEP = (25, 55, 95)        # 原始(25,54,94) → 去饱和5%
-    WATER_SHALLOW = (46, 93, 157)    # 原始(47,94,158) → 去饱和5%
-    WATER_FOAM = (121, 159, 197)     # 原始(123,160,198) → 去饱和5%
+    WATER_DEEP = (25, 55, 95)  # 原始(25,54,94) → 去饱和5%
+    WATER_SHALLOW = (46, 93, 157)  # 原始(47,94,158) → 去饱和5%
+    WATER_FOAM = (121, 159, 197)  # 原始(123,160,198) → 去饱和5%
 
-    TREE_CROWN = (37, 73, 34)        # 原始(37,73,33) → 去饱和5%
-    TREE_CROWN_DARK = (28, 58, 26)   # 原始(27,58,25) → 去饱和5%
-    TREE_CROWN_MID = (48, 88, 42)    # A4: 新增中间色调 (介于dark和light之间)
-    TREE_TRUNK = (80, 57, 35)        # 原始(80,57,34) → 去饱和5%
-    HEDGE_GREEN = (44, 83, 35)       # 原始(44,83,34) → 去饱和5%
+    TREE_CROWN = (37, 73, 34)  # 原始(37,73,33) → 去饱和5%
+    TREE_CROWN_DARK = (28, 58, 26)  # 原始(27,58,25) → 去饱和5%
+    TREE_CROWN_MID = (48, 88, 42)  # A4: 新增中间色调 (介于dark和light之间)
+    TREE_TRUNK = (80, 57, 35)  # 原始(80,57,34) → 去饱和5%
+    HEDGE_GREEN = (44, 83, 35)  # 原始(44,83,34) → 去饱和5%
 
     # Building roofs — match CC2 exactly (with 5% desaturation)
     BUILDING_WALL = (173, 165, 148)  # 原始(175,166,148) → 去饱和5%
-    BUILDING_ROOF = (136, 95, 64)    # 原始(137,95,63) → 去饱和5%
-    BUILDING_SHADOW = (89, 55, 38)    # A3: 再降10%增强对比度 (原99,62,43)
-    ROAD_MARK = (118, 96, 54)        # 原始(119,96,53) → 去饱和5%
-    CONCRETE = (160, 156, 145)       # A3: +4亮度增强对比 (原154,150,140)
-    SAND = (178, 164, 122)           # A3: +4亮度增强对比 (原174,160,119)
-    MUD = (134, 104, 25)             # 原始(136,104,24) → 去饱和5%
-    SNOW = (228, 233, 238)           # A3: +4亮度增强对比 (原224,229,234)
-    WIRE = (100, 100, 100)           # 原始(100,100,100) → 无变化（灰色）
-    BUNKER = (117, 112, 103)         # 原始(118,113,104) → 去饱和5%
-    ALLIES_HELMET = (89, 107, 53)    # A3: +4亮度增强对比 (原85,103,51)
-    ALLIES_UNIFORM = (80, 86, 38)     # A3: +4亮度增强对比 (原76,82,35)
-    AXIS_HELMET = (60, 62, 56)       # A3: +4亮度增强对比 (原56,58,52)
-    AXIS_UNIFORM = (89, 95, 84)      # A3: +4亮度增强对比 (原85,91,80)
-    WATER = (33, 66, 114)            # A3: 再降5%更深 (原35,70,120)
-    WOOD_TRUNK = (84, 59, 37)        # A3: +4亮度增强对比 (原80,57,35)
-    WOOD_LEAF_DARK = (33, 69, 30)    # A3: 再降10%增强对比 (原37,73,34)
-    WOOD_LEAF_LIGHT = (79, 125, 39)   # A3: +4亮度增强对比 (原75,121,36)
+    BUILDING_ROOF = (136, 95, 64)  # 原始(137,95,63) → 去饱和5%
+    BUILDING_SHADOW = (89, 55, 38)  # A3: 再降10%增强对比度 (原99,62,43)
+    ROAD_MARK = (118, 96, 54)  # 原始(119,96,53) → 去饱和5%
+    CONCRETE = (160, 156, 145)  # A3: +4亮度增强对比 (原154,150,140)
+    SAND = (178, 164, 122)  # A3: +4亮度增强对比 (原174,160,119)
+    MUD = (134, 104, 25)  # 原始(136,104,24) → 去饱和5%
+    SNOW = (228, 233, 238)  # A3: +4亮度增强对比 (原224,229,234)
+    WIRE = (100, 100, 100)  # 原始(100,100,100) → 无变化（灰色）
+    BUNKER = (117, 112, 103)  # 原始(118,113,104) → 去饱和5%
+    ALLIES_HELMET = (89, 107, 53)  # A3: +4亮度增强对比 (原85,103,51)
+    ALLIES_UNIFORM = (80, 86, 38)  # A3: +4亮度增强对比 (原76,82,35)
+    AXIS_HELMET = (60, 62, 56)  # A3: +4亮度增强对比 (原56,58,52)
+    AXIS_UNIFORM = (89, 95, 84)  # A3: +4亮度增强对比 (原85,91,80)
+    WATER = (33, 66, 114)  # A3: 再降5%更深 (原35,70,120)
+    WOOD_TRUNK = (84, 59, 37)  # A3: +4亮度增强对比 (原80,57,35)
+    WOOD_LEAF_DARK = (33, 69, 30)  # A3: 再降10%增强对比 (原37,73,34)
+    WOOD_LEAF_LIGHT = (79, 125, 39)  # A3: +4亮度增强对比 (原75,121,36)
     BUILDING_WINDOW = (87, 121, 160)  # A3: +4亮度增强对比 (原83,117,156)
-    BUILDING_DOOR = (103, 68, 40)     # A3: +4亮度增强对比 (原99,65,37)
-    BLOOD = (140, 20, 20)            # *** 保持不变！排除去饱和 ***
+    BUILDING_DOOR = (103, 68, 40)  # A3: +4亮度增强对比 (原99,65,37)
+    BLOOD = (140, 20, 20)  # *** 保持不变！排除去饱和 ***
 
 
 @dataclass(slots=True)
@@ -351,9 +351,11 @@ class UnitSpriteGenerator:
         palette = PaletteSet.allies() if spec.faction == "allies" else PaletteSet.axis()
         canvas = PixelCanvas(spec.size, spec.size, bg=(0, 0, 0, 0))
 
-        prone_states = {'crawl', 'defend', 'attack', 'sneak', 'hide'}
+        prone_states = {"crawl", "defend", "attack", "sneak", "hide"}
         if spec.state in prone_states and spec.unit_type not in ("TANK",):
-            UnitSpriteGenerator._draw_infantry_prone(canvas, palette, spec.direction, spec.frame_offset)
+            UnitSpriteGenerator._draw_infantry_prone(
+                canvas, palette, spec.direction, spec.frame_offset
+            )
         else:
             func = gen_map.get(spec.unit_type, UnitSpriteGenerator._draw_infantry)
             func(canvas, palette, spec.direction, spec.frame_offset)
@@ -395,7 +397,11 @@ class UnitSpriteGenerator:
 
         helmet_r = max(2, sz // 8)
         c.fill_circle(cx, cy - 2, helmet_r, pal.helmet)
-        hl_color = (min(255, pal.helmet[0] + 40), min(255, pal.helmet[1] + 40), min(255, pal.helmet[2] + 40))
+        hl_color = (
+            min(255, pal.helmet[0] + 40),
+            min(255, pal.helmet[1] + 40),
+            min(255, pal.helmet[2] + 40),
+        )
         c.set_pixel(cx - 1, cy - 3, hl_color)
 
         body_w, body_h = sz // 3, sz // 5
@@ -466,7 +472,11 @@ class UnitSpriteGenerator:
 
         helmet_r = max(2, sz // 8)
         c.fill_circle(cx, cy - 2, helmet_r, pal.helmet)
-        hl_color = (min(255, pal.helmet[0] + 40), min(255, pal.helmet[1] + 40), min(255, pal.helmet[2] + 40))
+        hl_color = (
+            min(255, pal.helmet[0] + 40),
+            min(255, pal.helmet[1] + 40),
+            min(255, pal.helmet[2] + 40),
+        )
         c.set_pixel(cx - 1, cy - 3, hl_color)
 
         body_w, body_h = sz // 3, sz // 5
@@ -499,7 +509,11 @@ class UnitSpriteGenerator:
 
         helmet_r = max(2, sz // 8)
         c.fill_circle(cx, cy - 2, helmet_r, pal.helmet)
-        hl_color = (min(255, pal.helmet[0] + 40), min(255, pal.helmet[1] + 40), min(255, pal.helmet[2] + 40))
+        hl_color = (
+            min(255, pal.helmet[0] + 40),
+            min(255, pal.helmet[1] + 40),
+            min(255, pal.helmet[2] + 40),
+        )
         c.set_pixel(cx - 1, cy - 3, hl_color)
 
         red_cross = (200, 40, 40)
@@ -540,7 +554,11 @@ class UnitSpriteGenerator:
 
         helmet_r = max(3, sz // 7)
         c.fill_circle(cx, cy - 2, helmet_r, pal.helmet)
-        hl_color = (min(255, pal.helmet[0] + 40), min(255, pal.helmet[1] + 40), min(255, pal.helmet[2] + 40))
+        hl_color = (
+            min(255, pal.helmet[0] + 40),
+            min(255, pal.helmet[1] + 40),
+            min(255, pal.helmet[2] + 40),
+        )
         c.set_pixel(cx - 1, cy - 3, hl_color)
 
         body_w, body_h = sz // 2.5, sz // 4
@@ -577,7 +595,11 @@ class UnitSpriteGenerator:
 
         helmet_r = max(3, sz // 7)
         c.fill_circle(cx, cy - 2, helmet_r, pal.helmet)
-        hl_color = (min(255, pal.helmet[0] + 40), min(255, pal.helmet[1] + 40), min(255, pal.helmet[2] + 40))
+        hl_color = (
+            min(255, pal.helmet[0] + 40),
+            min(255, pal.helmet[1] + 40),
+            min(255, pal.helmet[2] + 40),
+        )
         c.set_pixel(cx - 1, cy - 3, hl_color)
 
         insignia_color = (220, 190, 50)
@@ -633,11 +655,14 @@ class TerrainTileGenerator:
 
         # Base fill with subtle per-pixel random variation (reduced range for less contrast)
         import numpy as np
+
         c.fill_rect(0, 0, size, size, base)
         rng = random.Random(123 + variant)
         region = c._pixels.astype(np.int16)
         np_rng = np.random.RandomState(123 + variant)
-        noise = np_rng.randint(-8, 10, size=(size, size), dtype=np.int16)  # Reduced from -12~14 to -8~10
+        noise = np_rng.randint(
+            -8, 10, size=(size, size), dtype=np.int16
+        )  # Reduced from -12~14 to -8~10
         for ch in range(3):
             region[:, :, ch] = np.clip(region[:, :, ch] + noise, 0, 255)
         c._pixels = region.astype(np.uint8)
@@ -702,8 +727,9 @@ class TerrainTileGenerator:
         return c
 
     @staticmethod
-    def generate_road(size: int, orientation: str = "horizontal",
-                      neighbors: dict | None = None) -> PixelCanvas:
+    def generate_road(
+        size: int, orientation: str = "horizontal", neighbors: dict | None = None
+    ) -> PixelCanvas:
         """生成道路瓦片 — 增强版: 碎石颗粒+裂缝纹理+跨瓦片连续性
 
         Args:
@@ -745,7 +771,8 @@ class TerrainTileGenerator:
                 for i in range(min(4, road_margin)):
                     alpha = i / 4
                     blended = tuple(
-                        int(CCPalette.DIRT.value[j] * (1 - alpha) + road_color[j] * alpha) for j in range(3)
+                        int(CCPalette.DIRT.value[j] * (1 - alpha) + road_color[j] * alpha)
+                        for j in range(3)
                     )
                     for ry in range(road_top, road_bot):
                         c.set_pixel(i, ry, blended)
@@ -753,7 +780,8 @@ class TerrainTileGenerator:
                 for i in range(min(4, road_margin)):
                     alpha = i / 4
                     blended = tuple(
-                        int(CCPalette.DIRT.value[j] * (1 - alpha) + road_color[j] * alpha) for j in range(3)
+                        int(CCPalette.DIRT.value[j] * (1 - alpha) + road_color[j] * alpha)
+                        for j in range(3)
                     )
                     for ry in range(road_top, road_bot):
                         c.set_pixel(size - 1 - i, ry, blended)
@@ -815,11 +843,10 @@ class TerrainTileGenerator:
                 if px > 0 and px % wobble_interval == 0:
                     current_offset = tire_rng.randint(-1, 1)
                 py = tire2_y + current_offset
-                if road_top <= py < road_bot:
-                    if tire_rng.random() > 0.05:
-                        for w in range(tire_width):
-                            if 0 <= py + w < size:
-                                c.set_pixel(px, py + w, tire_color)
+                if road_top <= py < road_bot and tire_rng.random() > 0.05:
+                    for w in range(tire_width):
+                        if 0 <= py + w < size:
+                            c.set_pixel(px, py + w, tire_color)
 
             rng = random.Random(77)
 
@@ -887,7 +914,8 @@ class TerrainTileGenerator:
                 for i in range(min(4, road_margin)):
                     alpha = i / 4
                     blended = tuple(
-                        int(CCPalette.DIRT.value[j] * (1 - alpha) + road_color[j] * alpha) for j in range(3)
+                        int(CCPalette.DIRT.value[j] * (1 - alpha) + road_color[j] * alpha)
+                        for j in range(3)
                     )
                     for rx in range(road_left, road_right):
                         c.set_pixel(rx, i, blended)
@@ -895,7 +923,8 @@ class TerrainTileGenerator:
                 for i in range(min(4, road_margin)):
                     alpha = i / 4
                     blended = tuple(
-                        int(CCPalette.DIRT.value[j] * (1 - alpha) + road_color[j] * alpha) for j in range(3)
+                        int(CCPalette.DIRT.value[j] * (1 - alpha) + road_color[j] * alpha)
+                        for j in range(3)
                     )
                     for rx in range(road_left, road_right):
                         c.set_pixel(rx, size - 1 - i, blended)
@@ -928,11 +957,10 @@ class TerrainTileGenerator:
                 if py > 0 and py % wobble_interval == 0:
                     current_offset = tire_rng.randint(-1, 1)
                 px = tire1_x + current_offset
-                if road_left <= px < road_right:
-                    if tire_rng.random() > 0.05:
-                        for w in range(tire_width):
-                            if 0 <= px + w < size:
-                                c.set_pixel(px + w, py, tire_color)
+                if road_left <= px < road_right and tire_rng.random() > 0.05:
+                    for w in range(tire_width):
+                        if 0 <= px + w < size:
+                            c.set_pixel(px + w, py, tire_color)
 
             # 绘制下轮胎痕迹（带周期性随机偏移）
             wobble_interval = tire_rng.randint(8, 12)
@@ -950,11 +978,10 @@ class TerrainTileGenerator:
                 if py > 0 and py % wobble_interval == 0:
                     current_offset = tire_rng.randint(-1, 1)
                 px = tire2_x + current_offset
-                if road_left <= px < road_right:
-                    if tire_rng.random() > 0.05:
-                        for w in range(tire_width):
-                            if 0 <= px + w < size:
-                                c.set_pixel(px + w, py, tire_color)
+                if road_left <= px < road_right and tire_rng.random() > 0.05:
+                    for w in range(tire_width):
+                        if 0 <= px + w < size:
+                            c.set_pixel(px + w, py, tire_color)
 
             rng = random.Random(77)
             gravel_count = max(20, size * size // 10)
@@ -1290,8 +1317,9 @@ class TerrainTileGenerator:
         return c
 
     @staticmethod
-    def generate_water(size: int, tile_x: int = 0, tile_y: int = 0,
-                       neighbors: dict | None = None) -> PixelCanvas:
+    def generate_water(
+        size: int, tile_x: int = 0, tile_y: int = 0, neighbors: dict | None = None
+    ) -> PixelCanvas:
         """生成水面瓦片 — 增强版: 暗蓝绿色基底+有机波纹+稀有白色闪光
 
         CC2风格水面特征:
@@ -1325,7 +1353,7 @@ class TerrainTileGenerator:
 
         # *** 降低亮度25%的水面纹理 ***
         water_light = tuple(min(255, int(v * 0.88)) for v in base)  # 比基底稍亮12% (总降25%)
-        water_dark = tuple(max(0, int(v * 0.85)) for v in base)     # 比基底暗15%
+        water_dark = tuple(max(0, int(v * 0.85)) for v in base)  # 比基底暗15%
 
         # *** 有机波纹模式 (正弦波 + 变化频率，非规则条纹) ***
         for y in range(size):
@@ -1336,7 +1364,7 @@ class TerrainTileGenerator:
                 wave3 = math.sin(((x + y) + (tile_x + tile_y) * size) * 0.08)
 
                 # 组合波形 (加权平均)
-                combined_wave = (wave1 * 0.4 + wave2 * 0.35 + wave3 * 0.25)
+                combined_wave = wave1 * 0.4 + wave2 * 0.35 + wave3 * 0.25
 
                 # 根据波相位选择颜色
                 if combined_wave > 0.15:
@@ -1357,7 +1385,7 @@ class TerrainTileGenerator:
 
         # *** 增强有机波纹线条 (多条不同频率的正弦波) ***
         wave_phase_base = (tile_x * size) * 0.3
-        for wave_idx in range(max(6, size // 8)):  # 减少波纹线条数量
+        for _wave_idx in range(max(6, size // 8)):  # 减少波纹线条数量
             wy_base = rng.randint(2, size - 3)
             wx_start = rng.randint(0, size // 4)
             ww = rng.randint(size // 4, size // 2)
@@ -1367,7 +1395,9 @@ class TerrainTileGenerator:
             wave_freq = rng.uniform(0.2, 0.7)  # 更宽的频率范围
             wave_phase = wave_phase_base + rng.uniform(0, 2 * math.pi)
             for x in range(wx_start, min(size, wx_start + ww)):
-                wy = wy_base + int(wave_amp * math.sin(wave_freq * (x + tile_x * size) + wave_phase))
+                wy = wy_base + int(
+                    wave_amp * math.sin(wave_freq * (x + tile_x * size) + wave_phase)
+                )
                 if 0 <= wy < size:
                     c.set_pixel(x, wy, wave_color)
 
@@ -1506,7 +1536,9 @@ class TerrainTileGenerator:
                 c.set_pixel(gx + 1, gy, dot_color)
 
         shadow_offset = 2
-        for y in range(hedge_band_y + hedge_band_h, min(size, hedge_band_y + hedge_band_h + shadow_offset + 2)):
+        for y in range(
+            hedge_band_y + hedge_band_h, min(size, hedge_band_y + hedge_band_h + shadow_offset + 2)
+        ):
             alpha = max(0, 1.0 - (y - hedge_band_y - hedge_band_h) / (shadow_offset + 2))
             for x in range(0, size):
                 if rng.random() < alpha * 0.6:
@@ -1926,9 +1958,9 @@ def create_unit_sprite(
     return UnitSpriteGenerator.generate(spec)
 
 
-def create_terrain_tile(terrain_id: int, size: int = 48,
-                        tile_x: int = 0, tile_y: int = 0,
-                        neighbors: dict | None = None) -> PixelCanvas:
+def create_terrain_tile(
+    terrain_id: int, size: int = 48, tile_x: int = 0, tile_y: int = 0, neighbors: dict | None = None
+) -> PixelCanvas:
     """便捷函数：创建地形瓦片
 
     Args:

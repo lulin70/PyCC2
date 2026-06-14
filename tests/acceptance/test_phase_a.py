@@ -25,7 +25,7 @@ class TestA1AudioSystem:
 
     def test_sound_system_initializes_stereo(self):
         """Audio should initialize with stereo mixer (2 channels)."""
-        from pycc2.presentation.audio.sound_system import SoundSystem, SoundConfig
+        from pycc2.presentation.audio.sound_system import SoundConfig, SoundSystem
 
         config = SoundConfig(enabled=True)
         system = SoundSystem(config)
@@ -40,7 +40,7 @@ class TestA1AudioSystem:
 
     def test_sound_system_fallback_to_mono(self):
         """Audio should fallback to mono if stereo fails."""
-        from pycc2.presentation.audio.sound_system import SoundSystem, SoundConfig
+        from pycc2.presentation.audio.sound_system import SoundConfig, SoundSystem
 
         config = SoundConfig(enabled=True)
         system = SoundSystem(config)
@@ -64,7 +64,7 @@ class TestA1AudioSystem:
 
     def test_sound_system_graceful_disable(self):
         """Game should run without sound if both stereo and mono fail."""
-        from pycc2.presentation.audio.sound_system import SoundSystem, SoundConfig
+        from pycc2.presentation.audio.sound_system import SoundConfig, SoundSystem
 
         config = SoundConfig(enabled=True)
         system = SoundSystem(config)
@@ -91,13 +91,15 @@ class TestA1AudioSystem:
         assert rifle_shot.dtype == np.int16
 
         explosion = ProceduralSoundGenerator.generate_explosion()
-        assert len(explosion) >= len(rifle_shot) * 2, f"Explosion should be at least 2x longer than rifle shot (explosion={len(explosion)}, rifle={len(rifle_shot)})"
+        assert len(explosion) >= len(rifle_shot) * 2, (
+            f"Explosion should be at least 2x longer than rifle shot (explosion={len(explosion)}, rifle={len(rifle_shot)})"
+        )
 
     def test_play_sound_returns_true_when_initialized(self):
         """play() should return True when audio is working."""
         from pycc2.presentation.audio.sound_system import (
-            SoundSystem,
             SoundConfig,
+            SoundSystem,
             SoundType,
         )
 
@@ -157,7 +159,7 @@ class TestA2LOSSystem:
 
     def test_los_blocked_by_terrain(self, game_map):
         """Wall should block line of sight."""
-        from pycc2.domain.systems.los_system import Lossystem, LosStatus
+        from pycc2.domain.systems.los_system import LosStatus, Lossystem
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
         los = Lossystem(game_map)
@@ -184,7 +186,7 @@ class TestA2LOSSystem:
 
     def test_los_out_of_range(self, game_map):
         """Units too far apart should be OUT_OF_RANGE."""
-        from pycc2.domain.systems.los_system import Lossystem, LosStatus
+        from pycc2.domain.systems.los_system import LosStatus, Lossystem
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
         los = Lossystem(game_map)
@@ -234,7 +236,7 @@ class TestA2LOSSystem:
 
     def test_los_integration_with_attack_line(self, game_map):
         """LOS result should convert to AttackLine status correctly."""
-        from pycc2.domain.systems.los_system import Lossystem, LosStatus
+        from pycc2.domain.systems.los_system import LosStatus, Lossystem
 
         los = Lossystem(game_map)
 
@@ -272,9 +274,9 @@ class TestA3DirectionSprite:
         from pycc2.presentation.rendering.direction_sprite import Direction
 
         assert Direction.from_angle(0) == Direction.EAST
-        assert Direction.from_angle(90) == Direction.SOUTH      # CC2: Y-axis down
+        assert Direction.from_angle(90) == Direction.SOUTH  # CC2: Y-axis down
         assert Direction.from_angle(180) == Direction.WEST
-        assert Direction.from_angle(270) == Direction.NORTH     # CC2: Y-axis up
+        assert Direction.from_angle(270) == Direction.NORTH  # CC2: Y-axis up
         assert Direction.from_angle(45) == Direction.SOUTHEAST
 
     def test_direction_to_angle_roundtrip(self):
@@ -289,10 +291,11 @@ class TestA3DirectionSprite:
     def test_sprite_set_generates_8_variants(self):
         """Procedural generation should create all 8 directions."""
         import pygame
+
         pygame.init()
         from pycc2.presentation.rendering.direction_sprite import (
-            DirectionSpriteSet,
             Direction,
+            DirectionSpriteSet,
         )
 
         base_surface = pygame.Surface((32, 32), pygame.SRCALPHA)
@@ -319,8 +322,8 @@ class TestA4ContextMenu:
     def test_menu_initializes_with_all_actions(self):
         """Menu should have Move/Attack/Stop/Smoke/Hide/Sneak/Cancel."""
         from pycc2.presentation.ui.context_menu import (
-            ContextMenu,
             ContextAction,
+            ContextMenu,
         )
 
         menu = ContextMenu()
@@ -351,6 +354,7 @@ class TestA4ContextMenu:
     def test_menu_show_and_hide(self):
         """Menu visibility should toggle correctly."""
         import pygame
+
         pygame.init()
         from pycc2.presentation.ui.context_menu import ContextMenu
 
@@ -369,11 +373,12 @@ class TestA4ContextMenu:
     def test_menu_enabled_actions_filtering(self):
         """Only specified actions should be enabled when provided."""
         import pygame
+
         pygame.init()
         pygame.font.init()  # Explicitly initialize font system
         from pycc2.presentation.ui.context_menu import (
-            ContextMenu,
             ContextAction,
+            ContextMenu,
         )
 
         menu = ContextMenu()
@@ -382,10 +387,8 @@ class TestA4ContextMenu:
 
         menu.show((50, 50), callback, enabled_actions=enabled)
 
-        stop_item = next(item for item in menu._items
-                         if item.action == ContextAction.STOP)
-        attack_item = next(item for item in menu._items
-                           if item.action == ContextAction.ATTACK)
+        stop_item = next(item for item in menu._items if item.action == ContextAction.STOP)
+        attack_item = next(item for item in menu._items if item.action == ContextAction.ATTACK)
 
         assert stop_item.enabled is True
         assert attack_item.enabled is False
@@ -394,10 +397,11 @@ class TestA4ContextMenu:
     def test_menu_keyboard_shortcuts(self):
         """Keyboard shortcuts should trigger correct actions."""
         import pygame
+
         pygame.init()
         from pycc2.presentation.ui.context_menu import (
-            ContextMenu,
             ContextAction,
+            ContextMenu,
         )
 
         menu = ContextMenu()
@@ -423,6 +427,7 @@ class TestA5FlankDamage:
     def test_attack_angle_enum_defined(self):
         """AttackAngle should have FRONT/FLANK/REAR values."""
         import sys
+
         sys.path.insert(0, "src")
         from pycc2.services.combat_service import AttackAngle
 
@@ -437,6 +442,7 @@ class TestA5FlankDamage:
     def test_front_damage_multiplier_is_1x(self):
         """Frontal attacks should have 1.0x damage multiplier."""
         import sys
+
         sys.path.insert(0, "src")
         from pycc2.services.combat_service import AttackAngle, CombatService
 
@@ -448,6 +454,7 @@ class TestA5FlankDamage:
     def test_flank_damage_multiplier_is_1_5x(self):
         """Flank attacks should have 1.5x damage multiplier."""
         import sys
+
         sys.path.insert(0, "src")
         from pycc2.services.combat_service import AttackAngle, CombatService
 
@@ -461,6 +468,7 @@ class TestA5FlankDamage:
     def test_rear_damage_multiplier_is_2x(self):
         """Rear attacks should have 2.0x damage multiplier."""
         import sys
+
         sys.path.insert(0, "src")
         from pycc2.services.combat_service import AttackAngle, CombatService
 
@@ -549,9 +557,9 @@ class TestA6MultiLevelBuildings:
     def test_decoration_adds_cover_bonus(self):
         """Decorations like sandbags should add cover bonus."""
         from pycc2.domain.systems.enhanced_tile import (
-            EnhancedTile,
             DecorationInstance,
             DecorationType,
+            EnhancedTile,
         )
 
         tile = EnhancedTile(base_terrain=0)
@@ -572,8 +580,8 @@ class TestA7CampaignPersistence:
     def test_battle_result_creation(self):
         """BattleResult should capture all required fields."""
         from pycc2.domain.systems.campaign_persistence import (
-            BattleResult,
             BattleOutcome,
+            BattleResult,
             UnitBattleState,
         )
 
@@ -612,9 +620,9 @@ class TestA7CampaignPersistence:
     def test_campaign_progress_aggregation(self):
         """CampaignProgress should aggregate multiple battle results."""
         from pycc2.domain.systems.campaign_persistence import (
-            CampaignProgress,
-            BattleResult,
             BattleOutcome,
+            BattleResult,
+            CampaignProgress,
         )
 
         progress = CampaignProgress(
@@ -652,10 +660,10 @@ class TestA7CampaignPersistence:
     def test_save_and_load_campaign(self):
         """Campaign should save to JSON and load back correctly."""
         from pycc2.domain.systems.campaign_persistence import (
+            BattleOutcome,
+            BattleResult,
             CampaignPersistenceManager,
             CampaignProgress,
-            BattleResult,
-            BattleOutcome,
             UnitBattleState,
         )
 
@@ -698,42 +706,46 @@ class TestA7CampaignPersistence:
     def test_reinforcement_bonus_calculation(self):
         """Victory should give more reinforcement points than defeat."""
         from pycc2.domain.systems.campaign_persistence import (
-            CampaignProgress,
-            BattleResult,
             BattleOutcome,
+            BattleResult,
+            CampaignProgress,
         )
 
         victory_progress = CampaignProgress(
             campaign_id="victory_test",
             current_operation_id="op1",
         )
-        victory_progress.add_battle_result(BattleResult(
-            battle_id="v1",
-            operation_id="op1",
-            sector="A",
-            day=1,
-            outcome=BattleOutcome.ALLIED_VICTORY,
-            allied_units_start=10,
-            allied_units_end=9,
-            axis_units_start=8,
-            axis_units_end=4,
-        ))
+        victory_progress.add_battle_result(
+            BattleResult(
+                battle_id="v1",
+                operation_id="op1",
+                sector="A",
+                day=1,
+                outcome=BattleOutcome.ALLIED_VICTORY,
+                allied_units_start=10,
+                allied_units_end=9,
+                axis_units_start=8,
+                axis_units_end=4,
+            )
+        )
 
         defeat_progress = CampaignProgress(
             campaign_id="defeat_test",
             current_operation_id="op1",
         )
-        defeat_progress.add_battle_result(BattleResult(
-            battle_id="d1",
-            operation_id="op1",
-            sector="B",
-            day=1,
-            outcome=BattleOutcome.AXIS_VICTORY,
-            allied_units_start=10,
-            allied_units_end=5,
-            axis_units_start=8,
-            axis_units_end=7,
-        ))
+        defeat_progress.add_battle_result(
+            BattleResult(
+                battle_id="d1",
+                operation_id="op1",
+                sector="B",
+                day=1,
+                outcome=BattleOutcome.AXIS_VICTORY,
+                allied_units_start=10,
+                allied_units_end=5,
+                axis_units_start=8,
+                axis_units_end=7,
+            )
+        )
 
         victory_bonus = victory_progress.calculate_reinforcement_bonus()
         defeat_bonus = defeat_progress.calculate_reinforcement_bonus()
@@ -853,9 +865,11 @@ class TestA8TerrainElevation:
         uphill = EnhancedTile(base_terrain=0, height=2)
         steep = EnhancedTile(base_terrain=0, height=3)
 
-        costs = [flat.effective_movement_cost,
-                 uphill.effective_movement_cost,
-                 steep.effective_movement_cost]
+        costs = [
+            flat.effective_movement_cost,
+            uphill.effective_movement_cost,
+            steep.effective_movement_cost,
+        ]
 
         assert costs[0] < costs[1] < costs[2]
 
@@ -917,10 +931,10 @@ class TestPhaseAIntegration:
     def test_persistent_campaign_across_multiple_battles(self):
         """Simulate 3-battle campaign with persistence."""
         from pycc2.domain.systems.campaign_persistence import (
+            BattleOutcome,
+            BattleResult,
             CampaignPersistenceManager,
             CampaignProgress,
-            BattleResult,
-            BattleOutcome,
             UnitBattleState,
         )
 

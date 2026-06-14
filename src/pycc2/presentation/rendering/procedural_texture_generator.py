@@ -38,8 +38,8 @@ class ProceduralTextureGenerator:
         cls,
         terrain_id: int,
         variation: int = 0,
-        palette: 'PaletteGenerator' | None = None,
-        bitmask: int = 0
+        palette: PaletteGenerator | None = None,
+        bitmask: int = 0,
     ) -> pygame.Surface:
         """Generate a textured tile surface for given terrain type with autotile support.
 
@@ -77,7 +77,9 @@ class ProceduralTextureGenerator:
         return surface
 
     @staticmethod
-    def _fill_with_variation(surface: pygame.Surface, base_color: tuple, rng: random.Random, intensity: int = 12) -> None:
+    def _fill_with_variation(
+        surface: pygame.Surface, base_color: tuple, rng: random.Random, intensity: int = 12
+    ) -> None:
         """Fill surface with base color and subtle pixel-level variation (±10% brightness)."""
         surface.fill(base_color)
         try:
@@ -97,17 +99,17 @@ class ProceduralTextureGenerator:
 
     @staticmethod
     def _texture_open(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """OPEN (0): CC2 authentic grass with visible grass blades and dirt spots."""
         rng = random.Random(var * 17)
-        base = CC2_TERRAIN_PALETTE['grass_base']
+        base = CC2_TERRAIN_PALETTE["grass_base"]
         ProceduralTextureGenerator._fill_with_variation(surface, base, rng, 12)
 
         pixels = pygame.surfarray.pixels3d(surface)
         tile_sz = ProceduralTextureGenerator.TILE_SIZE
 
-        grass_dark = CC2_TERRAIN_PALETTE['grass_dark']
+        grass_dark = CC2_TERRAIN_PALETTE["grass_dark"]
         num_blades = rng.randint(30, 50)
         for _ in range(num_blades):
             x = rng.randint(0, tile_sz - 1)
@@ -124,7 +126,7 @@ class ProceduralTextureGenerator:
                 if 0 <= py < tile_sz:
                     pixels[x, py] = blade_color
 
-        grass_light = CC2_TERRAIN_PALETTE['grass_light']
+        grass_light = CC2_TERRAIN_PALETTE["grass_light"]
         num_patches = rng.randint(6, 10)
         for _ in range(num_patches):
             cx = rng.randint(5, tile_sz - 5)
@@ -132,29 +134,51 @@ class ProceduralTextureGenerator:
             radius = rng.randint(3, 5)
             for dy in range(-radius, radius + 1):
                 for dx in range(-radius, radius + 1):
-                    if dx*dx + dy*dy <= radius*radius:
+                    if dx * dx + dy * dy <= radius * radius:
                         px, py = cx + dx, cy + dy
                         if 0 <= px < tile_sz and 0 <= py < tile_sz:
-                            dist_from_center = math.sqrt(dx*dx + dy*dy) / radius
+                            dist_from_center = math.sqrt(dx * dx + dy * dy) / radius
                             if dist_from_center > 0.7:
                                 blend_factor = (dist_from_center - 0.7) / 0.3
                                 base_px = pixels[px, py]
                                 try:
-                                    r_base = int(base_px[0][0]) if hasattr(base_px[0], '__len__') else int(base_px[0])
-                                    g_base = int(base_px[1][0]) if hasattr(base_px[1], '__len__') else int(base_px[1])
-                                    b_base = int(base_px[2][0]) if hasattr(base_px[2], '__len__') else int(base_px[2])
+                                    r_base = (
+                                        int(base_px[0][0])
+                                        if hasattr(base_px[0], "__len__")
+                                        else int(base_px[0])
+                                    )
+                                    g_base = (
+                                        int(base_px[1][0])
+                                        if hasattr(base_px[1], "__len__")
+                                        else int(base_px[1])
+                                    )
+                                    b_base = (
+                                        int(base_px[2][0])
+                                        if hasattr(base_px[2], "__len__")
+                                        else int(base_px[2])
+                                    )
                                 except (IndexError, TypeError):
-                                    r_base, g_base, b_base = int(base_px[0]), int(base_px[1]), int(base_px[2])
+                                    r_base, g_base, b_base = (
+                                        int(base_px[0]),
+                                        int(base_px[1]),
+                                        int(base_px[2]),
+                                    )
 
                                 pixels[px, py] = (
-                                    int(grass_light[0] * (1 - blend_factor) + r_base * blend_factor),
-                                    int(grass_light[1] * (1 - blend_factor) + g_base * blend_factor),
-                                    int(grass_light[2] * (1 - blend_factor) + b_base * blend_factor),
+                                    int(
+                                        grass_light[0] * (1 - blend_factor) + r_base * blend_factor
+                                    ),
+                                    int(
+                                        grass_light[1] * (1 - blend_factor) + g_base * blend_factor
+                                    ),
+                                    int(
+                                        grass_light[2] * (1 - blend_factor) + b_base * blend_factor
+                                    ),
                                 )
                             else:
                                 pixels[px, py] = grass_light
 
-        dirt_color = CC2_TERRAIN_PALETTE.get('dirt_base', (139, 109, 59))
+        dirt_color = CC2_TERRAIN_PALETTE.get("dirt_base", (139, 109, 59))
         num_dirt = rng.randint(3, 6)
         for _ in range(num_dirt):
             cx = rng.randint(3, tile_sz - 4)
@@ -174,7 +198,7 @@ class ProceduralTextureGenerator:
 
     @staticmethod
     def _texture_road(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """ROAD (1): CC2 authentic gravel road with texture and autotile continuity."""
         from pycc2.presentation.rendering.autotile_system import (
@@ -182,67 +206,98 @@ class ProceduralTextureGenerator:
         )
 
         rng = random.Random(var * 67)
-        road_color = CC2_TERRAIN_PALETTE['road_base']
+        road_color = CC2_TERRAIN_PALETTE["road_base"]
         surface.fill(road_color)
         pixels = pygame.surfarray.pixels3d(surface)
         tile_sz = ProceduralTextureGenerator.TILE_SIZE
 
         edge_widths = get_edge_transition_width(tid, bitmask, tile_sz)
-        CC2_TERRAIN_PALETTE['road_dark']
+        CC2_TERRAIN_PALETTE["road_dark"]
 
-        if edge_widths['north'] > 0:
+        if edge_widths["north"] > 0:
             for x in range(tile_sz):
-                for y in range(edge_widths['north']):
-                    gradient_factor = y / edge_widths['north'] if edge_widths['north'] > 0 else 0
+                for y in range(edge_widths["north"]):
+                    gradient_factor = y / edge_widths["north"] if edge_widths["north"] > 0 else 0
                     darkness = int((1.0 - gradient_factor) * 40)
                     if rng.random() > 0.3:
                         r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
-                        pixels[x, y] = (max(0, r - darkness), max(0, g - darkness), max(0, b - darkness))
+                        pixels[x, y] = (
+                            max(0, r - darkness),
+                            max(0, g - darkness),
+                            max(0, b - darkness),
+                        )
 
-        if edge_widths['south'] > 0:
+        if edge_widths["south"] > 0:
             for x in range(tile_sz):
-                for y in range(tile_sz - edge_widths['south'], tile_sz):
+                for y in range(tile_sz - edge_widths["south"], tile_sz):
                     dist_from_south = tile_sz - 1 - y
-                    gradient_factor = dist_from_south / edge_widths['south'] if edge_widths['south'] > 0 else 0
+                    gradient_factor = (
+                        dist_from_south / edge_widths["south"] if edge_widths["south"] > 0 else 0
+                    )
                     darkness = int((1.0 - gradient_factor) * 40)
                     if rng.random() > 0.3:
                         r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
-                        pixels[x, y] = (max(0, r - darkness), max(0, g - darkness), max(0, b - darkness))
+                        pixels[x, y] = (
+                            max(0, r - darkness),
+                            max(0, g - darkness),
+                            max(0, b - darkness),
+                        )
 
-        if edge_widths['west'] > 0:
-            for x in range(edge_widths['west']):
+        if edge_widths["west"] > 0:
+            for x in range(edge_widths["west"]):
                 dist_from_west = x
-                gradient_factor = dist_from_west / edge_widths['west'] if edge_widths['west'] > 0 else 0
+                gradient_factor = (
+                    dist_from_west / edge_widths["west"] if edge_widths["west"] > 0 else 0
+                )
                 darkness = int((1.0 - gradient_factor) * 40)
                 if rng.random() > 0.3:
                     for y in range(tile_sz):
                         r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
-                        pixels[x, y] = (max(0, r - darkness), max(0, g - darkness), max(0, b - darkness))
+                        pixels[x, y] = (
+                            max(0, r - darkness),
+                            max(0, g - darkness),
+                            max(0, b - darkness),
+                        )
 
-        if edge_widths['east'] > 0:
-            for x in range(tile_sz - edge_widths['east'], tile_sz):
+        if edge_widths["east"] > 0:
+            for x in range(tile_sz - edge_widths["east"], tile_sz):
                 dist_from_east = tile_sz - 1 - x
-                gradient_factor = dist_from_east / edge_widths['east'] if edge_widths['east'] > 0 else 0
+                gradient_factor = (
+                    dist_from_east / edge_widths["east"] if edge_widths["east"] > 0 else 0
+                )
                 darkness = int((1.0 - gradient_factor) * 40)
                 if rng.random() > 0.3:
                     for y in range(tile_sz):
                         r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
-                        pixels[x, y] = (max(0, r - darkness), max(0, g - darkness), max(0, b - darkness))
+                        pixels[x, y] = (
+                            max(0, r - darkness),
+                            max(0, g - darkness),
+                            max(0, b - darkness),
+                        )
 
-        road_stone = CC2_TERRAIN_PALETTE['road_stone']
+        road_stone = CC2_TERRAIN_PALETTE["road_stone"]
         num_pebbles = rng.randint(60, 85)
         for _ in range(num_pebbles):
-            px = rng.randint(max(2, min(edge_widths.values())), tile_sz - max(2, min(edge_widths.values())) - 2)
-            py = rng.randint(max(2, min(edge_widths.values())), tile_sz - max(2, min(edge_widths.values())) - 2)
+            px = rng.randint(
+                max(2, min(edge_widths.values())), tile_sz - max(2, min(edge_widths.values())) - 2
+            )
+            py = rng.randint(
+                max(2, min(edge_widths.values())), tile_sz - max(2, min(edge_widths.values())) - 2
+            )
             pebble_var = rng.randint(-18, 18)
             pixels[px, py] = tuple(max(0, min(255, c + pebble_var)) for c in road_stone)
             if rng.random() > 0.55:
                 dx, dy = rng.choice([(1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (-1, -1)])
-                if max(2, min(edge_widths.values())) <= px + dx < tile_sz - max(2, min(edge_widths.values())) and \
-                   max(2, min(edge_widths.values())) <= py + dy < tile_sz - max(2, min(edge_widths.values())):
-                    pixels[px + dx, py + dy] = tuple(max(0, min(255, c + pebble_var - 10)) for c in road_stone)
+                if max(2, min(edge_widths.values())) <= px + dx < tile_sz - max(
+                    2, min(edge_widths.values())
+                ) and max(2, min(edge_widths.values())) <= py + dy < tile_sz - max(
+                    2, min(edge_widths.values())
+                ):
+                    pixels[px + dx, py + dy] = tuple(
+                        max(0, min(255, c + pebble_var - 10)) for c in road_stone
+                    )
 
-        track_color = CC2_TERRAIN_PALETTE['road_dark']
+        track_color = CC2_TERRAIN_PALETTE["road_dark"]
         num_tracks = rng.randint(2, 4)
         track_positions = sorted([tile_sz // 5 + i * (tile_sz // 5) for i in range(num_tracks)])
 
@@ -274,7 +329,7 @@ class ProceduralTextureGenerator:
 
     @staticmethod
     def _texture_grass(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """GRASS (2): Medium green with visible grass blades and dirt spots."""
         rng = random.Random(var * 31)
@@ -289,18 +344,20 @@ class ProceduralTextureGenerator:
             x = rng.randint(0, tile_sz - 1)
             y_start = rng.randint(0, tile_sz - 4)
             blade_len = rng.randint(2, 3)
-            shade = rng.choice([
-                (90, 150, 45),
-                (120, 180, 65),
-                (85, 140, 40),
-                (110, 170, 55),
-                (100, 160, 50),
-            ])
+            shade = rng.choice(
+                [
+                    (90, 150, 45),
+                    (120, 180, 65),
+                    (85, 140, 40),
+                    (110, 170, 55),
+                    (100, 160, 50),
+                ]
+            )
             for dy in range(blade_len):
                 if 0 <= y_start + dy < tile_sz:
                     pixels[x, y_start + dy] = shade
 
-        dirt_color = CC2_TERRAIN_PALETTE.get('dirt_base', (139, 109, 59))
+        dirt_color = CC2_TERRAIN_PALETTE.get("dirt_base", (139, 109, 59))
         num_dirt = rng.randint(3, 6)
         for _ in range(num_dirt):
             cx = rng.randint(3, tile_sz - 4)
@@ -329,7 +386,7 @@ class ProceduralTextureGenerator:
 
     @staticmethod
     def _texture_woods(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """WOODS (3): CC2 very dark green forest with individual tree canopies visible."""
         rng = random.Random(var * 41)
@@ -381,7 +438,7 @@ class ProceduralTextureGenerator:
 
     @staticmethod
     def _texture_building_enterable(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """BUILDING_ENTERABLE (4): CC2 earthy brown building with visible roof, door, windows."""
         rng = random.Random(var * 103)
@@ -474,7 +531,7 @@ class ProceduralTextureGenerator:
 
     @staticmethod
     def _texture_building_solid(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """BUILDING_SOLID (5): Gray stone/brick building, no door, solid walls, roof line."""
         rng = random.Random(var * 109)
@@ -527,16 +584,19 @@ class ProceduralTextureGenerator:
 
     @staticmethod
     def _texture_water(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """WATER (6): CC2 authentic water with wave animation hints and autotile continuity."""
         from pycc2.presentation.rendering.autotile_system import (
-            DIR_NORTH, DIR_EAST, DIR_SOUTH, DIR_WEST,
+            DIR_EAST,
+            DIR_NORTH,
+            DIR_SOUTH,
+            DIR_WEST,
             get_edge_transition_width,
         )
 
         rng = random.Random(var * 127)
-        base = CC2_TERRAIN_PALETTE['water_base']
+        base = CC2_TERRAIN_PALETTE["water_base"]
         surface.fill(base)
         pixels = pygame.surfarray.pixels3d(surface)
         tile_sz = ProceduralTextureGenerator.TILE_SIZE
@@ -552,12 +612,12 @@ class ProceduralTextureGenerator:
                 pixels[x, y] = (
                     max(0, min(255, r + offset)),
                     max(0, min(255, g + offset)),
-                    max(0, min(255, b + offset))
+                    max(0, min(255, b + offset)),
                 )
 
-        water_light = CC2_TERRAIN_PALETTE['water_light']
+        water_light = CC2_TERRAIN_PALETTE["water_light"]
         num_waves = rng.randint(12, 20)
-        for i in range(num_waves):
+        for _i in range(num_waves):
             wy = rng.randint(3, tile_sz - 3)
             wx_start = rng.randint(2, tile_sz - 6)
             wave_len = rng.randint(4, 8)
@@ -578,53 +638,69 @@ class ProceduralTextureGenerator:
             gy = rng.randint(3, tile_sz - 3)
             pixels[gx, gy] = glint_color
 
-        CC2_TERRAIN_PALETTE['water_dark']
-        water_foam = CC2_TERRAIN_PALETTE['water_foam']
+        CC2_TERRAIN_PALETTE["water_dark"]
+        water_foam = CC2_TERRAIN_PALETTE["water_foam"]
         edge_widths = get_edge_transition_width(tid, bitmask, tile_sz)
 
-        if not (bitmask & DIR_NORTH) and edge_widths['north'] > 0:
-            ew = edge_widths['north']
+        if not (bitmask & DIR_NORTH) and edge_widths["north"] > 0:
+            ew = edge_widths["north"]
             for y in range(ew):
                 gradient = y / ew
                 darkness = int((1.0 - gradient) * 30)
                 for x in range(tile_sz):
                     r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
-                    pixels[x, y] = (max(32, r - darkness), max(72, g - darkness), max(130, b - darkness))
+                    pixels[x, y] = (
+                        max(32, r - darkness),
+                        max(72, g - darkness),
+                        max(130, b - darkness),
+                    )
             for x in range(0, tile_sz, 2):
                 pixels[x, 0] = water_foam
 
-        if not (bitmask & DIR_SOUTH) and edge_widths['south'] > 0:
-            ew = edge_widths['south']
+        if not (bitmask & DIR_SOUTH) and edge_widths["south"] > 0:
+            ew = edge_widths["south"]
             for y in range(tile_sz - ew, tile_sz):
                 dist = tile_sz - 1 - y
                 gradient = dist / ew
                 darkness = int((1.0 - gradient) * 30)
                 for x in range(tile_sz):
                     r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
-                    pixels[x, y] = (max(32, r - darkness), max(72, g - darkness), max(130, b - darkness))
+                    pixels[x, y] = (
+                        max(32, r - darkness),
+                        max(72, g - darkness),
+                        max(130, b - darkness),
+                    )
             for x in range(0, tile_sz, 2):
                 pixels[x, tile_sz - 1] = water_foam
 
-        if not (bitmask & DIR_WEST) and edge_widths['west'] > 0:
-            ew = edge_widths['west']
+        if not (bitmask & DIR_WEST) and edge_widths["west"] > 0:
+            ew = edge_widths["west"]
             for x in range(ew):
                 gradient = x / ew
                 darkness = int((1.0 - gradient) * 30)
                 for y in range(tile_sz):
                     r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
-                    pixels[x, y] = (max(32, r - darkness), max(72, g - darkness), max(130, b - darkness))
+                    pixels[x, y] = (
+                        max(32, r - darkness),
+                        max(72, g - darkness),
+                        max(130, b - darkness),
+                    )
             for y in range(0, tile_sz, 2):
                 pixels[0, y] = water_foam
 
-        if not (bitmask & DIR_EAST) and edge_widths['east'] > 0:
-            ew = edge_widths['east']
+        if not (bitmask & DIR_EAST) and edge_widths["east"] > 0:
+            ew = edge_widths["east"]
             for x in range(tile_sz - ew, tile_sz):
                 dist = tile_sz - 1 - x
                 gradient = dist / ew
                 darkness = int((1.0 - gradient) * 30)
                 for y in range(tile_sz):
                     r, g, b = int(pixels[x, y][0]), int(pixels[x, y][1]), int(pixels[x, y][2])
-                    pixels[x, y] = (max(32, r - darkness), max(72, g - darkness), max(130, b - darkness))
+                    pixels[x, y] = (
+                        max(32, r - darkness),
+                        max(72, g - darkness),
+                        max(130, b - darkness),
+                    )
             for y in range(0, tile_sz, 2):
                 pixels[tile_sz - 1, y] = water_foam
 
@@ -632,11 +708,14 @@ class ProceduralTextureGenerator:
 
     @staticmethod
     def _texture_hedge(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """HEDGE (7): CC2 authentic Normandy bocage hedgerow."""
         from pycc2.presentation.rendering.autotile_system import (
-            DIR_NORTH, DIR_EAST, DIR_SOUTH, DIR_WEST,
+            DIR_EAST,
+            DIR_NORTH,
+            DIR_SOUTH,
+            DIR_WEST,
             get_edge_transition_width,
         )
 
@@ -646,10 +725,10 @@ class ProceduralTextureGenerator:
         surface.fill(ground_color)
         pixels = pygame.surfarray.pixels3d(surface)
 
-        hedge_dark = CC2_TERRAIN_PALETTE['hedgerow_dark']
-        hedge_base = CC2_TERRAIN_PALETTE['hedgerow_base']
-        hedge_light = CC2_TERRAIN_PALETTE['hedgerow_light']
-        embankment_color = CC2_TERRAIN_PALETTE.get('embankment', (68, 58, 38))
+        hedge_dark = CC2_TERRAIN_PALETTE["hedgerow_dark"]
+        hedge_base = CC2_TERRAIN_PALETTE["hedgerow_base"]
+        hedge_light = CC2_TERRAIN_PALETTE["hedgerow_light"]
+        embankment_color = CC2_TERRAIN_PALETTE.get("embankment", (68, 58, 38))
 
         edge_widths = get_edge_transition_width(tid, bitmask, tile_sz)
         center_y = tile_sz // 2
@@ -717,19 +796,27 @@ class ProceduralTextureGenerator:
             lx = rng.randint(tile_sz // 8, 7 * tile_sz // 8)
             ly = rng.randint(tile_sz // 6, 5 * tile_sz // 6)
             cluster_size = rng.randint(2, 4)
-            if lx < len(top_edge) and ly > top_edge[min(lx, len(top_edge)-1)][1] and \
-               ly < bottom_edge[min(lx, len(bottom_edge)-1)][1]:
-                leaf_color = rng.choice([
-                    (55, 95, 35), (70, 115, 45), (40, 75, 28), (85, 130, 50),
-                ])
+            if (
+                lx < len(top_edge)
+                and ly > top_edge[min(lx, len(top_edge) - 1)][1]
+                and ly < bottom_edge[min(lx, len(bottom_edge) - 1)][1]
+            ):
+                leaf_color = rng.choice(
+                    [
+                        (55, 95, 35),
+                        (70, 115, 45),
+                        (40, 75, 28),
+                        (85, 130, 50),
+                    ]
+                )
                 for dy in range(cluster_size):
                     for dx in range(cluster_size):
                         if 0 <= lx + dx < tile_sz and 0 <= ly + dy < tile_sz:
                             if rng.random() > 0.4:
                                 pixels[lx + dx, ly + dy] = leaf_color
 
-        if edge_widths['west'] > 0 and not (bitmask & DIR_WEST):
-            taper_width = min(edge_widths['west'], 10)
+        if edge_widths["west"] > 0 and not (bitmask & DIR_WEST):
+            taper_width = min(edge_widths["west"], 10)
             for x in range(taper_width):
                 taper_factor = x / taper_width
                 for y in range(tile_sz):
@@ -741,8 +828,8 @@ class ProceduralTextureGenerator:
                             int(b + (ground_color[2] - b) * (1 - taper_factor)),
                         )
 
-        if edge_widths['east'] > 0 and not (bitmask & DIR_EAST):
-            taper_width = min(edge_widths['east'], 10)
+        if edge_widths["east"] > 0 and not (bitmask & DIR_EAST):
+            taper_width = min(edge_widths["east"], 10)
             for x in range(tile_sz - taper_width, tile_sz):
                 dist_from_east = tile_sz - 1 - x
                 taper_factor = dist_from_east / taper_width
@@ -790,14 +877,14 @@ class ProceduralTextureGenerator:
                             pixels[lx + dx, ly + dy] = (
                                 min(255, leaf_color[0] + 15),
                                 min(255, leaf_color[1] + 10),
-                                min(255, leaf_color[2] + 12)
+                                min(255, leaf_color[2] + 12),
                             )
 
         del pixels
 
     @staticmethod
     def _texture_wall(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """WALL (8): Gray brick wall with mortar lines."""
         rng = random.Random(var * 173)
@@ -832,13 +919,13 @@ class ProceduralTextureGenerator:
 
         for x in range(tile_sz):
             pixels[x, 0] = (80, 78, 75)
-            if 1 < tile_sz:
+            if tile_sz > 1:
                 pixels[x, 1] = (100, 98, 95)
         del pixels
 
     @staticmethod
     def _texture_rough(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """ROUGH (9): Brown dirt/rubble with scattered rocks."""
         rng = random.Random(var * 193)
@@ -875,7 +962,7 @@ class ProceduralTextureGenerator:
 
     @staticmethod
     def _texture_shallow(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """SHALLOW (10): Light blue shallow water with sandy bottom visible."""
         rng = random.Random(var * 211)
@@ -906,7 +993,7 @@ class ProceduralTextureGenerator:
 
     @staticmethod
     def _texture_bridge(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """BRIDGE (11): Enhanced wooden/concrete bridge with texture and railings."""
         rng = random.Random(var * 241)
@@ -928,10 +1015,15 @@ class ProceduralTextureGenerator:
                     sx, sy = pier_cx + dx, pier_cy + dy
                     if 0 <= sx < tile_sz and 0 <= sy < tile_sz:
                         if (dx / pier_radius_x) ** 2 + (dy / pier_radius_y) ** 2 <= 1.0:
-                            dist_ratio = math.sqrt((dx / pier_radius_x) ** 2 + (dy / pier_radius_y) ** 2)
+                            dist_ratio = math.sqrt(
+                                (dx / pier_radius_x) ** 2 + (dy / pier_radius_y) ** 2
+                            )
                             alpha_factor = 1.0 - dist_ratio * 0.5
                             pixels[sx, sy] = tuple(
-                                int(water_color[i] * (1 - alpha_factor) + shadow_color[i] * alpha_factor)
+                                int(
+                                    water_color[i] * (1 - alpha_factor)
+                                    + shadow_color[i] * alpha_factor
+                                )
                                 for i in range(3)
                             )
 
@@ -1014,7 +1106,9 @@ class ProceduralTextureGenerator:
                 if x < tile_sz:
                     pixels[x, bottom_rail_y] = (90, 65, 35)
 
-        for x in range(deck_left + rail_post_spacing, deck_right - rail_post_spacing // 2, rail_post_spacing):
+        for x in range(
+            deck_left + rail_post_spacing, deck_right - rail_post_spacing // 2, rail_post_spacing
+        ):
             for py in range(rail_post_top, min(rail_post_top + 3, tile_sz)):
                 if 0 <= x < tile_sz and py < tile_sz:
                     pixels[x, py] = beam_color
@@ -1026,7 +1120,7 @@ class ProceduralTextureGenerator:
 
     @staticmethod
     def _texture_crater(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """CRATER (12): CC2 authentic shell crater with elliptical depression and bright rim."""
         rng = random.Random(var * 331)
@@ -1046,27 +1140,62 @@ class ProceduralTextureGenerator:
                     if radius_x > 0 and radius_y > 0:
                         norm_dist = ((x - cx) / radius_x) ** 2 + ((y - cy) / radius_y) ** 2
                         if norm_dist < 0.15:
-                            shade = max(0, int(CC2_TERRAIN_PALETTE['crater_center'][0] + rng.randint(-8, 8)))
+                            shade = max(
+                                0, int(CC2_TERRAIN_PALETTE["crater_center"][0] + rng.randint(-8, 8))
+                            )
                             pixels[x, y] = (shade, max(0, shade - 14), max(0, shade - 24))
                         elif norm_dist < 0.45:
                             t = (norm_dist - 0.15) / 0.30
-                            base_r = CC2_TERRAIN_PALETTE['crater_center'][0]
-                            rim_r = CC2_TERRAIN_PALETTE['crater_rim'][0]
+                            base_r = CC2_TERRAIN_PALETTE["crater_center"][0]
+                            rim_r = CC2_TERRAIN_PALETTE["crater_rim"][0]
                             shade = int(base_r + t * (rim_r - base_r) + rng.randint(-6, 6))
-                            pixels[x, y] = (min(255, shade), min(255, max(0, shade - 6)), min(255, max(0, shade - 16)))
+                            pixels[x, y] = (
+                                min(255, shade),
+                                min(255, max(0, shade - 6)),
+                                min(255, max(0, shade - 16)),
+                            )
                         elif norm_dist < 0.85:
                             t = (norm_dist - 0.45) / 0.40
-                            base_r = CC2_TERRAIN_PALETTE['crater_rim'][0]
+                            base_r = CC2_TERRAIN_PALETTE["crater_rim"][0]
                             bright_rim_color = (158, 130, 72)
-                            shade = int(CC2_TERRAIN_PALETTE['crater_rim'][0] + t * (bright_rim_color[0] - CC2_TERRAIN_PALETTE['crater_rim'][0]))
-                            pixels[x, y] = (min(255, shade + rng.randint(-6, 6)), min(255, max(0, shade - 4 + rng.randint(-5, 5))), min(255, max(0, shade - 12 + rng.randint(-5, 5))))
+                            shade = int(
+                                CC2_TERRAIN_PALETTE["crater_rim"][0]
+                                + t * (bright_rim_color[0] - CC2_TERRAIN_PALETTE["crater_rim"][0])
+                            )
+                            pixels[x, y] = (
+                                min(255, shade + rng.randint(-6, 6)),
+                                min(255, max(0, shade - 4 + rng.randint(-5, 5))),
+                                min(255, max(0, shade - 12 + rng.randint(-5, 5))),
+                            )
                         elif norm_dist < 1.0:
                             rim_color = (158, 130, 72)
                             brightness_factor = 1.0 - (norm_dist - 0.85) / 0.15
                             pixels[x, y] = (
-                                max(0, min(255, int(rim_color[0] * brightness_factor + rng.randint(-10, 10)))),
-                                max(0, min(255, int(rim_color[1] * brightness_factor + rng.randint(-8, 8)))),
-                                max(0, min(255, int(rim_color[2] * brightness_factor + rng.randint(-12, 12))))
+                                max(
+                                    0,
+                                    min(
+                                        255,
+                                        int(
+                                            rim_color[0] * brightness_factor + rng.randint(-10, 10)
+                                        ),
+                                    ),
+                                ),
+                                max(
+                                    0,
+                                    min(
+                                        255,
+                                        int(rim_color[1] * brightness_factor + rng.randint(-8, 8)),
+                                    ),
+                                ),
+                                max(
+                                    0,
+                                    min(
+                                        255,
+                                        int(
+                                            rim_color[2] * brightness_factor + rng.randint(-12, 12)
+                                        ),
+                                    ),
+                                ),
                             )
 
             num_debris = tile_sz // 2
@@ -1083,7 +1212,9 @@ class ProceduralTextureGenerator:
                         for _ in range(cluster_size):
                             dx, dy = rng.choice([(1, 0), (0, 1), (-1, 0), (0, -1), (1, 1)])
                             if 0 <= rx + dx < tile_sz and 0 <= ry + dy < tile_sz:
-                                pixels[rx + dx, ry + dy] = tuple(max(0, c - rng.randint(10, 20)) for c in rock_color)
+                                pixels[rx + dx, ry + dy] = tuple(
+                                    max(0, c - rng.randint(10, 20)) for c in rock_color
+                                )
 
             del pixels
         except (ValueError, IndexError) as e:
@@ -1091,11 +1222,12 @@ class ProceduralTextureGenerator:
 
     @staticmethod
     def _texture_trench(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """TRENCH (13): Defensive earthwork line."""
         from pycc2.presentation.rendering.autotile_system import (
-            DIR_EAST, DIR_WEST,
+            DIR_EAST,
+            DIR_WEST,
             get_edge_transition_width,
         )
 
@@ -1105,8 +1237,8 @@ class ProceduralTextureGenerator:
         surface.fill(ground_color)
         pixels = pygame.surfarray.pixels3d(surface)
 
-        trench_main = CC2_TERRAIN_PALETTE['trench_main']
-        trench_embankment = CC2_TERRAIN_PALETTE['trench_embankment']
+        trench_main = CC2_TERRAIN_PALETTE["trench_main"]
+        trench_embankment = CC2_TERRAIN_PALETTE["trench_embankment"]
 
         edge_widths = get_edge_transition_width(tid, bitmask, tile_sz)
         tile_sz // 2
@@ -1156,8 +1288,8 @@ class ProceduralTextureGenerator:
                                 trench_embankment[2] - 6,
                             )
 
-        if edge_widths['west'] > 0 and not (bitmask & DIR_WEST):
-            taper_width = min(edge_widths['west'], 10)
+        if edge_widths["west"] > 0 and not (bitmask & DIR_WEST):
+            taper_width = min(edge_widths["west"], 10)
             for x in range(taper_width):
                 taper_factor = x / taper_width
                 for y in range(tile_sz):
@@ -1175,11 +1307,11 @@ class ProceduralTextureGenerator:
                     dp_x = dirt_pile_cx + dx
                     dp_y = dirt_pile_cy + dy
                     if 0 <= dp_x < tile_sz and 0 <= dp_y < tile_sz:
-                        if dx*dx + dy*dy <= 4:
+                        if dx * dx + dy * dy <= 4:
                             pixels[dp_x, dp_y] = (110, 90, 60)
 
-        if edge_widths['east'] > 0 and not (bitmask & DIR_EAST):
-            taper_width = min(edge_widths['east'], 10)
+        if edge_widths["east"] > 0 and not (bitmask & DIR_EAST):
+            taper_width = min(edge_widths["east"], 10)
             for x in range(tile_sz - taper_width, tile_sz):
                 dist_from_east = tile_sz - 1 - x
                 taper_factor = dist_from_east / taper_width
@@ -1198,7 +1330,7 @@ class ProceduralTextureGenerator:
                     dp_x = dirt_pile_cx + dx
                     dp_y = dirt_pile_cy + dy
                     if 0 <= dp_x < tile_sz and 0 <= dp_y < tile_sz:
-                        if dx*dx + dy*dy <= 4:
+                        if dx * dx + dy * dy <= 4:
                             pixels[dp_x, dp_y] = (110, 90, 60)
 
         num_debris = rng.randint(3, 7)
@@ -1214,7 +1346,7 @@ class ProceduralTextureGenerator:
 
     @staticmethod
     def _texture_default(
-        surface: pygame.Surface, tid: int, var: int, pal: 'PaletteGenerator', bitmask: int = 0
+        surface: pygame.Surface, tid: int, var: int, pal: PaletteGenerator, bitmask: int = 0
     ) -> None:
         """Fallback simple noise texture."""
         rng = random.Random(var * 277)

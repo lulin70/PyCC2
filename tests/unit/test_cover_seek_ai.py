@@ -12,17 +12,18 @@ Coverage:
 - Performance with large search areas
 """
 
-import pytest
 from unittest.mock import Mock
 
+import pytest
+
 from pycc2.domain.ai.cover_seek_ai import (
+    LOS_BONUS,
+    OCCUPIED_PENALTY,
+    SEARCH_RADIUS,
+    SUPPRESSION_THRESHOLD,
     CoverCandidate,
     CoverScoringSystem,
     CoverSeekAI,
-    SEARCH_RADIUS,
-    SUPPRESSION_THRESHOLD,
-    LOS_BONUS,
-    OCCUPIED_PENALTY,
 )
 from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
 from pycc2.domain.ai.tactical_ai import TacticalContext
@@ -31,10 +32,10 @@ from pycc2.domain.systems.combat_mechanics_enhanced import (
 )
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
-
 # ===========================================================================
 # Mock Fixtures
 # ===========================================================================
+
 
 @pytest.fixture
 def mock_game_map():
@@ -70,7 +71,7 @@ def mock_los_system():
 
     def can_see_side_effect(unit_pos, target_unit):
         # Simulate: can see unless in specific "hidden" positions
-        if hasattr(unit_pos, 'x') and unit_pos.x % 5 == 0 and unit_pos.y % 5 == 0:
+        if hasattr(unit_pos, "x") and unit_pos.x % 5 == 0 and unit_pos.y % 5 == 0:
             return (False, Mock(status="CLEAR"))
         return (True, Mock(status="CLEAR"))
 
@@ -166,6 +167,7 @@ def tactical_context(mock_friendly_units, mock_enemy_units, mock_game_map):
 # Test Class: CoverScoringSystem
 # ===========================================================================
 
+
 class TestCoverScoringSystem:
     """Test the tile scoring logic."""
 
@@ -187,15 +189,23 @@ class TestCoverScoringSystem:
 
         # Score two hypothetical tiles
         score_good_cover = scorer._score_tile(
-            cover_bonus=3, concealment=0.4, distance=3.0,
-            is_in_los=False, is_occupied=False,
-            has_enemy_adjacent=False, movement_cost=1.0,
+            cover_bonus=3,
+            concealment=0.4,
+            distance=3.0,
+            is_in_los=False,
+            is_occupied=False,
+            has_enemy_adjacent=False,
+            movement_cost=1.0,
         )
 
         score_no_cover = scorer._score_tile(
-            cover_bonus=0, concealment=0.0, distance=3.0,
-            is_in_los=False, is_occupied=False,
-            has_enemy_adjacent=False, movement_cost=1.0,
+            cover_bonus=0,
+            concealment=0.0,
+            distance=3.0,
+            is_in_los=False,
+            is_occupied=False,
+            has_enemy_adjacent=False,
+            movement_cost=1.0,
         )
 
         assert score_good_cover > score_no_cover
@@ -209,15 +219,23 @@ class TestCoverScoringSystem:
         )
 
         score_close = scorer._score_tile(
-            cover_bonus=2, concealment=0.3, distance=1.0,
-            is_in_los=True, is_occupied=False,
-            has_enemy_adjacent=False, movement_cost=1.0,
+            cover_bonus=2,
+            concealment=0.3,
+            distance=1.0,
+            is_in_los=True,
+            is_occupied=False,
+            has_enemy_adjacent=False,
+            movement_cost=1.0,
         )
 
         score_far = scorer._score_tile(
-            cover_bonus=2, concealment=0.3, distance=6.0,
-            is_in_los=True, is_occupied=False,
-            has_enemy_adjacent=False, movement_cost=1.0,
+            cover_bonus=2,
+            concealment=0.3,
+            distance=6.0,
+            is_in_los=True,
+            is_occupied=False,
+            has_enemy_adjacent=False,
+            movement_cost=1.0,
         )
 
         assert score_close > score_far
@@ -230,15 +248,23 @@ class TestCoverScoringSystem:
         )
 
         score_hidden = scorer._score_tile(
-            cover_bonus=1, concealment=0.2, distance=3.0,
-            is_in_los=False, is_occupied=False,
-            has_enemy_adjacent=False, movement_cost=1.0,
+            cover_bonus=1,
+            concealment=0.2,
+            distance=3.0,
+            is_in_los=False,
+            is_occupied=False,
+            has_enemy_adjacent=False,
+            movement_cost=1.0,
         )
 
         score_visible = scorer._score_tile(
-            cover_bonus=1, concealment=0.2, distance=3.0,
-            is_in_los=True, is_occupied=False,
-            has_enemy_adjacent=False, movement_cost=1.0,
+            cover_bonus=1,
+            concealment=0.2,
+            distance=3.0,
+            is_in_los=True,
+            is_occupied=False,
+            has_enemy_adjacent=False,
+            movement_cost=1.0,
         )
 
         assert score_hidden > score_visible
@@ -252,17 +278,25 @@ class TestCoverScoringSystem:
         )
 
         score_occupied = scorer._score_tile(
-            cover_bonus=3, concealment=0.4, distance=2.0,
-            is_in_los=False, is_occupied=True,
-            has_enemy_adjacent=False, movement_cost=1.0,
+            cover_bonus=3,
+            concealment=0.4,
+            distance=2.0,
+            is_in_los=False,
+            is_occupied=True,
+            has_enemy_adjacent=False,
+            movement_cost=1.0,
         )
 
         assert OCCUPIED_PENALTY < 0  # Penalty should be negative
         # Score should be much lower than non-occupied equivalent
         score_free = scorer._score_tile(
-            cover_bonus=3, concealment=0.4, distance=2.0,
-            is_in_los=False, is_occupied=False,
-            has_enemy_adjacent=False, movement_cost=1.0,
+            cover_bonus=3,
+            concealment=0.4,
+            distance=2.0,
+            is_in_los=False,
+            is_occupied=False,
+            has_enemy_adjacent=False,
+            movement_cost=1.0,
         )
         assert score_occupied < score_free
 
@@ -274,22 +308,34 @@ class TestCoverScoringSystem:
         )
 
         score_dangerous = scorer._score_tile(
-            cover_bonus=2, concealment=0.3, distance=2.0,
-            is_in_los=True, is_occupied=False,
-            has_enemy_adjacent=True, movement_cost=1.0,
+            cover_bonus=2,
+            concealment=0.3,
+            distance=2.0,
+            is_in_los=True,
+            is_occupied=False,
+            has_enemy_adjacent=True,
+            movement_cost=1.0,
         )
 
         score_safe = scorer._score_tile(
-            cover_bonus=2, concealment=0.3, distance=2.0,
-            is_in_los=True, is_occupied=False,
-            has_enemy_adjacent=False, movement_cost=1.0,
+            cover_bonus=2,
+            concealment=0.3,
+            distance=2.0,
+            is_in_los=True,
+            is_occupied=False,
+            has_enemy_adjacent=False,
+            movement_cost=1.0,
         )
 
         assert score_safe > score_dangerous
 
     def test_find_best_cover_returns_candidate(
-        self, mock_suppressed_unit, mock_enemy_units, mock_friendly_units,
-        mock_game_map, mock_los_system
+        self,
+        mock_suppressed_unit,
+        mock_enemy_units,
+        mock_friendly_units,
+        mock_game_map,
+        mock_los_system,
     ):
         """Test that find_best_cover returns a valid candidate."""
         scorer = CoverScoringSystem(
@@ -351,13 +397,15 @@ class TestCoverScoringSystem:
             # Verify sorted in descending order
             candidates_sorted = sorted(candidates, key=lambda c: c.score, reverse=True)
             for i in range(len(candidates_sorted) - 1):
-                assert candidates_sorted[i].score >= candidates_sorted[i+1].score, \
-                    f"Candidate at index {i} should have score >= candidate at index {i+1}"
+                assert candidates_sorted[i].score >= candidates_sorted[i + 1].score, (
+                    f"Candidate at index {i} should have score >= candidate at index {i + 1}"
+                )
 
 
 # ===========================================================================
 # Test Class: CoverSeekAI
 # ===========================================================================
+
 
 class TestCoverSeekAI:
     """Test the AI decision-making logic."""
@@ -374,7 +422,7 @@ class TestCoverSeekAI:
 
         # Set low suppression for all units
         for unit in tactical_context.friendly_units:
-            if hasattr(unit, 'suppression_state'):
+            if hasattr(unit, "suppression_state"):
                 unit.suppression_state.current_suppression = 30.0
 
         priority = ai.evaluate(tactical_context)
@@ -415,8 +463,12 @@ class TestCoverSeekAI:
         assert prio_wounded > prio_normal
 
     def test_execute_generates_move_intent(
-        self, mock_suppressed_unit, mock_enemy_units, mock_friendly_units,
-        mock_game_map, mock_los_system
+        self,
+        mock_suppressed_unit,
+        mock_enemy_units,
+        mock_friendly_units,
+        mock_game_map,
+        mock_los_system,
     ):
         """Test that execute generates a MOVE intent."""
         scorer = CoverScoringSystem(
@@ -436,8 +488,9 @@ class TestCoverSeekAI:
 
         # Should generate intent for the suppressed unit
         suppressed_intents = [i for i in intents if i.unit_id == mock_suppressed_unit.id]
-        assert len(suppressed_intents) == 1, \
+        assert len(suppressed_intents) == 1, (
             "Should generate exactly 1 move intent for the suppressed unit"
+        )
 
         intent = suppressed_intents[0]
         assert isinstance(intent, TacticIntent)
@@ -496,6 +549,7 @@ class TestCoverSeekAI:
 # Test Class: CoverCandidate
 # ===========================================================================
 
+
 class TestCoverCandidate:
     """Test the data class."""
 
@@ -529,15 +583,29 @@ class TestCoverCandidate:
         coord1 = TileCoord(1, 1)
         coord2 = TileCoord(2, 2)
 
-        low = CoverCandidate(coord=coord1, score=10.0, cover_bonus=0,
-                             concealment=0.0, distance=1.0,
-                             is_in_enemy_los=False, is_occupied=False,
-                             has_enemy_adjacent=False, movement_cost=1.0)
+        low = CoverCandidate(
+            coord=coord1,
+            score=10.0,
+            cover_bonus=0,
+            concealment=0.0,
+            distance=1.0,
+            is_in_enemy_los=False,
+            is_occupied=False,
+            has_enemy_adjacent=False,
+            movement_cost=1.0,
+        )
 
-        high = CoverCandidate(coord=coord2, score=90.0, cover_bonus=3,
-                              concealment=0.4, distance=2.0,
-                              is_in_enemy_los=False, is_occupied=False,
-                              has_enemy_adjacent=False, movement_cost=1.0)
+        high = CoverCandidate(
+            coord=coord2,
+            score=90.0,
+            cover_bonus=3,
+            concealment=0.4,
+            distance=2.0,
+            is_in_enemy_los=False,
+            is_occupied=False,
+            has_enemy_adjacent=False,
+            movement_cost=1.0,
+        )
 
         assert low < high  # Lower score is "less than"
 
@@ -546,12 +614,17 @@ class TestCoverCandidate:
 # Integration Tests
 # ===========================================================================
 
+
 class TestCoverSeekIntegration:
     """Integration tests combining scoring and AI decision making."""
 
     def test_full_workflow_suppressed_unit_seeks_cover(
-        self, mock_suppressed_unit, mock_enemy_units, mock_friendly_units,
-        mock_game_map, mock_los_system
+        self,
+        mock_suppressed_unit,
+        mock_enemy_units,
+        mock_friendly_units,
+        mock_game_map,
+        mock_los_system,
     ):
         """Test complete workflow: suppressed unit evaluates and seeks cover."""
         # Setup
@@ -574,8 +647,9 @@ class TestCoverSeekIntegration:
 
         # Execute
         intents = ai.execute(context)
-        assert len(intents) >= 1, \
+        assert len(intents) >= 1, (
             "Should generate at least 1 move intent for suppressed unit seeking cover"
+        )
 
         intent = intents[0]
         assert intent.tactic_type == TacticType.MOVE_TO
@@ -586,9 +660,7 @@ class TestCoverSeekIntegration:
         target_tile = mock_game_map.get_tile(target_coord)
         assert target_tile.total_cover_bonus >= 0
 
-    def test_unit_already_in_good_cover_reduced_priority(
-        self, mock_game_map, mock_los_system
-    ):
+    def test_unit_already_in_good_cover_reduced_priority(self, mock_game_map, mock_los_system):
         """Test that units already in good cover have lower priority."""
         scorer = CoverScoringSystem(
             los_system=mock_los_system,
@@ -624,6 +696,7 @@ class TestCoverSeekIntegration:
 # Performance Tests
 # ===========================================================================
 
+
 class TestCoverSeekPerformance:
     """Performance tests for large-scale scenarios."""
 
@@ -654,8 +727,7 @@ class TestCoverSeekPerformance:
 
         # Should complete within reasonable time (< 100ms)
         assert elapsed < 0.1, f"Cover search took {elapsed:.3f}s, too slow"
-        assert len(candidates) >= 1, \
-            "Large search area should return at least 1 cover candidate"
+        assert len(candidates) >= 1, "Large search area should return at least 1 cover candidate"
 
 
 if __name__ == "__main__":

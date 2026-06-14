@@ -44,8 +44,10 @@ if TYPE_CHECKING:
 # Enums
 # ========================================================================
 
+
 class CeasefireState(Enum):
     """State of a ceasefire agreement."""
+
     NONE = auto()
     ACTIVE = auto()
     BROKEN = auto()
@@ -54,6 +56,7 @@ class CeasefireState(Enum):
 
 class RetreatState(Enum):
     """State of a retreat order."""
+
     NOT_STARTED = auto()
     IN_PROGRESS = auto()
     COMPLETED = auto()
@@ -64,9 +67,9 @@ class RetreatState(Enum):
 # ========================================================================
 
 # Ceasefire
-CEASEFIRE_MIN_TICKS: int = 60       # 1 hour
-CEASEFIRE_MAX_TICKS: int = 420      # 7 hours
-MORALE_RECOVERY_PER_HOUR: int = 5   # +5 morale per hour during ceasefire
+CEASEFIRE_MIN_TICKS: int = 60  # 1 hour
+CEASEFIRE_MAX_TICKS: int = 420  # 7 hours
+MORALE_RECOVERY_PER_HOUR: int = 5  # +5 morale per hour during ceasefire
 MAX_CEASEFIRES_PER_BATTLE: int = 1
 
 # AI ceasefire decision thresholds
@@ -80,9 +83,9 @@ AI_CEASEFIRE_HOUR_BONUS: float = 0.10
 RETREAT_MIN_BATTLE_TICKS: int = 60  # Must fight at least 60 ticks
 RETREAT_SPEED_MULTIPLIER: float = 2.0
 RETREAT_EXPOSURE_BONUS: float = 0.30  # +30% hit chance for enemies
-RETREAT_ESCAPE_TICKS: int = 30        # Ticks to reach map edge
+RETREAT_ESCAPE_TICKS: int = 30  # Ticks to reach map edge
 STRAGGLER_CAPTURE_RATE: float = 0.10  # 10% captured even on escape
-RETREAT_MORALE_PENALTY: int = -10     # Morale penalty for survivors
+RETREAT_MORALE_PENALTY: int = -10  # Morale penalty for survivors
 
 # AI retreat thresholds
 AI_RETREAT_FORCE_RATIO: float = 0.3
@@ -93,14 +96,16 @@ AI_RETREAT_MORALE: float = 20.0
 # CeasefireSystem
 # ========================================================================
 
+
 @dataclass
 class CeasefireRecord:
     """Tracks the state of a ceasefire during battle."""
+
     state: CeasefireState = CeasefireState.NONE
     start_tick: int = 0
     duration_ticks: int = 0
-    requested_by: str = ""        # 'player' or 'ai'
-    ceasefire_count: int = 0      # Number of ceasefires used this battle
+    requested_by: str = ""  # 'player' or 'ai'
+    ceasefire_count: int = 0  # Number of ceasefires used this battle
 
 
 class CeasefireSystem:
@@ -181,10 +186,7 @@ class CeasefireSystem:
         if avg_morale >= AI_CEASEFIRE_AGREE_MORALE:
             return False
 
-        probability = (
-            AI_CEASEFIRE_BASE_PROBABILITY
-            + AI_CEASEFIRE_HOUR_BONUS * hours_offered
-        )
+        probability = AI_CEASEFIRE_BASE_PROBABILITY + AI_CEASEFIRE_HOUR_BONUS * hours_offered
         return self._rng.random() < min(probability, 1.0)
 
     def ai_should_request_ceasefire(
@@ -279,9 +281,11 @@ class CeasefireSystem:
 # RetreatSystem
 # ========================================================================
 
+
 @dataclass
 class RetreatUnitStatus:
     """Tracks an individual unit's retreat progress."""
+
     unit_id: str
     retreating: bool = False
     ticks_retreating: int = 0
@@ -395,10 +399,9 @@ class RetreatSystem:
 
         # Pick the weakest unit to retreat first
         candidates: list[Unit] = [
-            u for u in friendly_units
-            if u.is_alive
-            and u.can_act
-            and u.id not in self._unit_statuses
+            u
+            for u in friendly_units
+            if u.is_alive and u.can_act and u.id not in self._unit_statuses
         ]
         if not candidates:
             return None
@@ -452,9 +455,7 @@ class RetreatSystem:
 
             # Check if unit reached friendly map edge
             edge_check = is_at_friendly_edge_fn
-            reached = (
-                edge_check(unit) if callable(edge_check) else False
-            )
+            reached = edge_check(unit) if callable(edge_check) else False
 
             if reached:
                 status.reached_edge = True
@@ -476,10 +477,7 @@ class RetreatSystem:
                 self._captured_unit_ids.append(unit.id)
 
         # Check if all retreating units are done
-        active = [
-            s for s in self._unit_statuses.values()
-            if s.retreating
-        ]
+        active = [s for s in self._unit_statuses.values() if s.retreating]
         if not active:
             self._state = RetreatState.COMPLETED
 
@@ -513,11 +511,11 @@ class RetreatSystem:
           - survivor_unit_ids: list of surviving unit IDs
         """
         return {
-            'battle_result': 'DEFEAT',
-            'captured_count': len(self._captured_unit_ids),
-            'survivor_count': len(self._survivor_unit_ids),
-            'captured_unit_ids': list(self._captured_unit_ids),
-            'survivor_unit_ids': list(self._survivor_unit_ids),
+            "battle_result": "DEFEAT",
+            "captured_count": len(self._captured_unit_ids),
+            "survivor_count": len(self._survivor_unit_ids),
+            "captured_unit_ids": list(self._captured_unit_ids),
+            "survivor_unit_ids": list(self._survivor_unit_ids),
         }
 
     # ------------------------------------------------------------------
@@ -537,7 +535,7 @@ class RetreatSystem:
 # Demo
 # ========================================================================
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logger.debug("=" * 80)
     logger.debug("CEASEFIRE & RETREAT MECHANISM — CC2-Authentic")
     logger.debug("=" * 80)
@@ -547,9 +545,8 @@ if __name__ == '__main__':
     logger.debug("\n[Ceasefire] Initial state: %s", cs.state.name)
 
     # Player requests 2-hour ceasefire
-    ok = cs.request_ceasefire(ticks=120, requested_by='player', current_tick=100)
-    logger.debug("[Ceasefire] Request 2hr ceasefire: %s",
-                 'Granted' if ok else 'Denied')
+    ok = cs.request_ceasefire(ticks=120, requested_by="player", current_tick=100)
+    logger.debug("[Ceasefire] Request 2hr ceasefire: %s", "Granted" if ok else "Denied")
     logger.debug("[Ceasefire] State: %s", cs.state.name)
 
     # AI ceasefire decision
@@ -576,8 +573,8 @@ if __name__ == '__main__':
 
     # Retreat outcome
     rs._state = RetreatState.COMPLETED
-    rs._captured_unit_ids = ['unit_1', 'unit_3']
-    rs._survivor_unit_ids = ['unit_2', 'unit_4', 'unit_5']
+    rs._captured_unit_ids = ["unit_1", "unit_3"]
+    rs._survivor_unit_ids = ["unit_2", "unit_4", "unit_5"]
     outcome = rs.get_retreat_outcome()
     logger.debug("[Retreat] Outcome: %s", outcome)
 

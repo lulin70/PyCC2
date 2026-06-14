@@ -19,20 +19,22 @@ if TYPE_CHECKING:
 
 class AmmoType(Enum):
     """Ammunition types with different tactical purposes."""
-    AP = "ap"           # Armor-Piercing: High penetration, lower damage
-    HE = "he"           # High-Explosive: AOE damage, lower penetration
-    SMOKE = "smoke"     # Smoke grenade: Creates concealment
+
+    AP = "ap"  # Armor-Piercing: High penetration, lower damage
+    HE = "he"  # High-Explosive: AOE damage, lower penetration
+    SMOKE = "smoke"  # Smoke grenade: Creates concealment
     STANDARD = "standard"  # Standard ammo: Balanced stats
 
 
 @dataclass(slots=True)
 class AmmoEffects:
     """Effects configuration for an ammo type."""
+
     ammo_type: AmmoType
     damage_multiplier: float = 1.0
     armor_penetration: float = 1.0
     aoe_radius: float = 0.0  # Grid cells
-    smoke_duration: int = 0   # Turns
+    smoke_duration: int = 0  # Turns
     smoke_radius: float = 0.0  # Grid cells
     effective_against: list[str] = field(default_factory=list)
     name: str = ""
@@ -91,7 +93,7 @@ class AmmoInventory:
     - Smoke deployment tracking
     """
 
-    def __init__(self, unit: "Unit"):
+    def __init__(self, unit: Unit):
         self._unit = unit
         self._current_type: AmmoType = AmmoType.STANDARD
         self._inventory: dict[AmmoType, int] = {
@@ -137,6 +139,7 @@ class AmmoInventory:
             New active ammo type
         """
         import time
+
         current_time = time.perf_counter() * 1000
 
         if (current_time - self._last_type_change) < self._type_change_cooldown:
@@ -144,7 +147,9 @@ class AmmoInventory:
 
         types_order = [AmmoType.STANDARD, AmmoType.AP, AmmoType.HE, AmmoType.SMOKE]
 
-        current_idx = types_order.index(self._current_type) if self._current_type in types_order else 0
+        current_idx = (
+            types_order.index(self._current_type) if self._current_type in types_order else 0
+        )
 
         for i in range(1, len(types_order) + 1):
             next_idx = (current_idx + i) % len(types_order)
@@ -174,6 +179,7 @@ class AmmoInventory:
 
         self._current_type = ammo_type
         import time
+
         self._last_type_change = time.perf_counter() * 1000
         return True
 
@@ -197,7 +203,7 @@ class AmmoInventory:
     def apply_damage_modifiers(
         self,
         base_damage: float,
-        target_unit: "Unit",
+        target_unit: Unit,
     ) -> float:
         """
         Apply ammo-type-specific damage modifiers.
@@ -214,9 +220,9 @@ class AmmoInventory:
         modified_damage = base_damage * effects.damage_multiplier
 
         # Check effectiveness against target type
-        target_type_str = getattr(target_unit, 'unit_type', None)
+        target_type_str = getattr(target_unit, "unit_type", None)
         if target_type_str:
-            target_name = str(target_type_str).lower().replace('unittype.', '').replace('_', '')
+            target_name = str(target_type_str).lower().replace("unittype.", "").replace("_", "")
 
             if any(eff in target_name for eff in effects.effective_against):
                 modified_damage *= 1.2  # +20% bonus vs effective targets
@@ -269,8 +275,12 @@ class AmmoInventory:
 
         self._smoke_clouds.append(smoke_cloud)
 
-        logger.info("[Smoke] Deployed at %s, radius=%.1f, duration=%d turns",
-                   position, effects.smoke_radius, effects.smoke_duration)
+        logger.info(
+            "[Smoke] Deployed at %s, radius=%.1f, duration=%d turns",
+            position,
+            effects.smoke_radius,
+            effects.smoke_duration,
+        )
 
         return smoke_cloud
 

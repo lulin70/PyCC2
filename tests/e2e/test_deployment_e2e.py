@@ -30,6 +30,7 @@ pygame.init()
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_map_data(width: int = 30, height: int = 20) -> dict:
     """Create a simple map data dict for deployment testing."""
     tiles = [[0] * width for _ in range(height)]  # All open terrain
@@ -64,6 +65,7 @@ def _make_map_data_with_water(width: int = 30, height: int = 20) -> dict:
 # Tests
 # ---------------------------------------------------------------------------
 
+
 class TestDeploymentE2E:
     """Full E2E test for the deployment phase."""
 
@@ -82,8 +84,8 @@ class TestDeploymentE2E:
 
     def test_02_verify_three_zone_types(self):
         """Step 2: Verify three zone types (FRIENDLY, NO_MANS_LAND, ENEMY_CONTROLLED) are defined."""
-        from pycc2.services.deployment_manager import DeploymentManager
         from pycc2.presentation.ui.deployment_ui import ZoneType
+        from pycc2.services.deployment_manager import DeploymentManager
 
         dm = DeploymentManager()
         map_data = _make_map_data()
@@ -94,11 +96,11 @@ class TestDeploymentE2E:
 
         # Verify all three zone types exist
         zone_types_found = set()
-        if hasattr(state, 'friendly_zone') and state.friendly_zone:
+        if hasattr(state, "friendly_zone") and state.friendly_zone:
             zone_types_found.add(ZoneType.FRIENDLY)
-        if hasattr(state, 'enemy_zone') and state.enemy_zone:
+        if hasattr(state, "enemy_zone") and state.enemy_zone:
             zone_types_found.add(ZoneType.ENEMY_CONTROLLED)
-        if hasattr(state, 'no_mans_land') and state.no_mans_land:
+        if hasattr(state, "no_mans_land") and state.no_mans_land:
             zone_types_found.add(ZoneType.NO_MANS_LAND)
 
         assert ZoneType.FRIENDLY in zone_types_found, "FRIENDLY zone missing"
@@ -115,7 +117,9 @@ class TestDeploymentE2E:
 
         state = dm.get_state()
         assert state is not None
-        assert len(state.available_units) >= 6, f"Force pool should have at least 6 units, got {len(state.available_units)}"
+        assert len(state.available_units) >= 6, (
+            f"Force pool should have at least 6 units, got {len(state.available_units)}"
+        )
 
         # Verify unit categories exist
         unit_types = {u.unit_type for u in state.available_units}
@@ -213,8 +217,8 @@ class TestDeploymentE2E:
 
     def test_09_verify_transition_to_battle_phase(self):
         """Step 9: Verify transition to battle phase after begin_battle."""
-        from pycc2.services.deployment_manager import DeploymentManager
         from pycc2.presentation.ui.deployment_ui import DeploymentPhase
+        from pycc2.services.deployment_manager import DeploymentManager
 
         dm = DeploymentManager()
         map_data = _make_map_data()
@@ -228,11 +232,12 @@ class TestDeploymentE2E:
 
     def test_10_verify_pending_orders_applied(self):
         """Step 10: Verify pending orders are applied to units after complete()."""
-        from pycc2.services.deployment_manager import DeploymentManager
+        import numpy as np
+
         from pycc2.domain.entities.game_map import GameMap
         from pycc2.presentation.rendering.camera import Camera
+        from pycc2.services.deployment_manager import DeploymentManager
         from pycc2.services.game_loop import GameState
-        import numpy as np
 
         dm = DeploymentManager()
         map_data = _make_map_data()
@@ -245,7 +250,10 @@ class TestDeploymentE2E:
 
         # Create a GameState for complete()
         game_map = GameMap(
-            id="test", name="test", width=30, height=20,
+            id="test",
+            name="test",
+            width=30,
+            height=20,
             tile_grid=np.zeros((20, 30), dtype=np.int8),
         )
         camera = Camera(position=None, viewport_width=800, viewport_height=600)
@@ -255,7 +263,9 @@ class TestDeploymentE2E:
         assert result is not None
 
         # Verify units were created
-        assert len(state.units) >= 1, f"Should have created at least 1 unit from deployment, got {len(state.units)}"
+        assert len(state.units) >= 1, (
+            f"Should have created at least 1 unit from deployment, got {len(state.units)}"
+        )
 
         # Verify pending orders were included in result
         # Note: pending_orders are included in begin_battle() result,
@@ -265,16 +275,19 @@ class TestDeploymentE2E:
         # Pending orders may be empty after apply (cleared by apply_pending_orders)
         # The real test is that units have move targets set
         units_with_targets = [u for u in state.units if u.move_target is not None]
-        assert len(units_with_targets) >= 1, f"At least one unit should have a move target from pending orders, got {len(units_with_targets)}"
+        assert len(units_with_targets) >= 1, (
+            f"At least one unit should have a move target from pending orders, got {len(units_with_targets)}"
+        )
 
     def test_11_verify_deployed_units_in_game_state(self):
         """Step 11: Verify deployed units exist in the game state after complete()."""
-        from pycc2.services.deployment_manager import DeploymentManager
+        import numpy as np
+
         from pycc2.domain.entities.game_map import GameMap
         from pycc2.domain.entities.unit import Faction
         from pycc2.presentation.rendering.camera import Camera
+        from pycc2.services.deployment_manager import DeploymentManager
         from pycc2.services.game_loop import GameState
-        import numpy as np
 
         dm = DeploymentManager()
         map_data = _make_map_data()
@@ -285,7 +298,10 @@ class TestDeploymentE2E:
         dm.deployment_ui.place_unit(1, 1, 0)
 
         game_map = GameMap(
-            id="test", name="test", width=30, height=20,
+            id="test",
+            name="test",
+            width=30,
+            height=20,
             tile_grid=np.zeros((20, 30), dtype=np.int8),
         )
         camera = Camera(position=None, viewport_width=800, viewport_height=600)
@@ -295,7 +311,9 @@ class TestDeploymentE2E:
 
         # Verify player units were created
         player_units = [u for u in state.units if u.faction == Faction.ALLIES]
-        assert len(player_units) >= 2, f"Should have at least 2 player units, got {len(player_units)}"
+        assert len(player_units) >= 2, (
+            f"Should have at least 2 player units, got {len(player_units)}"
+        )
 
         # Verify units have valid positions
         for u in player_units:

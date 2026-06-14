@@ -47,10 +47,10 @@ class VisionComponent:
         base = self.range_tiles
         # R5: Night battle visibility reduction
         tod_modifiers = {
-            'dawn': 0.9,
-            'day': 1.0,
-            'dusk': 0.8,
-            'night': 0.3,
+            "dawn": 0.9,
+            "day": 1.0,
+            "dusk": 0.8,
+            "night": 0.3,
         }
         tod_mod = tod_modifiers.get(time_of_day, 1.0) if time_of_day else 1.0
         return max(1, int(base * tod_mod * weather_modifier))

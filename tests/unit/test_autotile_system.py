@@ -4,21 +4,24 @@ Tests the bitmask-based neighbor detection and autotile variant generation
 for roads, rivers, bridges, hedgerows, and multi-tile buildings.
 """
 
-import pytest
 import numpy as np
+import pytest
 
+from pycc2.domain.entities.game_map import GameMap
 from pycc2.presentation.rendering.autotile_system import (
-    get_neighbor_bitmap,
-    get_continuity_variant,
+    DIR_EAST,
+    DIR_NORTH,
+    DIR_SOUTH,
+    DIR_WEST,
+    AutotileCache,
     detect_building_clusters,
     get_building_cluster_info,
-    is_autotile_terrain,
     get_connected_directions,
+    get_continuity_variant,
     get_edge_transition_width,
-    DIR_NORTH, DIR_EAST, DIR_SOUTH, DIR_WEST,
-    AutotileCache,
+    get_neighbor_bitmap,
+    is_autotile_terrain,
 )
-from pycc2.domain.entities.game_map import GameMap
 
 
 @pytest.fixture
@@ -33,26 +36,23 @@ def sample_game_map() -> GameMap:
     # Row 4:  [bldg][bldg][bldg][bldg][grass][grass][grass][grass][grass][grass]
     # Row 5-9: all grass
 
-    tile_grid = np.array([
-        [0, 1, 1, 1, 0, 6, 6, 6, 0, 7],
-        [0, 1, 1, 1, 0, 6, 6, 6, 0, 7],
-        [0, 1, 1, 1, 0, 0, 0, 0, 0, 7],
-        [4, 4, 5, 5, 0, 0, 0, 0, 0, 0],
-        [4, 4, 5, 5, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    ], dtype=np.int8)
-
-    return GameMap(
-        id="test_map",
-        name="Test Map",
-        width=10,
-        height=10,
-        tile_grid=tile_grid
+    tile_grid = np.array(
+        [
+            [0, 1, 1, 1, 0, 6, 6, 6, 0, 7],
+            [0, 1, 1, 1, 0, 6, 6, 6, 0, 7],
+            [0, 1, 1, 1, 0, 0, 0, 0, 0, 7],
+            [4, 4, 5, 5, 0, 0, 0, 0, 0, 0],
+            [4, 4, 5, 5, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ],
+        dtype=np.int8,
     )
+
+    return GameMap(id="test_map", name="Test Map", width=10, height=10, tile_grid=tile_grid)
 
 
 class TestNeighborBitmap:
@@ -69,11 +69,7 @@ class TestNeighborBitmap:
         isolated_grid[2, 2] = 1  # Single road in center
 
         isolated_map = GameMap(
-            id="isolated",
-            name="Isolated",
-            width=5,
-            height=5,
-            tile_grid=isolated_grid
+            id="isolated", name="Isolated", width=5, height=5, tile_grid=isolated_grid
         )
 
         bitmap = get_neighbor_bitmap(isolated_map, 2, 2, terrain_type=1)
@@ -94,11 +90,7 @@ class TestNeighborBitmap:
         # Other neighbors are grass (0)
 
         test_map = GameMap(
-            id="north_only",
-            name="North Only",
-            width=5,
-            height=5,
-            tile_grid=test_grid
+            id="north_only", name="North Only", width=5, height=5, tile_grid=test_grid
         )
 
         bitmap = get_neighbor_bitmap(test_map, 2, 1, terrain_type=6)
@@ -118,11 +110,7 @@ class TestNeighborBitmap:
         # North and south are grass (0)
 
         test_map = GameMap(
-            id="horizontal",
-            name="Horizontal Line",
-            width=5,
-            height=3,
-            tile_grid=test_grid
+            id="horizontal", name="Horizontal Line", width=5, height=3, tile_grid=test_grid
         )
 
         bitmap = get_neighbor_bitmap(test_map, 1, 1, terrain_type=1)
@@ -171,11 +159,7 @@ class TestBuildingClusterDetection:
         grid[0:2, 3:5] = 5  # BUILDING_SOLID
 
         test_map = GameMap(
-            id="buildings_2x2",
-            name="Buildings 2x2",
-            width=6,
-            height=6,
-            tile_grid=grid
+            id="buildings_2x2", name="Buildings 2x2", width=6, height=6, tile_grid=grid
         )
 
         clusters = detect_building_clusters(test_map)
@@ -196,11 +180,7 @@ class TestBuildingClusterDetection:
         grid[3, 3] = 5  # Building at (3,3)
 
         test_map = GameMap(
-            id="separate_buildings",
-            name="Separate Buildings",
-            width=5,
-            height=5,
-            tile_grid=grid
+            id="separate_buildings", name="Separate Buildings", width=5, height=5, tile_grid=grid
         )
 
         clusters = detect_building_clusters(test_map)
@@ -214,16 +194,18 @@ class TestBuildingClusterDetection:
         clusters = detect_building_clusters(sample_game_map)
         info = get_building_cluster_info(sample_game_map, 0, 3, clusters)
 
-        assert info['is_building'] == True, "Should identify as building"
-        assert info['cluster_index'] is not None, "Should belong to a cluster"
-        assert info['cluster_size'] == (4, 2), f"Expected cluster size (4,2), got {info['cluster_size']}"
+        assert info["is_building"], "Should identify as building"
+        assert info["cluster_index"] is not None, "Should belong to a cluster"
+        assert info["cluster_size"] == (4, 2), (
+            f"Expected cluster size (4,2), got {info['cluster_size']}"
+        )
 
     def test_non_building_cluster_info(self, sample_game_map: GameMap):
         """get_building_cluster_info for non-building tile should return defaults."""
         info = get_building_cluster_info(sample_game_map, 5, 5)
 
-        assert info['is_building'] == False, "Non-building should return is_building=False"
-        assert info['cluster_index'] is None, "Non-building should have no cluster index"
+        assert not info["is_building"], "Non-building should return is_building=False"
+        assert info["cluster_index"] is None, "Non-building should have no cluster index"
 
 
 class TestAutotileTerrain:
@@ -231,28 +213,28 @@ class TestAutotileTerrain:
 
     def test_road_is_autotile(self):
         """Road terrain (ID=1) should support autotiling."""
-        assert is_autotile_terrain(1) == True
+        assert is_autotile_terrain(1)
 
     def test_water_is_autotile(self):
         """Water terrain (ID=6) should support autotiling."""
-        assert is_autotile_terrain(6) == True
+        assert is_autotile_terrain(6)
 
     def test_hedge_is_autotile(self):
         """Hedge terrain (ID=7) should support autotiling."""
-        assert is_autotile_terrain(7) == True
+        assert is_autotile_terrain(7)
 
     def test_bridge_is_autotile(self):
         """Bridge terrain (ID=11) should support autotiling."""
-        assert is_autotile_terrain(11) == True
+        assert is_autotile_terrain(11)
 
     def test_grass_is_not_autotile(self):
         """Grass terrain (ID=0) should NOT support autotiling."""
-        assert is_autotile_terrain(0) == False
+        assert not is_autotile_terrain(0)
 
     def test_building_is_not_autotile(self):
         """Building terrain (ID=4,5) should NOT support autotiling (uses cluster system instead)."""
-        assert is_autotile_terrain(4) == False
-        assert is_autotile_terrain(5) == False
+        assert not is_autotile_terrain(4)
+        assert not is_autotile_terrain(5)
 
 
 class TestConnectedDirections:
@@ -268,8 +250,8 @@ class TestConnectedDirections:
         directions = get_connected_directions(15)
         assert len(directions) == 4
         assert (0, -1) in directions  # North
-        assert (1, 0) in directions   # East
-        assert (0, 1) in directions   # South
+        assert (1, 0) in directions  # East
+        assert (0, 1) in directions  # South
         assert (-1, 0) in directions  # West
 
     def test_north_only_single_direction(self):
@@ -286,23 +268,23 @@ class TestEdgeTransitionWidth:
         """Fully connected tile (bitmask=15) should have zero transition widths."""
         widths = get_edge_transition_width(1, 15, 48)
 
-        assert widths['north'] == 0
-        assert widths['east'] == 0
-        assert widths['south'] == 0
-        assert widths['west'] == 0
+        assert widths["north"] == 0
+        assert widths["east"] == 0
+        assert widths["south"] == 0
+        assert widths["west"] == 0
 
     def test_isolated_full_transitions(self):
         """Isolated tile (bitmask=0) should have full transition widths on all edges."""
         widths = get_edge_transition_width(1, 0, 48)
 
         # Base width should be ~4-6 pixels for 48px tile
-        assert widths['north'] > 0
-        assert widths['east'] > 0
-        assert widths['south'] > 0
-        assert widths['west'] > 0
+        assert widths["north"] > 0
+        assert widths["east"] > 0
+        assert widths["south"] > 0
+        assert widths["west"] > 0
 
         # All should be equal for isolated tile
-        assert widths['north'] == widths['east'] == widths['south'] == widths['west']
+        assert widths["north"] == widths["east"] == widths["south"] == widths["west"]
 
     def test_partial_connectivity_mixed_widths(self):
         """Partially connected tile should have zero on connected edges, positive on others."""
@@ -310,10 +292,10 @@ class TestEdgeTransitionWidth:
         bitmask = DIR_NORTH | DIR_EAST  # value = 3
         widths = get_edge_transition_width(6, bitmask, 48)
 
-        assert widths['north'] == 0, "Connected north should have 0 transition"
-        assert widths['east'] == 0, "Connected east should have 0 transition"
-        assert widths['south'] > 0, "Disconnected south should have positive transition"
-        assert widths['west'] > 0, "Disconnected west should have positive transition"
+        assert widths["north"] == 0, "Connected north should have 0 transition"
+        assert widths["east"] == 0, "Connected east should have 0 transition"
+        assert widths["south"] > 0, "Disconnected south should have positive transition"
+        assert widths["west"] > 0, "Disconnected west should have positive transition"
 
 
 class TestAutotileCache:
@@ -367,10 +349,7 @@ class TestBitmaskConsistency:
     def test_bitmask_deterministic(self, sample_game_map: GameMap):
         """Same input should always produce same output (deterministic)."""
         # Call multiple times with same parameters
-        results = [
-            get_neighbor_bitmap(sample_game_map, 2, 1, terrain_type=1)
-            for _ in range(10)
-        ]
+        results = [get_neighbor_bitmap(sample_game_map, 2, 1, terrain_type=1) for _ in range(10)]
 
         # All results should be identical
         assert all(r == results[0] for r in results), "Results should be deterministic"
@@ -387,8 +366,9 @@ class TestBitmaskConsistency:
         widths_large = get_edge_transition_width(1, 0, 64)
 
         # Larger tile should have proportionally larger transitions
-        assert widths_large['north'] >= widths_small['north'], \
+        assert widths_large["north"] >= widths_small["north"], (
             "Larger tiles should have equal or larger transition widths"
+        )
 
 
 class TestIntegrationScenarios:
@@ -443,7 +423,9 @@ class TestIntegrationScenarios:
 
         # Top hedge should only connect south
         assert bitmap_top & DIR_SOUTH, "Top hedge should connect south"
-        assert not (bitmap_top & DIR_NORTH), "Top hedge should NOT connect north (out of bounds/grass)"
+        assert not (bitmap_top & DIR_NORTH), (
+            "Top hedge should NOT connect north (out of bounds/grass)"
+        )
 
         # Bottom hedge should only connect north
         assert bitmap_bot & DIR_NORTH, "Bottom hedge should connect north"

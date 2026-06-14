@@ -14,16 +14,16 @@ from pycc2.domain.systems.campaign_state import (
     CampaignState,
     OperationPhase,
 )
+from pycc2.presentation.ui.operation_timeline import (
+    DAY_INFO,
+    OperationTimelineUI,
+    TimelineConfig,
+)
 from pycc2.presentation.ui.strategic_map import (
     BRIDGE_POSITIONS,
     CORRIDOR_PATH,
     StrategicMapConfig,
     StrategicMapRenderer,
-)
-from pycc2.presentation.ui.operation_timeline import (
-    DAY_INFO,
-    TimelineConfig,
-    OperationTimelineUI,
 )
 
 
@@ -71,7 +71,6 @@ def mock_pygame_module():
 
 
 class TestStrategicMapConfigDefaults:
-
     def test_default_dimensions(self):
         cfg = StrategicMapConfig()
         assert cfg.width == 800
@@ -90,7 +89,6 @@ class TestStrategicMapConfigDefaults:
 
 
 class TestStrategicMapRendererInit:
-
     def test_default_init(self):
         r = StrategicMapRenderer()
         assert r.config is not None
@@ -105,14 +103,17 @@ class TestStrategicMapRendererInit:
 
 
 class TestBridgePositionsData:
-
     def test_all_five_bridges_present(self):
         assert set(BRIDGE_POSITIONS.keys()) == {
-            "arnhem", "nijmegen", "grave", "veghel", "son",
+            "arnhem",
+            "nijmegen",
+            "grave",
+            "veghel",
+            "son",
         }
 
     def test_bridge_coordinates_normalized(self):
-        for key, pos in BRIDGE_POSITIONS.items():
+        for _key, pos in BRIDGE_POSITIONS.items():
             assert 0 <= pos["x"] <= 1
             assert 0 <= pos["y"] <= 1
 
@@ -126,12 +127,11 @@ class TestBridgePositionsData:
 
     def test_corridor_path_matches_bridge_positions(self):
         corridor_set = set(CORRIDOR_PATH)
-        for key, pos in BRIDGE_POSITIONS.items():
+        for _key, pos in BRIDGE_POSITIONS.items():
             assert (pos["x"], pos["y"]) in corridor_set
 
 
 class TestStrategicMapBridgeInfo:
-
     def test_get_valid_bridge_info(self, renderer):
         info = renderer.get_bridge_info("arnhem")
         assert info is not None
@@ -151,7 +151,6 @@ class TestStrategicMapBridgeInfo:
 
 
 class TestStrategicMapClickDetection:
-
     def test_click_on_exact_bridge_center(self, renderer):
         arnhem = BRIDGE_POSITIONS["arnhem"]
         bx = int(arnhem["x"] * 800)
@@ -195,7 +194,6 @@ class TestStrategicMapClickDetection:
 
 
 class TestStrategicMapRenderHeadless:
-
     def test_render_without_campaign_state(self, renderer, mock_pygame_module):
         mock_screen = MagicMock()
         mock_screen.get_size.return_value = (1024, 768)
@@ -218,7 +216,6 @@ class TestStrategicMapRenderHeadless:
 
 
 class TestTimelineConfigDefaults:
-
     def test_default_position(self):
         cfg = TimelineConfig()
         assert cfg.x == 10
@@ -237,7 +234,6 @@ class TestTimelineConfigDefaults:
 
 
 class TestTimelineInit:
-
     def test_default_init(self):
         t = OperationTimelineUI()
         assert t.total_days == 6
@@ -248,11 +244,14 @@ class TestTimelineInit:
 
 
 class TestDayInfoData:
-
     def test_all_six_days_present(self):
         expected = {
-            "DAY_1_SEPT17", "DAY_2_SEPT18", "DAY_3_SEPT19",
-            "DAY_4_SEPT20", "DAY_5_SEPT21", "DAY_6_SEPT22",
+            "DAY_1_SEPT17",
+            "DAY_2_SEPT18",
+            "DAY_3_SEPT19",
+            "DAY_4_SEPT20",
+            "DAY_5_SEPT21",
+            "DAY_6_SEPT22",
         }
         assert set(DAY_INFO.keys()) == expected
 
@@ -271,7 +270,6 @@ class TestDayInfoData:
 
 
 class TestTimelineDaysOrder:
-
     def test_total_days_count(self, timeline):
         assert timeline.total_days == 6
 
@@ -298,7 +296,6 @@ def _make_mock_rect(x, y, w, h):
 
 
 class TestTimelineRenderHeadless:
-
     def test_render_returns_clickable_areas(self, timeline, mock_pygame_module):
         mock_screen = MagicMock()
         mock_pygame_module.Rect = _make_mock_rect
@@ -343,7 +340,6 @@ class TestTimelineRenderHeadless:
 
 
 class TestTimelineClickHandling:
-
     def test_click_on_current_day(self, timeline, fresh_campaign, mock_pygame_module):
         mock_screen = MagicMock()
         mock_pygame_module.Rect = _make_mock_rect
@@ -383,7 +379,6 @@ class TestTimelineClickHandling:
 
 
 class TestCampaignStateToStrategicMapIntegration:
-
     def test_fresh_campaign_no_bridges_captured(self, fresh_campaign, renderer):
         assert fresh_campaign.bridges_held == 0
         for key in BRIDGE_POSITIONS:
@@ -417,7 +412,6 @@ class TestCampaignStateToStrategicMapIntegration:
 
 
 class TestCampaignStateToTimelineIntegration:
-
     def test_fresh_campaign_day_one(self, fresh_campaign, timeline):
         assert fresh_campaign.current_day == OperationPhase.DAY_1_SEPT17
         assert fresh_campaign.current_day.name == "DAY_1_SEPT17"

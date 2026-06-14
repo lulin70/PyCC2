@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import logging
 import hashlib
 import hmac
 import json
+import logging
 import os
 import re
 from dataclasses import asdict, dataclass
@@ -40,7 +40,7 @@ class SaveHealthData(BaseModel):
     state: str = Field(default="HEALTHY")
 
     @model_validator(mode="after")
-    def hp_not_exceed_max(self) -> "SaveHealthData":
+    def hp_not_exceed_max(self) -> SaveHealthData:
         if self.hp > self.max_hp:
             raise ValueError(f"hp {self.hp} exceeds max_hp {self.max_hp}")
         return self
@@ -65,9 +65,11 @@ class SaveWeaponData(BaseModel):
     state: str = Field(default="READY")
 
     @model_validator(mode="after")
-    def ammo_not_exceed_max(self) -> "SaveWeaponData":
+    def ammo_not_exceed_max(self) -> SaveWeaponData:
         if self.max_ammo > 0 and self.ammo_remaining > self.max_ammo:
-            raise ValueError(f"ammo_remaining {self.ammo_remaining} exceeds max_ammo {self.max_ammo}")
+            raise ValueError(
+                f"ammo_remaining {self.ammo_remaining} exceeds max_ammo {self.max_ammo}"
+            )
         return self
 
 
@@ -170,7 +172,9 @@ class SecureSaveManager:
         self._base_dir = (
             Path(base_dir) if base_dir else Path(__file__).resolve().parent.parent.parent / "saves"
         )
-        self._save_dir = self._base_dir / self.SAVE_DIR_NAME if self.SAVE_DIR_NAME else self._base_dir
+        self._save_dir = (
+            self._base_dir / self.SAVE_DIR_NAME if self.SAVE_DIR_NAME else self._base_dir
+        )
         self._save_dir.mkdir(parents=True, exist_ok=True)
         self._hmac_key = self._get_hmac_key()
 
@@ -184,8 +188,12 @@ class SecureSaveManager:
             try:
                 key = env_key.encode("utf-8")
                 if len(key) < 32:
-                    logger.warning("HMAC key too short (%d bytes), minimum is 32. Generating random key.", len(key))
+                    logger.warning(
+                        "HMAC key too short (%d bytes), minimum is 32. Generating random key.",
+                        len(key),
+                    )
                     import secrets
+
                     key = secrets.token_bytes(32)
                 return key
             except (AttributeError, UnicodeEncodeError) as e:
@@ -199,8 +207,12 @@ class SecureSaveManager:
                         key_val = line.split("=", 1)[1].strip().strip('"').strip("'")
                         key = key_val.encode("utf-8")
                         if len(key) < 32:
-                            logger.warning("HMAC key too short (%d bytes), minimum is 32. Generating random key.", len(key))
+                            logger.warning(
+                                "HMAC key too short (%d bytes), minimum is 32. Generating random key.",
+                                len(key),
+                            )
                             import secrets
+
                             key = secrets.token_bytes(32)
                         return key
             except Exception as e:
@@ -224,15 +236,16 @@ class SecureSaveManager:
         # Dev environment: use random session key for security.
         # Production must set PYCC2_SAVE_HMAC_KEY or config/secrets.toml.
         import secrets
+
         return secrets.token_bytes(32)
 
     @staticmethod
     def _sanitize_filename(filename: str) -> str:
         """Remove path traversal characters from filename."""
-        safe = re.sub(r'[\\/:*?"<>|]', '_', filename)
+        safe = re.sub(r'[\\/:*?"<>|]', "_", filename)
         safe = os.path.basename(safe)
-        if not safe or safe.startswith('.'):
-            safe = 'save'
+        if not safe or safe.startswith("."):
+            safe = "save"
         return safe
 
     @classmethod
@@ -289,7 +302,10 @@ class SecureSaveManager:
             try:
                 os.chmod(filepath, 0o600)
             except OSError:
-                logger.debug("Could not set restrictive permissions on %s (unsupported in this environment)", filepath)
+                logger.debug(
+                    "Could not set restrictive permissions on %s (unsupported in this environment)",
+                    filepath,
+                )
             return True
         except (OSError, TypeError, ValueError) as e:
             logger.warning("Save game failed for slot %d: %s", slot, e)

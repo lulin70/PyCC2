@@ -5,7 +5,7 @@ and adjusts its edge rendering to create seamless connections with same-type nei
 
 Bitmask convention (4-bit, N-E-S-W):
     bit 0 (1) = North neighbor matches
-    bit 1 (2) = East neighbor matches  
+    bit 1 (2) = East neighbor matches
     bit 2 (4) = South neighbor matches
     bit 3 (8) = West neighbor matches
 
@@ -23,9 +23,9 @@ if TYPE_CHECKING:
 
 # Direction constants for bitmask
 DIR_NORTH = 1  # bit 0
-DIR_EAST = 2   # bit 1
+DIR_EAST = 2  # bit 1
 DIR_SOUTH = 4  # bit 2
-DIR_WEST = 8   # bit 3
+DIR_WEST = 8  # bit 3
 
 # Direction offsets: (dx, dy)
 DIRECTION_OFFSETS = {
@@ -111,14 +111,15 @@ def _get_terrain_at(game_map: GameMap, x: int, y: int) -> int:
 
     try:
         # Try enhanced tile first
-        if hasattr(game_map, 'get_enhanced_tile'):
+        if hasattr(game_map, "get_enhanced_tile"):
             tile_data = game_map.get_enhanced_tile(x, y)
             if tile_data is not None:
                 from pycc2.domain.systems.enhanced_tile import EnhancedTile
+
                 if isinstance(tile_data, EnhancedTile):
                     return tile_data.base_terrain
                 elif isinstance(tile_data, dict):
-                    return tile_data.get('base_terrain', -1)
+                    return tile_data.get("base_terrain", -1)
 
         # Fallback to tile_grid
         return int(game_map.tile_grid[y, x])
@@ -182,10 +183,7 @@ def detect_building_clusters(game_map: GameMap) -> list[list[tuple[int, int]]]:
 
 
 def get_building_cluster_info(
-    game_map: GameMap, 
-    x: int, 
-    y: int,
-    clusters: list[list[tuple[int, int]]] | None = None
+    game_map: GameMap, x: int, y: int, clusters: list[list[tuple[int, int]]] | None = None
 ) -> dict:
     """Get cluster information for a specific building tile.
 
@@ -208,15 +206,15 @@ def get_building_cluster_info(
             - 'has_west_neighbor': bool
     """
     default_result = {
-        'is_building': False,
-        'cluster_index': None,
-        'is_root': False,
-        'position_in_cluster': (0, 0),
-        'cluster_size': (1, 1),
-        'has_north_neighbor': False,
-        'has_east_neighbor': False,
-        'has_south_neighbor': False,
-        'has_west_neighbor': False,
+        "is_building": False,
+        "cluster_index": None,
+        "is_root": False,
+        "position_in_cluster": (0, 0),
+        "cluster_size": (1, 1),
+        "has_north_neighbor": False,
+        "has_east_neighbor": False,
+        "has_south_neighbor": False,
+        "has_west_neighbor": False,
     }
 
     terrain = _get_terrain_at(game_map, x, y)
@@ -242,15 +240,15 @@ def get_building_cluster_info(
             has_west = (x - 1, y) in cluster
 
             return {
-                'is_building': True,
-                'cluster_index': idx,
-                'is_root': (x == min_x and y == min_y),
-                'position_in_cluster': (x - min_x, y - min_y),
-                'cluster_size': (max_x - min_x + 1, max_y - min_y + 1),
-                'has_north_neighbor': has_north,
-                'has_east_neighbor': has_east,
-                'has_south_neighbor': has_south,
-                'has_west_neighbor': has_west,
+                "is_building": True,
+                "cluster_index": idx,
+                "is_root": (x == min_x and y == min_y),
+                "position_in_cluster": (x - min_x, y - min_y),
+                "cluster_size": (max_x - min_x + 1, max_y - min_y + 1),
+                "has_north_neighbor": has_north,
+                "has_east_neighbor": has_east,
+                "has_south_neighbor": has_south,
+                "has_west_neighbor": has_west,
             }
 
     return default_result
@@ -291,7 +289,9 @@ def get_connected_directions(bitmask: int) -> list[tuple[int, int]]:
     return directions
 
 
-def get_edge_transition_width(terrain_id: int, bitmask: int, base_tile_size: int = 48) -> dict[str, int]:
+def get_edge_transition_width(
+    terrain_id: int, bitmask: int, base_tile_size: int = 48
+) -> dict[str, int]:
     """Calculate edge transition widths for each direction based on connectivity.
 
     Connected edges have 0 transition width (seamless).
@@ -310,10 +310,10 @@ def get_edge_transition_width(terrain_id: int, bitmask: int, base_tile_size: int
     base_width = max(4, base_tile_size // 10)
 
     return {
-        'north': 0 if (bitmask & DIR_NORTH) else base_width,
-        'east': 0 if (bitmask & DIR_EAST) else base_width,
-        'south': 0 if (bitmask & DIR_SOUTH) else base_width,
-        'west': 0 if (bitmask & DIR_WEST) else base_width,
+        "north": 0 if (bitmask & DIR_NORTH) else base_width,
+        "east": 0 if (bitmask & DIR_EAST) else base_width,
+        "south": 0 if (bitmask & DIR_SOUTH) else base_width,
+        "west": 0 if (bitmask & DIR_WEST) else base_width,
     }
 
 

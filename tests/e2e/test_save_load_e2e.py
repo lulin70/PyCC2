@@ -17,8 +17,8 @@ from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.value_objects.vec2 import Vec2
 from pycc2.infrastructure.save_system import SaveSlotStatus, SecureSaveManager
 from pycc2.presentation.rendering.camera import Camera
-from pycc2.services.save_controller import SaveController
 from pycc2.services.game_loop import GameLoop, GameState
+from pycc2.services.save_controller import SaveController
 
 
 @pytest.fixture
@@ -158,7 +158,9 @@ class TestLoadGameRestoresState:
         state_dict, _, _ = save_controller.save_manager.load_game(0)
         assert len(state_dict["units"]) == original_count, "存档中的单位数量应与保存时一致"
 
-    def test_saved_state_preserves_unit_positions(self, save_controller, mock_game_loop, tmp_save_dir):
+    def test_saved_state_preserves_unit_positions(
+        self, save_controller, mock_game_loop, tmp_save_dir
+    ):
         original_positions = {
             u.id: (u.position.tile_coord.x, u.position.tile_coord.y)
             for u in mock_game_loop.state.units
@@ -166,15 +168,22 @@ class TestLoadGameRestoresState:
         save_controller.quick_save(slot=0, game_loop=mock_game_loop)
         state_dict, _, _ = save_controller.save_manager.load_game(0)
         for unit_data in state_dict["units"]:
-            saved_pos = (unit_data["position"]["tile_coord"]["x"], unit_data["position"]["tile_coord"]["y"])
-            assert saved_pos == original_positions[unit_data["id"]], f"单位 {unit_data['id']} 的位置应被正确保存"
+            saved_pos = (
+                unit_data["position"]["tile_coord"]["x"],
+                unit_data["position"]["tile_coord"]["y"],
+            )
+            assert saved_pos == original_positions[unit_data["id"]], (
+                f"单位 {unit_data['id']} 的位置应被正确保存"
+            )
 
     def test_saved_state_preserves_unit_hp(self, save_controller, mock_game_loop, tmp_save_dir):
         original_hp = {u.id: u.health.hp for u in mock_game_loop.state.units}
         save_controller.quick_save(slot=0, game_loop=mock_game_loop)
         state_dict, _, _ = save_controller.save_manager.load_game(0)
         for unit_data in state_dict["units"]:
-            assert unit_data["health"]["hp"] == original_hp[unit_data["id"]], f"单位 {unit_data['id']} 的HP应被正确保存"
+            assert unit_data["health"]["hp"] == original_hp[unit_data["id"]], (
+                f"单位 {unit_data['id']} 的HP应被正确保存"
+            )
 
     def test_saved_state_preserves_camera(self, save_controller, mock_game_loop, tmp_save_dir):
         original_zoom = mock_game_loop.state.camera.zoom
@@ -201,7 +210,9 @@ class TestQuickSaveQuickLoadCycle:
         ]
         from pycc2.infrastructure.save_system import SaveMetaData
 
-        state_dict = save_controller.export_state(mock_game_loop) if 'save_controller' in dir() else None
+        state_dict = (
+            save_controller.export_state(mock_game_loop) if "save_controller" in dir() else None
+        )
         if state_dict is None:
             from pycc2.services.save_controller import SaveController
 
@@ -209,8 +220,12 @@ class TestQuickSaveQuickLoadCycle:
             state_dict = ctrl.export_state(mock_game_loop)
         meta = SaveMetaData(
             tick=mock_game_loop.state.tick,
-            allies_alive=sum(1 for u in mock_game_loop.state.units if u.faction.name == "ALLIES" and u.is_alive),
-            axis_alive=sum(1 for u in mock_game_loop.state.units if u.faction.name == "AXIS" and u.is_alive),
+            allies_alive=sum(
+                1 for u in mock_game_loop.state.units if u.faction.name == "ALLIES" and u.is_alive
+            ),
+            axis_alive=sum(
+                1 for u in mock_game_loop.state.units if u.faction.name == "AXIS" and u.is_alive
+            ),
         )
         secure_manager.save_game(0, state_dict, meta)
 
@@ -224,12 +239,14 @@ class TestQuickSaveQuickLoadCycle:
         assert loaded_state["tick"] == initial_tick, "快存快读循环：tick应恢复原值"
         for i, expected in enumerate(initial_units_data):
             unit_data = loaded_state["units"][i]
-            assert unit_data["health"]["hp"] == expected["hp"], f"快存快读循环：单位HP应匹配"
-            assert unit_data["weapon"]["ammo_remaining"] == expected["ammo"], f"快存快读循环：弹药应匹配"
+            assert unit_data["health"]["hp"] == expected["hp"], "快存快读循环：单位HP应匹配"
+            assert unit_data["weapon"]["ammo_remaining"] == expected["ammo"], (
+                "快存快读循环：弹药应匹配"
+            )
 
     def test_multiple_cycles_preserve_integrity(self, secure_manager, mock_game_loop, tmp_save_dir):
-        from pycc2.services.save_controller import SaveController
         from pycc2.infrastructure.save_system import SaveMetaData
+        from pycc2.services.save_controller import SaveController
 
         ctrl = SaveController(save_manager=secure_manager)
         for cycle in range(5):
@@ -244,14 +261,16 @@ class TestQuickSaveQuickLoadCycle:
             mock_game_loop.state.tick += 500
 
             loaded_state, _, status = secure_manager.load_game(0)
-            assert status.name in ("OK", "INCOMPATIBLE"), f"第{cycle+1}轮：数据应可读"
-            assert loaded_state["tick"] == tick_before, f"第{cycle+1}轮循环：tick应恢复"
+            assert status.name in ("OK", "INCOMPATIBLE"), f"第{cycle + 1}轮：数据应可读"
+            assert loaded_state["tick"] == tick_before, f"第{cycle + 1}轮循环：tick应恢复"
             for i, unit_data in enumerate(loaded_state["units"]):
-                assert unit_data["health"]["hp"] == hp_before[i], f"第{cycle+1}轮循环：单位HP应恢复"
+                assert unit_data["health"]["hp"] == hp_before[i], (
+                    f"第{cycle + 1}轮循环：单位HP应恢复"
+                )
 
     def test_quick_save_overwrites_previous(self, secure_manager, mock_game_loop, tmp_save_dir):
-        from pycc2.services.save_controller import SaveController
         from pycc2.infrastructure.save_system import SaveMetaData
+        from pycc2.services.save_controller import SaveController
 
         ctrl = SaveController(save_manager=secure_manager)
         mock_game_loop.state.tick = 1000
@@ -280,7 +299,9 @@ class TestCorruptedSaveRejected:
         _, _, status = secure_manager.load_game(0)
         assert status == SaveSlotStatus.CORRUPTED, "被篡改的存档应被拒绝（HMAC校验失败）"
 
-    def test_corrupted_save_rejected_by_controller(self, save_controller, mock_game_loop, tmp_save_dir):
+    def test_corrupted_save_rejected_by_controller(
+        self, save_controller, mock_game_loop, tmp_save_dir
+    ):
         save_controller.quick_save(slot=0, game_loop=mock_game_loop)
         filepath = tmp_save_dir / "save_slot_0.json"
         with open(filepath, encoding="utf-8") as f:

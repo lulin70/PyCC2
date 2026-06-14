@@ -12,7 +12,9 @@ from unittest.mock import MagicMock, patch
 # which can cause OOM kills on memory-constrained systems (8GB RAM).
 def _get_cache_manager():
     from pycc2.infrastructure.resource_cache import ResourceCacheManager
+
     return ResourceCacheManager
+
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +23,10 @@ logger = logging.getLogger(__name__)
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _make_mock_response(data: bytes = b"hello world", content_length: int | None = None) -> MagicMock:
+
+def _make_mock_response(
+    data: bytes = b"hello world", content_length: int | None = None
+) -> MagicMock:
     """Build a mock HTTP response usable by ``urllib.request.urlopen``."""
     resp = MagicMock()
     # response.read() is called in a while loop: first call returns data, second returns b"" to stop
@@ -46,6 +51,7 @@ def _sha256_of(data: bytes) -> str:
 # Init & configuration
 # ---------------------------------------------------------------------------
 
+
 class TestInitDefaults:
     """Verify default constructor values."""
 
@@ -53,8 +59,8 @@ class TestInitDefaults:
         """Default parameters produce expected cache_dir, max_size, ttl."""
         mgr = _get_cache_manager()(cache_dir=tmp_path / "cache")
         assert mgr._cache_dir == tmp_path / "cache"
-        assert mgr._max_bytes == 500 * 1024 * 1024   # 500 MB
-        assert mgr._ttl == 86400 * 7                  # 7 days
+        assert mgr._max_bytes == 500 * 1024 * 1024  # 500 MB
+        assert mgr._ttl == 86400 * 7  # 7 days
         assert mgr._offline_mode is False
         assert mgr._timeout == 300
 
@@ -106,6 +112,7 @@ class TestOfflineMode:
 # Cache get / miss / hit
 # ---------------------------------------------------------------------------
 
+
 class TestCacheMissThenDownload:
     """First get() triggers download and caches the result."""
 
@@ -115,7 +122,9 @@ class TestCacheMissThenDownload:
         data = b"downloaded-content"
         mock_resp = _make_mock_response(data)
 
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp):
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp
+        ):
             result = mgr.get("https://example.com/file.txt")
 
         assert result is not None
@@ -133,7 +142,9 @@ class TestCacheHit:
         data = b"cached-content"
         mock_resp = _make_mock_response(data)
 
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp) as mock_urlopen:
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp
+        ) as mock_urlopen:
             first = mgr.get("https://example.com/hit.txt")
             second = mgr.get("https://example.com/hit.txt")
 
@@ -155,13 +166,17 @@ class TestCacheTtlExpired:
         mock_resp_v1 = _make_mock_response(data_v1)
         mock_resp_v2 = _make_mock_response(data_v2)
 
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp_v1):
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp_v1
+        ):
             first = mgr.get("https://example.com/ttl.txt")
 
         assert first.read_bytes() == data_v1
 
         # Second call — TTL is 0 so entry is already expired → re-download
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp_v2):
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp_v2
+        ):
             second = mgr.get("https://example.com/ttl.txt")
 
         assert second.read_bytes() == data_v2
@@ -170,6 +185,7 @@ class TestCacheTtlExpired:
 # ---------------------------------------------------------------------------
 # Invalidation
 # ---------------------------------------------------------------------------
+
 
 class TestInvalidateSingleUrl:
     """invalidate(url) removes one entry."""
@@ -180,7 +196,9 @@ class TestInvalidateSingleUrl:
         data = b"to-be-deleted"
         mock_resp = _make_mock_response(data)
 
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp):
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp
+        ):
             mgr.get("https://example.com/gone.txt")
 
         url = "https://example.com/gone.txt"
@@ -224,6 +242,7 @@ class TestInvalidateAll:
 # SHA256 integrity
 # ---------------------------------------------------------------------------
 
+
 class TestSha256Verification:
     """SHA256 checksum verification on download and cache read."""
 
@@ -234,7 +253,9 @@ class TestSha256Verification:
         expected = _sha256_of(data)
         mock_resp = _make_mock_response(data)
 
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp):
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp
+        ):
             result = mgr.get("https://example.com/sha256_ok.bin", expected_sha256=expected)
 
         assert result is not None
@@ -247,7 +268,9 @@ class TestSha256Verification:
         wrong_hash = "0" * 64
         mock_resp = _make_mock_response(data)
 
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp):
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp
+        ):
             result = mgr.get("https://example.com/sha256_bad.bin", expected_sha256=wrong_hash)
 
         assert result is None
@@ -264,11 +287,16 @@ class TestSha256Verification:
         mock_resp_new = _make_mock_response(new_data)
 
         # First download with correct hash
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp_original):
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen",
+            return_value=mock_resp_original,
+        ):
             mgr.get("https://example.com/rehash.bin", expected_sha256=original_hash)
 
         # Second call with *different* expected hash → cache integrity fails → re-download
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp_new):
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp_new
+        ):
             result = mgr.get("https://example.com/rehash.bin", expected_sha256=new_hash)
 
         assert result is not None
@@ -278,6 +306,7 @@ class TestSha256Verification:
 # ---------------------------------------------------------------------------
 # Filename sanitisation
 # ---------------------------------------------------------------------------
+
 
 class TestFilenameSanitize:
     """URL-derived filenames are safe for local filesystem."""
@@ -289,7 +318,9 @@ class TestFilenameSanitize:
         url = "https://cdn.example.com/assets/sprite pack v2.0?token=abc&foo=bar"
         mock_resp = _make_mock_response(data)
 
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp):
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp
+        ):
             result = mgr.get(url)
 
         assert result is not None
@@ -310,6 +341,7 @@ class TestFilenameSanitize:
 # LRU eviction
 # ---------------------------------------------------------------------------
 
+
 class TestLruEviction:
     """Cache evicts oldest entries when size limit is exceeded."""
 
@@ -318,9 +350,9 @@ class TestLruEviction:
         # Very small limit to trigger eviction after 2 items
         mgr = _get_cache_manager()(cache_dir=tmp_path / "cache", max_size_mb=0.00001)  # ~10 bytes
 
-        data_a = b"AAAAAA"   # 6 bytes
-        data_b = b"BBBBBB"   # 6 bytes
-        data_c = b"CCCCCC"   # 6 bytes
+        data_a = b"AAAAAA"  # 6 bytes
+        data_b = b"BBBBBB"  # 6 bytes
+        data_c = b"CCCCCC"  # 6 bytes
 
         with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.return_value = _make_mock_response(data_a)
@@ -342,6 +374,7 @@ class TestLruEviction:
 # Stats property
 # ---------------------------------------------------------------------------
 
+
 class TestStatsProperty:
     """stats property returns correct metadata."""
 
@@ -356,7 +389,9 @@ class TestStatsProperty:
         data = b"stats-test-data"
         mock_resp = _make_mock_response(data)
 
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp):
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp
+        ):
             mgr.get("https://example.com/stats.txt")
 
         stats = mgr.stats
@@ -378,6 +413,7 @@ class TestStatsProperty:
 # Edge cases
 # ---------------------------------------------------------------------------
 
+
 class TestEdgeCases:
     """Boundary and error-handling scenarios."""
 
@@ -392,6 +428,7 @@ class TestEdgeCases:
         mgr = _get_cache_manager()(cache_dir=tmp_path / "cache")
 
         import urllib.error
+
         with patch(
             "pycc2.infrastructure.resource_cache.urllib.request.urlopen",
             side_effect=urllib.error.URLError("connection refused"),
@@ -411,7 +448,9 @@ class TestEdgeCases:
         data = b"check-me"
         mock_resp = _make_mock_response(data)
 
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp):
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp
+        ):
             mgr.get("https://example.com/is_cached.txt")
 
         assert mgr.is_cached("https://example.com/is_cached.txt") is True
@@ -423,10 +462,13 @@ class TestEdgeCases:
         mock_resp = _make_mock_response(data, content_length=len(data))
 
         calls = []
+
         def cb(downloaded, total):
             calls.append((downloaded, total))
 
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp):
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp
+        ):
             result = mgr.get("https://example.com/large.bin", progress_callback=cb)
 
         assert result is not None
@@ -448,6 +490,7 @@ class TestEdgeCases:
 # Index persistence
 # ---------------------------------------------------------------------------
 
+
 class TestIndexPersistence:
     """Cache index survives across manager instances (same cache_dir)."""
 
@@ -457,7 +500,9 @@ class TestIndexPersistence:
         data = b"persist-me"
         mock_resp = _make_mock_response(data)
 
-        with patch("pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp):
+        with patch(
+            "pycc2.infrastructure.resource_cache.urllib.request.urlopen", return_value=mock_resp
+        ):
             mgr.get("https://example.com/persist.txt")
 
         index_file = mgr._index_path

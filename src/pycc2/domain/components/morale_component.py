@@ -12,11 +12,11 @@ from enum import Enum, auto
 
 
 class MoraleState(Enum):
-    RALLIED = auto()     # >70 morale
-    WAVERING = auto()    # 40-70 morale
-    PINNED = auto()      # 20-40 morale
-    BROKEN = auto()      # <20 morale
-    ROUTING = auto()     # Fleeing behavior
+    RALLIED = auto()  # >70 morale
+    WAVERING = auto()  # 40-70 morale
+    PINNED = auto()  # 20-40 morale
+    BROKEN = auto()  # <20 morale
+    ROUTING = auto()  # Fleeing behavior
 
 
 @dataclass(slots=True)

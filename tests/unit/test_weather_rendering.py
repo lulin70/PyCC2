@@ -59,12 +59,12 @@ class TestRainDropsUpdate:
 
 
 class TestNightOverlayRenders:
-    @patch('pygame.Surface')
-    @patch('pygame.draw')
+    @patch("pygame.Surface")
+    @patch("pygame.draw")
     def test_night_overlay_renders(self, mock_draw, mock_surface_cls):
-        from pycc2.presentation.rendering.weather_system import WeatherRenderer
         from pycc2.domain.systems.environment import TimeOfDay
         from pycc2.domain.systems.weather_effects import WeatherState, WeatherType
+        from pycc2.presentation.rendering.weather_system import WeatherRenderer
 
         mock_screen = MagicMock()
         mock_surface = MagicMock()
@@ -79,12 +79,12 @@ class TestNightOverlayRenders:
         args = mock_surface.fill.call_args[0][0]
         assert args[3] == WeatherRenderer.NIGHT_DARKEN_ALPHA  # alpha value
 
-    @patch('pygame.Surface')
-    @patch('pygame.draw')
+    @patch("pygame.Surface")
+    @patch("pygame.draw")
     def test_dawn_dusk_lighter_overlay(self, mock_draw, mock_surface_cls):
-        from pycc2.presentation.rendering.weather_system import WeatherRenderer
         from pycc2.domain.systems.environment import TimeOfDay
         from pycc2.domain.systems.weather_effects import WeatherState, WeatherType
+        from pycc2.presentation.rendering.weather_system import WeatherRenderer
 
         mock_screen = MagicMock()
         mock_surface = MagicMock()
@@ -97,12 +97,12 @@ class TestNightOverlayRenders:
         args = mock_surface.fill.call_args[0][0]
         assert args[3] == 70  # lighter alpha for twilight
 
-    @patch('pygame.Surface')
-    @patch('pygame.draw')
+    @patch("pygame.Surface")
+    @patch("pygame.draw")
     def test_day_no_overlay(self, mock_draw, mock_surface_cls):
-        from pycc2.presentation.rendering.weather_system import WeatherRenderer
         from pycc2.domain.systems.environment import TimeOfDay
         from pycc2.domain.systems.weather_effects import WeatherState, WeatherType
+        from pycc2.presentation.rendering.weather_system import WeatherRenderer
 
         mock_screen = MagicMock()
         mock_surface = MagicMock()
@@ -117,12 +117,12 @@ class TestNightOverlayRenders:
 
 
 class TestFogOverlayRenders:
-    @patch('pygame.draw')
-    @patch('pygame.Surface')
+    @patch("pygame.draw")
+    @patch("pygame.Surface")
     def test_fog_overlay_renders(self, mock_surface_cls, mock_draw):
-        from pycc2.presentation.rendering.weather_system import WeatherRenderer
         from pycc2.domain.systems.environment import TimeOfDay
         from pycc2.domain.systems.weather_effects import WeatherState, WeatherType
+        from pycc2.presentation.rendering.weather_system import WeatherRenderer
 
         mock_screen = MagicMock()
         mock_fog_surf = MagicMock()
@@ -145,7 +145,7 @@ class TestParticlePresetsExist:
 
         expected_presets = [
             "rifle_fire",
-            "tank_explosion", 
+            "tank_explosion",
             "mortar_impact",
             "blood_hit",
             "muzzle_flash",
@@ -184,8 +184,9 @@ class TestEmitPresetCreatesParticles:
         for preset_name, preset_config in ParticleEmitter.PRESETS.items():
             emitter.clear()
             count = emitter.emit_preset(preset_name, 0, 0)
-            assert count == preset_config["count"], \
+            assert count == preset_config["count"], (
                 f"{preset_name}: expected {preset_config['count']}, got {count}"
+            )
 
     def test_emit_invalid_preset_returns_zero(self):
         from pycc2.presentation.rendering.animation_system import ParticleEmitter
@@ -199,8 +200,9 @@ class TestEmitPresetCreatesParticles:
         assert len(emitter.particles) == initial_count
 
     def test_emit_preset_uses_direction(self):
-        from pycc2.presentation.rendering.animation_system import ParticleEmitter
         import math
+
+        from pycc2.presentation.rendering.animation_system import ParticleEmitter
 
         emitter = ParticleEmitter()
         emitter.emit_preset("rifle_fire", 100, 100, direction=math.pi / 4)  # 45 degrees

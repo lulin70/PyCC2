@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 import pytest
 
 from pycc2.domain.components.health_component import HealthComponent
@@ -8,7 +7,7 @@ from pycc2.domain.components.morale_component import MoraleComponent
 from pycc2.domain.components.position_component import PositionComponent
 from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
-from pycc2.domain.entities.unit import Faction, Unit, UnitType, UNIT_ARMOR_PROFILES
+from pycc2.domain.entities.unit import UNIT_ARMOR_PROFILES, Faction, Unit, UnitType
 from pycc2.domain.systems.ballistic import BallisticEngine
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.services.random_context import RandomContext
@@ -269,7 +268,9 @@ class TestSniperVsTankIneffective:
     def test_sniper_low_damage_vs_tank(self):
         sniper_health = HealthComponent(hp=60, max_hp=60)
         sniper_morale = MoraleComponent(value=80, panic_threshold=20, rout_threshold=10)
-        sniper_weapon = WeaponComponent(primary_weapon_id="sniper_rifle", ammo_remaining=15, max_ammo=15)
+        sniper_weapon = WeaponComponent(
+            primary_weapon_id="sniper_rifle", ammo_remaining=15, max_ammo=15
+        )
         sniper_position = PositionComponent(tile_coord=TileCoord(10, 0))
         sniper_vision = VisionComponent(range_tiles=10)
         sniper = Unit(

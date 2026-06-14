@@ -20,9 +20,9 @@ class ConeVisionSystem:
 
     DEFAULT_CONE_ANGLE: float = 120.0  # degrees
     STANCE_ANGLES = {
-        'standing': 120.0,
-        'crouching': 90.0,
-        'prone': 60.0,
+        "standing": 120.0,
+        "crouching": 90.0,
+        "prone": 60.0,
     }
 
     def is_in_cone(
@@ -30,7 +30,7 @@ class ConeVisionSystem:
         observer_pos: tuple[float, float],
         observer_facing: float,  # degrees
         target_pos: tuple[float, float],
-        stance: str = 'standing',
+        stance: str = "standing",
         max_range: float = 15.0,
     ) -> bool:
         """Check if target is within vision cone."""

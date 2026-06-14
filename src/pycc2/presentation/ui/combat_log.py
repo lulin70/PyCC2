@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 class CombatEventType(Enum):
     """Types of combat events for logging."""
+
     ATTACK = auto()
     HIT = auto()
     KILL = auto()
@@ -30,6 +31,7 @@ class CombatEventType(Enum):
 @dataclass
 class CombatEvent:
     """A single combat event entry."""
+
     timestamp: float
     event_type: CombatEventType
     source_name: str = ""
@@ -121,7 +123,7 @@ class CombatLog:
         self.events.append(event)
 
         if len(self.events) > self.MAX_EVENTS:
-            self.events = self.events[-self.MAX_EVENTS:]
+            self.events = self.events[-self.MAX_EVENTS :]
 
         if not self.expanded:
             max_scroll = max(0, len(self.events) - self.MAX_VISIBLE)
@@ -178,12 +180,12 @@ class CombatLog:
 
             visible = self.get_visible_events()
 
-            font = pygame.font.SysFont('arial', 11)
+            font = pygame.font.SysFont("arial", 11)
             line_height = 16
             padding = 5
 
             y_offset = 0
-            for event in reversed(visible[-self.MAX_VISIBLE:]):
+            for event in reversed(visible[-self.MAX_VISIBLE :]):
                 text = event.format_short()
                 color = self._get_event_color(event.event_type)
 
@@ -207,7 +209,7 @@ class CombatLog:
             panel_height = screen_size[1]
             x = screen_size[0] - panel_width
 
-            font = pygame.font.SysFont('arial', 12)
+            font = pygame.font.SysFont("arial", 12)
             line_height = 18
             padding = 10
 
@@ -225,13 +227,13 @@ class CombatLog:
             panel.blit(title, (padding, padding))
 
             y = padding + 30
-            visible_events = self.events[self.scroll_offset:self.scroll_offset + 25]
+            visible_events = self.events[self.scroll_offset : self.scroll_offset + 25]
 
             for event in visible_events:
                 text = event.format_full()
                 color = self._get_event_color(event.event_type)
 
-                for line in text.split('\n'):
+                for line in text.split("\n"):
                     if y < panel_height - padding:
                         line_surf = font.render(line, True, color)
                         panel.blit(line_surf, (padding, y))

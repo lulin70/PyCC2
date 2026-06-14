@@ -10,16 +10,16 @@ import pytest
 from pycc2.domain.systems.campaign import (
     CampaignManager,
     MissionDefinition,
-    MissionObjectiveDef,
     MissionDifficulty,
     MissionObjective,
+    MissionObjectiveDef,
     create_default_campaign,
 )
-
 
 # ===========================================================================
 # Tests — MissionDefinition
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestMissionDefinition:
@@ -40,7 +40,10 @@ class TestMissionDefinition:
 
     def test_total_objectives_property(self):
         mission = MissionDefinition(
-            id="m1", name="T", description="D", map_id="m",
+            id="m1",
+            name="T",
+            description="D",
+            map_id="m",
             difficulty=MissionDifficulty.REGULAR,
             objectives=[
                 MissionObjectiveDef(
@@ -57,7 +60,10 @@ class TestMissionDefinition:
 
     def test_empty_objectives(self):
         mission = MissionDefinition(
-            id="m1", name="T", description="D", map_id="m",
+            id="m1",
+            name="T",
+            description="D",
+            map_id="m",
             difficulty=MissionDifficulty.REGULAR,
         )
         assert mission.total_objectives == 0
@@ -67,6 +73,7 @@ class TestMissionDefinition:
 # Tests — CampaignManager
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestCampaignManager:
     """Test CampaignManager mission lifecycle."""
@@ -74,7 +81,10 @@ class TestCampaignManager:
     def test_register_and_get_mission(self):
         mgr = CampaignManager()
         mission = MissionDefinition(
-            id="m1", name="T", description="D", map_id="m",
+            id="m1",
+            name="T",
+            description="D",
+            map_id="m",
             difficulty=MissionDifficulty.RECRUIT,
         )
         mgr.register_mission(mission)
@@ -87,7 +97,10 @@ class TestCampaignManager:
     def test_start_mission(self):
         mgr = CampaignManager()
         mission = MissionDefinition(
-            id="m1", name="T", description="D", map_id="m",
+            id="m1",
+            name="T",
+            description="D",
+            map_id="m",
             difficulty=MissionDifficulty.REGULAR,
         )
         mgr.register_mission(mission)
@@ -103,7 +116,10 @@ class TestCampaignManager:
     def test_complete_mission_victory(self):
         mgr = CampaignManager()
         mission = MissionDefinition(
-            id="m1", name="T", description="D", map_id="m",
+            id="m1",
+            name="T",
+            description="D",
+            map_id="m",
             difficulty=MissionDifficulty.REGULAR,
         )
         mgr.register_mission(mission)
@@ -115,7 +131,10 @@ class TestCampaignManager:
     def test_complete_mission_defeat(self):
         mgr = CampaignManager()
         mission = MissionDefinition(
-            id="m1", name="T", description="D", map_id="m",
+            id="m1",
+            name="T",
+            description="D",
+            map_id="m",
             difficulty=MissionDifficulty.REGULAR,
         )
         mgr.register_mission(mission)
@@ -127,11 +146,17 @@ class TestCampaignManager:
     def test_available_missions_excludes_completed(self):
         mgr = CampaignManager()
         m1 = MissionDefinition(
-            id="m1", name="T1", description="D", map_id="m",
+            id="m1",
+            name="T1",
+            description="D",
+            map_id="m",
             difficulty=MissionDifficulty.RECRUIT,
         )
         m2 = MissionDefinition(
-            id="m2", name="T2", description="D", map_id="m",
+            id="m2",
+            name="T2",
+            description="D",
+            map_id="m",
             difficulty=MissionDifficulty.REGULAR,
         )
         mgr.register_mission(m1)
@@ -147,7 +172,10 @@ class TestCampaignManager:
         mgr = CampaignManager()
         assert mgr.completed_count == 0
         m1 = MissionDefinition(
-            id="m1", name="T1", description="D", map_id="m",
+            id="m1",
+            name="T1",
+            description="D",
+            map_id="m",
             difficulty=MissionDifficulty.RECRUIT,
         )
         mgr.register_mission(m1)
@@ -159,7 +187,10 @@ class TestCampaignManager:
         mgr = CampaignManager()
         assert mgr.total_missions == 0
         m1 = MissionDefinition(
-            id="m1", name="T1", description="D", map_id="m",
+            id="m1",
+            name="T1",
+            description="D",
+            map_id="m",
             difficulty=MissionDifficulty.RECRUIT,
         )
         mgr.register_mission(m1)
@@ -169,6 +200,7 @@ class TestCampaignManager:
 # ===========================================================================
 # Tests — Day-based Missions
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestDayMissions:
@@ -205,6 +237,7 @@ class TestDayMissions:
 # Tests — create_default_campaign
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestDefaultCampaign:
     """Test the default campaign factory."""
@@ -216,9 +249,15 @@ class TestDefaultCampaign:
     def test_all_missions_have_ids(self):
         mgr = create_default_campaign()
         for mid in [
-            "mission_01_tutorial", "mission_02_bridge", "mission_03_hold",
-            "mission_04_night", "mission_05_armor", "mission_06_son",
-            "mission_07_veghel", "mission_08_grave", "mission_09_nijmegen",
+            "mission_01_tutorial",
+            "mission_02_bridge",
+            "mission_03_hold",
+            "mission_04_night",
+            "mission_05_armor",
+            "mission_06_son",
+            "mission_07_veghel",
+            "mission_08_grave",
+            "mission_09_nijmegen",
             "mission_10_arnhem",
         ]:
             assert mgr.get_mission(mid) is not None
@@ -241,6 +280,7 @@ class TestDefaultCampaign:
 # ===========================================================================
 # Tests — Campaign State Integration
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestCampaignStateIntegration:

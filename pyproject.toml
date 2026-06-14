@@ -56,6 +56,8 @@ where = ["src"]
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+
+[tool.ruff.lint]
 select = [
     "E",      # pycodestyle errors
     "W",      # pycodestyle warnings
@@ -69,10 +71,19 @@ select = [
 ignore = [
     "E501",   # line too long (handled by formatter)
     "B008",   # do not perform function calls in argument defaults
+    "E402",   # module level import not at top of file (TYPE_CHECKING pattern)
+    "N802",   # function name should be lowercase (PRESET_EASY factory pattern)
+    "N806",   # variable name should be lowercase (math constants like PI)
+    "N817",   # camelcase import as constant (PD for PaletteData etc)
+    "N814",   # camelcase import as constant
+    "N812",   # lowercase import as constant
+    "SIM102", # nested if statements (often more readable)
+    "SIM105", # use contextlib.suppress (try/except/pass is clearer)
+    "SIM117", # merge with statements (sometimes separate is clearer)
 ]
 
-[tool.ruff.per-file-ignores]
-"tests/*" = ["S101"]  # allow assert in tests
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "F821", "N801", "B007"]  # allow assert, TYPE_CHECKING refs, test class naming, and unused loop vars in tests
 
 [tool.mypy]
 python_version = "3.11"

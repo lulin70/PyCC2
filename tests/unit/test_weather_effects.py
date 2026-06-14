@@ -6,12 +6,14 @@ Tests business logic, state management, transitions, and integration.
 from __future__ import annotations
 
 import random
+
 import pytest
+
 from pycc2.domain.systems.weather_effects import (
-    WeatherType,
-    WeatherState,
     WeatherEffects,
+    WeatherState,
     WeatherTransitionTable,
+    WeatherType,
 )
 
 
@@ -66,9 +68,7 @@ class TestWeatherStateIsActive:
 
 class TestWeatherStateExpiration:
     def test_infinite_duration_never_expires(self):
-        state = WeatherState(
-            weather_type=WeatherType.RAIN, duration_turns=0
-        )
+        state = WeatherState(weather_type=WeatherType.RAIN, duration_turns=0)
         assert not state.is_expired()
 
     def test_remaining_turns_expires(self):
@@ -135,13 +135,16 @@ class TestWeatherStateSetWeather:
 
 
 class TestWeatherEffectsVisionModifiers:
-    @pytest.mark.parametrize("weather,expected", [
-        (WeatherType.CLEAR, 1.0),
-        (WeatherType.RAIN, 0.7),
-        (WeatherType.FOG, 0.5),
-        (WeatherType.SNOW, 0.85),
-        (WeatherType.OVERCAST, 0.9),
-    ])
+    @pytest.mark.parametrize(
+        "weather,expected",
+        [
+            (WeatherType.CLEAR, 1.0),
+            (WeatherType.RAIN, 0.7),
+            (WeatherType.FOG, 0.5),
+            (WeatherType.SNOW, 0.85),
+            (WeatherType.OVERCAST, 0.9),
+        ],
+    )
     def test_vision_modifier_values(self, weather, expected):
         effects = WeatherEffects()
         result = effects.apply_to_vision(10.0, weather)
@@ -156,13 +159,16 @@ class TestWeatherEffectsVisionModifiers:
 
 
 class TestWeatherEffectsMovementModifiers:
-    @pytest.mark.parametrize("weather,expected", [
-        (WeatherType.CLEAR, 1.0),
-        (WeatherType.RAIN, 0.9),
-        (WeatherType.FOG, 1.0),
-        (WeatherType.SNOW, 0.8),
-        (WeatherType.OVERCAST, 1.0),
-    ])
+    @pytest.mark.parametrize(
+        "weather,expected",
+        [
+            (WeatherType.CLEAR, 1.0),
+            (WeatherType.RAIN, 0.9),
+            (WeatherType.FOG, 1.0),
+            (WeatherType.SNOW, 0.8),
+            (WeatherType.OVERCAST, 1.0),
+        ],
+    )
     def test_movement_modifier_values(self, weather, expected):
         effects = WeatherEffects()
         result = effects.apply_to_movement(6.0, weather)
@@ -173,37 +179,34 @@ class TestWeatherEffectsMudPenalty:
     def test_mud_penalty_in_rain(self):
         effects = WeatherEffects()
         base = 6.0
-        result = effects.apply_to_movement(
-            base, WeatherType.RAIN, is_muddy_terrain=True
-        )
+        result = effects.apply_to_movement(base, WeatherType.RAIN, is_muddy_terrain=True)
         expected = base * 0.9 * 0.7
         assert result == pytest.approx(expected, rel=1e-2)
 
     def test_mud_penalty_not_applied_in_clear(self):
         effects = WeatherEffects()
         base = 6.0
-        result = effects.apply_to_movement(
-            base, WeatherType.CLEAR, is_muddy_terrain=True
-        )
+        result = effects.apply_to_movement(base, WeatherType.CLEAR, is_muddy_terrain=True)
         assert result == base
 
     def test_mud_penalty_not_applied_without_mud(self):
         effects = WeatherEffects()
         base = 6.0
-        result = effects.apply_to_movement(
-            base, WeatherType.RAIN, is_muddy_terrain=False
-        )
+        result = effects.apply_to_movement(base, WeatherType.RAIN, is_muddy_terrain=False)
         assert result == pytest.approx(base * 0.9, rel=1e-2)
 
 
 class TestWeatherEffectsConcealmentBonus:
-    @pytest.mark.parametrize("weather,expected", [
-        (WeatherType.CLEAR, 0.0),
-        (WeatherType.RAIN, 0.1),
-        (WeatherType.FOG, 0.2),
-        (WeatherType.SNOW, 0.05),
-        (WeatherType.OVERCAST, 0.0),
-    ])
+    @pytest.mark.parametrize(
+        "weather,expected",
+        [
+            (WeatherType.CLEAR, 0.0),
+            (WeatherType.RAIN, 0.1),
+            (WeatherType.FOG, 0.2),
+            (WeatherType.SNOW, 0.05),
+            (WeatherType.OVERCAST, 0.0),
+        ],
+    )
     def test_concealment_bonus_values(self, weather, expected):
         effects = WeatherEffects()
         assert effects.get_concealment_bonus(weather) == pytest.approx(expected, rel=1e-2)
@@ -224,7 +227,9 @@ class TestWeatherEffectsAccuracyModifiers:
 class TestWeatherTransitionTable:
     def test_transition_from_clear_stays_likely(self):
         rng = random.Random(42)
-        results = [WeatherTransitionTable.get_next_weather(WeatherType.CLEAR, rng) for _ in range(100)]
+        results = [
+            WeatherTransitionTable.get_next_weather(WeatherType.CLEAR, rng) for _ in range(100)
+        ]
         clear_count = sum(1 for w in results if w == WeatherType.CLEAR)
         assert clear_count > 50
 
@@ -239,18 +244,27 @@ class TestWeatherTransitionTable:
         rng = random.Random(99)
         for weather in WeatherType:
             duration = WeatherTransitionTable.generate_weather_duration(weather, rng)
-            assert duration >= 1, f"Weather {weather.name} duration should be at least 1 turn, got {duration}"
+            assert duration >= 1, (
+                f"Weather {weather.name} duration should be at least 1 turn, got {duration}"
+            )
 
     def test_snow_longer_than_fog_typically(self):
         rng = random.Random(42)
-        snow_durations = [WeatherTransitionTable.generate_weather_duration(WeatherType.SNOW, rng) for _ in range(50)]
-        fog_durations = [WeatherTransitionTable.generate_weather_duration(WeatherType.FOG, rng) for _ in range(50)]
+        snow_durations = [
+            WeatherTransitionTable.generate_weather_duration(WeatherType.SNOW, rng)
+            for _ in range(50)
+        ]
+        fog_durations = [
+            WeatherTransitionTable.generate_weather_duration(WeatherType.FOG, rng)
+            for _ in range(50)
+        ]
         assert sum(snow_durations) > sum(fog_durations)
 
 
 class TestIntegrationWeatherAndEnvironment:
     def test_combined_vision_reduction_night_rain(self):
         from pycc2.domain.systems.environment import EnvironmentState, TimeOfDay, WeatherCondition
+
         env = EnvironmentState(time_of_day=TimeOfDay.NIGHT, weather=WeatherCondition.RAIN)
         mult = env.get_vision_multiplier()
         expected = 0.45 * 0.80
@@ -258,6 +272,7 @@ class TestIntegrationWeatherAndEnvironment:
 
     def test_stealth_bonus_forest_night_capped(self):
         from pycc2.domain.systems.environment import EnvironmentState
+
         env = EnvironmentState(night_stealth_bonus=0.50, forest_stealth_bonus=0.20)
         bonus = env.get_stealth_bonus(terrain_id=3)
         assert bonus <= 0.60

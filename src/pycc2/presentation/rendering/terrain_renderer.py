@@ -65,12 +65,16 @@ class TerrainRenderer:
 
     def __init__(self, ctx: RenderContext):
         self._ctx = ctx
-        self._transition_cache: dict[tuple[int, int, int, int, str], tuple[pygame.Surface, pygame.Rect]] = {}
+        self._transition_cache: dict[
+            tuple[int, int, int, int, str], tuple[pygame.Surface, pygame.Rect]
+        ] = {}
         self._edge_smooth_cache: dict[tuple[int, int], pygame.Surface] = {}
         self._edge_smooth_dirty: bool = True
         self._last_map_hash: int = 0
 
-    def draw_enhanced_terrain(self, game_map: GameMap, camera: Camera, debug_mode: bool = False) -> None:
+    def draw_enhanced_terrain(
+        self, game_map: GameMap, camera: Camera, debug_mode: bool = False
+    ) -> None:
         if self._ctx.screen is None:
             return
 
@@ -97,11 +101,19 @@ class TerrainRenderer:
                 screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
                 sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
-                if (sx + tile_screen_size < -margin or sx > screen_w + margin or
-                    sy + tile_screen_size < -margin or sy > screen_h + margin):
+                if (
+                    sx + tile_screen_size < -margin
+                    or sx > screen_w + margin
+                    or sy + tile_screen_size < -margin
+                    or sy > screen_h + margin
+                ):
                     continue
 
-                enhanced_tile = self._ctx.get_enhanced_tile(game_map, tx, ty) if self._ctx.get_enhanced_tile else None
+                enhanced_tile = (
+                    self._ctx.get_enhanced_tile(game_map, tx, ty)
+                    if self._ctx.get_enhanced_tile
+                    else None
+                )
 
                 if enhanced_tile:
                     terrain_val = enhanced_tile.base_terrain
@@ -133,20 +145,39 @@ class TerrainRenderer:
                 if texture is None:
                     if bitmask != 0:
                         cache_key = (terrain_val, variation, bitmask)
-                        if self._ctx.autotile_cache and cache_key not in self._ctx.autotile_cache._cache:
-                            texture = self._ctx.generate_cc2_style_tile(terrain_val, tx, ty, bitmask) if self._ctx.generate_cc2_style_tile else None
+                        if (
+                            self._ctx.autotile_cache
+                            and cache_key not in self._ctx.autotile_cache._cache
+                        ):
+                            texture = (
+                                self._ctx.generate_cc2_style_tile(terrain_val, tx, ty, bitmask)
+                                if self._ctx.generate_cc2_style_tile
+                                else None
+                            )
                             if texture and self._ctx.autotile_cache:
-                                self._ctx.autotile_cache.set_variant(terrain_val, bitmask, variation, texture)
+                                self._ctx.autotile_cache.set_variant(
+                                    terrain_val, bitmask, variation, texture
+                                )
                         elif self._ctx.autotile_cache:
-                            texture = self._ctx.autotile_cache.get_variant(terrain_val, bitmask, variation)
+                            texture = self._ctx.autotile_cache.get_variant(
+                                terrain_val, bitmask, variation
+                            )
 
                         if tile_screen_size != tile_size:
                             scale_key = (terrain_val, variation, bitmask, tile_screen_size)
                             if scale_key not in self._ctx.scaled_texture_cache:
-                                base_texture = self._ctx.autotile_cache.get_variant(terrain_val, bitmask, variation) if self._ctx.autotile_cache else None
+                                base_texture = (
+                                    self._ctx.autotile_cache.get_variant(
+                                        terrain_val, bitmask, variation
+                                    )
+                                    if self._ctx.autotile_cache
+                                    else None
+                                )
                                 if base_texture:
-                                    self._ctx.scaled_texture_cache[scale_key] = pygame.transform.scale(
-                                        base_texture, (tile_screen_size, tile_screen_size)
+                                    self._ctx.scaled_texture_cache[scale_key] = (
+                                        pygame.transform.scale(
+                                            base_texture, (tile_screen_size, tile_screen_size)
+                                        )
                                     )
                             texture = self._ctx.scaled_texture_cache.get(scale_key, texture)
                     elif height != 0:
@@ -154,42 +185,71 @@ class TerrainRenderer:
                         if cache_key in self._ctx.height_lit_cache:
                             texture = self._ctx.height_lit_cache[cache_key]
                         else:
-                            base_texture = self._ctx.get_cached_texture(terrain_val, variation) if self._ctx.get_cached_texture else None
+                            base_texture = (
+                                self._ctx.get_cached_texture(terrain_val, variation)
+                                if self._ctx.get_cached_texture
+                                else None
+                            )
                             if base_texture:
-                                texture = self._ctx.apply_height_lighting(base_texture, height) if self._ctx.apply_height_lighting else base_texture
+                                texture = (
+                                    self._ctx.apply_height_lighting(base_texture, height)
+                                    if self._ctx.apply_height_lighting
+                                    else base_texture
+                                )
                                 if tile_screen_size != tile_size:
-                                    texture = pygame.transform.scale(texture, (tile_screen_size, tile_screen_size))
+                                    texture = pygame.transform.scale(
+                                        texture, (tile_screen_size, tile_screen_size)
+                                    )
                                 self._ctx.height_lit_cache[cache_key] = texture
                     else:
                         if tile_screen_size != tile_size:
                             scale_key = (terrain_val, variation, tile_screen_size)
                             if scale_key not in self._ctx.scaled_texture_cache:
-                                base_texture = self._ctx.get_cached_texture(terrain_val, variation) if self._ctx.get_cached_texture else None
+                                base_texture = (
+                                    self._ctx.get_cached_texture(terrain_val, variation)
+                                    if self._ctx.get_cached_texture
+                                    else None
+                                )
                                 if base_texture:
-                                    self._ctx.scaled_texture_cache[scale_key] = pygame.transform.scale(
-                                        base_texture, (tile_screen_size, tile_screen_size)
+                                    self._ctx.scaled_texture_cache[scale_key] = (
+                                        pygame.transform.scale(
+                                            base_texture, (tile_screen_size, tile_screen_size)
+                                        )
                                     )
                             texture = self._ctx.scaled_texture_cache.get(scale_key, texture)
                         else:
-                            texture = self._ctx.get_cached_texture(terrain_val, variation) if self._ctx.get_cached_texture else None
+                            texture = (
+                                self._ctx.get_cached_texture(terrain_val, variation)
+                                if self._ctx.get_cached_texture
+                                else None
+                            )
 
                 if texture is not None and self._ctx.offscreen is not None:
                     rect = pygame.Rect(sx, sy, tile_screen_size, tile_screen_size)
                     self._ctx.offscreen.blit(texture, rect)
 
         if not debug_mode and tile_screen_size >= 16:
-            self.apply_terrain_edge_smoothing(game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size)
+            self.apply_terrain_edge_smoothing(
+                game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size
+            )
 
         if not debug_mode and tile_screen_size >= 16:
-            self.render_terrain_transitions(game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size)
+            self.render_terrain_transitions(
+                game_map, camera, start_x, end_x, start_y, end_y, tile_screen_size
+            )
 
         if debug_mode and self._ctx.draw_terrain_borders:
             self._ctx.draw_terrain_borders(game_map, camera, start_x, end_x, start_y, end_y)
 
     def render_terrain_transitions(
-        self, game_map: GameMap, camera: Camera,
-        start_x: int, end_x: int, start_y: int, end_y: int,
-        tile_screen_size: int
+        self,
+        game_map: GameMap,
+        camera: Camera,
+        start_x: int,
+        end_x: int,
+        start_y: int,
+        end_y: int,
+        tile_screen_size: int,
     ) -> None:
         if self._ctx.screen is None or self._ctx.offscreen is None or tile_screen_size < 8:
             return
@@ -201,7 +261,10 @@ class TerrainRenderer:
         except (ValueError, TypeError):
             pass
 
-        strip_width = max(self.TRANSITION_STRIP_WIDTH_MIN, min(self.TRANSITION_STRIP_WIDTH_MAX, tile_screen_size // 8))
+        strip_width = max(
+            self.TRANSITION_STRIP_WIDTH_MIN,
+            min(self.TRANSITION_STRIP_WIDTH_MAX, tile_screen_size // 8),
+        )
 
         get_terrain = self._ctx.get_terrain_at
         if get_terrain is None:
@@ -214,10 +277,10 @@ class TerrainRenderer:
                     continue
 
                 neighbors = [
-                    (tx, ty - 1, 'north'),
-                    (tx, ty + 1, 'south'),
-                    (tx + 1, ty, 'east'),
-                    (tx - 1, ty, 'west'),
+                    (tx, ty - 1, "north"),
+                    (tx, ty + 1, "south"),
+                    (tx + 1, ty, "east"),
+                    (tx - 1, ty, "west"),
                 ]
 
                 for nx, ny, direction in neighbors:
@@ -248,18 +311,32 @@ class TerrainRenderer:
                     base_x = int(screen_pos[0])
                     base_y = int(screen_pos[1])
 
-                    if direction == 'north':
+                    if direction == "north":
                         rect = pygame.Rect(base_x, base_y, tile_screen_size, strip_width)
-                    elif direction == 'south':
-                        rect = pygame.Rect(base_x, base_y + tile_screen_size - strip_width, tile_screen_size, strip_width)
-                    elif direction == 'east':
-                        rect = pygame.Rect(base_x + tile_screen_size - strip_width, base_y, strip_width, tile_screen_size)
+                    elif direction == "south":
+                        rect = pygame.Rect(
+                            base_x,
+                            base_y + tile_screen_size - strip_width,
+                            tile_screen_size,
+                            strip_width,
+                        )
+                    elif direction == "east":
+                        rect = pygame.Rect(
+                            base_x + tile_screen_size - strip_width,
+                            base_y,
+                            strip_width,
+                            tile_screen_size,
+                        )
                     else:
                         rect = pygame.Rect(base_x, base_y, strip_width, tile_screen_size)
 
-                    strip_surf = self._ctx.get_pooled_surface((rect.width, rect.height)) if self._ctx.get_pooled_surface else pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+                    strip_surf = (
+                        self._ctx.get_pooled_surface((rect.width, rect.height))
+                        if self._ctx.get_pooled_surface
+                        else pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+                    )
 
-                    if direction in ('north', 'south'):
+                    if direction in ("north", "south"):
                         for col in range(rect.width):
                             t = col / max(1, rect.width - 1)
 
@@ -276,10 +353,10 @@ class TerrainRenderer:
 
                             for row in range(rect.height):
                                 edge_t = row / max(1, rect.height - 1)
-                                if direction == 'north':
-                                    alpha = int(self.TRANSITION_ALPHA_PEAK * (1 - edge_t ** 0.7))
+                                if direction == "north":
+                                    alpha = int(self.TRANSITION_ALPHA_PEAK * (1 - edge_t**0.7))
                                 else:
-                                    alpha = int(self.TRANSITION_ALPHA_PEAK * edge_t ** 0.7)
+                                    alpha = int(self.TRANSITION_ALPHA_PEAK * edge_t**0.7)
 
                                 boundary_boost = 1.0
                                 if 0.4 <= edge_t <= 0.6:
@@ -305,10 +382,10 @@ class TerrainRenderer:
 
                             for col in range(rect.width):
                                 edge_t = col / max(1, rect.width - 1)
-                                if direction == 'west':
-                                    alpha = int(self.TRANSITION_ALPHA_PEAK * (1 - edge_t ** 0.7))
+                                if direction == "west":
+                                    alpha = int(self.TRANSITION_ALPHA_PEAK * (1 - edge_t**0.7))
                                 else:
-                                    alpha = int(self.TRANSITION_ALPHA_PEAK * edge_t ** 0.7)
+                                    alpha = int(self.TRANSITION_ALPHA_PEAK * edge_t**0.7)
 
                                 boundary_boost = 1.0
                                 if 0.4 <= edge_t <= 0.6:
@@ -322,9 +399,14 @@ class TerrainRenderer:
                     self._ctx.offscreen.blit(strip_surf, rect)
 
     def apply_terrain_edge_smoothing(
-        self, game_map: GameMap, camera: Camera,
-        start_x: int, end_x: int, start_y: int, end_y: int,
-        tile_screen_size: int
+        self,
+        game_map: GameMap,
+        camera: Camera,
+        start_x: int,
+        end_x: int,
+        start_y: int,
+        end_y: int,
+        tile_screen_size: int,
     ) -> None:
         if self._ctx.screen is None or self._ctx.offscreen is None or tile_screen_size < 8:
             return
@@ -342,8 +424,16 @@ class TerrainRenderer:
 
         autotile_terrains = {5, 6, 7}
         smoothable_pairs = {
-            (0, 1), (1, 0), (0, 2), (2, 0), (1, 2), (2, 1),
-            (0, 3), (3, 0), (1, 3), (3, 1),
+            (0, 1),
+            (1, 0),
+            (0, 2),
+            (2, 0),
+            (1, 2),
+            (2, 1),
+            (0, 3),
+            (3, 0),
+            (1, 3),
+            (3, 1),
         }
 
         get_terrain = self._ctx.get_terrain_at
@@ -357,8 +447,10 @@ class TerrainRenderer:
                     continue
 
                 neighbors = [
-                    (tx + 1, ty, 'right'), (tx - 1, ty, 'left'),
-                    (tx, ty + 1, 'down'), (tx, ty - 1, 'up'),
+                    (tx + 1, ty, "right"),
+                    (tx - 1, ty, "left"),
+                    (tx, ty + 1, "down"),
+                    (tx, ty - 1, "up"),
                 ]
 
                 for nx, ny, direction in neighbors:
@@ -374,7 +466,9 @@ class TerrainRenderer:
                     cache_key = (min(tx, nx), min(ty, ny), max(tx, nx), max(ty, ny))
                     if cache_key in self._edge_smooth_cache:
                         cached_surf, cached_rect = self._edge_smooth_cache[cache_key]
-                        self._ctx.offscreen.blit(cached_surf, cached_rect, special_flags=pygame.BLEND_RGBA_ADD)
+                        self._ctx.offscreen.blit(
+                            cached_surf, cached_rect, special_flags=pygame.BLEND_RGBA_ADD
+                        )
                         continue
 
                     world_x = tx * self._ctx.tile_size
@@ -397,25 +491,43 @@ class TerrainRenderer:
                         logging.debug(f"Edge color blending failed: {e}")
                         blend_color = (80, 80, 80, 45)
 
-                    edge_width = max(self.EDGE_SMOOTH_WIDTH_MIN, min(self.EDGE_SMOOTH_WIDTH_MAX, tile_screen_size // 16))
+                    edge_width = max(
+                        self.EDGE_SMOOTH_WIDTH_MIN,
+                        min(self.EDGE_SMOOTH_WIDTH_MAX, tile_screen_size // 16),
+                    )
 
-                    if direction in ('right', 'left'):
-                        edge_x = base_x + (tile_screen_size if direction == 'left' else 0)
+                    if direction in ("right", "left"):
+                        edge_x = base_x + (tile_screen_size if direction == "left" else 0)
                         edge_rect = pygame.Rect(edge_x, base_y, edge_width, tile_screen_size)
                     else:
-                        edge_y = base_y + (tile_screen_size if direction == 'up' else 0)
+                        edge_y = base_y + (tile_screen_size if direction == "up" else 0)
                         edge_rect = pygame.Rect(base_x, edge_y, tile_screen_size, edge_width)
 
-                    edge_surf = self._ctx.get_pooled_surface((edge_rect.width, edge_rect.height)) if self._ctx.get_pooled_surface else pygame.Surface((edge_rect.width, edge_rect.height), pygame.SRCALPHA)
+                    edge_surf = (
+                        self._ctx.get_pooled_surface((edge_rect.width, edge_rect.height))
+                        if self._ctx.get_pooled_surface
+                        else pygame.Surface((edge_rect.width, edge_rect.height), pygame.SRCALPHA)
+                    )
 
-                    for i in range(edge_rect.width if direction in ('right', 'left') else edge_rect.height):
-                        alpha = int(self.EDGE_SMOOTH_ALPHA_PEAK * (1 - abs(i - (edge_width // 2)) / max(1, edge_width)))
+                    for i in range(
+                        edge_rect.width if direction in ("right", "left") else edge_rect.height
+                    ):
+                        alpha = int(
+                            self.EDGE_SMOOTH_ALPHA_PEAK
+                            * (1 - abs(i - (edge_width // 2)) / max(1, edge_width))
+                        )
                         alpha = max(10, min(self.EDGE_SMOOTH_ALPHA_PEAK, alpha))
 
-                        if direction in ('right', 'left'):
-                            pygame.draw.line(edge_surf, (*blend_color[:3], alpha), (i, 0), (i, edge_rect.height))
+                        if direction in ("right", "left"):
+                            pygame.draw.line(
+                                edge_surf, (*blend_color[:3], alpha), (i, 0), (i, edge_rect.height)
+                            )
                         else:
-                            pygame.draw.line(edge_surf, (*blend_color[:3], alpha), (0, i), (edge_rect.width, i))
+                            pygame.draw.line(
+                                edge_surf, (*blend_color[:3], alpha), (0, i), (edge_rect.width, i)
+                            )
 
                     self._edge_smooth_cache[cache_key] = (edge_surf, edge_rect)
-                    self._ctx.offscreen.blit(edge_surf, edge_rect, special_flags=pygame.BLEND_RGBA_ADD)
+                    self._ctx.offscreen.blit(
+                        edge_surf, edge_rect, special_flags=pygame.BLEND_RGBA_ADD
+                    )

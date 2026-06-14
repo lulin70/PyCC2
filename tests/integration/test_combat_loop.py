@@ -83,6 +83,7 @@ def camera():
 @pytest.fixture
 def sprite_renderer():
     import pygame
+
     if not pygame.get_init():
         pygame.init()
     if not pygame.font.get_init():
@@ -170,8 +171,9 @@ class TestAttackExecutesDamage:
         combat_game_loop._update_logic(1.0 / 30.0)
         renderer = combat_game_loop.renderer
         if hasattr(renderer, "_flash_units"):
-            assert len(renderer._flash_units) == 1, \
+            assert len(renderer._flash_units) == 1, (
                 "Should have exactly 1 flash unit after attacking enemy_1"
+            )
 
     def test_damage_number_shows(self, combat_game_loop, ally_unit, enemy_unit):
         combat_game_loop._update_logic(1.0 / 30.0)
@@ -185,8 +187,9 @@ class TestAttackExecutesDamage:
         combat_game_loop._update_logic(1.0 / 30.0)
         renderer = combat_game_loop.renderer
         if hasattr(renderer, "_damage_numbers"):
-            assert len(renderer._damage_numbers) >= 1, \
+            assert len(renderer._damage_numbers) >= 1, (
                 "Should have at least 1 damage number after attacking enemy_1 (may have multiple hits)"
+            )
 
     def test_death_animation_on_kill(self, combat_game_loop, ally_unit, weak_enemy_unit):
         combat_game_loop._update_logic(1.0 / 30.0)
@@ -202,8 +205,9 @@ class TestAttackExecutesDamage:
         renderer = combat_game_loop.renderer
         if hasattr(renderer, "_death_animations"):
             expected_animations = 1 if weak_enemy_unit.is_alive else 0
-            assert len(renderer._death_animations) == expected_animations, \
+            assert len(renderer._death_animations) == expected_animations, (
                 f"Should have {expected_animations} death animation(s) after killing weak_enemy"
+            )
 
     def test_muzzle_flash_on_attack(self, combat_game_loop, ally_unit, enemy_unit):
         combat_game_loop._update_logic(1.0 / 30.0)
@@ -224,8 +228,9 @@ class TestAttackExecutesDamage:
                 for p in renderer._particle_emitter.particles
                 if p.type == ParticleEmitter.ParticleType.MUZZLE_FLASH
             ]
-            assert len(muzzle_particles) >= 1, \
+            assert len(muzzle_particles) >= 1, (
                 "Should have at least 1 muzzle flash particle after attack"
+            )
 
 
 class TestAttackConstraints:

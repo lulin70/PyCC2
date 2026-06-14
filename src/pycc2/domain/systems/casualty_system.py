@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 
 class CasualtyState(Enum):
     """States a casualty can be in."""
+
     HEALTHY = "healthy"
     WOUNDED = "wounded"
     DRAGGING = "dragging"
@@ -31,12 +32,13 @@ class CasualtyState(Enum):
 @dataclass(slots=True)
 class CasualtyConfig:
     """Configuration parameters for casualty system."""
+
     rescue_timeout_seconds: float = 300.0  # 5 minutes until death
-    drag_speed_multiplier: float = 0.5     # Medic moves at 50% speed while dragging
-    evac_complete_time: float = 10.0       # Seconds to complete evacuation
-    morale_death_penalty: int = -30        # Morale loss when casualty dies
-    morale_rescue_bonus: int = 15          # Morale bonus when rescued
-    medic_required: bool = True            # Only medics can drag/evacuate
+    drag_speed_multiplier: float = 0.5  # Medic moves at 50% speed while dragging
+    evac_complete_time: float = 10.0  # Seconds to complete evacuation
+    morale_death_penalty: int = -30  # Morale loss when casualty dies
+    morale_rescue_bonus: int = 15  # Morale bonus when rescued
+    medic_required: bool = True  # Only medics can drag/evacuate
 
 
 @dataclass
@@ -54,7 +56,7 @@ class Casualty:
 
     def __init__(
         self,
-        unit: "Unit",
+        unit: Unit,
         config: CasualtyConfig | None = None,
     ):
         self._unit = unit
@@ -62,13 +64,13 @@ class Casualty:
         self._state = CasualtyState.HEALTHY
         self._rescue_timer: float = 0.0
         self._evac_timer: float = 0.0
-        self._medic_unit: "Unit | None" = None
+        self._medic_unit: Unit | None = None
         self._wound_time: float | None = None
         self._drag_start_pos: tuple[float, float] | None = None
         self._is_being_dragged: bool = False
 
     @property
-    def unit(self) -> "Unit":
+    def unit(self) -> Unit:
         return self._unit
 
     @property
@@ -97,7 +99,7 @@ class Casualty:
         return self._state in (CasualtyState.WOUNDED, CasualtyState.DRAGGING)
 
     @property
-    def medic(self) -> "Unit | None":
+    def medic(self) -> Unit | None:
         return self._medic_unit
 
     def become_wounded(self) -> dict:
@@ -116,9 +118,9 @@ class Casualty:
         self._is_being_dragged = False
 
         # Disable unit actions
-        if hasattr(self._unit, 'can_move'):
+        if hasattr(self._unit, "can_move"):
             self._unit.can_move = False
-        if hasattr(self._unit, 'can_attack'):
+        if hasattr(self._unit, "can_attack"):
             self._unit.can_attack = False
 
         event = {
@@ -129,8 +131,11 @@ class Casualty:
             "timestamp": time.perf_counter(),
         }
 
-        logger.warning("[Casualty] ⚠️ %s is WOUNDED! Rescue in %.0fs or they will die!",
-                       self._unit.name, self.rescue_timeout)
+        logger.warning(
+            "[Casualty] ⚠️ %s is WOUNDED! Rescue in %.0fs or they will die!",
+            self._unit.name,
+            self.rescue_timeout,
+        )
 
         return {**event, "success": True}
 
@@ -166,7 +171,7 @@ class Casualty:
 
         return None
 
-    def start_dragging(self, medic_unit: "Unit") -> dict:
+    def start_dragging(self, medic_unit: Unit) -> dict:
         """
         Begin dragging this casualty.
 
@@ -180,7 +185,7 @@ class Casualty:
             return {"success": False, "reason": f"Cannot drag in state {self._state}"}
 
         if self._config.medic_required:
-            unit_type = getattr(medic_unit, 'unit_type', None)
+            unit_type = getattr(medic_unit, "unit_type", None)
             type_name = str(unit_type).lower() if unit_type else ""
 
             if "medic" not in type_name:
@@ -191,16 +196,16 @@ class Casualty:
         self._is_being_dragged = True
 
         # Record medic's original speed for restoration later
-        if hasattr(medic_unit, 'move_speed'):
-            self._original_medic_speed = getattr(medic_unit, 'move_speed', 1.0)
+        if hasattr(medic_unit, "move_speed"):
+            self._original_medic_speed = getattr(medic_unit, "move_speed", 1.0)
             medic_unit.move_speed *= self._config.drag_speed_multiplier
 
         # Get positions
-        pos_comp = getattr(self._unit, 'position', None)
+        pos_comp = getattr(self._unit, "position", None)
         if pos_comp:
             self._drag_start_pos = (
-                getattr(pos_comp, 'x', 0.0),
-                getattr(pos_comp, 'y', 0.0),
+                getattr(pos_comp, "x", 0.0),
+                getattr(pos_comp, "y", 0.0),
             )
 
         event = {
@@ -220,8 +225,8 @@ class Casualty:
             return {"success": False, "reason": "Not being dragged"}
 
         # Restore medic speed
-        if self._medic_unit and hasattr(self._medic_unit, 'move_speed'):
-            if hasattr(self, '_original_medic_speed'):
+        if self._medic_unit and hasattr(self._medic_unit, "move_speed"):
+            if hasattr(self, "_original_medic_speed"):
                 self._medic_unit.move_speed = self._original_medic_speed
 
         self._state = CasualtyState.WOUNDED
@@ -239,8 +244,8 @@ class Casualty:
         self._evac_timer = 0.0
 
         # Restore medic speed
-        if self._medic_unit and hasattr(self._medic_unit, 'move_speed'):
-            if hasattr(self, '_original_medic_speed'):
+        if self._medic_unit and hasattr(self._medic_unit, "move_speed"):
+            if hasattr(self, "_original_medic_speed"):
                 self._medic_unit.move_speed = self._original_medic_speed
 
         event = {
@@ -262,9 +267,9 @@ class Casualty:
         self._medic_unit = None
 
         # Apply morale bonus to squad
-        if hasattr(self._unit, 'squad') and self._unit.squad:
-            if hasattr(self._unit.squad, 'morale'):
-                squad_morale = getattr(self._unit.squad.morale, 'current', None)
+        if hasattr(self._unit, "squad") and self._unit.squad:
+            if hasattr(self._unit.squad, "morale"):
+                squad_morale = getattr(self._unit.squad.morale, "current", None)
                 if squad_morale is not None:
                     # This would need proper morale component access
                     pass
@@ -276,8 +281,11 @@ class Casualty:
             "morale_bonus": self._config.morale_rescue_bonus,
         }
 
-        logger.info("[Casualty] ✅ %s evacuated successfully! Squad morale +%d",
-                   self._unit.name, self._config.morale_rescue_bonus)
+        logger.info(
+            "[Casualty] ✅ %s evacuated successfully! Squad morale +%d",
+            self._unit.name,
+            self._config.morale_rescue_bonus,
+        )
 
         return {**event, "success": True}
 
@@ -286,10 +294,11 @@ class Casualty:
         self._state = CasualtyState.DEAD
 
         # Mark unit as dead
-        if hasattr(self._unit, 'health'):
+        if hasattr(self._unit, "health"):
             self._unit.health.current_hp = 0
-        if hasattr(self._unit, 'state_machine'):
+        if hasattr(self._unit, "state_machine"):
             from pycc2.domain.entities.unit import UnitState
+
             try:
                 self._unit.state_machine.force_state(UnitState.DEAD)
             except Exception as e:
@@ -307,8 +316,9 @@ class Casualty:
             "morale_penalty": morale_penalty,
         }
 
-        logger.warning("[Casualty] 💀 %s DIED from wounds! Squad morale %d",
-                       self._unit.name, morale_penalty)
+        logger.warning(
+            "[Casualty] 💀 %s DIED from wounds! Squad morale %d", self._unit.name, morale_penalty
+        )
 
         return event
 
@@ -344,7 +354,8 @@ class CasualtyManager:
     @property
     def active_casualty_count(self) -> int:
         return sum(
-            1 for c in self._casualties.values()
+            1
+            for c in self._casualties.values()
             if c.state in (CasualtyState.WOUNDED, CasualtyState.DRAGGING, CasualtyState.EVACUATING)
         )
 
@@ -356,7 +367,7 @@ class CasualtyManager:
     def total_evacuated(self) -> int:
         return sum(1 for c in self._casualties.values() if c.state == CasualtyState.EVACUATED)
 
-    def register_casualty(self, unit: "Unit") -> Casualty:
+    def register_casualty(self, unit: Unit) -> Casualty:
         """Register a unit as potentially becoming a casualty."""
         unit_id = unit.id
 
@@ -402,12 +413,12 @@ class CasualtyManager:
             if not casualty.is_rescuable:
                 continue
 
-            pos_comp = getattr(casualty.unit, 'position', None)
+            pos_comp = getattr(casualty.unit, "position", None)
             if pos_comp:
-                cx = getattr(pos_comp, 'x', 0.0)
-                cy = getattr(pos_comp, 'y', 0.0)
+                cx = getattr(pos_comp, "x", 0.0)
+                cy = getattr(pos_comp, "y", 0.0)
 
-                distance = ((cx - position[0])**2 + (cy - position[1])**2)**0.5
+                distance = ((cx - position[0]) ** 2 + (cy - position[1]) ** 2) ** 0.5
 
                 if distance <= radius:
                     nearby.append(casualty)

@@ -55,7 +55,7 @@ class TurnService:
         self.event_bus = event_bus
         self.state = TurnState(max_turns=max_turns)
         self._logger = logging.getLogger("pycc2.turn_service")
-        self._phase_callbacks: Dict[GamePhase, Callable] = {}
+        self._phase_callbacks: dict[GamePhase, Callable] = {}
         self._turn_start_callbacks: list[Callable] = []
         self._turn_end_callbacks: list[Callable] = []
 

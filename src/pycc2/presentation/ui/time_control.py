@@ -3,6 +3,7 @@ Time Control — pause, slow-mo, normal, fast-forward game speed.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING
@@ -27,7 +28,13 @@ TIME_SPEED_CONFIG = {
     TimeSpeed.VERY_FAST: {"label": "▶▶▶▶ 4x", "ups_mult": 4.0, "color": (220, 100, 80)},
 }
 
-SPEED_ORDER = [TimeSpeed.PAUSED, TimeSpeed.SLOW, TimeSpeed.NORMAL, TimeSpeed.FAST, TimeSpeed.VERY_FAST]
+SPEED_ORDER = [
+    TimeSpeed.PAUSED,
+    TimeSpeed.SLOW,
+    TimeSpeed.NORMAL,
+    TimeSpeed.FAST,
+    TimeSpeed.VERY_FAST,
+]
 
 HOTKEY_SPEED = {
     "pause": TimeSpeed.PAUSED,
@@ -51,8 +58,8 @@ class TimeControlUI:
     def __init__(self, config: TimeControlConfig | None = None):
         self.config = config or TimeControlConfig()
         self._current_speed: TimeSpeed = TimeSpeed.NORMAL
-        self._button_rects: dict[TimeSpeed, "pygame.Rect"] = {}
-        self._button_surf: "pygame.Surface | None" = None
+        self._button_rects: dict[TimeSpeed, pygame.Rect] = {}
+        self._button_surf: pygame.Surface | None = None
         self._button_surf_size: tuple[int, int] = (0, 0)
 
     @property
@@ -91,6 +98,7 @@ class TimeControlUI:
 
     def handle_key(self, key: int) -> bool:
         import pygame
+
         if key == pygame.K_SPACE:
             self.toggle_pause()
             return True
@@ -102,7 +110,9 @@ class TimeControlUI:
             return True
         return False
 
-    def render(self, screen: "pygame.Surface", font=None, tick: int = 0, fps: float = 0.0) -> list[dict]:
+    def render(
+        self, screen: pygame.Surface, font=None, tick: int = 0, fps: float = 0.0
+    ) -> list[dict]:
         import pygame
 
         cfg = self.config
@@ -114,7 +124,7 @@ class TimeControlUI:
             by = cfg.y
             rect = pygame.Rect(bx, by, cfg.button_width, cfg.button_height)
 
-            is_active = (speed == self._current_speed)
+            is_active = speed == self._current_speed
             bg_color = (*info["color"], 220) if is_active else (50, 55, 65, cfg.bg_alpha)
             border_color = (255, 255, 255) if is_active else (80, 85, 95)
 
@@ -125,7 +135,13 @@ class TimeControlUI:
                 self._button_surf_size = btn_size
             self._button_surf.fill((0, 0, 0, 0))
             self._button_surf.fill(bg_color)
-            pygame.draw.rect(self._button_surf, border_color, (0, 0, cfg.button_width, cfg.button_height), 1, border_radius=4)
+            pygame.draw.rect(
+                self._button_surf,
+                border_color,
+                (0, 0, cfg.button_width, cfg.button_height),
+                1,
+                border_radius=4,
+            )
 
             if font:
                 label = font.render(info["label"], True, (230, 230, 230))
@@ -142,7 +158,10 @@ class TimeControlUI:
             else:
                 tick_info = f"Tick:{tick} (PAUSED)"
             info_surf = font.render(tick_info, True, (150, 150, 160))
-            screen.blit(info_surf, (cfg.x + len(SPEED_ORDER) * (cfg.button_width + cfg.spacing) + 20, cfg.y + 7))
+            screen.blit(
+                info_surf,
+                (cfg.x + len(SPEED_ORDER) * (cfg.button_width + cfg.spacing) + 20, cfg.y + 7),
+            )
 
         return clickable
 

@@ -22,6 +22,7 @@ from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
+from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.value_objects.vec2 import Vec2
 from pycc2.presentation.input.interaction_controller import (
@@ -29,12 +30,10 @@ from pycc2.presentation.input.interaction_controller import (
     InteractionMode,
 )
 from pycc2.presentation.rendering.camera import Camera
-from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.services.combat_director import CombatDirector
 from pycc2.services.event_bus import EventBus
 from pycc2.services.event_protocol import PlayerCommand
 from pycc2.services.random_context import RandomContext
-
 
 # ── Fixtures ──────────────────────────────────────────────────────────
 
@@ -125,7 +124,9 @@ class TestMoveCommand:
         interaction_controller.set_mode(InteractionMode.MOVE)
         assert interaction_controller.mode == InteractionMode.MOVE
 
-    def test_move_command_with_callback(self, interaction_controller, ally_unit, combat_director, game_map, event_bus):
+    def test_move_command_with_callback(
+        self, interaction_controller, ally_unit, combat_director, game_map, event_bus
+    ):
         """Move command via registered callback should be invoked.
 
         Note: InteractionController.handle_left_click in MOVE mode has a
@@ -139,7 +140,9 @@ class TestMoveCommand:
         # We test this indirectly by verifying the mode was set correctly
         # and the callback is registered
         callback_invoked = []
-        interaction_controller._on_move_command = lambda ids, pos: callback_invoked.append((ids, pos))
+        interaction_controller._on_move_command = lambda ids, pos: callback_invoked.append(
+            (ids, pos)
+        )
 
         # Simulate the move command flow without triggering the logger bug
         # by directly calling the callback
@@ -151,7 +154,9 @@ class TestMoveCommand:
 
 @pytest.mark.integration
 class TestAttackCommand:
-    def test_attack_command_via_event_bus(self, combat_director, ally_unit, enemy_unit, game_map, event_bus):
+    def test_attack_command_via_event_bus(
+        self, combat_director, ally_unit, enemy_unit, game_map, event_bus
+    ):
         """Attack command published via EventBus should execute attack."""
         combat_director.set_context([ally_unit, enemy_unit], game_map)
         combat_director.ballistic_engine = RandomContext.from_seed(42)
@@ -321,7 +326,9 @@ class TestCancelCommand:
 
 @pytest.mark.integration
 class TestRightClickCommands:
-    def test_right_click_enemy_issues_attack(self, interaction_controller, ally_unit, enemy_unit, event_bus):
+    def test_right_click_enemy_issues_attack(
+        self, interaction_controller, ally_unit, enemy_unit, event_bus
+    ):
         """Right-clicking an enemy unit while having a selected ally should publish attack."""
         published_events = []
         original_publish = event_bus.publish
@@ -344,7 +351,9 @@ class TestRightClickCommands:
         )
 
         # Should have published an attack event
-        attack_events = [e for e in published_events if isinstance(e, dict) and e.get("command") == "attack"]
+        attack_events = [
+            e for e in published_events if isinstance(e, dict) and e.get("command") == "attack"
+        ]
         assert len(attack_events) >= 1
 
     def test_right_click_terrain_issues_move(self, interaction_controller, ally_unit, event_bus):
@@ -362,6 +371,7 @@ class TestRightClickCommands:
 
         # Register move callback so handle_right_click can invoke it
         move_commands = []
+
         def on_move(unit_ids, target):
             move_commands.append((unit_ids, target))
 
@@ -374,5 +384,7 @@ class TestRightClickCommands:
         )
 
         # Should have either published a move event or called the callback
-        move_events = [e for e in published_events if isinstance(e, dict) and e.get("command") == "move"]
+        move_events = [
+            e for e in published_events if isinstance(e, dict) and e.get("command") == "move"
+        ]
         assert len(move_events) >= 1 or len(move_commands) >= 1

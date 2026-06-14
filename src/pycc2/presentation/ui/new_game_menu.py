@@ -21,6 +21,8 @@ from typing import TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
 
+import contextlib
+
 import pygame
 
 from pycc2.domain.systems.game_settings import (  # type: ignore[import-untyped]
@@ -41,6 +43,7 @@ if TYPE_CHECKING:
 # Menu screen enum
 # ========================================================================
 
+
 class MenuScreen(Enum):
     MAIN = auto()
     CAMPAIGN = auto()
@@ -52,20 +55,20 @@ class MenuScreen(Enum):
 # Colour palette — dark military theme
 # ========================================================================
 
-_BG_COLOR = (28, 32, 24)            # dark olive
-_PANEL_COLOR = (38, 42, 34)         # slightly lighter olive
-_BORDER_COLOR = (80, 85, 60)        # muted olive border
-_TITLE_COLOR = (218, 195, 130)      # gold
-_TEXT_COLOR = (220, 220, 210)       # off-white
-_TEXT_DIM = (140, 140, 130)         # dim text
-_HIGHLIGHT_COLOR = (160, 145, 80)   # gold highlight for selected
-_BTN_NORMAL = (50, 55, 42)         # button background
-_BTN_HOVER = (70, 78, 55)          # button hover
-_BTN_SELECTED = (100, 95, 50)      # selected / active button
-_BTN_TEXT = (220, 220, 210)        # button text
-_BTN_BORDER = (90, 95, 65)         # button border
-_ACCENT_ALLIES = (80, 130, 200)    # blue for allies
-_ACCENT_AXIS = (180, 80, 80)       # red for axis
+_BG_COLOR = (28, 32, 24)  # dark olive
+_PANEL_COLOR = (38, 42, 34)  # slightly lighter olive
+_BORDER_COLOR = (80, 85, 60)  # muted olive border
+_TITLE_COLOR = (218, 195, 130)  # gold
+_TEXT_COLOR = (220, 220, 210)  # off-white
+_TEXT_DIM = (140, 140, 130)  # dim text
+_HIGHLIGHT_COLOR = (160, 145, 80)  # gold highlight for selected
+_BTN_NORMAL = (50, 55, 42)  # button background
+_BTN_HOVER = (70, 78, 55)  # button hover
+_BTN_SELECTED = (100, 95, 50)  # selected / active button
+_BTN_TEXT = (220, 220, 210)  # button text
+_BTN_BORDER = (90, 95, 65)  # button border
+_ACCENT_ALLIES = (80, 130, 200)  # blue for allies
+_ACCENT_AXIS = (180, 80, 80)  # red for axis
 
 
 # ========================================================================
@@ -121,19 +124,19 @@ _SUPPLY_LABELS: dict[SupplyLevelSetting, str] = {
 # Available maps discovery
 # ========================================================================
 
+
 def _discover_maps() -> list[str]:
     """Return map stem names found in data/maps/ (excluding _schema)."""
     map_dir = Path("data/maps")
     if not map_dir.is_dir():
         return []
-    return sorted(
-        m.stem for m in map_dir.glob("*.json") if m.stem != "_schema"
-    )
+    return sorted(m.stem for m in map_dir.glob("*.json") if m.stem != "_schema")
 
 
 # ========================================================================
 # NewGameMenu dataclass
 # ========================================================================
+
 
 @dataclass
 class NewGameMenu:
@@ -143,7 +146,7 @@ class NewGameMenu:
     screen_height: int = 720
     current_screen: MenuScreen = MenuScreen.MAIN
     selected_preset: GamePreset = GamePreset.NORMAL
-    player_side: str = 'allied'
+    player_side: str = "allied"
     selected_map_index: int = 0
     available_maps: list[str] = field(default_factory=_discover_maps)
     battle_type: SkirmishType = SkirmishType.MEETING_ENGAGEMENT
@@ -246,12 +249,14 @@ class NewGameMenu:
         start_y = sh // 2 - 30
         gap = 68
 
-        for i, (key, label) in enumerate([
-            ("new_campaign", "New Campaign"),
-            ("load_game", "Load Game"),
-            ("skirmish", "Skirmish"),
-            ("quit", "Quit"),
-        ]):
+        for i, (key, label) in enumerate(
+            [
+                ("new_campaign", "New Campaign"),
+                ("load_game", "Load Game"),
+                ("skirmish", "Skirmish"),
+                ("quit", "Quit"),
+            ]
+        ):
             rect = pygame.Rect(bx, start_y + i * gap, bw, bh)
             self._buttons[key] = rect
             self._draw_button(surface, rect, label)
@@ -262,8 +267,12 @@ class NewGameMenu:
 
         # Section title
         self._draw_label(
-            surface, 60, 40, "Campaign Settings",
-            color=_TITLE_COLOR, font=self._font_large,
+            surface,
+            60,
+            40,
+            "Campaign Settings",
+            color=_TITLE_COLOR,
+            font=self._font_large,
         )
 
         # Campaign name
@@ -272,18 +281,22 @@ class NewGameMenu:
         # Player side toggle
         side_label = (
             "Player Side:  Allies (British / US / Polish)"
-            if self.player_side == 'allied'
+            if self.player_side == "allied"
             else "Player Side:  Axis (German)"
         )
-        side_accent = _ACCENT_ALLIES if self.player_side == 'allied' else _ACCENT_AXIS
+        side_accent = _ACCENT_ALLIES if self.player_side == "allied" else _ACCENT_AXIS
         side_rect = pygame.Rect(60, 130, 500, 40)
         self._buttons["toggle_side"] = side_rect
         self._draw_button(surface, side_rect, side_label, accent=side_accent)
 
         # Difficulty presets
         self._draw_label(
-            surface, 60, 195, "Difficulty Preset",
-            color=_TITLE_COLOR, font=self._font_normal,
+            surface,
+            60,
+            195,
+            "Difficulty Preset",
+            color=_TITLE_COLOR,
+            font=self._font_normal,
         )
 
         pw, ph = 140, 42
@@ -295,7 +308,10 @@ class NewGameMenu:
             self._buttons[key] = rect
             is_sel = preset == self.selected_preset
             self._draw_button(
-                surface, rect, _PRESET_LABELS[preset], selected=is_sel,
+                surface,
+                rect,
+                _PRESET_LABELS[preset],
+                selected=is_sel,
             )
 
         # Current side settings
@@ -304,30 +320,46 @@ class NewGameMenu:
 
         # Allied settings
         self._draw_label(
-            surface, 60, detail_y, "Allied Forces",
-            color=_ACCENT_ALLIES, font=self._font_large,
+            surface,
+            60,
+            detail_y,
+            "Allied Forces",
+            color=_ACCENT_ALLIES,
+            font=self._font_large,
         )
         self._draw_label(
-            surface, 80, detail_y + 36,
+            surface,
+            80,
+            detail_y + 36,
             f"Experience:  {_EXP_LABELS[settings.allied_settings.experience_level]}",
         )
         self._draw_label(
-            surface, 80, detail_y + 64,
+            surface,
+            80,
+            detail_y + 64,
             f"Supply:  {_SUPPLY_LABELS[settings.allied_settings.supply_level]}",
         )
 
         # Axis settings
         axis_y = detail_y + 110
         self._draw_label(
-            surface, 60, axis_y, "Axis Forces",
-            color=_ACCENT_AXIS, font=self._font_large,
+            surface,
+            60,
+            axis_y,
+            "Axis Forces",
+            color=_ACCENT_AXIS,
+            font=self._font_large,
         )
         self._draw_label(
-            surface, 80, axis_y + 36,
+            surface,
+            80,
+            axis_y + 36,
             f"Experience:  {_EXP_LABELS[settings.axis_settings.experience_level]}",
         )
         self._draw_label(
-            surface, 80, axis_y + 64,
+            surface,
+            80,
+            axis_y + 64,
             f"Supply:  {_SUPPLY_LABELS[settings.axis_settings.supply_level]}",
         )
 
@@ -346,8 +378,12 @@ class NewGameMenu:
 
         # Section title
         self._draw_label(
-            surface, 60, 40, "Skirmish Settings",
-            color=_TITLE_COLOR, font=self._font_large,
+            surface,
+            60,
+            40,
+            "Skirmish Settings",
+            color=_TITLE_COLOR,
+            font=self._font_large,
         )
 
         # Map selector
@@ -370,19 +406,21 @@ class NewGameMenu:
 
         # Player side
         side_label = (
-            "Player Side:  Allies"
-            if self.player_side == 'allied'
-            else "Player Side:  Axis"
+            "Player Side:  Allies" if self.player_side == "allied" else "Player Side:  Axis"
         )
-        side_accent = _ACCENT_ALLIES if self.player_side == 'allied' else _ACCENT_AXIS
+        side_accent = _ACCENT_ALLIES if self.player_side == "allied" else _ACCENT_AXIS
         side_rect = pygame.Rect(60, 190, 500, 40)
         self._buttons["toggle_side"] = side_rect
         self._draw_button(surface, side_rect, side_label, accent=side_accent)
 
         # Difficulty presets
         self._draw_label(
-            surface, 60, 255, "Difficulty Preset",
-            color=_TITLE_COLOR, font=self._font_normal,
+            surface,
+            60,
+            255,
+            "Difficulty Preset",
+            color=_TITLE_COLOR,
+            font=self._font_normal,
         )
 
         pw, ph = 140, 42
@@ -394,7 +432,10 @@ class NewGameMenu:
             self._buttons[key] = rect
             is_sel = preset == self.selected_preset
             self._draw_button(
-                surface, rect, _PRESET_LABELS[preset], selected=is_sel,
+                surface,
+                rect,
+                _PRESET_LABELS[preset],
+                selected=is_sel,
             )
 
         # Side settings detail
@@ -402,29 +443,45 @@ class NewGameMenu:
         detail_y = py + ph + 30
 
         self._draw_label(
-            surface, 60, detail_y, "Allied Forces",
-            color=_ACCENT_ALLIES, font=self._font_large,
+            surface,
+            60,
+            detail_y,
+            "Allied Forces",
+            color=_ACCENT_ALLIES,
+            font=self._font_large,
         )
         self._draw_label(
-            surface, 80, detail_y + 36,
+            surface,
+            80,
+            detail_y + 36,
             f"Experience:  {_EXP_LABELS[settings.allied_settings.experience_level]}",
         )
         self._draw_label(
-            surface, 80, detail_y + 64,
+            surface,
+            80,
+            detail_y + 64,
             f"Supply:  {_SUPPLY_LABELS[settings.allied_settings.supply_level]}",
         )
 
         axis_y = detail_y + 110
         self._draw_label(
-            surface, 60, axis_y, "Axis Forces",
-            color=_ACCENT_AXIS, font=self._font_large,
+            surface,
+            60,
+            axis_y,
+            "Axis Forces",
+            color=_ACCENT_AXIS,
+            font=self._font_large,
         )
         self._draw_label(
-            surface, 80, axis_y + 36,
+            surface,
+            80,
+            axis_y + 36,
             f"Experience:  {_EXP_LABELS[settings.axis_settings.experience_level]}",
         )
         self._draw_label(
-            surface, 80, axis_y + 64,
+            surface,
+            80,
+            axis_y + 64,
             f"Supply:  {_SUPPLY_LABELS[settings.axis_settings.supply_level]}",
         )
 
@@ -443,8 +500,12 @@ class NewGameMenu:
 
         # Section title
         self._draw_label(
-            surface, 60, 40, "Load Game",
-            color=_TITLE_COLOR, font=self._font_large,
+            surface,
+            60,
+            40,
+            "Load Game",
+            color=_TITLE_COLOR,
+            font=self._font_large,
         )
 
         # Refresh save slots
@@ -452,8 +513,12 @@ class NewGameMenu:
 
         if not self._save_slots:
             self._draw_label(
-                surface, 80, 100, "No save files found.",
-                color=_TEXT_DIM, font=self._font_normal,
+                surface,
+                80,
+                100,
+                "No save files found.",
+                color=_TEXT_DIM,
+                font=self._font_normal,
             )
         else:
             # List save slots
@@ -465,6 +530,7 @@ class NewGameMenu:
                 # Build slot info text
                 if meta is not None:
                     from pycc2.infrastructure.save_system import SaveSlotStatus
+
                     if status == SaveSlotStatus.OK:
                         date_str = meta.saved_at[:19] if meta.saved_at else "unknown"
                         info = f"Slot {slot_idx}:  Tick {meta.tick}  |  {date_str}  |  Allies:{meta.allies_alive}  Axis:{meta.axis_alive}"
@@ -529,19 +595,19 @@ class NewGameMenu:
                     self.current_screen = MenuScreen.SKIRMISH
                     return None
                 if key == "quit":
-                    return 'quit'
+                    return "quit"
 
             # ---- Campaign screen ----
             elif self.current_screen == MenuScreen.CAMPAIGN:
                 if key == "toggle_side":
-                    self.player_side = 'axis' if self.player_side == 'allied' else 'allied'
+                    self.player_side = "axis" if self.player_side == "allied" else "allied"
                     return None
                 if key.startswith("preset_"):
-                    preset_name = key[len("preset_"):]
+                    preset_name = key[len("preset_") :]
                     self.selected_preset = GamePreset[preset_name]
                     return None
                 if key == "start_campaign":
-                    return 'start_campaign'
+                    return "start_campaign"
                 if key == "back":
                     self.current_screen = MenuScreen.MAIN
                     return None
@@ -550,8 +616,8 @@ class NewGameMenu:
             elif self.current_screen == MenuScreen.SKIRMISH:
                 if key == "cycle_map":
                     if self.available_maps:
-                        self.selected_map_index = (
-                            (self.selected_map_index + 1) % len(self.available_maps)
+                        self.selected_map_index = (self.selected_map_index + 1) % len(
+                            self.available_maps
                         )
                     return None
                 if key == "cycle_battle_type":
@@ -559,14 +625,14 @@ class NewGameMenu:
                     self.battle_type = _BATTLE_TYPE_ORDER[(idx + 1) % len(_BATTLE_TYPE_ORDER)]
                     return None
                 if key == "toggle_side":
-                    self.player_side = 'axis' if self.player_side == 'allied' else 'allied'
+                    self.player_side = "axis" if self.player_side == "allied" else "allied"
                     return None
                 if key.startswith("preset_"):
-                    preset_name = key[len("preset_"):]
+                    preset_name = key[len("preset_") :]
                     self.selected_preset = GamePreset[preset_name]
                     return None
                 if key == "start_skirmish":
-                    return 'start_skirmish'
+                    return "start_skirmish"
                 if key == "back":
                     self.current_screen = MenuScreen.MAIN
                     return None
@@ -574,15 +640,13 @@ class NewGameMenu:
             # ---- Load Game screen ----
             elif self.current_screen == MenuScreen.LOAD_GAME:
                 if key.startswith("save_slot_"):
-                    slot_str = key[len("save_slot_"):]
-                    try:
+                    slot_str = key[len("save_slot_") :]
+                    with contextlib.suppress(ValueError):
                         self._selected_save_slot = int(slot_str)
-                    except ValueError:
-                        pass
                     return None
                 if key == "load_selected":
                     if self._selected_save_slot >= 0:
-                        return f'load_game:{self._selected_save_slot}'
+                        return f"load_game:{self._selected_save_slot}"
                     return None
                 if key == "back":
                     self.current_screen = MenuScreen.MAIN
@@ -596,7 +660,7 @@ class NewGameMenu:
             if self.current_screen != MenuScreen.MAIN:
                 self.current_screen = MenuScreen.MAIN
                 return None
-            return 'quit'
+            return "quit"
 
         # Arrow-key cycling on skirmish/campaign screens
         if self.current_screen in (MenuScreen.CAMPAIGN, MenuScreen.SKIRMISH):
@@ -609,7 +673,7 @@ class NewGameMenu:
                 self.selected_preset = _PRESET_ORDER[(idx + 1) % len(_PRESET_ORDER)]
                 return None
             if key == pygame.K_TAB:
-                self.player_side = 'axis' if self.player_side == 'allied' else 'allied'
+                self.player_side = "axis" if self.player_side == "allied" else "allied"
                 return None
 
         return None
@@ -630,7 +694,7 @@ class NewGameMenu:
                 experience_level=preset.axis_settings.experience_level,
                 supply_level=preset.axis_settings.supply_level,
             ),
-            campaign_id='market_garden',
+            campaign_id="market_garden",
             player_side=self.player_side,
         )
 
@@ -638,7 +702,7 @@ class NewGameMenu:
         """Return the currently selected map stem name."""
         if self.available_maps:
             return self.available_maps[self.selected_map_index]
-        return 'arnhem'
+        return "arnhem"
 
     def get_battle_type(self) -> SkirmishType:
         """Return the currently selected skirmish battle type."""
@@ -648,6 +712,7 @@ class NewGameMenu:
         """Refresh the save slot list from the save manager."""
         try:
             from pycc2.infrastructure.save_system import SecureSaveManager
+
             manager = SecureSaveManager()
             self._save_slots = manager.list_all_slots()
         except Exception as e:

@@ -5,11 +5,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pycc2.domain.interfaces.display_config import DisplayConfig
-from pycc2.presentation.ui.hint_manager import ActiveHint, HintManager, HINTS
+from pycc2.presentation.ui.hint_manager import HINTS, ActiveHint, HintManager
 from pycc2.presentation.ui.tutorial_system import (
     TutorialOverlay,
-    TutorialStep,
     TutorialState,
+    TutorialStep,
 )
 
 
@@ -30,6 +30,7 @@ def hint_manager():
 
 def _make_key_event(key):
     import pygame
+
     ev = MagicMock()
     ev.type = pygame.KEYDOWN
     ev.key = key
@@ -38,6 +39,7 @@ def _make_key_event(key):
 
 def _make_mouse_event(button=1):
     import pygame
+
     ev = MagicMock()
     ev.type = pygame.MOUSEBUTTONDOWN
     ev.button = button
@@ -45,7 +47,6 @@ def _make_mouse_event(button=1):
 
 
 class TestTutorialStateDefaults:
-
     def test_default_step_is_welcome(self):
         s = TutorialState()
         assert s.step == TutorialStep.WELCOME
@@ -68,7 +69,6 @@ class TestTutorialStateDefaults:
 
 
 class TestTutorialStepEnum:
-
     def test_all_steps_defined(self):
         expected = {
             "WELCOME",
@@ -86,7 +86,6 @@ class TestTutorialStepEnum:
 
 
 class TestTutorialOverlayShowHideToggle:
-
     def test_initially_not_visible(self, tutorial_overlay):
         assert tutorial_overlay.visible is False
 
@@ -115,7 +114,6 @@ class TestTutorialOverlayShowHideToggle:
 
 
 class TestTutorialOverlayStepAdvancement:
-
     def test_advance_from_welcome_to_select_unit(self, tutorial_overlay):
         tutorial_overlay.state.step = TutorialStep.WELCOME
         result = tutorial_overlay.advance_step()
@@ -124,7 +122,7 @@ class TestTutorialOverlayStepAdvancement:
 
     def test_advance_through_all_steps(self, tutorial_overlay):
         steps = list(TutorialStep)
-        for i in range(len(steps) - 1):
+        for _i in range(len(steps) - 1):
             result = tutorial_overlay.advance_step()
             assert result is True
         final_result = tutorial_overlay.advance_step()
@@ -138,19 +136,19 @@ class TestTutorialOverlayStepAdvancement:
     def test_space_key_advances_tutorial(self, tutorial_overlay):
         event = _make_key_event(32)
         result = tutorial_overlay.handle_input(event)
-        assert result == 'advanced'
+        assert result == "advanced"
         assert tutorial_overlay.state.step == TutorialStep.SELECT_UNIT
 
     def test_mouse_click_advances_tutorial(self, tutorial_overlay):
         event = _make_mouse_event(1)
         result = tutorial_overlay.handle_input(event)
-        assert result == 'advanced'
+        assert result == "advanced"
 
     def test_esc_closes_tutorial(self, tutorial_overlay):
         tutorial_overlay.show()
         event = _make_key_event(27)
         result = tutorial_overlay.handle_input(event)
-        assert result == 'closed'
+        assert result == "closed"
 
     def test_no_advancement_on_complete_step(self, tutorial_overlay):
         tutorial_overlay.state.step = TutorialStep.COMPLETE
@@ -160,12 +158,13 @@ class TestTutorialOverlayStepAdvancement:
 
 
 class TestTutorialStepsContent:
-
     def test_welcome_has_title_and_lines(self):
         content = TutorialOverlay.STEPS[TutorialStep.WELCOME]
         assert "title" in content
         assert "lines" in content
-        assert len(content["lines"]) >= 1, f"WELCOME step should have at least 1 line, got {len(content['lines'])}"
+        assert len(content["lines"]) >= 1, (
+            f"WELCOME step should have at least 1 line, got {len(content['lines'])}"
+        )
         assert content["title"] == "Welcome to PyCC2"
 
     def test_select_unit_content_valid(self):
@@ -199,11 +198,12 @@ class TestTutorialStepsContent:
             assert step in TutorialOverlay.STEPS
             assert "title" in TutorialOverlay.STEPS[step]
             assert "lines" in TutorialOverlay.STEPS[step]
-            assert len(TutorialOverlay.STEPS[step]["lines"]) >= 1, f"Step {step} should have at least 1 line"
+            assert len(TutorialOverlay.STEPS[step]["lines"]) >= 1, (
+                f"Step {step} should have at least 1 line"
+            )
 
 
 class TestFadeAnimation:
-
     def test_fade_in_on_show(self, tutorial_overlay):
         tutorial_overlay.show()
         assert tutorial_overlay._alpha == 0.0
@@ -240,7 +240,6 @@ class TestFadeAnimation:
 
 
 class TestHintManagerBasics:
-
     def test_initially_enabled(self, hint_manager):
         assert hint_manager.enabled is True
 
@@ -267,7 +266,6 @@ class TestHintManagerBasics:
 
 
 class TestHintLifecycle:
-
     def test_update_decrements_lifetime(self, hint_manager):
         hint_manager.show_hint("test", 0, 0, lifetime=10)
         initial = hint_manager._hints[0].lifetime
@@ -298,9 +296,10 @@ class TestHintLifecycle:
 
 
 class TestHintsDict:
-
     def test_hints_dict_not_empty(self):
-        assert len(HINTS) >= 6, f"HINTS dict should have at least 6 entries (first_select, right_click_move, etc.), got {len(HINTS)}"
+        assert len(HINTS) >= 6, (
+            f"HINTS dict should have at least 6 entries (first_select, right_click_move, etc.), got {len(HINTS)}"
+        )
 
     def test_contains_expected_keys(self):
         expected_keys = {
@@ -314,7 +313,7 @@ class TestHintsDict:
         assert set(HINTS.keys()) == expected_keys
 
     def test_each_hint_is_tuple_of_three(self):
-        for key, val in HINTS.items():
+        for _key, val in HINTS.items():
             assert isinstance(val, tuple)
             assert len(val) == 3
             assert isinstance(val[0], str)
@@ -324,10 +323,11 @@ class TestHintsDict:
 
 
 class TestRenderNoCrash:
-
     @patch("pygame.font.Font")
     @patch("pygame.Surface")
-    def test_render_with_mock_screen(self, mock_surface_cls, mock_font_cls, tutorial_overlay, display_config):
+    def test_render_with_mock_screen(
+        self, mock_surface_cls, mock_font_cls, tutorial_overlay, display_config
+    ):
         tutorial_overlay.show()
         mock_screen = MagicMock()
         mock_screen.get_size.return_value = (800, 600)
@@ -347,7 +347,6 @@ class TestRenderNoCrash:
 
 
 class TestContextualHintIntegration:
-
     def test_show_contextual_hint_sets_state(self, tutorial_overlay):
         tutorial_overlay.show_contextual_hint("Move here!", (200, 150), lifetime=90)
         assert tutorial_overlay._current_hint == "Move here!"
@@ -367,7 +366,6 @@ class TestContextualHintIntegration:
 
 
 class TestCompleteStepAutoHide:
-
     def test_complete_step_auto_hides_after_delay(self, tutorial_overlay):
         tutorial_overlay.state.step = TutorialStep.COMPLETE
         tutorial_overlay.show()

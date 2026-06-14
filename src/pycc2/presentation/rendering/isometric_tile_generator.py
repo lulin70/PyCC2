@@ -337,7 +337,9 @@ def generate_building_tile(height_levels: int = 2) -> pygame.Surface:
     if height_levels >= 2:
         mid_y = (right_wall[0][1] + right_wall[3][1]) // 2
         mid_x = (right_wall[0][0] + right_wall[1][0]) // 2
-        pygame.draw.rect(surface, CC2_ISOMETRIC_PALETTE["wall_shadow"], (mid_x - 2, mid_y - 2, 4, 4))
+        pygame.draw.rect(
+            surface, CC2_ISOMETRIC_PALETTE["wall_shadow"], (mid_x - 2, mid_y - 2, 4, 4)
+        )
 
     return surface
 

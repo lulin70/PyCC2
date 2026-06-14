@@ -3,6 +3,7 @@
 Manages action-to-key mappings with save/load to JSON.
 Supports modifier key combinations and conflict detection.
 """
+
 from __future__ import annotations
 
 import json
@@ -11,54 +12,57 @@ import warnings
 
 import pygame
 
-
 # Default keybindings (action_name -> tuple of pygame key constants)
 # Single key: (pygame.K_m,)  |  Combo: (pygame.K_LCTRL, pygame.K_a)
 DEFAULT_KEYBINDS: dict[str, tuple[int, ...]] = {
-    'move': (pygame.K_z,),
-    'move_fast': (pygame.K_x,),
-    'sneak': (pygame.K_s,),
-    'fire': (pygame.K_c,),
-    'smoke': (pygame.K_v,),
-    'defend': (pygame.K_d,),
-    'hide': (pygame.K_h,),
-    'cancel': (pygame.K_ESCAPE,),
-    'select_all': (pygame.K_a,),
-    'camera_up': (pygame.K_UP,),
-    'camera_down': (pygame.K_DOWN,),
-    'camera_left': (pygame.K_LEFT,),
-    'camera_right': (pygame.K_RIGHT,),
+    "move": (pygame.K_z,),
+    "move_fast": (pygame.K_x,),
+    "sneak": (pygame.K_s,),
+    "fire": (pygame.K_c,),
+    "smoke": (pygame.K_v,),
+    "defend": (pygame.K_d,),
+    "hide": (pygame.K_h,),
+    "cancel": (pygame.K_ESCAPE,),
+    "select_all": (pygame.K_a,),
+    "camera_up": (pygame.K_UP,),
+    "camera_down": (pygame.K_DOWN,),
+    "camera_left": (pygame.K_LEFT,),
+    "camera_right": (pygame.K_RIGHT,),
 }
 
 # Human-readable labels for each action
 ACTION_LABELS: dict[str, str] = {
-    'move': 'Move',
-    'move_fast': 'Move Fast',
-    'sneak': 'Sneak',
-    'fire': 'Fire / Attack',
-    'smoke': 'Smoke',
-    'defend': 'Defend',
-    'hide': 'Hide',
-    'cancel': 'Cancel / Deselect',
-    'select_all': 'Select All',
-    'camera_up': 'Camera Up',
-    'camera_down': 'Camera Down',
-    'camera_left': 'Camera Left',
-    'camera_right': 'Camera Right',
+    "move": "Move",
+    "move_fast": "Move Fast",
+    "sneak": "Sneak",
+    "fire": "Fire / Attack",
+    "smoke": "Smoke",
+    "defend": "Defend",
+    "hide": "Hide",
+    "cancel": "Cancel / Deselect",
+    "select_all": "Select All",
+    "camera_up": "Camera Up",
+    "camera_down": "Camera Down",
+    "camera_left": "Camera Left",
+    "camera_right": "Camera Right",
 }
 
 # Modifier key constants for detection
 _MOD_KEYS = {
-    pygame.K_LCTRL, pygame.K_RCTRL,
-    pygame.K_LSHIFT, pygame.K_RSHIFT,
-    pygame.K_LALT, pygame.K_RALT,
-    pygame.K_LMETA, pygame.K_RMETA,
+    pygame.K_LCTRL,
+    pygame.K_RCTRL,
+    pygame.K_LSHIFT,
+    pygame.K_RSHIFT,
+    pygame.K_LALT,
+    pygame.K_RALT,
+    pygame.K_LMETA,
+    pygame.K_RMETA,
 }
 
 _SAVE_PATH = os.path.join(
-    os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config')),
-    'pycc2',
-    'keybinds.json',
+    os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config")),
+    "pycc2",
+    "keybinds.json",
 )
 
 
@@ -151,7 +155,7 @@ class KeybindManager:
             combo_to_actions.setdefault(combo, []).append(action)
 
         conflicts: dict[str, list[str]] = {}
-        for combo, actions in combo_to_actions.items():
+        for _combo, actions in combo_to_actions.items():
             if len(actions) > 1:
                 for action in actions:
                     others = [a for a in actions if a != action]
@@ -176,17 +180,17 @@ class KeybindManager:
     def key_name(key_or_combo: int | tuple[int, ...]) -> str:
         """Return a human-readable name for a pygame key constant or combo."""
         if isinstance(key_or_combo, int):
-            return pygame.key.name(key_or_combo).upper() if key_or_combo else '???'
+            return pygame.key.name(key_or_combo).upper() if key_or_combo else "???"
         # tuple combo: join with +
-        parts = [pygame.key.name(k).upper() if k else '???' for k in key_or_combo]
-        return '+'.join(parts) if parts else '???'
+        parts = [pygame.key.name(k).upper() if k else "???" for k in key_or_combo]
+        return "+".join(parts) if parts else "???"
 
     def _save_bindings(self) -> None:
         """Save bindings to a JSON file."""
         data = {action: list(combo) for action, combo in self._bindings.items()}
         try:
             os.makedirs(os.path.dirname(_SAVE_PATH), exist_ok=True)
-            with open(_SAVE_PATH, 'w') as f:
+            with open(_SAVE_PATH, "w") as f:
                 json.dump(data, f)
         except OSError:
             pass

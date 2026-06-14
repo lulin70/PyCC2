@@ -22,17 +22,17 @@ from pygame import Rect, Surface, draw, font
 from pygame.font import Font
 
 if TYPE_CHECKING:
-    from pycc2.domain.entities.unit import Unit
     from pycc2.domain.entities.game_map import GameMap
+    from pycc2.domain.entities.unit import Unit
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.rendering.minimap import Minimap
 from pycc2.presentation.rendering.fade_transition import FadeTransition
 from pycc2.presentation.ui.theme import ThemeManager
 
-
 # ------------------------------------------------------------------
 # Tooltip Manager — lightweight tooltip display for UI buttons
 # ------------------------------------------------------------------
+
 
 class TooltipManager:
     """Simple tooltip display manager for UI elements.
@@ -74,7 +74,7 @@ class TooltipManager:
         if not self._visible or not self._text:
             return
         try:
-            font_obj = font.SysFont('arial', self._font_size)
+            font_obj = font.SysFont("arial", self._font_size)
             text_surf = font_obj.render(self._text, True, (240, 235, 220))
             padding = 4
             bg_rect = text_surf.get_rect.inflate(padding * 2, padding * 2)
@@ -112,8 +112,8 @@ class CC2BottomPanel:
 
     # Colors (CC2 military style - Deep Olive Green)
     # Theme-managed: falls back to CC2 originals if ThemeManager not initialized
-    _BG_COLOR_DEFAULT = (58, 64, 48)       # Deep olive green (#3A4030) - CC2 original
-    _BORDER_COLOR_DEFAULT = (90, 96, 80)   # Olive border (#5A6050) - CC2 original
+    _BG_COLOR_DEFAULT = (58, 64, 48)  # Deep olive green (#3A4030) - CC2 original
+    _BORDER_COLOR_DEFAULT = (90, 96, 80)  # Olive border (#5A6050) - CC2 original
     _TEXT_COLOR_DEFAULT = (220, 220, 220)
     _HIGHLIGHT_COLOR_DEFAULT = (255, 255, 100)
     _SELECTED_BG_DEFAULT = (40, 45, 55)
@@ -121,39 +121,39 @@ class CC2BottomPanel:
     @property
     def BG_COLOR(self) -> tuple[int, int, int]:
         """Panel background color from current theme."""
-        return getattr(ThemeManager.get_current().colors, 'surface', self._BG_COLOR_DEFAULT)
+        return getattr(ThemeManager.get_current().colors, "surface", self._BG_COLOR_DEFAULT)
 
     @property
     def BORDER_COLOR(self) -> tuple[int, int, int]:
         """Panel border color from current theme."""
-        return getattr(ThemeManager.get_current().colors, 'border', self._BORDER_COLOR_DEFAULT)
+        return getattr(ThemeManager.get_current().colors, "border", self._BORDER_COLOR_DEFAULT)
 
     @property
     def TEXT_COLOR(self) -> tuple[int, int, int]:
         """Primary text color from current theme."""
-        return getattr(ThemeManager.get_current().colors, 'text_primary', self._TEXT_COLOR_DEFAULT)
+        return getattr(ThemeManager.get_current().colors, "text_primary", self._TEXT_COLOR_DEFAULT)
 
     @property
     def HIGHLIGHT_COLOR(self) -> tuple[int, int, int]:
         """Highlight/accent color from current theme."""
-        return getattr(ThemeManager.get_current().colors, 'warning', self._HIGHLIGHT_COLOR_DEFAULT)
+        return getattr(ThemeManager.get_current().colors, "warning", self._HIGHLIGHT_COLOR_DEFAULT)
 
     @property
     def SELECTED_BG(self) -> tuple[int, int, int]:
         """Selected item background color from current theme."""
-        return getattr(ThemeManager.get_current().colors, 'surface', self._SELECTED_BG_DEFAULT)
+        return getattr(ThemeManager.get_current().colors, "surface", self._SELECTED_BG_DEFAULT)
 
     # 3D border colors for raised buttons
     BORDER_LIGHT = (90, 95, 105)  # Top/left highlight
-    BORDER_DARK = (20, 22, 28)    # Bottom/right shadow
+    BORDER_DARK = (20, 22, 28)  # Bottom/right shadow
 
     # Urgency colors (red=critical -> white=safe)
     URGENCY_COLORS = {
-        'CRITICAL': (255, 50, 50),    # Red
-        'HIGH': (255, 140, 0),         # Orange
-        'MEDIUM': (255, 220, 0),       # Yellow
-        'LOW': (100, 200, 100),        # Green
-        'SAFE': (200, 200, 200),       # White/Gray
+        "CRITICAL": (255, 50, 50),  # Red
+        "HIGH": (255, 140, 0),  # Orange
+        "MEDIUM": (255, 220, 0),  # Yellow
+        "LOW": (100, 200, 100),  # Green
+        "SAFE": (200, 200, 200),  # White/Gray
     }
 
     def __init__(self) -> None:
@@ -191,11 +191,27 @@ class CC2BottomPanel:
             {"id": "fast", "label": "Fast", "key": "X", "enabled_when_selected": True},
             {"id": "sneak", "label": "Sneak", "key": "S", "enabled_when_selected": True},
             {"id": "attack", "label": "Attack", "key": "C", "enabled_when_selected": True},
-            {"id": "smoke", "label": "Smoke", "key": "V", "enabled_when_selected": True, "needs_smoke_ammo": True},
+            {
+                "id": "smoke",
+                "label": "Smoke",
+                "key": "V",
+                "enabled_when_selected": True,
+                "needs_smoke_ammo": True,
+            },
             {"id": "defend", "label": "Defend", "key": "D", "enabled_when_selected": True},
             {"id": "hide", "label": "Hide", "key": "H", "enabled_when_selected": True},
-            {"id": "cancel", "label": "Cancel", "key": "ESC", "enabled_when_selected": False},  # Always available
-            {"id": "end_battle", "label": "END BATTLE", "key": "E", "enabled_when_selected": False},  # Always available
+            {
+                "id": "cancel",
+                "label": "Cancel",
+                "key": "ESC",
+                "enabled_when_selected": False,
+            },  # Always available
+            {
+                "id": "end_battle",
+                "label": "END BATTLE",
+                "key": "E",
+                "enabled_when_selected": False,
+            },  # Always available
         ]
         self._hovered_command: str | None = None
         self._command_callbacks: dict[str, callable] = {}
@@ -248,10 +264,10 @@ class CC2BottomPanel:
         if not font.get_init():
             font.init()
         try:
-            self._font_small = pygame.font.SysFont('consolas', 13)
-            self._font_normal = pygame.font.SysFont('consolas', 15)
-            self._font_title = pygame.font.SysFont('consolas', 17)
-            self._font_large = pygame.font.SysFont('consolas', 22, bold=True)
+            self._font_small = pygame.font.SysFont("consolas", 13)
+            self._font_normal = pygame.font.SysFont("consolas", 15)
+            self._font_title = pygame.font.SysFont("consolas", 17)
+            self._font_large = pygame.font.SysFont("consolas", 22, bold=True)
         except Exception as e:
             logging.debug(f"SysFont fallback to default fonts: {e}")
             self._font_small = pygame.font.Font(None, 16)
@@ -714,8 +730,7 @@ class CC2BottomPanel:
     def set_friendly_units(self, units: list[Unit]) -> None:
         """Set the list of friendly units for the roster."""
         self._friendly_units = sorted(
-            units,
-            key=lambda u: (u.unit_type.value if hasattr(u.unit_type, 'value') else 0, u.name)
+            units, key=lambda u: (u.unit_type.value if hasattr(u.unit_type, "value") else 0, u.name)
         )
 
     def set_selected_unit(self, unit_id: str | None) -> None:
@@ -908,9 +923,9 @@ class CC2BottomPanel:
             timer_text = f"{minutes}:{secs:02d}"
             # Color based on remaining time
             if self._battle_timer < 30:
-                timer_color = (255, 68, 68)    # Red - critical
+                timer_color = (255, 68, 68)  # Red - critical
             elif self._battle_timer < 60:
-                timer_color = (255, 255, 0)    # Yellow - warning
+                timer_color = (255, 255, 0)  # Yellow - warning
             else:
                 timer_color = (255, 255, 255)  # White - normal
             # Render centered at top of panel
@@ -931,15 +946,21 @@ class CC2BottomPanel:
 
         # === SECTION 3: Command Bar (Center-Right, next to details) ===
         cmd_x = detail_x + self.DETAIL_WIDTH + 10
-        self._render_command_bar(target, cmd_x, section_y, self.COMMAND_WIDTH, content_height, time_remaining)
+        self._render_command_bar(
+            target, cmd_x, section_y, self.COMMAND_WIDTH, content_height, time_remaining
+        )
 
         # === SECTION 4: Urgency Indicator (Right of commands) ===
         urgency_x = cmd_x + self.COMMAND_WIDTH + 5
-        self._render_urgency_indicator(target, urgency_x, section_y, self.URGENCY_WIDTH, content_height)
+        self._render_urgency_indicator(
+            target, urgency_x, section_y, self.URGENCY_WIDTH, content_height
+        )
 
         # === SECTION 5: Minimap (Far Right) ===
         minimap_x = urgency_x + self.URGENCY_WIDTH + 5
-        self._render_minimap_section(target, minimap_x, section_y, self.MINIMAP_SIZE, minimap, camera, game_map)
+        self._render_minimap_section(
+            target, minimap_x, section_y, self.MINIMAP_SIZE, minimap, camera, game_map
+        )
 
         # Blit the faded panel surface onto the target surface with alpha
         if use_fade_surface:
@@ -949,9 +970,7 @@ class CC2BottomPanel:
         # Render tooltip on top of everything (always on main surface)
         self._tooltip.render(surface)
 
-    def _render_roster(
-        self, surface: Surface, x: int, y: int, w: int, h: int
-    ) -> None:
+    def _render_roster(self, surface: Surface, x: int, y: int, w: int, h: int) -> None:
         """Render the unit roster list."""
         # Background
         draw.rect(surface, (30, 33, 38), Rect(x, y, w, h))
@@ -967,7 +986,7 @@ class CC2BottomPanel:
         # Unit list
         self._roster_item_rects = []
         visible_units = self._friendly_units[
-            self._roster_scroll_offset:self._roster_scroll_offset + self._visible_roster_items
+            self._roster_scroll_offset : self._roster_scroll_offset + self._visible_roster_items
         ]
 
         item_y = y + 22
@@ -981,7 +1000,9 @@ class CC2BottomPanel:
 
             # Selection highlight: 2px bright left indicator bar
             if is_selected:
-                draw.rect(surface, self.HIGHLIGHT_COLOR, Rect(x + 2, item_y, 2, self._roster_item_height))
+                draw.rect(
+                    surface, self.HIGHLIGHT_COLOR, Rect(x + 2, item_y, 2, self._roster_item_height)
+                )
 
             # Unit type thumbnail icon (16x16)
             icon_key = self._map_unit_type_to_icon_key(unit)
@@ -990,15 +1011,15 @@ class CC2BottomPanel:
                 surface.blit(roster_icon, (x + 5, item_y + 4))
 
             # Unit name (truncated) — Unit uses .name, not .display_name
-            name = getattr(unit, 'display_name', None) or getattr(unit, 'name', 'Unknown')
+            name = getattr(unit, "display_name", None) or getattr(unit, "name", "Unknown")
             name = str(name)[:12]
             text_color = self.HIGHLIGHT_COLOR if is_selected else self.TEXT_COLOR
             name_surf = self._font_small.render(name, True, text_color)
             surface.blit(name_surf, (x + 23, item_y + 5))
 
             # Health bar with 1px dark border — HealthComponent uses .hp/.max_hp, not .current/.max
-            hp_current = getattr(unit.health, 'hp', getattr(unit.health, 'current', 0))
-            hp_max = getattr(unit.health, 'max_hp', getattr(unit.health, 'max', 1))
+            hp_current = getattr(unit.health, "hp", getattr(unit.health, "current", 0))
+            hp_max = getattr(unit.health, "max_hp", getattr(unit.health, "max", 1))
             hp_ratio = hp_current / max(hp_max, 1)
             bar_width = 50
             bar_x = x + w - bar_width - 30
@@ -1006,9 +1027,11 @@ class CC2BottomPanel:
             draw.rect(surface, (40, 42, 48), Rect(bar_x - 1, item_y + 7, bar_width + 2, 10))
             draw.rect(surface, (60, 60, 60), Rect(bar_x, item_y + 8, bar_width, 8))
             hp_color = (
-                (255, 50, 50) if hp_ratio < 0.3 else
-                (255, 200, 0) if hp_ratio < 0.6 else
-                (50, 200, 50)
+                (255, 50, 50)
+                if hp_ratio < 0.3
+                else (255, 200, 0)
+                if hp_ratio < 0.6
+                else (50, 200, 50)
             )
             draw.rect(surface, hp_color, Rect(bar_x, item_y + 8, int(bar_width * hp_ratio), 8))
 
@@ -1019,32 +1042,35 @@ class CC2BottomPanel:
         total_items = len(self._friendly_units)
         if total_items > self._visible_roster_items:
             scroll_bar_h = h * (self._visible_roster_items / total_items)
-            scroll_bar_y = y + 22 + (h - 22) * (self._roster_scroll_offset / (total_items - self._visible_roster_items))
+            scroll_bar_y = (
+                y
+                + 22
+                + (h - 22)
+                * (self._roster_scroll_offset / (total_items - self._visible_roster_items))
+            )
             draw.rect(surface, (80, 80, 80), Rect(x + w - 4, scroll_bar_y, 3, scroll_bar_h))
 
     def _map_unit_type_to_icon_key(self, unit: Unit) -> str:
         """Map a unit's type to the roster icon key."""
-        type_name = unit.unit_type.name.lower() if hasattr(unit.unit_type, 'name') else ''
-        if 'tank' in type_name or 'armor' in type_name or 'vehicle' in type_name:
-            return 'tank'
-        elif 'mg' in type_name or 'machine' in type_name:
-            return 'mg'
-        elif 'sniper' in type_name or 'scout' in type_name:
-            return 'sniper'
-        elif 'officer' in type_name or 'commander' in type_name:
-            return 'commander'
-        elif 'at' in type_name or 'anti' in type_name:
-            return 'at'
-        elif 'mortar' in type_name:
-            return 'mortar'
-        elif 'medic' in type_name or 'aid' in type_name:
-            return 'medic'
+        type_name = unit.unit_type.name.lower() if hasattr(unit.unit_type, "name") else ""
+        if "tank" in type_name or "armor" in type_name or "vehicle" in type_name:
+            return "tank"
+        elif "mg" in type_name or "machine" in type_name:
+            return "mg"
+        elif "sniper" in type_name or "scout" in type_name:
+            return "sniper"
+        elif "officer" in type_name or "commander" in type_name:
+            return "commander"
+        elif "at" in type_name or "anti" in type_name:
+            return "at"
+        elif "mortar" in type_name:
+            return "mortar"
+        elif "medic" in type_name or "aid" in type_name:
+            return "medic"
         else:
-            return 'infantry'
+            return "infantry"
 
-    def _render_unit_details(
-        self, surface: Surface, x: int, y: int, w: int, h: int
-    ) -> None:
+    def _render_unit_details(self, surface: Surface, x: int, y: int, w: int, h: int) -> None:
         """Render detailed info for selected unit."""
         # Background
         draw.rect(surface, (30, 33, 38), Rect(x, y, w, h))
@@ -1066,12 +1092,12 @@ class CC2BottomPanel:
         # Commander portrait (24x24) if unit is commander/officer type
         portrait_offset = 0
         icon_key = self._map_unit_type_to_icon_key(unit)
-        if icon_key == 'commander' and self._commander_portrait:
+        if icon_key == "commander" and self._commander_portrait:
             surface.blit(self._commander_portrait, (x + 8, line_y))
             portrait_offset = 28  # Shift title right to make room for portrait
 
         # Title — Unit uses .name, not .display_name
-        display_name = getattr(unit, 'display_name', None) or getattr(unit, 'name', 'Unknown')
+        display_name = getattr(unit, "display_name", None) or getattr(unit, "name", "Unknown")
         title = self._font_title.render(str(display_name), True, self.HIGHLIGHT_COLOR)
         surface.blit(title, (x + 8 + portrait_offset, line_y))
         line_y += line_height + 5
@@ -1088,8 +1114,8 @@ class CC2BottomPanel:
         line_y += line_height + 5
 
         # Health — HealthComponent uses .hp/.max_hp
-        hp_current = getattr(unit.health, 'hp', getattr(unit.health, 'current', 0))
-        hp_max = getattr(unit.health, 'max_hp', getattr(unit.health, 'max', 1))
+        hp_current = getattr(unit.health, "hp", getattr(unit.health, "current", 0))
+        hp_max = getattr(unit.health, "max_hp", getattr(unit.health, "max", 1))
         hp_text = f"HP: {hp_current}/{hp_max}"
         hp_color = (255, 80, 80) if hp_current < hp_max * 0.3 else self.TEXT_COLOR
         surface.blit(self._font_normal.render(hp_text, True, hp_color), (x + 8, line_y))
@@ -1102,24 +1128,36 @@ class CC2BottomPanel:
         line_y += line_height + 3
 
         # Morale — MoraleComponent uses .value, not .current
-        morale_val = getattr(unit.morale, 'value', getattr(unit.morale, 'current', 75)) if hasattr(unit, 'morale') else 75
+        morale_val = (
+            getattr(unit.morale, "value", getattr(unit.morale, "current", 75))
+            if hasattr(unit, "morale")
+            else 75
+        )
         morale_text = f"Morale: {morale_val}%"
         morale_color = (
-            (255, 80, 80) if morale_val < 30 else
-            (255, 200, 0) if morale_val < 60 else
-            (80, 200, 80)
+            (255, 80, 80)
+            if morale_val < 30
+            else (255, 200, 0)
+            if morale_val < 60
+            else (80, 200, 80)
         )
         surface.blit(self._font_normal.render(morale_text, True, morale_color), (x + 8, line_y))
         # Morale bar with 1px dark border
         draw.rect(surface, (40, 42, 48), Rect(x + 109, line_y + 1, bar_w + 2, 14))
         draw.rect(surface, (60, 60, 60), Rect(x + 110, line_y + 2, bar_w, 12))
-        draw.rect(surface, morale_color, Rect(x + 110, line_y + 2, int(bar_w * morale_val / 100), 12))
+        draw.rect(
+            surface, morale_color, Rect(x + 110, line_y + 2, int(bar_w * morale_val / 100), 12)
+        )
         line_y += line_height + 3
 
         # Ammo
         # Ammo — WeaponComponent uses .ammo_remaining/.max_ammo
-        ammo_current = getattr(unit.weapon, 'ammo_remaining', getattr(unit.weapon, 'ammo', 30)) if hasattr(unit, 'weapon') else 30
-        ammo_max = getattr(unit.weapon, 'max_ammo', 30) if hasattr(unit, 'weapon') else 30
+        ammo_current = (
+            getattr(unit.weapon, "ammo_remaining", getattr(unit.weapon, "ammo", 30))
+            if hasattr(unit, "weapon")
+            else 30
+        )
+        ammo_max = getattr(unit.weapon, "max_ammo", 30) if hasattr(unit, "weapon") else 30
         ammo_text = f"Ammo: {ammo_current}/{ammo_max}"
         surface.blit(self._font_normal.render(ammo_text, True, self.TEXT_COLOR), (x + 8, line_y))
         # Ammo bar with 1px dark border
@@ -1130,16 +1168,16 @@ class CC2BottomPanel:
         line_y += line_height + 3
 
         # Smoke grenades (if applicable)
-        smoke_count = getattr(unit, 'smoke_grenades', 2)
+        smoke_count = getattr(unit, "smoke_grenades", 2)
         smoke_text = f"Smoke: {smoke_count}"
         surface.blit(self._font_normal.render(smoke_text, True, (200, 200, 100)), (x + 8, line_y))
         line_y += line_height + 3
 
         # AP/AT Resource Bars (Action Points / Attack Points) - CC2 style
-        ap_current = getattr(unit, 'action_points', getattr(unit, 'ap', 10))
-        ap_max = getattr(unit, 'max_action_points', getattr(unit, 'max_ap', 10))
-        at_current = getattr(unit, 'attack_points', getattr(unit, 'at', 5))
-        at_max = getattr(unit, 'max_attack_points', getattr(unit, 'max_at', 5))
+        ap_current = getattr(unit, "action_points", getattr(unit, "ap", 10))
+        ap_max = getattr(unit, "max_action_points", getattr(unit, "max_ap", 10))
+        at_current = getattr(unit, "attack_points", getattr(unit, "at", 5))
+        at_max = getattr(unit, "max_attack_points", getattr(unit, "max_at", 5))
 
         # AP Bar (Green - movement resource)
         ap_text = f"AP: {ap_current}/{ap_max}"
@@ -1174,8 +1212,8 @@ class CC2BottomPanel:
         line_y += line_height + 3
 
         # Casualties
-        squad_size = getattr(unit, 'squad_size', 10)
-        casualties = getattr(unit, 'casualties', 0)
+        squad_size = getattr(unit, "squad_size", 10)
+        casualties = getattr(unit, "casualties", 0)
         alive = squad_size - casualties
         cas_text = f"Squad: {alive}/{squad_size} ({casualties} KIA)"
         cas_color = (255, 100, 100) if casualties > 0 else self.TEXT_COLOR
@@ -1183,13 +1221,13 @@ class CC2BottomPanel:
         line_y += line_height + 3
 
         # Status
-        state_name = unit.state_machine.current.name if hasattr(unit, 'state_machine') else "IDLE"
+        state_name = unit.state_machine.current.name if hasattr(unit, "state_machine") else "IDLE"
         status_text = f"Status: {state_name}"
         surface.blit(self._font_small.render(status_text, True, (180, 180, 180)), (x + 8, line_y))
         line_y += line_height + 3
 
         # Soldier Monitor (when unit has squad_ref)
-        squad_ref = getattr(unit, 'squad_ref', None)
+        squad_ref = getattr(unit, "squad_ref", None)
         if squad_ref is not None and line_y < y + h - 10:
             self._render_soldier_monitor(surface, x, line_y, w, y + h - line_y, squad_ref)
 
@@ -1248,7 +1286,7 @@ class CC2BottomPanel:
         surface.blit(title, (x + 5, y))
         y += 16
 
-        members = getattr(squad, 'members', [])
+        members = getattr(squad, "members", [])
         member_line_h = 14
         # State icon mapping
         state_icons = {
@@ -1282,7 +1320,7 @@ class CC2BottomPanel:
             if y + member_line_h > start_y + h:
                 break
 
-            state_name = member.state.value if hasattr(member.state, 'value') else str(member.state)
+            state_name = member.state.value if hasattr(member.state, "value") else str(member.state)
             icon = state_icons.get(state_name, "?")
             icon_color = state_colors.get(state_name, (180, 180, 180))
 
@@ -1299,26 +1337,32 @@ class CC2BottomPanel:
             surface.blit(icon_surf, (x + 5, y))
 
             # Personal name (e.g., "Pvt. Johnson") — fall back to role if no name
-            personal_name = getattr(member, 'name', '')
+            personal_name = getattr(member, "name", "")
             if not personal_name:
-                personal_name = getattr(member, 'role', '?')
+                personal_name = getattr(member, "role", "?")
             display_name = personal_name[:12]
             name_surf = self._font_small.render(display_name, True, self.TEXT_COLOR)
             surface.blit(name_surf, (x + 18, y))
 
             # Weapon type name
-            role = getattr(member, 'role', 'rifleman')
+            role = getattr(member, "role", "rifleman")
             weapon_name = WEAPON_NAMES.get(role, "M1 Garand")
             weapon_surf = self._font_small.render(weapon_name[:10], True, (150, 180, 210))
             surface.blit(weapon_surf, (x + 95, y))
 
             # HP bar
-            hp = getattr(member, 'hp', 0)
+            hp = getattr(member, "hp", 0)
             hp_bar_x = x + 155
             hp_bar_w = 30
             hp_ratio = max(0, min(1, hp / 100))
             draw.rect(surface, (40, 42, 48), Rect(hp_bar_x, y + 2, hp_bar_w, 9))
-            hp_color = (80, 200, 80) if hp_ratio > 0.5 else (255, 200, 50) if hp_ratio > 0.25 else (220, 60, 60)
+            hp_color = (
+                (80, 200, 80)
+                if hp_ratio > 0.5
+                else (255, 200, 50)
+                if hp_ratio > 0.25
+                else (220, 60, 60)
+            )
             draw.rect(surface, hp_color, Rect(hp_bar_x, y + 2, int(hp_bar_w * hp_ratio), 9))
 
             # Ammo bar (small bar showing remaining ammo percentage)
@@ -1327,7 +1371,13 @@ class CC2BottomPanel:
             # Estimate ammo based on role and state
             ammo_ratio = 1.0 if state_name == "healthy" else 0.6 if state_name == "wounded" else 0.0
             draw.rect(surface, (40, 42, 48), Rect(ammo_bar_x, y + 2, ammo_bar_w, 9))
-            ammo_color = (100, 150, 255) if ammo_ratio > 0.5 else (200, 150, 50) if ammo_ratio > 0.2 else (200, 60, 60)
+            ammo_color = (
+                (100, 150, 255)
+                if ammo_ratio > 0.5
+                else (200, 150, 50)
+                if ammo_ratio > 0.2
+                else (200, 60, 60)
+            )
             draw.rect(surface, ammo_color, Rect(ammo_bar_x, y + 2, int(ammo_bar_w * ammo_ratio), 9))
 
             # Morale status text
@@ -1337,7 +1387,7 @@ class CC2BottomPanel:
             surface.blit(morale_surf, (x + w - 38, y))
 
             # Experience level indicator
-            xp = getattr(member, 'experience', 0)
+            xp = getattr(member, "experience", 0)
             xp_label = "Rct"
             xp_color = (150, 150, 150)
             for threshold, label, color in XP_LEVELS:
@@ -1352,7 +1402,9 @@ class CC2BottomPanel:
 
         # Render soldier detail popup if active
         if self._active_popup_member is not None and self._active_popup_rect is not None:
-            self._render_soldier_detail_popup(surface, self._active_popup_member, self._active_popup_rect)
+            self._render_soldier_detail_popup(
+                surface, self._active_popup_member, self._active_popup_rect
+            )
 
     def _render_soldier_detail_popup(
         self, surface: Surface, member: object, popup_pos: Rect
@@ -1383,30 +1435,39 @@ class CC2BottomPanel:
         line_h = 15
 
         # Full name and rank
-        personal_name = getattr(member, 'name', '')
+        personal_name = getattr(member, "name", "")
         if not personal_name:
-            personal_name = getattr(member, 'role', 'Unknown')
+            personal_name = getattr(member, "role", "Unknown")
         name_surf = self._font_normal.render(str(personal_name), True, self.HIGHLIGHT_COLOR)
         surface.blit(name_surf, (px + 8, line_y))
         line_y += line_h
 
         # Role
-        role = getattr(member, 'role', 'rifleman')
+        role = getattr(member, "role", "rifleman")
         role_surf = self._font_small.render(f"Role: {role}", True, (180, 180, 180))
         surface.blit(role_surf, (px + 8, line_y))
         line_y += line_h
 
         # Weapon
         WEAPON_NAMES = {
-            "rifleman": "M1 Garand", "grenadier": "M1 Carbine",
-            "mg_gunner": "MG42", "mg_assistant": "MG42",
-            "ammo_bearer": "M1 Garand", "sniper": "Springfield",
-            "spotter": "M1 Garand", "at_gunner": "Bazooka",
-            "at_assistant": "M1 Garand", "mortar_gunner": "60mm Mortar",
-            "team_leader": "Thompson", "commander": "Colt .45",
-            "officer": "Colt .45", "gunner": "Thompson",
-            "loader": "M1 Garand", "driver": "M1 Garand",
-            "assistant_driver": "M1 Garand", "radioman": "M1 Garand",
+            "rifleman": "M1 Garand",
+            "grenadier": "M1 Carbine",
+            "mg_gunner": "MG42",
+            "mg_assistant": "MG42",
+            "ammo_bearer": "M1 Garand",
+            "sniper": "Springfield",
+            "spotter": "M1 Garand",
+            "at_gunner": "Bazooka",
+            "at_assistant": "M1 Garand",
+            "mortar_gunner": "60mm Mortar",
+            "team_leader": "Thompson",
+            "commander": "Colt .45",
+            "officer": "Colt .45",
+            "gunner": "Thompson",
+            "loader": "M1 Garand",
+            "driver": "M1 Garand",
+            "assistant_driver": "M1 Garand",
+            "radioman": "M1 Garand",
             "runner": "M1 Garand",
         }
         weapon_name = WEAPON_NAMES.get(role, "M1 Garand")
@@ -1415,22 +1476,27 @@ class CC2BottomPanel:
         line_y += line_h
 
         # Health
-        hp = getattr(member, 'hp', 0)
+        hp = getattr(member, "hp", 0)
         hp_color = (80, 200, 80) if hp > 50 else (255, 200, 50) if hp > 25 else (220, 60, 60)
         hp_surf = self._font_small.render(f"HP: {hp}/100", True, hp_color)
         surface.blit(hp_surf, (px + 8, line_y))
         line_y += line_h
 
         # State / Morale
-        state_name = member.state.value if hasattr(member.state, 'value') else str(member.state)
+        state_name = member.state.value if hasattr(member.state, "value") else str(member.state)
         MORALE_STATUS = {
-            "healthy": "Rallied", "wounded": "Wavering",
-            "pinned": "Pinned", "dead": "Dead", "surrendered": "Routing",
+            "healthy": "Rallied",
+            "wounded": "Wavering",
+            "pinned": "Pinned",
+            "dead": "Dead",
+            "surrendered": "Routing",
         }
         morale_text = MORALE_STATUS.get(state_name, "?")
         state_colors = {
-            "healthy": (80, 200, 80), "wounded": (255, 200, 50),
-            "pinned": (255, 220, 50), "dead": (200, 60, 60),
+            "healthy": (80, 200, 80),
+            "wounded": (255, 200, 50),
+            "pinned": (255, 220, 50),
+            "dead": (200, 60, 60),
             "surrendered": (150, 150, 150),
         }
         morale_color = state_colors.get(state_name, (180, 180, 180))
@@ -1439,9 +1505,12 @@ class CC2BottomPanel:
         line_y += line_h
 
         # Experience level
-        xp = getattr(member, 'experience', 0)
+        xp = getattr(member, "experience", 0)
         XP_LEVELS = [
-            (80, "Veteran"), (50, "Regular"), (25, "Trained"), (0, "Recruit"),
+            (80, "Veteran"),
+            (50, "Regular"),
+            (25, "Trained"),
+            (0, "Recruit"),
         ]
         xp_label = "Recruit"
         for threshold, label in XP_LEVELS:
@@ -1451,9 +1520,7 @@ class CC2BottomPanel:
         xp_surf = self._font_small.render(f"XP: {xp} ({xp_label})", True, (200, 200, 200))
         surface.blit(xp_surf, (px + 8, line_y))
 
-    def _render_urgency_indicator(
-        self, surface: Surface, x: int, y: int, w: int, h: int
-    ) -> None:
+    def _render_urgency_indicator(self, surface: Surface, x: int, y: int, w: int, h: int) -> None:
         """Render color-coded urgency/threat indicator."""
         # Background
         draw.rect(surface, (30, 33, 38), Rect(x, y, w, h))
@@ -1464,28 +1531,32 @@ class CC2BottomPanel:
         surface.blit(title, (x + 5, y + 3))
 
         # Determine urgency level based on selected unit
-        urgency = 'SAFE'
+        urgency = "SAFE"
         urgency_value = 0
 
         if self._selected_unit_id:
             unit = next((u for u in self._friendly_units if u.id == self._selected_unit_id), None)
             if unit:
-                hp_current = getattr(unit.health, 'hp', getattr(unit.health, 'current', 0))
-                hp_max = getattr(unit.health, 'max_hp', getattr(unit.health, 'max', 1))
+                hp_current = getattr(unit.health, "hp", getattr(unit.health, "current", 0))
+                hp_max = getattr(unit.health, "max_hp", getattr(unit.health, "max", 1))
                 hp_ratio = hp_current / max(hp_max, 1)
-                morale = getattr(unit.morale, 'value', getattr(unit.morale, 'current', 75)) if hasattr(unit, 'morale') else 75
+                morale = (
+                    getattr(unit.morale, "value", getattr(unit.morale, "current", 75))
+                    if hasattr(unit, "morale")
+                    else 75
+                )
 
                 # Calculate urgency (0-100)
                 urgency_value = int((1 - hp_ratio) * 50 + (1 - morale / 100) * 50)
 
                 if urgency_value >= 80:
-                    urgency = 'CRITICAL'
+                    urgency = "CRITICAL"
                 elif urgency_value >= 60:
-                    urgency = 'HIGH'
+                    urgency = "HIGH"
                 elif urgency_value >= 40:
-                    urgency = 'MEDIUM'
+                    urgency = "MEDIUM"
                 elif urgency_value >= 20:
-                    urgency = 'LOW'
+                    urgency = "LOW"
 
         # Draw vertical urgency bar
         bar_x = x + w // 2 - 15
@@ -1498,15 +1569,15 @@ class CC2BottomPanel:
 
         # Filled portion (bottom-up)
         fill_h = int(bar_h * urgency_value / 100)
-        color = self.URGENCY_COLORS.get(urgency, self.URGENCY_COLORS['SAFE'])
+        color = self.URGENCY_COLORS.get(urgency, self.URGENCY_COLORS["SAFE"])
         draw.rect(surface, color, Rect(bar_x, bar_y + bar_h - fill_h, bar_w, fill_h))
 
         # Border
         draw.rect(surface, self.BORDER_COLOR, Rect(bar_x, bar_y, bar_w, bar_h), 1)
 
         # Labels
-        labels = ['!', '!!', '!!!', '', '']
-        label_idx = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'SAFE'].index(urgency)
+        labels = ["!", "!!", "!!!", "", ""]
+        label_idx = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "SAFE"].index(urgency)
         label = self._font_small.render(labels[label_idx], True, color)
         surface.blit(label, (bar_x + 8, bar_y + bar_h - fill_h - 15 if fill_h > 15 else bar_y + 5))
 
@@ -1553,11 +1624,15 @@ class CC2BottomPanel:
         zo_pressed = zo_hovered and self._mouse_pressed
         zo_bg = (45, 45, 55) if zo_pressed else ((80, 85, 100) if zo_hovered else (60, 60, 70))
         draw.rect(surface, zo_bg, self._zoom_out_rect)
-        draw.rect(surface, (140, 150, 170) if zo_hovered else self.BORDER_COLOR, self._zoom_out_rect, 1)
+        draw.rect(
+            surface, (140, 150, 170) if zo_hovered else self.BORDER_COLOR, self._zoom_out_rect, 1
+        )
         minus = self._font_normal.render("-", True, self.TEXT_COLOR)
         surface.blit(minus, (x + 7, btn_y + 2))
         if zo_hovered:
-            self._tooltip.begin_hover("Zoom out [-]", (self._zoom_out_rect.centerx, self._zoom_out_rect.top))
+            self._tooltip.begin_hover(
+                "Zoom out [-]", (self._zoom_out_rect.centerx, self._zoom_out_rect.top)
+            )
 
         # Zoom in (+)
         self._zoom_in_rect = Rect(x + size - btn_size - 2, btn_y, btn_size, btn_size)
@@ -1565,20 +1640,22 @@ class CC2BottomPanel:
         zi_pressed = zi_hovered and self._mouse_pressed
         zi_bg = (45, 45, 55) if zi_pressed else ((80, 85, 100) if zi_hovered else (60, 60, 70))
         draw.rect(surface, zi_bg, self._zoom_in_rect)
-        draw.rect(surface, (140, 150, 170) if zi_hovered else self.BORDER_COLOR, self._zoom_in_rect, 1)
+        draw.rect(
+            surface, (140, 150, 170) if zi_hovered else self.BORDER_COLOR, self._zoom_in_rect, 1
+        )
         plus = self._font_normal.render("+", True, self.TEXT_COLOR)
         surface.blit(plus, (x + size - btn_size + 5, btn_y + 2))
         if zi_hovered:
-            self._tooltip.begin_hover("Zoom in [+]", (self._zoom_in_rect.centerx, self._zoom_in_rect.top))
+            self._tooltip.begin_hover(
+                "Zoom in [+]", (self._zoom_in_rect.centerx, self._zoom_in_rect.top)
+            )
 
         # Zoom level indicator
         zoom_lvl = self._current_zoom_index + 1
         zoom_text = self._font_small.render(f"{zoom_lvl}/5", True, (150, 150, 150))
         surface.blit(zoom_text, (x + size // 2 - 10, btn_y + 4))
 
-    def _render_info_toggle_buttons(
-        self, surface: Surface, x: int, y: int, width: int
-    ) -> None:
+    def _render_info_toggle_buttons(self, surface: Surface, x: int, y: int, width: int) -> None:
         """Render info mode toggle buttons (ALL/Style/Outline) above minimap.
 
         Args:
@@ -1605,7 +1682,7 @@ class CC2BottomPanel:
             # Store rect for click detection
             self._info_button_rects[mode] = btn_rect
 
-            is_active = (mode == self._info_mode)
+            is_active = mode == self._info_mode
 
             # Check hover/press state
             mp = self._mouse_pos
@@ -1617,35 +1694,85 @@ class CC2BottomPanel:
                 bg_color = (55, 65, 48) if btn_pressed else (70, 80, 60)  # Active
                 text_color = self.HIGHLIGHT_COLOR
             elif btn_pressed:
-                bg_color = (35, 40, 32)   # Inactive + pressed
+                bg_color = (35, 40, 32)  # Inactive + pressed
                 text_color = (140, 140, 130)
             elif btn_hovered:
-                bg_color = (58, 65, 50)   # Inactive + hovered
+                bg_color = (58, 65, 50)  # Inactive + hovered
                 text_color = (190, 190, 170)
             else:
-                bg_color = (45, 50, 40)    # Inactive normal
-                text_color = (160, 160, 150)   # Dimmed text
+                bg_color = (45, 50, 40)  # Inactive normal
+                text_color = (160, 160, 150)  # Dimmed text
 
             draw.rect(surface, bg_color, btn_rect)
 
             # 3D border effect based on state
             if is_active or btn_pressed:
                 # Active/pressed button: sunken look (inverted borders)
-                draw.line(surface, self.BORDER_DARK, (btn_rect.left, btn_rect.top), (btn_rect.right, btn_rect.top), 1)
-                draw.line(surface, self.BORDER_DARK, (btn_rect.left, btn_rect.top), (btn_rect.left, btn_rect.bottom), 1)
-                draw.line(surface, self.BORDER_LIGHT, (btn_rect.left, btn_rect.bottom), (btn_rect.right, btn_rect.bottom), 1)
-                draw.line(surface, self.BORDER_LIGHT, (btn_rect.right, btn_rect.top), (btn_rect.right, btn_rect.bottom), 1)
+                draw.line(
+                    surface,
+                    self.BORDER_DARK,
+                    (btn_rect.left, btn_rect.top),
+                    (btn_rect.right, btn_rect.top),
+                    1,
+                )
+                draw.line(
+                    surface,
+                    self.BORDER_DARK,
+                    (btn_rect.left, btn_rect.top),
+                    (btn_rect.left, btn_rect.bottom),
+                    1,
+                )
+                draw.line(
+                    surface,
+                    self.BORDER_LIGHT,
+                    (btn_rect.left, btn_rect.bottom),
+                    (btn_rect.right, btn_rect.bottom),
+                    1,
+                )
+                draw.line(
+                    surface,
+                    self.BORDER_LIGHT,
+                    (btn_rect.right, btn_rect.top),
+                    (btn_rect.right, btn_rect.bottom),
+                    1,
+                )
             else:
                 # Inactive button: raised look
                 border_c = (130, 140, 120) if btn_hovered else self.BORDER_LIGHT
-                draw.line(surface, border_c, (btn_rect.left, btn_rect.top), (btn_rect.right, btn_rect.top), 1)
-                draw.line(surface, border_c, (btn_rect.left, btn_rect.top), (btn_rect.left, btn_rect.bottom), 1)
-                draw.line(surface, self.BORDER_DARK, (btn_rect.left, btn_rect.bottom), (btn_rect.right, btn_rect.bottom), 1)
-                draw.line(surface, self.BORDER_DARK, (btn_rect.right, btn_rect.top), (btn_rect.right, btn_rect.bottom), 1)
+                draw.line(
+                    surface,
+                    border_c,
+                    (btn_rect.left, btn_rect.top),
+                    (btn_rect.right, btn_rect.top),
+                    1,
+                )
+                draw.line(
+                    surface,
+                    border_c,
+                    (btn_rect.left, btn_rect.top),
+                    (btn_rect.left, btn_rect.bottom),
+                    1,
+                )
+                draw.line(
+                    surface,
+                    self.BORDER_DARK,
+                    (btn_rect.left, btn_rect.bottom),
+                    (btn_rect.right, btn_rect.bottom),
+                    1,
+                )
+                draw.line(
+                    surface,
+                    self.BORDER_DARK,
+                    (btn_rect.right, btn_rect.top),
+                    (btn_rect.right, btn_rect.bottom),
+                    1,
+                )
 
             # Hover highlight border for inactive hovered buttons
             if btn_hovered and not is_active and not btn_pressed:
-                hl_rect = Rect(btn_rect.x + 1, btn_rect.y + 1, btn_rect.width - 2, btn_rect.height - 2)
+                hl_rect = Rect(
+                    btn_rect.x + 1, btn_rect.y + 1, btn_rect.width - 2, btn_rect.height - 2
+                )
                 hl_surf = Surface((hl_rect.width, hl_rect.height), pygame.SRCALPHA)
                 draw.rect(hl_surf, (120, 150, 100, 150), hl_surf.get_rect(), 1)
                 surface.blit(hl_surf, hl_rect.topleft)
@@ -1658,15 +1785,17 @@ class CC2BottomPanel:
 
             # Tooltip for info toggle buttons
             if btn_hovered:
-                tip_map = {"ALL": "Show all unit information",
-                           "STYLE": "Show visual style info only",
-                           "OUTLINE": "Show outline info only"}
-                self._tooltip.begin_hover(tip_map.get(mode, f"Switch to {mode} mode"),
-                                          (btn_rect.centerx, btn_rect.top))
+                tip_map = {
+                    "ALL": "Show all unit information",
+                    "STYLE": "Show visual style info only",
+                    "OUTLINE": "Show outline info only",
+                }
+                self._tooltip.begin_hover(
+                    tip_map.get(mode, f"Switch to {mode} mode"), (btn_rect.centerx, btn_rect.top)
+                )
 
     def _render_timer(
-        self, surface: Surface, x: int, y: int, w: int, h: int,
-        time_remaining: float
+        self, surface: Surface, x: int, y: int, w: int, h: int, time_remaining: float
     ) -> None:
         """Render battle countdown timer display.
 
@@ -1689,15 +1818,15 @@ class CC2BottomPanel:
 
         # Determine color based on remaining time
         if time_remaining < 30:
-            timer_color = (255, 68, 68)    # Red (#FF4444) - critical
+            timer_color = (255, 68, 68)  # Red (#FF4444) - critical
         elif time_remaining < 60:
-            timer_color = (255, 255, 0)    # Yellow (#FFFF00) - warning
+            timer_color = (255, 255, 0)  # Yellow (#FFFF00) - warning
         else:
             timer_color = (255, 255, 255)  # White - normal
 
         # Render timer text (monospace bold, centered)
         try:
-            timer_font = pygame.font.SysFont('consolas', 18, bold=True)
+            timer_font = pygame.font.SysFont("consolas", 18, bold=True)
         except Exception as e:
             logging.debug(f"Timer font fallback: {e}")
             timer_font = pygame.font.Font(None, 24)
@@ -1708,8 +1837,7 @@ class CC2BottomPanel:
         surface.blit(timer_text, (text_x, text_y))
 
     def _render_command_bar(
-        self, surface: Surface, x: int, y: int, w: int, h: int,
-        time_remaining: float | None = None
+        self, surface: Surface, x: int, y: int, w: int, h: int, time_remaining: float | None = None
     ) -> None:
         """Render command buttons in vertical layout (right of unit details).
 
@@ -1744,7 +1872,9 @@ class CC2BottomPanel:
         # Get selected unit to check smoke ammo
         selected_unit = None
         if has_selection:
-            selected_unit = next((u for u in self._friendly_units if u.id == self._selected_unit_id), None)
+            selected_unit = next(
+                (u for u in self._friendly_units if u.id == self._selected_unit_id), None
+            )
 
         for i, cmd in enumerate(self._commands):
             btn_y = cmd_y + i * (btn_height + 4)
@@ -1761,7 +1891,7 @@ class CC2BottomPanel:
                 cmd_enabled = False
             # Smoke requires smoke ammunition
             elif cmd.get("needs_smoke_ammo") and selected_unit:
-                has_smoke = getattr(selected_unit, 'has_smoke_grenades', False)
+                has_smoke = getattr(selected_unit, "has_smoke_grenades", False)
                 if not has_smoke:
                     cmd_enabled = False
 
@@ -1777,7 +1907,7 @@ class CC2BottomPanel:
             elif cmd["id"] == "end_battle":
                 # End Battle: olive green color scheme (CC2 style)
                 if is_pressed:
-                    bg_color = (50, 58, 38)   # Pressed: darker olive
+                    bg_color = (50, 58, 38)  # Pressed: darker olive
                     text_color = (200, 200, 130)
                 elif is_hovered:
                     bg_color = (90, 100, 70)  # Hovered: lighter olive
@@ -1786,7 +1916,7 @@ class CC2BottomPanel:
                     bg_color = (60, 68, 50)  # Normal: olive green
                     text_color = (220, 220, 180)
             elif is_pressed:
-                bg_color = (40, 48, 62)    # Pressed: darkened ~20%
+                bg_color = (40, 48, 62)  # Pressed: darkened ~20%
                 text_color = (200, 210, 230)
             elif is_hovered:
                 bg_color = (80, 90, 110)  # Hovered: lighter
@@ -1801,25 +1931,77 @@ class CC2BottomPanel:
             if cmd_enabled:
                 if is_pressed:
                     # Pressed: inverted borders (sunken look)
-                    draw.line(surface, self.BORDER_DARK, (btn_rect.left, btn_rect.top), (btn_rect.right, btn_rect.top), 1)
-                    draw.line(surface, self.BORDER_DARK, (btn_rect.left, btn_rect.top), (btn_rect.left, btn_rect.bottom), 1)
-                    draw.line(surface, self.BORDER_LIGHT, (btn_rect.left, btn_rect.bottom), (btn_rect.right, btn_rect.bottom), 1)
-                    draw.line(surface, self.BORDER_LIGHT, (btn_rect.right, btn_rect.top), (btn_rect.right, btn_rect.bottom), 1)
+                    draw.line(
+                        surface,
+                        self.BORDER_DARK,
+                        (btn_rect.left, btn_rect.top),
+                        (btn_rect.right, btn_rect.top),
+                        1,
+                    )
+                    draw.line(
+                        surface,
+                        self.BORDER_DARK,
+                        (btn_rect.left, btn_rect.top),
+                        (btn_rect.left, btn_rect.bottom),
+                        1,
+                    )
+                    draw.line(
+                        surface,
+                        self.BORDER_LIGHT,
+                        (btn_rect.left, btn_rect.bottom),
+                        (btn_rect.right, btn_rect.bottom),
+                        1,
+                    )
+                    draw.line(
+                        surface,
+                        self.BORDER_LIGHT,
+                        (btn_rect.right, btn_rect.top),
+                        (btn_rect.right, btn_rect.bottom),
+                        1,
+                    )
                 else:
                     # Top edge
-                    draw.line(surface, self.BORDER_LIGHT, (btn_rect.left, btn_rect.top), (btn_rect.right, btn_rect.top), 1)
+                    draw.line(
+                        surface,
+                        self.BORDER_LIGHT,
+                        (btn_rect.left, btn_rect.top),
+                        (btn_rect.right, btn_rect.top),
+                        1,
+                    )
                     # Left edge
-                    draw.line(surface, self.BORDER_LIGHT, (btn_rect.left, btn_rect.top), (btn_rect.left, btn_rect.bottom), 1)
+                    draw.line(
+                        surface,
+                        self.BORDER_LIGHT,
+                        (btn_rect.left, btn_rect.top),
+                        (btn_rect.left, btn_rect.bottom),
+                        1,
+                    )
                     # Bottom edge
-                    draw.line(surface, self.BORDER_DARK, (btn_rect.left, btn_rect.bottom), (btn_rect.right, btn_rect.bottom), 1)
+                    draw.line(
+                        surface,
+                        self.BORDER_DARK,
+                        (btn_rect.left, btn_rect.bottom),
+                        (btn_rect.right, btn_rect.bottom),
+                        1,
+                    )
                     # Right edge
-                    draw.line(surface, self.BORDER_DARK, (btn_rect.right, btn_rect.top), (btn_rect.right, btn_rect.bottom), 1)
+                    draw.line(
+                        surface,
+                        self.BORDER_DARK,
+                        (btn_rect.right, btn_rect.top),
+                        (btn_rect.right, btn_rect.bottom),
+                        1,
+                    )
 
                 # Hover highlight: bright inner border glow when hovered (not pressed)
                 if is_hovered and not is_pressed:
                     highlight_color = (140, 160, 200, 180)
-                    highlight_rect = Rect(btn_rect.x + 1, btn_rect.y + 1, btn_rect.width - 2, btn_rect.height - 2)
-                    hl_surf = Surface((highlight_rect.width, highlight_rect.height), pygame.SRCALPHA)
+                    highlight_rect = Rect(
+                        btn_rect.x + 1, btn_rect.y + 1, btn_rect.width - 2, btn_rect.height - 2
+                    )
+                    hl_surf = Surface(
+                        (highlight_rect.width, highlight_rect.height), pygame.SRCALPHA
+                    )
                     draw.rect(hl_surf, highlight_color, hl_surf.get_rect(), 1)
                     surface.blit(hl_surf, highlight_rect.topleft)
             else:
@@ -1839,7 +2021,7 @@ class CC2BottomPanel:
                     surface.blit(icon, (icon_x, icon_y))
 
             # Label with key binding (shifted right to make room for icon)
-            label = f'{cmd["label"]} [{cmd["key"]}]'
+            label = f"{cmd['label']} [{cmd['key']}]"
             text_surf = self._font_small.render(label, True, text_color)
             text_x = icon_x + 26
             text_y = btn_y + (btn_height - text_surf.get_height()) // 2
@@ -1853,16 +2035,16 @@ class CC2BottomPanel:
 
     def _get_unit_type_color(self, unit: Unit) -> tuple[int, int, int]:
         """Get color for unit type icon."""
-        type_name = unit.unit_type.name.lower() if hasattr(unit.unit_type, 'name') else ''
-        if 'tank' in type_name or 'armor' in type_name or 'vehicle' in type_name:
+        type_name = unit.unit_type.name.lower() if hasattr(unit.unit_type, "name") else ""
+        if "tank" in type_name or "armor" in type_name or "vehicle" in type_name:
             return (255, 180, 0)  # Gold for vehicles
-        elif 'mg' in type_name or 'machine' in type_name:
+        elif "mg" in type_name or "machine" in type_name:
             return (255, 100, 100)  # Red for MG
-        elif 'sniper' in type_name or 'scout' in type_name:
+        elif "sniper" in type_name or "scout" in type_name:
             return (200, 100, 255)  # Purple for recon
-        elif 'officer' in type_name or 'commander' in type_name:
+        elif "officer" in type_name or "commander" in type_name:
             return (100, 200, 255)  # Blue for leaders
-        elif 'engineer' in type_name or 'flame' in type_name:
+        elif "engineer" in type_name or "flame" in type_name:
             return (255, 150, 50)  # Orange for support
         else:
             return (100, 200, 100)  # Green for infantry

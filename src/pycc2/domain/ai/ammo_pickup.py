@@ -44,16 +44,19 @@ logger = logging.getLogger(__name__)
 # Ammo source type
 # ---------------------------------------------------------------------------
 
+
 class AmmoSourceType(Enum):
     """Type of ammo source on the battlefield."""
-    FALLEN_COMRADE = auto()   # Same faction — partial ammo, same weapon type
-    ENEMY_CORPSE = auto()     # Enemy faction — weapon + ammo with penalties
-    SUPPLY_CACHE = auto()     # Pre-placed supply point (future extension)
+
+    FALLEN_COMRADE = auto()  # Same faction — partial ammo, same weapon type
+    ENEMY_CORPSE = auto()  # Enemy faction — weapon + ammo with penalties
+    SUPPLY_CACHE = auto()  # Pre-placed supply point (future extension)
 
 
 # ---------------------------------------------------------------------------
 # 1. FallenUnitCache
 # ---------------------------------------------------------------------------
+
 
 @dataclass(slots=True)
 class FallenUnitEntry:
@@ -67,7 +70,7 @@ class FallenUnitEntry:
     max_ammo: int
     death_tick: int
     source_type: AmmoSourceType
-    ammo_claimed: int = 0     # Track how much ammo has been taken
+    ammo_claimed: int = 0  # Track how much ammo has been taken
     weapon_claimed: bool = False
 
 
@@ -157,9 +160,7 @@ class FallenUnitCache:
                 max_ammo=entry.max_ammo,
                 death_tick=entry.death_tick,
                 source_type=(
-                    AmmoSourceType.FALLEN_COMRADE
-                    if is_friendly
-                    else AmmoSourceType.ENEMY_CORPSE
+                    AmmoSourceType.FALLEN_COMRADE if is_friendly else AmmoSourceType.ENEMY_CORPSE
                 ),
                 ammo_claimed=entry.ammo_claimed,
                 weapon_claimed=entry.weapon_claimed,
@@ -193,9 +194,7 @@ class FallenUnitCache:
         """Remove entries older than CACHE_EXPIRY_TICKS."""
         before = len(self._entries)
         self._entries = [
-            e
-            for e in self._entries
-            if current_tick - e.death_tick < self.CACHE_EXPIRY_TICKS
+            e for e in self._entries if current_tick - e.death_tick < self.CACHE_EXPIRY_TICKS
         ]
         pruned = before - len(self._entries)
         if pruned > 0:
@@ -210,19 +209,22 @@ class FallenUnitCache:
 # 2. AmmoPickupSystem
 # ---------------------------------------------------------------------------
 
+
 class PickupResult(Enum):
     """Result of an ammo pickup attempt."""
+
     SUCCESS = auto()
-    WRONG_STANCE = auto()        # Unit not PRONE or CROUCHING
-    SUPPRESSED = auto()          # Unit suppression > MODERATE
-    NO_SOURCE = auto()           # No valid ammo source nearby
+    WRONG_STANCE = auto()  # Unit not PRONE or CROUCHING
+    SUPPRESSED = auto()  # Unit suppression > MODERATE
+    NO_SOURCE = auto()  # No valid ammo source nearby
     ALREADY_PICKING_UP = auto()  # Unit already in pickup state
-    COMPLETED = auto()           # Pickup finished this tick
+    COMPLETED = auto()  # Pickup finished this tick
 
 
 @dataclass(slots=True)
 class PickupState:
     """Tracks an in-progress ammo pickup."""
+
     unit_id: str
     source_id: str
     source_type: AmmoSourceType
@@ -257,8 +259,8 @@ class AmmoPickupSystem:
 
     PICKUP_DURATION_TICKS: int = 2
     FRIENDLY_AMMO_TRANSFER_RATIO: float = 0.5
-    CAPTURED_ACCURACY_PENALTY: float = 0.20   # -20% accuracy
-    CAPTURED_RELOAD_PENALTY: float = 0.50     # +50% reload time
+    CAPTURED_ACCURACY_PENALTY: float = 0.20  # -20% accuracy
+    CAPTURED_RELOAD_PENALTY: float = 0.50  # +50% reload time
 
     fallen_cache: FallenUnitCache = field(default_factory=FallenUnitCache)
     _active_pickups: dict[str, PickupState] = field(default_factory=dict)
@@ -316,7 +318,9 @@ class AmmoPickupSystem:
         # Validate source is within range
         dist = unit.position.tile_coord.chebyshev_distance(source.position)
         is_friendly = source.faction == unit.faction
-        max_range = self.fallen_cache.FRIENDLY_RANGE if is_friendly else self.fallen_cache.ENEMY_RANGE
+        max_range = (
+            self.fallen_cache.FRIENDLY_RANGE if is_friendly else self.fallen_cache.ENEMY_RANGE
+        )
         if dist > max_range:
             return PickupResult.NO_SOURCE
 
@@ -347,9 +351,7 @@ class AmmoPickupSystem:
             if state.ticks_remaining <= 0:
                 completed.append(state)
                 del self._active_pickups[unit_id]
-                logger.debug(
-                    f"Pickup completed for unit {unit_id} from {state.source_id}"
-                )
+                logger.debug(f"Pickup completed for unit {unit_id} from {state.source_id}")
 
         return completed
 
@@ -402,8 +404,7 @@ class AmmoPickupSystem:
                 unit.weapon.state = unit.weapon.state.__class__.READY
                 unit.weapon._update_state()
             logger.debug(
-                f"Unit {unit.id} picked up {transfer} ammo from "
-                f"fallen comrade {source.unit_id}"
+                f"Unit {unit.id} picked up {transfer} ammo from fallen comrade {source.unit_id}"
             )
 
     def _apply_enemy_pickup(self, unit: Unit, source: FallenUnitEntry) -> None:
@@ -431,8 +432,7 @@ class AmmoPickupSystem:
                 unit.weapon.state = unit.weapon.state.__class__.READY
                 unit.weapon._update_state()
             logger.debug(
-                f"Unit {unit.id} picked up {transfer} ammo from "
-                f"enemy corpse {source.unit_id}"
+                f"Unit {unit.id} picked up {transfer} ammo from enemy corpse {source.unit_id}"
             )
 
         # Mark weapon as captured — store in combat_state or weapon metadata
@@ -495,6 +495,7 @@ class AmmoPickupSystem:
 # 3. WeaponScavengeAI
 # ---------------------------------------------------------------------------
 
+
 class WeaponScavengeAI(TacticalAIBase):
     """Tactical AI that evaluates whether units should scavenge for ammo.
 
@@ -510,7 +511,7 @@ class WeaponScavengeAI(TacticalAIBase):
       - After pickup, resume previous tactic
     """
 
-    AMMO_LOW_THRESHOLD: float = 0.2      # Below 20% → seek ammo
+    AMMO_LOW_THRESHOLD: float = 0.2  # Below 20% → seek ammo
     AMMO_CRITICAL_THRESHOLD: float = 0.1  # Below 10% → highest priority
 
     def __init__(self, fallen_cache: FallenUnitCache) -> None:
@@ -543,8 +544,7 @@ class WeaponScavengeAI(TacticalAIBase):
 
         # Score based on how many units are low and how low they are
         critical_count = sum(
-            1 for u in low_ammo_units
-            if u.weapon.ammo_ratio < self.AMMO_CRITICAL_THRESHOLD
+            1 for u in low_ammo_units if u.weapon.ammo_ratio < self.AMMO_CRITICAL_THRESHOLD
         )
         low_count = len(low_ammo_units)
 
@@ -575,9 +575,7 @@ class WeaponScavengeAI(TacticalAIBase):
             )
 
             # Filter out already-assigned sources
-            available_sources = [
-                s for s in sources if s.unit_id not in assigned_sources
-            ]
+            available_sources = [s for s in sources if s.unit_id not in assigned_sources]
             if not available_sources:
                 continue
 

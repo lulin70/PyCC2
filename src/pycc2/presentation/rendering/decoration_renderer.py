@@ -35,6 +35,7 @@ class DecorationRenderer:
     def __init__(self, ctx: RenderContext):
         self._ctx = ctx
         from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
+
         self._sprite_gen = SpriteGenerator
 
     def draw_decorations(self, game_map: GameMap, camera: Camera) -> None:

@@ -176,29 +176,57 @@ class ParticleEmitter:
 
     PRESETS = {
         "rifle_fire": {
-            "count": 3, "speed": (3, 6), "life": (8, 12),
-            "size": (2, 4), "color": (255, 200, 50), "spread": 15,
-            "gravity": 0.1, "fade": True,
+            "count": 3,
+            "speed": (3, 6),
+            "life": (8, 12),
+            "size": (2, 4),
+            "color": (255, 200, 50),
+            "spread": 15,
+            "gravity": 0.1,
+            "fade": True,
         },
         "tank_explosion": {
-            "count": 40, "speed": (4, 12), "life": (30, 50),
-            "size": (4, 12), "color": (255, 150, 30), "spread": 360,
-            "gravity": 0.05, "fade": True, "has_secondary": True,
+            "count": 40,
+            "speed": (4, 12),
+            "life": (30, 50),
+            "size": (4, 12),
+            "color": (255, 150, 30),
+            "spread": 360,
+            "gravity": 0.05,
+            "fade": True,
+            "has_secondary": True,
         },
         "mortar_impact": {
-            "count": 25, "speed": (3, 10), "life": (25, 40),
-            "size": (3, 8), "color": (200, 100, 20), "spread": 360,
-            "gravity": 0.15, "fade": True, "dirt_kick": True,
+            "count": 25,
+            "speed": (3, 10),
+            "life": (25, 40),
+            "size": (3, 8),
+            "color": (200, 100, 20),
+            "spread": 360,
+            "gravity": 0.15,
+            "fade": True,
+            "dirt_kick": True,
         },
         "blood_hit": {
-            "count": 8, "speed": (2, 5), "life": (15, 25),
-            "size": (2, 5), "color": (180, 30, 20), "spread": 90,
-            "gravity": 0.2, "fade": True,
+            "count": 8,
+            "speed": (2, 5),
+            "life": (15, 25),
+            "size": (2, 5),
+            "color": (180, 30, 20),
+            "spread": 90,
+            "gravity": 0.2,
+            "fade": True,
         },
         "muzzle_flash": {
-            "count": 3, "speed": (8, 20), "life": (1, 2),
-            "size": (4, 6), "color": (255, 255, 128), "spread": 10,
-            "gravity": 0, "fade": True, "additive": True,
+            "count": 3,
+            "speed": (8, 20),
+            "life": (1, 2),
+            "size": (4, 6),
+            "color": (255, 255, 128),
+            "spread": 10,
+            "gravity": 0,
+            "fade": True,
+            "additive": True,
         },
     }
 
@@ -394,7 +422,9 @@ class ParticleEmitter:
                 friction=0.94,
             )
 
-    def emit_explosion_smoke_cloud(self, x: float, y: float, count: int = 8, life: int = 40) -> None:
+    def emit_explosion_smoke_cloud(
+        self, x: float, y: float, count: int = 8, life: int = 40
+    ) -> None:
         for _ in range(count):
             self._add_particle(
                 type=self.ParticleType.SMOKE,
@@ -452,7 +482,8 @@ class ParticleEmitter:
                 x=x + random.uniform(-4, 4),
                 y=y + random.uniform(-3, 3),
                 vx=math.cos(angle) * random.uniform(3, 8 if is_vehicle else 4),
-                vy=math.sin(angle) * random.uniform(2, 6 if is_vehicle else 3) - (2 if is_vehicle else 1),
+                vy=math.sin(angle) * random.uniform(2, 6 if is_vehicle else 3)
+                - (2 if is_vehicle else 1),
                 life=random.randint(int(puff_life * 0.7), puff_life),
                 max_life=puff_life,
                 size=size,

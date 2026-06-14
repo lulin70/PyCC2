@@ -2,6 +2,7 @@
 CC2 combat visual effects: explosions, smoke, hit sparks, muzzle flashes,
 surrender flags, and the enhanced particle system.
 """
+
 from __future__ import annotations
 
 import logging
@@ -51,67 +52,83 @@ class EnhancedParticleSystem:
         for _ in range(count):
             angle = random.uniform(0, 2 * math.pi)
             speed = random.uniform(2, 8)
-            self.particles.append(self.Particle(
-                x=x,
-                y=y,
-                vx=math.cos(angle) * speed,
-                vy=math.sin(angle) * speed,
-                life=random.randint(15, 30),
-                max_life=30,
-                size=random.randint(4, 8),
-                color=(255, random.randint(100, 200), 0),
-                particle_type="fire"
-            ))
+            self.particles.append(
+                self.Particle(
+                    x=x,
+                    y=y,
+                    vx=math.cos(angle) * speed,
+                    vy=math.sin(angle) * speed,
+                    life=random.randint(15, 30),
+                    max_life=30,
+                    size=random.randint(4, 8),
+                    color=(255, random.randint(100, 200), 0),
+                    particle_type="fire",
+                )
+            )
 
     def _emit_smoke_plume(self, x: float, y: float, count: int):
         for _ in range(count):
             angle = random.uniform(0, 2 * math.pi)
             speed = random.uniform(0.5, 2.0)
-            self.particles.append(self.Particle(
-                x=x,
-                y=y,
-                vx=math.cos(angle) * speed,
-                vy=math.sin(angle) * speed,
-                life=random.randint(40, 60),
-                max_life=60,
-                size=random.randint(6, 12),
-                color=(random.randint(80, 120), random.randint(80, 120), random.randint(80, 120)),
-                particle_type="smoke"
-            ))
+            self.particles.append(
+                self.Particle(
+                    x=x,
+                    y=y,
+                    vx=math.cos(angle) * speed,
+                    vy=math.sin(angle) * speed,
+                    life=random.randint(40, 60),
+                    max_life=60,
+                    size=random.randint(6, 12),
+                    color=(
+                        random.randint(80, 120),
+                        random.randint(80, 120),
+                        random.randint(80, 120),
+                    ),
+                    particle_type="smoke",
+                )
+            )
 
     def _emit_debris(self, x: float, y: float, count: int):
         """碎片"""
         for _ in range(count):
             angle = random.uniform(0, 2 * math.pi)
             speed = random.uniform(5, 12)
-            self.particles.append(self.Particle(
-                x=x,
-                y=y,
-                vx=math.cos(angle) * speed,
-                vy=math.sin(angle) * speed,
-                life=random.randint(20, 40),
-                max_life=40,
-                size=random.randint(2, 4),
-                color=(random.randint(100, 150), random.randint(80, 120), random.randint(60, 100)),
-                particle_type="debris"
-            ))
+            self.particles.append(
+                self.Particle(
+                    x=x,
+                    y=y,
+                    vx=math.cos(angle) * speed,
+                    vy=math.sin(angle) * speed,
+                    life=random.randint(20, 40),
+                    max_life=40,
+                    size=random.randint(2, 4),
+                    color=(
+                        random.randint(100, 150),
+                        random.randint(80, 120),
+                        random.randint(60, 100),
+                    ),
+                    particle_type="debris",
+                )
+            )
 
     def _emit_sparks(self, x: float, y: float, count: int):
         """火花"""
         for _ in range(count):
             angle = random.uniform(0, 2 * math.pi)
             speed = random.uniform(2, 3)
-            self.particles.append(self.Particle(
-                x=x,
-                y=y,
-                vx=math.cos(angle) * speed,
-                vy=math.sin(angle) * speed,
-                life=random.randint(3, 5),
-                max_life=5,
-                size=1,
-                color=(255, 255, random.randint(100, 255)),
-                particle_type="spark"
-            ))
+            self.particles.append(
+                self.Particle(
+                    x=x,
+                    y=y,
+                    vx=math.cos(angle) * speed,
+                    vy=math.sin(angle) * speed,
+                    life=random.randint(3, 5),
+                    max_life=5,
+                    size=1,
+                    color=(255, 255, random.randint(100, 255)),
+                    particle_type="spark",
+                )
+            )
 
     def update(self):
         """更新所有粒子"""
@@ -152,7 +169,12 @@ class EnhancedParticleSystem:
                 if particle.particle_type == "smoke":
                     # 烟雾使用圆形
                     s = Surface((int(particle.size * 2), int(particle.size * 2)), pygame.SRCALPHA)
-                    pygame.draw.circle(s, (*particle.color, alpha), (int(particle.size), int(particle.size)), int(particle.size))
+                    pygame.draw.circle(
+                        s,
+                        (*particle.color, alpha),
+                        (int(particle.size), int(particle.size)),
+                        int(particle.size),
+                    )
                     surface.blit(s, (screen_x - int(particle.size), screen_y - int(particle.size)))
                 else:
                     # 其他粒子使用小圆点
@@ -174,7 +196,10 @@ class SurrenderFlagEffect:
 
     def show(self, unit_id: str, x: float, y: float, duration: int = 120) -> None:
         self._active_flags[unit_id] = {
-            'x': x, 'y': y, 'tick': 0, 'duration': duration,
+            "x": x,
+            "y": y,
+            "tick": 0,
+            "duration": duration,
         }
 
     def remove(self, unit_id: str) -> None:
@@ -183,19 +208,19 @@ class SurrenderFlagEffect:
     def update(self) -> None:
         to_remove = []
         for uid, flag in self._active_flags.items():
-            flag['tick'] += 1
-            if flag['tick'] > flag['duration']:
+            flag["tick"] += 1
+            if flag["tick"] > flag["duration"]:
                 to_remove.append(uid)
         for uid in to_remove:
             del self._active_flags[uid]
 
     def render(self, surface: Surface, camera_offset: tuple[float, float] = (0, 0)) -> None:
-        for uid, flag in self._active_flags.items():
-            sx = int(flag['x'] - camera_offset[0])
-            sy = int(flag['y'] - camera_offset[1])
-            tick = flag['tick']
+        for _uid, flag in self._active_flags.items():
+            sx = int(flag["x"] - camera_offset[0])
+            sy = int(flag["y"] - camera_offset[1])
+            tick = flag["tick"]
 
-            remaining = flag['duration'] - tick
+            remaining = flag["duration"] - tick
             alpha = min(255, int(255 * remaining / 60)) if remaining < 60 else 255
 
             pulse = 1.0 + 0.15 * math.sin(tick * 0.15)
@@ -225,13 +250,16 @@ class CC2ExplosionEffect:
         for _ in range(8):
             angle = random.uniform(0, 2 * math.pi)
             speed = random.uniform(0.3, 1.2)
-            self._smoke_particles.append({
-                'ox': 0.0, 'oy': 0.0,
-                'vx': math.cos(angle) * speed,
-                'vy': math.sin(angle) * speed,
-                'radius': random.uniform(4, 7),
-                'alpha': random.randint(140, 200),
-            })
+            self._smoke_particles.append(
+                {
+                    "ox": 0.0,
+                    "oy": 0.0,
+                    "vx": math.cos(angle) * speed,
+                    "vy": math.sin(angle) * speed,
+                    "radius": random.uniform(4, 7),
+                    "alpha": random.randint(140, 200),
+                }
+            )
 
     @property
     def alive(self) -> bool:
@@ -249,11 +277,11 @@ class CC2ExplosionEffect:
         else:
             self.shake_offset = (0.0, 0.0)
         for p in self._smoke_particles:
-            p['ox'] += p['vx']
-            p['oy'] += p['vy']
-            p['vx'] *= 0.98
-            p['vy'] *= 0.98
-            p['radius'] += 0.15
+            p["ox"] += p["vx"]
+            p["oy"] += p["vy"]
+            p["vx"] *= 0.98
+            p["vy"] *= 0.98
+            p["radius"] += 0.15
 
     def render(self, surface: Surface, camera_offset: tuple[float, float] = (0, 0)):
         if not self.alive:
@@ -276,15 +304,17 @@ class CC2ExplosionEffect:
             mid_r = max(1, int(outer_r * 0.65))
             pygame.draw.circle(s, (255, 200, 100, min(255, alpha + 30)), (outer_r, outer_r), mid_r)
             inner_r = max(1, outer_r // 3)
-            pygame.draw.circle(s, (255, 255, 220, min(255, alpha + 40)), (outer_r, outer_r), inner_r)
+            pygame.draw.circle(
+                s, (255, 255, 220, min(255, alpha + 40)), (outer_r, outer_r), inner_r
+            )
             surface.blit(s, (sx - outer_r, sy - outer_r))
         else:
             fade = max(0.0, 1.0 - (self.tick - 3) / (self.duration - 3))
             for p in self._smoke_particles:
-                px = sx + int(p['ox'])
-                py = sy + int(p['oy'])
-                r = int(p['radius'])
-                alpha = int(p['alpha'] * fade)
+                px = sx + int(p["ox"])
+                py = sy + int(p["oy"])
+                r = int(p["radius"])
+                alpha = int(p["alpha"] * fade)
                 if alpha < 5 or r < 1:
                     continue
                 s = Surface((r * 2, r * 2), pygame.SRCALPHA)
@@ -312,14 +342,16 @@ class CC2SmokeEffect:
             angle = random.uniform(0, 2 * math.pi)
             dist = random.uniform(0, self.base_radius * 0.6)
             blob_r = random.uniform(self.base_radius * 0.3, self.base_radius * 0.55)
-            self._blobs.append({
-                'angle': angle,
-                'dist': dist,
-                'radius': blob_r,
-                'jagged_offsets': [random.uniform(-0.2, 0.2) for _ in range(12)],
-                'alpha': random.randint(150, 200),
-                'expand_speed': random.uniform(0.15, 0.35),
-            })
+            self._blobs.append(
+                {
+                    "angle": angle,
+                    "dist": dist,
+                    "radius": blob_r,
+                    "jagged_offsets": [random.uniform(-0.2, 0.2) for _ in range(12)],
+                    "alpha": random.randint(150, 200),
+                    "expand_speed": random.uniform(0.15, 0.35),
+                }
+            )
 
     @property
     def alive(self) -> bool:
@@ -330,8 +362,8 @@ class CC2SmokeEffect:
             return
         self.tick += 1
         for b in self._blobs:
-            b['radius'] += b['expand_speed']
-            b['dist'] += 0.03
+            b["radius"] += b["expand_speed"]
+            b["dist"] += 0.03
 
     def render(self, surface: Surface, camera_offset: tuple[float, float] = (0, 0)):
         if not self.alive:
@@ -341,26 +373,28 @@ class CC2SmokeEffect:
         fade = max(0.0, 1.0 - (self.tick / self.duration) ** 0.7)
 
         for b in self._blobs:
-            cx = sx + int(math.cos(b['angle']) * b['dist'])
-            cy = sy + int(math.sin(b['angle']) * b['dist'])
-            r = int(b['radius'])
-            alpha = int(b['alpha'] * fade)
+            cx = sx + int(math.cos(b["angle"]) * b["dist"])
+            cy = sy + int(math.sin(b["angle"]) * b["dist"])
+            r = int(b["radius"])
+            alpha = int(b["alpha"] * fade)
             if alpha < 5 or r < 2:
                 continue
 
             size = r * 2 + 4
             s = Surface((size, size), pygame.SRCALPHA)
             center = (size // 2, size // 2)
-            num_pts = len(b['jagged_offsets'])
+            num_pts = len(b["jagged_offsets"])
             points = []
             for i in range(num_pts):
                 a = (2 * math.pi * i) / num_pts
-                jag = 1.0 + b['jagged_offsets'][i]
+                jag = 1.0 + b["jagged_offsets"][i]
                 pr = r * jag
-                points.append((
-                    center[0] + int(math.cos(a) * pr),
-                    center[1] + int(math.sin(a) * pr),
-                ))
+                points.append(
+                    (
+                        center[0] + int(math.cos(a) * pr),
+                        center[1] + int(math.sin(a) * pr),
+                    )
+                )
             gray = random.randint(160, 200)
             pygame.draw.polygon(s, (gray, gray, gray, alpha), points)
             surface.blit(s, (cx - size // 2, cy - size // 2))
@@ -382,17 +416,21 @@ class CC2HitSparkEffect:
         for _ in range(count):
             angle = random.uniform(0, 2 * math.pi)
             speed = random.uniform(2, 3)
-            self._sparks.append({
-                'vx': math.cos(angle) * speed,
-                'vy': math.sin(angle) * speed,
-                'ox': 0.0,
-                'oy': 0.0,
-                'color': random.choice([
-                    (255, 255, 100),
-                    (255, 255, 200),
-                    (255, 240, 80),
-                ]),
-            })
+            self._sparks.append(
+                {
+                    "vx": math.cos(angle) * speed,
+                    "vy": math.sin(angle) * speed,
+                    "ox": 0.0,
+                    "oy": 0.0,
+                    "color": random.choice(
+                        [
+                            (255, 255, 100),
+                            (255, 255, 200),
+                            (255, 240, 80),
+                        ]
+                    ),
+                }
+            )
 
     @property
     def alive(self) -> bool:
@@ -403,10 +441,10 @@ class CC2HitSparkEffect:
             return
         self.tick += 1
         for sp in self._sparks:
-            sp['ox'] += sp['vx']
-            sp['oy'] += sp['vy']
-            sp['vx'] *= 0.85
-            sp['vy'] *= 0.85
+            sp["ox"] += sp["vx"]
+            sp["oy"] += sp["vy"]
+            sp["vx"] *= 0.85
+            sp["vy"] *= 0.85
 
     def render(self, surface: Surface, camera_offset: tuple[float, float] = (0, 0)):
         if not self.alive:
@@ -415,13 +453,13 @@ class CC2HitSparkEffect:
         sy = int(self.y - camera_offset[1])
         fade = max(0.0, 1.0 - self.tick / self.duration)
         for sp in self._sparks:
-            px = sx + int(sp['ox'])
-            py = sy + int(sp['oy'])
+            px = sx + int(sp["ox"])
+            py = sy + int(sp["oy"])
             alpha = int(255 * fade)
             if alpha < 10:
                 continue
             s = Surface((6, 6), pygame.SRCALPHA)
-            pygame.draw.circle(s, (*sp['color'], alpha), (3, 3), 2)
+            pygame.draw.circle(s, (*sp["color"], alpha), (3, 3), 2)
             surface.blit(s, (px - 3, py - 3))
 
 

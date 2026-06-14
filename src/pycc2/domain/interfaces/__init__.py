@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, TypeVar, overload
+from collections.abc import Callable
+from typing import Any, TypeVar, overload
 
 from .ai_service_protocol import IAIService as IAIService
 from .bottom_panel_protocol import IBottomPanel as IBottomPanel

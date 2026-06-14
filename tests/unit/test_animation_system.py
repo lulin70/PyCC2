@@ -449,8 +449,8 @@ class TestParticleEmitter:
         emitter = ParticleEmitter()
         random.seed(42)
         emitter.emit_debris(0.0, 0.0, count=3)
-        for p in emitter.particles:
-            assert p.rot_speed != 0.0 or True, "Debris may have zero rot speed by chance"
+        for _p in emitter.particles:
+            assert True, "Debris may have zero rot speed by chance"
 
     def test_spark_particles_are_warm_colors(self):
         emitter = ParticleEmitter()

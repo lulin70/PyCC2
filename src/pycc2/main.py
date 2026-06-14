@@ -29,7 +29,7 @@ def _show_main_menu(screen, clock):
     while menu_action is None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return 'quit', menu
+                return "quit", menu
             if event.type == pygame.MOUSEMOTION:
                 menu.update_mouse(event.pos)
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -134,22 +134,22 @@ def _create_game_objects(game_map, camera, screen, wm, event_bus, ai_service=Non
         tutorial_overlay=tutorial_overlay,
     )
     if ai_service is not None:
-        game_loop_kwargs['ai_service'] = ai_service
+        game_loop_kwargs["ai_service"] = ai_service
 
     game_loop = GameLoop(**game_loop_kwargs)
 
     return {
-        'state': state,
-        'renderer': renderer,
-        'event_bus': event_bus,
-        'input_handler': input_handler,
-        'interaction_controller': interaction_controller,
-        'display_config': display_config,
-        'hint_manager': hint_manager,
-        'keybind_manager': keybind_manager,
-        'settings_menu': settings_menu,
-        'tutorial_overlay': tutorial_overlay,
-        'game_loop': game_loop,
+        "state": state,
+        "renderer": renderer,
+        "event_bus": event_bus,
+        "input_handler": input_handler,
+        "interaction_controller": interaction_controller,
+        "display_config": display_config,
+        "hint_manager": hint_manager,
+        "keybind_manager": keybind_manager,
+        "settings_menu": settings_menu,
+        "tutorial_overlay": tutorial_overlay,
+        "game_loop": game_loop,
     }
 
 
@@ -178,7 +178,7 @@ def _load_saved_game(slot, screen, wm):
         return None
 
     # Resolve map path — try to get it from save data or use default
-    map_stem = 'arnhem'
+    map_stem = "arnhem"
     map_path = _resolve_map_path(map_stem)
     if map_path is None:
         return None
@@ -194,7 +194,7 @@ def _load_saved_game(slot, screen, wm):
 
     event_bus = EventBus()
     objects = _create_game_objects(game_map, camera, screen, wm, event_bus)
-    game_loop = objects['game_loop']
+    game_loop = objects["game_loop"]
 
     # Restore saved state
     save_ctrl = SaveController()
@@ -288,7 +288,7 @@ def _start_new_game(menu, menu_action, screen, wm):
 
     # Create shared game objects
     objects = _create_game_objects(game_map, camera, screen, wm, event_bus, ai_service=ai_service)
-    game_loop = objects['game_loop']
+    game_loop = objects["game_loop"]
 
     # Build map_data dict for deployment UI from GameMap
     map_data = {
@@ -307,7 +307,7 @@ def _start_new_game(menu, menu_action, screen, wm):
     }
 
     # Load scenario data for faction asymmetry and VL info (G5/G6)
-    scenario_stem = menu.get_selected_map() if hasattr(menu, 'get_selected_map') else map_stem
+    scenario_stem = menu.get_selected_map() if hasattr(menu, "get_selected_map") else map_stem
     scenario_path = Path(f"data/scenarios/{scenario_stem}.json")
     if not scenario_path.exists():
         # Try matching by map_id in scenario files
@@ -388,29 +388,29 @@ def main() -> int:
         pygame.init()
 
         # Create window
-        wm = WindowManager(
-            DisplayInfo(base_width=1280, base_height=720)
-        )
+        wm = WindowManager(DisplayInfo(base_width=1280, base_height=720))
         screen = wm.initialize()
 
         # Show main menu
         clock = pygame.time.Clock()
         menu_action, menu = _show_main_menu(screen, clock)
 
-        if menu_action == 'quit':
+        if menu_action == "quit":
             logger.info("Player quit from menu")
             return 0
 
         # Validate menu action
-        if menu_action not in ('start_campaign', 'start_skirmish') and not (menu_action and menu_action.startswith('load_game:')):
+        if menu_action not in ("start_campaign", "start_skirmish") and not (
+            menu_action and menu_action.startswith("load_game:")
+        ):
             logger.warning(f"Unknown menu action: {menu_action}, treating as start_campaign")
-            menu_action = 'start_campaign'  # Default to campaign mode
+            menu_action = "start_campaign"  # Default to campaign mode
 
         logger.info(f"Menu action: {menu_action}")
 
         # Handle load game
-        if menu_action and menu_action.startswith('load_game:'):
-            slot_str = menu_action.split(':')[1]
+        if menu_action and menu_action.startswith("load_game:"):
+            slot_str = menu_action.split(":")[1]
             try:
                 load_slot = int(slot_str)
             except ValueError:
@@ -437,6 +437,7 @@ def main() -> int:
     finally:
         try:
             import pygame
+
             pygame.quit()
         except Exception as e:
             logging.debug(f"pygame.quit() failed: {e}")

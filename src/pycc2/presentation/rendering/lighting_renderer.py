@@ -4,7 +4,7 @@ Lighting Renderer — applies color grading and illumination overlays for day-ni
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     pass
@@ -40,7 +40,7 @@ class LightingRenderer:
         self,
         screen,
         time_of_day: TimeOfDay,
-        searchlights: Optional[list[Searchlight]] = None,
+        searchlights: list[Searchlight] | None = None,
     ) -> None:
 
         effects = DayNightEffects()
@@ -64,9 +64,7 @@ class LightingRenderer:
         }
         return alphas.get(time_of_day, 0)
 
-    def _render_searchlights(
-        self, screen, searchlights: list[Searchlight]
-    ) -> None:
+    def _render_searchlights(self, screen, searchlights: list[Searchlight]) -> None:
         import pygame
 
         self._searchlight_surface.fill((0, 0, 0, 0))

@@ -9,9 +9,8 @@ import pygame
 
 from pycc2.domain.interfaces import IEventPublisher
 from pycc2.domain.interfaces.event_types import PlayerCommand
-
 from pycc2.presentation.ui.cursor_manager import CursorManager, CursorType
-from pycc2.presentation.ui.radial_menu import RadialMenu, RadialCommand
+from pycc2.presentation.ui.radial_menu import RadialCommand, RadialMenu
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +19,11 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.value_objects.tile_coord import TileCoord
     from pycc2.domain.value_objects.vec2 import Vec2
-    from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.input.attack_line_system import AttackLineSystem
-from pycc2.domain.value_objects.audio_enums import InteractionMode  # noqa: F401 — re-exported for backward compat
+    from pycc2.presentation.rendering.camera import Camera
+from pycc2.domain.value_objects.audio_enums import (
+    InteractionMode,  # noqa: F401 — re-exported for backward compat
+)
 
 
 @dataclass(slots=True)
@@ -50,12 +51,13 @@ class InteractionController:
         self._selected_ids: set[str] = set()
         self._selection_start: tuple[float, float] | None = None
         self._on_unit_selected: Callable[[set[str]], None] | None = None
-        self._on_move_command: Callable[[set[str], "Vec2"], None] | None = None
+        self._on_move_command: Callable[[set[str], Vec2], None] | None = None
         self._on_attack_command: Callable[[set[str], str], None] | None = None
         self._on_deselect: Callable[[], None] | None = None
 
         # Attack line system (CC2-style)
         from pycc2.presentation.input.attack_line_system import AttackLineSystem
+
         self.attack_line: AttackLineSystem = AttackLineSystem()
 
         # Radial menu and drag-style command interaction (CC2-style)
@@ -83,12 +85,14 @@ class InteractionController:
         """Set the keybind manager for customizable keybindings."""
         self._keybind_manager = keybind_manager
 
-    def _show_first_time_hint(self, hint_id: str, text: str, x: float = 0.0, y: float = 0.0) -> None:
+    def _show_first_time_hint(
+        self, hint_id: str, text: str, x: float = 0.0, y: float = 0.0
+    ) -> None:
         """Show a first-time hint if not already shown this session."""
         if hint_id in self._shown_hints:
             return
         self._shown_hints.add(hint_id)
-        if self._hint_manager and hasattr(self._hint_manager, 'show_hint'):
+        if self._hint_manager and hasattr(self._hint_manager, "show_hint"):
             self._hint_manager.show_hint(text, x, y, lifetime=240)
 
     @property
@@ -123,6 +127,7 @@ class InteractionController:
         world_vec = self._camera.screen_to_world(screen_pos)
 
         from pycc2.presentation.rendering.camera import ProjectionMode
+
         if self._camera.projection == ProjectionMode.ISOMETRIC:
             # In isometric mode, use isometric-aware tile picking
             # Camera.screen_to_world already handles the inverse isometric transform
@@ -155,7 +160,7 @@ class InteractionController:
 
         # Type → radius mapping (use string keys for safety)
         type_radius = {
-            "INFANTRY_SQUAD": 20,      # Increased for easier clicking
+            "INFANTRY_SQUAD": 20,  # Increased for easier clicking
             "RIFLE_SQUAD": 20,
             "MACHINE_GUN_SQUAD": 24,
             "MG_TEAM": 24,
@@ -186,20 +191,21 @@ class InteractionController:
         for idx, unit in enumerate(units):
             try:
                 # Skip dead units
-                is_alive = getattr(unit, 'is_alive', True)
+                is_alive = getattr(unit, "is_alive", True)
                 if not is_alive:
                     continue
 
                 # Get unit position with fallbacks
                 upos = None
-                if hasattr(unit, 'position') and unit.position is not None:
-                    if hasattr(unit.position, 'pixel_position'):
+                if hasattr(unit, "position") and unit.position is not None:
+                    if hasattr(unit.position, "pixel_position"):
                         upos = unit.position.pixel_position
-                    elif hasattr(unit.position, 'tile_position'):
+                    elif hasattr(unit.position, "tile_position"):
                         # Convert tile to pixel position
                         from pycc2.domain.value_objects.vec2 import Vec2
-                        tile_x = getattr(unit.position, 'tile_x', 0) or 0
-                        tile_y = getattr(unit.position, 'tile_y', 0) or 0
+
+                        tile_x = getattr(unit.position, "tile_x", 0) or 0
+                        tile_y = getattr(unit.position, "tile_y", 0) or 0
                         upos = Vec2(tile_x * 32, tile_y * 32)
 
                 if upos is None:
@@ -215,10 +221,12 @@ class InteractionController:
 
                 # Try to get type-specific radius
                 try:
-                    unit_type_str = str(unit.unit_type).upper() if hasattr(unit, 'unit_type') else ""
+                    unit_type_str = (
+                        str(unit.unit_type).upper() if hasattr(unit, "unit_type") else ""
+                    )
 
                     # Try .name first (for enum types), then direct string match
-                    if hasattr(unit.unit_type, 'name'):
+                    if hasattr(unit.unit_type, "name"):
                         type_key = unit.unit_type.name.upper()
                     else:
                         type_key = unit_type_str
@@ -264,7 +272,9 @@ class InteractionController:
                 # Convert screen position to WORLD pixel coordinates (not tile!)
                 world_vec = self._camera.screen_to_world(screen_pos)
                 self._on_move_command(self._selected_ids, world_vec)
-                logger.info(f"[MOVE] Command: {len(self._selected_ids)} units -> ({world_vec.x:.0f}, {world_vec.y:.0f})")
+                logger.info(
+                    f"[MOVE] Command: {len(self._selected_ids)} units -> ({world_vec.x:.0f}, {world_vec.y:.0f})"
+                )
             return set(self._selected_ids)
 
         if self._mode == InteractionMode.ATTACK:
@@ -291,13 +301,19 @@ class InteractionController:
 
                     logger.info(
                         f"[ATTACK] Confirmed: {len(self._selected_ids)} units -> "
-                        f"{'unit '+target.unit_id if target.unit_id else 'ground'} "
+                        f"{'unit ' + target.unit_id if target.unit_id else 'ground'} "
                         f"({target.position.x:.0f},{target.position.y:.0f}) "
                         f"status={target.status.name}"
                     )
 
                     # Execute attack command
-                    if target.status.name in ('CAN_ATTACK', 'TRACKING_UNIT', 'HIT_HIGH', 'HIT_MODERATE', 'HIT_LOW'):
+                    if target.status.name in (
+                        "CAN_ATTACK",
+                        "TRACKING_UNIT",
+                        "HIT_HIGH",
+                        "HIT_MODERATE",
+                        "HIT_LOW",
+                    ):
                         if target.unit_id and self._on_attack_command:
                             self._on_attack_command(self._selected_ids, target.unit_id)
                         elif not target.unit_id:
@@ -305,13 +321,16 @@ class InteractionController:
                             if self._on_move_command:  # Reuse for ground attack
                                 self._on_move_command(self._selected_ids, target.position)
 
-                        self._event_bus.publish_named("AttackCommand", {
-                            "command": "attack",
-                            "unit_ids": list(self._selected_ids),
-                            "target_id": target.unit_id,
-                            "target_pos": (target.position.x, target.position.y),
-                            "is_ground_target": target.is_ground_target,
-                        })
+                        self._event_bus.publish_named(
+                            "AttackCommand",
+                            {
+                                "command": "attack",
+                                "unit_ids": list(self._selected_ids),
+                                "target_id": target.unit_id,
+                                "target_pos": (target.position.x, target.position.y),
+                                "is_ground_target": target.is_ground_target,
+                            },
+                        )
                     else:
                         logger.warning(f"[ATTACK] Cannot attack - {target.status.name}")
 
@@ -412,7 +431,9 @@ class InteractionController:
                     game_map=self._game_map,
                 )
 
-    def handle_right_click(self, screen_pos: tuple[float, float], units: list[Unit], shift_held: bool = False) -> None:
+    def handle_right_click(
+        self, screen_pos: tuple[float, float], units: list[Unit], shift_held: bool = False
+    ) -> None:
         if not self._selected_ids:
             return
 
@@ -430,8 +451,10 @@ class InteractionController:
                     for uid in self._selected_ids:
                         u = next((x for x in units if x.id == uid), None)
                         if u:
-                            u.queue_command('attack', target_id=target.id)
-                    logger.info(f"[QUEUE] Attack queued for {len(self._selected_ids)} units -> {target.id}")
+                            u.queue_command("attack", target_id=target.id)
+                    logger.info(
+                        f"[QUEUE] Attack queued for {len(self._selected_ids)} units -> {target.id}"
+                    )
                 else:
                     if self._on_attack_command:
                         self._on_attack_command(self._selected_ids, target.id)
@@ -456,8 +479,14 @@ class InteractionController:
                 for uid in self._selected_ids:
                     u = next((x for x in units if x.id == uid), None)
                     if u:
-                        u.queue_command('move', target_x=result.world_position.x, target_y=result.world_position.y)
-                logger.info(f"[QUEUE] Move queued for {len(self._selected_ids)} units -> ({result.world_position.x}, {result.world_position.y})")
+                        u.queue_command(
+                            "move",
+                            target_x=result.world_position.x,
+                            target_y=result.world_position.y,
+                        )
+                logger.info(
+                    f"[QUEUE] Move queued for {len(self._selected_ids)} units -> ({result.world_position.x}, {result.world_position.y})"
+                )
             else:
                 if self._on_move_command:
                     self._on_move_command(self._selected_ids, result.world_position)
@@ -478,21 +507,21 @@ class InteractionController:
         if self._keybind_manager:
             action = self._keybind_manager.get_action(key)
 
-        if action == 'move' or (not action and key == pygame.K_z):
+        if action == "move" or (not action and key == pygame.K_z):
             # Move: Z (CC2 standard) or custom key
             self._mode = InteractionMode.MOVE
             self.cursor_manager.set_cursor(CursorType.MOVE)
-        elif action == 'fire' or (not action and key == pygame.K_c):
+        elif action == "fire" or (not action and key == pygame.K_c):
             # Fire/Attack: C (CC2 standard) or custom key
             self._mode = InteractionMode.ATTACK
             self.cursor_manager.set_cursor(CursorType.ATTACK)
-        elif action == 'cancel' or key == pygame.K_ESCAPE:
+        elif action == "cancel" or key == pygame.K_ESCAPE:
             self._mode = InteractionMode.SELECT
             self.cursor_manager.set_cursor(CursorType.DEFAULT)
             self._selected_ids.clear()
             if self._on_deselect:
                 self._on_deselect()
-        elif action == 'sneak' or (not action and key == pygame.K_s):
+        elif action == "sneak" or (not action and key == pygame.K_s):
             # Sneak command: S (CC2 standard) or custom key
             self.cursor_manager.set_cursor(CursorType.MOVE)
             self._event_bus.publish(
@@ -501,7 +530,7 @@ class InteractionController:
                     "unit_ids": list(self._selected_ids),
                 }
             )
-        elif action == 'smoke' or (not action and key == pygame.K_v):
+        elif action == "smoke" or (not action and key == pygame.K_v):
             # Smoke: V (CC2 standard) or custom key
             self.cursor_manager.set_cursor(CursorType.SMOKE)
             self._event_bus.publish(
@@ -510,7 +539,7 @@ class InteractionController:
                     "unit_ids": list(self._selected_ids),
                 }
             )
-        elif action == 'defend' or (not action and key == pygame.K_d):
+        elif action == "defend" or (not action and key == pygame.K_d):
             # Defend command: D (CC2 standard) or custom key
             self._event_bus.publish(
                 {
@@ -518,7 +547,7 @@ class InteractionController:
                     "unit_ids": list(self._selected_ids),
                 }
             )
-        elif action == 'move_fast' or (not action and key == pygame.K_x):
+        elif action == "move_fast" or (not action and key == pygame.K_x):
             # Fast Move: X (CC2 standard) or custom key
             self._event_bus.publish(
                 {
@@ -526,7 +555,7 @@ class InteractionController:
                     "unit_ids": list(self._selected_ids),
                 }
             )
-        elif action == 'hide' or (not action and key == pygame.K_h):
+        elif action == "hide" or (not action and key == pygame.K_h):
             # Hide command: H (CC2 standard) or custom key
             self._event_bus.publish(
                 {
@@ -537,6 +566,7 @@ class InteractionController:
         elif key == pygame.K_i:
             # Toggle between ORTHOGRAPHIC and ISOMETRIC projection
             from pycc2.presentation.rendering.camera import ProjectionMode
+
             if self._camera.projection == ProjectionMode.ORTHOGRAPHIC:
                 self._camera.projection = ProjectionMode.ISOMETRIC
             else:
@@ -638,33 +668,45 @@ class InteractionController:
                 self._on_move_command(self._selected_ids, result.world_position)
                 # Set movement mode
                 if cmd_name == "fast_move":
-                    self._event_bus.publish(PlayerCommand(command="fast_move", unit_ids=list(self._selected_ids)))
+                    self._event_bus.publish(
+                        PlayerCommand(command="fast_move", unit_ids=list(self._selected_ids))
+                    )
                 elif cmd_name == "sneak":
-                    self._event_bus.publish(PlayerCommand(command="sneak", unit_ids=list(self._selected_ids)))
-            self._event_bus.publish(PlayerCommand(
-                command=cmd_name,
-                unit_ids=list(self._selected_ids),
-                target=(
-                    result.world_position.x if result.world_position else 0,
-                    result.world_position.y if result.world_position else 0,
-                ),
-            ))
+                    self._event_bus.publish(
+                        PlayerCommand(command="sneak", unit_ids=list(self._selected_ids))
+                    )
+            self._event_bus.publish(
+                PlayerCommand(
+                    command=cmd_name,
+                    unit_ids=list(self._selected_ids),
+                    target=(
+                        result.world_position.x if result.world_position else 0,
+                        result.world_position.y if result.world_position else 0,
+                    ),
+                )
+            )
         elif cmd_name == "attack":
             # Attack command: target is the unit at release position
             result = self.hit_test(screen_pos, units)
             if result.is_unit_click and result.hit_unit and self._on_attack_command:
                 self._on_attack_command(self._selected_ids, result.hit_unit.id)
-            self._event_bus.publish(PlayerCommand(
-                command="attack",
-                unit_ids=list(self._selected_ids),
-                target_id=result.hit_unit.id if result.is_unit_click and result.hit_unit else None,
-            ))
+            self._event_bus.publish(
+                PlayerCommand(
+                    command="attack",
+                    unit_ids=list(self._selected_ids),
+                    target_id=result.hit_unit.id
+                    if result.is_unit_click and result.hit_unit
+                    else None,
+                )
+            )
         else:
             # Instant commands (smoke, defend, hide) - no target needed
-            self._event_bus.publish(PlayerCommand(
-                command=cmd_name,
-                unit_ids=list(self._selected_ids),
-            ))
+            self._event_bus.publish(
+                PlayerCommand(
+                    command=cmd_name,
+                    unit_ids=list(self._selected_ids),
+                )
+            )
 
     # ====== Ctrl-key LOS visualization ======
 

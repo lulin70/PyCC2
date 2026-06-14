@@ -37,7 +37,7 @@ class ShadowRenderingSystem:
         shadow_sys.render_all_shadows(offscreen_surface, game_map, camera, units)
     """
 
-    def __init__(self, shadow_renderer: 'ShadowRenderer', tile_size: int = 32):
+    def __init__(self, shadow_renderer: "ShadowRenderer", tile_size: int = 32):
         """
         初始化阴影渲染系统。
 
@@ -49,10 +49,7 @@ class ShadowRenderingSystem:
         self.TILE_SIZE = tile_size
 
     def render_building_shadows(
-        self, 
-        surface: pygame.Surface, 
-        game_map: 'GameMap', 
-        camera: 'Camera'
+        self, surface: pygame.Surface, game_map: "GameMap", camera: "Camera"
     ) -> int:
         """
         渲染所有建筑的东南方向阴影。
@@ -82,15 +79,13 @@ class ShadowRenderingSystem:
 
                     if has_building:
                         from pycc2.domain.value_objects.vec2 import Vec2
+
                         world_pos = Vec2(x * self.TILE_SIZE, y * self.TILE_SIZE)
                         screen_pos = camera.world_to_screen(world_pos)
                         sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
                         self._shadow_renderer.render_building_shadow(
-                            surface,
-                            sx, sy,
-                            self.TILE_SIZE,
-                            self.TILE_SIZE // 2
+                            surface, sx, sy, self.TILE_SIZE, self.TILE_SIZE // 2
                         )
                         buildings_found += 1
 
@@ -103,10 +98,7 @@ class ShadowRenderingSystem:
             return 0
 
     def render_tree_shadows(
-        self, 
-        surface: pygame.Surface, 
-        game_map: 'GameMap', 
-        camera: 'Camera'
+        self, surface: pygame.Surface, game_map: "GameMap", camera: "Camera"
     ) -> int:
         """
         渲染所有树木/植被的东南方向阴影。
@@ -133,6 +125,7 @@ class ShadowRenderingSystem:
 
                     if is_tree:
                         from pycc2.domain.value_objects.vec2 import Vec2
+
                         world_pos = Vec2(x * self.TILE_SIZE, y * self.TILE_SIZE)
                         screen_pos = camera.world_to_screen(world_pos)
                         sx, sy = int(screen_pos[0]), int(screen_pos[1])
@@ -144,11 +137,7 @@ class ShadowRenderingSystem:
                         elif terrain_int == 7:  # HEDGE
                             tree_size = "small"
 
-                        self._shadow_renderer.render_tree_shadow(
-                            surface,
-                            sx, sy,
-                            tree_size
-                        )
+                        self._shadow_renderer.render_tree_shadow(surface, sx, sy, tree_size)
                         trees_found += 1
 
             if trees_found > 0:
@@ -160,10 +149,7 @@ class ShadowRenderingSystem:
             return 0
 
     def render_unit_shadows(
-        self, 
-        surface: pygame.Surface, 
-        units: list['Unit'], 
-        camera: 'Camera'
+        self, surface: pygame.Surface, units: list["Unit"], camera: "Camera"
     ) -> int:
         """
         渲染所有单位和载具的阴影。
@@ -201,21 +187,15 @@ class ShadowRenderingSystem:
                 is_vehicle = self._detect_vehicle(unit_type_str)
 
                 if is_vehicle:
-                    unit_w = getattr(unit, 'width', 24) or 24
-                    unit_h = getattr(unit, 'height', 16) or 16
+                    unit_w = getattr(unit, "width", 24) or 24
+                    unit_h = getattr(unit, "height", 16) or 16
 
                     self._shadow_renderer.render_vehicle_shadow(
-                        surface,
-                        cx, cy,
-                        unit_w, unit_h,
-                        is_hidden=is_hidden
+                        surface, cx, cy, unit_w, unit_h, is_hidden=is_hidden
                     )
                 else:
                     self._shadow_renderer.render_unit_shadow(
-                        surface,
-                        cx, cy,
-                        unit_type=unit_type_str,
-                        is_hidden=is_hidden
+                        surface, cx, cy, unit_type=unit_type_str, is_hidden=is_hidden
                     )
 
                 units_rendered += 1
@@ -229,10 +209,7 @@ class ShadowRenderingSystem:
             return 0
 
     def debug_render_shadow_bounds(
-        self, 
-        surface: pygame.Surface, 
-        game_map: 'GameMap', 
-        camera: 'Camera'
+        self, surface: pygame.Surface, game_map: "GameMap", camera: "Camera"
     ) -> None:
         """
         调试模式：绘制阴影位置的边界框（不依赖透明度）。
@@ -250,8 +227,8 @@ class ShadowRenderingSystem:
         import pygame as pg
 
         try:
-            BUILDING_DEBUG_COLOR = (255, 0, 0)      # Red for buildings
-            TREE_DEBUG_COLOR = (0, 255, 0)           # Green for trees
+            BUILDING_DEBUG_COLOR = (255, 0, 0)  # Red for buildings
+            TREE_DEBUG_COLOR = (0, 255, 0)  # Green for trees
 
             # 绘制建筑阴影边界
             for y in range(game_map.height):
@@ -266,10 +243,10 @@ class ShadowRenderingSystem:
                         sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
                         shadow_rect = pg.Rect(
-                            sx + 6, 
+                            sx + 6,
                             sy + self.TILE_SIZE // 2 + 3,
-                            max(24, int(self.TILE_SIZE * 0.9)), 
-                            6
+                            max(24, int(self.TILE_SIZE * 0.9)),
+                            6,
                         )
                         pg.draw.rect(surface, BUILDING_DEBUG_COLOR, shadow_rect, 2)
 
@@ -286,15 +263,15 @@ class ShadowRenderingSystem:
                         sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
                         shadow_radius = max(6, int(self.TILE_SIZE * 0.25))
-                        pg.draw.circle(surface, TREE_DEBUG_COLOR, (sx + 4, sy + 2), shadow_radius, 2)
+                        pg.draw.circle(
+                            surface, TREE_DEBUG_COLOR, (sx + 4, sy + 2), shadow_radius, 2
+                        )
 
         except Exception as e:
             logger.debug(f"Debug shadow bounds rendering failed: {e}")
 
     def _get_unit_screen_position(
-        self, 
-        unit: 'Unit', 
-        camera: 'Camera'
+        self, unit: "Unit", camera: "Camera"
     ) -> tuple[int | None, int | None]:
         """
         获取单位在屏幕上的坐标（带防御性编程）。
@@ -312,20 +289,21 @@ class ShadowRenderingSystem:
         """
         cx, cy = None, None
 
-        if hasattr(unit, 'position') and unit.position is not None:
-            if hasattr(unit.position, 'pixel_position'):
+        if hasattr(unit, "position") and unit.position is not None:
+            if hasattr(unit.position, "pixel_position"):
                 try:
                     pos = camera.world_to_screen(unit.position.pixel_position)
                     cx, cy = int(pos[0]), int(pos[1])
                 except (AttributeError, ValueError):
                     pass
 
-            if (cx is None or cy is None) and hasattr(unit.position, 'tile_x'):
+            if (cx is None or cy is None) and hasattr(unit.position, "tile_x"):
                 try:
-                    tile_x = getattr(unit.position, 'tile_x', None)
-                    tile_y = getattr(unit.position, 'tile_y', None)
+                    tile_x = getattr(unit.position, "tile_x", None)
+                    tile_y = getattr(unit.position, "tile_y", None)
                     if tile_x is not None and tile_y is not None:
                         from pycc2.domain.value_objects.vec2 import Vec2
+
                         world_pos = Vec2(tile_x * 16, tile_y * 16)
                         pos = camera.world_to_screen(world_pos)
                         cx, cy = int(pos[0]), int(pos[1])
@@ -335,36 +313,32 @@ class ShadowRenderingSystem:
         return cx, cy
 
     @staticmethod
-    def _get_unit_type_string(unit: 'Unit') -> str:
+    def _get_unit_type_string(unit: "Unit") -> str:
         """获取单位类型的字符串表示。"""
-        unit_type = getattr(unit, 'unit_type', 'infantry')
+        unit_type = getattr(unit, "unit_type", "infantry")
         return str(unit_type).lower()
 
     @staticmethod
-    def _check_unit_hidden(unit: 'Unit') -> bool:
+    def _check_unit_hidden(unit: "Unit") -> bool:
         """检查单位是否处于隐藏/潜行状态。"""
-        return getattr(unit, 'is_hidden', False) or \
-               getattr(unit, 'is_sneaking', False)
+        return getattr(unit, "is_hidden", False) or getattr(unit, "is_sneaking", False)
 
     @staticmethod
     def _detect_vehicle(unit_type_str: str) -> bool:
         """检测是否为载具类型。"""
-        return any(v in unit_type_str for v in 
-                   ['tank', 'vehicle', 'halftrack', 'jeep', 'truck'])
+        return any(v in unit_type_str for v in ["tank", "vehicle", "halftrack", "jeep", "truck"])
 
     @staticmethod
     def _is_building_tile(tile) -> bool:
         """检查瓦片是否为建筑类型。"""
-        has_building = (
-            hasattr(tile, 'building') and tile.building is not None
-        ) or (
-            hasattr(tile, 'terrain_type') and
-            str(tile.terrain_type).lower() in ['building', 'house', 'barn', 'church']
+        has_building = (hasattr(tile, "building") and tile.building is not None) or (
+            hasattr(tile, "terrain_type")
+            and str(tile.terrain_type).lower() in ["building", "house", "barn", "church"]
         )
 
         if not has_building:
             try:
-                tt = getattr(tile, 'terrain_type', None)
+                tt = getattr(tile, "terrain_type", None)
                 if tt is not None:
                     tt_val = int(tt) if isinstance(tt, (int, float)) else -1
                     if tt_val >= 20:
@@ -373,8 +347,8 @@ class ShadowRenderingSystem:
                 pass
 
         if not has_building:
-            tile_name = str(getattr(tile, 'name', '')).lower()
-            if any(w in tile_name for w in ['build', 'house', 'church', 'barn', 'factory']):
+            tile_name = str(getattr(tile, "name", "")).lower()
+            if any(w in tile_name for w in ["build", "house", "church", "barn", "factory"]):
                 has_building = True
 
         return has_building
@@ -382,13 +356,12 @@ class ShadowRenderingSystem:
     @staticmethod
     def _is_tree_tile(tile) -> bool:
         """检查瓦片是否为树木/植被类型."""
-        terrain_str = str(getattr(tile, 'terrain_type', '')).lower()
-        is_tree = any(t in terrain_str for t in 
-                      ['tree', 'forest', 'woods', 'hedgerow', 'orchard'])
+        terrain_str = str(getattr(tile, "terrain_type", "")).lower()
+        is_tree = any(t in terrain_str for t in ["tree", "forest", "woods", "hedgerow", "orchard"])
 
         if not is_tree:
             try:
-                tt = getattr(tile, 'terrain_type', None)
+                tt = getattr(tile, "terrain_type", None)
                 if tt is not None:
                     tt_val = int(tt) if isinstance(tt, (int, float)) else -1
                     if 3 <= tt_val <= 7:
@@ -397,8 +370,8 @@ class ShadowRenderingSystem:
                 pass
 
         if not is_tree:
-            tile_name = str(getattr(tile, 'name', '')).lower()
-            if any(w in tile_name for w in ['tree', 'forest', 'wood', 'hedge', 'bush', 'orchard']):
+            tile_name = str(getattr(tile, "name", "")).lower()
+            if any(w in tile_name for w in ["tree", "forest", "wood", "hedge", "bush", "orchard"]):
                 is_tree = True
 
         return is_tree

@@ -35,13 +35,21 @@ class FriendlyFireSystem:
         hit_friendlies = []
 
         for unit in friendly_units:
-            ux = getattr(unit.position_component, 'x', 0.0) \
-                if hasattr(unit, 'position_component') else 0.0
-            uy = getattr(unit.position_component, 'y', 0.0) \
-                if hasattr(unit, 'position_component') else 0.0
+            ux = (
+                getattr(unit.position_component, "x", 0.0)
+                if hasattr(unit, "position_component")
+                else 0.0
+            )
+            uy = (
+                getattr(unit.position_component, "y", 0.0)
+                if hasattr(unit, "position_component")
+                else 0.0
+            )
 
             if self._point_near_line(
-                attacker_pos, target_pos, (ux, uy),
+                attacker_pos,
+                target_pos,
+                (ux, uy),
                 threshold=0.5,
             ):
                 hit_friendlies.append(unit)
@@ -64,9 +72,7 @@ class FriendlyFireSystem:
         if line_len_sq == 0:
             return ((px - x0) ** 2 + (py - y0) ** 2) ** 0.5 <= threshold
 
-        t = max(0, min(1, (
-            (px - x0) * (x1 - x0) + (py - y0) * (y1 - y0)
-        ) / line_len_sq))
+        t = max(0, min(1, ((px - x0) * (x1 - x0) + (py - y0) * (y1 - y0)) / line_len_sq))
 
         proj_x = x0 + t * (x1 - x0)
         proj_y = y0 + t * (y1 - y0)
@@ -87,28 +93,30 @@ class FriendlyFireSystem:
             Dict with damage applied and morale effects
         """
         event = {
-            'attacker': getattr(attacker, 'name', 'Unknown'),
-            'victim': getattr(victim, 'name', 'Unknown'),
-            'damage': damage,
-            'attacker_morale_change': -20,
-            'victim_morale_change': -20,
+            "attacker": getattr(attacker, "name", "Unknown"),
+            "victim": getattr(victim, "name", "Unknown"),
+            "damage": damage,
+            "attacker_morale_change": -20,
+            "victim_morale_change": -20,
         }
 
         # Apply damage to victim
-        health = getattr(victim, 'health_component', None)
+        health = getattr(victim, "health_component", None)
         if health:
-            current = getattr(health, 'current_hp', 100)
+            current = getattr(health, "current_hp", 100)
             try:
                 new_hp = max(0, int(current) - damage)
                 health.current_hp = new_hp
             except (TypeError, ValueError):
-                health.current_hp = max(0, current - damage) if isinstance(current, (int, float)) else 80
+                health.current_hp = (
+                    max(0, current - damage) if isinstance(current, (int, float)) else 80
+                )
 
         # Apply morale penalty to both
         for unit in [attacker, victim]:
-            morale = getattr(unit, 'morale_component', None)
+            morale = getattr(unit, "morale_component", None)
             if morale:
-                current = getattr(morale, 'current_morale', 100.0)
+                current = getattr(morale, "current_morale", 100.0)
                 try:
                     new_morale = max(0.0, float(current) - 20)
                     morale.current_morale = new_morale

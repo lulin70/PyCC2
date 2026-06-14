@@ -125,14 +125,13 @@ class CombatEngagement:
             decision = EngagementDecision.CLOSE_DISTANCE
             reason = "Adjusting to optimal range"
 
-        if difficulty_config is not None:
-            if (
-                decision == EngagementDecision.ENGAGE
-                and distance > self._rule.optimal_engagement_distance
-                and random.random() > difficulty_config.aggressiveness
-            ):
-                decision = EngagementDecision.HOLD_POSITION
-                reason = "Holding position (difficulty: conservative at long range)"
+        if difficulty_config is not None and (
+            decision == EngagementDecision.ENGAGE
+            and distance > self._rule.optimal_engagement_distance
+            and random.random() > difficulty_config.aggressiveness
+        ):
+            decision = EngagementDecision.HOLD_POSITION
+            reason = "Holding position (difficulty: conservative at long range)"
 
         return EngagementResult(
             decision=decision,
@@ -243,10 +242,7 @@ class CombatEngagement:
         if not in_combat and low:
             return True
 
-        if critical and in_combat and has_cover:
-            return True
-
-        return False
+        return bool(critical and in_combat and has_cover)
 
 
 import random

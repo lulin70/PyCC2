@@ -9,19 +9,22 @@ Tests the full event chain:
   EnhancedRenderer → DynamicShadowSystem / ProjectileTrailSystem rendering
 """
 
-
-from pycc2.services.event_bus import EventBus
+from pycc2.domain.systems.achievement_system import (
+    AchievementManager,
+    create_default_achievements,
+)
 from pycc2.presentation.rendering.camera_effects import (
-    EffectStack, EffectType,
-    create_shake, create_zoom_impact, create_slow_motion,
+    EffectStack,
+    EffectType,
+    create_shake,
+    create_slow_motion,
+    create_zoom_impact,
 )
 from pycc2.presentation.rendering.combat_camera_controller import CombatCameraController
-from pycc2.domain.systems.achievement_system import (
-    AchievementManager, create_default_achievements,
-)
-from pycc2.services.achievement_event_bridge import AchievementEventBridge
-from pycc2.presentation.rendering.projectile_trail_system import ProjectileTrailSystem
 from pycc2.presentation.rendering.dynamic_shadow_system import DynamicShadowSystem
+from pycc2.presentation.rendering.projectile_trail_system import ProjectileTrailSystem
+from pycc2.services.achievement_event_bridge import AchievementEventBridge
+from pycc2.services.event_bus import EventBus
 
 
 class TestEventBusNamedChannel:
@@ -50,7 +53,10 @@ class TestEventBusNamedChannel:
     def test_unsubscribe_from(self):
         bus = EventBus()
         results = []
-        handler = lambda d: results.append(d)
+
+        def handler(d):
+            return results.append(d)
+
         bus.subscribe_to("Evt", handler)
         bus.publish_named("Evt", {"a": 1})
         assert len(results) == 1
@@ -66,8 +72,10 @@ class TestEventBusNamedChannel:
 
     def test_named_handler_error_counted(self):
         bus = EventBus()
+
         def bad_handler(d):
             raise ValueError("boom")
+
         bus.subscribe_to("ErrEvt", bad_handler)
         bus.publish_named("ErrEvt", {"x": 1})
         assert bus._error_count == 1
@@ -174,11 +182,14 @@ class TestAchievementEventBridgeIntegration:
         bridge = AchievementEventBridge(mgr)
         bridge.subscribe(bus)
 
-        bus.publish_named("UnitKilled", {
-            "faction": "AXIS",
-            "attacker_role": "rifleman",
-            "unit_type": "infantry",
-        })
+        bus.publish_named(
+            "UnitKilled",
+            {
+                "faction": "AXIS",
+                "attacker_role": "rifleman",
+                "unit_type": "infantry",
+            },
+        )
         assert mgr.get_progress("first_blood") == 1
 
     def test_sharpshooter_on_sniper_kill(self):
@@ -189,11 +200,14 @@ class TestAchievementEventBridgeIntegration:
         bridge = AchievementEventBridge(mgr)
         bridge.subscribe(bus)
 
-        bus.publish_named("UnitKilled", {
-            "faction": "AXIS",
-            "attacker_role": "sniper",
-            "unit_type": "infantry",
-        })
+        bus.publish_named(
+            "UnitKilled",
+            {
+                "faction": "AXIS",
+                "attacker_role": "sniper",
+                "unit_type": "infantry",
+            },
+        )
         assert mgr.get_progress("sharpshooter") == 1
 
     def test_tank_buster_on_tank_kill(self):
@@ -204,11 +218,14 @@ class TestAchievementEventBridgeIntegration:
         bridge = AchievementEventBridge(mgr)
         bridge.subscribe(bus)
 
-        bus.publish_named("UnitKilled", {
-            "faction": "AXIS",
-            "attacker_role": "at_gun",
-            "unit_type": "tank",
-        })
+        bus.publish_named(
+            "UnitKilled",
+            {
+                "faction": "AXIS",
+                "attacker_role": "at_gun",
+                "unit_type": "tank",
+            },
+        )
         assert mgr.get_progress("tank_buster") == 1
 
     def test_damage_taken_tracking(self):
@@ -219,10 +236,13 @@ class TestAchievementEventBridgeIntegration:
         bridge = AchievementEventBridge(mgr)
         bridge.subscribe(bus)
 
-        bus.publish_named("UnitAttacked", {
-            "target_faction": "ALLIES",
-            "damage": 25,
-        })
+        bus.publish_named(
+            "UnitAttacked",
+            {
+                "target_faction": "ALLIES",
+                "damage": 25,
+            },
+        )
         assert bridge._battle_damage_taken == 25
 
     def test_battle_won_zero_casualties(self):
@@ -233,15 +253,21 @@ class TestAchievementEventBridgeIntegration:
         bridge = AchievementEventBridge(mgr)
         bridge.subscribe(bus)
 
-        bus.publish_named("UnitKilled", {
-            "faction": "AXIS",
-            "attacker_role": "rifleman",
-            "unit_type": "infantry",
-        })
-        bus.publish_named("BattleWon", {
-            "result": "ALLIES_VICTORY",
-            "duration_seconds": 90,
-        })
+        bus.publish_named(
+            "UnitKilled",
+            {
+                "faction": "AXIS",
+                "attacker_role": "rifleman",
+                "unit_type": "infantry",
+            },
+        )
+        bus.publish_named(
+            "BattleWon",
+            {
+                "result": "ALLIES_VICTORY",
+                "duration_seconds": 90,
+            },
+        )
         assert mgr.get_progress("zero_casualties") == 1
         assert mgr.get_progress("blitzkrieg") == 1
 
@@ -270,6 +296,7 @@ class TestProjectileTrailIntegration:
 
     def test_trail_render_no_crash(self):
         import pygame
+
         pygame.init()
         try:
             screen = pygame.Surface((200, 200), pygame.SRCALPHA)
@@ -298,18 +325,28 @@ class TestProjectileTrailIntegration:
         bus = EventBus()
         bus.subscribe_to("ProjectileFired", on_fired)
 
-        bus.publish_named("ProjectileFired", {
-            "weapon_type": "shell",
-            "start_x": 0, "start_y": 0,
-            "end_x": 200, "end_y": 200,
-        })
+        bus.publish_named(
+            "ProjectileFired",
+            {
+                "weapon_type": "shell",
+                "start_x": 0,
+                "start_y": 0,
+                "end_x": 200,
+                "end_y": 200,
+            },
+        )
         assert sys.count() == 1
 
-        bus.publish_named("ProjectileFired", {
-            "weapon_type": "bullet",
-            "start_x": 10, "start_y": 10,
-            "end_x": 50, "end_y": 50,
-        })
+        bus.publish_named(
+            "ProjectileFired",
+            {
+                "weapon_type": "bullet",
+                "start_x": 10,
+                "start_y": 10,
+                "end_x": 50,
+                "end_y": 50,
+            },
+        )
         assert sys.count() == 2
 
 
@@ -340,6 +377,7 @@ class TestDynamicShadowIntegration:
 
     def test_building_shadow_render_no_crash(self):
         import pygame
+
         pygame.init()
         try:
             screen = pygame.Surface((200, 200), pygame.SRCALPHA)
@@ -351,6 +389,7 @@ class TestDynamicShadowIntegration:
 
     def test_tree_shadow_render_no_crash(self):
         import pygame
+
         pygame.init()
         try:
             screen = pygame.Surface((200, 200), pygame.SRCALPHA)
@@ -422,27 +461,38 @@ class TestEndToEndEventChain:
         ach_bridge.subscribe(bus)
 
         trail_sys = ProjectileTrailSystem()
-        bus.subscribe_to("ProjectileFired", lambda d: (
-            trail_sys.add_shell_trail(d["start_x"], d["start_y"], d["end_x"], d["end_y"])
-            if d.get("weapon_type") == "shell"
-            else trail_sys.add_bullet_trail(d["start_x"], d["start_y"], d["end_x"], d["end_y"])
-        ))
+        bus.subscribe_to(
+            "ProjectileFired",
+            lambda d: (
+                trail_sys.add_shell_trail(d["start_x"], d["start_y"], d["end_x"], d["end_y"])
+                if d.get("weapon_type") == "shell"
+                else trail_sys.add_bullet_trail(d["start_x"], d["start_y"], d["end_x"], d["end_y"])
+            ),
+        )
 
-        bus.publish_named("UnitAttacked", {
-            "attacker_id": "unit_1",
-            "target_id": "unit_2",
-            "damage": 40,
-            "is_hit": True,
-            "target_faction": "ALLIES",
-        })
+        bus.publish_named(
+            "UnitAttacked",
+            {
+                "attacker_id": "unit_1",
+                "target_id": "unit_2",
+                "damage": 40,
+                "is_hit": True,
+                "target_faction": "ALLIES",
+            },
+        )
         assert len(camera_stack) == 1
         assert ach_bridge._battle_damage_taken == 40
 
-        bus.publish_named("ProjectileFired", {
-            "weapon_type": "bullet",
-            "start_x": 0, "start_y": 0,
-            "end_x": 100, "end_y": 100,
-        })
+        bus.publish_named(
+            "ProjectileFired",
+            {
+                "weapon_type": "bullet",
+                "start_x": 0,
+                "start_y": 0,
+                "end_x": 100,
+                "end_y": 100,
+            },
+        )
         assert trail_sys.count() == 1
 
     def test_full_combat_chain_killed(self):
@@ -459,13 +509,16 @@ class TestEndToEndEventChain:
         ach_bridge = AchievementEventBridge(ach_mgr)
         ach_bridge.subscribe(bus)
 
-        bus.publish_named("UnitKilled", {
-            "unit_id": "enemy_1",
-            "faction": "AXIS",
-            "attacker_id": "player_1",
-            "attacker_role": "sniper",
-            "unit_type": "infantry",
-        })
+        bus.publish_named(
+            "UnitKilled",
+            {
+                "unit_id": "enemy_1",
+                "faction": "AXIS",
+                "attacker_id": "player_1",
+                "attacker_role": "sniper",
+                "unit_type": "infantry",
+            },
+        )
 
         assert len(camera_stack) >= 2
         types = {e.effect_type for e in camera_stack._effects}
@@ -488,16 +541,22 @@ class TestEndToEndEventChain:
         ach_bridge = AchievementEventBridge(ach_mgr)
         ach_bridge.subscribe(bus)
 
-        bus.publish_named("UnitKilled", {
-            "faction": "AXIS",
-            "attacker_role": "rifleman",
-            "unit_type": "infantry",
-        })
+        bus.publish_named(
+            "UnitKilled",
+            {
+                "faction": "AXIS",
+                "attacker_role": "rifleman",
+                "unit_type": "infantry",
+            },
+        )
 
-        bus.publish_named("BattleWon", {
-            "result": "ALLIES_VICTORY",
-            "duration_seconds": 90,
-        })
+        bus.publish_named(
+            "BattleWon",
+            {
+                "result": "ALLIES_VICTORY",
+                "duration_seconds": 90,
+            },
+        )
 
         assert len(camera_stack) >= 2
         types = {e.effect_type for e in camera_stack._effects}

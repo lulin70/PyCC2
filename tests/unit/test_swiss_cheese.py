@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import pytest
 import numpy as np
+import pytest
 
 from pycc2.domain.components.fatigue_component import (
-    FatigueComponent,
-    FatigueLevel,
-    FATIGUE_THRESHOLDS,
     FATIGUE_EFFECTS,
     FATIGUE_RATES,
+    FATIGUE_THRESHOLDS,
+    FatigueComponent,
+    FatigueLevel,
 )
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent
@@ -19,12 +19,12 @@ from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.systems.ballistic import BallisticEngine
 from pycc2.domain.systems.swiss_cheese_damage import (
+    UNIT_SQUAD_SIZES,
     CasualtyStatus,
     SquadMember,
     SquadSize,
     SwissCheeseEngine,
     SwissCheeseResult,
-    UNIT_SQUAD_SIZES,
 )
 from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.value_objects.tile_coord import TileCoord
@@ -123,28 +123,45 @@ class TestSquadMember:
 class TestSwissCheeseResult:
     def test_total_casualties(self):
         result = SwissCheeseResult(
-            total_hp_loss=10, kia_count=2, wia_count=1, pinned_count=1,
-            ok_count=4, raw_damage=25.0,
+            total_hp_loss=10,
+            kia_count=2,
+            wia_count=1,
+            pinned_count=1,
+            ok_count=4,
+            raw_damage=25.0,
         )
         assert result.total_casualties == 3
 
     def test_effectiveness_ratio(self):
         result = SwissCheeseResult(
-            total_hp_loss=10, kia_count=2, wia_count=1, pinned_count=1,
-            ok_count=4, raw_damage=25.0,
+            total_hp_loss=10,
+            kia_count=2,
+            wia_count=1,
+            pinned_count=1,
+            ok_count=4,
+            raw_damage=25.0,
             member_outcomes=[
-                CasualtyStatus.KIA, CasualtyStatus.KIA,
-                CasualtyStatus.WIA, CasualtyStatus.PINNED,
-                CasualtyStatus.OK, CasualtyStatus.OK,
-                CasualtyStatus.OK, CasualtyStatus.OK,
+                CasualtyStatus.KIA,
+                CasualtyStatus.KIA,
+                CasualtyStatus.WIA,
+                CasualtyStatus.PINNED,
+                CasualtyStatus.OK,
+                CasualtyStatus.OK,
+                CasualtyStatus.OK,
+                CasualtyStatus.OK,
             ],
         )
         assert result.effectiveness_ratio == 5 / 8
 
     def test_empty_outcomes_effectiveness_zero(self):
         result = SwissCheeseResult(
-            total_hp_loss=0, kia_count=0, wia_count=0, pinned_count=0,
-            ok_count=0, raw_damage=0.0, member_outcomes=[],
+            total_hp_loss=0,
+            kia_count=0,
+            wia_count=0,
+            pinned_count=0,
+            ok_count=0,
+            raw_damage=0.0,
+            member_outcomes=[],
         )
         assert result.effectiveness_ratio == 0.0
 
@@ -173,7 +190,12 @@ class TestSwissCheeseEngineResolve:
 
     def test_vehicle_skips_swiss_cheese(self, sc_engine):
         target = make_unit(
-            "tank", Faction.AXIS, TileCoord(3, 3), unit_type=UnitType.TANK, hp=200, max_hp=200,
+            "tank",
+            Faction.AXIS,
+            TileCoord(3, 3),
+            unit_type=UnitType.TANK,
+            hp=200,
+            max_hp=200,
         )
         result = sc_engine.resolve(target=target, raw_damage=52.5)
         assert len(result.member_outcomes) == 1
@@ -181,7 +203,12 @@ class TestSwissCheeseEngineResolve:
 
     def test_vehicle_killing_blow(self, sc_engine):
         target = make_unit(
-            "tank", Faction.AXIS, TileCoord(3, 3), unit_type=UnitType.TANK, hp=30, max_hp=200,
+            "tank",
+            Faction.AXIS,
+            TileCoord(3, 3),
+            unit_type=UnitType.TANK,
+            hp=30,
+            max_hp=200,
         )
         result = sc_engine.resolve(target=target, raw_damage=50.0)
         assert result.kia_count == 1
@@ -191,7 +218,9 @@ class TestSwissCheeseEngineResolve:
         target = make_unit("target", Faction.ALLIES, TileCoord(5, 5))
         high_result = sc_engine.resolve(target=target, raw_damage=50.0)
         low_result = sc_engine.resolve(target=target, raw_damage=10.0)
-        assert high_result.kia_count >= low_result.kia_count - 2  # Probabilistic: allow -2 tolerance
+        assert (
+            high_result.kia_count >= low_result.kia_count - 2
+        )  # Probabilistic: allow -2 tolerance
 
     def test_cover_reduces_casualties(self, sc_engine):
         target = make_unit("target", Faction.ALLIES, TileCoord(5, 5))
@@ -204,7 +233,9 @@ class TestSwissCheeseEngineResolve:
         target_high = make_unit("high_morale", Faction.ALLIES, TileCoord(6, 6), morale_value=90)
         low_result = sc_engine.resolve(target=target_low, raw_damage=20.0)
         high_result = sc_engine.resolve(target=target_high, raw_damage=20.0)
-        assert low_result.pinned_count >= high_result.pinned_count - 3  # Probabilistic: allow -3 tolerance
+        assert (
+            low_result.pinned_count >= high_result.pinned_count - 3
+        )  # Probabilistic: allow -3 tolerance
 
     def test_armor_piercing_increases_kia_wia(self, sc_engine):
         """AP ammo should cause more casualties on average. Use large sample for stability."""
@@ -224,7 +255,9 @@ class TestSwissCheeseEngineResolve:
         # (Original 75% was too tight for probabilistic combat resolution)
         if normal_total > 0:
             ratio = ap_total / normal_total
-            assert ratio >= 0.50, f"AP/Normal casualty ratio {ratio:.2f} below 0.50 threshold (AP={ap_total}, Normal={normal_total})"
+            assert ratio >= 0.50, (
+                f"AP/Normal casualty ratio {ratio:.2f} below 0.50 threshold (AP={ap_total}, Normal={normal_total})"
+            )
         else:
             # Edge case: if no normal casualties, AP should have some effect
             assert ap_total >= 0  # Trivially true, but documents the edge case
@@ -244,8 +277,12 @@ class TestSwissCheeseEngineResolve:
 
     def test_sniper_team_tiny_squad(self, sc_engine):
         target = make_unit(
-            "sniper", Faction.ALLIES, TileCoord(5, 5),
-            unit_type=UnitType.SNIPER_TEAM, hp=60, max_hp=60,
+            "sniper",
+            Faction.ALLIES,
+            TileCoord(5, 5),
+            unit_type=UnitType.SNIPER_TEAM,
+            hp=60,
+            max_hp=60,
         )
         result = sc_engine.resolve(target=target, raw_damage=37.5)
         assert len(result.member_outcomes) == 2
@@ -254,29 +291,45 @@ class TestSwissCheeseEngineResolve:
 class TestSwissCheeseSquadEffectiveness:
     def test_full_effectiveness(self, sc_engine):
         result = SwissCheeseResult(
-            total_hp_loss=0, kia_count=0, wia_count=0, pinned_count=0,
-            ok_count=8, raw_damage=0.0,
+            total_hp_loss=0,
+            kia_count=0,
+            wia_count=0,
+            pinned_count=0,
+            ok_count=8,
+            raw_damage=0.0,
             member_outcomes=[CasualtyStatus.OK] * 8,
         )
         assert sc_engine.calculate_squad_effectiveness(result) == 1.0
 
     def test_empty_outcomes_returns_one(self, sc_engine):
         result = SwissCheeseResult(
-            total_hp_loss=0, kia_count=0, wia_count=0, pinned_count=0,
-            ok_count=0, raw_damage=0.0, member_outcomes=[],
+            total_hp_loss=0,
+            kia_count=0,
+            wia_count=0,
+            pinned_count=0,
+            ok_count=0,
+            raw_damage=0.0,
+            member_outcomes=[],
         )
         assert sc_engine.calculate_squad_effectiveness(result) == 1.0
 
     def test_mixed_casualties(self, sc_engine):
         result = SwissCheeseResult(
-            total_hp_loss=15, kia_count=1, wia_count=2, pinned_count=1,
-            ok_count=4, raw_damage=25.0,
+            total_hp_loss=15,
+            kia_count=1,
+            wia_count=2,
+            pinned_count=1,
+            ok_count=4,
+            raw_damage=25.0,
             member_outcomes=[
                 CasualtyStatus.KIA,
-                CasualtyStatus.WIA, CasualtyStatus.WIA,
+                CasualtyStatus.WIA,
+                CasualtyStatus.WIA,
                 CasualtyStatus.PINNED,
-                CasualtyStatus.OK, CasualtyStatus.OK,
-                CasualtyStatus.OK, CasualtyStatus.OK,
+                CasualtyStatus.OK,
+                CasualtyStatus.OK,
+                CasualtyStatus.OK,
+                CasualtyStatus.OK,
             ],
         )
         eff = sc_engine.calculate_squad_effectiveness(result)
@@ -296,7 +349,10 @@ class TestBallisticIntegration:
         target = make_unit("target", Faction.AXIS, TileCoord(5, 0))
         engine = BallisticEngine(rng=rng)
         shot_result, sc_result = engine.calculate_shot_swiss_cheese(
-            attacker, target, game_map=game_map, enable_sc=True,
+            attacker,
+            target,
+            game_map=game_map,
+            enable_sc=True,
         )
         if shot_result.hit:
             assert sc_result is not None
@@ -309,7 +365,10 @@ class TestBallisticIntegration:
         target = make_unit("target", Faction.AXIS, TileCoord(25, 0))
         engine = BallisticEngine(rng=rng)
         shot_result, sc_result = engine.calculate_shot_swiss_cheese(
-            attacker, target, game_map=game_map, enable_sc=True,
+            attacker,
+            target,
+            game_map=game_map,
+            enable_sc=True,
         )
         assert sc_result is None
 
@@ -318,7 +377,10 @@ class TestBallisticIntegration:
         target = make_unit("target", Faction.AXIS, TileCoord(5, 0))
         engine = BallisticEngine(rng=rng)
         shot_result, sc_result = engine.calculate_shot_swiss_cheese(
-            attacker, target, game_map=game_map, enable_sc=False,
+            attacker,
+            target,
+            game_map=game_map,
+            enable_sc=False,
         )
         assert sc_result is None
 

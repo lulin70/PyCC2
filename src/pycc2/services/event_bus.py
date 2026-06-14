@@ -220,7 +220,9 @@ class EventBus(IEventPublisher):
 
     @property
     def handler_count(self) -> int:
-        return sum(len(hs) for hs in self._handlers.values()) + sum(len(hs) for hs in self._named_handlers.values())
+        return sum(len(hs) for hs in self._handlers.values()) + sum(
+            len(hs) for hs in self._named_handlers.values()
+        )
 
     @property
     def queue_size(self) -> int:

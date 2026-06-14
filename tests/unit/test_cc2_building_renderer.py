@@ -6,10 +6,10 @@ import pygame
 import pytest
 
 from pycc2.presentation.rendering.cc2_building_renderer import (
-    CC2BuildingType,
     CC2_ROOF_COLORS,
-    DamageLevel,
     WALL_FACE_MULTIPLIER,
+    CC2BuildingType,
+    DamageLevel,
     get_building_size,
     render_cc2_building,
 )
@@ -29,15 +29,18 @@ class TestSmallHouseIntact:
 
     @pytest.mark.skipif(
         os.environ.get("SDL_VIDEODRIVER") == "dummy",
-        reason="Pixel-level color assertions unreliable under SDL dummy driver"
+        reason="Pixel-level color assertions unreliable under SDL dummy driver",
     )
     def test_roof_is_red(self):
         surface = render_cc2_building(CC2BuildingType.SMALL_HOUSE)
         color_at_center = surface.get_at((20, 20))[:3]
         from pycc2.presentation.rendering.cc2_building_renderer import CC2_ROOF_COLORS
+
         expected = CC2_ROOF_COLORS[CC2BuildingType.SMALL_HOUSE]
         max_diff = max(abs(color_at_center[i] - expected[i]) for i in range(3))
-        assert max_diff <= 15, f"Roof color {color_at_center} too far from expected {expected} (diff={max_diff})"
+        assert max_diff <= 15, (
+            f"Roof color {color_at_center} too far from expected {expected} (diff={max_diff})"
+        )
 
     def test_south_wall_face(self):
         surface = render_cc2_building(CC2BuildingType.SMALL_HOUSE)
@@ -45,7 +48,9 @@ class TestSmallHouseIntact:
         wall_color = tuple(int(c * WALL_FACE_MULTIPLIER) for c in roof_color)
         # Fix 0.1: 墙面从5px减至2px，检查位置调整为底部2px区域
         bottom_pixel = surface.get_at((24, 47))[:3]  # South wall (bottom 2px)
-        assert bottom_pixel == wall_color or (bottom_pixel[0] < roof_color[0] and bottom_pixel[1] < roof_color[1])
+        assert bottom_pixel == wall_color or (
+            bottom_pixel[0] < roof_color[0] and bottom_pixel[1] < roof_color[1]
+        )
 
     def test_east_wall_face(self):
         surface = render_cc2_building(CC2BuildingType.SMALL_HOUSE)
@@ -65,6 +70,7 @@ class TestMediumHouseIntact:
         # Check roof area (avoid wall faces: bottom 5px, right 5px)
         color_at_center = surface.get_at((40, 40))[:3]
         from pycc2.presentation.rendering.cc2_building_renderer import CC2_ROOF_VARIANTS
+
         valid_colors = [CC2_ROOF_COLORS[CC2BuildingType.MEDIUM_HOUSE]] + CC2_ROOF_VARIANTS
         assert color_at_center in valid_colors, f"Roof {color_at_center} not in {valid_colors}"
 
@@ -72,8 +78,8 @@ class TestMediumHouseIntact:
         surface = render_cc2_building(CC2BuildingType.MEDIUM_HOUSE)
         # 扩大采样范围到整个底部和右侧边缘
         w, h = surface.get_size()
-        bottom_edge = [surface.get_at((x, h-3))[:3] for x in range(w//4, 3*w//4)]
-        right_edge = [surface.get_at((w-3, y))[:3] for y in range(h//4, 3*h//4)]
+        bottom_edge = [surface.get_at((x, h - 3))[:3] for x in range(w // 4, 3 * w // 4)]
+        right_edge = [surface.get_at((w - 3, y))[:3] for y in range(h // 4, 3 * h // 4)]
 
         # 墙面应该存在且颜色均匀（不是透明或纯白）
         non_transparent_bottom = sum(1 for p in bottom_edge if p[2] > 50)  # B通道>50
@@ -87,11 +93,9 @@ class TestMediumHouseIntact:
         )
 
         # 验证墙面与中心区域颜色不同（存在视觉差异）
-        center_color = surface.get_at((w//2, h//2))[:3]
+        center_color = surface.get_at((w // 2, h // 2))[:3]
         edge_colors_different = sum(1 for p in bottom_edge + right_edge if p != center_color)
-        assert edge_colors_different > 0, (
-            "Wall faces should have different color from roof center"
-        )
+        assert edge_colors_different > 0, "Wall faces should have different color from roof center"
 
 
 class TestLargeBuildingWithNumber:
@@ -105,11 +109,18 @@ class TestLargeBuildingWithNumber:
         color_at_center = surface.get_at((60, 60))[:3]
         # A2 Fix: 屋顶颜色现在可能是5种变体中的任意一种
         from pycc2.presentation.rendering.cc2_building_renderer import CC2_ROOF_VARIANTS
-        valid_colors = [CC2_ROOF_COLORS[CC2BuildingType.LARGE_BUILDING]] + CC2_ROOF_VARIANTS + [(57, 67, 87), (150, 92, 55)]
+
+        valid_colors = (
+            [CC2_ROOF_COLORS[CC2BuildingType.LARGE_BUILDING]]
+            + CC2_ROOF_VARIANTS
+            + [(57, 67, 87), (150, 92, 55)]
+        )
         # 如果精确匹配失败，验证至少是灰色调（R≈G≈B）
-        is_grayish = abs(color_at_center[0] - color_at_center[1]) < 40 and \
-                     abs(color_at_center[1] - color_at_center[2]) < 40 and \
-                     50 <= color_at_center[0] <= 160
+        is_grayish = (
+            abs(color_at_center[0] - color_at_center[1]) < 40
+            and abs(color_at_center[1] - color_at_center[2]) < 40
+            and 50 <= color_at_center[0] <= 160
+        )
         assert color_at_center in valid_colors or is_grayish, (
             f"Roof should be gray-ish, got {color_at_center}"
         )
@@ -298,7 +309,7 @@ class TestAllBuildingTypesHaveDifferentColors:
         # Fix: SMALL_HOUSE和NORMANDY_FARMHOUSE故意使用相同红色屋顶(160,45,35)
         # 所以唯一颜色数应该是建筑类型总数减1（8-1=7）
         assert len(colors) >= len(list(CC2BuildingType)) - 1, (
-            f"Expected at least {len(list(CC2BuildingType))-1} unique colors, got {len(colors)}: {colors}"
+            f"Expected at least {len(list(CC2BuildingType)) - 1} unique colors, got {len(colors)}: {colors}"
         )
 
 
@@ -348,11 +359,7 @@ class TestGetBuildingSize:
 
 class TestCustomTileSize:
     def test_custom_tile_size_affects_output(self):
-        surface_default = render_cc2_building(
-            CC2BuildingType.SMALL_HOUSE, tile_size=48
-        )
-        surface_custom = render_cc2_building(
-            CC2BuildingType.SMALL_HOUSE, tile_size=64
-        )
+        surface_default = render_cc2_building(CC2BuildingType.SMALL_HOUSE, tile_size=48)
+        surface_custom = render_cc2_building(CC2BuildingType.SMALL_HOUSE, tile_size=64)
         assert surface_default.get_size() == (48, 48)
         assert surface_custom.get_size() == (64, 64)

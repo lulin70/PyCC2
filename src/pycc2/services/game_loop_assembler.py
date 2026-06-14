@@ -28,6 +28,10 @@ Usage inside ``GameLoop.__post_init__``::
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pycc2.services.game_loop import GameLoop
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +42,7 @@ class GameLoopAssembler:
     Call :meth:`assemble` once during ``GameLoop.__post_init__``.
     """
 
-    def __init__(self, loop: "GameLoop") -> None:
+    def __init__(self, loop: GameLoop) -> None:
         self._loop = loop
 
     def assemble(self) -> None:
@@ -60,8 +64,8 @@ class GameLoopAssembler:
     # ------------------------------------------------------------------
 
     def _init_sound(self) -> None:
-        from pycc2.presentation.audio.sound_system import SoundSystem as SS
         from pycc2.domain.interfaces.display_config import DisplayConfig as DC
+        from pycc2.presentation.audio.sound_system import SoundSystem as SS
 
         if self._loop.display_config is None:
             self._loop.display_config = DC()
@@ -71,10 +75,11 @@ class GameLoopAssembler:
 
         # Initialize environmental ambient audio system (procedural, no external files needed)
         try:
+            import pygame
+
             from pycc2.infrastructure.audio.environmental_audio import (
                 EnvironmentalAudioSystem,
             )
-            import pygame
 
             env_audio = EnvironmentalAudioSystem()
             env_audio.initialize(pygame.mixer)
@@ -96,6 +101,7 @@ class GameLoopAssembler:
         # Inject DeploymentUI factory so GameLoop doesn't import presentation layer
         def _make_deployment_ui(width: int, height: int):
             from pycc2.presentation.ui.deployment_ui import DeploymentUI
+
             return DeploymentUI(width=width, height=height)
 
         self._loop._deployment_ui_factory = _make_deployment_ui
@@ -103,9 +109,9 @@ class GameLoopAssembler:
         self._loop._pause_menu = PauseMenuController()
 
     def _init_combat_render_input(self) -> None:
-        from pycc2.services.combat_director import CombatDirector
-        from pycc2.presentation.rendering.render_pipeline import RenderPipeline
         from pycc2.presentation.input.input_router import InputRouter
+        from pycc2.presentation.rendering.render_pipeline import RenderPipeline
+        from pycc2.services.combat_director import CombatDirector
 
         self._loop._combat_director = CombatDirector(
             event_bus=self._loop.event_bus,
@@ -140,7 +146,8 @@ class GameLoopAssembler:
 
         self._loop._victory_manager = VictoryManager()
         self._loop._victory_manager.initialize(
-            self._loop.event_bus, combat_director=self._loop._combat_director,
+            self._loop.event_bus,
+            combat_director=self._loop._combat_director,
         )
 
         # Pass attack_line_system to renderer via DI setter (P0-2 Fix)
@@ -150,8 +157,8 @@ class GameLoopAssembler:
             )
 
     def _init_ui_overlays(self) -> None:
-        from pycc2.presentation.ui.time_control import TimeControlUI
         from pycc2.presentation.ui.combat_popup import CombatPopupManager
+        from pycc2.presentation.ui.time_control import TimeControlUI
 
         self._loop.time_control = TimeControlUI()
         self._loop._popup_manager = CombatPopupManager()
@@ -159,10 +166,9 @@ class GameLoopAssembler:
     def _init_hud(self) -> None:
         if not self._loop.use_full_hud:
             return
-        from pycc2.services.hud_manager import HUDManager as HM
-
-        from pycc2.presentation.rendering.minimap import Minimap
         from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
+        from pycc2.presentation.rendering.minimap import Minimap
+        from pycc2.services.hud_manager import HUDManager as HM
 
         self._loop._hud_manager = HM()
         dc = self._loop.display_config
@@ -230,15 +236,13 @@ class GameLoopAssembler:
         self._loop._achievement_bridge.subscribe(self._loop.event_bus)
 
     def _init_visual_fx(self) -> None:
-        from pycc2.presentation.rendering.projectile_trail_system import ProjectileTrailSystem
         from pycc2.presentation.rendering.dynamic_shadow_system import DynamicShadowSystem
+        from pycc2.presentation.rendering.projectile_trail_system import ProjectileTrailSystem
 
         self._loop._projectile_trail_sys = ProjectileTrailSystem()
 
         tile_size = (
-            self._loop.renderer.TILE_SIZE
-            if isinstance(self._loop.renderer.TILE_SIZE, int)
-            else 48
+            self._loop.renderer.TILE_SIZE if isinstance(self._loop.renderer.TILE_SIZE, int) else 48
         )
         self._loop._dynamic_shadow_sys = DynamicShadowSystem(tile_size=tile_size)
 

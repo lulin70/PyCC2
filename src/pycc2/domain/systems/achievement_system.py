@@ -14,13 +14,14 @@ Achievement categories:
 4. SPECIAL - Hidden/easter egg achievements
 """
 
-from enum import Enum
-from dataclasses import dataclass
 import json
 import logging
 import os
 import time
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,7 @@ class AchievementRarity(Enum):
 @dataclass
 class Achievement:
     """Single achievement definition."""
+
     achievement_id: str
     name: str
     description: str
@@ -65,9 +67,10 @@ class Achievement:
 @dataclass
 class AchievementState:
     """Runtime state for a single achievement."""
+
     achievement_id: str
     progress: int = 0
-    unlocked_at: Optional[float] = None
+    unlocked_at: float | None = None
     notified: bool = False
 
     def is_unlocked(self) -> bool:
@@ -80,10 +83,10 @@ class AchievementManager:
     SAVE_DIR = "saves"
     ACHIEVEMENTS_FILE = "achievements.json"
 
-    def __init__(self, save_dir: Optional[str] = None):
-        self._definitions: Dict[str, Achievement] = {}
-        self._states: Dict[str, AchievementState] = {}
-        self._listeners: List[Callable[[Achievement], None]] = []
+    def __init__(self, save_dir: str | None = None):
+        self._definitions: dict[str, Achievement] = {}
+        self._states: dict[str, AchievementState] = {}
+        self._listeners: list[Callable[[Achievement], None]] = []
         self._save_dir = save_dir or self.SAVE_DIR
         self._loaded = False
 
@@ -95,7 +98,7 @@ class AchievementManager:
                 achievement_id=achievement.achievement_id
             )
 
-    def register_many(self, achievements: List[Achievement]) -> None:
+    def register_many(self, achievements: list[Achievement]) -> None:
         for a in achievements:
             self.register(a)
 
@@ -165,14 +168,14 @@ class AchievementManager:
         state = self._states.get(achievement_id)
         return state.progress if state else 0
 
-    def get_all_unlocked(self) -> List[Achievement]:
+    def get_all_unlocked(self) -> list[Achievement]:
         result = []
         for aid, state in self._states.items():
             if state.is_unlocked() and aid in self._definitions:
                 result.append(self._definitions[aid])
         return result
 
-    def get_all_visible(self) -> List[tuple]:
+    def get_all_visible(self) -> list[tuple]:
         """Return (Achievement, progress, is_unlocked) for non-hidden items."""
         result = []
         for aid, definition in self._definitions.items():
@@ -187,10 +190,10 @@ class AchievementManager:
                 result.append((definition, progress, unlocked))
         return result
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         total = len(self._definitions)
         unlocked = sum(1 for s in self._states.values() if s.is_unlocked())
-        by_category: Dict[str, int] = {}
+        by_category: dict[str, int] = {}
         for aid, state in self._states.items():
             if state.is_unlocked() and aid in self._definitions:
                 cat = self._definitions[aid].category.value
@@ -227,7 +230,7 @@ class AchievementManager:
             if not os.path.exists(filepath):
                 self._loaded = True
                 return True
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
             for aid, state_data in data.items():
                 self._states[aid] = AchievementState(
@@ -250,7 +253,7 @@ class AchievementManager:
             state.notified = False
 
 
-def create_default_achievements() -> List[Achievement]:
+def create_default_achievements() -> list[Achievement]:
     """Create the default set of PyCC2 achievements."""
     return [
         Achievement(

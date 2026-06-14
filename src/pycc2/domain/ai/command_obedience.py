@@ -47,11 +47,11 @@ logger = logging.getLogger(__name__)
 
 # Obedience probability and delay by morale state
 OBEDIENCE_TABLE: dict[MoraleState, tuple[float, tuple[int, int]]] = {
-    MoraleState.RALLIED:   (1.00, (0, 0)),    # 100% obey, no delay
-    MoraleState.WAVERING:  (0.80, (1, 3)),    # 80% obey, 1-3 tick delay
-    MoraleState.PINNED:    (0.50, (3, 6)),    # 50% obey, 3-6 tick delay
-    MoraleState.BROKEN:    (0.30, (5, 10)),   # 30% obey, 5-10 tick delay
-    MoraleState.ROUTING:   (0.05, (5, 10)),   # 5% obey, 5-10 tick delay
+    MoraleState.RALLIED: (1.00, (0, 0)),  # 100% obey, no delay
+    MoraleState.WAVERING: (0.80, (1, 3)),  # 80% obey, 1-3 tick delay
+    MoraleState.PINNED: (0.50, (3, 6)),  # 50% obey, 3-6 tick delay
+    MoraleState.BROKEN: (0.30, (5, 10)),  # 30% obey, 5-10 tick delay
+    MoraleState.ROUTING: (0.05, (5, 10)),  # 5% obey, 5-10 tick delay
 }
 
 # Orders that routing units will still accept
@@ -71,16 +71,18 @@ _SUICIDAL_ATTACK_TYPES: set[UnitType] = {
 # Obedience result
 # ---------------------------------------------------------------------------
 
+
 class ObedienceResult(Enum):
-    OBEY = auto()            # Unit will execute the order
-    DELAYED = auto()         # Unit will execute after a delay
-    REFUSED = auto()         # Unit refuses the order
-    SUICIDAL = auto()        # Order is suicidal, unit refuses
+    OBEY = auto()  # Unit will execute the order
+    DELAYED = auto()  # Unit will execute after a delay
+    REFUSED = auto()  # Unit refuses the order
+    SUICIDAL = auto()  # Order is suicidal, unit refuses
 
 
 @dataclass(slots=True)
 class ObedienceCheck:
     """Result of checking whether a unit will obey an order."""
+
     result: ObedienceResult
     delay_ticks: int = 0
     reason: str = ""
@@ -89,6 +91,7 @@ class ObedienceCheck:
 @dataclass(slots=True)
 class DelayedOrder:
     """An order that has been delayed due to low morale."""
+
     intent: TacticIntent
     ticks_remaining: int
 
@@ -96,6 +99,7 @@ class DelayedOrder:
 # ---------------------------------------------------------------------------
 # CommandObedienceSystem
 # ---------------------------------------------------------------------------
+
 
 class CommandObedienceSystem:
     """Determines whether a unit will obey a given order based on morale.
@@ -196,8 +200,7 @@ class CommandObedienceSystem:
             ticks_remaining=delay_ticks,
         )
         self._logger.debug(
-            f"Order {intent.tactic_type.name} for {intent.unit_id} "
-            f"delayed by {delay_ticks} ticks"
+            f"Order {intent.tactic_type.name} for {intent.unit_id} delayed by {delay_ticks} ticks"
         )
 
     def tick(self) -> list[TacticIntent]:
@@ -214,8 +217,7 @@ class CommandObedienceSystem:
                 ready.append(delayed.intent)
                 del self._delayed_orders[unit_id]
                 self._logger.debug(
-                    f"Delayed order {delayed.intent.tactic_type.name} "
-                    f"for {unit_id} is now ready"
+                    f"Delayed order {delayed.intent.tactic_type.name} for {unit_id} is now ready"
                 )
 
         return ready
@@ -278,17 +280,23 @@ class CommandObedienceSystem:
             return False
 
         # Charging MG in open terrain
-        if target.unit_type == UnitType.MACHINE_GUN_SQUAD and intent.tactic_type == TacticType.ATTACK:
+        if (
+            target.unit_type == UnitType.MACHINE_GUN_SQUAD
+            and intent.tactic_type == TacticType.ATTACK
+        ):
             # Check if unit is in open terrain (no cover)
             concealment = unit.concealment_level
             if concealment < 0.1:
                 return True
 
         # AT rifle vs tank frontal armor at close range
-        if target.unit_type == UnitType.TANK and unit.weapon.primary_weapon_id in ("at_gun", "piat", "bazooka", "panzerschreck"):
-            dist = unit.position.tile_coord.chebyshev_distance(
-                target.position.tile_coord
-            )
+        if target.unit_type == UnitType.TANK and unit.weapon.primary_weapon_id in (
+            "at_gun",
+            "piat",
+            "bazooka",
+            "panzerschreck",
+        ):
+            dist = unit.position.tile_coord.chebyshev_distance(target.position.tile_coord)
             # AT vs tank at very close range is suicidal
             if dist <= 3:
                 return True
@@ -302,12 +310,13 @@ class CommandObedienceSystem:
         reason: str,
     ) -> None:
         """Publish an event when a unit refuses an order."""
-        self.event_bus.publish_named("OrderRefused", {
-            "action": "order_refused",
-            "unit_id": unit.id,
-            "tactic_type": intent.tactic_type.name,
-            "reason": reason,
-        })
-        self._logger.info(
-            f"Unit {unit.id} refused order {intent.tactic_type.name}: {reason}"
+        self.event_bus.publish_named(
+            "OrderRefused",
+            {
+                "action": "order_refused",
+                "unit_id": unit.id,
+                "tactic_type": intent.tactic_type.name,
+                "reason": reason,
+            },
         )
+        self._logger.info(f"Unit {unit.id} refused order {intent.tactic_type.name}: {reason}")

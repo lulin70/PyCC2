@@ -1,4 +1,3 @@
-
 from pycc2.domain.ai.ai_config import AIConfig
 
 
@@ -106,6 +105,7 @@ class TestSerialization:
         cfg = AIConfig()
         d = cfg.to_dict()
         from dataclasses import fields
+
         for f in fields(AIConfig):
             assert f.name in d
 
@@ -237,21 +237,36 @@ class TestPresetProgression:
         normal = AIConfig.PRESET_NORMAL()
         hard = AIConfig.PRESET_HARD()
         veteran = AIConfig.PRESET_VETERAN()
-        assert easy.commander_tick_hz < normal.commander_tick_hz < hard.commander_tick_hz < veteran.commander_tick_hz
+        assert (
+            easy.commander_tick_hz
+            < normal.commander_tick_hz
+            < hard.commander_tick_hz
+            < veteran.commander_tick_hz
+        )
 
     def test_aggression_increases_with_difficulty(self):
         easy = AIConfig.PRESET_EASY()
         normal = AIConfig.PRESET_NORMAL()
         hard = AIConfig.PRESET_HARD()
         veteran = AIConfig.PRESET_VETERAN()
-        assert easy.flank_aggression < normal.flank_aggression < hard.flank_aggression < veteran.flank_aggression
+        assert (
+            easy.flank_aggression
+            < normal.flank_aggression
+            < hard.flank_aggression
+            < veteran.flank_aggression
+        )
 
     def test_retreat_force_ratio_decreases_with_difficulty(self):
         easy = AIConfig.PRESET_EASY()
         normal = AIConfig.PRESET_NORMAL()
         hard = AIConfig.PRESET_HARD()
         veteran = AIConfig.PRESET_VETERAN()
-        assert easy.retreat_force_ratio > normal.retreat_force_ratio > hard.retreat_force_ratio > veteran.retreat_force_ratio
+        assert (
+            easy.retreat_force_ratio
+            > normal.retreat_force_ratio
+            > hard.retreat_force_ratio
+            > veteran.retreat_force_ratio
+        )
 
 
 class TestEdgeCases:
@@ -283,5 +298,10 @@ class TestEdgeCases:
         assert restored == original
 
     def test_validate_all_presets_are_valid(self):
-        for preset_fn in (AIConfig.PRESET_EASY, AIConfig.PRESET_NORMAL, AIConfig.PRESET_HARD, AIConfig.PRESET_VETERAN):
+        for preset_fn in (
+            AIConfig.PRESET_EASY,
+            AIConfig.PRESET_NORMAL,
+            AIConfig.PRESET_HARD,
+            AIConfig.PRESET_VETERAN,
+        ):
             assert preset_fn().validate() == [], f"{preset_fn.__name__} has validation errors"

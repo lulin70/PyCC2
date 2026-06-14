@@ -1,14 +1,15 @@
 """Tests for Phase C P0 UI Systems: PathPreview, RangeIndicator, Tooltip."""
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.presentation.rendering.path_preview import (
-    PathPreview,
-    PreviewPath,
-    PathSegment,
     PathDangerLevel,
+    PathPreview,
+    PathSegment,
+    PreviewPath,
 )
 from pycc2.presentation.rendering.range_indicator import (
     RangeIndicator,
@@ -132,7 +133,9 @@ class TestPathPreview:
         assert len(result.segments) == 0
         assert result.total_distance == 0
 
-    def test_danger_assessment_safe(self, mock_pathfinder, mock_los_system, mock_game_map, mock_unit):
+    def test_danger_assessment_safe(
+        self, mock_pathfinder, mock_los_system, mock_game_map, mock_unit
+    ):
         """Test danger assessment when no enemies can see path."""
         mock_los_system.can_see.return_value = (False, MagicMock())
 
@@ -147,7 +150,9 @@ class TestPathPreview:
         all_safe = all(seg.danger == PathDangerLevel.SAFE for seg in result.segments)
         assert all_safe is True
 
-    def test_danger_assessment_with_enemies(self, mock_pathfinder, mock_los_system, mock_game_map, mock_unit):
+    def test_danger_assessment_with_enemies(
+        self, mock_pathfinder, mock_los_system, mock_game_map, mock_unit
+    ):
         """Test danger assessment when enemies can see path."""
         enemy = MagicMock()
         mock_los_system.can_see.return_value = (True, MagicMock())
@@ -159,14 +164,13 @@ class TestPathPreview:
 
         target = (7, 7)
         result = preview.calculate_path(
-            mock_unit, target, mock_game_map,
+            mock_unit,
+            target,
+            mock_game_map,
             enemy_units=[enemy],
         )
 
-        has_danger = any(
-            seg.danger != PathDangerLevel.SAFE 
-            for seg in result.segments
-        )
+        has_danger = any(seg.danger != PathDangerLevel.SAFE for seg in result.segments)
         assert has_danger is True
 
     def test_time_estimation_accuracy(self, mock_pathfinder, mock_game_map, mock_unit):
@@ -208,7 +212,7 @@ class TestPathPreview:
     def test_set_current_path(self, mock_pathfinder):
         """Test setting current path makes it visible."""
         preview = PathPreview(pathfinder=mock_pathfinder)
-        path = PreviewPath(segments=[PathSegment(start=(0,0), end=(1,1))])
+        path = PreviewPath(segments=[PathSegment(start=(0, 0), end=(1, 1))])
 
         preview.set_current_path(path)
 
@@ -234,14 +238,14 @@ class TestPathPreview:
 
         assert preview.estimate_total_time(None) == 0.0
 
-    @patch('pygame.draw')
+    @patch("pygame.draw")
     def test_render_calls_pygame(self, mock_draw, mock_pathfinder, mock_camera):
         """Test that render method uses pygame drawing."""
         preview = PathPreview(pathfinder=mock_pathfinder)
 
         segments = [
-            PathSegment(start=(5,5), end=(6,5), danger=PathDangerLevel.SAFE),
-            PathSegment(start=(6,5), end=(7,5), danger=PathDangerLevel.DANGER),
+            PathSegment(start=(5, 5), end=(6, 5), danger=PathDangerLevel.SAFE),
+            PathSegment(start=(6, 5), end=(7, 5), danger=PathDangerLevel.DANGER),
         ]
         path = PreviewPath(segments=segments, total_distance=2, total_time=0.67)
 
@@ -264,7 +268,7 @@ class TestPathPreview:
 
     def test_preview_path_data_class(self):
         """Test PreviewPath data class."""
-        segments = [PathSegment(start=(0,0), end=(1,1))]
+        segments = [PathSegment(start=(0, 0), end=(1, 1))]
         path = PreviewPath(
             segments=segments,
             total_distance=1,
@@ -294,7 +298,9 @@ class TestPathPreview:
 
         target = (7, 7)
         result = preview.calculate_path(
-            mock_unit, target, mock_game_map,
+            mock_unit,
+            target,
+            mock_game_map,
             enemy_units=[],
         )
 
@@ -365,7 +371,7 @@ class TestRangeIndicator:
         indicator.set_unit(mock_unit)
 
         result = indicator.contains_point((5.5, 5.0), (5.0, 5.0))
-        assert result == 'inside_min'
+        assert result == "inside_min"
 
     def test_contains_point_between_ranges(self, mock_unit):
         """Test point between min and max range."""
@@ -373,7 +379,7 @@ class TestRangeIndicator:
         indicator.set_unit(mock_unit)
 
         result = indicator.contains_point((10.0, 5.0), (5.0, 5.0))
-        assert result == 'between'
+        assert result == "between"
 
     def test_contains_point_outside_max(self, mock_unit):
         """Test point beyond maximum range."""
@@ -381,16 +387,16 @@ class TestRangeIndicator:
         indicator.set_unit(mock_unit)
 
         result = indicator.contains_point((20.0, 5.0), (5.0, 5.0))
-        assert result == 'outside_max'
+        assert result == "outside_max"
 
     def test_contains_point_no_unit(self):
         """Test contains_point when no unit selected."""
         indicator = RangeIndicator()
 
         result = indicator.contains_point((10.0, 10.0), (5.0, 5.0))
-        assert result == 'no_unit'
+        assert result == "no_unit"
 
-    @patch('pygame.draw')
+    @patch("pygame.draw")
     def test_render_draws_circles(self, mock_draw, mock_unit, mock_camera):
         """Test that render draws range circles."""
         indicator = RangeIndicator()
@@ -497,7 +503,7 @@ class TestTooltip:
         assert tooltip.target_unit is None
         assert tooltip._show_timer == 0.0
 
-    @patch('pygame.font')
+    @patch("pygame.font")
     def test_render_displays_info(self, mock_font, mock_unit):
         """Test render displays unit information."""
         tooltip = Tooltip()
@@ -523,23 +529,25 @@ class TestTooltip:
 
     def test_hp_color_logic(self):
         """Test HP color coding."""
-        assert Tooltip._get_hp_color(80) == (0, 255, 0)      # Green
-        assert Tooltip._get_hp_color(50) == (255, 255, 0)     # Yellow
-        assert Tooltip._get_hp_color(20) == (255, 80, 80)     # Red
+        assert Tooltip._get_hp_color(80) == (0, 255, 0)  # Green
+        assert Tooltip._get_hp_color(50) == (255, 255, 0)  # Yellow
+        assert Tooltip._get_hp_color(20) == (255, 80, 80)  # Red
 
     def test_morale_color_logic(self):
         """Test morale color coding."""
-        assert Tooltip._get_morale_color(80) == (100, 255, 100)   # Green
-        assert Tooltip._get_morale_color(50) == (255, 255, 100)   # Yellow
-        assert Tooltip._get_morale_color(20) == (255, 120, 120)   # Red
+        assert Tooltip._get_morale_color(80) == (100, 255, 100)  # Green
+        assert Tooltip._get_morale_color(50) == (255, 255, 100)  # Yellow
+        assert Tooltip._get_morale_color(20) == (255, 120, 120)  # Red
 
     def test_status_color_logic(self):
         """Test status color coding."""
-        assert 'red' in str(Tooltip._get_status_color('Suppressed')).lower() or \
-               Tooltip._get_status_color('Suppressed')[0] == 255
-        assert Tooltip._get_status_color('Moving') == (100, 200, 255)
-        assert Tooltip._get_status_color('Normal') == (200, 200, 200)
+        assert (
+            "red" in str(Tooltip._get_status_color("Suppressed")).lower()
+            or Tooltip._get_status_color("Suppressed")[0] == 255
+        )
+        assert Tooltip._get_status_color("Moving") == (100, 200, 255)
+        assert Tooltip._get_status_color("Normal") == (200, 200, 200)
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

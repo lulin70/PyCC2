@@ -58,20 +58,20 @@ class CC2HUD:
     MINIMAP_SIZE: int = 100
 
     # === Color Palette (CC2 Authentic) ===
-    BG_COLOR = (20, 22, 26)           # Deep blue-gray background
-    BORDER_COLOR = (60, 65, 70)        # Medium gray border
-    TEXT_COLOR = (200, 200, 190)       # Off-white text (CC2 font color)
+    BG_COLOR = (20, 22, 26)  # Deep blue-gray background
+    BORDER_COLOR = (60, 65, 70)  # Medium gray border
+    TEXT_COLOR = (200, 200, 190)  # Off-white text (CC2 font color)
     HIGHLIGHT_COLOR = (255, 220, 100)  # Gold highlight (selected)
 
     # Status colors
-    STATUS_HEALTHY = (80, 180, 80)     # Green
-    STATUS_WOUNDED = (200, 180, 60)    # Yellow
-    STATUS_CRITICAL = (200, 80, 60)    # Red
-    STATUS_DEAD = (40, 40, 40)         # Black
+    STATUS_HEALTHY = (80, 180, 80)  # Green
+    STATUS_WOUNDED = (200, 180, 60)  # Yellow
+    STATUS_CRITICAL = (200, 80, 60)  # Red
+    STATUS_DEAD = (40, 40, 40)  # Black
 
     # Resource bar colors
-    AP_BAR_COLOR = (60, 160, 60)       # Green for AP
-    AT_BAR_COLOR = (160, 120, 60)      # Orange-brown for AT
+    AP_BAR_COLOR = (60, 160, 60)  # Green for AP
+    AT_BAR_COLOR = (160, 120, 60)  # Orange-brown for AT
 
     # Panel backgrounds
     PANEL_BG_DARK = (15, 17, 21)
@@ -94,9 +94,9 @@ class CC2HUD:
         self._right_width = screen_width - self._left_width - self._center_width
 
         # Font instances (initialized in initialize())
-        self._font_title: Font | None = None      # 14px bold
-        self._font_normal: Font | None = None     # 11px normal
-        self._font_small: Font | None = None      # 9px normal
+        self._font_title: Font | None = None  # 14px bold
+        self._font_normal: Font | None = None  # 11px normal
+        self._font_small: Font | None = None  # 9px normal
 
         # State tracking
         self._visible: bool = True
@@ -156,9 +156,9 @@ class CC2HUD:
             font.init()
 
         try:
-            self._font_title = font.SysFont('consolas', 14, bold=True)
-            self._font_normal = font.SysFont('consolas', 11)
-            self._font_small = font.SysFont('consolas', 9)
+            self._font_title = font.SysFont("consolas", 14, bold=True)
+            self._font_normal = font.SysFont("consolas", 11)
+            self._font_small = font.SysFont("consolas", 9)
         except (OSError, ValueError, RuntimeError) as e:
             logger.debug(f"Font initialization fallback: {e}")
             self._font_title = font.Font(None, 18)
@@ -228,11 +228,11 @@ class CC2HUD:
             event_type: One of 'unit_select', 'command', 'hide_toggle'
             callback: Callable to invoke on event
         """
-        if event_type == 'unit_select':
+        if event_type == "unit_select":
             self._on_unit_select = callback
-        elif event_type == 'command':
+        elif event_type == "command":
             self._on_command = callback
-        elif event_type == 'hide_toggle':
+        elif event_type == "hide_toggle":
             self._on_hide_toggle = callback
 
     def render(self, surface: Surface, game_state: dict | None = None) -> None:
@@ -272,12 +272,15 @@ class CC2HUD:
         content_h = self.PANEL_HEIGHT - (self.PADDING * 2) - 2
 
         # Render three panels
-        self._render_left_panel(self._hud_surface, left_x + 2, content_y,
-                                self._left_width - 4, content_h)
-        self._render_center_panel(self._hud_surface, center_x, content_y,
-                                  self._center_width, content_h)
-        self._render_right_panel(self._hud_surface, right_x, content_y,
-                                 self._right_width - 2, content_h)
+        self._render_left_panel(
+            self._hud_surface, left_x + 2, content_y, self._left_width - 4, content_h
+        )
+        self._render_center_panel(
+            self._hud_surface, center_x, content_y, self._center_width, content_h
+        )
+        self._render_right_panel(
+            self._hud_surface, right_x, content_y, self._right_width - 2, content_h
+        )
 
         # Blit HUD to main surface
         surface.blit(self._hud_surface, (0, panel_y))
@@ -365,8 +368,7 @@ class CC2HUD:
     # PRIVATE RENDERING METHODS
     # ==================================================================
 
-    def _render_left_panel(self, surface: Surface, x: int, y: int,
-                           w: int, h: int) -> None:
+    def _render_left_panel(self, surface: Surface, x: int, y: int, w: int, h: int) -> None:
         """Render left panel: unit roster with status indicators.
 
         Layout:
@@ -396,7 +398,7 @@ class CC2HUD:
         row_h = self.ROW_HEIGHT
 
         visible_units = self._units[
-            self._scroll_offset:self._scroll_offset + self._max_visible_units
+            self._scroll_offset : self._scroll_offset + self._max_visible_units
         ]
 
         for i, unit in enumerate(visible_units):
@@ -410,8 +412,9 @@ class CC2HUD:
             # Row background (highlighted if selected)
             if is_selected:
                 draw.rect(surface, (*self.HIGHLIGHT_COLOR, 30), row_rect)
-                draw.rect(surface, self.HIGHLIGHT_COLOR,
-                         (row_rect.x, row_rect.y, 2, row_rect.height))
+                draw.rect(
+                    surface, self.HIGHLIGHT_COLOR, (row_rect.x, row_rect.y, 2, row_rect.height)
+                )
 
             # Status dot (health indicator)
             status_color = self._get_status_color(unit)
@@ -429,7 +432,7 @@ class CC2HUD:
                 surface.blit(icon, (icon_x, icon_y))
 
             # Unit name (truncated to fit)
-            name = getattr(unit, 'name', 'Unknown')[:14]
+            name = getattr(unit, "name", "Unknown")[:14]
             name_color = self.HIGHLIGHT_COLOR if is_selected else self.TEXT_COLOR
             name_surf = self._font_normal.render(name, True, name_color)
             surface.blit(name_surf, (icon_x + self.ICON_SIZE + 4, row_y + 3))
@@ -441,9 +444,13 @@ class CC2HUD:
             hide_rect = Rect(x + w - hide_w - 6, row_y + 2, hide_w, row_h - 4)
             draw.rect(surface, (45, 48, 55), hide_rect)
             draw.rect(surface, (70, 73, 80), hide_rect, 1)
-            surface.blit(hide_surf,
-                        (hide_rect.x + (hide_rect.w - hide_surf.get_width()) // 2,
-                         hide_rect.y + (hide_rect.h - hide_surf.get_height()) // 2))
+            surface.blit(
+                hide_surf,
+                (
+                    hide_rect.x + (hide_rect.w - hide_surf.get_width()) // 2,
+                    hide_rect.y + (hide_rect.h - hide_surf.get_height()) // 2,
+                ),
+            )
 
             # Store interaction rects
             self._unit_rects.append((row_rect, unit.id))
@@ -453,13 +460,12 @@ class CC2HUD:
         total = len(self._units)
         if total > self._max_visible_units:
             scroll_h = max(20, int(list_h * (self._max_visible_units / total)))
-            scroll_y = list_y + int((list_h - scroll_h) *
-                                   (self._scroll_offset / (total - self._max_visible_units)))
-            draw.rect(surface, (80, 80, 90),
-                     Rect(x + w - 6, scroll_y, 3, scroll_h))
+            scroll_y = list_y + int(
+                (list_h - scroll_h) * (self._scroll_offset / (total - self._max_visible_units))
+            )
+            draw.rect(surface, (80, 80, 90), Rect(x + w - 6, scroll_y, 3, scroll_h))
 
-    def _render_center_panel(self, surface: Surface, x: int, y: int,
-                             w: int, h: int) -> None:
+    def _render_center_panel(self, surface: Surface, x: int, y: int, w: int, h: int) -> None:
         """Render center panel: detailed unit status display.
 
         Layout:
@@ -503,22 +509,20 @@ class CC2HUD:
             mrect = Rect(mx, line_y, 40, 18)
             self._info_mode_rects[mode] = mrect
 
-            is_active = (mode == self._info_mode.upper())
+            is_active = mode == self._info_mode.upper()
             bg = (60, 65, 75) if is_active else (40, 43, 50)
             tc = self.HIGHLIGHT_COLOR if is_active else (140, 140, 135)
             draw.rect(surface, bg, mrect)
-            draw.rect(surface, self.BORDER_COLOR if is_active else (50, 53, 60),
-                     mrect, 1)
+            draw.rect(surface, self.BORDER_COLOR if is_active else (50, 53, 60), mrect, 1)
             msurf = self._font_small.render(mode, True, tc)
-            surface.blit(msurf,
-                        (mx + (40 - msurf.get_width()) // 2,
-                         line_y + (18 - msurf.get_height()) // 2))
+            surface.blit(
+                msurf, (mx + (40 - msurf.get_width()) // 2, line_y + (18 - msurf.get_height()) // 2)
+            )
 
         line_y += 22
 
         # Separator with green tint
-        draw.line(surface, (*self.STATUS_HEALTHY, 150),
-                 (x + 4, line_y), (x + w - 4, line_y), 1)
+        draw.line(surface, (*self.STATUS_HEALTHY, 150), (x + 4, line_y), (x + w - 4, line_y), 1)
         line_y += 6
 
         # === Status Bars Section (Morale/AP/AT) ===
@@ -526,31 +530,39 @@ class CC2HUD:
             unit = next((u for u in self._units if u.id == self._selected_unit_id), None)
             if unit:
                 # Morale value from unit
-                morale_val = getattr(getattr(unit, 'morale', None), 'value', 75)
+                morale_val = getattr(getattr(unit, "morale", None), "value", 75)
                 morale_pct = max(0, min(100, morale_val))
 
                 # Morale bar
-                self._draw_status_bar(surface, x + 6, line_y, w - 12, 14,
-                                     "Morale", morale_pct,
-                                     self._get_morale_color(morale_pct))
+                self._draw_status_bar(
+                    surface,
+                    x + 6,
+                    line_y,
+                    w - 12,
+                    14,
+                    "Morale",
+                    morale_pct,
+                    self._get_morale_color(morale_pct),
+                )
                 line_y += 18
 
                 # AP bar
                 ap_pct = (self._ap_remaining / 10) * 100
-                self._draw_status_bar(surface, x + 6, line_y, w - 12, 14,
-                                     "AP", ap_pct, self.AP_BAR_COLOR)
+                self._draw_status_bar(
+                    surface, x + 6, line_y, w - 12, 14, "AP", ap_pct, self.AP_BAR_COLOR
+                )
                 line_y += 18
 
                 # AT bar
                 at_pct = (self._at_remaining / 5) * 100
-                self._draw_status_bar(surface, x + 6, line_y, w - 12, 14,
-                                     "AT", at_pct, self.AT_BAR_COLOR)
+                self._draw_status_bar(
+                    surface, x + 6, line_y, w - 12, 14, "AT", at_pct, self.AT_BAR_COLOR
+                )
                 line_y += 20
             else:
                 line_y += 54
         else:
-            no_sel = self._font_normal.render("No unit selected",
-                                              True, (120, 120, 115))
+            no_sel = self._font_normal.render("No unit selected", True, (120, 120, 115))
             surface.blit(no_sel, (x + w // 2 - 50, line_y + 20))
             line_y += 54
 
@@ -564,8 +576,7 @@ class CC2HUD:
             if unit:
                 self._render_unit_details(surface, x + 6, line_y, w - 12, unit)
 
-    def _render_right_panel(self, surface: Surface, x: int, y: int,
-                            w: int, h: int) -> None:
+    def _render_right_panel(self, surface: Surface, x: int, y: int, w: int, h: int) -> None:
         """Render right panel: command menu and minimap.
 
         Layout:
@@ -603,8 +614,7 @@ class CC2HUD:
             surface.blit(key_surf, (cmd_rect.x + 4, cmd_y + 1))
 
             # Command label
-            label_surf = self._font_normal.render(cmd["label"], True,
-                                                   self.TEXT_COLOR)
+            label_surf = self._font_normal.render(cmd["label"], True, self.TEXT_COLOR)
             surface.blit(label_surf, (cmd_rect.x + 20, cmd_y + 1))
 
         line_y += menu_h + 8
@@ -613,9 +623,8 @@ class CC2HUD:
         if self._selected_unit_id:
             unit = next((u for u in self._units if u.id == self._selected_unit_id), None)
             if unit:
-                unit_name = getattr(unit, 'name', 'Unknown')[:16]
-                name_surf = self._font_title.render(unit_name, True,
-                                                    self.HIGHLIGHT_COLOR)
+                unit_name = getattr(unit, "name", "Unknown")[:16]
+                name_surf = self._font_title.render(unit_name, True, self.HIGHLIGHT_COLOR)
                 # Center the name
                 name_x = x + (w - name_surf.get_width()) // 2
                 surface.blit(name_surf, (name_x, line_y))
@@ -668,16 +677,13 @@ class CC2HUD:
                 # Button background
                 bg_color = (45, 50, 62) if is_hovered else (35, 40, 50)
                 draw.rect(surface, bg_color, btn_rect)
-                draw.rect(surface, key_color if is_hovered else (60, 65, 75),
-                         btn_rect, 1)
+                draw.rect(surface, key_color if is_hovered else (60, 65, 75), btn_rect, 1)
 
                 # Status dot
-                draw.circle(surface, key_color,
-                           (btn_x + 10, btn_y + big_btn_h // 2), 5)
+                draw.circle(surface, key_color, (btn_x + 10, btn_y + big_btn_h // 2), 5)
 
                 # Label
-                lbl_surf = self._font_small.render(cmd["label"][:8], True,
-                                                    self.TEXT_COLOR)
+                lbl_surf = self._font_small.render(cmd["label"][:8], True, self.TEXT_COLOR)
                 surface.blit(lbl_surf, (btn_x + 20, btn_y + 6))
 
                 # Mini preview rectangle (right side)
@@ -685,8 +691,7 @@ class CC2HUD:
                 draw.rect(surface, (30, 33, 38), prev_rect)
                 draw.rect(surface, (55, 58, 65), prev_rect, 1)
 
-    def _render_unit_details(self, surface: Surface, x: int, y: int,
-                             w: int, unit: Unit) -> None:
+    def _render_unit_details(self, surface: Surface, x: int, y: int, w: int, unit: Unit) -> None:
         """Render detailed information for selected unit.
 
         Args:
@@ -705,7 +710,7 @@ class CC2HUD:
         if icon:
             surface.blit(icon, (x, line_y))
 
-        name = getattr(unit, 'name', 'Unknown')[:18]
+        name = getattr(unit, "name", "Unknown")[:18]
         name_surf = self._font_normal.render(name, True, self.HIGHLIGHT_COLOR)
         surface.blit(name_surf, (x + self.ICON_SIZE + 4, line_y + 2))
 
@@ -720,47 +725,56 @@ class CC2HUD:
         line_y += 4
 
         # Operational status
-        state_name = getattr(getattr(unit, 'state_machine', None), 'current',
-                            type('obj', (object,), {'name': 'IDLE'})).name
+        state_name = getattr(
+            getattr(unit, "state_machine", None),
+            "current",
+            type("obj", (object,), {"name": "IDLE"}),
+        ).name
         op_text = f"Operational: {state_name}"
         op_surf = self._font_small.render(op_text, True, (180, 180, 175))
         surface.blit(op_surf, (x, line_y))
         line_y += small_line_h + 2
 
         # Attribute bars (Morale, AMMO, AT)
-        morale_val = getattr(getattr(unit, 'morale', None), 'value', 75)
-        ammo_val = getattr(getattr(unit, 'weapon', None), 'ammo_remaining', 30)
-        ammo_max = getattr(getattr(unit, 'weapon', None), 'max_ammo', 30)
+        morale_val = getattr(getattr(unit, "morale", None), "value", 75)
+        ammo_val = getattr(getattr(unit, "weapon", None), "ammo_remaining", 30)
+        ammo_max = getattr(getattr(unit, "weapon", None), "max_ammo", 30)
         ammo_pct = (ammo_val / max(ammo_max, 1)) * 100
 
         # Compact inline bars
         bar_w = (w - 100) // 3
 
         # Morale
-        m_text = f"Morale:"
+        m_text = "Morale:"
         m_surf = self._font_small.render(m_text, True, self.TEXT_COLOR)
         surface.blit(m_surf, (x, line_y))
-        self._draw_mini_bar(surface, x + 48, line_y, bar_w, 10,
-                           morale_val, self._get_morale_color(morale_val))
+        self._draw_mini_bar(
+            surface, x + 48, line_y, bar_w, 10, morale_val, self._get_morale_color(morale_val)
+        )
 
         # AMMO
-        a_text = f"AMMO:"
+        a_text = "AMMO:"
         a_surf = self._font_small.render(a_text, True, self.TEXT_COLOR)
         surface.blit(a_surf, (x + bar_w + 52, line_y))
-        self._draw_mini_bar(surface, x + bar_w + 90, line_y, bar_w, 10,
-                           ammo_pct, (100, 150, 255))
+        self._draw_mini_bar(surface, x + bar_w + 90, line_y, bar_w, 10, ammo_pct, (100, 150, 255))
 
         # AT
-        at_text = f"AT:"
+        at_text = "AT:"
         at_surf = self._font_small.render(at_text, True, self.TEXT_COLOR)
         surface.blit(at_surf, (x + (bar_w + 38) * 2, line_y))
-        self._draw_mini_bar(surface, x + (bar_w + 38) * 2 + 18, line_y,
-                           bar_w - 10, 10,
-                           (self._at_remaining / 5) * 100, self.AT_BAR_COLOR)
+        self._draw_mini_bar(
+            surface,
+            x + (bar_w + 38) * 2 + 18,
+            line_y,
+            bar_w - 10,
+            10,
+            (self._at_remaining / 5) * 100,
+            self.AT_BAR_COLOR,
+        )
         line_y += 14
 
         # Weapon info
-        weapon_name = getattr(getattr(unit, 'weapon', None), 'name', 'M1 Garand')
+        weapon_name = getattr(getattr(unit, "weapon", None), "name", "M1 Garand")
         wpn_text = f"Weapon: {weapon_name[:20]}"
         wpn_surf = self._font_small.render(wpn_text, True, (170, 175, 170))
         surface.blit(wpn_surf, (x, line_y))
@@ -776,7 +790,7 @@ class CC2HUD:
         max_y = y + 85
         if line_y < max_y:
             # Target
-            target = getattr(unit, 'target_name', None)
+            target = getattr(unit, "target_name", None)
             if target:
                 tgt_text = f"Target: {target[:15]}"
                 tgt_surf = self._font_small.render(tgt_text, True, (160, 165, 160))
@@ -786,8 +800,9 @@ class CC2HUD:
         if line_y < max_y:
             # Commander status
             cmdr_health = "Healthy"
-            hp_ratio = getattr(getattr(unit, 'health', None), 'hp', 100) / \
-                       max(getattr(getattr(unit, 'health', None), 'max_hp', 100), 1)
+            hp_ratio = getattr(getattr(unit, "health", None), "hp", 100) / max(
+                getattr(getattr(unit, "health", None), "max_hp", 100), 1
+            )
             if hp_ratio < 0.3:
                 cmdr_health = "Wounded"
             elif hp_ratio < 0.6:
@@ -800,7 +815,7 @@ class CC2HUD:
 
         if line_y < max_y:
             # Vehicle (if applicable)
-            vehicle = getattr(unit, 'vehicle_name', None)
+            vehicle = getattr(unit, "vehicle_name", None)
             if vehicle:
                 veh_text = f"Vehicle: {vehicle[:18]}"
                 veh_surf = self._font_small.render(veh_text, True, (155, 160, 155))
@@ -809,7 +824,7 @@ class CC2HUD:
 
         if line_y < max_y:
             # Position
-            pos = getattr(unit, 'location_name', 'Unknown')
+            pos = getattr(unit, "location_name", "Unknown")
             pos_text = f"Position: {pos[:18]}"
             pos_surf = self._font_small.render(pos_text, True, (155, 160, 155))
             surface.blit(pos_surf, (x, line_y))
@@ -825,20 +840,20 @@ class CC2HUD:
             game_state: Dict with optional keys: units, selected_unit,
                        ap_remaining, at_remaining, timer, game_map, camera
         """
-        if 'units' in game_state:
-            self.set_units(game_state['units'])
-        if 'selected_unit' in game_state:
-            self.set_selected_unit(game_state['selected_unit'])
-        if 'ap_remaining' in game_state:
-            self._ap_remaining = game_state['ap_remaining']
-        if 'at_remaining' in game_state:
-            self._at_remaining = game_state['at_remaining']
-        if 'timer' in game_state:
-            self._timer = game_state['timer']
-        if 'game_map' in game_state:
-            self.set_game_map(game_state['game_map'])
-        if 'camera' in game_state:
-            self.set_camera(game_state['camera'])
+        if "units" in game_state:
+            self.set_units(game_state["units"])
+        if "selected_unit" in game_state:
+            self.set_selected_unit(game_state["selected_unit"])
+        if "ap_remaining" in game_state:
+            self._ap_remaining = game_state["ap_remaining"]
+        if "at_remaining" in game_state:
+            self._at_remaining = game_state["at_remaining"]
+        if "timer" in game_state:
+            self._timer = game_state["timer"]
+        if "game_map" in game_state:
+            self.set_game_map(game_state["game_map"])
+        if "camera" in game_state:
+            self.set_camera(game_state["camera"])
 
     def _get_status_color(self, unit: Unit) -> tuple[int, int, int]:
         """Get status dot color based on unit health.
@@ -847,8 +862,8 @@ class CC2HUD:
             RGB tuple: Green/Yellow/Red/Black based on HP ratio
         """
         try:
-            hp = getattr(getattr(unit, 'health', None), 'hp', 100)
-            hp_max = getattr(getattr(unit, 'health', None), 'max_hp', 100)
+            hp = getattr(getattr(unit, "health", None), "hp", 100)
+            hp_max = getattr(getattr(unit, "health", None), "max_hp", 100)
             ratio = hp / max(hp_max, 1)
 
             if ratio >= 0.8:
@@ -889,25 +904,25 @@ class CC2HUD:
         Returns:
             String key for icon lookup
         """
-        type_name = unit.unit_type.name.lower() if hasattr(unit.unit_type, 'name') else ''
-        if 'tank' in type_name or 'armor' in type_name or 'vehicle' in type_name:
-            return 'tank'
-        elif 'mg' in type_name or 'machine' in type_name:
-            return 'mg'
-        elif 'sniper' in type_name or 'scout' in type_name:
-            return 'sniper'
-        elif 'officer' in type_name or 'commander' in type_name:
-            return 'commander'
-        elif 'at' in type_name or 'anti' in type_name:
-            return 'at'
-        elif 'mortar' in type_name:
-            return 'mortar'
-        elif 'medic' in type_name or 'aid' in type_name:
-            return 'medic'
-        elif 'engineer' in type_name:
-            return 'engineer'
+        type_name = unit.unit_type.name.lower() if hasattr(unit.unit_type, "name") else ""
+        if "tank" in type_name or "armor" in type_name or "vehicle" in type_name:
+            return "tank"
+        elif "mg" in type_name or "machine" in type_name:
+            return "mg"
+        elif "sniper" in type_name or "scout" in type_name:
+            return "sniper"
+        elif "officer" in type_name or "commander" in type_name:
+            return "commander"
+        elif "at" in type_name or "anti" in type_name:
+            return "at"
+        elif "mortar" in type_name:
+            return "mortar"
+        elif "medic" in type_name or "aid" in type_name:
+            return "medic"
+        elif "engineer" in type_name:
+            return "engineer"
         else:
-            return 'infantry'
+            return "infantry"
 
     def _get_crew_string(self, unit: Unit) -> str:
         """Generate crew composition string.
@@ -918,21 +933,29 @@ class CC2HUD:
         Returns:
             Formatted crew string like "Crew: Smith MG, AA MG, Mortar"
         """
-        squad = getattr(unit, 'squad_ref', None)
+        squad = getattr(unit, "squad_ref", None)
         if squad:
-            members = getattr(squad, 'members', [])
+            members = getattr(squad, "members", [])
             if members:
                 roles = []
                 for m in members[:4]:
-                    role = getattr(m, 'role', '?')
-                    roles.append(role.replace('_', ' ').title())
+                    role = getattr(m, "role", "?")
+                    roles.append(role.replace("_", " ").title())
                 return f"Crew: {', '.join(roles)}"
 
         return "Crew: Single operator"
 
-    def _draw_status_bar(self, surface: Surface, x: int, y: int,
-                         w: int, h: int, label: str, pct: int,
-                         color: tuple[int, int, int]) -> None:
+    def _draw_status_bar(
+        self,
+        surface: Surface,
+        x: int,
+        y: int,
+        w: int,
+        h: int,
+        label: str,
+        pct: int,
+        color: tuple[int, int, int],
+    ) -> None:
         """Draw a labeled status bar with border.
 
         Args:
@@ -958,9 +981,16 @@ class CC2HUD:
         if fill_w > 0:
             draw.rect(surface, color, Rect(bar_x, y, fill_w, h))
 
-    def _draw_mini_bar(self, surface: Surface, x: int, y: int,
-                       w: int, h: int, pct: int,
-                       color: tuple[int, int, int]) -> None:
+    def _draw_mini_bar(
+        self,
+        surface: Surface,
+        x: int,
+        y: int,
+        w: int,
+        h: int,
+        pct: int,
+        color: tuple[int, int, int],
+    ) -> None:
         """Draw a compact mini bar without label.
 
         Args:
@@ -996,7 +1026,7 @@ class CC2HUD:
         draw.line(s, green, (10, 7), (12, 9), 1)
         draw.line(s, dark_green, (6, 11), (5, 14), 2)
         draw.line(s, dark_green, (9, 11), (10, 14), 2)
-        icons['infantry'] = s
+        icons["infantry"] = s
 
         # Tank
         s = Surface((16, 16))
@@ -1007,7 +1037,7 @@ class CC2HUD:
         draw.rect(s, tank_dark, (4, 5, 6, 4))
         draw.line(s, (100, 100, 110), (10, 7), (15, 5), 2)
         draw.rect(s, (80, 80, 90), (1, 12, 14, 2))
-        icons['tank'] = s
+        icons["tank"] = s
 
         # MG
         s = Surface((16, 16))
@@ -1016,7 +1046,7 @@ class CC2HUD:
         draw.rect(s, (80, 200, 80), (4, 6, 3, 4))
         draw.line(s, (200, 200, 80), (7, 7), (15, 5), 2)
         draw.rect(s, (100, 100, 60), (7, 6, 4, 3))
-        icons['mg'] = s
+        icons["mg"] = s
 
         # Sniper
         s = Surface((16, 16))
@@ -1026,7 +1056,7 @@ class CC2HUD:
         draw.rect(s, (80, 200, 80), (4, 5, 6, 4))
         draw.line(s, (60, 60, 60), (11, 5), (15, 1), 1)
         draw.rect(s, (100, 180, 255), (12, 3, 3, 2))
-        icons['sniper'] = s
+        icons["sniper"] = s
 
         # Commander
         s = Surface((16, 16))
@@ -1037,7 +1067,7 @@ class CC2HUD:
         draw.rect(s, (80, 200, 80), (4, 5, 6, 5))
         draw.rect(s, (70, 70, 80), (10, 4, 4, 5))
         draw.line(s, (180, 180, 190), (12, 4), (12, 0), 1)
-        icons['commander'] = s
+        icons["commander"] = s
 
         # AT
         s = Surface((16, 16))
@@ -1046,7 +1076,7 @@ class CC2HUD:
         draw.polygon(s, (150, 50, 40), [(12, 6), (15, 8), (12, 10)])
         draw.polygon(s, (150, 50, 40), [(2, 6), (4, 3), (5, 6)])
         draw.polygon(s, (150, 50, 40), [(2, 10), (4, 13), (5, 10)])
-        icons['at'] = s
+        icons["at"] = s
 
         # Mortar
         s = Surface((16, 16))
@@ -1054,7 +1084,7 @@ class CC2HUD:
         draw.line(s, (140, 140, 150), (4, 14), (10, 4), 3)
         draw.circle(s, (100, 100, 110), (10, 4), 2)
         draw.rect(s, (100, 100, 110), (2, 13, 4, 2))
-        icons['mortar'] = s
+        icons["mortar"] = s
 
         # Medic
         s = Surface((16, 16))
@@ -1062,7 +1092,7 @@ class CC2HUD:
         draw.circle(s, (60, 120, 60), (8, 8), 6)
         draw.rect(s, (240, 240, 240), (6, 3, 4, 10))
         draw.rect(s, (240, 240, 240), (3, 6, 10, 4))
-        icons['medic'] = s
+        icons["medic"] = s
 
         # Engineer
         s = Surface((16, 16))
@@ -1072,7 +1102,7 @@ class CC2HUD:
         draw.line(s, (180, 180, 190), (10, 6), (12, 4), 2)
         draw.circle(s, (80, 200, 80), (4, 3), 2)
         draw.line(s, (80, 200, 80), (4, 5), (4, 8), 1)
-        icons['engineer'] = s
+        icons["engineer"] = s
 
         return icons
 
@@ -1092,7 +1122,7 @@ class CC2HUD:
         draw.rect(s, green, (6, 14, 12, 5))
         draw.polygon(s, green, [(8, 14), (14, 14), (12, 6), (10, 6)])
         draw.rect(s, green, (6, 10, 4, 4))
-        icons['move'] = s
+        icons["move"] = s
 
         # Move Fast
         s = Surface((24, 24))
@@ -1105,7 +1135,7 @@ class CC2HUD:
         draw.line(s, bright, (12, 14), (7, 19), 2)
         draw.line(s, bright, (12, 14), (17, 19), 2)
         draw.polygon(s, bright, [(18, 10), (22, 13), (18, 16)])
-        icons['move_fast'] = s
+        icons["move_fast"] = s
 
         # Crawl
         s = Surface((24, 24))
@@ -1116,7 +1146,7 @@ class CC2HUD:
         draw.line(s, olive, (8, 12), (6, 16), 2)
         draw.line(s, olive, (6, 16), (8, 19), 2)
         draw.line(s, olive, (14, 12), (19, 10), 2)
-        icons['crawl'] = s
+        icons["crawl"] = s
 
         # Fire
         s = Surface((24, 24))
@@ -1130,7 +1160,7 @@ class CC2HUD:
         draw.line(s, red, (cx, cy + 5), (cx, cy + 11), 1)
         draw.line(s, red, (cx - 11, cy), (cx - 5, cy), 1)
         draw.line(s, red, (cx + 5, cy), (cx + 11, cy), 1)
-        icons['fire'] = s
+        icons["fire"] = s
 
         # Smoke
         s = Surface((24, 24))
@@ -1140,7 +1170,7 @@ class CC2HUD:
         draw.circle(s, (210, 210, 210), (14, 13), 6)
         draw.circle(s, (140, 140, 140), (11, 9), 5)
         draw.circle(s, gray, (6, 11), 4)
-        icons['smoke'] = s
+        icons["smoke"] = s
 
         # Defend
         s = Surface((24, 24))
@@ -1151,18 +1181,17 @@ class CC2HUD:
         inner = [(12, 4), (19, 8), (19, 13), (12, 19), (5, 13), (5, 8)]
         draw.polygon(s, (50, 80, 140), inner)
         draw.polygon(s, (200, 220, 255), [(7, 7), (12, 13), (17, 7)])
-        icons['defend'] = s
+        icons["defend"] = s
 
         # Hide
         s = Surface((24, 24))
         s.fill(bg)
         eye = (180, 200, 220)
-        epts = [(2, 12), (6, 7), (12, 6), (18, 7), (22, 12),
-               (18, 17), (12, 18), (6, 17)]
+        epts = [(2, 12), (6, 7), (12, 6), (18, 7), (22, 12), (18, 17), (12, 18), (6, 17)]
         draw.polygon(s, eye, epts, 2)
         draw.circle(s, (100, 150, 200), (12, 12), 3)
         draw.circle(s, (40, 40, 40), (12, 12), 1)
         draw.line(s, (255, 60, 60), (4, 4), (20, 20), 2)
-        icons['hide'] = s
+        icons["hide"] = s
 
         return icons

@@ -28,9 +28,10 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
-import pytest
-import pygame
 from pathlib import Path
+
+import pygame
+import pytest
 
 SCREEN_W, SCREEN_H = 1280, 720
 MAX_FRAME_TIME_MS = 100.0
@@ -49,8 +50,7 @@ def _deploy_infantry(deployment_ui, count=1):
                 terrain = deployment_ui._get_terrain_at(tile_x, tile_y)
                 if deployment_ui.can_place_at(u, tile_x, tile_y, terrain):
                     occupied = any(
-                        pu.position == (tile_x, tile_y)
-                        for pu in deployment_ui.state.placed_units
+                        pu.position == (tile_x, tile_y) for pu in deployment_ui.state.placed_units
                     )
                     if not occupied:
                         deployment_ui.place_unit(i, tile_x, tile_y)
@@ -79,21 +79,21 @@ class TestPreReleaseFullJourney:
 
     def _create_game_loop(self, faction="allied"):
         from pycc2.domain.entities.game_map import GameMap, SpawnPoint
-        from pycc2.domain.value_objects.vec2 import Vec2
+        from pycc2.domain.interfaces.display_config import DisplayConfig as DC
         from pycc2.domain.value_objects.tile_coord import TileCoord
+        from pycc2.domain.value_objects.vec2 import Vec2
         from pycc2.presentation.input.handler import PygameInputHandler
         from pycc2.presentation.input.interaction_controller import InteractionController
         from pycc2.presentation.rendering.camera import Camera
         from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
         from pycc2.presentation.rendering.window_config import DisplayInfo, WindowManager
-        from pycc2.services.ai_service import AIService
-        from pycc2.services.event_bus import EventBus
-        from pycc2.services.game_loop import GameLoop, GameState
-        from pycc2.domain.interfaces.display_config import DisplayConfig as DC
         from pycc2.presentation.ui.hint_manager import HintManager
         from pycc2.presentation.ui.keybind_manager import KeybindManager
         from pycc2.presentation.ui.settings_menu import SettingsMenu
         from pycc2.presentation.ui.tutorial_system import TutorialOverlay
+        from pycc2.services.ai_service import AIService
+        from pycc2.services.event_bus import EventBus
+        from pycc2.services.game_loop import GameLoop, GameState
 
         map_path = _find_map_path()
         game_map = GameMap.from_json(map_path)
@@ -132,7 +132,9 @@ class TestPreReleaseFullJourney:
         input_handler = PygameInputHandler(camera=camera, window_manager=wm)
         ai_service = AIService(event_bus=event_bus)
         interaction_controller = InteractionController(
-            camera=camera, game_map=game_map, event_bus=event_bus,
+            camera=camera,
+            game_map=game_map,
+            event_bus=event_bus,
         )
 
         display_config = DC()
@@ -195,8 +197,10 @@ class TestPreReleaseFullJourney:
         assert len(available) >= 6, f"Need at least 6 units, got {len(available)}"
 
         deployment_ui.handle_click_full(
-            screen_x=50, screen_y=50,
-            map_offset_x=0, map_offset_y=0,
+            screen_x=50,
+            screen_y=50,
+            map_offset_x=0,
+            map_offset_y=0,
             tile_size=16,
         )
 
@@ -290,24 +294,30 @@ class TestPreReleaseFullJourney:
 
         game_loop.complete_deployment()
 
-        game_loop.event_bus.publish_named("UnitAttacked", {
-            "attacker_id": "test",
-            "target_id": "test",
-            "damage": 40,
-            "is_hit": True,
-            "target_faction": "ALLIES",
-        })
+        game_loop.event_bus.publish_named(
+            "UnitAttacked",
+            {
+                "attacker_id": "test",
+                "target_id": "test",
+                "damage": 40,
+                "is_hit": True,
+                "target_faction": "ALLIES",
+            },
+        )
 
         assert game_loop._effect_stack is not None
         assert len(game_loop._effect_stack) >= 1, "Camera effect should fire on attack"
 
-        game_loop.event_bus.publish_named("UnitKilled", {
-            "unit_id": "test",
-            "faction": "AXIS",
-            "attacker_id": "player",
-            "attacker_role": "sniper",
-            "unit_type": "infantry",
-        })
+        game_loop.event_bus.publish_named(
+            "UnitKilled",
+            {
+                "unit_id": "test",
+                "faction": "AXIS",
+                "attacker_id": "player",
+                "attacker_role": "sniper",
+                "unit_type": "infantry",
+            },
+        )
 
         types = {e.effect_type for e in game_loop._effect_stack._effects}
         assert EffectType.SLOW_MOTION in types, "Kill should trigger slow motion"
@@ -324,11 +334,16 @@ class TestPreReleaseFullJourney:
 
         game_loop.complete_deployment()
 
-        game_loop.event_bus.publish_named("ProjectileFired", {
-            "weapon_type": "shell",
-            "start_x": 100, "start_y": 100,
-            "end_x": 300, "end_y": 300,
-        })
+        game_loop.event_bus.publish_named(
+            "ProjectileFired",
+            {
+                "weapon_type": "shell",
+                "start_x": 100,
+                "start_y": 100,
+                "end_x": 300,
+                "end_y": 300,
+            },
+        )
 
         assert game_loop._projectile_trail_sys is not None
         assert game_loop._projectile_trail_sys.count() == 1
@@ -397,11 +412,14 @@ class TestPreReleaseFullJourney:
         bridge = game_loop._achievement_bridge
         assert bridge is not None
 
-        game_loop.event_bus.publish_named("UnitKilled", {
-            "faction": "AXIS",
-            "attacker_role": "sniper",
-            "unit_type": "infantry",
-        })
+        game_loop.event_bus.publish_named(
+            "UnitKilled",
+            {
+                "faction": "AXIS",
+                "attacker_role": "sniper",
+                "unit_type": "infantry",
+            },
+        )
 
         mgr = bridge._manager
         assert mgr.get_progress("first_blood") == 1, "first_blood should trigger"
@@ -417,16 +435,22 @@ class TestPreReleaseFullJourney:
 
         bridge = game_loop._achievement_bridge
 
-        game_loop.event_bus.publish_named("UnitKilled", {
-            "faction": "AXIS",
-            "attacker_role": "rifleman",
-            "unit_type": "infantry",
-        })
+        game_loop.event_bus.publish_named(
+            "UnitKilled",
+            {
+                "faction": "AXIS",
+                "attacker_role": "rifleman",
+                "unit_type": "infantry",
+            },
+        )
 
-        game_loop.event_bus.publish_named("BattleWon", {
-            "result": "ALLIES_VICTORY",
-            "duration_seconds": 60,
-        })
+        game_loop.event_bus.publish_named(
+            "BattleWon",
+            {
+                "result": "ALLIES_VICTORY",
+                "duration_seconds": 60,
+            },
+        )
 
         mgr = bridge._manager
         assert mgr.get_progress("zero_casualties") == 1
@@ -477,7 +501,7 @@ class TestPreReleaseFullJourney:
         game_loop.complete_deployment()
         state = game_loop.state
 
-        for tick in range(700):
+        for _tick in range(700):
             game_loop._update_logic(1.0 / 30.0)
             state.tick += 1
 
@@ -509,10 +533,13 @@ class TestPreReleaseFullJourney:
         original_x = camera.position.x
         original_y = camera.position.y
 
-        game_loop.event_bus.publish_named("UnitAttacked", {
-            "damage": 50,
-            "is_hit": True,
-        })
+        game_loop.event_bus.publish_named(
+            "UnitAttacked",
+            {
+                "damage": 50,
+                "is_hit": True,
+            },
+        )
 
         assert len(game_loop._effect_stack) > 0
 
@@ -582,16 +609,24 @@ class TestPreReleaseFullJourney:
 
         game_loop._dynamic_shadow_sys.set_time_of_day(0.4)
 
-        game_loop.event_bus.publish_named("UnitAttacked", {
-            "damage": 30,
-            "is_hit": True,
-        })
+        game_loop.event_bus.publish_named(
+            "UnitAttacked",
+            {
+                "damage": 30,
+                "is_hit": True,
+            },
+        )
 
-        game_loop.event_bus.publish_named("ProjectileFired", {
-            "weapon_type": "bullet",
-            "start_x": 100, "start_y": 100,
-            "end_x": 300, "end_y": 300,
-        })
+        game_loop.event_bus.publish_named(
+            "ProjectileFired",
+            {
+                "weapon_type": "bullet",
+                "start_x": 100,
+                "start_y": 100,
+                "end_x": 300,
+                "end_y": 300,
+            },
+        )
 
         for _ in range(5):
             game_loop._update_logic(1.0 / 30.0)
@@ -651,7 +686,7 @@ class TestPreReleaseFullJourney:
 
         trail_sys = game_loop._projectile_trail_sys
 
-        for weapon_type, add_fn in [
+        for _weapon_type, add_fn in [
             ("bullet", trail_sys.add_bullet_trail),
             ("shell", trail_sys.add_shell_trail),
             ("rocket", trail_sys.add_rocket_trail),
@@ -689,35 +724,49 @@ class TestPreReleaseFullJourney:
         bridge = game_loop._achievement_bridge
         trail_sys = game_loop._projectile_trail_sys
 
-        bus.publish_named("UnitAttacked", {
-            "damage": 60,
-            "is_hit": True,
-            "target_faction": "ALLIES",
-        })
+        bus.publish_named(
+            "UnitAttacked",
+            {
+                "damage": 60,
+                "is_hit": True,
+                "target_faction": "ALLIES",
+            },
+        )
         assert len(stack) >= 2
         assert bridge._battle_damage_taken == 60
 
-        bus.publish_named("ProjectileFired", {
-            "weapon_type": "shell",
-            "start_x": 0, "start_y": 0,
-            "end_x": 200, "end_y": 200,
-        })
+        bus.publish_named(
+            "ProjectileFired",
+            {
+                "weapon_type": "shell",
+                "start_x": 0,
+                "start_y": 0,
+                "end_x": 200,
+                "end_y": 200,
+            },
+        )
         assert trail_sys.count() == 1
 
-        bus.publish_named("UnitKilled", {
-            "faction": "AXIS",
-            "attacker_role": "sniper",
-            "unit_type": "infantry",
-        })
+        bus.publish_named(
+            "UnitKilled",
+            {
+                "faction": "AXIS",
+                "attacker_role": "sniper",
+                "unit_type": "infantry",
+            },
+        )
         types = {e.effect_type for e in stack._effects}
         assert EffectType.SLOW_MOTION in types
         assert bridge._manager.get_progress("first_blood") == 1
         assert bridge._manager.get_progress("sharpshooter") == 1
 
-        bus.publish_named("BattleWon", {
-            "result": "ALLIES_VICTORY",
-            "duration_seconds": 80,
-        })
+        bus.publish_named(
+            "BattleWon",
+            {
+                "result": "ALLIES_VICTORY",
+                "duration_seconds": 80,
+            },
+        )
         types_after = {e.effect_type for e in stack._effects}
         assert EffectType.SCREEN_FREEZE in types_after
         assert bridge._manager.get_progress("zero_casualties") == 1
@@ -775,16 +824,22 @@ class TestPreReleaseFullJourney:
         bridge = game_loop._achievement_bridge
         mgr = bridge._manager
 
-        game_loop.event_bus.publish_named("UnitKilled", {
-            "faction": "AXIS",
-            "attacker_role": "sniper",
-            "unit_type": "infantry",
-        })
+        game_loop.event_bus.publish_named(
+            "UnitKilled",
+            {
+                "faction": "AXIS",
+                "attacker_role": "sniper",
+                "unit_type": "infantry",
+            },
+        )
 
-        game_loop.event_bus.publish_named("BattleWon", {
-            "result": "ALLIES_VICTORY",
-            "duration_seconds": 90,
-        })
+        game_loop.event_bus.publish_named(
+            "BattleWon",
+            {
+                "result": "ALLIES_VICTORY",
+                "duration_seconds": 90,
+            },
+        )
 
         visible = mgr.get_all_visible()
         assert len(visible) > 0, "Should have visible achievements"
@@ -803,9 +858,13 @@ class TestPreReleaseFullJourney:
 
     def test_phase17_achievement_persistence(self):
         """Achievement progress can be saved and loaded."""
-        from pycc2.domain.systems.achievement_system import AchievementManager, create_default_achievements
-        import tempfile
         import json
+        import tempfile
+
+        from pycc2.domain.systems.achievement_system import (
+            AchievementManager,
+            create_default_achievements,
+        )
 
         mgr = AchievementManager()
         for a in create_default_achievements():
@@ -815,17 +874,21 @@ class TestPreReleaseFullJourney:
         assert mgr.is_unlocked("first_blood")
 
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w") as f:
-            json.dump({
-                aid: {"progress": state.progress, "unlocked_at": state.unlocked_at}
-                for aid, state in mgr._states.items()
-            }, f)
+            json.dump(
+                {
+                    aid: {"progress": state.progress, "unlocked_at": state.unlocked_at}
+                    for aid, state in mgr._states.items()
+                },
+                f,
+            )
             save_path = f.name
 
-        with open(save_path, "r") as f:
+        with open(save_path) as f:
             data = json.load(f)
 
         assert "first_blood" in data
         assert data["first_blood"]["progress"] == 1
 
         import os
+
         os.unlink(save_path)

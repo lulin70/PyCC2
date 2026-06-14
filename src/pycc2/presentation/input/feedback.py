@@ -7,11 +7,12 @@ Shows confirmation messages, warnings, errors, etc.
 
 import time
 from collections.abc import Callable
-from enum import Enum, auto
 from dataclasses import dataclass
+from enum import Enum, auto
 
 import pygame
-from pygame import font as Font, Surface
+from pygame import Surface
+from pygame import font as Font
 
 
 class FeedbackType(Enum):

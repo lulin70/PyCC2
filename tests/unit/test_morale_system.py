@@ -5,27 +5,34 @@ Tests morale state transitions, suppression effects, rally mechanics,
 and panic contagion.
 """
 
-import pytest
 from unittest.mock import Mock
 
-from pycc2.domain.systems.morale_system import (
-    MoraleSystem,
-    MoraleState,
-    MoraleEvent,
-    MoraleCalculator,
-    RoutingTarget,
-)
+import pytest
+
 from pycc2.domain.components.morale_component import MoraleComponent
 from pycc2.domain.entities.unit import Faction, UnitType
-
+from pycc2.domain.systems.morale_system import (
+    MoraleCalculator,
+    MoraleEvent,
+    MoraleState,
+    MoraleSystem,
+    RoutingTarget,
+)
 
 # ===========================================================================
 # Stub helpers
 # ===========================================================================
 
-def _make_unit(unit_id, morale_value=75, faction=Faction.ALLIES,
-               tile_x=5, tile_y=5, unit_type=UnitType.INFANTRY_SQUAD,
-               alive=True):
+
+def _make_unit(
+    unit_id,
+    morale_value=75,
+    faction=Faction.ALLIES,
+    tile_x=5,
+    tile_y=5,
+    unit_type=UnitType.INFANTRY_SQUAD,
+    alive=True,
+):
     """Create a mock unit with a real MoraleComponent."""
     from pycc2.domain.value_objects.tile_coord import TileCoord
 
@@ -53,6 +60,7 @@ def _make_unit(unit_id, morale_value=75, faction=Faction.ALLIES,
 # ===========================================================================
 # Tests — MoraleSystem.get_state
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestGetState:
@@ -86,6 +94,7 @@ class TestGetState:
 # ===========================================================================
 # Tests — MoraleSystem.apply_suppression
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestApplySuppression:
@@ -122,6 +131,7 @@ class TestApplySuppression:
 # Tests — MoraleSystem.update_morale_recovery
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestMoraleRecovery:
     """Test passive morale recovery."""
@@ -135,9 +145,13 @@ class TestMoraleRecovery:
 
     def test_recovery_commander_bonus(self):
         unit = _make_unit("u1", morale_value=50)
-        result_no_cmd = MoraleSystem.update_morale_recovery(unit, 5.0, near_commander=False, in_cover=True)
+        result_no_cmd = MoraleSystem.update_morale_recovery(
+            unit, 5.0, near_commander=False, in_cover=True
+        )
         unit2 = _make_unit("u2", morale_value=50)
-        result_cmd = MoraleSystem.update_morale_recovery(unit2, 5.0, near_commander=True, in_cover=True)
+        result_cmd = MoraleSystem.update_morale_recovery(
+            unit2, 5.0, near_commander=True, in_cover=True
+        )
         # With commander, recovery should be at least as much
         assert result_cmd["recovered"] >= result_no_cmd["recovered"]
 
@@ -156,6 +170,7 @@ class TestMoraleRecovery:
 # ===========================================================================
 # Tests — MoraleSystem.get_accuracy_modifier
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestAccuracyModifier:
@@ -186,6 +201,7 @@ class TestAccuracyModifier:
 # Tests — MoraleSystem.get_movement_modifier
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestMovementModifier:
     """Test movement modifier based on morale state."""
@@ -206,6 +222,7 @@ class TestMovementModifier:
 # ===========================================================================
 # Tests — MoraleSystem.can_move / can_accept_orders
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestCanMoveAndOrders:
@@ -235,6 +252,7 @@ class TestCanMoveAndOrders:
 # ===========================================================================
 # Tests — MoraleCalculator
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestMoraleCalculator:
@@ -266,7 +284,7 @@ class TestMoraleCalculator:
         calc = MoraleCalculator()
         MoraleComponent(value=10)  # BROKEN
         mc2 = MoraleComponent(value=50)  # WAVERING
-        mc3 = MoraleComponent(value=5)   # BROKEN — should be skipped
+        mc3 = MoraleComponent(value=5)  # BROKEN — should be skipped
 
         result = calc.calculate_panic_contagion(
             [("u2", mc2), ("u3", mc3)],
@@ -286,6 +304,7 @@ class TestMoraleCalculator:
 # ===========================================================================
 # Tests — MoraleSystem.apply_panic_contagion
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestPanicContagion:
@@ -332,14 +351,16 @@ class TestPanicContagion:
 # Tests — MoraleSystem.apply_nco_rally
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestNCORally:
     """Test NCO/commander rally bonus."""
 
     def test_commander_rallies_nearby_broken(self):
 
-        commander = _make_unit("cmd", morale_value=80, tile_x=5, tile_y=5,
-                               unit_type=UnitType.COMMANDER)
+        commander = _make_unit(
+            "cmd", morale_value=80, tile_x=5, tile_y=5, unit_type=UnitType.COMMANDER
+        )
         broken = _make_unit("b1", morale_value=15, tile_x=6, tile_y=5)
 
         old_morale = broken.morale.value
@@ -347,8 +368,9 @@ class TestNCORally:
         assert broken.morale.value > old_morale
 
     def test_commander_no_rally_for_distant(self):
-        commander = _make_unit("cmd", morale_value=80, tile_x=5, tile_y=5,
-                               unit_type=UnitType.COMMANDER)
+        commander = _make_unit(
+            "cmd", morale_value=80, tile_x=5, tile_y=5, unit_type=UnitType.COMMANDER
+        )
         distant = _make_unit("d1", morale_value=15, tile_x=20, tile_y=20)
 
         old_morale = distant.morale.value

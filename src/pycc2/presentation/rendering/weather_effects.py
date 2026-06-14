@@ -1,6 +1,7 @@
 """
 Weather effects: EnhancedWeatherSystem with rain, snow, and fog.
 """
+
 from __future__ import annotations
 
 import logging
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class WeatherType(Enum):
     """天气类型"""
+
     CLEAR = "clear"
     RAIN = "rain"
     SNOW = "snow"
@@ -26,6 +28,7 @@ class WeatherType(Enum):
 @dataclass
 class WeatherParticle:
     """天气粒子"""
+
     x: float
     y: float
     vx: float
@@ -65,32 +68,39 @@ class EnhancedWeatherSystem:
         """初始化雨滴"""
         particle_count = int(200 * self.intensity)
         for _ in range(particle_count):
-            self.particles.append(WeatherParticle(
-                x=random.uniform(0, self.screen_width),
-                y=random.uniform(-self.screen_height, 0),
-                vx=random.uniform(-2, -1),
-                vy=random.uniform(15, 25),
-                size=random.randint(1, 2),
-                alpha=random.randint(100, 200)
-            ))
+            self.particles.append(
+                WeatherParticle(
+                    x=random.uniform(0, self.screen_width),
+                    y=random.uniform(-self.screen_height, 0),
+                    vx=random.uniform(-2, -1),
+                    vy=random.uniform(15, 25),
+                    size=random.randint(1, 2),
+                    alpha=random.randint(100, 200),
+                )
+            )
 
     def _init_snow(self):
         """初始化雪花"""
         particle_count = int(150 * self.intensity)
         for _ in range(particle_count):
-            self.particles.append(WeatherParticle(
-                x=random.uniform(0, self.screen_width),
-                y=random.uniform(-self.screen_height, 0),
-                vx=random.uniform(-1, 1),
-                vy=random.uniform(2, 5),
-                size=random.randint(2, 4),
-                alpha=random.randint(150, 255)
-            ))
+            self.particles.append(
+                WeatherParticle(
+                    x=random.uniform(0, self.screen_width),
+                    y=random.uniform(-self.screen_height, 0),
+                    vx=random.uniform(-1, 1),
+                    vy=random.uniform(2, 5),
+                    size=random.randint(2, 4),
+                    alpha=random.randint(150, 255),
+                )
+            )
 
     def _init_fog(self):
         """初始化雾效"""
         self.fog_alpha = int(100 * self.intensity)
-        if self.fog_surface is None or self.fog_surface.get_size() != (self.screen_width, self.screen_height):
+        if self.fog_surface is None or self.fog_surface.get_size() != (
+            self.screen_width,
+            self.screen_height,
+        ):
             self.fog_surface = Surface((self.screen_width, self.screen_height))
             self.fog_surface.fill((200, 200, 210))
 

@@ -6,14 +6,15 @@ P0-1 Fix: 解决pygame.font.SysFont在SDL_VIDEODRIVER=dummy下失败的问题
 """
 
 import logging
-from typing import Optional
+
 import pygame
 
 logger = logging.getLogger(__name__)
 
 
-def safe_init_font(size: int = 20, bold: bool = False,
-                   font_name: str = "arial") -> Optional[pygame.font.Font]:
+def safe_init_font(
+    size: int = 20, bold: bool = False, font_name: str = "arial"
+) -> pygame.font.Font | None:
     """安全初始化字体，自动处理dummy driver等异常情况。
 
     Args:
@@ -50,10 +51,12 @@ def safe_init_font(size: int = 20, bold: bool = False,
     return None
 
 
-def safe_render_text(font: Optional[pygame.font.Font],
-                     text: str,
-                     color: tuple[int, int, int] = (255, 255, 255),
-                     antialias: bool = True) -> Optional[pygame.Surface]:
+def safe_render_text(
+    font: pygame.font.Font | None,
+    text: str,
+    color: tuple[int, int, int] = (255, 255, 255),
+    antialias: bool = True,
+) -> pygame.Surface | None:
     """安全渲染文本到Surface。
 
     Args:

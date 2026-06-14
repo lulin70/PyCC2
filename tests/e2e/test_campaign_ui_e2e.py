@@ -28,9 +28,10 @@ pygame.init()
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_operations():
     """Create test campaign operations."""
-    from pycc2.presentation.ui.campaign_ui import CampaignOperation, CampaignBattle
+    from pycc2.presentation.ui.campaign_ui import CampaignBattle, CampaignOperation
 
     return [
         CampaignOperation(
@@ -39,9 +40,9 @@ def _make_operations():
             day=1,
             description="Allied airborne assault on the Netherlands",
             historical_briefing="On September 17, 1944, the Allies launched Operation Market Garden, "
-                               "an ambitious plan to secure a series of bridges across the Netherlands. "
-                               "Three airborne divisions were dropped to capture key bridges while "
-                               "ground forces advanced north.",
+            "an ambitious plan to secure a series of bridges across the Netherlands. "
+            "Three airborne divisions were dropped to capture key bridges while "
+            "ground forces advanced north.",
             battles=[
                 CampaignBattle(
                     battle_id="battle_arnhem",
@@ -69,7 +70,7 @@ def _make_operations():
             day=3,
             description="Defend the corridor against German counterattacks",
             historical_briefing="After the initial landings, German forces launched fierce "
-                               "counterattacks along the corridor to cut off the advancing Allies.",
+            "counterattacks along the corridor to cut off the advancing Allies.",
             battles=[
                 CampaignBattle(
                     battle_id="battle_veghel",
@@ -85,7 +86,7 @@ def _make_operations():
     ]
 
 
-def _make_campaign_ui() -> "CampaignUI":
+def _make_campaign_ui() -> CampaignUI:
     """Create and initialize a CampaignUI instance."""
     from pycc2.presentation.ui.campaign_ui import CampaignUI
 
@@ -104,6 +105,7 @@ def _make_surface(width: int = 800, height: int = 600) -> pygame.Surface:
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestCampaignUIE2E:
     """Full E2E test for the Campaign UI flow."""
@@ -154,7 +156,9 @@ class TestCampaignUIE2E:
 
         # Click Proceed button
         if ui._proceed_button_rect:
-            result = ui.handle_click((ui._proceed_button_rect.centerx, ui._proceed_button_rect.centery))
+            result = ui.handle_click(
+                (ui._proceed_button_rect.centerx, ui._proceed_button_rect.centery)
+            )
             assert result is not None
             assert "briefing" in result
 
@@ -217,7 +221,9 @@ class TestCampaignUIE2E:
                 deployed = True
 
             ui.set_callbacks(on_start_battle=on_start)
-            result = ui.handle_click((ui._deploy_button_rect.centerx, ui._deploy_button_rect.centery))
+            result = ui.handle_click(
+                (ui._deploy_button_rect.centerx, ui._deploy_button_rect.centery)
+            )
             assert result is not None
             assert "start_battle" in result
             assert deployed
@@ -256,7 +262,9 @@ class TestCampaignUIE2E:
 
         # Click Continue
         if ui._continue_button_rect:
-            result = ui.handle_click((ui._continue_button_rect.centerx, ui._continue_button_rect.centery))
+            result = ui.handle_click(
+                (ui._continue_button_rect.centerx, ui._continue_button_rect.centery)
+            )
             assert result is not None
             assert "continue_campaign" in result
             assert ui.state == "battle_select"

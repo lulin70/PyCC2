@@ -17,7 +17,9 @@ if TYPE_CHECKING:
     from pycc2.domain.value_objects.vec2 import Vec2
 
 
-from pycc2.domain.value_objects.audio_enums import SoundType  # noqa: F401 — re-exported for backward compat
+from pycc2.domain.value_objects.audio_enums import (
+    SoundType,  # noqa: F401 — re-exported for backward compat
+)
 
 
 @dataclass(slots=True)
@@ -141,7 +143,7 @@ class ProceduralSoundGenerator:
         # Reverb tail (delayed echo)
         echo_start = int(0.15 * n_samples)
         echo = np.zeros(n_samples, dtype=np.float32)
-        echo_t = t[:n_samples - echo_start]
+        echo_t = t[: n_samples - echo_start]
         echo[echo_start:] = np.sin(2 * np.pi * 50 * echo_t) * np.exp(-echo_t * 3) * 0.25
         wave = fundamental + harmonic + noise + echo
         return (wave * 26000).astype(np.int16)
@@ -172,10 +174,12 @@ class ProceduralSoundGenerator:
         # Delayed echo (incoming shell impact)
         echo_start = int(0.6 * n_samples)
         echo = np.zeros(n_samples, dtype=np.float32)
-        echo_t = t[:n_samples - echo_start]
+        echo_t = t[: n_samples - echo_start]
         echo[echo_start:] = (
             np.sin(2 * np.pi * 60 * echo_t) * np.exp(-echo_t * 5) * 0.4
-            + np.random.uniform(-0.3, 0.3, len(echo_t)).astype(np.float32) * np.exp(-echo_t * 6) * 0.3
+            + np.random.uniform(-0.3, 0.3, len(echo_t)).astype(np.float32)
+            * np.exp(-echo_t * 6)
+            * 0.3
         )
         wave = thump + noise + echo
         return (wave * 26000).astype(np.int16)
@@ -194,7 +198,9 @@ class ProceduralSoundGenerator:
             end = min(start + burst_len, n_samples)
             seg_t = np.linspace(0, (end - start) / cls.SAMPLE_RATE, end - start, dtype=np.float32)
             decay = 1.0 - (i / burst_count) * 0.3
-            noise = np.random.uniform(-1, 1, end - start).astype(np.float32) * np.exp(-seg_t * 50) * 0.6
+            noise = (
+                np.random.uniform(-1, 1, end - start).astype(np.float32) * np.exp(-seg_t * 50) * 0.6
+            )
             pop = np.sin(2 * np.pi * 300 * seg_t) * np.exp(-seg_t * 40) * 0.3
             wave[start:end] = (noise + pop) * decay
         return (wave * 22000).astype(np.int16)
@@ -237,7 +243,9 @@ class ProceduralSoundGenerator:
 
 
 class SoundSystem(SoundEffectsMixin):
-    def __init__(self, config: SoundConfig | None = None, mixer_config: AudioMixerConfig | None = None):
+    def __init__(
+        self, config: SoundConfig | None = None, mixer_config: AudioMixerConfig | None = None
+    ):
         self._config = config or SoundConfig()
         self._mixer_config = mixer_config or AudioMixerConfig()
         self._cache: dict[str, mixer.Sound] = {}
@@ -528,9 +536,7 @@ class SoundSystem(SoundEffectsMixin):
         if attenuated_volume <= 0.0:
             return False
 
-        left_pan, right_pan = self.calculate_stereo_pan(
-            source_pos, listener_pos, listener_facing
-        )
+        left_pan, right_pan = self.calculate_stereo_pan(source_pos, listener_pos, listener_facing)
         avg_pan = (left_pan + right_pan) / 2.0
         final_volume = attenuated_volume * avg_pan
 
@@ -647,7 +653,7 @@ class SoundSystem(SoundEffectsMixin):
         target_volume = duck_volume * self._category_volumes["music"]
         steps = max(1, duration_ms // 50)
         step_size = (self._config.music_volume - target_volume) / steps
-        for i in range(steps):
+        for _i in range(steps):
             self._config.music_volume -= step_size
         self._config.music_volume = target_volume
         self._music_ducked = True
@@ -658,7 +664,7 @@ class SoundSystem(SoundEffectsMixin):
         target_volume = self._original_music_volume
         steps = max(1, fade_ms // 50)
         step_size = (target_volume - self._config.music_volume) / steps
-        for i in range(steps):
+        for _i in range(steps):
             self._config.music_volume += step_size
         self._config.music_volume = target_volume
         self._music_ducked = False

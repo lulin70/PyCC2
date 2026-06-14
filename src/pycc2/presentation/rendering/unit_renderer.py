@@ -42,8 +42,13 @@ class UnitRenderer:
         self._glow_surf_cache: pygame.Surface | None = None
         self._glow_surf_cache_size: tuple[int, int] | None = None
 
-    def draw_units(self, units: list[Unit], camera: Camera, selected_unit_ids: set[str] | None = None,
-                   position_overrides: dict[str, tuple[float, float]] | None = None) -> None:
+    def draw_units(
+        self,
+        units: list[Unit],
+        camera: Camera,
+        selected_unit_ids: set[str] | None = None,
+        position_overrides: dict[str, tuple[float, float]] | None = None,
+    ) -> None:
         if self._ctx.screen is None or self._ctx.offscreen is None:
             return
 
@@ -52,12 +57,15 @@ class UnitRenderer:
 
         if self._ctx.sprite_renderer is not None:
             self._ctx.sprite_renderer._target_surface = self._ctx.offscreen
-            self._ctx.sprite_renderer._draw_units(units, camera, selected_unit_ids,
-                                                   position_overrides=position_overrides)
+            self._ctx.sprite_renderer._draw_units(
+                units, camera, selected_unit_ids, position_overrides=position_overrides
+            )
             self._ctx.sprite_renderer._target_surface = None
             return
         else:
-            logger.warning("[EnhancedRenderer] SpriteRenderer is None! Using fallback shapes (no PNG sprites)")
+            logger.warning(
+                "[EnhancedRenderer] SpriteRenderer is None! Using fallback shapes (no PNG sprites)"
+            )
 
         screen_w, screen_h = self._ctx.screen.get_size()
 
@@ -65,26 +73,31 @@ class UnitRenderer:
             try:
                 cx, cy = None, None
 
-                if hasattr(unit, 'position') and unit.position is not None:
+                if hasattr(unit, "position") and unit.position is not None:
                     # P2-04: Use smoothed (lerped) position if available
                     use_pos = unit.position.pixel_position
-                    if position_overrides and hasattr(unit, 'id') and unit.id in position_overrides:
+                    if position_overrides and hasattr(unit, "id") and unit.id in position_overrides:
                         ox, oy = position_overrides[unit.id]
                         from pycc2.domain.value_objects.vec2 import Vec2
+
                         use_pos = Vec2(ox, oy)
 
-                    if hasattr(unit.position, 'pixel_position'):
+                    if hasattr(unit.position, "pixel_position"):
                         try:
                             pos = camera.world_to_screen(use_pos)
                             cx, cy = int(pos[0]), int(pos[1])
                         except (ValueError, TypeError) as e:
                             logging.debug(f"Unit pixel_position conversion failed: {e}")
 
-                if (cx is None or cy is None) and hasattr(unit, 'position') and unit.position is not None:
-                    if hasattr(unit.position, 'tile_position') or hasattr(unit.position, 'tile_x'):
+                if (
+                    (cx is None or cy is None)
+                    and hasattr(unit, "position")
+                    and unit.position is not None
+                ):
+                    if hasattr(unit.position, "tile_position") or hasattr(unit.position, "tile_x"):
                         try:
-                            tile_x = getattr(unit.position, 'tile_x', None)
-                            tile_y = getattr(unit.position, 'tile_y', None)
+                            tile_x = getattr(unit.position, "tile_x", None)
+                            tile_y = getattr(unit.position, "tile_y", None)
                             if tile_x is not None and tile_y is not None:
                                 world_pos = Vec2(tile_x * 16, tile_y * 16)
                                 pos = camera.world_to_screen(world_pos)
@@ -103,16 +116,16 @@ class UnitRenderer:
                 unit_name = ""
                 unit_type_str = "infantry"
 
-                if hasattr(unit, 'display_name'):
+                if hasattr(unit, "display_name"):
                     unit_name = str(unit.display_name)[:4]
-                elif hasattr(unit, 'name'):
+                elif hasattr(unit, "name"):
                     unit_name = str(unit.name)[:4]
                 else:
                     unit_name = f"U{idx}"
 
-                if hasattr(unit, 'unit_type'):
+                if hasattr(unit, "unit_type"):
                     unit_type_str = str(unit.unit_type).lower()
-                elif hasattr(unit, 'category'):
+                elif hasattr(unit, "category"):
                     unit_type_str = str(unit.category).lower()
 
                 base_radius = max(12, int(15 * camera.zoom))
@@ -120,7 +133,12 @@ class UnitRenderer:
                 get_health_tinted = self._ctx.get_health_tinted_color
                 offscreen = self._ctx.offscreen
 
-                if "tank" in unit_type_str or "armor" in unit_type_str or "sherman" in unit_type_str or "vehicle" in unit_type_str:
+                if (
+                    "tank" in unit_type_str
+                    or "armor" in unit_type_str
+                    or "sherman" in unit_type_str
+                    or "vehicle" in unit_type_str
+                ):
                     color = (255, 200, 0)
                     radius = base_radius + 6
                     points = []
@@ -134,7 +152,12 @@ class UnitRenderer:
                     pygame.draw.polygon(offscreen, color, points)
                     pygame.draw.polygon(offscreen, (255, 255, 255), points, 3)
 
-                elif "mg" in unit_type_str or "machine" in unit_type_str or "at" in unit_type_str or "support" in unit_type_str:
+                elif (
+                    "mg" in unit_type_str
+                    or "machine" in unit_type_str
+                    or "at" in unit_type_str
+                    or "support" in unit_type_str
+                ):
                     color = (0, 220, 255)
                     radius = base_radius + 3
                     points = []
@@ -148,7 +171,11 @@ class UnitRenderer:
                     pygame.draw.polygon(offscreen, color, points)
                     pygame.draw.polygon(offscreen, (255, 255, 255), points, 2)
 
-                elif "sniper" in unit_type_str or "recon" in unit_type_str or "scout" in unit_type_str:
+                elif (
+                    "sniper" in unit_type_str
+                    or "recon" in unit_type_str
+                    or "scout" in unit_type_str
+                ):
                     color = (255, 0, 255)
                     radius = base_radius - 2
                     half = radius // 2
@@ -182,7 +209,7 @@ class UnitRenderer:
                         label_x - bg_padding,
                         label_y - bg_padding,
                         label_surf.get_width() + 2 * bg_padding,
-                        label_surf.get_height() + 2 * bg_padding
+                        label_surf.get_height() + 2 * bg_padding,
                     )
                     pygame.draw.rect(offscreen, (0, 0, 0), bg_rect, border_radius=3)
                     pygame.draw.rect(offscreen, (100, 100, 100), bg_rect, width=1, border_radius=3)
@@ -262,7 +289,7 @@ class UnitRenderer:
                 if self._ctx.draw_movement_mode_overlay:
                     self.draw_movement_mode_overlay(unit, cx, cy, radius, color)
 
-                if hasattr(unit, 'is_damaged') and unit.is_damaged:
+                if hasattr(unit, "is_damaged") and unit.is_damaged:
                     self.draw_damage_vfx(unit, cx, cy)
 
             except (AttributeError, ValueError) as e:
@@ -270,26 +297,26 @@ class UnitRenderer:
                 continue
 
     def draw_damage_vfx(self, unit: Unit, cx: int, cy: int) -> None:
-        if not hasattr(unit, 'damage_state'):
+        if not hasattr(unit, "damage_state"):
             return
 
         state = unit.damage_state
         if state == "undamaged":
             return
 
-        if hasattr(unit, 'update_damage_vfx'):
-            if not getattr(unit, '_smoke_particles', None):
+        if hasattr(unit, "update_damage_vfx"):
+            if not getattr(unit, "_smoke_particles", None):
                 unit.update_damage_vfx()
 
         get_pooled = self._ctx.get_pooled_surface
         offscreen = self._ctx.offscreen
 
-        smoke_particles = getattr(unit, '_smoke_particles', [])
+        smoke_particles = getattr(unit, "_smoke_particles", [])
         for particle in smoke_particles[:8]:
-            px = cx + particle.get('x', 0)
-            py = cy + particle.get('y', 0)
-            alpha = particle.get('alpha', 100)
-            size = particle.get('size', 3)
+            px = cx + particle.get("x", 0)
+            py = cy + particle.get("y", 0)
+            alpha = particle.get("alpha", 100)
+            size = particle.get("size", 3)
 
             smoke_color = (120, 120, 120)
 
@@ -297,12 +324,12 @@ class UnitRenderer:
             pygame.draw.circle(smoke_surf, (*smoke_color, alpha), (size, size), size)
             offscreen.blit(smoke_surf, (px - size, py - size))
 
-        fire_particles = getattr(unit, '_fire_particles', [])
+        fire_particles = getattr(unit, "_fire_particles", [])
         for particle in fire_particles[:6]:
-            px = cx + particle.get('x', 0)
-            py = cy + particle.get('y', 0)
-            color = particle.get('color', (220, 120, 20))
-            size = particle.get('size', 3)
+            px = cx + particle.get("x", 0)
+            py = cy + particle.get("y", 0)
+            color = particle.get("color", (220, 120, 20))
+            size = particle.get("size", 3)
 
             glow_size = size + 2
             glow_surf = get_pooled((glow_size * 2, glow_size * 2))
@@ -319,8 +346,7 @@ class UnitRenderer:
     # ------------------------------------------------------------------ #
 
     def draw_hexagon(
-        self, cx: int, cy: int, radius: int, color: tuple[int, int, int],
-        selected: bool = False
+        self, cx: int, cy: int, radius: int, color: tuple[int, int, int], selected: bool = False
     ) -> None:
         """Draw a hexagon-shaped unit (mimics CC2 style)."""
         offscreen = self._ctx.offscreen
@@ -336,11 +362,7 @@ class UnitRenderer:
 
         pygame.draw.polygon(offscreen, color, points)
 
-        outline_color = (
-            max(0, color[0] - 50),
-            max(0, color[1] - 50),
-            max(0, color[2] - 50)
-        )
+        outline_color = (max(0, color[0] - 50), max(0, color[1] - 50), max(0, color[2] - 50))
         pygame.draw.polygon(offscreen, outline_color, points, 2)
 
         if selected:
@@ -360,9 +382,9 @@ class UnitRenderer:
             return
 
         facing = -math.pi / 2
-        if hasattr(unit, 'facing_direction'):
+        if hasattr(unit, "facing_direction"):
             facing = unit.facing_direction
-        elif hasattr(unit, 'direction'):
+        elif hasattr(unit, "direction"):
             facing = unit.direction
 
         arrow_length = max(4, int(radius * 0.6))

@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING
 import pygame
 
 if TYPE_CHECKING:
+    from pycc2.domain.interfaces.game_state_view import GameStateView
     from pycc2.presentation.input.handler import PygameInputHandler
     from pycc2.presentation.input.interaction_controller import InteractionController
     from pycc2.presentation.rendering.camera import Camera
-    from pycc2.domain.interfaces.game_state_view import GameStateView
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ class InputRouter:
             if input_event.event_type == "mouse_click_left":
                 # CRITICAL FIX: Pass actual unit list (not empty list!)
                 # Get units from game_state for hit testing
-                units = getattr(self.game_state, 'units', [])
+                units = getattr(self.game_state, "units", [])
 
                 logger.debug("Left click at %s, units count: %d", input_event.position, len(units))
 
@@ -90,8 +90,10 @@ class InputRouter:
 
             elif input_event.event_type == "mouse_click_right":
                 # CRITICAL FIX: Pass actual unit list for right-click commands
-                units = getattr(self.game_state, 'units', [])
-                logger.debug(f"[BATTLE RIGHT-CLICK] Right click at {input_event.position}, units count: {len(units)}")
+                units = getattr(self.game_state, "units", [])
+                logger.debug(
+                    f"[BATTLE RIGHT-CLICK] Right click at {input_event.position}, units count: {len(units)}"
+                )
 
                 if units:
                     # CC2-style: Right-click DOWN on selected unit shows radial menu
@@ -99,8 +101,10 @@ class InputRouter:
 
             elif input_event.event_type == "mouse_up_right":
                 # CC2-style: Right-click UP → execute command from radial menu
-                units = getattr(self.game_state, 'units', [])
-                shift_held = input_event.modifiers[1] if hasattr(input_event, 'modifiers') else False
+                units = getattr(self.game_state, "units", [])
+                shift_held = (
+                    input_event.modifiers[1] if hasattr(input_event, "modifiers") else False
+                )
                 if units:
                     self.interaction_controller.handle_right_mouse_up(input_event.position, units)
                     # If not dragging (simple right-click), also handle as right-click command
@@ -112,8 +116,8 @@ class InputRouter:
             elif input_event.event_type == "mouse_move":
                 # Handle attack line preview (CC2-style)
                 if self.interaction_controller:
-                    units = getattr(self.game_state, 'units', [])
-                    if units and hasattr(self.interaction_controller, 'attack_line'):
+                    units = getattr(self.game_state, "units", [])
+                    if units and hasattr(self.interaction_controller, "attack_line"):
                         self.interaction_controller.handle_mouse_move(
                             input_event.position,
                             units,

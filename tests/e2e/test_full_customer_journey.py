@@ -14,10 +14,9 @@ import os
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
-import pytest
 import numpy as np
-
 import pygame
+import pytest
 
 pygame.init()
 pygame.font.init()  # Ensure font module is initialized for UI tests
@@ -31,11 +30,10 @@ from pycc2.domain.components.position_component import PositionComponent
 from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.game_map import GameMap
-from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.entities.squad import Squad, SquadType
+from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.value_objects.terrain_type import CoverType, TerrainType
 from pycc2.domain.value_objects.tile_coord import TileCoord
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -107,8 +105,8 @@ class TestFullCustomerJourney:
     def test_01_game_launches_without_crash(self):
         """User can launch the game without any crash."""
         from pycc2.domain.entities.game_map import GameMap
-        from pycc2.services.game_loop import GameLoop
         from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
+        from pycc2.services.game_loop import GameLoop
 
         # Imports succeed => game can launch
         assert GameMap is not None
@@ -126,15 +124,21 @@ class TestFullCustomerJourney:
         """User can create units for both sides."""
         # Allied infantry
         allied = _make_unit(
-            unit_id="a1", name="Alpha Squad", faction=Faction.ALLIES,
+            unit_id="a1",
+            name="Alpha Squad",
+            faction=Faction.ALLIES,
             weapon_id="rifle",
         )
         assert allied.is_alive
 
         # Axis infantry
         axis = _make_unit(
-            unit_id="x1", name="Feldwebel Squad", faction=Faction.AXIS,
-            weapon_id="kar98k", tile_x=15, tile_y=15,
+            unit_id="x1",
+            name="Feldwebel Squad",
+            faction=Faction.AXIS,
+            weapon_id="kar98k",
+            tile_x=15,
+            tile_y=15,
         )
         assert axis.is_alive
 
@@ -158,12 +162,12 @@ class TestFullCustomerJourney:
 
     def test_05_commands_can_be_issued(self):
         """User can issue all 7 commands to units."""
+        from pycc2.domain.value_objects.vec2 import Vec2
         from pycc2.presentation.input.interaction_controller import (
             InteractionController,
             InteractionMode,
         )
         from pycc2.presentation.rendering.camera import Camera
-        from pycc2.domain.value_objects.vec2 import Vec2
         from pycc2.services.event_bus import EventBus
 
         camera = Camera(position=Vec2(320, 320), viewport_width=1024, viewport_height=768)
@@ -176,7 +180,7 @@ class TestFullCustomerJourney:
             "move": InteractionMode.MOVE,
             "attack": InteractionMode.ATTACK,
         }
-        for label, mode in mode_map.items():
+        for _label, mode in mode_map.items():
             ic.set_mode(mode)
             assert ic.mode == mode
 
@@ -206,15 +210,17 @@ class TestFullCustomerJourney:
 
     def test_07_combat_resolves(self):
         """User can see combat resolve between units."""
-        from pycc2.domain.systems.combat_resolver import CombatResolver
         from pycc2.domain.systems.ballistic import BallisticEngine
+        from pycc2.domain.systems.combat_resolver import CombatResolver
         from pycc2.domain.systems.morale_system import MoraleCalculator
-        from pycc2.services.random_context import RandomContext
         from pycc2.services.event_bus import EventBus
+        from pycc2.services.random_context import RandomContext
 
         game_map = _make_map()
 
-        attacker = _make_unit(unit_id="a1", name="Alpha", faction=Faction.ALLIES, tile_x=5, tile_y=5)
+        attacker = _make_unit(
+            unit_id="a1", name="Alpha", faction=Faction.ALLIES, tile_x=5, tile_y=5
+        )
         target = _make_unit(unit_id="x1", name="Enemy", faction=Faction.AXIS, tile_x=7, tile_y=7)
 
         rng = RandomContext.from_seed(42)
@@ -259,9 +265,9 @@ class TestFullCustomerJourney:
 
     def test_10_settings_menu_works(self):
         """User can access settings."""
-        from pycc2.presentation.ui.settings_menu import SettingsMenu
         from pycc2.domain.interfaces.display_config import DisplayConfig
         from pycc2.presentation.ui.keybind_manager import KeybindManager
+        from pycc2.presentation.ui.settings_menu import SettingsMenu
 
         dc = DisplayConfig()
         km = KeybindManager()
@@ -320,7 +326,7 @@ class TestFullCustomerJourney:
 
     def test_16_campaign_ui_works(self):
         """User can navigate the campaign UI."""
-        from pycc2.presentation.ui.campaign_ui import CampaignUI, CampaignOperation, CampaignBattle
+        from pycc2.presentation.ui.campaign_ui import CampaignBattle, CampaignOperation, CampaignUI
 
         ui = CampaignUI()
         # Should not crash
@@ -375,21 +381,25 @@ class TestFullCustomerJourney:
         units = []
         for i in range(4):
             u = _make_unit(
-                unit_id=f"a{i}", name=f"Allied {i}",
-                tile_x=5 + i, tile_y=5,
+                unit_id=f"a{i}",
+                name=f"Allied {i}",
+                tile_x=5 + i,
+                tile_y=5,
             )
             units.append(u)
         for i in range(3):
             u = _make_unit(
-                unit_id=f"x{i}", name=f"Axis {i}",
+                unit_id=f"x{i}",
+                name=f"Axis {i}",
                 faction=Faction.AXIS,
                 weapon_id="kar98k",
-                tile_x=15, tile_y=15 + i,
+                tile_x=15,
+                tile_y=15 + i,
             )
             units.append(u)
 
         # Simulate 1800 ticks (60 seconds at 30 UPS)
-        for tick in range(1800):
+        for _tick in range(1800):
             for u in units:
                 if u.is_alive:
                     u.fatigue.accumulate("resting")

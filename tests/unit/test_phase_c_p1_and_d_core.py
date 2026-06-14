@@ -1,31 +1,33 @@
 """Tests for Phase C P1+Phase D Core: SquadGroups, CombatLog, StrategicMap, Airdrop."""
 
-import pytest
-from unittest.mock import MagicMock, patch
 import time
+from unittest.mock import MagicMock, patch
 
-from pycc2.presentation.ui.squad_group_manager import (
-    SquadGroupManager,
-)
-from pycc2.presentation.ui.combat_log import (
-    CombatLog,
-    CombatEvent,
-    CombatEventType,
-)
-from pycc2.presentation.ui.strategic_map_view import (
-    StrategicMapView,
-    Sector,
-    SectorStatus,
-)
+import pytest
+
 from pycc2.domain.systems.airdrop_supply import (
     AirdropSupplySystem,
     SupplyType,
+)
+from pycc2.presentation.ui.combat_log import (
+    CombatEvent,
+    CombatEventType,
+    CombatLog,
+)
+from pycc2.presentation.ui.squad_group_manager import (
+    SquadGroupManager,
+)
+from pycc2.presentation.ui.strategic_map_view import (
+    Sector,
+    SectorStatus,
+    StrategicMapView,
 )
 
 
 @pytest.fixture
 def make_unit():
     """Factory to create mock units."""
+
     def _make_unit(name: str, x: float = 0.0, y: float = 0.0):
         unit = MagicMock()
         unit.name = name
@@ -33,6 +35,7 @@ def make_unit():
         unit.position_component.x = x
         unit.position_component.y = y
         return unit
+
     return _make_unit
 
 
@@ -179,7 +182,7 @@ class TestCombatLog:
         log = CombatLog()
         log.MAX_EVENTS = 5
 
-        for i in range(10):
+        for _i in range(10):
             log.create_event(event_type=CombatEventType.ATTACK)
 
         assert log.event_count == 5
@@ -220,7 +223,7 @@ class TestCombatLog:
         """Test getting recent events."""
         log = CombatLog()
 
-        for i in range(10):
+        for _i in range(10):
             log.create_event(event_type=CombatEventType.MOVEMENT)
 
         recent = log.get_recent_events(3)
@@ -231,7 +234,7 @@ class TestCombatLog:
         """Test scroll up/down."""
         log = CombatLog()
 
-        for i in range(20):
+        for _i in range(20):
             log.create_event(event_type=CombatEventType.ATTACK)
 
         initial_offset = log.scroll_offset
@@ -261,7 +264,7 @@ class TestCombatLog:
 
         assert log.event_count == 0
 
-    @patch('pygame.font')
+    @patch("pygame.font")
     def test_render_minimal(self, mock_font):
         """Test minimal rendering doesn't crash."""
         log = CombatLog()
@@ -349,7 +352,7 @@ class TestStrategicMapView:
 
         assert "eindhoven" in allied
 
-    @patch('pygame.font')
+    @patch("pygame.font")
     def test_render_doesnt_crash(self, mock_font):
         """Test rendering doesn't raise exceptions."""
         view = StrategicMapView()
@@ -498,5 +501,5 @@ class TestAirdropSupplySystem:
         assert system.active_supply_count == 9
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

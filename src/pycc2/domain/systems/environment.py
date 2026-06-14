@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
@@ -52,9 +53,8 @@ class EnvironmentState:
         bonus = 0.0
         if self.is_night():
             bonus += self.night_stealth_bonus
-        if terrain_id is not None:
-            if terrain_id in (3, 7, 9):
-                bonus += self.forest_stealth_bonus
+        if terrain_id is not None and terrain_id in (3, 7, 9):
+            bonus += self.forest_stealth_bonus
         return min(bonus, 0.60)
 
     def get_accuracy_modifier(self) -> float:
@@ -64,17 +64,16 @@ class EnvironmentState:
         return mod
 
     def add_flare(self, x: int, y: int) -> None:
-        self.active_flares.append({
-            "position": (x, y),
-            "radius": self.FLARE_VISION_RADIUS,
-            "remaining_ticks": self.FLARE_DURATION_TICKS,
-        })
+        self.active_flares.append(
+            {
+                "position": (x, y),
+                "radius": self.FLARE_VISION_RADIUS,
+                "remaining_ticks": self.FLARE_DURATION_TICKS,
+            }
+        )
 
     def update_flares(self) -> None:
-        self.active_flares = [
-            f for f in self.active_flares
-            if f["remaining_ticks"] > 0
-        ]
+        self.active_flares = [f for f in self.active_flares if f["remaining_ticks"] > 0]
         for f in self.active_flares:
             f["remaining_ticks"] -= 1
 

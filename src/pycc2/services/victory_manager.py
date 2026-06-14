@@ -57,39 +57,43 @@ class VictoryManager:
     def _build_objectives_from_map(self) -> list:
         """Build objective list from the game map's victory locations."""
         from pycc2.domain.systems.victory_conditions import Objective
+
         objectives = []
         # Try to get objectives from the combat_director's game_map
         if self._combat_director is not None:
-            game_map = getattr(self._combat_director, '_game_map', None)
+            game_map = getattr(self._combat_director, "_game_map", None)
             if game_map is None:
-                game_map = getattr(self._combat_director, 'game_map', None)
-            if game_map is not None and hasattr(game_map, 'objectives'):
+                game_map = getattr(self._combat_director, "game_map", None)
+            if game_map is not None and hasattr(game_map, "objectives"):
                 for obj in game_map.objectives:
-                    pos = getattr(obj, 'position', None) or getattr(obj, 'tile_coord', None)
+                    pos = getattr(obj, "position", None) or getattr(obj, "tile_coord", None)
                     if pos is not None:
-                        x = getattr(pos, 'x', pos[0]) if not isinstance(pos, (int, float)) else pos
-                        y = getattr(pos, 'y', pos[1]) if not isinstance(pos, (int, float)) else 0
-                        objectives.append(Objective(
-                            id=getattr(obj, 'id', f'vl_{x}_{y}'),
-                            name=getattr(obj, 'name', f'Victory Location'),
-                            position=(x, y),
-                            radius=getattr(obj, 'radius', 3),
-                            points=getattr(obj, 'points', 100),
-                        ))
+                        x = getattr(pos, "x", pos[0]) if not isinstance(pos, (int, float)) else pos
+                        y = getattr(pos, "y", pos[1]) if not isinstance(pos, (int, float)) else 0
+                        objectives.append(
+                            Objective(
+                                id=getattr(obj, "id", f"vl_{x}_{y}"),
+                                name=getattr(obj, "name", "Victory Location"),
+                                position=(x, y),
+                                radius=getattr(obj, "radius", 3),
+                                points=getattr(obj, "points", 100),
+                            )
+                        )
         # Fallback: if no map objectives, create a center objective
         if not objectives:
-            objectives.append(Objective(
-                id="vl_center",
-                name="Center Victory Location",
-                position=(15, 15),
-                radius=3,
-                points=100,
-            ))
+            objectives.append(
+                Objective(
+                    id="vl_center",
+                    name="Center Victory Location",
+                    position=(15, 15),
+                    radius=3,
+                    points=100,
+                )
+            )
         return objectives
 
     def _on_unit_attacked_for_stats(self, data: dict) -> None:
         if self._combat_director is not None:
-
             units: list[Unit] = getattr(self._combat_director, "_units", [])
             self._combat_director.record_stats(data, units, self._battle_stats)
 
@@ -101,9 +105,7 @@ class VictoryManager:
         self._battle_stats.ticks_elapsed = tick
         # Prevent early defeat - wait at least 20 seconds (600 ticks) for battle to develop
         if tick % 30 == 0 and tick >= 600:
-            result, reason = self._victory_evaluator.evaluate(
-                units, tick, self._battle_stats
-            )
+            result, reason = self._victory_evaluator.evaluate(units, tick, self._battle_stats)
             if result.name != "ONGOING":
                 self._game_result = result
                 self._game_over_tick = tick

@@ -66,12 +66,16 @@ class BuildingRenderer:
                 if terrain_val != 4:
                     continue
 
-                enhanced = game_map.get_enhanced_tile(tx, ty) if hasattr(game_map, 'get_enhanced_tile') else None
+                enhanced = (
+                    game_map.get_enhanced_tile(tx, ty)
+                    if hasattr(game_map, "get_enhanced_tile")
+                    else None
+                )
                 floors = 1
                 if enhanced and isinstance(enhanced, dict):
                     floors = int(enhanced.get("building_floors", 1))
-                elif enhanced and hasattr(enhanced, 'building_floors'):
-                    floors = int(getattr(enhanced, 'building_floors', 1))
+                elif enhanced and hasattr(enhanced, "building_floors"):
+                    floors = int(getattr(enhanced, "building_floors", 1))
 
                 building_type = floors_to_building_type(floors)
 
@@ -89,7 +93,8 @@ class BuildingRenderer:
                     target_h = int(th * camera.zoom)
                     if target_w > 0 and target_h > 0:
                         roof_surface = pygame.transform.scale(
-                            roof_surface, (target_w, target_h),
+                            roof_surface,
+                            (target_w, target_h),
                         )
 
                 world_x = tx * tile_size
@@ -99,7 +104,10 @@ class BuildingRenderer:
                 self._ctx.offscreen.blit(roof_surface, (int(screen_pos[0]), int(screen_pos[1])))
 
     def draw_building_interiors(
-        self, game_map: GameMap, units: list[Unit], camera: Camera,
+        self,
+        game_map: GameMap,
+        units: list[Unit],
+        camera: Camera,
     ) -> None:
         if self._ctx.screen is None or self._ctx.offscreen is None:
             return
@@ -125,12 +133,16 @@ class BuildingRenderer:
                 if not should_show_interior((tx, ty), units, tile_size):
                     continue
 
-                enhanced = game_map.get_enhanced_tile(tx, ty) if hasattr(game_map, 'get_enhanced_tile') else None
+                enhanced = (
+                    game_map.get_enhanced_tile(tx, ty)
+                    if hasattr(game_map, "get_enhanced_tile")
+                    else None
+                )
                 floors = 1
                 if enhanced and isinstance(enhanced, dict):
                     floors = int(enhanced.get("building_floors", 1))
-                elif enhanced and hasattr(enhanced, 'building_floors'):
-                    floors = int(getattr(enhanced, 'building_floors', 1))
+                elif enhanced and hasattr(enhanced, "building_floors"):
+                    floors = int(getattr(enhanced, "building_floors", 1))
 
                 building_type = floors_to_building_type(floors)
 
@@ -148,7 +160,8 @@ class BuildingRenderer:
                     target_h = int(th * camera.zoom)
                     if target_w > 0 and target_h > 0:
                         interior_surface = pygame.transform.scale(
-                            interior_surface, (target_w, target_h),
+                            interior_surface,
+                            (target_w, target_h),
                         )
 
                 world_x = tx * tile_size
@@ -158,7 +171,9 @@ class BuildingRenderer:
                 self._ctx.offscreen.blit(interior_surface, (int(screen_pos[0]), int(screen_pos[1])))
 
     def draw_building_floor_numbers(
-        self, game_map: GameMap, camera: Camera,
+        self,
+        game_map: GameMap,
+        camera: Camera,
     ) -> None:
         if self._ctx.screen is None or self._ctx.offscreen is None:
             return
@@ -179,12 +194,16 @@ class BuildingRenderer:
                 if terrain_val != 4:
                     continue
 
-                enhanced = game_map.get_enhanced_tile(tx, ty) if hasattr(game_map, 'get_enhanced_tile') else None
+                enhanced = (
+                    game_map.get_enhanced_tile(tx, ty)
+                    if hasattr(game_map, "get_enhanced_tile")
+                    else None
+                )
                 floors = None
                 if enhanced and isinstance(enhanced, dict):
                     floors = enhanced.get("building_floors")
-                elif enhanced and hasattr(enhanced, 'building_floors'):
-                    floors = getattr(enhanced, 'building_floors', None)
+                elif enhanced and hasattr(enhanced, "building_floors"):
+                    floors = getattr(enhanced, "building_floors", None)
 
                 if floors is None or int(floors) <= 1:
                     continue
@@ -197,7 +216,9 @@ class BuildingRenderer:
                 font = pygame.font.SysFont("arial", font_size, bold=True)
                 text = font.render(str(int(floors)), True, (255, 215, 0))
                 text_rect = text.get_rect(
-                    center=(int(screen_pos[0]) + tile_screen_size // 2,
-                            int(screen_pos[1]) + tile_screen_size // 2),
+                    center=(
+                        int(screen_pos[0]) + tile_screen_size // 2,
+                        int(screen_pos[1]) + tile_screen_size // 2,
+                    ),
                 )
                 self._ctx.offscreen.blit(text, text_rect)

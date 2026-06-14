@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import logging
 import json
-from dataclasses import dataclass, field, asdict
+import logging
+from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from enum import Enum, auto
 from pathlib import Path
@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class BattleOutcome(Enum):
     """Possible outcomes of a battle."""
+
     ALLIED_VICTORY = auto()
     AXIS_VICTORY = auto()
     DRAW = auto()
@@ -25,6 +26,7 @@ class BattleOutcome(Enum):
 @dataclass(slots=True)
 class UnitBattleState:
     """Persistent state of a unit across battles."""
+
     unit_id: str
     unit_template_id: str
     faction: str
@@ -41,6 +43,7 @@ class UnitBattleState:
 @dataclass
 class BattleResult:
     """Result of a single battle for persistence."""
+
     battle_id: str
     operation_id: str
     sector: str
@@ -72,6 +75,7 @@ class CampaignProgress:
 
     This is what gets saved/loaded between battles.
     """
+
     campaign_id: str
     current_operation_id: str
     current_battle_index: int = 0
@@ -101,10 +105,7 @@ class CampaignProgress:
 
     def get_surviving_units(self, faction: str) -> list[UnitBattleState]:
         """Get all surviving units for a faction."""
-        return [
-            u for u in self.current_unit_states
-            if u.faction == faction.lower() and u.is_alive
-        ]
+        return [u for u in self.current_unit_states if u.faction == faction.lower() and u.is_alive]
 
     def get_unit_state(self, unit_id: str) -> UnitBattleState | None:
         """Get state of a specific unit."""
@@ -137,11 +138,11 @@ class CampaignProgress:
             bonus["axis"] += 50
 
         survival_rate_allies = (
-            (last_result.allied_units_end / max(last_result.allied_units_start, 1)) * 50
-        )
+            last_result.allied_units_end / max(last_result.allied_units_start, 1)
+        ) * 50
         survival_rate_axis = (
-            (last_result.axis_units_end / max(last_result.axis_units_start, 1)) * 50
-        )
+            last_result.axis_units_end / max(last_result.axis_units_start, 1)
+        ) * 50
 
         bonus["allies"] += int(survival_rate_allies)
         bonus["axis"] += int(survival_rate_axis)
@@ -163,9 +164,7 @@ class CampaignPersistenceManager:
         if isinstance(base_dir, str):
             base_dir = Path(base_dir)
         self._base_dir = (
-            base_dir
-            if base_dir
-            else Path(__file__).resolve().parent.parent.parent / "saves"
+            base_dir if base_dir else Path(__file__).resolve().parent.parent.parent / "saves"
         )
         self._campaign_dir = self._base_dir / self.CAMPAIGN_DIR_NAME
         self._campaign_dir.mkdir(parents=True, exist_ok=True)
@@ -232,10 +231,13 @@ class CampaignPersistenceManager:
                 logger.warning("[Campaign] Version mismatch: %s != %s", version, self.VERSION)
 
             progress_dict = data.get("progress", {})
-            progress = CampaignProgress(**{
-                k: v for k, v in progress_dict.items()
-                if k in CampaignProgress.__dataclass_fields__
-            })
+            progress = CampaignProgress(
+                **{
+                    k: v
+                    for k, v in progress_dict.items()
+                    if k in CampaignProgress.__dataclass_fields__
+                }
+            )
 
             unit_states = []
             for us in progress_dict.get("current_unit_states", []):
@@ -250,8 +252,11 @@ class CampaignPersistenceManager:
                 results.append(BattleResult(**br_copy))
             progress.battle_results = results
 
-            logger.info("[Campaign] Loaded progress for %s (%d battles)",
-                        campaign_id, progress.total_battles_completed)
+            logger.info(
+                "[Campaign] Loaded progress for %s (%d battles)",
+                campaign_id,
+                progress.total_battles_completed,
+            )
             return progress
 
         except Exception as e:
@@ -279,45 +284,45 @@ class CampaignPersistenceManager:
         inherited_count = 0
 
         for unit in current_units:
-            unit_template = getattr(unit, 'unit_template_id', None) or getattr(unit, 'id', None)
+            unit_template = getattr(unit, "unit_template_id", None) or getattr(unit, "id", None)
 
             if not unit_template:
                 continue
 
             prev_state = progress.get_unit_state(unit_template)
             if prev_state and prev_state.is_alive:
-
-                if hasattr(unit, 'health_component'):
+                if hasattr(unit, "health_component"):
                     hp_ratio = prev_state.current_hp / max(prev_state.max_hp, 1)
-                    unit.health_component.current_hp = (
-                        unit.health_component.max_hp * hp_ratio
-                    )
+                    unit.health_component.current_hp = unit.health_component.max_hp * hp_ratio
 
-                if hasattr(unit, 'morale_component'):
+                if hasattr(unit, "morale_component"):
                     recovery = min(20, 10 + progress.total_battles_completed * 2)
                     unit.morale_component.current_morale = min(
                         100.0,
                         prev_state.morale + recovery,
                     )
 
-                if hasattr(unit, 'weapon_component') and prev_state.ammo_remaining:
+                if hasattr(unit, "weapon_component") and prev_state.ammo_remaining:
                     for slot, ammo in prev_state.ammo_remaining.items():
                         if hasattr(unit.weapon_component, slot):
                             setattr(unit.weapon_component, slot, ammo)
 
-                if hasattr(unit, 'veterancy_component'):
+                if hasattr(unit, "veterancy_component"):
                     unit.veterancy_component.add_xp(prev_state.experience)
 
                 inherited_count += 1
             elif prev_state and not prev_state.is_alive:
-                if hasattr(unit, 'health_component'):
+                if hasattr(unit, "health_component"):
                     unit.health_component.current_hp = 0
 
-                if hasattr(unit, 'state_machine'):
+                if hasattr(unit, "state_machine"):
                     from pycc2.domain.entities.unit import UnitState
+
                     unit.state_machine.force_state(UnitState.DEAD)
 
-        logger.info("[Campaign] Applied inheritance to %d/%d units", inherited_count, len(current_units))
+        logger.info(
+            "[Campaign] Applied inheritance to %d/%d units", inherited_count, len(current_units)
+        )
         return current_units
 
     def list_saved_campaigns(self) -> list[dict]:
@@ -330,24 +335,28 @@ class CampaignPersistenceManager:
                     data = json.load(f)
 
                 progress = data.get("progress", {})
-                campaigns.append({
-                    "campaign_id": data.get("campaign_id", filepath.stem),
-                    "saved_at": data.get("saved_at", ""),
-                    "battles_completed": progress.get("total_battles_completed", 0),
-                    "current_operation": progress.get("current_operation_id", ""),
-                    "file_path": str(filepath),
-                })
+                campaigns.append(
+                    {
+                        "campaign_id": data.get("campaign_id", filepath.stem),
+                        "saved_at": data.get("saved_at", ""),
+                        "battles_completed": progress.get("total_battles_completed", 0),
+                        "current_operation": progress.get("current_operation_id", ""),
+                        "file_path": str(filepath),
+                    }
+                )
 
             except Exception as e:
                 logging.info(f"Campaign save parse failed for {filepath.stem}: {e}")
-                campaigns.append({
-                    "campaign_id": filepath.stem,
-                    "saved_at": "Unknown",
-                    "battles_completed": 0,
-                    "current_operation": "",
-                    "file_path": str(filepath),
-                    "error": True,
-                })
+                campaigns.append(
+                    {
+                        "campaign_id": filepath.stem,
+                        "saved_at": "Unknown",
+                        "battles_completed": 0,
+                        "current_operation": "",
+                        "file_path": str(filepath),
+                        "error": True,
+                    }
+                )
 
         return campaigns
 

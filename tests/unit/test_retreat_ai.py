@@ -14,13 +14,13 @@ from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
-from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.value_objects.terrain_type import TerrainType
-
+from pycc2.domain.value_objects.tile_coord import TileCoord
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_unit(
     uid: str = "u1",
@@ -77,6 +77,7 @@ def _make_context(
 # ---------------------------------------------------------------------------
 # Test: evaluate — force ratio
 # ---------------------------------------------------------------------------
+
 
 class TestEvaluateForceRatio:
     def test_favorable_ratio_returns_low_score(self):
@@ -137,6 +138,7 @@ class TestEvaluateForceRatio:
 # Test: evaluate — morale boost
 # ---------------------------------------------------------------------------
 
+
 class TestEvaluateMoraleBoost:
     def test_low_morale_boosts_priority(self):
         """Average morale < 30 should boost retreat priority."""
@@ -171,6 +173,7 @@ class TestEvaluateMoraleBoost:
 # Test: evaluate — bridge threat boost
 # ---------------------------------------------------------------------------
 
+
 class TestEvaluateBridgeThreatBoost:
     def test_bridge_threat_boosts_priority(self):
         """Bridge VL with nearby enemies should boost priority by 0.1."""
@@ -179,16 +182,12 @@ class TestEvaluateBridgeThreatBoost:
         friendlies = [_make_unit("f1"), _make_unit("f2")]
         enemies = [_make_unit("e1", faction=Faction.AXIS, x=21, y=15)]
         vl = [(TileCoord(20, 15), "ALLIES", 10)]
-        ctx = _make_context(
-            friendly=friendlies, enemy=enemies, game_map=gm, vl_positions=vl
-        )
+        ctx = _make_context(friendly=friendlies, enemy=enemies, game_map=gm, vl_positions=vl)
         score_with_bridge = ai.evaluate(ctx)
 
         # Same setup without bridge terrain
         gm2 = _make_map()
-        ctx2 = _make_context(
-            friendly=friendlies, enemy=enemies, game_map=gm2, vl_positions=vl
-        )
+        ctx2 = _make_context(friendly=friendlies, enemy=enemies, game_map=gm2, vl_positions=vl)
         score_without_bridge = ai.evaluate(ctx2)
 
         assert score_with_bridge > score_without_bridge
@@ -197,6 +196,7 @@ class TestEvaluateBridgeThreatBoost:
 # ---------------------------------------------------------------------------
 # Test: _calculate_force_ratio
 # ---------------------------------------------------------------------------
+
 
 class TestCalculateForceRatio:
     def test_basic_ratio(self):
@@ -230,6 +230,7 @@ class TestCalculateForceRatio:
 # ---------------------------------------------------------------------------
 # Test: _is_bridge_threatened
 # ---------------------------------------------------------------------------
+
 
 class TestIsBridgeThreatened:
     def test_bridge_with_nearby_enemy_is_threatened(self):
@@ -268,6 +269,7 @@ class TestIsBridgeThreatened:
 # Test: _select_retreat_units
 # ---------------------------------------------------------------------------
 
+
 class TestSelectRetreatUnits:
     def test_low_hp_unit_selected(self):
         ai = RetreatDecisionAI()
@@ -304,6 +306,7 @@ class TestSelectRetreatUnits:
 # Test: _select_covering_units
 # ---------------------------------------------------------------------------
 
+
 class TestSelectCoveringUnits:
     def test_mg_unit_selected(self):
         ai = RetreatDecisionAI()
@@ -331,6 +334,7 @@ class TestSelectCoveringUnits:
 # ---------------------------------------------------------------------------
 # Test: _find_retreat_destination
 # ---------------------------------------------------------------------------
+
 
 class TestFindRetreatDestination:
     def test_prefers_safe_friendly_vl(self):
@@ -386,6 +390,7 @@ class TestFindRetreatDestination:
 # Test: execute — full integration
 # ---------------------------------------------------------------------------
 
+
 class TestExecute:
     def test_retreat_intents_for_weak_units(self):
         ai = RetreatDecisionAI()
@@ -405,9 +410,7 @@ class TestExecute:
         enemies = [_make_unit("e1", faction=Faction.AXIS, x=15, y=10)]
         ctx = _make_context(friendly=[weak, mg], enemy=enemies)
         intents = ai.execute(ctx)
-        suppress_intents = [
-            i for i in intents if i.tactic_type == TacticType.SUPPRESS_FIRE
-        ]
+        suppress_intents = [i for i in intents if i.tactic_type == TacticType.SUPPRESS_FIRE]
         assert len(suppress_intents) >= 1
         assert suppress_intents[0].unit_id == "mg1"
 
@@ -417,13 +420,9 @@ class TestExecute:
         friendly = _make_unit("f1", x=20, y=15)
         enemies = [_make_unit("e1", faction=Faction.AXIS, x=22, y=15)]
         vl = [(TileCoord(20, 15), "ALLIES", 10)]
-        ctx = _make_context(
-            friendly=[friendly], enemy=enemies, game_map=gm, vl_positions=vl
-        )
+        ctx = _make_context(friendly=[friendly], enemy=enemies, game_map=gm, vl_positions=vl)
         intents = ai.execute(ctx)
-        demo_intents = [
-            i for i in intents if i.tactic_type == TacticType.DEMOLISH_BRIDGE
-        ]
+        demo_intents = [i for i in intents if i.tactic_type == TacticType.DEMOLISH_BRIDGE]
         assert len(demo_intents) >= 1
         assert demo_intents[0].target_position == TileCoord(20, 15)
 
@@ -433,13 +432,9 @@ class TestExecute:
         friendly = _make_unit("f1", x=10, y=10)
         enemies = [_make_unit("e1", faction=Faction.AXIS, x=35, y=25)]
         vl = [(TileCoord(20, 15), "ALLIES", 10)]
-        ctx = _make_context(
-            friendly=[friendly], enemy=enemies, game_map=gm, vl_positions=vl
-        )
+        ctx = _make_context(friendly=[friendly], enemy=enemies, game_map=gm, vl_positions=vl)
         intents = ai.execute(ctx)
-        demo_intents = [
-            i for i in intents if i.tactic_type == TacticType.DEMOLISH_BRIDGE
-        ]
+        demo_intents = [i for i in intents if i.tactic_type == TacticType.DEMOLISH_BRIDGE]
         assert len(demo_intents) == 0
 
     def test_empty_context_returns_no_intents(self):
@@ -454,8 +449,6 @@ class TestExecute:
         enemies = [_make_unit("e1", faction=Faction.AXIS, x=30, y=10)]
         ctx = _make_context(friendly=[mg], enemy=enemies)
         intents = ai.execute(ctx)
-        suppress_intents = [
-            i for i in intents if i.tactic_type == TacticType.SUPPRESS_FIRE
-        ]
+        suppress_intents = [i for i in intents if i.tactic_type == TacticType.SUPPRESS_FIRE]
         # No weak units to cover, so no suppress fire
         assert len(suppress_intents) == 0

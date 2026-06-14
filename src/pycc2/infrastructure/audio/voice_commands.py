@@ -4,6 +4,7 @@ Generates procedural voice-like sounds for military commands, with
 faction-dependent language selection (English for Allies/Polish, German for Axis).
 No external audio files are needed.
 """
+
 from __future__ import annotations
 
 import logging
@@ -172,9 +173,7 @@ class VoiceCommandGenerator:
                 formant_wave[start:end] += f1_wave + f2_wave
         else:
             # Fallback: generic formant
-            formant_wave = (
-                np.sin(2 * np.pi * 730 * t) * 0.3 + np.sin(2 * np.pi * 1090 * t) * 0.15
-            )
+            formant_wave = np.sin(2 * np.pi * 730 * t) * 0.3 + np.sin(2 * np.pi * 1090 * t) * 0.15
 
         # Amplitude modulation for syllable rhythm
         syllable_count = max(1, len(text.split()))
@@ -228,10 +227,7 @@ class VoiceCommandGenerator:
         indices = indices[indices < n].astype(int)
         shifted = wave[indices]
         # Pad back to original length
-        if len(shifted) < n:
-            shifted = np.pad(shifted, (0, n - len(shifted)))
-        else:
-            shifted = shifted[:n]
+        shifted = np.pad(shifted, (0, n - len(shifted))) if len(shifted) < n else shifted[:n]
         # Add slight distortion (clipping)
         shifted = np.clip(shifted.astype(np.float64) * 1.3, -32767, 32767).astype(np.int16)
         return shifted

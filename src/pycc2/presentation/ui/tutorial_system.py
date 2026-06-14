@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import pygame
+
 
 class TutorialStep(Enum):
     WELCOME = auto()
@@ -14,6 +16,7 @@ class TutorialStep(Enum):
     VICTORY_CONDITIONS = auto()
     COMPLETE = auto()
 
+
 @dataclass(slots=True)
 class TutorialState:
     step: TutorialStep = TutorialStep.WELCOME
@@ -22,8 +25,8 @@ class TutorialState:
     show_hints: bool = True
     hint_cooldown: int = 0
 
-class TutorialOverlay:
 
+class TutorialOverlay:
     STEPS = {
         TutorialStep.WELCOME: {
             "title": "Welcome to PyCC2",
@@ -34,7 +37,7 @@ class TutorialOverlay:
                 "",
                 "CONTROLS:",
                 "  Left Click  → Select unit",
-                "  Right Click → Move or Attack",  
+                "  Right Click → Move or Attack",
                 "  ESC        → Pause / Menu",
                 "  F10        → Settings",
                 "",
@@ -114,6 +117,7 @@ class TutorialOverlay:
 
     def _init_fonts(self) -> None:
         import pygame
+
         dc = self._display_config
         self._font_lg = pygame.font.Font(None, int(dc.font_size_title * 1.3))
         self._font_md = pygame.font.Font(None, int(dc.font_size_normal))
@@ -122,6 +126,7 @@ class TutorialOverlay:
 
     def _rebuild_surfaces(self, sw: int, sh: int) -> None:
         import pygame
+
         self._overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
         pw, ph = min(550, int(sw * 0.6)), min(380, int(sh * 0.65))
         self._panel_surf = pygame.Surface((pw, ph), pygame.SRCALPHA)
@@ -161,19 +166,19 @@ class TutorialOverlay:
 
     def handle_input(self, event) -> str | None:
         import pygame
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 if self.state.step != TutorialStep.COMPLETE:
                     self.advance_step()
-                    return 'advanced'
+                    return "advanced"
             elif event.key == pygame.K_ESCAPE:
                 self.hide()
-                return 'closed'
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                if self.state.step != TutorialStep.COMPLETE:
-                    self.advance_step()
-                    return 'advanced'
+                return "closed"
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.state.step != TutorialStep.COMPLETE:
+                self.advance_step()
+                return "advanced"
         return None
 
     def update(self) -> None:
@@ -197,6 +202,7 @@ class TutorialOverlay:
             return
 
         import pygame
+
         sw, sh = screen.get_size()
 
         content = self.STEPS.get(self.state.step)
@@ -219,8 +225,13 @@ class TutorialOverlay:
         px, py = (sw - pw) // 2, (sh - ph) // 2 - 30
 
         self._panel_surf.fill((20, 24, 36, int(self._alpha * 240)))
-        pygame.draw.rect(self._panel_surf, (80, 100, 140, int(self._alpha * 200)), 
-                        (0, 0, pw, ph), 2, border_radius=12)
+        pygame.draw.rect(
+            self._panel_surf,
+            (80, 100, 140, int(self._alpha * 200)),
+            (0, 0, pw, ph),
+            2,
+            border_radius=12,
+        )
         screen.blit(self._panel_surf, (px, py))
 
         title_surf = self._font_lg.render(content["title"], True, (220, 230, 255))
@@ -231,12 +242,14 @@ class TutorialOverlay:
         dot_y = py + 52
         dot_spacing = min(20, (pw - 40) // len(steps))
         dot_start_x = px + (pw - dot_spacing * (len(steps) - 1)) // 2
-        for i, step in enumerate(steps):
+        for i, _step in enumerate(steps):
             color = (100, 180, 255) if i <= current_idx else (60, 70, 80)
             if i < current_idx:
                 pygame.draw.circle(screen, color, (dot_start_x + i * dot_spacing, dot_y), 5)
             elif i == current_idx:
-                pygame.draw.circle(screen, (150, 210, 255), (dot_start_x + i * dot_spacing, dot_y), 7, 2)
+                pygame.draw.circle(
+                    screen, (150, 210, 255), (dot_start_x + i * dot_spacing, dot_y), 7, 2
+                )
             else:
                 pygame.draw.circle(screen, color, (dot_start_x + i * dot_spacing, dot_y), 4)
 
@@ -255,15 +268,18 @@ class TutorialOverlay:
 
         footer_y = py + ph - 35
         if self.state.step != TutorialStep.COMPLETE:
-            footer = self._font_sm.render("[ SPACE / Click to continue ]  [ ESC to close ]", 
-                                   True, (140, 150, 170))
+            footer = self._font_sm.render(
+                "[ SPACE / Click to continue ]  [ ESC to close ]", True, (140, 150, 170)
+            )
         else:
-            footer = self._font_sm.render("Tutorial complete! Press F1 to review anytime.",
-                                   True, (140, 200, 140))
+            footer = self._font_sm.render(
+                "Tutorial complete! Press F1 to review anytime.", True, (140, 200, 140)
+            )
         screen.blit(footer, (px + (pw - footer.get_width()) // 2, footer_y))
 
-    def show_contextual_hint(self, text: str, position: tuple[float, float], 
-                            lifetime: int = 120) -> None:
+    def show_contextual_hint(
+        self, text: str, position: tuple[float, float], lifetime: int = 120
+    ) -> None:
         self._current_hint = text
         self._hint_position = position
         self.state.hint_cooldown = lifetime
@@ -275,7 +291,11 @@ class TutorialOverlay:
         if self._font_hint is None:
             self._init_fonts()
         alpha = min(255, int(self.state.hint_cooldown * 2))
-        surf = self._font_hint.render(f"💡 {self._current_hint}", True, (255, 255, 200), )
+        surf = self._font_hint.render(
+            f"💡 {self._current_hint}",
+            True,
+            (255, 255, 200),
+        )
         surf.set_alpha(alpha)
         x, y = int(self._hint_position[0]), int(self._hint_position[1])
         screen.blit(surf, (x - surf.get_width() // 2, y - 25))

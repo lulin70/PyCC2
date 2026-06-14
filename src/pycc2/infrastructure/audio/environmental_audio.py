@@ -17,6 +17,7 @@ import numpy as np
 
 class EnvironmentSoundType(Enum):
     """Types of environmental sounds."""
+
     BIRDS = auto()
     WIND = auto()
     DISTANT_ARTILLERY = auto()
@@ -52,8 +53,10 @@ class EnvironmentalSoundGenerator:
             n_chirps = np.random.randint(8, 15)
             wave = np.zeros(n_samples, dtype=np.float64)
 
-            for i in range(n_chirps):
-                start_sample = int(np.random.uniform(0, duration - chirp_duration) * cls.SAMPLE_RATE)
+            for _i in range(n_chirps):
+                start_sample = int(
+                    np.random.uniform(0, duration - chirp_duration) * cls.SAMPLE_RATE
+                )
                 n_chirp = int(cls.SAMPLE_RATE * chirp_duration)
                 t_chirp = np.linspace(0, chirp_duration, n_chirp, dtype=np.float64)
                 freq = freq_start + (freq_end - freq_start) * t_chirp / chirp_duration
@@ -71,8 +74,10 @@ class EnvironmentalSoundGenerator:
             n_caws = np.random.randint(3, 6)
             wave = np.zeros(n_samples, dtype=np.float64)
 
-            for i in range(n_caws):
-                start_sample = int(np.random.uniform(0.3, duration - caw_duration) * cls.SAMPLE_RATE)
+            for _i in range(n_caws):
+                start_sample = int(
+                    np.random.uniform(0.3, duration - caw_duration) * cls.SAMPLE_RATE
+                )
                 n_caw = int(cls.SAMPLE_RATE * caw_duration)
                 t_caw = np.linspace(0, caw_duration, n_caw, dtype=np.float64)
                 envelope = np.exp(-t_caw * 5) * (1.0 + 0.3 * np.sin(2 * np.pi * 15 * t_caw))
@@ -123,7 +128,7 @@ class EnvironmentalSoundGenerator:
 
         gust_period = np.random.uniform(1.5, 3.0)
         gust_envelope = 0.5 + 0.5 * np.sin(2 * np.pi * t / gust_period)
-        gust_envelope *= (0.3 + 0.7 * intensity)
+        gust_envelope *= 0.3 + 0.7 * intensity
 
         random_modulation = 1.0 + 0.3 * np.sin(2 * np.pi * np.random.uniform(0.1, 0.5) * t)
         gust_envelope *= random_modulation
@@ -159,8 +164,11 @@ class EnvironmentalSoundGenerator:
             echo_volume = 0.4 / distance_factor
             if echo_delay < n_samples:
                 echo = np.zeros(n_samples, dtype=np.float64)
-                echo[echo_delay:] = (boom[:-echo_delay] + sub_boom[:-echo_delay]) * \
-                                   np.exp(-np.linspace(0, duration, n_samples - echo_delay) * 3) * echo_volume
+                echo[echo_delay:] = (
+                    (boom[:-echo_delay] + sub_boom[:-echo_delay])
+                    * np.exp(-np.linspace(0, duration, n_samples - echo_delay) * 3)
+                    * echo_volume
+                )
                 wave += echo
 
         noise = np.random.uniform(-0.1, 0.1, n_samples) * envelope
@@ -195,7 +203,7 @@ class EnvironmentalSoundGenerator:
                 t_drop = np.linspace(0, drop_duration, n_drop, dtype=np.float64)
                 drop_envelope = np.exp(-t_drop * 100)
                 drop_wave = np.sin(2 * np.pi * 4000 * t_drop) * drop_envelope * 0.8
-                wave[drop_pos:drop_pos + n_drop] += drop_wave
+                wave[drop_pos : drop_pos + n_drop] += drop_wave
 
         return cls._to_int16(wave)
 
@@ -251,15 +259,15 @@ class EnvironmentalSoundGenerator:
             interval = 0.5
             n_chirps = int(duration / interval)
 
-            for i in range(n_chirps):
-                pos = int(i * interval * cls.SAMPLE_RATE)
+            for _i in range(n_chirps):
+                pos = int(_i * interval * cls.SAMPLE_RATE)
                 n_chirp = int(cls.SAMPLE_RATE * chirp_duration)
 
                 if pos + n_chirp < n_samples:
                     t_chirp = np.linspace(0, chirp_duration, n_chirp, dtype=np.float64)
                     envelope = np.exp(-t_chirp * 80)
                     chirp = np.sin(2 * np.pi * chirp_freq * t_chirp) * envelope * 0.6
-                    wave[pos:pos + n_chirp] += chirp
+                    wave[pos : pos + n_chirp] += chirp
 
         else:
             base_freq = 4500
@@ -292,7 +300,7 @@ class EnvironmentalSoundGenerator:
 
         config = surface_configs.get(surface, surface_configs["mixed"])
 
-        for i in range(config["n_steps"]):
+        for _i in range(config["n_steps"]):
             step_pos = int(np.random.uniform(0.2, duration - 0.1) * cls.SAMPLE_RATE)
             step_duration = 0.05
             n_step = int(cls.SAMPLE_RATE * step_duration)
@@ -303,7 +311,7 @@ class EnvironmentalSoundGenerator:
                 step_tone = np.sin(2 * np.pi * config["freq"] * t_step) * envelope * 0.4
                 step_noise = np.random.uniform(-0.2, 0.2, n_step) * envelope
                 step_wave = (step_tone + step_noise) * np.random.uniform(0.5, 1.0)
-                wave[step_pos:step_pos + n_step] += step_wave
+                wave[step_pos : step_pos + n_step] += step_wave
 
         return cls._to_int16(wave)
 
@@ -327,7 +335,7 @@ class EnvironmentalSoundGenerator:
                 envelope = np.exp(-t_c * 150)
                 noise = np.random.uniform(-1, 1, n_crackle)
                 crackle = noise * envelope * np.random.uniform(0.5, 1.0)
-                crackle_wave[pos:pos + n_crackle] += crackle
+                crackle_wave[pos : pos + n_crackle] += crackle
 
         rumble_freq = 60
         rumble = np.sin(2 * np.pi * rumble_freq * t) * 0.3
@@ -360,7 +368,7 @@ class EnvironmentalSoundGenerator:
                 t_int = np.linspace(0, int_dur, n_int, dtype=np.float64)
                 am_mod = 1.0 + 0.8 * np.sin(2 * np.pi * np.random.uniform(20, 50) * t_int)
                 interference = np.random.uniform(-1, 1, n_int) * am_mod * 0.4
-                wave[int_pos:int_pos + n_int] += interference
+                wave[int_pos : int_pos + n_int] += interference
 
         return cls._to_int16(wave)
 
@@ -409,37 +417,40 @@ class EnvironmentalSoundGenerator:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _lowpass_filter(signal: np.ndarray, cutoff: float, sample_rate: int,
-                        order: int = 5) -> np.ndarray:
+    def _lowpass_filter(
+        signal: np.ndarray, cutoff: float, sample_rate: int, order: int = 5
+    ) -> np.ndarray:
         """Simple lowpass filter using moving average approximation."""
         from scipy.signal import butter, filtfilt
 
         nyquist = 0.5 * sample_rate
         normal_cutoff = cutoff / nyquist
-        b, a = butter(order, normal_cutoff, btype='low', analog=False)
+        b, a = butter(order, normal_cutoff, btype="low", analog=False)
         return filtfilt(b, a, signal)
 
     @staticmethod
-    def _highpass_filter(signal: np.ndarray, cutoff: float, sample_rate: int,
-                         order: int = 5) -> np.ndarray:
+    def _highpass_filter(
+        signal: np.ndarray, cutoff: float, sample_rate: int, order: int = 5
+    ) -> np.ndarray:
         """Simple highpass filter."""
         from scipy.signal import butter, filtfilt
 
         nyquist = 0.5 * sample_rate
         normal_cutoff = cutoff / nyquist
-        b, a = butter(order, normal_cutoff, btype='high', analog=False)
+        b, a = butter(order, normal_cutoff, btype="high", analog=False)
         return filtfilt(b, a, signal)
 
     @staticmethod
-    def _bandpass_filter(signal: np.ndarray, lowcut: float, highcut: float,
-                         sample_rate: int, order: int = 5) -> np.ndarray:
+    def _bandpass_filter(
+        signal: np.ndarray, lowcut: float, highcut: float, sample_rate: int, order: int = 5
+    ) -> np.ndarray:
         """Bandpass filter."""
         from scipy.signal import butter, filtfilt
 
         nyquist = 0.5 * sample_rate
         low = lowcut / nyquist
         high = highcut / nyquist
-        b, a = butter(order, [low, high], btype='band', analog=False)
+        b, a = butter(order, [low, high], btype="band", analog=False)
         return filtfilt(b, a, signal)
 
     # ------------------------------------------------------------------
@@ -495,10 +506,7 @@ class EnvironmentalAudioSystem:
         self._mixer = mixer
         if not mixer.get_init():
             mixer.init(
-                frequency=EnvironmentalSoundGenerator.SAMPLE_RATE,
-                size=-16,
-                channels=1,
-                buffer=512
+                frequency=EnvironmentalSoundGenerator.SAMPLE_RATE, size=-16, channels=1, buffer=512
             )
         self._initialized = True
         logger.info("EnvironmentalAudioSystem initialized")
@@ -514,22 +522,38 @@ class EnvironmentalAudioSystem:
 
         generators = {
             EnvironmentSoundType.BIRDS: lambda: EnvironmentalSoundGenerator.generate_bird_chirp(
-                variant=np.random.randint(0, 3)),
+                variant=np.random.randint(0, 3)
+            ),
             EnvironmentSoundType.WIND: lambda: EnvironmentalSoundGenerator.generate_wind_gust(
-                intensity=self._get_wind_intensity()),
-            EnvironmentSoundType.DISTANT_ARTILLERY: lambda: EnvironmentalSoundGenerator.generate_distant_artillery(
-                distance_factor=max(0.5, 2.0 - self._combat_intensity)),
+                intensity=self._get_wind_intensity()
+            ),
+            EnvironmentSoundType.DISTANT_ARTILLERY: lambda: (
+                EnvironmentalSoundGenerator.generate_distant_artillery(
+                    distance_factor=max(0.5, 2.0 - self._combat_intensity)
+                )
+            ),
             EnvironmentSoundType.INSECTS: lambda: EnvironmentalSoundGenerator.generate_insect_chirp(
-                insect_type="cricket" if np.random.random() > 0.5 else "cicada"),
+                insect_type="cricket" if np.random.random() > 0.5 else "cicada"
+            ),
             EnvironmentSoundType.RAIN: lambda: EnvironmentalSoundGenerator.generate_rain(
-                intensity=0.8),
-            EnvironmentSoundType.FOOTSTEPS: lambda: EnvironmentalSoundGenerator.generate_footstep_ambient(
-                surface="mixed"),
+                intensity=0.8
+            ),
+            EnvironmentSoundType.FOOTSTEPS: lambda: (
+                EnvironmentalSoundGenerator.generate_footstep_ambient(surface="mixed")
+            ),
             EnvironmentSoundType.THUNDER: lambda: EnvironmentalSoundGenerator.generate_thunder(),
-            EnvironmentSoundType.CROWD_CHATTER: lambda: EnvironmentalSoundGenerator.generate_crowd_chatter(),
-            EnvironmentSoundType.VEHICLE_AMBIENT: lambda: EnvironmentalSoundGenerator.generate_vehicle_ambient(),
-            EnvironmentSoundType.FIRE_CRACKLE: lambda: EnvironmentalSoundGenerator.generate_fire_crackle(),
-            EnvironmentSoundType.RADIO_STATIC: lambda: EnvironmentalSoundGenerator.generate_radio_static(),
+            EnvironmentSoundType.CROWD_CHATTER: lambda: (
+                EnvironmentalSoundGenerator.generate_crowd_chatter()
+            ),
+            EnvironmentSoundType.VEHICLE_AMBIENT: lambda: (
+                EnvironmentalSoundGenerator.generate_vehicle_ambient()
+            ),
+            EnvironmentSoundType.FIRE_CRACKLE: lambda: (
+                EnvironmentalSoundGenerator.generate_fire_crackle()
+            ),
+            EnvironmentSoundType.RADIO_STATIC: lambda: (
+                EnvironmentalSoundGenerator.generate_radio_static()
+            ),
         }
 
         generator = generators.get(sound_type)
@@ -653,9 +677,8 @@ class EnvironmentalAudioSystem:
             self.stop_ambient_loop(EnvironmentSoundType.FIRE_CRACKLE)
             self.stop_ambient_loop(EnvironmentSoundType.RADIO_STATIC)
 
-        if self._combat_intensity < 0.3:
-            if not self._is_raining:
-                self._adjust_activity_by_time()
+        if self._combat_intensity < 0.3 and not self._is_raining:
+            self._adjust_activity_by_time()
 
     def is_playing(self, sound_type: EnvironmentSoundType) -> bool:
         """Check if sound type is active.
@@ -690,13 +713,17 @@ class EnvironmentalAudioSystem:
     def _should_play_sound(self, sound_type: EnvironmentSoundType) -> bool:
         """Determine if a sound should play based on current context."""
         if sound_type == EnvironmentSoundType.BIRDS:
-            return (6 <= self._time_of_day <= 19 and
-                    not self._is_raining and
-                    self._combat_intensity < 0.3)
+            return (
+                6 <= self._time_of_day <= 19
+                and not self._is_raining
+                and self._combat_intensity < 0.3
+            )
         elif sound_type == EnvironmentSoundType.INSECTS:
-            return (self._location_type in ["forest", "open_field"] and
-                    5 <= self._time_of_day <= 21 and
-                    not self._is_raining)
+            return (
+                self._location_type in ["forest", "open_field"]
+                and 5 <= self._time_of_day <= 21
+                and not self._is_raining
+            )
         elif sound_type == EnvironmentSoundType.CROWD_CHATTER:
             return self._location_type in ["village", "city"]
         elif sound_type == EnvironmentSoundType.VEHICLE_AMBIENT:
@@ -741,15 +768,14 @@ class EnvironmentalAudioSystem:
     def _adjust_activity_by_location(self) -> None:
         """Adjust ambient sounds based on location type."""
         location_sounds = {
-            "village": [EnvironmentSoundType.CROWD_CHATTER,
-                       EnvironmentSoundType.VEHICLE_AMBIENT],
-            "city": [EnvironmentSoundType.CROWD_CHATTER,
-                    EnvironmentSoundType.VEHICLE_AMBIENT],
-            "forest": [EnvironmentSoundType.BIRDS,
-                      EnvironmentSoundType.INSECTS,
-                      EnvironmentSoundType.WIND],
-            "open_field": [EnvironmentSoundType.WIND,
-                          EnvironmentSoundType.BIRDS],
+            "village": [EnvironmentSoundType.CROWD_CHATTER, EnvironmentSoundType.VEHICLE_AMBIENT],
+            "city": [EnvironmentSoundType.CROWD_CHATTER, EnvironmentSoundType.VEHICLE_AMBIENT],
+            "forest": [
+                EnvironmentSoundType.BIRDS,
+                EnvironmentSoundType.INSECTS,
+                EnvironmentSoundType.WIND,
+            ],
+            "open_field": [EnvironmentSoundType.WIND, EnvironmentSoundType.BIRDS],
         }
 
         for loc_type, sounds in location_sounds.items():

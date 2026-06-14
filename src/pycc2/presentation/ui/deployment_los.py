@@ -11,14 +11,14 @@ import math
 
 import pygame
 
-from pycc2.presentation.ui.deployment_models import DeploymentUnit
+from pycc2.presentation.rendering.rendering_utils import draw_dashed_line
 from pycc2.presentation.ui.deployment_models import (
     BUILDING_TERRAINS,
     TERRAIN_HEDGE,
     TERRAIN_WALL,
     TERRAIN_WOODS,
+    DeploymentUnit,
 )
-from pycc2.presentation.rendering.rendering_utils import draw_dashed_line
 
 
 class DeploymentLOSSystem:
@@ -29,10 +29,10 @@ class DeploymentLOSSystem:
     """
 
     _LOS_DEFAULT_RANGE = 15
-    _LOS_COLOR_HIGH = (0, 200, 0, 180)       # Green: >=60%
-    _LOS_COLOR_MODERATE = (200, 200, 0, 150) # Yellow: 30-59%
-    _LOS_COLOR_LOW = (255, 100, 0, 120)      # Red: 10-29%
-    _LOS_COLOR_IMPOSSIBLE = (50, 50, 50, 100) # Black: <10%
+    _LOS_COLOR_HIGH = (0, 200, 0, 180)  # Green: >=60%
+    _LOS_COLOR_MODERATE = (200, 200, 0, 150)  # Yellow: 30-59%
+    _LOS_COLOR_LOW = (255, 100, 0, 120)  # Red: 10-29%
+    _LOS_COLOR_IMPOSSIBLE = (50, 50, 50, 100)  # Black: <10%
 
     def __init__(
         self,
@@ -75,7 +75,7 @@ class DeploymentLOSSystem:
         # Also add currently selected unit if placed
         if selected_idx is not None:
             sel_unit = state.available_units[selected_idx]
-            if getattr(sel_unit, 'is_placed', False) and sel_unit.position is not None:
+            if getattr(sel_unit, "is_placed", False) and sel_unit.position is not None:
                 if sel_unit not in units_to_preview:
                     units_to_preview.append(sel_unit)
 
@@ -106,7 +106,13 @@ class DeploymentLOSSystem:
                 distance = (dx_tiles * dx_tiles + dy_tiles * dy_tiles) ** 0.5
 
                 hit_prob = self.estimate_hit_probability(
-                    src_x, src_y, dst_x, dst_y, distance, pu, tile_grid,
+                    src_x,
+                    src_y,
+                    dst_x,
+                    dst_y,
+                    distance,
+                    pu,
+                    tile_grid,
                 )
 
                 line_color = self.hit_probability_to_color(hit_prob)
@@ -115,8 +121,12 @@ class DeploymentLOSSystem:
                 dy_screen = oy + dst_y * ts + ts // 2
 
                 draw_dashed_line(
-                    screen, line_color, (sx, sy), (dx_screen, dy_screen),
-                    dash_length=4, gap_length=3,
+                    screen,
+                    line_color,
+                    (sx, sy),
+                    (dx_screen, dy_screen),
+                    dash_length=4,
+                    gap_length=3,
                 )
 
                 pygame.draw.circle(screen, line_color[:3], (dx_screen, dy_screen), 3)
@@ -148,10 +158,7 @@ class DeploymentLOSSystem:
         if distance_ratio > 1.0:
             return 0.05
 
-        if distance_ratio <= 0.3:
-            base_prob = 0.9
-        else:
-            base_prob = 0.9 - 0.7 * ((distance_ratio - 0.3) / 0.7)
+        base_prob = 0.9 if distance_ratio <= 0.3 else 0.9 - 0.7 * ((distance_ratio - 0.3) / 0.7)
         base_prob = max(base_prob, 0.05)
 
         # Terrain blocking check

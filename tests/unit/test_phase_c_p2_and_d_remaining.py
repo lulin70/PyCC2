@@ -1,10 +1,31 @@
 """Tests for C6-C12 (P2) + D6-D10 Quick Implementations (96 tests total)."""
 
-import pytest
 import math
 import random
 from unittest.mock import MagicMock, patch
 
+import pytest
+
+from pycc2.domain.systems.civilian_system import (
+    CivilianState,
+    CivilianSystem,
+)
+from pycc2.domain.systems.combat_systems import (
+    FriendlyFireSystem,
+    RicochetSystem,
+)
+from pycc2.domain.systems.terrain_systems import (
+    DestructibleTerrain,
+    RiverCrossingSystem,
+    RoadSystem,
+)
+from pycc2.domain.systems.trench_digging import TrenchDiggingAI
+from pycc2.domain.systems.vision_system import ConeVisionSystem
+from pycc2.infrastructure.audio.environmental_audio import (
+    EnvironmentalAudioSystem,
+    EnvironmentSoundType,
+)
+from pycc2.infrastructure.audio.stereo_sound import StereoSoundSystem
 from pycc2.infrastructure.audio.voice_command_system import (
     VoiceCommandSystem,
     VoiceCommandType,
@@ -13,26 +34,6 @@ from pycc2.infrastructure.rendering.minimap_icons import (
     MinimapIconSystem,
     UnitIconType,
 )
-from pycc2.domain.systems.terrain_systems import (
-    DestructibleTerrain,
-    RiverCrossingSystem,
-    RoadSystem,
-)
-from pycc2.domain.systems.combat_systems import (
-    FriendlyFireSystem,
-    RicochetSystem,
-)
-from pycc2.infrastructure.audio.environmental_audio import (
-    EnvironmentalAudioSystem,
-    EnvironmentSoundType,
-)
-from pycc2.infrastructure.audio.stereo_sound import StereoSoundSystem
-from pycc2.domain.systems.civilian_system import (
-    CivilianSystem,
-    CivilianState,
-)
-from pycc2.domain.systems.vision_system import ConeVisionSystem
-from pycc2.domain.systems.trench_digging import TrenchDiggingAI
 
 
 class TestVoiceCommandSystem:
@@ -123,7 +124,7 @@ class TestMinimapIconSystem:
         unit.unit_type = "UnknownType_XYZ"
         assert sys.get_icon_type(unit) == UnitIconType.UNKNOWN
 
-    @patch('pygame.draw')
+    @patch("pygame.draw")
     def test_render_icon_calls_pygame(self, mock_draw):
         sys = MinimapIconSystem()
         surface = MagicMock()
@@ -135,27 +136,27 @@ class TestDestructibleTerrain:
 
     def test_initialize_terrain(self):
         dt = DestructibleTerrain()
-        dt.initialize_terrain((5, 5), 'building')
+        dt.initialize_terrain((5, 5), "building")
         assert dt.get_terrain_hp((5, 5)) == 100
 
     def test_apply_partial_damage(self):
         dt = DestructibleTerrain()
-        dt.initialize_terrain((3, 3), 'building')
+        dt.initialize_terrain((3, 3), "building")
         destroyed = dt.apply_damage((3, 3), 40)
         assert destroyed is False
         assert dt.get_terrain_hp((3, 3)) == 60
 
     def test_destruction_creates_rubble(self):
         dt = DestructibleTerrain()
-        dt.initialize_terrain((7, 7), 'wall')
+        dt.initialize_terrain((7, 7), "wall")
         destroyed = dt.apply_damage((7, 7), 35)
         assert destroyed is True
         assert dt.is_rubble((7, 7))
 
     def test_different_terrain_types(self):
         dt = DestructibleTerrain()
-        dt.initialize_terrain((1, 1), 'bridge')
-        dt.initialize_terrain((2, 2), 'tree')
+        dt.initialize_terrain((1, 1), "bridge")
+        dt.initialize_terrain((2, 2), "tree")
         assert dt.get_terrain_hp((1, 1)) == 150
         assert dt.get_terrain_hp((2, 2)) == 15
 
@@ -166,20 +167,20 @@ class TestDestructibleTerrain:
 
     def test_destroyed_terrain_no_hp(self):
         dt = DestructibleTerrain()
-        dt.initialize_terrain((4, 4), 'building')
+        dt.initialize_terrain((4, 4), "building")
         dt.apply_damage((4, 4), 100)
         assert dt.get_terrain_hp((4, 4)) == 0
 
     def test_multiple_tiles(self):
         dt = DestructibleTerrain()
         for i in range(5):
-            dt.initialize_terrain((i, i), 'building')
+            dt.initialize_terrain((i, i), "building")
         assert dt.apply_damage((2, 2), 100) is True
         assert dt.get_terrain_hp((3, 3)) == 100
 
     def test_tree_destroyed_easily(self):
         dt = DestructibleTerrain()
-        dt.initialize_terrain((0, 0), 'tree')
+        dt.initialize_terrain((0, 0), "tree")
         assert dt.apply_damage((0, 0), 20) is True
 
 
@@ -223,12 +224,10 @@ class TestFriendlyFireSystem:
         victim.name = "Victim"
         victim.health_component = MockHealth()  # Use real object, not pure mock
 
-        event = ff.apply_friendly_fire_penalty(
-            MagicMock(name="Attacker"), victim, 15
-        )
+        event = ff.apply_friendly_fire_penalty(MagicMock(name="Attacker"), victim, 15)
 
         assert victim.health_component.current_hp == 65
-        assert event['damage'] == 15
+        assert event["damage"] == 15
 
     def test_apply_penalty_morale_effect(self):
         ff = FriendlyFireSystem()
@@ -269,14 +268,10 @@ class TestFriendlyFireSystem:
         assert hits == []
 
     def test_point_near_line_edge_case(self):
-        assert FriendlyFireSystem._point_near_line(
-            (0, 0), (10, 0), (5, 0.4), threshold=0.5
-        ) is True
+        assert FriendlyFireSystem._point_near_line((0, 0), (10, 0), (5, 0.4), threshold=0.5) is True
 
     def test_point_far_from_line(self):
-        assert FriendlyFireSystem._point_near_line(
-            (0, 0), (10, 0), (5, 5), threshold=0.5
-        ) is False
+        assert FriendlyFireSystem._point_near_line((0, 0), (10, 0), (5, 5), threshold=0.5) is False
 
 
 class TestRiverCrossingSystem:
@@ -407,8 +402,10 @@ class TestEnvironmentalAudioSystem:
 
     def test_combat_enables_artillery(self):
         env = EnvironmentalAudioSystem()
-        with patch.object(env, '_initialized', True), \
-             patch.object(env, 'start_ambient_loop', return_value=True) as mock_start:
+        with (
+            patch.object(env, "_initialized", True),
+            patch.object(env, "start_ambient_loop", return_value=True) as mock_start,
+        ):
             env.set_combat_intensity(0.5)
             mock_start.assert_called_once_with(EnvironmentSoundType.DISTANT_ARTILLERY)
 
@@ -424,7 +421,7 @@ class TestEnvironmentalAudioSystem:
 
     def test_volume_attribute_exists(self):
         env = EnvironmentalAudioSystem()
-        assert hasattr(env, '_volume')
+        assert hasattr(env, "_volume")
         assert env._volume == 0.3
 
     def test_all_sound_types_known(self):
@@ -599,29 +596,23 @@ class TestConeVisionSystem:
 
     def test_target_in_front_within_cone(self):
         cvs = ConeVisionSystem()
-        result = cvs.is_in_cone(
-            (0, 0), 0.0, (10, 0), stance='standing'
-        )
+        result = cvs.is_in_cone((0, 0), 0.0, (10, 0), stance="standing")
         assert result is True
 
     def test_target_behind_outside_cone(self):
         cvs = ConeVisionSystem()
-        result = cvs.is_in_cone(
-            (0, 0), 0.0, (-10, 0), stance='standing'
-        )
+        result = cvs.is_in_cone((0, 0), 0.0, (-10, 0), stance="standing")
         assert result is False
 
     def test_range_limit(self):
         cvs = ConeVisionSystem()
-        result = cvs.is_in_cone(
-            (0, 0), 0.0, (100, 0), max_range=10.0
-        )
+        result = cvs.is_in_cone((0, 0), 0.0, (100, 0), max_range=10.0)
         assert result is False
 
     def test_standing_wider_than_prone(self):
         cvs = ConeVisionSystem()
-        standing_angle = cvs.get_cone_angle('standing')
-        prone_angle = cvs.get_cone_angle('prone')
+        standing_angle = cvs.get_cone_angle("standing")
+        prone_angle = cvs.get_cone_angle("prone")
         assert standing_angle > prone_angle
 
     def test_target_at_exact_cone_edge(self):
@@ -630,23 +621,23 @@ class TestConeVisionSystem:
         rad = math.radians(60)
         tx = 10 * math.cos(rad)
         ty = 10 * math.sin(rad)
-        result = cvs.is_in_cone((0, 0), 0.0, (tx, ty), stance='standing')
+        result = cvs.is_in_cone((0, 0), 0.0, (tx, ty), stance="standing")
         assert result is True  # On edge should be included
 
     def test_crouching_narrower(self):
         cvs = ConeVisionSystem()
-        crouch = cvs.get_cone_angle('crouching')
-        standing = cvs.get_cone_angle('standing')
+        crouch = cvs.get_cone_angle("crouching")
+        standing = cvs.get_cone_angle("standing")
         assert crouch < standing
 
     def test_prone_narrowest(self):
         cvs = ConeVisionSystem()
-        prone = cvs.get_cone_angle('prone')
+        prone = cvs.get_cone_angle("prone")
         assert prone == 60.0
 
     def test_invalid_stance_defaults(self):
         cvs = ConeVisionSystem()
-        angle = cvs.get_cone_angle('invalid_stance')
+        angle = cvs.get_cone_angle("invalid_stance")
         assert angle == cvs.DEFAULT_CONE_ANGLE
 
 
@@ -673,16 +664,16 @@ class TestTrenchDiggingAI:
         ai = TrenchDiggingAI()
         ai.update_unit(1, is_stationary=True, is_detected=False, dt=2.5)
         result = ai.update_unit(1, is_stationary=True, is_detected=False, dt=0.1)
-        assert result == 'digging'
+        assert result == "digging"
 
     def test_completion(self):
         ai = TrenchDiggingAI()
         # Need ~15 seconds of stationary time after initial delay
         for _ in range(20):
             result = ai.update_unit(1, is_stationary=True, is_detected=False, dt=1.0)
-            if result == 'completed':
+            if result == "completed":
                 break
-        assert ai.get_dig_progress(1) >= 1.0 or result == 'completed'
+        assert ai.get_dig_progress(1) >= 1.0 or result == "completed"
 
     def test_multiple_units_independent(self):
         ai = TrenchDiggingAI()
@@ -705,5 +696,5 @@ class TestTrenchDiggingAI:
         assert progress_after == 0.0
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

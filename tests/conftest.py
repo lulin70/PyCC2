@@ -13,9 +13,9 @@ V0.3.38 Fix: Lazy pygame initialization to prevent OOM kills.
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
-import logging
 
 import pytest
 
@@ -76,6 +76,7 @@ def _cleanup_pygame():
     if _pygame_initialized:
         try:
             import pygame
+
             pygame.quit()
         except Exception:
             pass
@@ -182,19 +183,19 @@ def game_instance(pygame_display):
 
     game = None
     try:
-        from pycc2.services.game_loop import GameLoop
-        from pycc2.domain.entities.game_map import GameMap
-        from pycc2.domain.entities.unit import Unit, Faction, UnitType
-        from pycc2.domain.components.position_component import PositionComponent
         from pycc2.domain.components.health_component import HealthComponent
+        from pycc2.domain.components.morale_component import MoraleComponent
+        from pycc2.domain.components.position_component import PositionComponent
         from pycc2.domain.components.vision_component import VisionComponent
         from pycc2.domain.components.weapon_component import WeaponComponent
-        from pycc2.domain.components.morale_component import MoraleComponent
+        from pycc2.domain.entities.game_map import GameMap
+        from pycc2.domain.entities.unit import Faction, Unit, UnitType
         from pycc2.domain.value_objects.tile_coord import TileCoord
         from pycc2.presentation.rendering.camera import Camera
         from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
         from pycc2.presentation.rendering.window_config import WindowManager
         from pycc2.services.event_bus import EventBus
+        from pycc2.services.game_loop import GameLoop
 
         # Create minimal game map (10x10)
         game_map = GameMap(width=10, height=10)
@@ -224,6 +225,7 @@ def game_instance(pygame_display):
 
         # Create game state
         from pycc2.services.game_loop import GameState
+
         state = GameState(
             game_map=game_map,
             units=[],
@@ -280,6 +282,7 @@ def pixel_artist_3d_fixture(pygame_display, can_render):
 
     try:
         from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+
         return PixelArtist3D
     except ImportError as e:
         pytest.skip(f"PixelArtist3D not available: {e}")
@@ -382,5 +385,5 @@ def pytest_configure(config):
     """Pytest hook - called before test collection."""
     logger.info("PyCC2 Test Suite Configuration")
     logger.info("Python version: %s", sys.version)
-    logger.info("SDL_VIDEODRIVER: %s", os.environ.get('SDL_VIDEODRIVER', 'not set'))
-    logger.info("SDL_AUDIODRIVER: %s", os.environ.get('SDL_AUDIODRIVER', 'not set'))
+    logger.info("SDL_VIDEODRIVER: %s", os.environ.get("SDL_VIDEODRIVER", "not set"))
+    logger.info("SDL_AUDIODRIVER: %s", os.environ.get("SDL_AUDIODRIVER", "not set"))

@@ -9,6 +9,10 @@ from __future__ import annotations
 
 import logging
 import math
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pycc2.presentation.ui.deployment_ui import DeploymentUI
 
 logger = logging.getLogger(__name__)
 
@@ -22,25 +26,55 @@ except ImportError:
     pygame = None  # type: ignore[assignment]
 
 # Import models and constants used by renderers
+from pycc2.presentation.ui.deployment_los import DeploymentLOSSystem
 from pycc2.presentation.ui.deployment_models import (
+    CATEGORY_INFO as _CATEGORY_INFO,
+)
+from pycc2.presentation.ui.deployment_models import (
+    ROSTER_BG as _ROSTER_BG,
+)
+from pycc2.presentation.ui.deployment_models import (
+    ROSTER_BORDER as _ROSTER_BORDER,
+)
+from pycc2.presentation.ui.deployment_models import (
+    ROSTER_CATEGORY_BG as _ROSTER_CATEGORY_BG,
+)
+from pycc2.presentation.ui.deployment_models import (
+    ROSTER_CATEGORY_TEXT as _ROSTER_CATEGORY_TEXT,
+)
+from pycc2.presentation.ui.deployment_models import (
+    ROSTER_PLACED_BG as _ROSTER_PLACED_BG,
+)
+from pycc2.presentation.ui.deployment_models import (
+    ROSTER_SELECTED_BG as _ROSTER_SELECTED_BG,
+)
+from pycc2.presentation.ui.deployment_models import (
+    ROSTER_TEXT as _ROSTER_TEXT,
+)
+from pycc2.presentation.ui.deployment_models import (
+    ROSTER_TEXT_DIM as _ROSTER_TEXT_DIM,
+)
+from pycc2.presentation.ui.deployment_models import (
+    RP_COLOR as _RP_COLOR,
+)
+from pycc2.presentation.ui.deployment_models import (
+    RP_SPENT_COLOR as _RP_SPENT_COLOR,
+)
+from pycc2.presentation.ui.deployment_models import (
+    VALID_PLACEMENT_COLOR as _VALID_PLACEMENT_COLOR,
+)
+from pycc2.presentation.ui.deployment_models import (
+    ZONE_BORDER_COLORS as _ZONE_BORDER_COLORS,
+)
+from pycc2.presentation.ui.deployment_models import (
+    ZONE_COLORS as _ZONE_COLORS,
+)
+from pycc2.presentation.ui.deployment_models import (
+    DeploymentPhase,
     DeploymentUnit,
     UnitCategory,
     ZoneType,
-    ZONE_COLORS as _ZONE_COLORS,
-    ZONE_BORDER_COLORS as _ZONE_BORDER_COLORS,
-    ROSTER_BG as _ROSTER_BG,
-    ROSTER_BORDER as _ROSTER_BORDER,
-    ROSTER_TEXT as _ROSTER_TEXT,
-    ROSTER_TEXT_DIM as _ROSTER_TEXT_DIM,
-    ROSTER_SELECTED_BG as _ROSTER_SELECTED_BG,
-    ROSTER_PLACED_BG as _ROSTER_PLACED_BG,
-    ROSTER_CATEGORY_BG as _ROSTER_CATEGORY_BG,
-    ROSTER_CATEGORY_TEXT as _ROSTER_CATEGORY_TEXT,
-    RP_COLOR as _RP_COLOR,
-    RP_SPENT_COLOR as _RP_SPENT_COLOR,
-    CATEGORY_INFO as _CATEGORY_INFO,
 )
-from pycc2.presentation.ui.deployment_los import DeploymentLOSSystem
 
 
 class DeploymentRenderer:
@@ -50,7 +84,7 @@ class DeploymentRenderer:
     Accesses parent UI state via ``self._ui``.
     """
 
-    def __init__(self, ui: "DeploymentUI"):
+    def __init__(self, ui: DeploymentUI):
         """Store reference to parent UI for state access."""
         self._ui = ui
         # Surface caches – lazy init to avoid pygame-not-initialized issues
@@ -103,9 +137,17 @@ class DeploymentRenderer:
             for x in range(map_w):
                 zone = ui._get_zone_at(x, y)
                 if zone == ZoneType.ENEMY_CONTROLLED:
-                    pygame.draw.rect(zone_overlay, (60, 60, 60, 100), (x * tile_size, y * tile_size, tile_size, tile_size))
+                    pygame.draw.rect(
+                        zone_overlay,
+                        (60, 60, 60, 100),
+                        (x * tile_size, y * tile_size, tile_size, tile_size),
+                    )
                 elif zone == ZoneType.NO_MANS_LAND:
-                    pygame.draw.rect(zone_overlay, (120, 120, 120, 60), (x * tile_size, y * tile_size, tile_size, tile_size))
+                    pygame.draw.rect(
+                        zone_overlay,
+                        (120, 120, 120, 60),
+                        (x * tile_size, y * tile_size, tile_size, tile_size),
+                    )
                 # FRIENDLY zone = no overlay
 
         cam_x = int(getattr(camera, "offset_x", 0))
@@ -244,9 +286,7 @@ class DeploymentRenderer:
                 terrain = ui._get_terrain_at(x, y)
                 if ui.can_place_at(unit, x, y, terrain):
                     # Check not already occupied
-                    occupied = any(
-                        pu.position == (x, y) for pu in ui._state.placed_units
-                    )
+                    occupied = any(pu.position == (x, y) for pu in ui._state.placed_units)
                     if not occupied:
                         highlight_surf.fill(_VALID_PLACEMENT_COLOR)
                         screen.blit(highlight_surf, (ox + x * ts, oy + y * ts))
@@ -331,7 +371,7 @@ class DeploymentRenderer:
             else:
                 # DEFAULT: Square for unknown types
                 color = (200, 200, 200)
-                rect = pygame.Rect(cx - radius//2, cy - radius//2, radius, radius)
+                rect = pygame.Rect(cx - radius // 2, cy - radius // 2, radius, radius)
                 pygame.draw.rect(screen, color, rect)
                 pygame.draw.rect(screen, (255, 255, 255), rect, 1)
 
@@ -342,7 +382,9 @@ class DeploymentRenderer:
                 label_x = cx - label.get_width() // 2
                 label_y = cy + radius + 2
                 # Background for readability
-                bg_rect = pygame.Rect(label_x - 2, label_y - 1, label.get_width() + 4, label.get_height() + 2)
+                bg_rect = pygame.Rect(
+                    label_x - 2, label_y - 1, label.get_width() + 4, label.get_height() + 2
+                )
                 pygame.draw.rect(screen, (0, 0, 0, 180), bg_rect, border_radius=2)
                 screen.blit(label, (label_x, label_y))
 
@@ -381,12 +423,26 @@ class DeploymentRenderer:
 
             # Draw dashed line from source to destination
             line_color = (255, 200, 50, 180)  # Yellow-gold for orders
-            self._draw_dashed_line(screen, line_color, (sx, sy), (dx, dy), dash_length=6, gap_length=4)
+            self._draw_dashed_line(
+                screen, line_color, (sx, sy), (dx, dy), dash_length=6, gap_length=4
+            )
 
             # Draw target marker (X mark)
             mark_size = max(ts // 4, 4)
-            pygame.draw.line(screen, (255, 200, 50), (dx - mark_size, dy - mark_size), (dx + mark_size, dy + mark_size), 2)
-            pygame.draw.line(screen, (255, 200, 50), (dx + mark_size, dy - mark_size), (dx - mark_size, dy + mark_size), 2)
+            pygame.draw.line(
+                screen,
+                (255, 200, 50),
+                (dx - mark_size, dy - mark_size),
+                (dx + mark_size, dy + mark_size),
+                2,
+            )
+            pygame.draw.line(
+                screen,
+                (255, 200, 50),
+                (dx + mark_size, dy - mark_size),
+                (dx - mark_size, dy + mark_size),
+                2,
+            )
 
             # Draw small circle at target
             pygame.draw.circle(screen, (255, 200, 50), (dx, dy), mark_size + 2, 1)
@@ -399,10 +455,10 @@ class DeploymentRenderer:
     # ------------------------------------------------------------------
 
     # LOS preview color constants (matching AttackLineSystem 4-color scheme)
-    _LOS_COLOR_HIGH: tuple[int, int, int, int] = (0, 255, 0, 160)       # Green (60-100% hit)
-    _LOS_COLOR_MODERATE: tuple[int, int, int, int] = (255, 255, 0, 160) # Yellow (30-59% hit)
-    _LOS_COLOR_LOW: tuple[int, int, int, int] = (255, 50, 50, 160)      # Red (10-29% hit)
-    _LOS_COLOR_IMPOSSIBLE: tuple[int, int, int, int] = (0, 0, 0, 160)   # Black (0-9% hit)
+    _LOS_COLOR_HIGH: tuple[int, int, int, int] = (0, 255, 0, 160)  # Green (60-100% hit)
+    _LOS_COLOR_MODERATE: tuple[int, int, int, int] = (255, 255, 0, 160)  # Yellow (30-59% hit)
+    _LOS_COLOR_LOW: tuple[int, int, int, int] = (255, 50, 50, 160)  # Red (10-29% hit)
+    _LOS_COLOR_IMPOSSIBLE: tuple[int, int, int, int] = (0, 0, 0, 160)  # Black (0-9% hit)
     _LOS_DEFAULT_RANGE: int = 15  # Default visual range in tiles
 
     def _render_los_preview(self, screen, ox: int, oy: int, ts: int) -> None:
@@ -421,8 +477,14 @@ class DeploymentRenderer:
         """Delegate to DeploymentLOSSystem for hit probability estimation."""
         ui = self._ui
         return DeploymentLOSSystem.estimate_hit_probability(
-            src_x, src_y, dst_x, dst_y, distance, unit,
-            ui._tile_grid, ui._get_terrain_at,
+            src_x,
+            src_y,
+            dst_x,
+            dst_y,
+            distance,
+            unit,
+            ui._tile_grid,
+            ui._get_terrain_at,
         )
 
     def _hit_probability_to_los_color(self, hit_prob: float) -> tuple[int, int, int, int]:
@@ -440,6 +502,7 @@ class DeploymentRenderer:
     ) -> None:
         """Delegate to DeploymentLOSSystem.draw_dashed_line (via rendering_utils)."""
         from pycc2.presentation.rendering.rendering_utils import draw_dashed_line
+
         draw_dashed_line(surface, color, start, end, dash_length=dash_length, gap_length=gap_length)
 
     @staticmethod
@@ -463,7 +526,12 @@ class DeploymentRenderer:
         ui._roster_layout = []
 
         # Group units by category
-        categories_order = [UnitCategory.INFANTRY, UnitCategory.SUPPORT, UnitCategory.ARMOR, UnitCategory.RECON]
+        categories_order = [
+            UnitCategory.INFANTRY,
+            UnitCategory.SUPPORT,
+            UnitCategory.ARMOR,
+            UnitCategory.RECON,
+        ]
         units_by_category: dict[UnitCategory, list[int]] = {cat: [] for cat in categories_order}
 
         for i, unit in enumerate(ui._state.available_units):
@@ -616,13 +684,13 @@ class DeploymentRenderer:
             # Color based on remaining percentage
             ratio = remaining / total
             if ratio > 0.5:
-                rp_color = (100, 220, 100)      # Green - plenty
+                rp_color = (100, 220, 100)  # Green - plenty
             elif ratio > 0.25:
-                rp_color = (230, 200, 80)       # Yellow - getting low
+                rp_color = (230, 200, 80)  # Yellow - getting low
             elif ratio > 0:
-                rp_color = (230, 140, 80)       # Orange - very low
+                rp_color = (230, 140, 80)  # Orange - very low
             else:
-                rp_color = (230, 80, 80)        # Red - over budget!
+                rp_color = (230, 80, 80)  # Red - over budget!
 
             rp_label = ui._font_large.render(rp_text, True, rp_color)
             panel_surf.blit(rp_label, (ui._roster_padding + 4, header_bg_y + 26))
@@ -650,16 +718,16 @@ class DeploymentRenderer:
             # Bar color based on remaining ratio
             ratio = remaining / total if total > 0 else 0
             if ratio > 0.5:
-                bar_color = (60, 180, 60)       # Green
+                bar_color = (60, 180, 60)  # Green
                 bar_border = (80, 220, 80)
             elif ratio > 0.25:
-                bar_color = (200, 180, 50)      # Yellow
+                bar_color = (200, 180, 50)  # Yellow
                 bar_border = (230, 210, 70)
             elif ratio > 0:
-                bar_color = (210, 130, 50)      # Orange
+                bar_color = (210, 130, 50)  # Orange
                 bar_border = (240, 160, 70)
             else:
-                bar_color = (200, 60, 60)       # Red
+                bar_color = (200, 60, 60)  # Red
                 bar_border = (230, 90, 90)
 
             # Filled portion
@@ -723,7 +791,9 @@ class DeploymentRenderer:
         bg_surf = self._rp_bg_cache
         bg_surf.fill((0, 0, 0, 0))
         pygame.draw.rect(bg_surf, (30, 35, 45, 230), (0, 0, panel_w, bar_height), border_radius=8)
-        pygame.draw.rect(bg_surf, (80, 85, 100), (0, 0, panel_w, bar_height), width=2, border_radius=8)
+        pygame.draw.rect(
+            bg_surf, (80, 85, 100), (0, 0, panel_w, bar_height), width=2, border_radius=8
+        )
 
         # "REQUISITION POINTS" label (small, top)
         if ui._font_small:
@@ -736,15 +806,15 @@ class DeploymentRenderer:
         # Color based on remaining percentage
         ratio = remaining / total if total > 0 else 0
         if ratio > 0.6:
-            rp_color = (100, 230, 100)      # Green - plenty
+            rp_color = (100, 230, 100)  # Green - plenty
         elif ratio > 0.3:
-            rp_color = (240, 220, 80)       # Yellow - getting low
+            rp_color = (240, 220, 80)  # Yellow - getting low
         elif ratio > 0.1:
-            rp_color = (245, 150, 70)       # Orange - very low
+            rp_color = (245, 150, 70)  # Orange - very low
         elif ratio > 0:
-            rp_color = (245, 90, 90)        # Red - critical!
+            rp_color = (245, 90, 90)  # Red - critical!
         else:
-            rp_color = (255, 60, 60)        # Dark red - over budget!
+            rp_color = (255, 60, 60)  # Dark red - over budget!
 
         rp_label = ui._font_large.render(rp_text, True, rp_color)
         bg_surf.blit(rp_label, ((panel_w - rp_label.get_width()) // 2, 26))
@@ -758,9 +828,7 @@ class DeploymentRenderer:
 
     def _render_unit_counts(self, screen: pygame.Surface) -> None:
         ui = self._ui
-        infantry_count = sum(
-            1 for u in ui._state.placed_units if u.unit_type == "infantry"
-        )
+        infantry_count = sum(1 for u in ui._state.placed_units if u.unit_type == "infantry")
         support_count = sum(
             1 for u in ui._state.placed_units if u.unit_type in ("support", "vehicle")
         )
@@ -863,7 +931,9 @@ class DeploymentRenderer:
     def _render_unit_details_panel(self, screen: pygame.Surface) -> None:
         """Render detailed unit information panel on the RIGHT side of screen."""
         ui = self._ui
-        if ui._selected_unit_index is None or ui._selected_unit_index >= len(ui._state.available_units):
+        if ui._selected_unit_index is None or ui._selected_unit_index >= len(
+            ui._state.available_units
+        ):
             return
 
         unit = ui._state.available_units[ui._selected_unit_index]
@@ -876,13 +946,18 @@ class DeploymentRenderer:
 
         # Background – reuse cached surface
         panel_size = (panel_w, panel_h)
-        if self._unit_detail_panel_cache is None or self._unit_detail_panel_cache_size != panel_size:
+        if (
+            self._unit_detail_panel_cache is None
+            or self._unit_detail_panel_cache_size != panel_size
+        ):
             self._unit_detail_panel_cache = pygame.Surface(panel_size, pygame.SRCALPHA)
             self._unit_detail_panel_cache_size = panel_size
         panel_surf = self._unit_detail_panel_cache
         panel_surf.fill((0, 0, 0, 0))
         pygame.draw.rect(panel_surf, (25, 28, 35, 240), (0, 0, panel_w, panel_h), border_radius=8)
-        pygame.draw.rect(panel_surf, (70, 75, 90), (0, 0, panel_w, panel_h), width=2, border_radius=8)
+        pygame.draw.rect(
+            panel_surf, (70, 75, 90), (0, 0, panel_w, panel_h), width=2, border_radius=8
+        )
 
         # Title bar (simple rectangle - pygame doesn't support per-corner radius)
         title_bar_rect = pygame.Rect(0, 0, panel_w, 32)
@@ -890,7 +965,9 @@ class DeploymentRenderer:
 
         # Unit name (title)
         if ui._font_normal:
-            name_text = unit.display_name[:18] + "..." if len(unit.display_name) > 18 else unit.display_name
+            name_text = (
+                unit.display_name[:18] + "..." if len(unit.display_name) > 18 else unit.display_name
+            )
             title_label = ui._font_normal.render(name_text, True, (255, 230, 150))
             panel_surf.blit(title_label, (10, 7))
 
@@ -904,7 +981,7 @@ class DeploymentRenderer:
                 "infantry": (100, 220, 100),
                 "support": (100, 180, 220),
                 "vehicle": (220, 180, 50),
-                "recon": (180, 140, 220)
+                "recon": (180, 140, 220),
             }.get(unit.unit_type, (200, 200, 200))
             type_label = ui._font_small.render(type_badge, True, type_color)
             panel_surf.blit(type_label, (10, y_offset))
@@ -919,7 +996,10 @@ class DeploymentRenderer:
             ("Cost", f"{unit.deployment_cost} RP"),
             ("Status", "PLACED" if unit.is_placed else "AVAILABLE"),
             ("Position", f"({unit.position[0]}, {unit.position[1]})" if unit.position else "None"),
-            ("Category", unit.category.value if hasattr(unit.category, 'value') else str(unit.category)),
+            (
+                "Category",
+                unit.category.value if hasattr(unit.category, "value") else str(unit.category),
+            ),
         ]
 
         for label, value in details:
@@ -952,7 +1032,12 @@ class DeploymentRenderer:
         btn_rect = pygame.Rect(10, y_offset, btn_w, btn_h)
 
         # CRITICAL: Save button rect for click detection in handle_click_full!
-        ui._detail_panel_btn_rect = (panel_x + btn_rect.x, panel_y + btn_rect.y, btn_rect.width, btn_rect.height)
+        ui._detail_panel_btn_rect = (
+            panel_x + btn_rect.x,
+            panel_y + btn_rect.y,
+            btn_rect.width,
+            btn_rect.height,
+        )
         ui._detail_panel_btn_action = btn_action
 
         pygame.draw.rect(panel_surf, btn_color, btn_rect, border_radius=5)
@@ -1002,8 +1087,8 @@ class DeploymentRenderer:
 
                 # Check RP budget
                 enough_rp = (
-                    ui._dragging_unit is not None and
-                    ui._dragging_unit.deployment_cost <= ui.requisition_remaining
+                    ui._dragging_unit is not None
+                    and ui._dragging_unit.deployment_cost <= ui.requisition_remaining
                 )
 
                 is_valid = can_place and not occupied and enough_rp
@@ -1014,25 +1099,35 @@ class DeploymentRenderer:
 
                 if is_valid:
                     if tile_size not in ui._highlight_surface_cache:
-                        ui._highlight_surface_cache[tile_size] = pygame.Surface((tile_size, tile_size), pygame.SRCALPHA)
+                        ui._highlight_surface_cache[tile_size] = pygame.Surface(
+                            (tile_size, tile_size), pygame.SRCALPHA
+                        )
                     highlight = ui._highlight_surface_cache[tile_size]
                     highlight.fill((0, 255, 100, 70))
                     screen.blit(highlight, (tile_screen_x, tile_screen_y))
 
-                    pygame.draw.rect(screen, (0, 255, 100), (
-                        tile_screen_x, tile_screen_y, tile_size, tile_size
-                    ), 2)
+                    pygame.draw.rect(
+                        screen,
+                        (0, 255, 100),
+                        (tile_screen_x, tile_screen_y, tile_size, tile_size),
+                        2,
+                    )
                 else:
                     if tile_size not in ui._highlight_surface_cache:
-                        ui._highlight_surface_cache[tile_size] = pygame.Surface((tile_size, tile_size), pygame.SRCALPHA)
+                        ui._highlight_surface_cache[tile_size] = pygame.Surface(
+                            (tile_size, tile_size), pygame.SRCALPHA
+                        )
                     highlight = ui._highlight_surface_cache[tile_size]
                     highlight.fill((255, 60, 60, 50))
                     screen.blit(highlight, (tile_screen_x, tile_screen_y))
 
                     # Red border
-                    pygame.draw.rect(screen, (255, 80, 80), (
-                        tile_screen_x, tile_screen_y, tile_size, tile_size
-                    ), 2)
+                    pygame.draw.rect(
+                        screen,
+                        (255, 80, 80),
+                        (tile_screen_x, tile_screen_y, tile_size, tile_size),
+                        2,
+                    )
 
         # === 2. Draw ghost unit following cursor ===
         if ui._ghost_surface is not None:
@@ -1064,11 +1159,11 @@ class DeploymentRenderer:
             try:
                 ui._font_small = pygame.font.Font(None, 16)
             except Exception as e:
-                    logging.debug(f"Small font creation failed: {e}")
-                    ui._font_small = None
+                logging.debug(f"Small font creation failed: {e}")
+                ui._font_small = None
         if ui._font_large is None:
             try:
                 ui._font_large = pygame.font.Font(None, 32)
             except Exception as e:
-                    logging.debug(f"Large font creation failed: {e}")
-                    ui._font_large = None
+                logging.debug(f"Large font creation failed: {e}")
+                ui._font_large = None

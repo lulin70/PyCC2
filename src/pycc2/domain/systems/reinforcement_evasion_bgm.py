@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
 class ReinforcementType(Enum):
     """Types of reinforcements."""
+
     INFANTRY = auto()
     ARMOR = auto()
     SUPPORT = auto()
@@ -23,6 +24,7 @@ class ReinforcementType(Enum):
 @dataclass
 class ReinforcementEvent:
     """A scheduled reinforcement event."""
+
     trigger_time: float  # Game time in seconds
     reinforcement_type: ReinforcementType
     unit_count: int = 1
@@ -46,6 +48,7 @@ class ReinforcementEvent:
 
     def _create_single_unit(self, pos: tuple[float, float], index: int):
         """Create a single unit (stub implementation)."""
+
         @dataclass
         class _StubUnit:
             name: str
@@ -100,13 +103,11 @@ class ReinforcementSystem:
 
         for evt in events:
             rein = ReinforcementEvent(
-                trigger_time=evt.get('trigger_time', 300.0),
-                reinforcement_type=ReinforcementType[
-                    evt.get('type', 'INFANTRY').upper()
-                ],
-                unit_count=evt.get('count', 1),
-                faction=evt.get('faction', 'allied'),
-                entry_edge=evt.get('edge', 'random'),
+                trigger_time=evt.get("trigger_time", 300.0),
+                reinforcement_type=ReinforcementType[evt.get("type", "INFANTRY").upper()],
+                unit_count=evt.get("count", 1),
+                faction=evt.get("faction", "allied"),
+                entry_edge=evt.get("edge", "random"),
             )
             self.reinforcements.append(rein)
 
@@ -151,10 +152,10 @@ class ReinforcementSystem:
             return random.choice(edges)
 
         edge_map = {
-            'north': lambda e: min(e, key=lambda p: p[1]),
-            'south': lambda e: max(e, key=lambda p: p[1]),
-            'east': lambda e: max(e, key=lambda p: p[0]),
-            'west': lambda e: min(e, key=lambda p: p[0]),
+            "north": lambda e: min(e, key=lambda p: p[1]),
+            "south": lambda e: max(e, key=lambda p: p[1]),
+            "east": lambda e: max(e, key=lambda p: p[0]),
+            "west": lambda e: min(e, key=lambda p: p[0]),
         }
 
         if rein.entry_edge in edge_map:
@@ -219,21 +220,24 @@ class VehicleEvasionAI:
         Returns:
             Threat level 0.0 (safe) to 1.0 (critical)
         """
-        at_units = [
-            u for u in enemy_units
-            if getattr(u, 'has_at_weapon', False)
-        ]
+        at_units = [u for u in enemy_units if getattr(u, "has_at_weapon", False)]
 
         if not at_units:
             return 0.0
 
-        closest_dist = float('inf')
+        closest_dist = float("inf")
 
         for enemy in at_units:
-            ex = getattr(enemy.position_component, 'x', 0.0) \
-                if hasattr(enemy, 'position_component') else 0.0
-            ey = getattr(enemy.position_component, 'y', 0.0) \
-                if hasattr(enemy, 'position_component') else 0.0
+            ex = (
+                getattr(enemy.position_component, "x", 0.0)
+                if hasattr(enemy, "position_component")
+                else 0.0
+            )
+            ey = (
+                getattr(enemy.position_component, "y", 0.0)
+                if hasattr(enemy, "position_component")
+                else 0.0
+            )
 
             dx = ex - vehicle_pos[0]
             dy = ey - vehicle_pos[1]

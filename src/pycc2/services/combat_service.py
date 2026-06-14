@@ -17,18 +17,19 @@ from pycc2.domain.systems.combat_resolver import CombatResolver
 from pycc2.domain.systems.morale_system import MoraleCalculator
 from pycc2.services.event_bus import EventBus
 from pycc2.services.event_protocol import (
-    WeaponFired,
     UnitAttacked,
     UnitKilled,
+    WeaponFired,
 )
 
 
 class AttackAngle(Enum):
     """Attack angle relative to target's facing direction."""
-    FRONT = auto()      # 0° ±45°: Full armor
-    FLANK_LEFT = auto() # 45-135°: Side armor
+
+    FRONT = auto()  # 0° ±45°: Full armor
+    FLANK_LEFT = auto()  # 45-135°: Side armor
     FLANK_RIGHT = auto()
-    REAR = auto()       # 135-225°: Rear armor (weakest)
+    REAR = auto()  # 135-225°: Rear armor (weakest)
     FRONT_FLANK = auto()  # Transition zones
 
 
@@ -103,7 +104,7 @@ class CombatService:
                 weapon_id=weapon_slot,
                 target_id=target.unit_id,
                 hit=shot_result.hit,
-                ammo_remaining=getattr(attacker, 'ammo', 0),
+                ammo_remaining=getattr(attacker, "ammo", 0),
             ),
         )
 
@@ -145,7 +146,9 @@ class CombatService:
                     unit_id=target.unit_id,
                     killer_id=attacker.unit_id,
                     position=(target.position_component.x, target.position_component.y),
-                    faction=target.faction.name if hasattr(target.faction, 'name') else str(target.faction),
+                    faction=target.faction.name
+                    if hasattr(target.faction, "name")
+                    else str(target.faction),
                 ),
             )
             self._logger.warning(f"Unit eliminated: {target.name}")
@@ -301,4 +304,3 @@ class CombatService:
             AttackAngle.FRONT_FLANK: "Front-Frontal",
         }
         return descriptions.get(angle, "Unknown")
-

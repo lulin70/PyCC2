@@ -7,8 +7,7 @@ Extracted from deployment_ui.py God Class (v0.3.29 SRP refactoring).
 
 from __future__ import annotations
 
-from pycc2.presentation.ui.deployment_models import DeploymentUnit
-from pycc2.presentation.ui.deployment_models import IMPASSABLE_TERRAINS
+from pycc2.presentation.ui.deployment_models import IMPASSABLE_TERRAINS, DeploymentUnit
 
 
 def build_default_roster() -> list[DeploymentUnit]:
@@ -173,12 +172,14 @@ def generate_ai_deployment(
         for pos in enemy_positions:
             if pos not in used_positions:
                 used_positions.add(pos)
-                placements.append({
-                    "unit_template_id": template_id,
-                    "display_name": name,
-                    "unit_type": utype,
-                    "position": pos,
-                })
+                placements.append(
+                    {
+                        "unit_template_id": template_id,
+                        "display_name": name,
+                        "unit_type": utype,
+                        "position": pos,
+                    }
+                )
                 spent += cost
                 break
 

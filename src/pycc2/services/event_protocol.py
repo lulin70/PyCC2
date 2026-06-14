@@ -154,8 +154,9 @@ class DebugCommand(TypedDict, total=False):
     timestamp: float
 
 
-from pycc2.domain.interfaces.event_types import PlayerCommand  # noqa: F401 — re-export for backward compatibility
-
+from pycc2.domain.interfaces.event_types import (
+    PlayerCommand,  # noqa: F401 — re-export for backward compatibility
+)
 
 __all__ = [
     "UnitMoved",

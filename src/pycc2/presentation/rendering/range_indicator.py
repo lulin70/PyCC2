@@ -16,8 +16,9 @@ if TYPE_CHECKING:
 
 class RangeType(Enum):
     """Types of range indicators."""
-    MIN_RANGE = auto()   # Inner circle (minimum effective range)
-    MAX_RANGE = auto()   # Outer circle (maximum range)
+
+    MIN_RANGE = auto()  # Inner circle (minimum effective range)
+    MAX_RANGE = auto()  # Outer circle (maximum range)
 
 
 @dataclass(slots=True)
@@ -63,13 +64,13 @@ class RangeIndicator:
         min_range = 0.0
         max_range = 0.0
 
-        weapon_comp = getattr(unit, 'weapon_component', None)
+        weapon_comp = getattr(unit, "weapon_component", None)
         if weapon_comp:
-            min_range = getattr(weapon_comp, 'min_range', 0.0)
-            max_range = getattr(weapon_comp, 'max_range', 0.0)
+            min_range = getattr(weapon_comp, "min_range", 0.0)
+            max_range = getattr(weapon_comp, "max_range", 0.0)
 
         if max_range == 0.0:
-            max_range = getattr(unit, 'vision_range', 10.0)
+            max_range = getattr(unit, "vision_range", 10.0)
 
         return (min_range, max_range)
 
@@ -138,19 +139,16 @@ class RangeIndicator:
 
                 if min_radius > 0:
                     pygame.draw.circle(
-                        self._range_surf, (255, 255, 0, self._alpha),
-                        center, min_radius, 2
+                        self._range_surf, (255, 255, 0, self._alpha), center, min_radius, 2
                     )
 
                 pygame.draw.circle(
-                    self._range_surf, (255, 0, 0, self._alpha),
-                    center, max_radius, 2
+                    self._range_surf, (255, 0, 0, self._alpha), center, max_radius, 2
                 )
 
                 surface.blit(
                     self._range_surf,
-                    (int(screen_pos[0]) - max_radius - 2,
-                     int(screen_pos[1]) - max_radius - 2),
+                    (int(screen_pos[0]) - max_radius - 2, int(screen_pos[1]) - max_radius - 2),
                 )
 
         except Exception as e:
@@ -171,21 +169,22 @@ class RangeIndicator:
             'no_unit': No unit selected
         """
         if not self.active_unit:
-            return 'no_unit'
+            return "no_unit"
 
         dx = point[0] - unit_pos[0]
         dy = point[1] - unit_pos[1]
         distance = (dx * dx + dy * dy) ** 0.5
 
         if distance < self._min_range:
-            return 'inside_min'
+            return "inside_min"
         elif distance <= self._max_range:
-            return 'between'
+            return "between"
         else:
-            return 'outside_max'
+            return "outside_max"
 
 
 def __to_vec2(pos: tuple[float, float]):
     """Helper to convert tuple to Vec2."""
     from pycc2.domain.value_objects.vec2 import Vec2
+
     return Vec2(pos[0], pos[1])

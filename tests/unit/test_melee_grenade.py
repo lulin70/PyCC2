@@ -15,33 +15,34 @@ Coverage:
 - Grenade ammo management
 """
 
-import pytest
 from unittest.mock import Mock, patch
 
+import pytest
+
 from pycc2.domain.ai.melee_combat import (
-    # B4 Melee
-    MeleeCombatSystem,
-    MeleeCombatAI,
-    MeleeWeaponType,
-    MeleeResult,
+    BASE_HIT_CHANCE,
     BAYONET_DAMAGE,
     BUTT_STROKE_DAMAGE,
     FISTS_DAMAGE,
-    BASE_HIT_CHANCE,
-    GrenadeSystem,
-    GRENADE_MAX_COUNT,
     GRENADE_CENTER_DAMAGE,
     GRENADE_EDGE_DAMAGE,
+    GRENADE_MAX_COUNT,
     GRENADE_SUPPRESSION,
+    GrenadeSystem,
+    MeleeCombatAI,
+    # B4 Melee
+    MeleeCombatSystem,
+    MeleeResult,
+    MeleeWeaponType,
 )
 from pycc2.domain.ai.tactic_intent import TacticType
 from pycc2.domain.ai.tactical_ai import TacticalContext
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
-
 # ===========================================================================
 # Mock Fixtures
 # ===========================================================================
+
 
 @pytest.fixture
 def mock_infantry_unit():
@@ -147,6 +148,7 @@ def tactical_context(mock_infantry_unit, mock_enemy_unit):
 # Test Class: B4 Melee Combat System
 # ===========================================================================
 
+
 class TestMeleeWeaponSelection:
     """Test melee weapon type assignment."""
 
@@ -163,7 +165,9 @@ class TestMeleeWeaponSelection:
     def test_weapon_damage_values(self):
         """Verify damage values match constants."""
         assert MeleeCombatSystem.get_weapon_damage(MeleeWeaponType.BAYONET) == BAYONET_DAMAGE
-        assert MeleeCombatSystem.get_weapon_damage(MeleeWeaponType.BUTT_STROKE) == BUTT_STROKE_DAMAGE
+        assert (
+            MeleeCombatSystem.get_weapon_damage(MeleeWeaponType.BUTT_STROKE) == BUTT_STROKE_DAMAGE
+        )
         assert MeleeCombatSystem.get_weapon_damage(MeleeWeaponType.FISTS) == FISTS_DAMAGE
 
 
@@ -183,6 +187,7 @@ class TestMeleeHitChance:
     def test_exhausted_penalty(self, mock_infantry_unit):
         """Exhausted units should have reduced hit chance."""
         from pycc2.domain.components.fatigue_component import FatigueLevel
+
         mock_infantry_unit.fatigue = Mock(level=FatigueLevel.EXHAUSTED)
 
         chance = MeleeCombatSystem.calculate_hit_chance(mock_infantry_unit)
@@ -198,6 +203,7 @@ class TestMeleeHitChance:
     def test_veteran_bonus(self, mock_infantry_unit):
         """Veteran/elite units get bonus to hit chance."""
         from pycc2.domain.components.veterancy_component import VeteranRank
+
         mock_infantry_unit.veterancy = Mock(rank=VeteranRank.VETERAN)
 
         chance = MeleeCombatSystem.calculate_hit_chance(mock_infantry_unit)
@@ -207,7 +213,7 @@ class TestMeleeHitChance:
 class TestMeleeResolution:
     """Test melee attack resolution."""
 
-    @patch('random.random', return_value=0.5)  # Guaranteed hit (< 0.90)
+    @patch("random.random", return_value=0.5)  # Guaranteed hit (< 0.90)
     def test_successful_melee_attack(self, mock_random, mock_infantry_unit, mock_enemy_unit):
         """Successful melee should deal damage to defender."""
         result = MeleeCombatSystem.resolve_melee(
@@ -220,22 +226,18 @@ class TestMeleeResolution:
         assert result.attacker_id == mock_infantry_unit.id
         assert result.defender_id == mock_enemy_unit.id
 
-    @patch('random.random', return_value=0.95)  # Miss (> 0.90)
+    @patch("random.random", return_value=0.95)  # Miss (> 0.90)
     def test_missed_melee_attack(self, mock_random, mock_infantry_unit, mock_enemy_unit):
         """Missed melee should deal no damage."""
-        result = MeleeCombatSystem.resolve_melee(
-            mock_infantry_unit, mock_enemy_unit
-        )
+        result = MeleeCombatSystem.resolve_melee(mock_infantry_unit, mock_enemy_unit)
 
         assert result.hit is False
         assert result.damage == 0
 
     def test_counter_attack_damage(self, mock_infantry_unit, mock_enemy_unit):
         """Defender should counter-attack at reduced damage."""
-        with patch('random.random', return_value=0.3):  # Both hit
-            result = MeleeCombatSystem.resolve_melee(
-                mock_infantry_unit, mock_enemy_unit
-            )
+        with patch("random.random", return_value=0.3):  # Both hit
+            result = MeleeCombatSystem.resolve_melee(mock_infantry_unit, mock_enemy_unit)
 
             assert result.counter_hit is True
             assert result.counter_damage > 0
@@ -274,6 +276,7 @@ class TestMeleeEligibility:
 # ===========================================================================
 # Test Class: B5 Grenade System
 # ===========================================================================
+
 
 class TestGrenadeAmmo:
     """Test grenade ammunition management."""
@@ -331,7 +334,7 @@ class TestGrenadeThrowValidation:
 class TestGrenadeAOEDamage:
     """Test AOE damage distribution."""
 
-    @patch('random.random', return_value=0.5)  # Hit
+    @patch("random.random", return_value=0.5)  # Hit
     def test_center_target_full_damage(self, mock_rand, mock_infantry_unit):
         """Target at center takes full damage."""
         center = TileCoord(7, 5)
@@ -341,15 +344,13 @@ class TestGrenadeAOEDamage:
         target.position_component = Mock(x=7, y=5)
         target.take_damage = Mock()
 
-        result = GrenadeSystem.throw_grenade(
-            mock_infantry_unit, center, [target]
-        )
+        result = GrenadeSystem.throw_grenade(mock_infantry_unit, center, [target])
 
         assert len(result.targets_hit) == 1
         assert result.targets_hit[0].is_center_hit is True
         assert result.targets_hit[0].damage == GRENADE_CENTER_DAMAGE
 
-    @patch('random.random', return_value=0.5)  # Hit
+    @patch("random.random", return_value=0.5)  # Hit
     def test_edge_target_half_damage(self, mock_rand, mock_infantry_unit):
         """Target at edge of blast takes half damage."""
         center = TileCoord(7, 5)
@@ -359,15 +360,13 @@ class TestGrenadeAOEDamage:
         target.position_component = Mock(x=8, y=5)  # 1 tile away
         target.take_damage = Mock()
 
-        result = GrenadeSystem.throw_grenade(
-            mock_infantry_unit, center, [target]
-        )
+        result = GrenadeSystem.throw_grenade(mock_infantry_unit, center, [target])
 
         assert len(result.targets_hit) == 1
         assert result.targets_hit[0].is_center_hit is False
         assert result.targets_hit[0].damage == GRENADE_EDGE_DAMAGE
 
-    @patch('random.random', return_value=0.5)  # Hit
+    @patch("random.random", return_value=0.5)  # Hit
     def test_multiple_targets_aoe(self, mock_rand, mock_infantry_unit):
         """Multiple targets in radius all get hit."""
         center = TileCoord(7, 5)
@@ -381,28 +380,24 @@ class TestGrenadeAOEDamage:
             t.take_damage = Mock()
             targets.append(t)
 
-        result = GrenadeSystem.throw_grenade(
-            mock_infantry_unit, center, targets
-        )
+        result = GrenadeSystem.throw_grenade(mock_infantry_unit, center, targets)
 
         assert len(result.targets_hit) == 3
         assert result.total_damage > 0
 
-    @patch('random.random', return_value=0.5)  # Hit
+    @patch("random.random", return_value=0.5)  # Hit
     def test_thrower_not_self_harm(self, mock_rand, mock_infantry_unit):
         """Thrower should not be affected by own grenade."""
         center = TileCoord(7, 5)
 
         # Thrower is at (5,5), grenade lands at (7,5), so safe
-        result = GrenadeSystem.throw_grenade(
-            mock_infantry_unit, center, [mock_infantry_unit]
-        )
+        result = GrenadeSystem.throw_grenade(mock_infantry_unit, center, [mock_infantry_unit])
 
         # Should not hit self (filtered out)
         for t in result.targets_hit:
             assert t.target_id != mock_infantry_unit.id
 
-    @patch('random.random', return_value=0.5)
+    @patch("random.random", return_value=0.5)
     def test_suppression_applied(self, mock_rand, mock_infantry_unit):
         """All hit targets should receive suppression."""
         center = TileCoord(7, 5)
@@ -413,9 +408,7 @@ class TestGrenadeAOEDamage:
         target.take_damage = Mock()
         target.suppression_state = Mock()
 
-        result = GrenadeSystem.throw_grenade(
-            mock_infantry_unit, center, [target]
-        )
+        result = GrenadeSystem.throw_grenade(mock_infantry_unit, center, [target])
 
         assert len(result.targets_hit) == 1
         assert result.targets_hit[0].suppression_applied == GRENADE_SUPPRESSION
@@ -430,7 +423,7 @@ class TestGrenadeAmmoConsumption:
         initial = GrenadeSystem.get_grenade_count(mock_infantry_unit)
 
         center = TileCoord(7, 5)
-        with patch('random.random', return_value=0.9):  # Miss
+        with patch("random.random", return_value=0.9):  # Miss
             GrenadeSystem.throw_grenade(mock_infantry_unit, center, [])
 
         remaining = GrenadeSystem.get_grenade_count(mock_infantry_unit)
@@ -483,6 +476,7 @@ class TestGrenadeUnitsInRadius:
 # ===========================================================================
 # Integration Tests: Melee + Grenade AI
 # ===========================================================================
+
 
 class TestMeleeCombatAI:
     """Test the AI decision-making for melee/grenade combat."""

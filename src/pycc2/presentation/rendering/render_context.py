@@ -7,13 +7,13 @@ explicit interfaces for all shared rendering dependencies.
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 import pygame
 
 from pycc2.presentation.rendering.autotile_system import AutotileCache
-from pycc2.presentation.rendering.terrain_tile_cache import TerrainTileCache
 from pycc2.presentation.rendering.palette_generator import PaletteGenerator
+from pycc2.presentation.rendering.terrain_tile_cache import TerrainTileCache
 
 
 class RenderContext:
@@ -24,15 +24,29 @@ class RenderContext:
     """
 
     __slots__ = (
-        'tile_size', 'screen', 'offscreen', 'sprite_renderer',
-        'palette_gen', 'texture_cache', 'scaled_texture_cache',
-        'height_lit_cache', 'autotile_cache', 'terrain_tile_cache',
-        'building_clusters', 'sprite_cache',
-        'get_pooled_surface', 'get_cached_texture',
-        'get_enhanced_tile', 'get_terrain_at', 'generate_cc2_style_tile',
-        'apply_height_lighting', 'get_health_tinted_color',
-        'draw_direction_indicator', 'draw_movement_mode_overlay',
-        'draw_terrain_borders', 'draw_decorations',
+        "tile_size",
+        "screen",
+        "offscreen",
+        "sprite_renderer",
+        "palette_gen",
+        "texture_cache",
+        "scaled_texture_cache",
+        "height_lit_cache",
+        "autotile_cache",
+        "terrain_tile_cache",
+        "building_clusters",
+        "sprite_cache",
+        "get_pooled_surface",
+        "get_cached_texture",
+        "get_enhanced_tile",
+        "get_terrain_at",
+        "generate_cc2_style_tile",
+        "apply_height_lighting",
+        "get_health_tinted_color",
+        "draw_direction_indicator",
+        "draw_movement_mode_overlay",
+        "draw_terrain_borders",
+        "draw_decorations",
     )
 
     def __init__(
@@ -85,7 +99,9 @@ class RenderContext:
         self.draw_terrain_borders = draw_terrain_borders
         self.draw_decorations = draw_decorations
 
-    def update_surfaces(self, screen: pygame.Surface | None, offscreen: pygame.Surface | None) -> None:
+    def update_surfaces(
+        self, screen: pygame.Surface | None, offscreen: pygame.Surface | None
+    ) -> None:
         self.screen = screen
         self.offscreen = offscreen
 

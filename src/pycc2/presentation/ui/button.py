@@ -123,7 +123,7 @@ class Button:
                 if self._state == ButtonState.PRESSED:
                     is_clicked = True
                     if self.callback:
-                        callback()
+                        self.callback()
                 self._state = ButtonState.HOVER
         else:
             self._state = ButtonState.NORMAL

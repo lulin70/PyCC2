@@ -65,7 +65,9 @@ class EnvironmentRenderer:
         self._lighting_config = lighting_config
         self._offscreen = offscreen
 
-    def _get_screen_overlays(self, screen_size: tuple[int, int]) -> tuple[pygame.Surface, pygame.Surface]:
+    def _get_screen_overlays(
+        self, screen_size: tuple[int, int]
+    ) -> tuple[pygame.Surface, pygame.Surface]:
         """Get cached full-screen overlay surfaces (PERF-001).
 
         Returns:
@@ -159,7 +161,7 @@ class EnvironmentRenderer:
         radius: float,
         intensity: float,
         color: tuple[int, int, int] = (255, 255, 200),
-        duration_ms: int = 200
+        duration_ms: int = 200,
     ) -> None:
         """Delegate to LightingEffectsSystem for dynamic light registration."""
         if self._lighting_effects_sys:
@@ -190,7 +192,7 @@ class EnvironmentRenderer:
         if self._lighting_config is None:
             raise RuntimeError("Lighting config not initialized")
 
-        valid_times = ['dawn', 'noon', 'dusk', 'night']
+        valid_times = ["dawn", "noon", "dusk", "night"]
         if tod not in valid_times:
             raise ValueError(f"Invalid time of day: '{tod}'. Must be one of {valid_times}")
 

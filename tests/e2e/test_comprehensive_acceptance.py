@@ -32,9 +32,8 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
 import numpy as np
-import pytest
-
 import pygame
+import pytest
 
 pygame.init()
 pygame.font.init()
@@ -49,7 +48,8 @@ from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitState, UnitType
-from pycc2.domain.systems.morale_system import MoraleSystem, MoraleState
+from pycc2.domain.interfaces.display_config import DisplayConfig
+from pycc2.domain.systems.morale_system import MoraleState, MoraleSystem
 from pycc2.domain.systems.victory_conditions import (
     BattleStats,
     GameResult,
@@ -74,10 +74,9 @@ from pycc2.presentation.input.interaction_controller import (
 )
 from pycc2.presentation.rendering.camera import Camera
 from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
-from pycc2.domain.interfaces.display_config import DisplayConfig
 from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 from pycc2.presentation.rendering.minimap import Minimap
-from pycc2.presentation.ui.deployment_ui import DeploymentUI, DeploymentPhase
+from pycc2.presentation.ui.deployment_ui import DeploymentPhase, DeploymentUI
 
 # ---------------------------------------------------------------------------
 # Service imports
@@ -85,7 +84,6 @@ from pycc2.presentation.ui.deployment_ui import DeploymentUI, DeploymentPhase
 from pycc2.services.combat_director import CombatDirector
 from pycc2.services.event_bus import EventBus
 from pycc2.services.victory_manager import VictoryManager
-
 
 # ============================================================================
 # Helpers
@@ -183,6 +181,7 @@ def camera():
 @pytest.fixture
 def ic(camera, game_map, event_bus):
     from pycc2.presentation.ui.keybind_manager import KeybindManager
+
     controller = InteractionController(camera=camera, game_map=game_map, event_bus=event_bus)
     controller.set_keybind_manager(KeybindManager())
     return controller
@@ -205,12 +204,16 @@ def ally_tank():
 
 @pytest.fixture
 def enemy_unit():
-    return make_unit("enemy_1", "Axis Squad", Faction.AXIS, UnitType.INFANTRY_SQUAD, tile_x=8, tile_y=8)
+    return make_unit(
+        "enemy_1", "Axis Squad", Faction.AXIS, UnitType.INFANTRY_SQUAD, tile_x=8, tile_y=8
+    )
 
 
 @pytest.fixture
 def enemy_commander():
-    return make_unit("enemy_cmd", "Axis Commander", Faction.AXIS, UnitType.COMMANDER, tile_x=9, tile_y=9)
+    return make_unit(
+        "enemy_cmd", "Axis Commander", Faction.AXIS, UnitType.COMMANDER, tile_x=9, tile_y=9
+    )
 
 
 @pytest.fixture
@@ -259,7 +262,6 @@ def combat_director(event_bus):
 
 @pytest.mark.e2e
 class TestStageADisplayAndInitialization:
-
     def test_a01_game_window_opens_without_crash(self):
         screen = pygame.display.set_mode((1280, 720))
         assert screen is not None
@@ -285,7 +287,9 @@ class TestStageADisplayAndInitialization:
         assert pixels.shape[0] == 1280
         assert pixels.shape[1] == 720
 
-    def test_a05_bottom_panel_renders_correctly(self, screen, bottom_panel, camera, game_map, minimap_instance):
+    def test_a05_bottom_panel_renders_correctly(
+        self, screen, bottom_panel, camera, game_map, minimap_instance
+    ):
         bottom_panel.render(screen, camera, game_map, minimap=minimap_instance)
         pixels = pygame.surfarray.array3d(screen)
         assert pixels.shape[0] == 1280
@@ -306,7 +310,9 @@ class TestStageADisplayAndInitialization:
     def test_a09_varied_terrain_map_has_multiple_types(self, game_map):
         grid = game_map.tile_grid
         unique_types = set(grid.flatten())
-        assert len(unique_types) >= 3, f"Varied terrain map should have at least 3 terrain types, got {len(unique_types)}: {unique_types}"
+        assert len(unique_types) >= 3, (
+            f"Varied terrain map should have at least 3 terrain types, got {len(unique_types)}: {unique_types}"
+        )
 
     def test_a10_enhanced_renderer_initializes(self, screen):
         renderer = EnhancedRenderer()
@@ -330,7 +336,6 @@ class TestStageADisplayAndInitialization:
 
 @pytest.mark.e2e
 class TestStageBUnitDeployment:
-
     def test_b01_deployment_phase_activates_before_battle(self):
         ui = DeploymentUI(width=1280, height=720)
         map_data = {"width": 20, "height": 20, "tiles": [[0] * 20 for _ in range(20)]}
@@ -341,7 +346,9 @@ class TestStageBUnitDeployment:
         ui = DeploymentUI(width=1280, height=720)
         map_data = {"width": 20, "height": 20, "tiles": [[0] * 20 for _ in range(20)]}
         ui.start_deployment(map_data, faction="ally")
-        assert len(ui.state.available_units) >= 6, f"Expected at least 6 units in force pool, got {len(ui.state.available_units)}"
+        assert len(ui.state.available_units) >= 6, (
+            f"Expected at least 6 units in force pool, got {len(ui.state.available_units)}"
+        )
 
     def test_b03_units_can_be_placed_on_map(self):
         ui = DeploymentUI(width=1280, height=720)
@@ -377,12 +384,12 @@ class TestStageBUnitDeployment:
 
     def test_b07_deployed_units_have_all_components(self):
         u = make_unit("full_check", hp=90, max_hp=100, morale=80)
-        assert hasattr(u, 'health')
-        assert hasattr(u, 'morale')
-        assert hasattr(u, 'weapon')
-        assert hasattr(u, 'position')
-        assert hasattr(u, 'vision')
-        assert hasattr(u, 'state_machine')
+        assert hasattr(u, "health")
+        assert hasattr(u, "morale")
+        assert hasattr(u, "weapon")
+        assert hasattr(u, "position")
+        assert hasattr(u, "vision")
+        assert hasattr(u, "state_machine")
         assert u.is_alive is True
 
 
@@ -393,7 +400,6 @@ class TestStageBUnitDeployment:
 
 @pytest.mark.e2e
 class TestStageCUnitSelectionAndDisplay:
-
     def test_c01_left_click_selects_unit(self, ic, ally_unit):
         units = [ally_unit]
         screen_pos = ic.camera.world_to_screen(ally_unit.position.pixel_position)
@@ -429,7 +435,9 @@ class TestStageCUnitSelectionAndDisplay:
         units = [ally_unit]
         sp = ic.camera.world_to_screen(ally_unit.position.pixel_position)
         ic.handle_left_click(sp, units)
-        assert len(ic.selected_unit_ids) == 1, f"Expected exactly 1 selected unit after click, got {len(ic.selected_unit_ids)}"
+        assert len(ic.selected_unit_ids) == 1, (
+            f"Expected exactly 1 selected unit after click, got {len(ic.selected_unit_ids)}"
+        )
         ic.handle_left_click((700.0, 700.0), units)
         assert len(ic.selected_unit_ids) == 0
 
@@ -437,7 +445,9 @@ class TestStageCUnitSelectionAndDisplay:
         units = [ally_unit]
         sp = ic.camera.world_to_screen(ally_unit.position.pixel_position)
         ic.handle_left_click(sp, units)
-        assert len(ic.selected_unit_ids) == 1, f"Expected exactly 1 selected unit after click, got {len(ic.selected_unit_ids)}"
+        assert len(ic.selected_unit_ids) == 1, (
+            f"Expected exactly 1 selected unit after click, got {len(ic.selected_unit_ids)}"
+        )
         ic.handle_shortcut_key(pygame.K_ESCAPE)
         assert len(ic.selected_unit_ids) == 0
         assert ic.mode == InteractionMode.SELECT
@@ -494,7 +504,6 @@ class TestStageCUnitSelectionAndDisplay:
 
 @pytest.mark.e2e
 class TestStageDSevenCommands:
-
     def test_d01_move_command_activates(self, ic, ally_unit):
         units = [ally_unit]
         sp = ic.camera.world_to_screen(ally_unit.position.pixel_position)
@@ -556,7 +565,9 @@ class TestStageDSevenCommands:
         received = []
         event_bus.subscribe(dict, lambda e: received.append(e))
         ic.handle_shortcut_key(pygame.K_d)
-        defend_events = [e for e in received if isinstance(e, dict) and e.get("command") == "defend"]
+        defend_events = [
+            e for e in received if isinstance(e, dict) and e.get("command") == "defend"
+        ]
         assert len(defend_events) >= 1
         assert ally_unit.id in defend_events[0]["unit_ids"]
 
@@ -577,7 +588,9 @@ class TestStageDSevenCommands:
         received = []
         event_bus.subscribe(dict, lambda e: received.append(e))
         ic.handle_shortcut_key(pygame.K_x)
-        fast_events = [e for e in received if isinstance(e, dict) and e.get("command") == "fast_move"]
+        fast_events = [
+            e for e in received if isinstance(e, dict) and e.get("command") == "fast_move"
+        ]
         assert len(fast_events) >= 1
 
     def test_d11_sneak_key_publishes_event(self, ic, ally_unit, event_bus):
@@ -597,11 +610,23 @@ class TestStageDSevenCommands:
         received = []
         event_bus.subscribe(dict, lambda e: received.append(e))
         ic.handle_shortcut_key(pygame.K_x)
-        fast_events = [e for e in received if isinstance(e, dict) and e.get("command") == "fast_move"]
+        fast_events = [
+            e for e in received if isinstance(e, dict) and e.get("command") == "fast_move"
+        ]
         assert len(fast_events) >= 1
 
     def test_d13_all_seven_commands_defined_in_panel(self, bottom_panel):
-        expected_cmds = {"move", "fast", "sneak", "attack", "smoke", "defend", "hide", "cancel", "end_battle"}
+        expected_cmds = {
+            "move",
+            "fast",
+            "sneak",
+            "attack",
+            "smoke",
+            "defend",
+            "hide",
+            "cancel",
+            "end_battle",
+        }
         actual_cmds = {cmd["id"] for cmd in bottom_panel._commands}
         assert expected_cmds == actual_cmds
 
@@ -643,7 +668,6 @@ class TestStageDSevenCommands:
 
 @pytest.mark.e2e
 class TestStageEAttackLineAndLOS:
-
     def test_e01_attack_line_green_when_valid(self):
         als = AttackLineSystem()
         attacker = make_unit(tile_x=5, tile_y=5)
@@ -672,6 +696,7 @@ class TestStageEAttackLineAndLOS:
         grid[5][6] = TerrainType.WALL.value
         gm = GameMap(id="block_test", name="Block Test", width=20, height=20, tile_grid=grid)
         from pycc2.domain.systems.los_system import Lossystem
+
         los = Lossystem(gm)
         attacker = make_unit(tile_x=5, tile_y=5)
         target_pos = Vec2(8 * 32, 5 * 32)
@@ -747,7 +772,6 @@ class TestStageEAttackLineAndLOS:
 
 @pytest.mark.e2e
 class TestStageFCombatExecution:
-
     def test_f01_attack_deals_damage(self, combat_director, ally_unit, enemy_unit):
         game_map = make_game_map()
         combat_director.set_context([ally_unit, enemy_unit], game_map)
@@ -806,20 +830,30 @@ class TestStageFCombatExecution:
 
     def test_f09_combat_director_processes_move_order(self, combat_director, ally_unit, simple_map):
         combat_director.set_context([ally_unit], simple_map)
-        combat_director.handle_player_command({
-            "command": "move",
-            "unit_ids": [ally_unit.id],
-            "target": (10, 10),
-        }, [ally_unit], simple_map)
+        combat_director.handle_player_command(
+            {
+                "command": "move",
+                "unit_ids": [ally_unit.id],
+                "target": (10, 10),
+            },
+            [ally_unit],
+            simple_map,
+        )
 
-    def test_f10_combat_director_processes_attack_order(self, combat_director, ally_unit, enemy_unit, simple_map):
+    def test_f10_combat_director_processes_attack_order(
+        self, combat_director, ally_unit, enemy_unit, simple_map
+    ):
         combat_director.set_context([ally_unit, enemy_unit], simple_map)
         hp_before = enemy_unit.health.hp
-        combat_director.handle_player_command({
-            "command": "attack",
-            "unit_ids": [ally_unit.id],
-            "target_id": enemy_unit.id,
-        }, [ally_unit, enemy_unit], simple_map)
+        combat_director.handle_player_command(
+            {
+                "command": "attack",
+                "unit_ids": [ally_unit.id],
+                "target_id": enemy_unit.id,
+            },
+            [ally_unit, enemy_unit],
+            simple_map,
+        )
         assert enemy_unit.health.hp <= hp_before
 
     def test_f11_unit_update_movement_toward_target(self):
@@ -860,7 +894,6 @@ class TestStageFCombatExecution:
 
 @pytest.mark.e2e
 class TestStageGMoraleSystem:
-
     def test_g01_units_start_with_normal_morale(self):
         u = make_unit(morale=85)
         state = MoraleSystem.get_state(u.morale.value)
@@ -875,7 +908,7 @@ class TestStageGMoraleSystem:
     def test_g03_under_fire_morale_decreases(self):
         u = make_unit(morale=80)
         result = MoraleSystem.apply_suppression(u, amount=50.0, dt=1.0)
-        assert result['morale_delta'] <= 0
+        assert result["morale_delta"] <= 0
         assert u.morale.value < 80
 
     def test_g04_pinned_state_cannot_move(self):
@@ -895,12 +928,14 @@ class TestStageGMoraleSystem:
     def test_g07_morale_recovers_when_not_under_fire(self):
         u = make_unit(morale=50)
         result = MoraleSystem.update_morale_recovery(u, dt=5.0)
-        assert result['current_morale'] >= 50
+        assert result["current_morale"] >= 50
 
     def test_g08_accuracy_modifier_by_state(self):
         assert MoraleSystem.get_accuracy_modifier(MoraleState.RALLYED) > 1.0
         assert MoraleSystem.get_accuracy_modifier(MoraleState.PINNED) < 1.0
-        assert MoraleSystem.get_accuracy_modifier(MoraleState.BROKEN) < MoraleSystem.get_accuracy_modifier(MoraleState.PINNED)
+        assert MoraleSystem.get_accuracy_modifier(
+            MoraleState.BROKEN
+        ) < MoraleSystem.get_accuracy_modifier(MoraleState.PINNED)
 
     def test_g09_movement_modifier_by_state(self):
         assert MoraleSystem.get_movement_modifier(MoraleState.PINNED) == 0.0
@@ -936,7 +971,6 @@ class TestStageGMoraleSystem:
 
 @pytest.mark.e2e
 class TestStageHVictoryDefeatConditions:
-
     def test_h01_victory_when_all_enemies_dead(self):
         evaluator = VictoryConditionEvaluator(
             conditions=[VictoryConditionType.ELIMINATE_ALL_ENEMIES],
@@ -952,7 +986,9 @@ class TestStageHVictoryDefeatConditions:
         )
         ally = make_unit("vc_ally", faction=Faction.ALLIES)
         ally_cmd = make_unit("vc_acmd", faction=Faction.ALLIES, unit_type=UnitType.COMMANDER)
-        enemy_cmd_dead = make_unit("vc_ecmd_dead", faction=Faction.AXIS, unit_type=UnitType.COMMANDER, hp=0, max_hp=100)
+        enemy_cmd_dead = make_unit(
+            "vc_ecmd_dead", faction=Faction.AXIS, unit_type=UnitType.COMMANDER, hp=0, max_hp=100
+        )
         result, reason = evaluator.evaluate([ally, ally_cmd, enemy_cmd_dead], tick=600)
         assert result == GameResult.ALLIES_VICTORY
         assert "destroyed" in reason.lower()
@@ -1025,7 +1061,9 @@ class TestStageHVictoryDefeatConditions:
         )
         ally = make_unit("or_ally", faction=Faction.ALLIES)
         ally_cmd = make_unit("or_acmd", faction=Faction.ALLIES, unit_type=UnitType.COMMANDER)
-        enemy_cmd_dead = make_unit("or_ecmd", faction=Faction.AXIS, unit_type=UnitType.COMMANDER, hp=0, max_hp=100)
+        enemy_cmd_dead = make_unit(
+            "or_ecmd", faction=Faction.AXIS, unit_type=UnitType.COMMANDER, hp=0, max_hp=100
+        )
         enemy_inf = make_unit("or_einf", faction=Faction.AXIS, hp=0)
         result, _ = evaluator.evaluate([ally, ally_cmd, enemy_cmd_dead, enemy_inf], tick=600)
         assert result == GameResult.ALLIES_VICTORY
@@ -1038,11 +1076,14 @@ class TestStageHVictoryDefeatConditions:
 
 @pytest.mark.e2e
 class TestStageIUIDetailCheck:
-
     def test_i01_timer_format_mm_ss(self, screen, bottom_panel, camera, game_map, minimap_instance):
-        bottom_panel.render(screen, camera, game_map, minimap=minimap_instance, time_remaining=185.0)
+        bottom_panel.render(
+            screen, camera, game_map, minimap=minimap_instance, time_remaining=185.0
+        )
 
-    def test_i02_timer_red_when_critical(self, screen, bottom_panel, camera, game_map, minimap_instance):
+    def test_i02_timer_red_when_critical(
+        self, screen, bottom_panel, camera, game_map, minimap_instance
+    ):
         bottom_panel.render(screen, camera, game_map, minimap=minimap_instance, time_remaining=15.0)
 
     def test_i03_info_toggle_buttons_present(self, bottom_panel):
@@ -1088,11 +1129,11 @@ class TestStageIUIDetailCheck:
         assert CC2BottomPanel.MINIMAP_SIZE == 120
 
     def test_i12_panel_has_all_sections(self, bottom_panel):
-        assert hasattr(bottom_panel, '_render_roster')
-        assert hasattr(bottom_panel, '_render_unit_details')
-        assert hasattr(bottom_panel, '_render_command_bar')
-        assert hasattr(bottom_panel, '_render_urgency_indicator')
-        assert hasattr(bottom_panel, '_render_minimap_section')
+        assert hasattr(bottom_panel, "_render_roster")
+        assert hasattr(bottom_panel, "_render_unit_details")
+        assert hasattr(bottom_panel, "_render_command_bar")
+        assert hasattr(bottom_panel, "_render_urgency_indicator")
+        assert hasattr(bottom_panel, "_render_minimap_section")
 
     def test_i13_command_buttons_have_correct_keys(self, bottom_panel):
         key_map = {cmd["id"]: cmd["key"] for cmd in bottom_panel._commands}
@@ -1113,7 +1154,7 @@ class TestStageIUIDetailCheck:
         bottom_panel.initialize()
         surface = pygame.Surface((1280, 720))
         bottom_panel.render(surface, make_camera(), make_game_map())
-        for rect, uid in bottom_panel._roster_item_rects:
+        for rect, _uid in bottom_panel._roster_item_rects:
             result = bottom_panel.handle_click((rect.centerx, rect.centery))
             assert result is not None
             assert "select_unit:" in result
@@ -1124,10 +1165,12 @@ class TestStageIUIDetailCheck:
         bottom_panel.set_selected_unit(ally_unit.id)
 
     def test_i16_unit_display_name_attribute(self, ally_unit):
-        name = getattr(ally_unit, 'display_name', None) or ally_unit.name
+        name = getattr(ally_unit, "display_name", None) or ally_unit.name
         assert name is not None
         assert isinstance(name, str), f"Expected string name, got {type(name)}"
-        assert len(name) >= 3, f"Unit name should be at least 3 characters, got '{name}' (len={len(name)})"
+        assert len(name) >= 3, (
+            f"Unit name should be at least 3 characters, got '{name}' (len={len(name)})"
+        )
 
 
 # ========================================================================
@@ -1137,7 +1180,6 @@ class TestStageIUIDetailCheck:
 
 @pytest.mark.e2e
 class TestStageJKeyboardShortcuts:
-
     def test_j01_wasd_moves_camera(self, camera):
         pos_before = (camera.position.x, camera.position.y)
         camera.move(10.0, 20.0)
@@ -1177,8 +1219,9 @@ class TestStageJKeyboardShortcuts:
         assert proj_before != proj_after
 
     def test_j07_input_handler_process_mouse_motion(self):
-        from pycc2.presentation.rendering.window_config import WindowManager
         from pycc2.presentation.input.handler import PygameInputHandler
+        from pycc2.presentation.rendering.window_config import WindowManager
+
         wm = WindowManager()
         cam = make_camera()
         handler = PygameInputHandler(camera=cam, window_manager=wm)
@@ -1188,8 +1231,9 @@ class TestStageJKeyboardShortcuts:
         assert result.position == (100.0, 200.0)
 
     def test_j08_input_handler_process_left_click(self):
-        from pycc2.presentation.rendering.window_config import WindowManager
         from pycc2.presentation.input.handler import PygameInputHandler
+        from pycc2.presentation.rendering.window_config import WindowManager
+
         wm = WindowManager()
         cam = make_camera()
         handler = PygameInputHandler(camera=cam, window_manager=wm)
@@ -1199,8 +1243,9 @@ class TestStageJKeyboardShortcuts:
         assert result.button == 1
 
     def test_j09_input_handler_process_right_click(self):
-        from pycc2.presentation.rendering.window_config import WindowManager
         from pycc2.presentation.input.handler import PygameInputHandler
+        from pycc2.presentation.rendering.window_config import WindowManager
+
         wm = WindowManager()
         cam = make_camera()
         handler = PygameInputHandler(camera=cam, window_manager=wm)
@@ -1210,8 +1255,9 @@ class TestStageJKeyboardShortcuts:
         assert result.button == 3
 
     def test_j10_input_handler_process_escape(self):
-        from pycc2.presentation.rendering.window_config import WindowManager
         from pycc2.presentation.input.handler import PygameInputHandler
+        from pycc2.presentation.rendering.window_config import WindowManager
+
         wm = WindowManager()
         cam = make_camera()
         handler = PygameInputHandler(camera=cam, window_manager=wm)
@@ -1246,8 +1292,8 @@ class TestStageJKeyboardShortcuts:
     def test_j15_screen_to_world_conversion(self, camera):
         world_pos = camera.screen_to_world((640.0, 360.0))
         assert world_pos is not None
-        assert hasattr(world_pos, 'x')
-        assert hasattr(world_pos, 'y')
+        assert hasattr(world_pos, "x")
+        assert hasattr(world_pos, "y")
 
 
 # ========================================================================
@@ -1257,7 +1303,6 @@ class TestStageJKeyboardShortcuts:
 
 @pytest.mark.e2e
 class TestFullIntegrationJourney:
-
     def test_full_journey_deploy_to_victory(self):
         ui = DeploymentUI(width=1280, height=720)
         map_data = {"width": 20, "height": 20, "tiles": [[0] * 20 for _ in range(20)]}
@@ -1269,10 +1314,24 @@ class TestFullIntegrationJourney:
         assert deploy_result is not None
         assert deploy_result["phase"] == DeploymentPhase.ACTIVE
 
-        ally = make_unit("fj_ally", "Rifle Squad", Faction.ALLIES, UnitType.INFANTRY_SQUAD, tile_x=3, tile_y=3)
-        ally_cmd = make_unit("fj_acmd", "Commander", Faction.ALLIES, UnitType.COMMANDER, tile_x=2, tile_y=2)
-        enemy = make_unit("fj_enemy", "Axis Squad", Faction.AXIS, UnitType.INFANTRY_SQUAD, tile_x=10, tile_y=10, hp=30)
-        enemy_cmd = make_unit("fj_ecmd", "Axis Cmd", Faction.AXIS, UnitType.COMMANDER, tile_x=11, tile_y=11, hp=20)
+        ally = make_unit(
+            "fj_ally", "Rifle Squad", Faction.ALLIES, UnitType.INFANTRY_SQUAD, tile_x=3, tile_y=3
+        )
+        ally_cmd = make_unit(
+            "fj_acmd", "Commander", Faction.ALLIES, UnitType.COMMANDER, tile_x=2, tile_y=2
+        )
+        enemy = make_unit(
+            "fj_enemy",
+            "Axis Squad",
+            Faction.AXIS,
+            UnitType.INFANTRY_SQUAD,
+            tile_x=10,
+            tile_y=10,
+            hp=30,
+        )
+        enemy_cmd = make_unit(
+            "fj_ecmd", "Axis Cmd", Faction.AXIS, UnitType.COMMANDER, tile_x=11, tile_y=11, hp=20
+        )
 
         units = [ally, ally_cmd, enemy, enemy_cmd]
         game_map = make_game_map()
@@ -1321,10 +1380,16 @@ class TestFullIntegrationJourney:
         deploy_result = ui.begin_battle()
         assert deploy_result is not None
 
-        ally = make_unit("fd_ally", "Rifle", Faction.ALLIES, UnitType.INFANTRY_SQUAD, hp=10, morale=5)
+        ally = make_unit(
+            "fd_ally", "Rifle", Faction.ALLIES, UnitType.INFANTRY_SQUAD, hp=10, morale=5
+        )
         ally_cmd = make_unit("fd_acmd", "Cmd", Faction.ALLIES, UnitType.COMMANDER, hp=10, morale=5)
-        enemy = make_unit("fd_enemy", "Axis", Faction.AXIS, UnitType.INFANTRY_SQUAD, tile_x=10, tile_y=10)
-        enemy_cmd = make_unit("fd_ecmd", "Axis Cmd", Faction.AXIS, UnitType.COMMANDER, tile_x=11, tile_y=11)
+        enemy = make_unit(
+            "fd_enemy", "Axis", Faction.AXIS, UnitType.INFANTRY_SQUAD, tile_x=10, tile_y=10
+        )
+        enemy_cmd = make_unit(
+            "fd_ecmd", "Axis Cmd", Faction.AXIS, UnitType.COMMANDER, tile_x=11, tile_y=11
+        )
 
         units = [ally, ally_cmd, enemy, enemy_cmd]
 
@@ -1389,4 +1454,4 @@ class TestFullIntegrationJourney:
             assert MoraleSystem.can_move(u) is False
 
         recovery = MoraleSystem.update_morale_recovery(u, dt=10.0, near_commander=True)
-        assert recovery['recovered'] >= 0
+        assert recovery["recovered"] >= 0

@@ -81,7 +81,9 @@ class TestBattlefieldPictureAssessment:
         m = _make_map()
         pic = ai.assess_battlefield(allies + enemies + [cmd], m, current_tick=1)
 
-        assert pic.force_ratio > 0.0, f"Force ratio should be positive when allies exist, got {pic.force_ratio}"
+        assert pic.force_ratio > 0.0, (
+            f"Force ratio should be positive when allies exist, got {pic.force_ratio}"
+        )
         assert isinstance(pic.force_ratio, float)
 
     def test_threat_level_critical(self):
@@ -185,7 +187,9 @@ class TestOrderGeneration:
         orders = ai.generate_orders(managed, units)
 
         order_types = {o.order_type for o in orders}
-        assert len(orders) >= 1, f"High advantage should generate at least 1 order, got {len(orders)}"
+        assert len(orders) >= 1, (
+            f"High advantage should generate at least 1 order, got {len(orders)}"
+        )
         assert (
             TacticType.SUPPRESS_FIRE in order_types
             or TacticType.HOLD_POSITION in order_types
@@ -246,7 +250,9 @@ class TestOrderGeneration:
         assert pic.threat_level != ThreatLevel.NONE
         orders = ai.generate_orders(managed, units, difficulty_config=FakeDC())
 
-        assert len(orders) >= 1, f"Orders should contain at least 1 entry when targets exist, got {len(orders)}"
+        assert len(orders) >= 1, (
+            f"Orders should contain at least 1 entry when targets exist, got {len(orders)}"
+        )
         for o in orders:
             assert isinstance(o.target_unit_ids, list)
             assert len(o.target_unit_ids) > 0

@@ -35,28 +35,27 @@ class SpriteGenerator:
         surface.fill((0, 0, 0, 0))  # Transparent background
 
         sprite_funcs = {
-            'BUSH_SMALL': SpriteGenerator._draw_bush_small,
-            'BUSH_DENSE': SpriteGenerator._draw_bush_dense,
-            'TREE_OAK': SpriteGenerator._draw_tree_oak,
-            'TREE_PINE': SpriteGenerator._draw_tree_pine,
-            'ROCK_LARGE': SpriteGenerator._draw_rock_large,
-            'ROCK_SMALL': SpriteGenerator._draw_rock_small,
-            'RUBBLE_PILE': SpriteGenerator._draw_rubble,
-            'CRATER_SMALL': SpriteGenerator._draw_crater_small,
-            'CRATER_LARGE': SpriteGenerator._draw_crater_large,
-            'TRENCH_SECTION': SpriteGenerator._draw_trench,
-            'SANDBAG_WALL': SpriteGenerator._draw_sandbag,
-            'BARBED_WIRE': SpriteGenerator._draw_barbed_wire,
-            'WRECKAGE_VEHICLE': SpriteGenerator._draw_wreckage,
-            'CAMOUFLAGE_NET': SpriteGenerator._draw_camo_net,
-
+            "BUSH_SMALL": SpriteGenerator._draw_bush_small,
+            "BUSH_DENSE": SpriteGenerator._draw_bush_dense,
+            "TREE_OAK": SpriteGenerator._draw_tree_oak,
+            "TREE_PINE": SpriteGenerator._draw_tree_pine,
+            "ROCK_LARGE": SpriteGenerator._draw_rock_large,
+            "ROCK_SMALL": SpriteGenerator._draw_rock_small,
+            "RUBBLE_PILE": SpriteGenerator._draw_rubble,
+            "CRATER_SMALL": SpriteGenerator._draw_crater_small,
+            "CRATER_LARGE": SpriteGenerator._draw_crater_large,
+            "TRENCH_SECTION": SpriteGenerator._draw_trench,
+            "SANDBAG_WALL": SpriteGenerator._draw_sandbag,
+            "BARBED_WIRE": SpriteGenerator._draw_barbed_wire,
+            "WRECKAGE_VEHICLE": SpriteGenerator._draw_wreckage,
+            "CAMOUFLAGE_NET": SpriteGenerator._draw_camo_net,
             # CC2特色装饰物
-            'WRECKAGE_PLANE': SpriteGenerator._draw_plane_wreckage,
-            'BARRICADE_CONCRETE': SpriteGenerator._draw_concrete_barricade,
-            'BARRICADE_SANDBAG': SpriteGenerator._draw_sandbag_barricade,
-            'CRATER_CLUSTER': SpriteGenerator._draw_crater_cluster,
-            'DEBRIS_FIELD': SpriteGenerator._draw_debris_field,
-            'BURNING_WRECKAGE': SpriteGenerator._draw_burning_wreckage,
+            "WRECKAGE_PLANE": SpriteGenerator._draw_plane_wreckage,
+            "BARRICADE_CONCRETE": SpriteGenerator._draw_concrete_barricade,
+            "BARRICADE_SANDBAG": SpriteGenerator._draw_sandbag_barricade,
+            "CRATER_CLUSTER": SpriteGenerator._draw_crater_cluster,
+            "DEBRIS_FIELD": SpriteGenerator._draw_debris_field,
+            "BURNING_WRECKAGE": SpriteGenerator._draw_burning_wreckage,
         }
 
         draw_func = sprite_funcs.get(deco_type_name, SpriteGenerator._draw_placeholder)
@@ -72,7 +71,7 @@ class SpriteGenerator:
         cx, cy = 16, 20
         for y in range(8, 24):
             for x in range(8, 24):
-                dist = math.sqrt((x-cx)**2 + (y-cy)**2)
+                dist = math.sqrt((x - cx) ** 2 + (y - cy) ** 2)
                 if dist < 7:
                     surface.set_at((x, y), color if dist > 4 else dark)
 
@@ -82,14 +81,22 @@ class SpriteGenerator:
         color = (28, 100, 28)
         dark = (18, 70, 18)
         points = [
-            (10, 22), (13, 18), (16, 16), (19, 17), (22, 20),
-            (23, 24), (20, 26), (16, 27), (12, 26), (9, 24)
+            (10, 22),
+            (13, 18),
+            (16, 16),
+            (19, 17),
+            (22, 20),
+            (23, 24),
+            (20, 26),
+            (16, 27),
+            (12, 26),
+            (9, 24),
         ]
 
         for y in range(16, 28):
             for x in range(9, 24):
                 if SpriteGenerator._point_in_polygon(x, y, points):
-                    shade = color if (x+y+variant) % 3 != 0 else dark
+                    shade = color if (x + y + variant) % 3 != 0 else dark
                     surface.set_at((x, y), shade)
 
     @staticmethod
@@ -118,7 +125,7 @@ class SpriteGenerator:
         cx, cy = 16, 12
         for y in range(2, 20):
             for x in range(4, 28):
-                dist = math.sqrt((x-cx)**2 + (y-cy)**2)
+                dist = math.sqrt((x - cx) ** 2 + (y - cy) ** 2)
                 if dist < 10:
                     color_idx = int(dist / 3) % 3
                     surface.set_at((x, y), canopy_colors[color_idx])
@@ -136,8 +143,8 @@ class SpriteGenerator:
 
         for idx, (lcx, lcy, lw) in enumerate(layers):
             color = foliage_colors[idx]
-            for y in range(lcy - lw*2, lcy + 2):
-                width_at_y = int(lw * (1 - abs(y - lcy) / (lw*2 + 1)))
+            for y in range(lcy - lw * 2, lcy + 2):
+                width_at_y = int(lw * (1 - abs(y - lcy) / (lw * 2 + 1)))
                 for x in range(lcx - width_at_y, lcx + width_at_y + 1):
                     if 0 <= x < 32 and 0 <= y < 32:
                         surface.set_at((x, y), color)
@@ -147,8 +154,17 @@ class SpriteGenerator:
         """Draw large boulder."""
         colors = [(128, 128, 128), (108, 108, 108), (148, 148, 148)]
         points = [
-            (8, 24), (10, 18), (14, 14), (18, 12), (22, 14),
-            (25, 18), (26, 23), (24, 26), (18, 27), (12, 26), (9, 25)
+            (8, 24),
+            (10, 18),
+            (14, 14),
+            (18, 12),
+            (22, 14),
+            (25, 18),
+            (26, 23),
+            (24, 26),
+            (18, 27),
+            (12, 26),
+            (9, 25),
         ]
 
         for y in range(12, 28):
@@ -186,8 +202,8 @@ class SpriteGenerator:
             color = rng.choice(colors)
             for dy in range(size):
                 for dx in range(size):
-                    if 0 <= px+dx < 32 and 0 <= py+dy < 32:
-                        surface.set_at((px+dx, py+dy), color)
+                    if 0 <= px + dx < 32 and 0 <= py + dy < 32:
+                        surface.set_at((px + dx, py + dy), color)
 
     @staticmethod
     def _draw_crater_small(surface: pygame.Surface, variant: int) -> None:
@@ -247,17 +263,13 @@ class SpriteGenerator:
             dy = int(cy + debris_dist * math.sin(debris_angle))
             if 0 <= dx < 32 and 0 <= dy < 32:
                 debris_size = rng.randint(2, 3)
-                debris_color = (
-                    rng.randint(55, 75),
-                    rng.randint(50, 68),
-                    rng.randint(45, 60)
-                )
+                debris_color = (rng.randint(55, 75), rng.randint(50, 68), rng.randint(45, 60))
                 pygame.draw.circle(surface, debris_color, (dx, dy), debris_size)
 
         center_dark_radius = 2
         for r in range(center_dark_radius, 0, -1):
             darkness = 22 + (center_dark_radius - r) * 5
-            pygame.draw.circle(surface, (darkness, darkness-3, darkness-5), (cx, cy), r)
+            pygame.draw.circle(surface, (darkness, darkness - 3, darkness - 5), (cx, cy), r)
 
     @staticmethod
     def _draw_crater_large(surface: pygame.Surface, variant: int) -> None:
@@ -317,17 +329,13 @@ class SpriteGenerator:
             dy = int(cy + debris_dist * math.sin(debris_angle))
             if 0 <= dx < 32 and 0 <= dy < 32:
                 debris_size = rng.randint(2, 3)
-                debris_color = (
-                    rng.randint(50, 70),
-                    rng.randint(45, 65),
-                    rng.randint(40, 55)
-                )
+                debris_color = (rng.randint(50, 70), rng.randint(45, 65), rng.randint(40, 55))
                 pygame.draw.circle(surface, debris_color, (dx, dy), debris_size)
 
         center_dark_radius = 3
         for r in range(center_dark_radius, 0, -1):
             darkness = 20 + (center_dark_radius - r) * 6
-            pygame.draw.circle(surface, (darkness, darkness-4, darkness-6), (cx, cy), r)
+            pygame.draw.circle(surface, (darkness, darkness - 4, darkness - 6), (cx, cy), r)
 
         rim_thickness = 2
         for t in range(rim_thickness):
@@ -337,7 +345,7 @@ class SpriteGenerator:
             int_rim = [(int(x), int(y)) for x, y in rim_points]
             if len(int_rim) >= 3:
                 brightness = 125 - t * 15
-                rim_color = (brightness, brightness-5, brightness-10)
+                rim_color = (brightness, brightness - 5, brightness - 10)
                 pygame.draw.polygon(surface, rim_color, int_rim)
 
     @staticmethod
@@ -351,10 +359,10 @@ class SpriteGenerator:
         for x in range(4, 28, 3):
             for y in range(18, 21):
                 surface.set_at((x, y), bag_color)
-                if x+1 < 28:
-                    surface.set_at((x+1, y), bag_color)
-                if x+2 < 28:
-                    surface.set_at((x+2, y), (160, 140, 100))
+                if x + 1 < 28:
+                    surface.set_at((x + 1, y), bag_color)
+                if x + 2 < 28:
+                    surface.set_at((x + 2, y), (160, 140, 100))
 
     @staticmethod
     def _draw_sandbag(surface: pygame.Surface, variant: int) -> None:
@@ -414,17 +422,26 @@ class SpriteGenerator:
         rust = (100, 60, 30)
 
         hull_points = [
-            (6, 22), (8, 18), (12, 16), (18, 15), (24, 16),
-            (26, 19), (27, 23), (25, 26), (18, 27), (10, 26), (7, 24)
+            (6, 22),
+            (8, 18),
+            (12, 16),
+            (18, 15),
+            (24, 16),
+            (26, 19),
+            (27, 23),
+            (25, 26),
+            (18, 27),
+            (10, 26),
+            (7, 24),
         ]
 
         for y in range(15, 28):
             for x in range(6, 28):
                 if SpriteGenerator._point_in_polygon(x, y, hull_points):
                     color = hull_color
-                    if (x+y+variant) % 7 == 0:
+                    if (x + y + variant) % 7 == 0:
                         color = rust
-                    elif (x*y) % 11 == 0:
+                    elif (x * y) % 11 == 0:
                         color = dark
                     surface.set_at((x, y), color)
 
@@ -452,7 +469,7 @@ class SpriteGenerator:
         color = (150, 150, 150)
         for y in range(10, 22):
             for x in range(10, 22):
-                if (x+y) % 2 == 0:
+                if (x + y) % 2 == 0:
                     surface.set_at((x, y), color)
 
     # ===================================================================
@@ -469,8 +486,17 @@ class SpriteGenerator:
         shadow = (35, 30, 25)
 
         fuselage_points = [
-            (14, 8), (16, 7), (18, 8), (19, 12), (18, 20),
-            (17, 24), (15, 26), (13, 24), (12, 20), (13, 12), (14, 8)
+            (14, 8),
+            (16, 7),
+            (18, 8),
+            (19, 12),
+            (18, 20),
+            (17, 24),
+            (15, 26),
+            (13, 24),
+            (12, 20),
+            (13, 12),
+            (14, 8),
         ]
 
         for y in range(7, 27):
@@ -483,10 +509,7 @@ class SpriteGenerator:
                     else:
                         surface.set_at((x, y), fuselage_color)
 
-        left_wing = [
-            (6, 14), (9, 13), (12, 14), (13, 16), (12, 18),
-            (9, 17), (6, 16), (5, 15)
-        ]
+        left_wing = [(6, 14), (9, 13), (12, 14), (13, 16), (12, 18), (9, 17), (6, 16), (5, 15)]
         for y in range(13, 19):
             for x in range(5, 14):
                 if SpriteGenerator._point_in_polygon(x, y, left_wing):
@@ -494,8 +517,14 @@ class SpriteGenerator:
                     surface.set_at((x, y), shade)
 
         right_wing = [
-            (26, 14), (23, 13), (20, 14), (19, 16), (20, 18),
-            (23, 17), (26, 16), (27, 15)
+            (26, 14),
+            (23, 13),
+            (20, 14),
+            (19, 16),
+            (20, 18),
+            (23, 17),
+            (26, 16),
+            (27, 15),
         ]
         for y in range(13, 19):
             for x in range(19, 28):
@@ -557,7 +586,7 @@ class SpriteGenerator:
             [(21, 13), (24, 13), (24, 24), (21, 24)],
         ]
 
-        for wall_idx, wall in enumerate(walls):
+        for _wall_idx, wall in enumerate(walls):
             for y in range(min(p[1] for p in wall), max(p[1] for p in wall)):
                 for x in range(min(p[0] for p in wall), max(p[0] for p in wall)):
                     if SpriteGenerator._point_in_polygon(x, y, wall):
@@ -569,10 +598,12 @@ class SpriteGenerator:
                         else:
                             color = bag_shadow
 
-                        is_edge = (y == min(p[1] for p in wall) or
-                                 y == max(p[1] for p in wall) - 1 or
-                                 x == min(p[0] for p in wall) or
-                                 x == max(p[0] for p in wall) - 1)
+                        is_edge = (
+                            y == min(p[1] for p in wall)
+                            or y == max(p[1] for p in wall) - 1
+                            or x == min(p[0] for p in wall)
+                            or x == max(p[0] for p in wall) - 1
+                        )
                         if is_edge:
                             color = tuple(min(255, c + 20) for c in color)
 
@@ -584,21 +615,22 @@ class SpriteGenerator:
         cx, cy = 16, 16
 
         rim_color = (90, 75, 55)
-        pygame.draw.ellipse(surface, rim_color, (cx-14, cy-12, 28, 24))
+        pygame.draw.ellipse(surface, rim_color, (cx - 14, cy - 12, 28, 24))
 
         for i in range(5, 0, -1):
             depth_factor = i / 5.0
             radius = int(10 * depth_factor)
-            darkness = int(25 + (1-depth_factor) * 35)
-            color = (darkness, darkness-5, darkness-8)
-            offset_x = random.randint(-2, 2) * (6-i) // 3
-            offset_y = random.randint(-2, 2) * (6-i) // 3
+            darkness = int(25 + (1 - depth_factor) * 35)
+            color = (darkness, darkness - 5, darkness - 8)
+            offset_x = random.randint(-2, 2) * (6 - i) // 3
+            offset_y = random.randint(-2, 2) * (6 - i) // 3
             if radius > 0:
-                pygame.draw.circle(surface, color, (cx+offset_x, cy+offset_y), radius)
+                pygame.draw.circle(surface, color, (cx + offset_x, cy + offset_y), radius)
 
         highlight_color = (120, 105, 85)
-        pygame.draw.arc(surface, highlight_color, (cx-13, cy-11, 26, 22),
-                       math.pi*1.2, math.pi*1.8, 2)
+        pygame.draw.arc(
+            surface, highlight_color, (cx - 13, cy - 11, 26, 22), math.pi * 1.2, math.pi * 1.8, 2
+        )
 
         for _ in range(random.randint(3, 5)):
             rx = cx + random.randint(-10, 10)
@@ -609,18 +641,28 @@ class SpriteGenerator:
 
         if variant >= 1:
             offsets = [(8, -6), (-7, 4), (5, 8)]
-            for i, (ox, oy) in enumerate(offsets[:min(variant, len(offsets))]):
+            for _i, (ox, oy) in enumerate(offsets[: min(variant, len(offsets))]):
                 small_r = random.randint(4, 7)
-                pygame.draw.ellipse(surface, (35, 30, 25),
-                                  (cx+ox-small_r, oy+cy-int(small_r*0.7),
-                                   small_r*2, int(small_r*1.4)))
+                pygame.draw.ellipse(
+                    surface,
+                    (35, 30, 25),
+                    (
+                        cx + ox - small_r,
+                        oy + cy - int(small_r * 0.7),
+                        small_r * 2,
+                        int(small_r * 1.4),
+                    ),
+                )
 
     @staticmethod
     def _draw_debris_field(surface: pygame.Surface, variant: int) -> None:
         """Draw scattered debris field (🗑️ 碎片场)."""
         debris_colors = [
-            (80, 75, 70), (100, 95, 88), (120, 110, 100),
-            (60, 55, 50), (90, 85, 75),
+            (80, 75, 70),
+            (100, 95, 88),
+            (120, 110, 100),
+            (60, 55, 50),
+            (90, 85, 75),
         ]
 
         rng = random.Random(variant * 137)
@@ -637,9 +679,7 @@ class SpriteGenerator:
                     px, py = x + dx, y + dy
                     if 4 <= px < 28 and 4 <= py < 28:
                         variation = rng.randint(-8, 8)
-                        final_color = tuple(
-                            max(0, min(255, c + variation)) for c in color
-                        )
+                        final_color = tuple(max(0, min(255, c + variation)) for c in color)
                         surface.set_at((px, py), final_color)
 
         for _ in range(2 + (variant % 2)):
@@ -664,8 +704,17 @@ class SpriteGenerator:
         smoke_gray = (120, 120, 120)
 
         hull_points = [
-            (5, 20), (7, 16), (11, 14), (17, 13), (23, 14),
-            (26, 17), (27, 22), (25, 26), (17, 27), (9, 26), (6, 23)
+            (5, 20),
+            (7, 16),
+            (11, 14),
+            (17, 13),
+            (23, 14),
+            (26, 17),
+            (27, 22),
+            (25, 26),
+            (17, 27),
+            (9, 26),
+            (6, 23),
         ]
 
         for y in range(13, 28):
@@ -676,10 +725,10 @@ class SpriteGenerator:
         fire_centers = [(12, 18), (18, 17), (22, 20)]
         rng = random.Random(variant * 99)
 
-        for fcx, fcy in fire_centers[:2 + (variant % 2)]:
+        for fcx, fcy in fire_centers[: 2 + (variant % 2)]:
             for y in range(fcy - 4, fcy + 5):
                 for x in range(fcx - 4, fcx + 5):
-                    dist = math.sqrt((x - fcx)**2 + (y - fcy)**2)
+                    dist = math.sqrt((x - fcx) ** 2 + (y - fcy) ** 2)
                     if dist <= 4.5 and rng.random() > 0.3:
                         if dist < 1.5:
                             color = flame_yellow

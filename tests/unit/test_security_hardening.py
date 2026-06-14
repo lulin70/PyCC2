@@ -93,9 +93,7 @@ class TestHmacKeyDefaultWithWarning:
                 with warnings.catch_warnings(record=True) as w:
                     warnings.simplefilter("always")
                     mgr = SecureSaveManager(base_dir=tmp_save_dir)
-                    hmac_warnings = [
-                        warning for warning in w if "HMAC key" in str(warning.message)
-                    ]
+                    hmac_warnings = [warning for warning in w if "HMAC key" in str(warning.message)]
                     assert len(hmac_warnings) >= 1
                     assert mgr._hmac_key is not None
                     assert len(mgr._hmac_key) == 32  # Random key is 32 bytes

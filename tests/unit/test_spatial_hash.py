@@ -12,10 +12,10 @@ from pycc2.domain.entities.unit import Faction
 from pycc2.domain.systems.spatial_hash import SpatialHash
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_sh(cell_size: int = 10) -> SpatialHash:
     return SpatialHash(cell_size=cell_size)
@@ -250,7 +250,9 @@ class TestClear:
     def test_clear_empties_hash(self):
         sh = _make_sh()
         _populate_basic(sh)
-        assert sh.unit_count() >= 4, f"After populating 4 units, count should be >= 4, got {sh.unit_count()}"
+        assert sh.unit_count() >= 4, (
+            f"After populating 4 units, count should be >= 4, got {sh.unit_count()}"
+        )
         sh.clear()
         assert sh.unit_count() == 0
         assert sh.query_radius(TileCoord(0, 0), 1000) == []
@@ -264,6 +266,7 @@ class TestClear:
 class TestBuildFromUnits:
     def test_build_from_units_populates(self):
         from dataclasses import dataclass
+
         from pycc2.domain.components.position_component import PositionComponent
 
         @dataclass
@@ -320,7 +323,9 @@ class TestEdgeCases:
         for i in range(50):
             sh.insert(f"u{i}", TileCoord(i, i), Faction.ALLIES)
         result = sh.query_radius(TileCoord(25, 25), 30)
-        assert len(result) >= 1, f"Query near populated area should return at least 1 unit, got {len(result)}"
+        assert len(result) >= 1, (
+            f"Query near populated area should return at least 1 unit, got {len(result)}"
+        )
         assert all(uid.startswith("u") for uid in result)
 
 

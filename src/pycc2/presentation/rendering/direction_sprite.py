@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 @dataclass(slots=True)
 class SpriteFrame:
     """Single frame of a sprite animation."""
+
     surface: pygame.Surface
     direction: Direction
     frame_index: int = 0
@@ -37,6 +38,7 @@ class DirectionSpriteSet:
         ...
     }
     """
+
     base_sprite_path: str = ""
     sprite_size: tuple[int, int] = (32, 32)
     directions: dict[Direction, list[pygame.Surface]] = field(default_factory=dict)
@@ -194,16 +196,16 @@ class DirectionSpriteManager:
     Singleton-style manager accessible throughout the rendering pipeline.
     """
 
-    _instance: "DirectionSpriteManager | None" = None
+    _instance: DirectionSpriteManager | None = None
     _cache: dict[str, DirectionSpriteSet] = {}
 
-    def __new__(cls) -> "DirectionSpriteManager":
+    def __new__(cls) -> DirectionSpriteManager:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
     @classmethod
-    def get_instance(cls) -> "DirectionSpriteManager":
+    def get_instance(cls) -> DirectionSpriteManager:
         """Get singleton instance."""
         if cls._instance is None:
             cls._instance = cls()
@@ -236,9 +238,7 @@ class DirectionSpriteManager:
         if sprite_path:
             sprite_set.load_from_spritesheet(sprite_path)
         else:
-            default_path = (
-                f"assets/sprites/units/{faction}/{unit_type}.png"
-            )
+            default_path = f"assets/sprites/units/{faction}/{unit_type}.png"
             try:
                 sprite_set.load_from_spritesheet(default_path)
             except Exception as e:
@@ -263,18 +263,18 @@ class DirectionSpriteManager:
 
         # P1-5: CC2 authentic colors based on faction
         if faction == "allies":
-            base_color = (95, 115, 75)   # Olive drab (Allies)
+            base_color = (95, 115, 75)  # Olive drab (Allies)
             dark_color = (70, 85, 55)
             light_color = (120, 140, 95)
         else:
-            base_color = (85, 75, 65)    # Field grey (Axis)
+            base_color = (85, 75, 65)  # Field grey (Axis)
             dark_color = (65, 55, 48)
             light_color = (105, 95, 82)
 
         cx, cy = size // 2, size // 2
 
         # P1-5: Draw simplified unit shape based on type
-        if 'infantry' in unit_type or 'rifle' in unit_type or 'machine_gun' in unit_type:
+        if "infantry" in unit_type or "rifle" in unit_type or "machine_gun" in unit_type:
             # Soldier silhouette (top-down view - helmet circle + body)
             pygame.draw.circle(surface, base_color, (cx, cy - 4), 6)
             pygame.draw.circle(surface, dark_color, (cx, cy - 4), 6, 1)
@@ -284,7 +284,12 @@ class DirectionSpriteManager:
             # Rifle line
             pygame.draw.line(surface, dark_color, (cx + 6, cy + 2), (cx + 11, cy - 2), 2)
 
-        elif 'vehicle' in unit_type or 'halftrack' in unit_type or 'jeep' in unit_type or 'tank' in unit_type:
+        elif (
+            "vehicle" in unit_type
+            or "halftrack" in unit_type
+            or "jeep" in unit_type
+            or "tank" in unit_type
+        ):
             # Vehicle rectangle with details
             rect = pygame.Rect(cx - 10, cy - 6, 20, 14)
             pygame.draw.rect(surface, base_color, rect, border_radius=3)
@@ -295,7 +300,7 @@ class DirectionSpriteManager:
             # Tracks/wheels hint
             pygame.draw.rect(surface, dark_color, (cx - 10, cy + 6, 20, 3))
 
-        elif 'mortar' in unit_type or 'artillery' in unit_type or 'at_gun' in unit_type:
+        elif "mortar" in unit_type or "artillery" in unit_type or "at_gun" in unit_type:
             # Gun barrel shape
             pygame.draw.ellipse(surface, base_color, (cx - 6, cy - 2, 12, 10))
             pygame.draw.line(surface, dark_color, (cx, cy - 2), (cx, cy - 10), 3)
@@ -322,7 +327,7 @@ class DirectionSpriteManager:
 
     def get_sprite_for_unit(
         self,
-        unit: "Unit",
+        unit: Unit,
         direction: Direction | None = None,
         frame_index: int = 0,
     ) -> pygame.Surface | None:
@@ -338,17 +343,21 @@ class DirectionSpriteManager:
             Pygame Surface or None
         """
         if direction is None:
-            direction = Direction.from_angle(getattr(unit, 'facing', 0))
+            direction = Direction.from_angle(getattr(unit, "facing", 0))
 
-        unit_type = getattr(unit, 'unit_type', None)
+        unit_type = getattr(unit, "unit_type", None)
         if unit_type is None:
-            unit_type = type(unit).__name__.lower().replace('squad', '')
+            unit_type = type(unit).__name__.lower().replace("squad", "")
 
-        faction_name = getattr(unit, 'faction', None)
+        faction_name = getattr(unit, "faction", None)
         if faction_name is None:
             faction_name = "allies"
         else:
-            faction_name = faction_name.name.lower() if hasattr(faction_name, 'name') else str(faction_name).lower()
+            faction_name = (
+                faction_name.name.lower()
+                if hasattr(faction_name, "name")
+                else str(faction_name).lower()
+            )
 
         sprite_set = self.load_unit_sprites(
             unit_type=str(unit_type),

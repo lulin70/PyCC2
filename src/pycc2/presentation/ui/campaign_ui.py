@@ -12,8 +12,8 @@ Full campaign screen flow:
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -255,7 +255,9 @@ class CampaignUI:
         # Proceed button
         if self._proceed_button_rect and self._proceed_button_rect.collidepoint(x, y):
             if self._selected_op_id:
-                op = next((o for o in self._operations if o.operation_id == self._selected_op_id), None)
+                op = next(
+                    (o for o in self._operations if o.operation_id == self._selected_op_id), None
+                )
                 if op:
                     self.show_operation_briefing(op)
                     return f"briefing:{self._selected_op_id}"
@@ -280,7 +282,11 @@ class CampaignUI:
         if self._start_button_rect and self._start_button_rect.collidepoint(x, y):
             if self._selected_battle_id and self._current_operation:
                 battle = next(
-                    (b for b in self._current_operation.battles if b.battle_id == self._selected_battle_id),
+                    (
+                        b
+                        for b in self._current_operation.battles
+                        if b.battle_id == self._selected_battle_id
+                    ),
                     None,
                 )
                 if battle:
@@ -304,7 +310,11 @@ class CampaignUI:
         if self._start_button_rect and self._start_button_rect.collidepoint(x, y):
             if self._selected_battle_id:
                 battle = next(
-                    (b for b in self._current_operation.battles if b.battle_id == self._selected_battle_id),
+                    (
+                        b
+                        for b in self._current_operation.battles
+                        if b.battle_id == self._selected_battle_id
+                    ),
                     None,
                 )
                 if battle:
@@ -453,7 +463,9 @@ class CampaignUI:
 
         list_title = self._font_normal.render("SELECT OPERATION", True, self.HIGHLIGHT_COLOR)
         surface.blit(list_title, (list_x + 8, list_y + 4))
-        draw.line(surface, self.BORDER_COLOR, (list_x, list_y + 24), (list_x + list_w, list_y + 24), 1)
+        draw.line(
+            surface, self.BORDER_COLOR, (list_x, list_y + 24), (list_x + list_w, list_y + 24), 1
+        )
 
         item_y = list_y + 28
         for op in self._operations:
@@ -475,10 +487,16 @@ class CampaignUI:
 
             draw.rect(surface, bg, item_rect, border_radius=3)
             if is_selected:
-                draw.rect(surface, self.HIGHLIGHT_COLOR, Rect(item_rect.left, item_rect.top, 2, item_rect.height))
+                draw.rect(
+                    surface,
+                    self.HIGHLIGHT_COLOR,
+                    Rect(item_rect.left, item_rect.top, 2, item_rect.height),
+                )
 
             # Day badge
-            day_surf = self._font_small.render(f"Day {op.day}/{op.total_days}", True, (180, 180, 170))
+            day_surf = self._font_small.render(
+                f"Day {op.day}/{op.total_days}", True, (180, 180, 170)
+            )
             surface.blit(day_surf, (item_rect.left + 6, item_rect.top + 4))
 
             # Operation name
@@ -489,18 +507,28 @@ class CampaignUI:
             completed = sum(1 for b in op.battles if b.completed)
             total = len(op.battles)
             if total > 0:
-                prog_surf = self._font_small.render(f"{completed}/{total}", True, self.COMPLETED_COLOR if completed == total else (180, 180, 170))
+                prog_surf = self._font_small.render(
+                    f"{completed}/{total}",
+                    True,
+                    self.COMPLETED_COLOR if completed == total else (180, 180, 170),
+                )
                 surface.blit(prog_surf, (item_rect.right - 40, item_rect.top + 4))
 
             item_y += self.BATTLE_ITEM_HEIGHT
 
         # Buttons
         btn_y = sh - self.BUTTON_HEIGHT - self.MARGIN
-        self._proceed_button_rect = Rect(sw // 2 - self.BUTTON_WIDTH - 5, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
+        self._proceed_button_rect = Rect(
+            sw // 2 - self.BUTTON_WIDTH - 5, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT
+        )
         self._back_button_rect = Rect(sw // 2 + 5, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
 
-        self._draw_button(surface, self._proceed_button_rect, "Proceed", self._hovered_button == "proceed")
-        self._draw_button(surface, self._back_button_rect, "Back", self._hovered_button == "back", self.TEXT_COLOR)
+        self._draw_button(
+            surface, self._proceed_button_rect, "Proceed", self._hovered_button == "proceed"
+        )
+        self._draw_button(
+            surface, self._back_button_rect, "Back", self._hovered_button == "back", self.TEXT_COLOR
+        )
 
     def _render_briefing(self, surface: Surface) -> None:
         """Render operation briefing screen with day header, strategic map, and battle selection."""
@@ -539,7 +567,13 @@ class CampaignUI:
         # Briefing title
         briefing_title = self._font_normal.render("HISTORICAL BRIEFING", True, self.HIGHLIGHT_COLOR)
         surface.blit(briefing_title, (left_x + 10, content_y + 8))
-        draw.line(surface, self.BORDER_COLOR, (left_x, content_y + 30), (left_x + left_w, content_y + 30), 1)
+        draw.line(
+            surface,
+            self.BORDER_COLOR,
+            (left_x, content_y + 30),
+            (left_x + left_w, content_y + 30),
+            1,
+        )
 
         # Briefing text (word-wrapped)
         text = op.historical_briefing or op.description or "No briefing available."
@@ -557,7 +591,13 @@ class CampaignUI:
         map_section_y = content_y + content_h // 2 + 5
         map_label = self._font_normal.render("STRATEGIC MAP", True, self.HIGHLIGHT_COLOR)
         surface.blit(map_label, (left_x + 10, map_section_y))
-        draw.line(surface, self.BORDER_COLOR, (left_x, map_section_y + 22), (left_x + left_w, map_section_y + 22), 1)
+        draw.line(
+            surface,
+            self.BORDER_COLOR,
+            (left_x, map_section_y + 22),
+            (left_x + left_w, map_section_y + 22),
+            1,
+        )
 
         map_y = map_section_y + 26
         map_size = min(left_w - 20, content_y + content_h - map_y - 10)
@@ -573,7 +613,13 @@ class CampaignUI:
         # Operation description
         desc_title = self._font_normal.render("OPERATION DETAILS", True, self.HIGHLIGHT_COLOR)
         surface.blit(desc_title, (right_x + 10, content_y + 8))
-        draw.line(surface, self.BORDER_COLOR, (right_x, content_y + 30), (right_x + right_w, content_y + 30), 1)
+        draw.line(
+            surface,
+            self.BORDER_COLOR,
+            (right_x, content_y + 30),
+            (right_x + right_w, content_y + 30),
+            1,
+        )
 
         if op.description:
             dy = content_y + 36
@@ -588,7 +634,13 @@ class CampaignUI:
         battle_title_y = content_y + 85
         battle_title = self._font_normal.render("BATTLES THIS DAY", True, self.HIGHLIGHT_COLOR)
         surface.blit(battle_title, (right_x + 10, battle_title_y))
-        draw.line(surface, self.BORDER_COLOR, (right_x, battle_title_y + 22), (right_x + right_w, battle_title_y + 22), 1)
+        draw.line(
+            surface,
+            self.BORDER_COLOR,
+            (right_x, battle_title_y + 22),
+            (right_x + right_w, battle_title_y + 22),
+            1,
+        )
 
         item_y = battle_title_y + 28
         for battle in op.battles:
@@ -612,7 +664,11 @@ class CampaignUI:
 
             draw.rect(surface, bg, item_rect, border_radius=3)
             if is_selected:
-                draw.rect(surface, self.HIGHLIGHT_COLOR, Rect(item_rect.left, item_rect.top, 2, item_rect.height))
+                draw.rect(
+                    surface,
+                    self.HIGHLIGHT_COLOR,
+                    Rect(item_rect.left, item_rect.top, 2, item_rect.height),
+                )
 
             if battle.completed:
                 icon = self._font_small.render("[OK]", True, self.COMPLETED_COLOR)
@@ -645,11 +701,22 @@ class CampaignUI:
 
         # Buttons: Start Battle + Back
         btn_y = sh - self.BUTTON_HEIGHT - self.MARGIN
-        self._start_button_rect = Rect(sw - self.MARGIN - self.BUTTON_WIDTH * 2 - 10, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
-        self._back_button_rect = Rect(sw - self.MARGIN - self.BUTTON_WIDTH, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
+        self._start_button_rect = Rect(
+            sw - self.MARGIN - self.BUTTON_WIDTH * 2 - 10,
+            btn_y,
+            self.BUTTON_WIDTH,
+            self.BUTTON_HEIGHT,
+        )
+        self._back_button_rect = Rect(
+            sw - self.MARGIN - self.BUTTON_WIDTH, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT
+        )
 
-        self._draw_button(surface, self._start_button_rect, "Start Battle", self._hovered_button == "start")
-        self._draw_button(surface, self._back_button_rect, "Back", self._hovered_button == "back", self.TEXT_COLOR)
+        self._draw_button(
+            surface, self._start_button_rect, "Start Battle", self._hovered_button == "start"
+        )
+        self._draw_button(
+            surface, self._back_button_rect, "Back", self._hovered_button == "back", self.TEXT_COLOR
+        )
 
     def _render_battle_select(self, surface: Surface) -> None:
         """Render battle selection screen (original layout)."""
@@ -669,7 +736,9 @@ class CampaignUI:
         title_surf = self._font_title.render(op.name, True, self.HIGHLIGHT_COLOR)
         surface.blit(title_surf, (self.MARGIN, header_y))
 
-        day_surf = self._font_normal.render(f"Day {op.day} of {op.total_days}", True, self.TEXT_COLOR)
+        day_surf = self._font_normal.render(
+            f"Day {op.day} of {op.total_days}", True, self.TEXT_COLOR
+        )
         surface.blit(day_surf, (sw - self.MARGIN - day_surf.get_width(), header_y + 6))
 
         sep_y = header_y + title_surf.get_height() + 8
@@ -693,10 +762,12 @@ class CampaignUI:
 
         list_title = self._font_normal.render("BATTLES", True, self.HIGHLIGHT_COLOR)
         surface.blit(list_title, (list_x + 8, list_y + 4))
-        draw.line(surface, self.BORDER_COLOR, (list_x, list_y + 24), (list_x + list_w, list_y + 24), 1)
+        draw.line(
+            surface, self.BORDER_COLOR, (list_x, list_y + 24), (list_x + list_w, list_y + 24), 1
+        )
 
         item_y = list_y + 28
-        visible_battles = op.battles[self._scroll_offset:]
+        visible_battles = op.battles[self._scroll_offset :]
         for battle in visible_battles:
             if item_y + self.BATTLE_ITEM_HEIGHT > list_y + list_h:
                 break
@@ -718,7 +789,11 @@ class CampaignUI:
 
             draw.rect(surface, bg, item_rect, border_radius=3)
             if is_selected:
-                draw.rect(surface, self.HIGHLIGHT_COLOR, Rect(item_rect.left, item_rect.top, 2, item_rect.height))
+                draw.rect(
+                    surface,
+                    self.HIGHLIGHT_COLOR,
+                    Rect(item_rect.left, item_rect.top, 2, item_rect.height),
+                )
 
             if battle.completed:
                 icon = self._font_small.render("[OK]", True, self.COMPLETED_COLOR)
@@ -753,7 +828,9 @@ class CampaignUI:
 
                 if sel_battle.description:
                     dy = list_y + 32
-                    for line in self._wrap_text(sel_battle.description, self._font_small, right_w - 20):
+                    for line in self._wrap_text(
+                        sel_battle.description, self._font_small, right_w - 20
+                    ):
                         if dy + 16 > list_y + list_h:
                             break
                         ls = self._font_small.render(line, True, (180, 180, 170))
@@ -761,7 +838,9 @@ class CampaignUI:
                         dy += 16
 
                 if sel_battle.map_file:
-                    map_label = self._font_small.render(f"Map: {sel_battle.map_file}", True, (150, 150, 140))
+                    map_label = self._font_small.render(
+                        f"Map: {sel_battle.map_file}", True, (150, 150, 140)
+                    )
                     surface.blit(map_label, (right_x + 8, list_y + list_h - 22))
             else:
                 hint = self._font_small.render("Select a battle", True, (128, 128, 128))
@@ -769,11 +848,22 @@ class CampaignUI:
 
         # Buttons
         btn_y = sh - self.BUTTON_HEIGHT - self.MARGIN
-        self._start_button_rect = Rect(sw - self.MARGIN - self.BUTTON_WIDTH * 2 - 10, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
-        self._back_button_rect = Rect(sw - self.MARGIN - self.BUTTON_WIDTH, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
+        self._start_button_rect = Rect(
+            sw - self.MARGIN - self.BUTTON_WIDTH * 2 - 10,
+            btn_y,
+            self.BUTTON_WIDTH,
+            self.BUTTON_HEIGHT,
+        )
+        self._back_button_rect = Rect(
+            sw - self.MARGIN - self.BUTTON_WIDTH, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT
+        )
 
-        self._draw_button(surface, self._start_button_rect, "Start Battle", self._hovered_button == "start")
-        self._draw_button(surface, self._back_button_rect, "Back", self._hovered_button == "back", self.TEXT_COLOR)
+        self._draw_button(
+            surface, self._start_button_rect, "Start Battle", self._hovered_button == "start"
+        )
+        self._draw_button(
+            surface, self._back_button_rect, "Back", self._hovered_button == "back", self.TEXT_COLOR
+        )
 
     def _render_preview(self, surface: Surface) -> None:
         """Render pre-battle preview with mini map, objectives, and forces."""
@@ -819,7 +909,13 @@ class CampaignUI:
 
         obj_title = self._font_normal.render("OBJECTIVES", True, self.HIGHLIGHT_COLOR)
         surface.blit(obj_title, (right_x + 8, right_y + 4))
-        draw.line(surface, self.BORDER_COLOR, (right_x, right_y + 24), (right_x + right_w, right_y + 24), 1)
+        draw.line(
+            surface,
+            self.BORDER_COLOR,
+            (right_x, right_y + 24),
+            (right_x + right_w, right_y + 24),
+            1,
+        )
 
         dy = right_y + 28
         if battle.objectives:
@@ -841,14 +937,20 @@ class CampaignUI:
 
         forces_title = self._font_normal.render("AVAILABLE FORCES", True, self.HIGHLIGHT_COLOR)
         surface.blit(forces_title, (right_x + 8, forces_y + 4))
-        draw.line(surface, self.BORDER_COLOR, (right_x, forces_y + 24), (right_x + right_w, forces_y + 24), 1)
+        draw.line(
+            surface,
+            self.BORDER_COLOR,
+            (right_x, forces_y + 24),
+            (right_x + right_w, forces_y + 24),
+            1,
+        )
 
         dy = forces_y + 28
         # Allied forces
         allied_label = self._font_small.render("Allied:", True, self.COMPLETED_COLOR)
         surface.blit(allied_label, (right_x + 8, dy))
         dy += 16
-        for force in (battle.allied_forces or ["Standard Infantry Platoon"]):
+        for force in battle.allied_forces or ["Standard Infantry Platoon"]:
             if dy + 14 > forces_y + forces_panel_h:
                 break
             f_surf = self._font_small.render(f"  {force}", True, (180, 180, 170))
@@ -860,7 +962,7 @@ class CampaignUI:
         axis_label = self._font_small.render("Axis:", True, self.DEFEAT_COLOR)
         surface.blit(axis_label, (right_x + 8, dy))
         dy += 16
-        for force in (battle.axis_forces or ["German Garrison"]):
+        for force in battle.axis_forces or ["German Garrison"]:
             if dy + 14 > forces_y + forces_panel_h:
                 break
             f_surf = self._font_small.render(f"  {force}", True, (180, 180, 170))
@@ -877,11 +979,22 @@ class CampaignUI:
 
         # Buttons
         btn_y = sh - self.BUTTON_HEIGHT - self.MARGIN
-        self._deploy_button_rect = Rect(sw - self.MARGIN - self.BUTTON_WIDTH * 2 - 10, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
-        self._back_button_rect = Rect(sw - self.MARGIN - self.BUTTON_WIDTH, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
+        self._deploy_button_rect = Rect(
+            sw - self.MARGIN - self.BUTTON_WIDTH * 2 - 10,
+            btn_y,
+            self.BUTTON_WIDTH,
+            self.BUTTON_HEIGHT,
+        )
+        self._back_button_rect = Rect(
+            sw - self.MARGIN - self.BUTTON_WIDTH, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT
+        )
 
-        self._draw_button(surface, self._deploy_button_rect, "Deploy", self._hovered_button == "deploy")
-        self._draw_button(surface, self._back_button_rect, "Back", self._hovered_button == "back", self.TEXT_COLOR)
+        self._draw_button(
+            surface, self._deploy_button_rect, "Deploy", self._hovered_button == "deploy"
+        )
+        self._draw_button(
+            surface, self._back_button_rect, "Back", self._hovered_button == "back", self.TEXT_COLOR
+        )
 
     def _render_report(self, surface: Surface) -> None:
         """Render post-battle report with narrative elements."""
@@ -927,7 +1040,13 @@ class CampaignUI:
 
         nar_title = self._font_normal.render("BATTLE SUMMARY", True, self.HIGHLIGHT_COLOR)
         surface.blit(nar_title, (left_x + 8, narrative_y + 4))
-        draw.line(surface, self.BORDER_COLOR, (left_x, narrative_y + 24), (left_x + left_w, narrative_y + 24), 1)
+        draw.line(
+            surface,
+            self.BORDER_COLOR,
+            (left_x, narrative_y + 24),
+            (left_x + left_w, narrative_y + 24),
+            1,
+        )
 
         dy = narrative_y + 30
         narrative_lines = self._generate_narrative_report(result)
@@ -939,7 +1058,10 @@ class CampaignUI:
                 line_surf = self._font_normal.render(line, True, self.HIGHLIGHT_COLOR)
             elif "Killed in Action" in line:
                 line_surf = self._font_small.render(line, True, self.DEFEAT_COLOR)
-            elif any(kw in line for kw in ["commendation", "heroic", "held the line", "rallied", "distinguished"]):
+            elif any(
+                kw in line
+                for kw in ["commendation", "heroic", "held the line", "rallied", "distinguished"]
+            ):
                 line_surf = self._font_small.render(line, True, self.COMPLETED_COLOR)
             else:
                 line_surf = self._font_small.render(line, True, (200, 200, 190))
@@ -955,7 +1077,13 @@ class CampaignUI:
         # Casualties section
         cas_title = self._font_normal.render("CASUALTIES", True, self.HIGHLIGHT_COLOR)
         surface.blit(cas_title, (right_x + 8, narrative_y + 4))
-        draw.line(surface, self.BORDER_COLOR, (right_x, narrative_y + 24), (right_x + right_w, narrative_y + 24), 1)
+        draw.line(
+            surface,
+            self.BORDER_COLOR,
+            (right_x, narrative_y + 24),
+            (right_x + right_w, narrative_y + 24),
+            1,
+        )
 
         dy = narrative_y + 30
         casualties = result.get("casualties", {})
@@ -1002,11 +1130,22 @@ class CampaignUI:
 
         # Buttons
         btn_y = sh - self.BUTTON_HEIGHT - self.MARGIN
-        self._continue_button_rect = Rect(sw - self.MARGIN - self.BUTTON_WIDTH * 2 - 10, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
-        self._back_button_rect = Rect(sw - self.MARGIN - self.BUTTON_WIDTH, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
+        self._continue_button_rect = Rect(
+            sw - self.MARGIN - self.BUTTON_WIDTH * 2 - 10,
+            btn_y,
+            self.BUTTON_WIDTH,
+            self.BUTTON_HEIGHT,
+        )
+        self._back_button_rect = Rect(
+            sw - self.MARGIN - self.BUTTON_WIDTH, btn_y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT
+        )
 
-        self._draw_button(surface, self._continue_button_rect, "Continue", self._hovered_button == "continue")
-        self._draw_button(surface, self._back_button_rect, "Back", self._hovered_button == "back", self.TEXT_COLOR)
+        self._draw_button(
+            surface, self._continue_button_rect, "Continue", self._hovered_button == "continue"
+        )
+        self._draw_button(
+            surface, self._back_button_rect, "Back", self._hovered_button == "back", self.TEXT_COLOR
+        )
 
     def _generate_narrative_report(self, result: dict) -> list[str]:
         """Generate a narrative post-battle report."""
@@ -1143,7 +1282,13 @@ class CampaignUI:
         # Historical text
         hist_title = self._font_normal.render("HISTORICAL OUTCOME", True, self.HIGHLIGHT_COLOR)
         surface.blit(hist_title, (left_x + 10, content_y + 8))
-        draw.line(surface, self.BORDER_COLOR, (left_x, content_y + 28), (left_x + left_w, content_y + 28), 1)
+        draw.line(
+            surface,
+            self.BORDER_COLOR,
+            (left_x, content_y + 28),
+            (left_x + left_w, content_y + 28),
+            1,
+        )
 
         dy = content_y + 34
         for line in self._wrap_text(historical, self._font_normal, left_w - 30):
@@ -1162,7 +1307,13 @@ class CampaignUI:
         bridge_section_y = content_y + content_h // 2 + 5
         bridge_title = self._font_normal.render("BRIDGE STATUS", True, self.HIGHLIGHT_COLOR)
         surface.blit(bridge_title, (left_x + 10, bridge_section_y))
-        draw.line(surface, self.BORDER_COLOR, (left_x, bridge_section_y + 22), (left_x + left_w, bridge_section_y + 22), 1)
+        draw.line(
+            surface,
+            self.BORDER_COLOR,
+            (left_x, bridge_section_y + 22),
+            (left_x + left_w, bridge_section_y + 22),
+            1,
+        )
 
         dy = bridge_section_y + 28
         if bridge_status:
@@ -1195,7 +1346,13 @@ class CampaignUI:
 
         cas_title = self._font_normal.render("TOTAL CASUALTIES", True, self.HIGHLIGHT_COLOR)
         surface.blit(cas_title, (right_x + 10, content_y + 8))
-        draw.line(surface, self.BORDER_COLOR, (right_x, content_y + 28), (right_x + right_w, content_y + 28), 1)
+        draw.line(
+            surface,
+            self.BORDER_COLOR,
+            (right_x, content_y + 28),
+            (right_x + right_w, content_y + 28),
+            1,
+        )
 
         # Table header
         dy = content_y + 36
@@ -1211,14 +1368,20 @@ class CampaignUI:
         surface.blit(wia_hdr, (col_x_wia, dy))
 
         dy += 26
-        draw.line(surface, self.BORDER_COLOR, (right_x + 5, dy - 4), (right_x + right_w - 5, dy - 4), 1)
+        draw.line(
+            surface, self.BORDER_COLOR, (right_x + 5, dy - 4), (right_x + right_w - 5, dy - 4), 1
+        )
 
         # Allied row
         allied_label = self._font_normal.render("Allies", True, self.COMPLETED_COLOR)
         surface.blit(allied_label, (col_x_side, dy))
-        allied_kia = self._font_normal.render(str(allied_cas.get("kia", 0)), True, self.DEFEAT_COLOR)
+        allied_kia = self._font_normal.render(
+            str(allied_cas.get("kia", 0)), True, self.DEFEAT_COLOR
+        )
         surface.blit(allied_kia, (col_x_kia, dy))
-        allied_wia = self._font_normal.render(str(allied_cas.get("wia", 0)), True, self.HIGHLIGHT_COLOR)
+        allied_wia = self._font_normal.render(
+            str(allied_cas.get("wia", 0)), True, self.HIGHLIGHT_COLOR
+        )
         surface.blit(allied_wia, (col_x_wia, dy))
 
         dy += 28
@@ -1233,7 +1396,9 @@ class CampaignUI:
 
         # MIA note
         dy += 40
-        mia_note = self._font_small.render("MIA: Included in KIA for campaign accounting", True, (128, 128, 128))
+        mia_note = self._font_small.render(
+            "MIA: Included in KIA for campaign accounting", True, (128, 128, 128)
+        )
         surface.blit(mia_note, (right_x + 10, dy))
 
         # --- Buttons ---
@@ -1246,12 +1411,17 @@ class CampaignUI:
         )
 
         self._draw_button(
-            surface, self._new_campaign_button_rect, "New Campaign",
+            surface,
+            self._new_campaign_button_rect,
+            "New Campaign",
             self._hovered_button == "new_campaign",
         )
         self._draw_button(
-            surface, self._main_menu_button_rect, "Main Menu",
-            self._hovered_button == "main_menu", self.TEXT_COLOR,
+            surface,
+            self._main_menu_button_rect,
+            "Main Menu",
+            self._hovered_button == "main_menu",
+            self.TEXT_COLOR,
         )
 
     # ------------------------------------------------------------------
@@ -1259,7 +1429,12 @@ class CampaignUI:
     # ------------------------------------------------------------------
 
     def _draw_button(
-        self, surface: Surface, rect: Rect, text: str, hovered: bool, text_color: tuple | None = None
+        self,
+        surface: Surface,
+        rect: Rect,
+        text: str,
+        hovered: bool,
+        text_color: tuple | None = None,
     ) -> None:
         """Draw a styled button."""
         bg = self.BUTTON_HOVER if hovered else self.BUTTON_COLOR
@@ -1289,7 +1464,9 @@ class CampaignUI:
             lines.append(current)
         return lines
 
-    def _draw_strategic_map(self, surface: Surface, x: int, y: int, size: int, sector: str, current_day: int) -> None:
+    def _draw_strategic_map(
+        self, surface: Surface, x: int, y: int, size: int, sector: str, current_day: int
+    ) -> None:
         """Draw a strategic map showing the three Market Garden sectors with current position."""
         # Map background
         draw.rect(surface, self.MINIMAP_BG, Rect(x, y, size, size))
@@ -1316,16 +1493,22 @@ class CampaignUI:
 
             # Highlight current sector
             if sec_id == sector:
-                draw.rect(surface, self.HIGHLIGHT_COLOR, Rect(x + 1, sy + 1, size - 2, sector_h - 2), 2)
+                draw.rect(
+                    surface, self.HIGHLIGHT_COLOR, Rect(x + 1, sy + 1, size - 2, sector_h - 2), 2
+                )
 
             # Sector label
-            label = self._font_small.render(sector_labels.get(sec_id, sec_id.upper()), True, (200, 200, 190))
+            label = self._font_small.render(
+                sector_labels.get(sec_id, sec_id.upper()), True, (200, 200, 190)
+            )
             surface.blit(label, (x + 5, sy + 4))
 
         # Draw "Hell's Highway" road line connecting sectors
         road_x = x + size // 2
         draw.line(surface, (128, 128, 128), (road_x, y + sector_h), (road_x, y + 2 * sector_h), 2)
-        draw.line(surface, (128, 128, 128), (road_x, y + 2 * sector_h), (road_x, y + 3 * sector_h), 2)
+        draw.line(
+            surface, (128, 128, 128), (road_x, y + 2 * sector_h), (road_x, y + 3 * sector_h), 2
+        )
 
         # Day progress indicator
         day_pct = min(current_day / 9.0, 1.0)
@@ -1342,6 +1525,7 @@ class CampaignUI:
         try:
             import json
             from pathlib import Path
+
             map_path = Path(f"data/maps/{map_file}.json")
             if not map_path.exists():
                 # Try without extension
@@ -1357,15 +1541,24 @@ class CampaignUI:
                         tile_w = size / cols
                         tile_h = size / rows
                         terrain_colors = {
-                            "grass": (76, 153, 0), "open": (200, 200, 180),
-                            "road": (128, 128, 128), "woods": (34, 100, 34),
-                            "forest": (34, 100, 34), "water": (65, 105, 225),
-                            "building": (160, 140, 120), "building_enterable": (160, 140, 120),
-                            "building_solid": (100, 80, 60), "hedge": (80, 120, 40),
-                            "bridge": (139, 119, 101), "dirt": (154, 140, 125),
-                            "rough": (154, 140, 125), "trench": (90, 75, 60),
-                            "crater": (90, 75, 60), "wall": (105, 105, 105),
-                            "shallow": (100, 149, 237), "swamp": (60, 80, 50),
+                            "grass": (76, 153, 0),
+                            "open": (200, 200, 180),
+                            "road": (128, 128, 128),
+                            "woods": (34, 100, 34),
+                            "forest": (34, 100, 34),
+                            "water": (65, 105, 225),
+                            "building": (160, 140, 120),
+                            "building_enterable": (160, 140, 120),
+                            "building_solid": (100, 80, 60),
+                            "hedge": (80, 120, 40),
+                            "bridge": (139, 119, 101),
+                            "dirt": (154, 140, 125),
+                            "rough": (154, 140, 125),
+                            "trench": (90, 75, 60),
+                            "crater": (90, 75, 60),
+                            "wall": (105, 105, 105),
+                            "shallow": (100, 149, 237),
+                            "swamp": (60, 80, 50),
                         }
                         for r, row in enumerate(tiles):
                             for c, tile in enumerate(row):

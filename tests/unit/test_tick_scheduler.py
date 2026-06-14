@@ -168,14 +168,10 @@ class TestShouldTick:
 # 5. get_next_tick
 # ===================================================================
 class TestGetNextTick:
-    def test_next_tick_from_zero(
-        self, scheduler: AITickScheduler, commander: MockUnit
-    ) -> None:
+    def test_next_tick_from_zero(self, scheduler: AITickScheduler, commander: MockUnit) -> None:
         assert scheduler.get_next_tick(commander, 0) == 0
 
-    def test_next_tick_mid_interval(
-        self, scheduler: AITickScheduler, commander: MockUnit
-    ) -> None:
+    def test_next_tick_mid_interval(self, scheduler: AITickScheduler, commander: MockUnit) -> None:
         # Commander interval = 15, at tick 7 next is 15
         assert scheduler.get_next_tick(commander, 7) == 15
 
@@ -297,9 +293,7 @@ class TestEdgeCases:
         assert summary["ticking_ids"] == []
         assert summary["by_role"] == {"commander": [], "squad_leader": [], "unit": []}
 
-    def test_unit_in_squad_but_not_leader_is_regular(
-        self, scheduler: AITickScheduler
-    ) -> None:
+    def test_unit_in_squad_but_not_leader_is_regular(self, scheduler: AITickScheduler) -> None:
         unit = MockUnit(
             id="u3",
             unit_type=UnitType.MACHINE_GUN_SQUAD,
@@ -308,9 +302,7 @@ class TestEdgeCases:
         )
         assert scheduler._get_tick_hz(unit) == AITickScheduler.UNIT_TICK_HZ
 
-    def test_squad_leader_without_squad_id_is_regular(
-        self, scheduler: AITickScheduler
-    ) -> None:
+    def test_squad_leader_without_squad_id_is_regular(self, scheduler: AITickScheduler) -> None:
         unit = MockUnit(
             id="u4",
             unit_type=UnitType.INFANTRY_SQUAD,

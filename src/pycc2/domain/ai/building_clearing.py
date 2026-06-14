@@ -59,20 +59,22 @@ _INFANTRY_TYPES: set[UnitType] = {
     UnitType.MEDIC_TEAM,
 }
 
-GRENADE_DELAY_TICKS: int = 3       # Time for grenade to detonate
-SURPRISE_DURATION_TICKS: int = 5   # Duration of surprise accuracy bonus
-SURPRISE_ACCURACY_BONUS: float = 0.20   # +20% accuracy for attackers
-DEFENDER_PENALTY: float = 0.10     # -10% accuracy for defenders
+GRENADE_DELAY_TICKS: int = 3  # Time for grenade to detonate
+SURPRISE_DURATION_TICKS: int = 5  # Duration of surprise accuracy bonus
+SURPRISE_ACCURACY_BONUS: float = 0.20  # +20% accuracy for attackers
+DEFENDER_PENALTY: float = 0.10  # -10% accuracy for defenders
 GRENADE_BUILDING_DAMAGE: int = 30  # 2x normal grenade damage in building
-MIN_CLEARING_UNITS: int = 2        # Minimum units for safe clearing
+MIN_CLEARING_UNITS: int = 2  # Minimum units for safe clearing
 
 
 # ---------------------------------------------------------------------------
 # ClearingState
 # ---------------------------------------------------------------------------
 
+
 class ClearingPhase(Enum):
     """Phases of building clearing operation."""
+
     APPROACH = auto()
     GRENADE = auto()
     STACK = auto()
@@ -84,6 +86,7 @@ class ClearingPhase(Enum):
 @dataclass(slots=True)
 class ClearingState:
     """Tracks the state of a building clearing operation."""
+
     building_pos: TileCoord
     phase: ClearingPhase = ClearingPhase.APPROACH
     attackers: list[str] = field(default_factory=list)  # unit_ids
@@ -103,6 +106,7 @@ class ClearingState:
 # ---------------------------------------------------------------------------
 # BuildingClearingAI
 # ---------------------------------------------------------------------------
+
 
 class BuildingClearingAI(TacticalAIBase):
     """Evaluate when to clear buildings and issue CLEAR_BUILDING orders.
@@ -152,9 +156,7 @@ class BuildingClearingAI(TacticalAIBase):
         # Assign clearing teams to buildings
         for building_pos, defenders in building_targets.items():
             # Find nearest available infantry pair
-            team = self._find_clearing_team(
-                available, building_pos, assigned, context
-            )
+            team = self._find_clearing_team(available, building_pos, assigned, context)
             if team is None:
                 continue
 
@@ -209,7 +211,8 @@ class BuildingClearingAI(TacticalAIBase):
     def _available_infantry(context: TacticalContext) -> list[Unit]:
         """Find friendly infantry available for clearing operations."""
         return [
-            u for u in context.friendly_units
+            u
+            for u in context.friendly_units
             if u.is_alive
             and u.can_act
             and u.unit_type in _INFANTRY_TYPES
@@ -224,17 +227,12 @@ class BuildingClearingAI(TacticalAIBase):
         context: TacticalContext,
     ) -> list[Unit] | None:
         """Find the nearest pair of unassigned infantry for clearing."""
-        candidates = [
-            u for u in available
-            if u.id not in assigned
-        ]
+        candidates = [u for u in available if u.id not in assigned]
         if len(candidates) < MIN_CLEARING_UNITS:
             return None
 
         # Sort by distance to building
-        candidates.sort(
-            key=lambda u: u.position.tile_coord.chebyshev_distance(building_pos)
-        )
+        candidates.sort(key=lambda u: u.position.tile_coord.chebyshev_distance(building_pos))
         return candidates[:MIN_CLEARING_UNITS]
 
     @staticmethod
@@ -249,7 +247,7 @@ class BuildingClearingAI(TacticalAIBase):
         closest to the unit's current position.
         """
         best: TileCoord | None = None
-        best_dist = float('inf')
+        best_dist = float("inf")
 
         for dx in (-1, 0, 1):
             for dy in (-1, 0, 1):
@@ -284,34 +282,36 @@ class BuildingClearingAI(TacticalAIBase):
                 continue
             damage = unit.take_damage(GRENADE_BUILDING_DAMAGE)
             # Apply heavy suppression from grenade
-            combat_state = getattr(unit, 'combat_state', None)
+            combat_state = getattr(unit, "combat_state", None)
             if combat_state is not None:
-                suppression = getattr(combat_state, 'suppression', None)
+                suppression = getattr(combat_state, "suppression", None)
                 if suppression is not None:
                     suppression.apply_suppression(40.0)
 
-            effects.append({
-                'unit_id': unit.id,
-                'damage': damage,
-                'source': 'grenade_building',
-                'building_pos': (building_pos.x, building_pos.y),
-            })
+            effects.append(
+                {
+                    "unit_id": unit.id,
+                    "damage": damage,
+                    "source": "grenade_building",
+                    "building_pos": (building_pos.x, building_pos.y),
+                }
+            )
         return effects
 
     @staticmethod
     def apply_surprise_bonus(attacker: Unit) -> None:
         """Apply surprise accuracy bonus to an attacking unit after breach."""
-        combat_state = getattr(attacker, 'combat_state', None)
+        combat_state = getattr(attacker, "combat_state", None)
         if combat_state is not None:
-            concealment = getattr(combat_state, 'concealment', None)
+            concealment = getattr(combat_state, "concealment", None)
             if concealment is not None:
                 concealment.special_bonus += SURPRISE_ACCURACY_BONUS
 
     @staticmethod
     def apply_defender_penalty(defender: Unit) -> None:
         """Apply accuracy penalty to a defender when building is assaulted."""
-        combat_state = getattr(defender, 'combat_state', None)
+        combat_state = getattr(defender, "combat_state", None)
         if combat_state is not None:
-            suppression = getattr(combat_state, 'suppression', None)
+            suppression = getattr(combat_state, "suppression", None)
             if suppression is not None:
                 suppression.apply_suppression(10.0)

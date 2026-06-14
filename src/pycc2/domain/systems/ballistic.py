@@ -179,7 +179,7 @@ class BallisticEngine:
 
         # Vehicle passability check: vehicles cannot fire through or
         # occupy destroyed bridge tiles
-        if game_map is not None and getattr(attacker, 'is_vehicle', False):
+        if game_map is not None and getattr(attacker, "is_vehicle", False):
             attacker_terrain = game_map.get_terrain(attacker.position.tile_coord)
             if attacker_terrain == TerrainType.BRIDGE_DESTROYED:
                 return ShotResult(
@@ -195,7 +195,7 @@ class BallisticEngine:
         cover_mod = self._calc_cover_modifier(target, game_map)
         accuracy *= cover_mod
         # R1: Upper floor attacker gets LOS/accuracy bonus (better vantage point)
-        attacker_floor = getattr(attacker, 'building_floor', 0)
+        attacker_floor = getattr(attacker, "building_floor", 0)
         if attacker_floor > 0:
             accuracy *= 1.0 + attacker_floor * 0.08  # +8% per floor above ground
         morale_mod = max(0.3, target.morale.accuracy_modifier)
@@ -204,10 +204,11 @@ class BallisticEngine:
             accuracy *= environment.get_accuracy_modifier()
         # R4: Weather accuracy modifier (rain reduces accuracy, fog reduces less)
         if game_map is not None:
-            weather_state = getattr(game_map, 'weather_state', None)
+            weather_state = getattr(game_map, "weather_state", None)
             if weather_state is not None:
                 from pycc2.domain.systems.weather_effects import WeatherEffects
-                weather_type = getattr(weather_state, 'weather_type', None)
+
+                weather_type = getattr(weather_state, "weather_type", None)
                 if weather_type is not None:
                     accuracy = WeatherEffects().apply_to_accuracy(accuracy, weather_type)
         final_accuracy = min(0.98, max(0.02, accuracy))
@@ -301,18 +302,22 @@ class BallisticEngine:
         target: Unit,
         penetration: float,
     ) -> float:
-        target.unit_type.name if hasattr(target.unit_type, 'name') else str(target.unit_type)
+        target.unit_type.name if hasattr(target.unit_type, "name") else str(target.unit_type)
 
-        armor = getattr(target, 'armor_front', 0.1)
-        armor_side = getattr(target, 'armor_side', 0.08)
-        armor_rear = getattr(target, 'armor_rear', 0.08)
+        armor = getattr(target, "armor_front", 0.1)
+        armor_side = getattr(target, "armor_side", 0.08)
+        armor_rear = getattr(target, "armor_rear", 0.08)
 
         dx = attacker.position.tile_coord.x - target.position.tile_coord.x
         dy = attacker.position.tile_coord.y - target.position.tile_coord.y
 
-        target_facing = getattr(target.position, 'facing', 0.0)
-        if hasattr(target.position, 'direction'):
-            target_facing = target.position.direction.value if hasattr(target.position.direction, 'value') else 0.0
+        target_facing = getattr(target.position, "facing", 0.0)
+        if hasattr(target.position, "direction"):
+            target_facing = (
+                target.position.direction.value
+                if hasattr(target.position.direction, "value")
+                else 0.0
+            )
 
         attack_angle = math.atan2(dy, dx)
         angle_diff = abs(attack_angle - target_facing)
@@ -348,7 +353,9 @@ class BallisticEngine:
         is_killing = (target_hp - damage <= 0) and (rng.uniform(0.0, 1.0) < 0.15)
         return damage, is_killing
 
-    def _calc_spread(self, base_spread: float, distance: float, rng: IRandomNumberGenerator) -> float:
+    def _calc_spread(
+        self, base_spread: float, distance: float, rng: IRandomNumberGenerator
+    ) -> float:
         sigma = base_spread * math.sqrt(max(1.0, distance))
         return float(rng.gaussian(0.0, sigma))
 
@@ -377,7 +384,9 @@ class BallisticEngine:
             target=target,
             raw_damage=base_result.damage_dealt,
             is_armor_piercing=(base_result.damage_dealt > 40),
-            cover_bonus=float(game_map.get_terrain(target.position.tile_coord).cover_bonus) if game_map else 0.0,
+            cover_bonus=float(game_map.get_terrain(target.position.tile_coord).cover_bonus)
+            if game_map
+            else 0.0,
             target_morale=float(target.morale.value),
         )
 

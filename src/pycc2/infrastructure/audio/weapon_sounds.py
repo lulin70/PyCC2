@@ -3,6 +3,7 @@
 Generates distinct procedural sounds for each weapon type using numpy
 waveform synthesis. No external sound files are needed.
 """
+
 from __future__ import annotations
 
 import logging
@@ -12,7 +13,6 @@ from typing import ClassVar
 logger = logging.getLogger(__name__)
 
 import numpy as np
-
 
 SAMPLE_RATE: int = 44100
 
@@ -291,7 +291,7 @@ class WeaponSoundGenerator:
 
         # Check for sound_type match (e.g., "rifle", "mg", "smg")
         if best_match is None:
-            for key, profile in WEAPON_SOUND_PROFILES.items():
+            for _key, profile in WEAPON_SOUND_PROFILES.items():
                 if weapon_lower in profile.sound_type.lower():
                     best_match = profile
                     break
@@ -375,9 +375,7 @@ class WeaponSoundGenerator:
         # Add a short high-frequency click at the start
         click_len = min(int(cls.SAMPLE_RATE * 0.005), n_samples)
         click = np.zeros(n_samples, dtype=np.float64)
-        click[:click_len] = np.sin(2 * np.pi * 2000 * t[:click_len]) * np.exp(
-            -t[:click_len] * 80
-        )
+        click[:click_len] = np.sin(2 * np.pi * 2000 * t[:click_len]) * np.exp(-t[:click_len] * 80)
 
         wave = (
             (1.0 - weapon_profile.noise_ratio) * tone
@@ -406,7 +404,11 @@ class WeaponSoundGenerator:
                 shifted[d:] = envelope[:-d] * a
                 reverb += shifted
 
-        wave = (1.0 - weapon_profile.noise_ratio) * tone + weapon_profile.noise_ratio * noise + reverb * 0.3
+        wave = (
+            (1.0 - weapon_profile.noise_ratio) * tone
+            + weapon_profile.noise_ratio * noise
+            + reverb * 0.3
+        )
         return cls._to_int16(wave)
 
     @classmethod
@@ -421,7 +423,9 @@ class WeaponSoundGenerator:
         thump = np.sin(2 * np.pi * weapon_profile.base_frequency * t) * envelope
 
         # Whoosh: filtered noise that rises then falls
-        whoosh_env = np.sin(np.pi * t / weapon_profile.duration) * np.exp(-t * weapon_profile.decay_rate * 0.5)
+        whoosh_env = np.sin(np.pi * t / weapon_profile.duration) * np.exp(
+            -t * weapon_profile.decay_rate * 0.5
+        )
         whoosh = np.random.uniform(-1, 1, n_samples) * whoosh_env
 
         wave = (1.0 - weapon_profile.noise_ratio) * thump + weapon_profile.noise_ratio * whoosh
@@ -442,7 +446,7 @@ class WeaponSoundGenerator:
         if whoosh_len > 0:
             whoosh_t = np.linspace(0, 0.1, whoosh_len, dtype=np.float64)
             whoosh_env = np.sin(np.pi * whoosh_t / 0.1) * 0.25
-            whoosh[whoosh_start:whoosh_start + whoosh_len] = (
+            whoosh[whoosh_start : whoosh_start + whoosh_len] = (
                 np.random.uniform(-1, 1, whoosh_len) * whoosh_env
             )
 
@@ -488,7 +492,9 @@ class WeaponSoundGenerator:
 
         noise = np.random.uniform(-1, 1, n_samples) * envelope
 
-        wave = (1.0 - weapon_profile.noise_ratio) * (boom + sub) + weapon_profile.noise_ratio * noise
+        wave = (1.0 - weapon_profile.noise_ratio) * (
+            boom + sub
+        ) + weapon_profile.noise_ratio * noise
         return cls._to_int16(wave)
 
     @classmethod
@@ -543,9 +549,9 @@ class WeaponSoundGenerator:
         # Add a short initial crack (sharper than smg but shorter than rifle)
         crack_len = min(int(cls.SAMPLE_RATE * 0.008), n_samples)
         crack = np.zeros(n_samples, dtype=np.float64)
-        crack[:crack_len] = np.sin(2 * np.pi * 1500 * t[:crack_len]) * np.exp(
-            -t[:crack_len] * 100
-        ) * 0.25
+        crack[:crack_len] = (
+            np.sin(2 * np.pi * 1500 * t[:crack_len]) * np.exp(-t[:crack_len] * 100) * 0.25
+        )
 
         wave += crack
         return cls._to_int16(wave)
@@ -573,10 +579,9 @@ class WeaponSoundGenerator:
 
         noise = np.random.uniform(-1, 1, n_samples) * envelope
 
-        wave = (
-            (1.0 - weapon_profile.noise_ratio) * (boom + sub + sub2)
-            + weapon_profile.noise_ratio * noise
-        )
+        wave = (1.0 - weapon_profile.noise_ratio) * (
+            boom + sub + sub2
+        ) + weapon_profile.noise_ratio * noise
         return cls._to_int16(wave)
 
     # ------------------------------------------------------------------

@@ -12,7 +12,6 @@ from pycc2.presentation.rendering.isometric_depth_sorter import (
     unit_to_renderable,
 )
 
-
 # ============================================================
 # Helpers
 # ============================================================
@@ -124,6 +123,7 @@ class TestTileToRenderable:
 class TestUnitToRenderable:
     def test_unit_to_renderable(self):
         """unit_to_renderable uses unit.position for coords and UNIT layer."""
+
         @dataclass
         class MockPosition:
             x: float
@@ -144,6 +144,7 @@ class TestUnitToRenderable:
 
     def test_unit_to_renderable_no_z(self):
         """unit_to_renderable defaults z to 0.0 if position has no z."""
+
         @dataclass
         class MockPosition:
             x: float

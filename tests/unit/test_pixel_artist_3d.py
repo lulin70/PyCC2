@@ -12,6 +12,7 @@ Tests cover:
 from __future__ import annotations
 
 import os
+
 import pytest
 
 # Ensure SDL dummy drivers are set before pygame imports
@@ -25,6 +26,7 @@ class TestPixelArtist3DInitialization:
     def test_import_pixel_artist_3d(self):
         """Test that PixelArtist3D can be imported"""
         from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+
         assert PixelArtist3D is not None
 
     def test_direction_enum_exists(self):
@@ -42,8 +44,8 @@ class TestPixelArtist3DInitialization:
         """Test that Faction enum has ALLIES and AXIS"""
         from pycc2.domain.entities.unit import Faction
 
-        assert hasattr(Faction, 'ALLIES')
-        assert hasattr(Faction, 'AXIS')
+        assert hasattr(Faction, "ALLIES")
+        assert hasattr(Faction, "AXIS")
 
     def test_cc2_palette_exists(self):
         """Test that CC2_PALETTE contains both factions"""
@@ -56,11 +58,23 @@ class TestPixelArtist3DInitialization:
         axis_palette = CC2_PALETTE["axis"]
 
         # Check required color keys exist
-        required_keys = ['uniform', 'helmet', 'weapon', 'boots',
-                         'uniform_dark', 'uniform_light', 'helmet_dark',
-                         'helmet_highlight', 'weapon_metal',
-                         'weapon_wood', 'equipment', 'equipment_dark',
-                         'canteen', 'ammo_belt', 'beret']
+        required_keys = [
+            "uniform",
+            "helmet",
+            "weapon",
+            "boots",
+            "uniform_dark",
+            "uniform_light",
+            "helmet_dark",
+            "helmet_highlight",
+            "weapon_metal",
+            "weapon_wood",
+            "equipment",
+            "equipment_dark",
+            "canteen",
+            "ammo_belt",
+            "beret",
+        ]
         for key in required_keys:
             assert key in allies_palette, f"Missing '{key}' in allies palette"
             assert key in axis_palette, f"Missing '{key}' in axis palette"
@@ -72,12 +86,14 @@ class TestInfantrySpriteGeneration:
     @pytest.fixture()
     def artist(self):
         from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+
         return PixelArtist3D()
 
     def test_create_infantry_allies_idle_north(self, artist, pygame_display):
         """Test creating Allied infantry sprite facing North, idle state"""
-        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
         import pygame
+
+        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
 
         sprite = artist.create_infantry_sprite(
             direction=Direction.NORTH,
@@ -94,8 +110,9 @@ class TestInfantrySpriteGeneration:
 
     def test_create_infantry_axis_idle_south(self, artist, pygame_display):
         """Test creating Axis infantry sprite facing South, idle state"""
-        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
         import pygame
+
+        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
 
         sprite = artist.create_infantry_sprite(
             direction=Direction.SOUTH,
@@ -179,12 +196,14 @@ class TestTankSpriteGeneration:
     @pytest.fixture()
     def artist(self):
         from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+
         return PixelArtist3D()
 
     def test_create_tank_allies_idle(self, artist, pygame_display):
         """Test creating Allied tank sprite"""
-        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
         import pygame
+
+        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
 
         sprite = artist.create_tank_sprite(
             direction=Direction.SOUTH,
@@ -240,12 +259,14 @@ class TestVehicleSpriteGeneration:
     @pytest.fixture()
     def artist(self):
         from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+
         return PixelArtist3D()
 
     def test_create_halftrack_allies_idle_north(self, artist, pygame_display):
         """Test creating Allied halftrack sprite facing North"""
-        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
         import pygame
+
+        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
 
         sprite = artist.create_halftrack_sprite(
             direction=Direction.NORTH,
@@ -262,8 +283,9 @@ class TestVehicleSpriteGeneration:
 
     def test_create_halftrack_axis_south(self, artist, pygame_display):
         """Test creating Axis halftrack sprite facing South"""
-        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
         import pygame
+
+        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
 
         sprite = artist.create_halftrack_sprite(
             direction=Direction.SOUTH,
@@ -302,8 +324,9 @@ class TestVehicleSpriteGeneration:
 
     def test_create_jeep_allies_idle(self, artist, pygame_display):
         """Test creating Allied jeep sprite"""
-        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
         import pygame
+
+        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
 
         sprite = artist.create_jeep_sprite(
             direction=Direction.NORTH,
@@ -347,8 +370,9 @@ class TestVehicleSpriteGeneration:
 
     def test_create_at_gun_allies_idle(self, artist, pygame_display):
         """Test creating Allied anti-tank gun sprite"""
-        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
         import pygame
+
+        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
 
         sprite = artist.create_at_gun_sprite(
             direction=Direction.NORTH,
@@ -386,8 +410,9 @@ class TestVehicleSpriteGeneration:
 
     def test_create_mortar_team_allies(self, artist, pygame_display):
         """Test creating Allied mortar team sprite"""
-        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
         import pygame
+
+        from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
 
         sprite = artist.create_mortar_team_sprite(
             direction=Direction.NORTH,
@@ -428,26 +453,28 @@ class TestVehicleSpriteGeneration:
         from pycc2.presentation.rendering.pixel_artist_3d import Direction, Faction
 
         expected_sizes = {
-            'halftrack': (40, 44),
-            'jeep': (28, 20),
-            'at_gun': (28, 20),
-            'mortar': (22, 20),
+            "halftrack": (40, 44),
+            "jeep": (28, 20),
+            "at_gun": (28, 20),
+            "mortar": (22, 20),
         }
 
         create_funcs = {
-            'halftrack': lambda d, f: artist.create_halftrack_sprite(direction=d, faction=f),
-            'jeep': lambda d, f: artist.create_jeep_sprite(direction=d, faction=f),
-            'at_gun': lambda d, f: artist.create_at_gun_sprite(direction=d, faction=f),
-            'mortar': lambda d, f: artist.create_mortar_team_sprite(direction=d, faction=f),
+            "halftrack": lambda d, f: artist.create_halftrack_sprite(direction=d, faction=f),
+            "jeep": lambda d, f: artist.create_jeep_sprite(direction=d, faction=f),
+            "at_gun": lambda d, f: artist.create_at_gun_sprite(direction=d, faction=f),
+            "mortar": lambda d, f: artist.create_mortar_team_sprite(direction=d, faction=f),
         }
 
         for vehicle_name, create_func in create_funcs.items():
             sprite = create_func(Direction.NORTH, Faction.ALLIES)
             expected = expected_sizes[vehicle_name]
-            assert sprite.get_size() == expected, \
+            assert sprite.get_size() == expected, (
                 f"{vehicle_name} has wrong size: {sprite.get_size()} != {expected}"
-            assert sprite.get_width() > 0 and sprite.get_height() > 0, \
+            )
+            assert sprite.get_width() > 0 and sprite.get_height() > 0, (
                 f"{vehicle_name} has zero dimension"
+            )
 
 
 class TestEnvironmentSprites:
@@ -456,6 +483,7 @@ class TestEnvironmentSprites:
     @pytest.fixture()
     def artist(self):
         from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+
         return PixelArtist3D()
 
     def test_create_tree_sprites_variants(self, artist, pygame_display):
@@ -467,7 +495,9 @@ class TestEnvironmentSprites:
             sprite = artist.create_tree_sprite(variant=variant)
             assert sprite is not None
             assert isinstance(sprite, pygame.Surface)
-            assert sprite.get_size() == (28, 28), f"Expected medium tree size (28,28), got {sprite.get_size()}"
+            assert sprite.get_size() == (28, 28), (
+                f"Expected medium tree size (28,28), got {sprite.get_size()}"
+            )
 
     def test_create_building_house(self, artist, pygame_display):
         """Test house building sprite"""
@@ -500,13 +530,12 @@ class TestEnvironmentSprites:
         assert sprite is not None
 
 
-
 class TestIsometricCalculations:
     """Test isometric projection calculations."""
 
     def test_get_isometric_offset_all_directions(self):
         """Test that all 8 directions have valid offsets"""
-        from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D, Direction
+        from pycc2.presentation.rendering.pixel_artist_3d import Direction, PixelArtist3D
 
         for direction in Direction:
             dx, dy = PixelArtist3D._get_isometric_offset(direction)
@@ -518,7 +547,7 @@ class TestIsometricCalculations:
 
     def test_isometric_offsets_symmetry(self):
         """Test that opposite directions have opposite offsets"""
-        from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D, Direction
+        from pycc2.presentation.rendering.pixel_artist_3d import Direction, PixelArtist3D
 
         opposite_pairs = [
             (Direction.NORTH, Direction.SOUTH),
@@ -537,7 +566,7 @@ class TestIsometricCalculations:
 
     def test_weapon_position_calculation(self):
         """Test weapon position calculation for all directions"""
-        from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D, Direction
+        from pycc2.presentation.rendering.pixel_artist_3d import Direction, PixelArtist3D
 
         cx, cy = 12, 14  # Center position
 
@@ -556,8 +585,9 @@ class TestConvenienceFunctions:
 
     def test_create_cc2_infantry_sprite(self, pygame_display):
         """Test convenience function for infantry creation"""
-        from pycc2.presentation.rendering.pixel_artist_3d import create_cc2_infantry_sprite
         import pygame
+
+        from pycc2.presentation.rendering.pixel_artist_3d import create_cc2_infantry_sprite
 
         sprite = create_cc2_infantry_sprite(
             direction=0,  # North
@@ -572,8 +602,9 @@ class TestConvenienceFunctions:
 
     def test_create_cc2_tank_sprite(self, pygame_display):
         """Test convenience function for tank creation - 支持动态尺寸"""
-        from pycc2.presentation.rendering.pixel_artist_3d import create_cc2_tank_sprite
         import pygame
+
+        from pycc2.presentation.rendering.pixel_artist_3d import create_cc2_tank_sprite
 
         sprite = create_cc2_tank_sprite(
             direction=4,  # South
@@ -603,16 +634,22 @@ class TestColorPaletteCorrectness:
         """
         from pycc2.presentation.rendering.pixel_artist_color_palette import CC2_PALETTE
 
-        allies_uniform = CC2_PALETTE['allies']['uniform']
-        assert 65 <= allies_uniform[0] <= 90, f"Allies uniform R out of OD green range: {allies_uniform}"
-        assert 70 <= allies_uniform[1] <= 95, f"Allies uniform G out of OD green range: {allies_uniform}"
-        assert 20 <= allies_uniform[2] <= 45, f"Allies uniform B out of OD green range: {allies_uniform}"
+        allies_uniform = CC2_PALETTE["allies"]["uniform"]
+        assert 65 <= allies_uniform[0] <= 90, (
+            f"Allies uniform R out of OD green range: {allies_uniform}"
+        )
+        assert 70 <= allies_uniform[1] <= 95, (
+            f"Allies uniform G out of OD green range: {allies_uniform}"
+        )
+        assert 20 <= allies_uniform[2] <= 45, (
+            f"Allies uniform B out of OD green range: {allies_uniform}"
+        )
 
     def test_axis_uniform_color(self):
         """Test Axis uniform is Field gray"""
         from pycc2.presentation.rendering.pixel_artist_color_palette import CC2_PALETTE
 
-        axis_uniform = CC2_PALETTE['axis']['uniform']
+        axis_uniform = CC2_PALETTE["axis"]["uniform"]
         # Should be gray-green: values close together, mid-range
         assert 75 <= axis_uniform[0] <= 95, f"Axis uniform R out of range: {axis_uniform}"
         assert 80 <= axis_uniform[1] <= 100, f"Axis uniform G out of range: {axis_uniform}"
@@ -622,8 +659,8 @@ class TestColorPaletteCorrectness:
         """Test helmet color is reasonable military steel color"""
         from pycc2.presentation.rendering.pixel_artist_color_palette import CC2_PALETTE
 
-        for faction in ['allies', 'axis']:
-            helmet = CC2_PALETTE[faction]['helmet']
+        for faction in ["allies", "axis"]:
+            helmet = CC2_PALETTE[faction]["helmet"]
             # Helmet should be gray-green steel: mid range RGB
             assert 50 <= helmet[0] <= 80, f"{faction} helmet R out of range: {helmet}"
             assert 50 <= helmet[1] <= 80, f"{faction} helmet G out of range: {helmet}"

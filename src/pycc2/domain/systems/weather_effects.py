@@ -10,7 +10,6 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Optional
 
 
 class WeatherType(Enum):
@@ -145,7 +144,9 @@ class WeatherTransitionTable:
     }
 
     @classmethod
-    def get_next_weather(cls, current: WeatherType, rng: Optional[random.Random] = None) -> WeatherType:
+    def get_next_weather(
+        cls, current: WeatherType, rng: random.Random | None = None
+    ) -> WeatherType:
         if rng is None:
             rng = random.Random()
         transitions = cls.TRANSITIONS.get(current, [(WeatherType.CLEAR, 1.0)])
@@ -158,7 +159,9 @@ class WeatherTransitionTable:
         return current
 
     @classmethod
-    def generate_weather_duration(cls, weather: WeatherType, rng: Optional[random.Random] = None) -> int:
+    def generate_weather_duration(
+        cls, weather: WeatherType, rng: random.Random | None = None
+    ) -> int:
         if rng is None:
             rng = random.Random()
         base_durations = {

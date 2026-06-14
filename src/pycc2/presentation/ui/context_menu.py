@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ if TYPE_CHECKING:
 
 class ContextAction(Enum):
     """Available context menu actions."""
+
     MOVE = auto()
     ATTACK = auto()
     STOP = auto()
@@ -29,6 +31,7 @@ class ContextAction(Enum):
 @dataclass(slots=True)
 class MenuItem:
     """Single menu item with icon and shortcut hint."""
+
     action: ContextAction
     label: str
     shortcut: str = ""
@@ -82,9 +85,12 @@ class ContextMenu:
             MenuItem(ContextAction.CANCEL, "Cancel", "Esc", "✕"),
         ]
 
-    def show(self, position: tuple[int, int],
-             on_action: Callable[[ContextAction, tuple[int, int]], None],
-             enabled_actions: set[ContextAction] | None = None) -> None:
+    def show(
+        self,
+        position: tuple[int, int],
+        on_action: Callable[[ContextAction, tuple[int, int]], None],
+        enabled_actions: set[ContextAction] | None = None,
+    ) -> None:
         """
         Show context menu at position.
 
@@ -141,8 +147,10 @@ class ContextMenu:
             y = 4 + i * self.ITEM_HEIGHT
             item_rect = pygame.Rect(4, y, width - 8, self.ITEM_HEIGHT - 2)
 
-            color = self.HOVER_COLOR if i == self._hovered_index else (
-                self.ITEM_COLOR if item.enabled else self.DISABLED_COLOR
+            color = (
+                self.HOVER_COLOR
+                if i == self._hovered_index
+                else (self.ITEM_COLOR if item.enabled else self.DISABLED_COLOR)
             )
 
             if i == self._hovered_index and item.enabled:
@@ -209,10 +217,9 @@ class ContextMenu:
 
         if self._rect.collidepoint(pos):
             index = (pos[1] - self._position[1] - 4) // self.ITEM_HEIGHT
-            if 0 <= index < len(self._items):
-                if index != self._hovered_index:
-                    self._hovered_index = index
-                    self._build_surface()
+            if 0 <= index < len(self._items) and index != self._hovered_index:
+                self._hovered_index = index
+                self._build_surface()
             return True
         else:
             if self._hovered_index != -1:
@@ -288,13 +295,13 @@ class ContextMenu:
 
         unit_actions = {ContextAction.MOVE, ContextAction.ATTACK}
 
-        if hasattr(unit, 'can_use_smoke') and unit.can_use_smoke:
+        if hasattr(unit, "can_use_smoke") and unit.can_use_smoke:
             unit_actions.add(ContextAction.SMOKE)
 
-        if hasattr(unit, 'can_hide') and unit.can_hide:
+        if hasattr(unit, "can_hide") and unit.can_hide:
             unit_actions.add(ContextAction.HIDE)
 
-        if hasattr(unit, 'can_sneak') and unit.can_sneak:
+        if hasattr(unit, "can_sneak") and unit.can_sneak:
             unit_actions.add(ContextAction.SNEAK)
 
         return always_enabled | unit_actions

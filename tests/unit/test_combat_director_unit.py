@@ -5,17 +5,18 @@ Tests the combat director's command routing, event publishing,
 and weapon selection logic.
 """
 
-import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, Mock
 
-from pycc2.services.combat_director import CombatDirector
+import pytest
+
 from pycc2.domain.entities.unit import Faction, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
-
+from pycc2.services.combat_director import CombatDirector
 
 # ===========================================================================
 # Stub helpers
 # ===========================================================================
+
 
 class StubEventBus:
     """Minimal event bus stub that records published events."""
@@ -35,11 +36,13 @@ class StubEventBus:
 
 class StubDisplayConfig:
     """Minimal display config stub."""
+
     pass
 
 
-def _make_unit(unit_id, faction, tile_x=5, tile_y=5, weapon_state_name="READY",
-               weapon_id="rifle", alive=True):
+def _make_unit(
+    unit_id, faction, tile_x=5, tile_y=5, weapon_state_name="READY", weapon_id="rifle", alive=True
+):
     """Create a mock unit with sensible defaults."""
     unit = Mock()
     unit.id = unit_id
@@ -100,6 +103,7 @@ def _make_game_map(width=30, height=30):
 # Tests
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestCombatDirectorInit:
     """Test CombatDirector initialization."""
@@ -137,7 +141,8 @@ class TestHandlePlayerCommand:
         dc.execute_attack = Mock()
         dc.handle_player_command(
             {"command": "attack", "unit_ids": ["ally1"], "target_id": "enemy1"},
-            units, game_map,
+            units,
+            game_map,
         )
         dc.execute_attack.assert_called_once_with(attacker, target)
 
@@ -152,7 +157,8 @@ class TestHandlePlayerCommand:
         dc.execute_attack = Mock()
         dc.handle_player_command(
             {"command": "attack", "unit_ids": ["ally1"], "target_id": "ally2"},
-            units, game_map,
+            units,
+            game_map,
         )
         dc.execute_attack.assert_not_called()
 
@@ -164,7 +170,8 @@ class TestHandlePlayerCommand:
 
         dc.handle_player_command(
             {"command": "take_cover", "unit_ids": ["u1"]},
-            [unit], _make_game_map(),
+            [unit],
+            _make_game_map(),
         )
         assert "u1" not in dc._move_orders
 
@@ -176,7 +183,8 @@ class TestHandlePlayerCommand:
 
         dc.handle_player_command(
             {"command": "stop", "unit_ids": ["u1"]},
-            [unit], _make_game_map(),
+            [unit],
+            _make_game_map(),
         )
         assert "u1" not in dc._move_orders
 
@@ -188,7 +196,8 @@ class TestHandlePlayerCommand:
 
         dc.handle_player_command(
             {"command": "defend", "unit_ids": ["u1"]},
-            [unit], _make_game_map(),
+            [unit],
+            _make_game_map(),
         )
         unit.set_movement_mode.assert_called_with("defend", duration_ticks=-1)
 
@@ -200,7 +209,8 @@ class TestHandlePlayerCommand:
 
         dc.handle_player_command(
             {"command": "defend", "unit_ids": ["u1"]},
-            [unit], _make_game_map(),
+            [unit],
+            _make_game_map(),
         )
         unit.set_movement_mode.assert_called_with("normal")
 
@@ -212,7 +222,8 @@ class TestHandlePlayerCommand:
 
         dc.handle_player_command(
             {"command": "fast_move", "unit_ids": ["u1"]},
-            [unit], _make_game_map(),
+            [unit],
+            _make_game_map(),
         )
         unit.set_movement_mode.assert_called_with("fast_move", duration_ticks=-1)
 
@@ -225,7 +236,8 @@ class TestHandlePlayerCommand:
 
         dc.handle_player_command(
             {"command": "sneak", "unit_ids": ["u1"]},
-            [unit], _make_game_map(),
+            [unit],
+            _make_game_map(),
         )
         unit.set_movement_mode.assert_called_with("sneak", duration_ticks=-1)
 
@@ -238,7 +250,8 @@ class TestHandlePlayerCommand:
 
         dc.handle_player_command(
             {"command": "sneak", "unit_ids": ["u1"]},
-            [unit], _make_game_map(),
+            [unit],
+            _make_game_map(),
         )
         unit.set_movement_mode.assert_not_called()
 

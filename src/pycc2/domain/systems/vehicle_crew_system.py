@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 
 class CrewRole(Enum):
     """Roles within a vehicle crew."""
+
     COMMANDER = "commander"
     GUNNER = "gunner"
     DRIVER = "driver"
@@ -28,6 +29,7 @@ class CrewRole(Enum):
 
 class CrewStatus(Enum):
     """Health status of a crew member."""
+
     ACTIVE = "active"
     WOUNDED = "wounded"
     DEAD = "dead"
@@ -36,18 +38,21 @@ class CrewStatus(Enum):
 @dataclass(slots=True)
 class CrewMember:
     """Individual crew member with role-based attributes."""
+
     name: str
     role: CrewRole
     hp: int = 100
     max_hp: int = 100
     status: CrewStatus = CrewStatus.ACTIVE
     efficiency: float = 1.0
-    skills: dict[str, float] = field(default_factory=lambda: {
-        "aiming": 1.0,
-        "driving": 1.0,
-        "loading": 1.0,
-        "command": 1.0,
-    })
+    skills: dict[str, float] = field(
+        default_factory=lambda: {
+            "aiming": 1.0,
+            "driving": 1.0,
+            "loading": 1.0,
+            "command": 1.0,
+        }
+    )
 
 
 @dataclass
@@ -65,7 +70,7 @@ class VehicleCrew:
 
     def __init__(self, vehicle_id: str = "", crew_config: list[CrewRole] | None = None):
         self._vehicle_id = vehicle_id
-        self._vehicle: "Unit | None" = None
+        self._vehicle: Unit | None = None
         self._members: list[CrewMember] = []
         self._alive_count: int = 0
         self._vehicle_efficiency: float = 1.0
@@ -84,14 +89,14 @@ class VehicleCrew:
 
         self._alive_count = len(self._members)
 
-    def set_vehicle(self, vehicle: "Unit") -> None:
+    def set_vehicle(self, vehicle: Unit) -> None:
         """Set vehicle reference after creation."""
         self._vehicle = vehicle
         self._vehicle_id = vehicle.id
 
     def _get_default_crew_composition(self) -> list[CrewRole]:
         """Determine default crew based on vehicle type."""
-        unit_type = getattr(self._vehicle, 'unit_type', None) if self._vehicle else None
+        unit_type = getattr(self._vehicle, "unit_type", None) if self._vehicle else None
         type_name = str(unit_type).lower() if unit_type else ""
 
         if "tank" in type_name or "heavy" in type_name:
@@ -215,7 +220,7 @@ class VehicleCrew:
                 result["crew_destroyed"] = True
 
                 # Mark vehicle as destroyed/disabled
-                if self._vehicle is not None and hasattr(self._vehicle, 'health'):
+                if self._vehicle is not None and hasattr(self._vehicle, "health"):
                     self._vehicle.health.current_hp = 0
 
                 logger.warning("[Crew] All crew members dead! Vehicle disabled.")
@@ -276,7 +281,7 @@ class VehicleCrew:
         # Role-specific penalties
         if deceased.role == CrewRole.DRIVER:
             penalties["speed_multiplier"] = 0.5
-            if self._vehicle is not None and hasattr(self._vehicle, 'position'):
+            if self._vehicle is not None and hasattr(self._vehicle, "position"):
                 pass  # Would modify movement speed component
 
         elif deceased.role == CrewRole.GUNNER:
@@ -300,11 +305,13 @@ class VehicleCrew:
     def _apply_wound_penalty(self, wounded: CrewMember) -> None:
         """Apply minor penalty for wounded crew member."""
         if wounded.role == CrewRole.GUNNER:
-            self._penalties_applied["accuracy_multiplier"] = \
+            self._penalties_applied["accuracy_multiplier"] = (
                 self._penalties_applied.get("accuracy_multiplier", 1.0) * 0.8
+            )
         elif wounded.role == CrewRole.DRIVER:
-            self._penalties_applied["speed_multiplier"] = \
+            self._penalties_applied["speed_multiplier"] = (
                 self._penalties_applied.get("speed_multiplier", 1.0) * 0.8
+            )
 
     def heal_member(
         self,

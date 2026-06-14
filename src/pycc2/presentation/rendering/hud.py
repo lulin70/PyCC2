@@ -11,9 +11,9 @@ from pygame.font import Font
 
 from pycc2.domain.entities.unit import Unit
 from pycc2.domain.interfaces.display_config import DisplayConfig
+from pycc2.presentation.rendering.fade_transition import FadeTransition
 from pycc2.presentation.rendering.minimap import Minimap
 from pycc2.presentation.rendering.visual_spec import VisualSpec
-from pycc2.presentation.rendering.fade_transition import FadeTransition
 from pycc2.presentation.ui.theme import ThemeManager
 
 
@@ -131,6 +131,7 @@ class HUDManager:
         alpha = self._unit_panel_fade.alpha
         if alpha < 1.0:
             import pygame
+
             panel_size = (panel_width, panel_height)
             if self._panel_surface_cache is None or self._panel_surface_cache_size != panel_size:
                 self._panel_surface_cache = pygame.Surface(panel_size, pygame.SRCALPHA)

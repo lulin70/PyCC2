@@ -3,11 +3,13 @@ After Action Report (AAR) Panel — displays detailed post-battle statistics.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import pygame
+
     from pycc2.domain.systems.battle_result import BattleResult
 
 
@@ -34,7 +36,7 @@ class AARPanel:
         self._visible: bool = False
         self._result: BattleResult | None = None
         self._scroll_offset: int = 0
-        self._panel_surface: "pygame.Surface | None" = None
+        self._panel_surface: pygame.Surface | None = None
         self._panel_size: tuple[int, int] = (0, 0)
 
     @property
@@ -60,7 +62,7 @@ class AARPanel:
     def result(self) -> BattleResult | None:
         return self._result
 
-    def render(self, screen: "pygame.Surface", font=None, small_font=None) -> None:
+    def render(self, screen: pygame.Surface, font=None, small_font=None) -> None:
         if not self._visible or self._result is None:
             return
 
@@ -76,16 +78,16 @@ class AARPanel:
             self._panel_size = panel_size
         self._panel_surface.fill((0, 0, 0, 0))
         self._panel_surface.fill((*cfg.bg_color, 245))
-        pygame.draw.rect(self._panel_surface, cfg.border_color, (0, 0, cfg.width, cfg.height), 2, border_radius=8)
+        pygame.draw.rect(
+            self._panel_surface, cfg.border_color, (0, 0, cfg.width, cfg.height), 2, border_radius=8
+        )
 
         y = 12
 
         title_color = cfg.victory_color if result.is_victory else cfg.defeat_color
         outcome_text = "VICTORY" if result.is_victory else "DEFEAT"
         if font:
-            title_surf = font.render(
-                f"AFTER ACTION REPORT — {outcome_text}", True, title_color
-            )
+            title_surf = font.render(f"AFTER ACTION REPORT — {outcome_text}", True, title_color)
             self._panel_surface.blit(title_surf, (cfg.width // 2 - title_surf.get_width() // 2, y))
         y += 32
 
@@ -107,7 +109,11 @@ class AARPanel:
             ("Allies Accuracy", f"{result.allies_accuracy:.1%}", cfg.stat_value_color),
             ("Axis Accuracy", f"{result.axis_accuracy:.1%}", cfg.stat_value_color),
             ("Survival Rate", f"{result.survival_rate_allies:.1%}", cfg.stat_value_color),
-            ("Objectives", f"{result.objectives_completed}/{result.objectives_total}", cfg.stat_value_color),
+            (
+                "Objectives",
+                f"{result.objectives_completed}/{result.objectives_total}",
+                cfg.stat_value_color,
+            ),
         ]
 
         for label, value, color in stats:
@@ -152,7 +158,7 @@ class AARPanel:
         if not self._visible:
             return False
         cfg = self.config
-        if (cfg.x <= x < cfg.x + cfg.width and cfg.y <= y < cfg.y + cfg.height):
+        if cfg.x <= x < cfg.x + cfg.width and cfg.y <= y < cfg.y + cfg.height:
             self.hide()
             return True
         return False

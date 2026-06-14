@@ -12,9 +12,8 @@ import os
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
-import pygame
-
 import numpy as np
+import pygame
 import pytest
 
 from pycc2.domain.components.health_component import HealthComponent
@@ -29,7 +28,6 @@ from pycc2.domain.value_objects.vec2 import Vec2
 from pycc2.presentation.rendering.camera import Camera
 from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
-
 
 # ── Fixtures ──────────────────────────────────────────────────────────
 
@@ -240,6 +238,7 @@ class TestAttackLineRendering:
     def test_draw_dashed_line_method_exists(self, enhanced_renderer):
         """UIOverlayRenderer should have _draw_dashed_line method (extracted from EnhancedRenderer in v0.3.28)."""
         from pycc2.presentation.rendering.ui_overlay_renderer import UIOverlayRenderer
+
         ui_overlay = enhanced_renderer._ui_overlay
         assert isinstance(ui_overlay, UIOverlayRenderer)
         assert hasattr(ui_overlay, "_draw_dashed_line")

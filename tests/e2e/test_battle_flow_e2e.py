@@ -1,11 +1,12 @@
 """E2E test: Complete battle flow from deployment to end."""
+
 import os
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
-import pytest
 import numpy as np
+import pytest
 
 from pycc2.domain.components.fatigue_component import FatigueLevel
 from pycc2.domain.components.health_component import HealthComponent
@@ -14,7 +15,7 @@ from pycc2.domain.components.position_component import PositionComponent
 from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.game_map import GameMap
-from pycc2.domain.entities.squad import Squad, SquadType, MemberState
+from pycc2.domain.entities.squad import MemberState, Squad, SquadType
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.systems.morale_system import MoraleSystem
 from pycc2.domain.systems.vehicle_crew_system import CrewRole, CrewStatus
@@ -30,15 +31,16 @@ from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.services.deployment_manager import DeploymentManager
 from pycc2.services.event_bus import EventBus
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def pygame_env():
     """Initialize pygame once for the entire module."""
     import pygame
+
     pygame.init()
     yield
     pygame.quit()
@@ -105,6 +107,7 @@ def _make_tank(
 # Test class
 # ---------------------------------------------------------------------------
 
+
 class TestCompleteBattleFlow:
     """Test the full battle lifecycle: Deploy -> Fight -> End."""
 
@@ -139,17 +142,21 @@ class TestCompleteBattleFlow:
 
         # 4. Place a unit via the deployment UI
         dm.deployment_ui.state.placed_units.append(
-            type("Obj", (), {
-                "unit_template_id": "infantry_0",
-                "display_name": "Rifle Squad",
-                "unit_type": "infantry",
-                "position": (3, 3),
-            })()
+            type(
+                "Obj",
+                (),
+                {
+                    "unit_template_id": "infantry_0",
+                    "display_name": "Rifle Squad",
+                    "unit_type": "infantry",
+                    "position": (3, 3),
+                },
+            )()
         )
 
         # 5. Complete deployment (Begin Battle)
-        from pycc2.services.game_loop import GameState
         from pycc2.presentation.rendering.camera import Camera
+        from pycc2.services.game_loop import GameState
 
         camera = Camera(
             position=None,
@@ -191,10 +198,7 @@ class TestCompleteBattleFlow:
         # 4. Verify unit moved toward target (position changed from origin)
         #    Due to int() truncation in movement, we verify the unit is no
         #    longer at the starting position OR has reached the target.
-        moved = (
-            ally.position.tile_coord.x != 5
-            or ally.position.tile_coord.y != 5
-        )
+        moved = ally.position.tile_coord.x != 5 or ally.position.tile_coord.y != 5
         assert moved or ally.move_target is None  # moved or arrived
 
         # 5. Issue Fire command (simulate via weapon fire)
@@ -307,10 +311,7 @@ class TestCompleteBattleFlow:
         # 5. Verify new members are healthy
         assert squad.size == old_size + 3
         # New members should be healthy
-        new_healthy = sum(
-            1 for m in squad.members[old_size:]
-            if m.state == MemberState.HEALTHY
-        )
+        new_healthy = sum(1 for m in squad.members[old_size:] if m.state == MemberState.HEALTHY)
         assert new_healthy == 3
 
     # ---- 6. Vehicle crew damage effects ----
@@ -510,6 +511,7 @@ class TestCompleteBattleFlow:
         event_bus = EventBus()
 
         from pycc2.domain.systems.combat_resolver import CombatResolver
+
         resolver = CombatResolver(
             ballistic_engine=ballistic,
             morale_calc=morale_calc,

@@ -1,10 +1,11 @@
 """
 Post-processing effects: vignette, color grading.
 """
+
 from __future__ import annotations
 
-import math
 import logging
+import math
 
 import numpy as np
 import pygame
@@ -47,7 +48,7 @@ class PostProcessingEffects:
         for i in range(steps):
             progress = i / steps
             radius = int(max_radius * (1 - progress))
-            alpha = int(255 * (progress ** 2) * intensity)
+            alpha = int(255 * (progress**2) * intensity)
             alpha = max(0, min(255, alpha))
             color = (0, 0, 0, alpha)
             pygame.draw.circle(self.vignette_surface, color, (center_x, center_y), radius, 2)
@@ -94,9 +95,9 @@ class PostProcessingEffects:
         """
         pixels = pygame.surfarray.pixels3d(surface)
         # 使用人眼感知加权灰度公式
-        gray = 0.299 * pixels[:,:,0] + 0.587 * pixels[:,:,1] + 0.114 * pixels[:,:,2]
+        gray = 0.299 * pixels[:, :, 0] + 0.587 * pixels[:, :, 1] + 0.114 * pixels[:, :, 2]
         # 按amount混合原色和灰色
-        result = pixels * (1 - amount) + gray[:,:,np.newaxis] * amount
+        result = pixels * (1 - amount) + gray[:, :, np.newaxis] * amount
         pixels[:] = np.clip(result, 0, 255).astype(np.uint8)
         del pixels  # 释放锁
 

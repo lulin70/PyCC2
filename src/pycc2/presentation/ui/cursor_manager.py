@@ -1,17 +1,19 @@
 """Context-sensitive mouse cursor manager for CC2-style interaction."""
+
 from __future__ import annotations
 
-import pygame
 from enum import Enum, auto
+
+import pygame
 
 
 class CursorType(Enum):
     DEFAULT = auto()
-    MOVE = auto()       # Green arrow - Move/Fast/Sneak mode
-    ATTACK = auto()     # Red crosshair - Fire mode
-    SMOKE = auto()      # Yellow circle - Smoke mode
-    INVALID = auto()    # Gray X - Invalid target
-    SELECT = auto()     # White highlight - Can select unit
+    MOVE = auto()  # Green arrow - Move/Fast/Sneak mode
+    ATTACK = auto()  # Red crosshair - Fire mode
+    SMOKE = auto()  # Yellow circle - Smoke mode
+    INVALID = auto()  # Gray X - Invalid target
+    SELECT = auto()  # White highlight - Can select unit
 
 
 class CursorManager:

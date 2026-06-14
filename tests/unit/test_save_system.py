@@ -175,7 +175,7 @@ class TestSecureSaveManager:
     def test_list_all_slots_returns_max_entries(self, manager):
         slots = manager.list_all_slots()
         assert len(slots) == SecureSaveManager.MAX_SLOTS
-        for i, (idx, meta, status) in enumerate(slots):
+        for i, (idx, _meta, status) in enumerate(slots):
             assert idx == i
             assert status == SaveSlotStatus.EMPTY
 

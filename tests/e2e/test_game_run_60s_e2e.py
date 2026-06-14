@@ -17,7 +17,6 @@ import os
 import random
 import traceback
 
-
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
@@ -30,55 +29,61 @@ pygame.init()
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _create_test_units():
     """Create units for both sides."""
-    from pycc2.domain.entities.unit import Unit, Faction, UnitType
-    from pycc2.domain.components.position_component import PositionComponent
     from pycc2.domain.components.health_component import HealthComponent
+    from pycc2.domain.components.morale_component import MoraleComponent
+    from pycc2.domain.components.position_component import PositionComponent
     from pycc2.domain.components.vision_component import VisionComponent
     from pycc2.domain.components.weapon_component import WeaponComponent
-    from pycc2.domain.components.morale_component import MoraleComponent
+    from pycc2.domain.entities.unit import Faction, Unit, UnitType
     from pycc2.domain.value_objects.tile_coord import TileCoord
 
     units = []
 
     # Allied units
     for i in range(3):
-        units.append(Unit(
-            id=f"ally_{i}",
-            name=f"Allied Squad {i}",
-            faction=Faction.ALLIES,
-            unit_type=UnitType.INFANTRY_SQUAD,
-            position=PositionComponent(tile_coord=TileCoord(2 + i, 2)),
-            vision=VisionComponent(),
-            health=HealthComponent(hp=100, max_hp=100),
-            weapon=WeaponComponent(primary_weapon_id="rifle", max_ammo=120, ammo_remaining=120),
-            morale=MoraleComponent(value=75),
-        ))
+        units.append(
+            Unit(
+                id=f"ally_{i}",
+                name=f"Allied Squad {i}",
+                faction=Faction.ALLIES,
+                unit_type=UnitType.INFANTRY_SQUAD,
+                position=PositionComponent(tile_coord=TileCoord(2 + i, 2)),
+                vision=VisionComponent(),
+                health=HealthComponent(hp=100, max_hp=100),
+                weapon=WeaponComponent(primary_weapon_id="rifle", max_ammo=120, ammo_remaining=120),
+                morale=MoraleComponent(value=75),
+            )
+        )
 
     # Axis units
     for i in range(3):
-        units.append(Unit(
-            id=f"axis_{i}",
-            name=f"Axis Squad {i}",
-            faction=Faction.AXIS,
-            unit_type=UnitType.INFANTRY_SQUAD,
-            position=PositionComponent(tile_coord=TileCoord(8 + i, 8)),
-            vision=VisionComponent(),
-            health=HealthComponent(hp=100, max_hp=100),
-            weapon=WeaponComponent(primary_weapon_id="rifle", max_ammo=120, ammo_remaining=120),
-            morale=MoraleComponent(value=75),
-        ))
+        units.append(
+            Unit(
+                id=f"axis_{i}",
+                name=f"Axis Squad {i}",
+                faction=Faction.AXIS,
+                unit_type=UnitType.INFANTRY_SQUAD,
+                position=PositionComponent(tile_coord=TileCoord(8 + i, 8)),
+                vision=VisionComponent(),
+                health=HealthComponent(hp=100, max_hp=100),
+                weapon=WeaponComponent(primary_weapon_id="rifle", max_ammo=120, ammo_remaining=120),
+                morale=MoraleComponent(value=75),
+            )
+        )
 
     return units
 
 
 def _create_game_state():
     """Create a minimal game state for testing."""
+    import numpy as np
+
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.services.game_loop import GameState
-    import numpy as np
 
     # Create a 20x15 map with open terrain
     tile_grid = np.zeros((15, 20), dtype=np.int8)
@@ -106,13 +111,14 @@ def _create_game_state():
 # Tests
 # ---------------------------------------------------------------------------
 
+
 class TestGameRun60sE2E:
     """Full E2E test: game runs for 60 simulated seconds without crashing."""
 
     def test_60_second_run(self):
         """Run the game for 1800 ticks (60 seconds at 30 UPS) and verify stability."""
-        from pycc2.services.event_bus import EventBus
         from pycc2.services.combat_director import CombatDirector
+        from pycc2.services.event_bus import EventBus
         from pycc2.services.victory_manager import VictoryManager
 
         state = _create_game_state()
@@ -139,10 +145,10 @@ class TestGameRun60sE2E:
             try:
                 # Update unit movements
                 for unit in state.units:
-                    if hasattr(unit, 'update_movement_mode'):
+                    if hasattr(unit, "update_movement_mode"):
                         unit.update_movement_mode()
 
-                    if hasattr(unit, 'move_target') and unit.move_target is not None:
+                    if hasattr(unit, "move_target") and unit.move_target is not None:
                         unit.update_movement(dt)
 
                 # Update fatigue
@@ -171,11 +177,13 @@ class TestGameRun60sE2E:
                 state.tick = tick
 
             except Exception as e:
-                errors.append({
-                    "tick": tick,
-                    "error": str(e),
-                    "traceback": traceback.format_exc(),
-                })
+                errors.append(
+                    {
+                        "tick": tick,
+                        "error": str(e),
+                        "traceback": traceback.format_exc(),
+                    }
+                )
                 # Don't break — try to continue
 
         # Verify results
@@ -220,12 +228,12 @@ class TestGameRun60sE2E:
 
     def test_unit_state_transitions_over_time(self):
         """Verify units can transition between states over time without errors."""
-        from pycc2.domain.entities.unit import Unit, Faction, UnitType
-        from pycc2.domain.components.position_component import PositionComponent
         from pycc2.domain.components.health_component import HealthComponent
+        from pycc2.domain.components.morale_component import MoraleComponent
+        from pycc2.domain.components.position_component import PositionComponent
         from pycc2.domain.components.vision_component import VisionComponent
         from pycc2.domain.components.weapon_component import WeaponComponent
-        from pycc2.domain.components.morale_component import MoraleComponent
+        from pycc2.domain.entities.unit import Faction, Unit, UnitType
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
         unit = Unit(
@@ -252,10 +260,12 @@ class TestGameRun60sE2E:
 
                 # Set and clear move targets
                 if tick % 50 == 0:
-                    unit.set_move_target(TileCoord(
-                        5 + (tick % 10) - 5,
-                        5 + (tick % 7) - 3,
-                    ))
+                    unit.set_move_target(
+                        TileCoord(
+                            5 + (tick % 10) - 5,
+                            5 + (tick % 7) - 3,
+                        )
+                    )
                 if tick % 50 == 25:
                     unit.move_target = None
 

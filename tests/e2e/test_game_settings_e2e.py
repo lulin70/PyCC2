@@ -28,10 +28,10 @@ from pycc2.domain.systems.game_settings import (
 )
 from pycc2.domain.systems.supply_line import SupplyState, SupplyType
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def campaign() -> GrandCampaignDefinition:
@@ -57,6 +57,7 @@ def applier_veteran() -> GameSettingsApplier:
 # 1. Preset: RECRUIT
 # ---------------------------------------------------------------------------
 
+
 class TestGamePresetRecruit:
     def test_game_preset_recruit(self) -> None:
         settings = GAME_PRESETS[GamePreset.RECRUIT]
@@ -72,6 +73,7 @@ class TestGamePresetRecruit:
 # 2. Preset: NORMAL
 # ---------------------------------------------------------------------------
 
+
 class TestGamePresetNormal:
     def test_game_preset_normal(self) -> None:
         settings = GAME_PRESETS[GamePreset.NORMAL]
@@ -85,6 +87,7 @@ class TestGamePresetNormal:
 # ---------------------------------------------------------------------------
 # 3. Preset: VETERAN
 # ---------------------------------------------------------------------------
+
 
 class TestGamePresetVeteran:
     def test_game_preset_veteran(self) -> None:
@@ -100,6 +103,7 @@ class TestGamePresetVeteran:
 # ---------------------------------------------------------------------------
 # 4. Custom settings
 # ---------------------------------------------------------------------------
+
 
 class TestCustomSettings:
     def test_custom_settings(self) -> None:
@@ -127,6 +131,7 @@ class TestCustomSettings:
 # 5. Experience effects: CONSCRIPT
 # ---------------------------------------------------------------------------
 
+
 class TestExperienceEffectsConscript:
     def test_experience_effects_conscript(self) -> None:
         effects = EXPERIENCE_EFFECTS[ExperienceLevel.CONSCRIPT]
@@ -138,6 +143,7 @@ class TestExperienceEffectsConscript:
 # ---------------------------------------------------------------------------
 # 6. Experience effects: ELITE
 # ---------------------------------------------------------------------------
+
 
 class TestExperienceEffectsElite:
     def test_experience_effects_elite(self) -> None:
@@ -151,6 +157,7 @@ class TestExperienceEffectsElite:
 # 7. Supply effects: ABUNDANT
 # ---------------------------------------------------------------------------
 
+
 class TestSupplyEffectsAbundant:
     def test_supply_effects_abundant(self) -> None:
         effects = SUPPLY_EFFECTS[SupplyLevelSetting.ABUNDANT]
@@ -162,6 +169,7 @@ class TestSupplyEffectsAbundant:
 # ---------------------------------------------------------------------------
 # 8. Supply effects: CRITICAL
 # ---------------------------------------------------------------------------
+
 
 class TestSupplyEffectsCritical:
     def test_supply_effects_critical(self) -> None:
@@ -175,9 +183,12 @@ class TestSupplyEffectsCritical:
 # 9. Applier modifies campaign requisition points
 # ---------------------------------------------------------------------------
 
+
 class TestApplierModifiesCampaignRequisition:
     def test_applier_modifies_campaign_requisition(
-        self, campaign: GrandCampaignDefinition, applier_normal: GameSettingsApplier,
+        self,
+        campaign: GrandCampaignDefinition,
+        applier_normal: GameSettingsApplier,
     ) -> None:
         # NORMAL preset: both sides ADEQUATE → requisition modifier = 1.0
         modified = applier_normal.apply_to_campaign(campaign)
@@ -185,7 +196,9 @@ class TestApplierModifiesCampaignRequisition:
             for op in sector.operations:
                 # With modifier 1.0, int(rp * 1.0) == original rp
                 original_op = next(
-                    o for s in campaign.sectors for o in s.operations
+                    o
+                    for s in campaign.sectors
+                    for o in s.operations
                     if o.operation_id == op.operation_id
                 )
                 assert op.requisition_points_allies == original_op.requisition_points_allies
@@ -196,11 +209,13 @@ class TestApplierModifiesCampaignRequisition:
 # 10. Applier modifies supply state
 # ---------------------------------------------------------------------------
 
+
 class TestApplierModifiesSupplyState:
     def test_applier_modifies_supply_state(self, applier_hard: GameSettingsApplier) -> None:
         # HARD: allied=SCARCE, axis=ADEQUATE
         allied_supply = SupplyState(
-            sector_id="arnhem", day=1,
+            sector_id="arnhem",
+            day=1,
             supply_type=SupplyType.AIRDROP,
             ammo_replenishment_rate=1.0,
             reinforcement_rate=1.0,
@@ -218,6 +233,7 @@ class TestApplierModifiesSupplyState:
 # 11. Applier maps experience to AI difficulty
 # ---------------------------------------------------------------------------
 
+
 class TestApplierMapsExperienceToDifficulty:
     def test_applier_maps_experience_to_difficulty(self) -> None:
         # CONSCRIPT → EASY AI
@@ -234,13 +250,15 @@ class TestApplierMapsExperienceToDifficulty:
         applier = GameSettingsApplier(conscript_settings)
 
         allied_config = applier.apply_to_difficulty_config(
-            DifficultyConfig(level=DifficultyLevel.MEDIUM), "allied",
+            DifficultyConfig(level=DifficultyLevel.MEDIUM),
+            "allied",
         )
         assert allied_config.level == DifficultyLevel.EASY
 
         # ELITE → VETERAN AI
         axis_config = applier.apply_to_difficulty_config(
-            DifficultyConfig(level=DifficultyLevel.MEDIUM), "axis",
+            DifficultyConfig(level=DifficultyLevel.MEDIUM),
+            "axis",
         )
         assert axis_config.level == DifficultyLevel.VETERAN
 
@@ -249,19 +267,26 @@ class TestApplierMapsExperienceToDifficulty:
 # 12. HARD preset favors axis
 # ---------------------------------------------------------------------------
 
+
 class TestHardPresetFavorsAxis:
     def test_hard_preset_favors_axis(self) -> None:
         settings = GAME_PRESETS[GamePreset.HARD]
         # Axis has better experience
-        assert settings.axis_settings.experience_level.value > settings.allied_settings.experience_level.value
+        assert (
+            settings.axis_settings.experience_level.value
+            > settings.allied_settings.experience_level.value
+        )
         # Axis has better supply
-        assert settings.axis_settings.supply_level.value < settings.allied_settings.supply_level.value
+        assert (
+            settings.axis_settings.supply_level.value < settings.allied_settings.supply_level.value
+        )
         # (Lower SupplyLevelSetting enum value = better supply: ABUNDANT=1, ADEQUATE=2, SCARCE=3, CRITICAL=4)
 
 
 # ---------------------------------------------------------------------------
 # 13. All presets have both sides
 # ---------------------------------------------------------------------------
+
 
 class TestAllPresetsHaveBothSides:
     def test_all_presets_have_both_sides(self) -> None:
@@ -279,9 +304,11 @@ class TestAllPresetsHaveBothSides:
 # 14. Settings affect campaign flow
 # ---------------------------------------------------------------------------
 
+
 class TestSettingsAffectCampaignFlow:
     def test_settings_affect_campaign_flow(
-        self, campaign: GrandCampaignDefinition,
+        self,
+        campaign: GrandCampaignDefinition,
     ) -> None:
         # Apply HARD settings: allied=SCARCE (0.8 req mod), axis=ADEQUATE (1.0 req mod)
         hard_settings = GAME_PRESETS[GamePreset.HARD]
@@ -292,7 +319,9 @@ class TestSettingsAffectCampaignFlow:
         for sector in modified.sectors:
             for op in sector.operations:
                 original_op = next(
-                    o for s in campaign.sectors for o in s.operations
+                    o
+                    for s in campaign.sectors
+                    for o in s.operations
                     if o.operation_id == op.operation_id
                 )
                 # Allied gets SCARCE modifier (0.8), axis gets ADEQUATE (1.0)
@@ -303,6 +332,7 @@ class TestSettingsAffectCampaignFlow:
 # ---------------------------------------------------------------------------
 # 15. Supply level affects starting ammo
 # ---------------------------------------------------------------------------
+
 
 class TestSupplyLevelAffectsStartingAmmo:
     def test_supply_level_affects_starting_ammo(self) -> None:

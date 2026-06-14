@@ -4,6 +4,7 @@ Fatigued units have reduced accuracy, slower movement, and higher panic risk.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum, auto
 
@@ -26,10 +27,30 @@ FATIGUE_THRESHOLDS = {
 
 FATIGUE_EFFECTS = {
     FatigueLevel.FRESH: {"accuracy": 1.0, "movement": 1.0, "panic_mod": 1.0, "morale_drain": 0.0},
-    FatigueLevel.TIRED: {"accuracy": 0.95, "movement": 0.95, "panic_mod": 1.05, "morale_drain": 0.02},
-    FatigueLevel.WEARY: {"accuracy": 0.85, "movement": 0.85, "panic_mod": 1.15, "morale_drain": 0.05},
-    FatigueLevel.EXHAUSTED: {"accuracy": 0.70, "movement": 0.70, "panic_mod": 1.35, "morale_drain": 0.10},
-    FatigueLevel.SPENT: {"accuracy": 0.50, "movement": 0.50, "panic_mod": 1.60, "morale_drain": 0.18},
+    FatigueLevel.TIRED: {
+        "accuracy": 0.95,
+        "movement": 0.95,
+        "panic_mod": 1.05,
+        "morale_drain": 0.02,
+    },
+    FatigueLevel.WEARY: {
+        "accuracy": 0.85,
+        "movement": 0.85,
+        "panic_mod": 1.15,
+        "morale_drain": 0.05,
+    },
+    FatigueLevel.EXHAUSTED: {
+        "accuracy": 0.70,
+        "movement": 0.70,
+        "panic_mod": 1.35,
+        "morale_drain": 0.10,
+    },
+    FatigueLevel.SPENT: {
+        "accuracy": 0.50,
+        "movement": 0.50,
+        "panic_mod": 1.60,
+        "morale_drain": 0.18,
+    },
 }
 
 FATIGUE_RATES = {
@@ -51,7 +72,9 @@ class FatigueComponent:
     @property
     def level(self) -> FatigueLevel:
         v = min(self.value, self.max_fatigue)
-        for level, threshold in sorted(FATIGUE_THRESHOLDS.items(), key=lambda x: x[1], reverse=True):
+        for level, threshold in sorted(
+            FATIGUE_THRESHOLDS.items(), key=lambda x: x[1], reverse=True
+        ):
             if v >= threshold:
                 return level
         return FatigueLevel.FRESH
@@ -114,7 +137,7 @@ class FatigueComponent:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "FatigueComponent":
+    def from_dict(cls, data: dict) -> FatigueComponent:
         return cls(
             value=data.get("value", 0.0),
             ticks_at_current_level=data.get("ticks_at_level", 0),

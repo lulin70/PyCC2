@@ -21,9 +21,9 @@ class SettingsTab(Enum):
 @dataclass(slots=True)
 class SettingsState:
     _SAVE_PATH = os.path.join(
-        os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config')),
-        'pycc2',
-        'settings.json',
+        os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config")),
+        "pycc2",
+        "settings.json",
     )
 
     master_volume: float = 0.8
@@ -43,17 +43,17 @@ class SettingsState:
         path = Path(self._SAVE_PATH)
         path.parent.mkdir(parents=True, exist_ok=True)
         data = {
-            'master_volume': self.master_volume,
-            'music_volume': self.music_volume,
-            'sfx_volume': self.sfx_volume,
-            'quality_preset': self.quality_preset,
-            'show_fps': self.show_fps,
-            'show_debug': self.show_debug,
-            'screen_shake': self.screen_shake,
-            'particles': self.particles,
-            'damage_numbers': self.damage_numbers,
-            'difficulty': self.difficulty,
-            'autosave_interval': self.autosave_interval,
+            "master_volume": self.master_volume,
+            "music_volume": self.music_volume,
+            "sfx_volume": self.sfx_volume,
+            "quality_preset": self.quality_preset,
+            "show_fps": self.show_fps,
+            "show_debug": self.show_debug,
+            "screen_shake": self.screen_shake,
+            "particles": self.particles,
+            "damage_numbers": self.damage_numbers,
+            "difficulty": self.difficulty,
+            "autosave_interval": self.autosave_interval,
         }
         path.write_text(json.dumps(data, indent=2))
 
@@ -95,6 +95,7 @@ class SettingsMenu:
 
     def _init_fonts(self) -> None:
         import pygame
+
         dc = self._display_config
         self._font_lg = pygame.font.Font(None, int(dc.font_size_title * 1.2))
         self._font_md = pygame.font.Font(None, int(dc.font_size_large))
@@ -102,6 +103,7 @@ class SettingsMenu:
 
     def _rebuild_surfaces(self, sw: int, sh: int) -> None:
         import pygame
+
         self._overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
         pw, ph = min(600, int(sw * 0.65)), min(500, int(sh * 0.75))
         self._panel = pygame.Surface((pw, ph), pygame.SRCALPHA)
@@ -127,8 +129,11 @@ class SettingsMenu:
 
         if event.type == pygame.KEYDOWN:
             # If keybind manager is listening for a key, capture it
-            if (self._keybind_manager and self._keybind_manager.is_listening
-                    and self._active_tab == SettingsTab.CONTROLS):
+            if (
+                self._keybind_manager
+                and self._keybind_manager.is_listening
+                and self._active_tab == SettingsTab.CONTROLS
+            ):
                 if self._keybind_manager.handle_key(event.key):
                     return "applied"
                 # ESC cancels listening (handled by handle_key returning False)
@@ -228,9 +233,12 @@ class SettingsMenu:
 
             val_str = self._format_value(opt_value, opt_type)
             # Highlight the listening keybind
-            is_listening = (self._keybind_manager and self._keybind_manager.is_listening
-                            and opt_type == "keybind"
-                            and self._keybind_manager.listening_action)
+            is_listening = (
+                self._keybind_manager
+                and self._keybind_manager.is_listening
+                and opt_type == "keybind"
+                and self._keybind_manager.listening_action
+            )
             if is_listening and val_str == "Press any key...":
                 val_color = (255, 200, 80)
             elif opt_type == "keybind":
@@ -280,13 +288,17 @@ class SettingsMenu:
             case SettingsTab.CONTROLS:
                 if self._keybind_manager:
                     from pycc2.presentation.ui.keybind_manager import ACTION_LABELS
+
                     bindings = self._keybind_manager.get_all_bindings()
                     rows = []
                     for action in ACTION_LABELS:
                         label = ACTION_LABELS[action]
                         key_combo = bindings.get(action, (0,))
                         key_name = self._keybind_manager.key_name(key_combo) if key_combo else "???"
-                        if self._keybind_manager.is_listening and self._keybind_manager.listening_action == action:
+                        if (
+                            self._keybind_manager.is_listening
+                            and self._keybind_manager.listening_action == action
+                        ):
                             key_name = "Press any key..."
                         rows.append((label, key_name, "keybind"))
                     rows.append(("Reset to Default", "", "reset_keybinds"))
@@ -340,14 +352,14 @@ class SettingsMenu:
             # Start listening for a new key for this action
             if self._keybind_manager:
                 from pycc2.presentation.ui.keybind_manager import ACTION_LABELS
+
                 # Find the action name from the label
                 for action, label in ACTION_LABELS.items():
                     if label == name:
                         self._keybind_manager.start_listening(action)
                         break
-        elif typ == "reset_keybinds":
-            if self._keybind_manager:
-                self._keybind_manager.reset_to_default()
+        elif typ == "reset_keybinds" and self._keybind_manager:
+            self._keybind_manager.reset_to_default()
 
     def _toggle_option(self) -> None:
         self._toggle_option_at_index(self._selected_option_idx)
@@ -377,12 +389,11 @@ class SettingsMenu:
                 )
             elif name == "SFX Volume":
                 self.state.sfx_volume = max(0.0, min(1.0, self.state.sfx_volume + direction * 0.1))
-        elif typ == "toggle":
-            if name == "Autosave interval":
-                if self.state.autosave_interval > 0:
-                    self.state.autosave_interval = 0
-                else:
-                    self.state.autosave_interval = 300
+        elif typ == "toggle" and name == "Autosave interval":
+            if self.state.autosave_interval > 0:
+                self.state.autosave_interval = 0
+            else:
+                self.state.autosave_interval = 300
 
     def _handle_click(self, mouse_pos) -> str | None:
         for rect, name in getattr(self, "_option_rects", []):

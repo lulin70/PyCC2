@@ -5,27 +5,38 @@ Tests surrender conditions, morale threshold triggers,
 probability calculation, and FallenUnitCache creation.
 """
 
-import pytest
 from unittest.mock import Mock
 
+import pytest
+
 from pycc2.domain.ai.surrender_system import (
-    SurrenderSystem,
-    SurrenderAI,
     BASE_SURRENDER_PROBABILITY,
     SURROUNDED_BONUS,
+    SurrenderAI,
+    SurrenderSystem,
 )
-from pycc2.domain.entities.unit import Faction, UnitType, UnitState
-from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.ai.tactical_ai import TacticalContext
-
+from pycc2.domain.entities.unit import Faction, UnitState, UnitType
+from pycc2.domain.value_objects.tile_coord import TileCoord
 
 # ===========================================================================
 # Stub helpers
 # ===========================================================================
 
-def _make_unit(unit_id, faction=Faction.AXIS, ammo_ratio=0.5, morale_value=50,
-               tile_x=10, tile_y=10, alive=True, unit_type=UnitType.INFANTRY_SQUAD,
-               experience_level=0, squad_id="squad_1", state=UnitState.IDLE):
+
+def _make_unit(
+    unit_id,
+    faction=Faction.AXIS,
+    ammo_ratio=0.5,
+    morale_value=50,
+    tile_x=10,
+    tile_y=10,
+    alive=True,
+    unit_type=UnitType.INFANTRY_SQUAD,
+    experience_level=0,
+    squad_id="squad_1",
+    state=UnitState.IDLE,
+):
     """Create a mock unit for surrender testing."""
     unit = Mock()
     unit.id = unit_id
@@ -68,9 +79,10 @@ def _make_surrender_candidate():
     return _make_unit(
         "candidate",
         faction=Faction.AXIS,
-        ammo_ratio=0.02,       # Below AMMO_RATIO_THRESHOLD (0.05)
-        morale_value=10,       # Below MORALE_THRESHOLD (15)
-        tile_x=10, tile_y=10,
+        ammo_ratio=0.02,  # Below AMMO_RATIO_THRESHOLD (0.05)
+        morale_value=10,  # Below MORALE_THRESHOLD (15)
+        tile_x=10,
+        tile_y=10,
         state=UnitState.IDLE,
     )
 
@@ -78,6 +90,7 @@ def _make_surrender_candidate():
 # ===========================================================================
 # Tests — Surrender Conditions
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestSurrenderConditions:
@@ -112,14 +125,12 @@ class TestSurrenderConditions:
         assert SurrenderSystem._meets_conditions(unit, [unit]) is False
 
     def test_already_surrendered(self):
-        unit = _make_unit("u1", ammo_ratio=0.02, morale_value=10,
-                          state=UnitState.SURRENDERED)
+        unit = _make_unit("u1", ammo_ratio=0.02, morale_value=10, state=UnitState.SURRENDERED)
         enemy = _make_unit("enemy", faction=Faction.ALLIES, tile_x=11, tile_y=10)
         assert SurrenderSystem._meets_conditions(unit, [unit, enemy]) is False
 
     def test_dead_unit_cannot_surrender(self):
-        unit = _make_unit("u1", ammo_ratio=0.02, morale_value=10,
-                          state=UnitState.DEAD)
+        unit = _make_unit("u1", ammo_ratio=0.02, morale_value=10, state=UnitState.DEAD)
         enemy = _make_unit("enemy", faction=Faction.ALLIES, tile_x=11, tile_y=10)
         assert SurrenderSystem._meets_conditions(unit, [unit, enemy]) is False
 
@@ -127,6 +138,7 @@ class TestSurrenderConditions:
 # ===========================================================================
 # Tests — Surrender Probability
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestSurrenderProbability:
@@ -164,12 +176,14 @@ class TestSurrenderProbability:
 # Tests — Evaluate Tick
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestEvaluateTick:
     """Test evaluate_tick method."""
 
     def test_no_surrender_when_conditions_not_met(self):
         import random
+
         rng = random.Random(42)
         system = SurrenderSystem(rng=rng)
         unit = _make_unit("u1", ammo_ratio=0.5, morale_value=80)
@@ -178,6 +192,7 @@ class TestEvaluateTick:
 
     def test_surrender_when_conditions_met_and_rng_favorable(self):
         import random
+
         rng = random.Random()
         # Force random() to return 0 (always below probability)
         rng.random = lambda: 0.0
@@ -191,6 +206,7 @@ class TestEvaluateTick:
 
     def test_surrender_creates_fallen_cache(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0
         system = SurrenderSystem(rng=rng)
@@ -206,6 +222,7 @@ class TestEvaluateTick:
 
     def test_surrender_zeros_ammo(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0
         system = SurrenderSystem(rng=rng)
@@ -217,6 +234,7 @@ class TestEvaluateTick:
 
     def test_surrender_propagates_morale_event(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0
         system = SurrenderSystem(rng=rng)
@@ -239,6 +257,7 @@ class TestEvaluateTick:
 # ===========================================================================
 # Tests — Accept Surrender
 # ===========================================================================
+
 
 @pytest.mark.unit
 class TestAcceptSurrender:
@@ -267,6 +286,7 @@ class TestAcceptSurrender:
 # Tests — Surround Detection
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestSurroundDetection:
     """Test _is_surrounded helper."""
@@ -287,6 +307,7 @@ class TestSurroundDetection:
 # Tests — SurrenderAI
 # ===========================================================================
 
+
 @pytest.mark.unit
 class TestSurrenderAI:
     """Test SurrenderAI tactical evaluation."""
@@ -304,7 +325,9 @@ class TestSurrenderAI:
     def test_evaluate_nonzero_with_candidates(self):
         ai = SurrenderAI()
         candidate = _make_unit(
-            "u1", ammo_ratio=0.02, morale_value=10,
+            "u1",
+            ammo_ratio=0.02,
+            morale_value=10,
             state=UnitState.IDLE,
         )
         context = TacticalContext(
@@ -318,6 +341,7 @@ class TestSurrenderAI:
 
     def test_execute_returns_intents(self):
         import random
+
         rng = random.Random()
         rng.random = lambda: 0.0
         system = SurrenderSystem(rng=rng)

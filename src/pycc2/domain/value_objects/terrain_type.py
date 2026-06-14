@@ -15,6 +15,7 @@ class CoverType(IntEnum):
     - HARD: Buildings, walls, bunkers - can completely block shots
     - HYBRID: Building interior - hard walls + soft windows
     """
+
     NONE = 0
     SOFT = 1
     HARD = 2

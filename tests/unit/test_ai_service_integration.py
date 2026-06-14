@@ -93,7 +93,7 @@ class TestAIServiceExecute:
         intents = ai_service.tick(dt=0.1)
         if intents:
             results = ai_service.execute_intents(intents)
-            for unit_id, success in results.items():
+            for _unit_id, success in results.items():
                 assert isinstance(success, bool)
 
 

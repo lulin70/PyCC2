@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     pass
+
 
 @dataclass(slots=True)
 class ActiveHint:
@@ -13,8 +15,8 @@ class ActiveHint:
     lifetime: int
     max_lifetime: int
 
-class HintManager:
 
+class HintManager:
     HINT_COOLDOWN: int = 300
 
     def __init__(self):
@@ -30,6 +32,7 @@ class HintManager:
 
     def _init_font(self) -> None:
         import pygame
+
         self._font = pygame.font.Font(None, 16)
 
     def set_enabled(self, val: bool) -> None:
@@ -40,8 +43,9 @@ class HintManager:
     def show_hint(self, text: str, x: float, y: float, lifetime: int = 180) -> None:
         if not self._enabled:
             return
-        self._hints.append(ActiveHint(text=text, x=x, y=y, 
-                                      lifetime=lifetime, max_lifetime=lifetime))
+        self._hints.append(
+            ActiveHint(text=text, x=x, y=y, lifetime=lifetime, max_lifetime=lifetime)
+        )
 
     def update(self) -> None:
         if self._global_cooldown > 0:
@@ -59,12 +63,14 @@ class HintManager:
         # Lazy-init font on first render
         if self._font is None:
             import pygame
+
             self._font = pygame.font.Font(None, 16)
         for h in self._hints:
             alpha = min(255, int(h.lifetime / h.max_lifetime * 255))
             surf = self._font.render(f"💡 {h.text}", True, (255, 255, 200))
             surf.set_alpha(alpha)
             screen.blit(surf, (int(h.x) - surf.get_width() // 2, int(h.y) - 20))
+
 
 HINTS = {
     "first_select": ("Click on a green unit to select it", 0.0, 0.0),

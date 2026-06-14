@@ -115,9 +115,12 @@ class TestFpsAndTick:
 class TestShutdown:
     def test_shutdown_calls_pygame_quit(self):
         from pycc2.presentation.rendering.window_config import WindowManager
+
         manager = WindowManager()
         with patch("pycc2.presentation.rendering.window_config.pygame.quit") as mock_quit:
-            with patch("pycc2.presentation.rendering.window_config.pygame.get_init", return_value=True):
+            with patch(
+                "pycc2.presentation.rendering.window_config.pygame.get_init", return_value=True
+            ):
                 manager.shutdown()
                 mock_quit.assert_called_once()
 

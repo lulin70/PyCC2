@@ -2,8 +2,8 @@
 Tests for Combat Camera Controller.
 """
 
-from pycc2.presentation.rendering.combat_camera_controller import CombatCameraController
 from pycc2.presentation.rendering.camera_effects import EffectStack, EffectType
+from pycc2.presentation.rendering.combat_camera_controller import CombatCameraController
 
 
 class TestCombatCameraController:
@@ -110,78 +110,136 @@ class TestAchievementEventBridge:
     def test_init(self):
         from pycc2.domain.systems.achievement_system import AchievementManager
         from pycc2.services.achievement_event_bridge import AchievementEventBridge
+
         mgr = AchievementManager()
         bridge = AchievementEventBridge(mgr)
         assert bridge._battle_kills == 0
 
     def test_on_unit_killed_axis_triggers_first_blood(self):
-        from pycc2.domain.systems.achievement_system import AchievementManager, Achievement, AchievementCategory
+        from pycc2.domain.systems.achievement_system import (
+            Achievement,
+            AchievementCategory,
+            AchievementManager,
+        )
         from pycc2.services.achievement_event_bridge import AchievementEventBridge
+
         mgr = AchievementManager()
-        mgr.register(Achievement(
-            achievement_id="first_blood", name="First Blood",
-            description="d", category=AchievementCategory.COMBAT,
-        ))
+        mgr.register(
+            Achievement(
+                achievement_id="first_blood",
+                name="First Blood",
+                description="d",
+                category=AchievementCategory.COMBAT,
+            )
+        )
         bridge = AchievementEventBridge(mgr)
         bridge._on_unit_killed({"faction": "AXIS"})
         assert mgr.is_unlocked("first_blood")
 
     def test_on_unit_killed_tracks_sniper(self):
-        from pycc2.domain.systems.achievement_system import AchievementManager, Achievement, AchievementCategory
+        from pycc2.domain.systems.achievement_system import (
+            Achievement,
+            AchievementCategory,
+            AchievementManager,
+        )
         from pycc2.services.achievement_event_bridge import AchievementEventBridge
+
         mgr = AchievementManager()
-        mgr.register(Achievement(
-            achievement_id="sharpshooter", name="Sharpshooter",
-            description="d", category=AchievementCategory.COMBAT, max_progress=10,
-        ))
+        mgr.register(
+            Achievement(
+                achievement_id="sharpshooter",
+                name="Sharpshooter",
+                description="d",
+                category=AchievementCategory.COMBAT,
+                max_progress=10,
+            )
+        )
         bridge = AchievementEventBridge(mgr)
         bridge._on_unit_killed({"faction": "AXIS", "attacker_role": "sniper"})
         assert mgr.get_progress("sharpshooter") == 1
 
     def test_on_unit_killed_tracks_tank(self):
-        from pycc2.domain.systems.achievement_system import AchievementManager, Achievement, AchievementCategory
+        from pycc2.domain.systems.achievement_system import (
+            Achievement,
+            AchievementCategory,
+            AchievementManager,
+        )
         from pycc2.services.achievement_event_bridge import AchievementEventBridge
+
         mgr = AchievementManager()
-        mgr.register(Achievement(
-            achievement_id="tank_buster", name="Tank Buster",
-            description="d", category=AchievementCategory.COMBAT, max_progress=5,
-        ))
+        mgr.register(
+            Achievement(
+                achievement_id="tank_buster",
+                name="Tank Buster",
+                description="d",
+                category=AchievementCategory.COMBAT,
+                max_progress=5,
+            )
+        )
         bridge = AchievementEventBridge(mgr)
         bridge._on_unit_killed({"faction": "AXIS", "unit_type": "tank"})
         assert mgr.get_progress("tank_buster") == 1
 
     def test_on_battle_won_tracks_commander(self):
-        from pycc2.domain.systems.achievement_system import AchievementManager, Achievement, AchievementCategory
+        from pycc2.domain.systems.achievement_system import (
+            Achievement,
+            AchievementCategory,
+            AchievementManager,
+        )
         from pycc2.services.achievement_event_bridge import AchievementEventBridge
+
         mgr = AchievementManager()
-        mgr.register(Achievement(
-            achievement_id="commander", name="Commander",
-            description="d", category=AchievementCategory.CAMPAIGN, max_progress=25,
-        ))
+        mgr.register(
+            Achievement(
+                achievement_id="commander",
+                name="Commander",
+                description="d",
+                category=AchievementCategory.CAMPAIGN,
+                max_progress=25,
+            )
+        )
         bridge = AchievementEventBridge(mgr)
         bridge._on_battle_won({})
         assert mgr.get_progress("commander") == 1
 
     def test_on_battle_won_zero_casualties(self):
-        from pycc2.domain.systems.achievement_system import AchievementManager, Achievement, AchievementCategory
+        from pycc2.domain.systems.achievement_system import (
+            Achievement,
+            AchievementCategory,
+            AchievementManager,
+        )
         from pycc2.services.achievement_event_bridge import AchievementEventBridge
+
         mgr = AchievementManager()
-        mgr.register(Achievement(
-            achievement_id="zero_casualties", name="Zero Casualties",
-            description="d", category=AchievementCategory.SURVIVAL,
-        ))
+        mgr.register(
+            Achievement(
+                achievement_id="zero_casualties",
+                name="Zero Casualties",
+                description="d",
+                category=AchievementCategory.SURVIVAL,
+            )
+        )
         bridge = AchievementEventBridge(mgr)
         bridge._on_battle_won({})
         assert mgr.is_unlocked("zero_casualties")
 
     def test_on_campaign_complete(self):
-        from pycc2.domain.systems.achievement_system import AchievementManager, Achievement, AchievementCategory
+        from pycc2.domain.systems.achievement_system import (
+            Achievement,
+            AchievementCategory,
+            AchievementManager,
+        )
         from pycc2.services.achievement_event_bridge import AchievementEventBridge
+
         mgr = AchievementManager()
-        mgr.register(Achievement(
-            achievement_id="market_garden", name="Market Garden",
-            description="d", category=AchievementCategory.CAMPAIGN,
-        ))
+        mgr.register(
+            Achievement(
+                achievement_id="market_garden",
+                name="Market Garden",
+                description="d",
+                category=AchievementCategory.CAMPAIGN,
+            )
+        )
         bridge = AchievementEventBridge(mgr)
         bridge._on_campaign_complete({"campaign": "market_garden"})
         assert mgr.is_unlocked("market_garden")
@@ -189,6 +247,7 @@ class TestAchievementEventBridge:
     def test_reset_battle_stats(self):
         from pycc2.domain.systems.achievement_system import AchievementManager
         from pycc2.services.achievement_event_bridge import AchievementEventBridge
+
         mgr = AchievementManager()
         bridge = AchievementEventBridge(mgr)
         bridge._battle_kills = 10

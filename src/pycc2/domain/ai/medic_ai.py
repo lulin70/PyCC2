@@ -40,22 +40,23 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-WOUNDED_THRESHOLD: float = 0.7       # health_ratio below this = wounded
-HEAL_RANGE: int = 15                 # Max tiles medic will travel to wounded
-HEAL_PER_TICK: float = 0.5          # HP healed per tick
-HEAL_CAP_RATIO: float = 0.7         # Heal up to this ratio, not full
-MIN_TREATMENT_TICKS: int = 10       # Minimum treatment duration
-HEAL_ADJACENT_RANGE: int = 1        # Must be adjacent to heal
+WOUNDED_THRESHOLD: float = 0.7  # health_ratio below this = wounded
+HEAL_RANGE: int = 15  # Max tiles medic will travel to wounded
+HEAL_PER_TICK: float = 0.5  # HP healed per tick
+HEAL_CAP_RATIO: float = 0.7  # Heal up to this ratio, not full
+MIN_TREATMENT_TICKS: int = 10  # Minimum treatment duration
+HEAL_ADJACENT_RANGE: int = 1  # Must be adjacent to heal
 
 
 # ---------------------------------------------------------------------------
 # Treatment priority
 # ---------------------------------------------------------------------------
 
+
 class TreatmentPriority(Enum):
-    OFFICER = auto()        # Commander units
-    MG_GUNNER = auto()      # Machine gun squads
-    REGULAR = auto()        # Regular infantry
+    OFFICER = auto()  # Commander units
+    MG_GUNNER = auto()  # Machine gun squads
+    REGULAR = auto()  # Regular infantry
 
 
 def _treatment_priority(unit: Unit) -> TreatmentPriority:
@@ -78,9 +79,11 @@ _PRIORITY_ORDER: dict[TreatmentPriority, int] = {
 # Treatment state
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class TreatmentRecord:
     """Tracks an in-progress treatment by a medic."""
+
     medic_id: str
     patient_id: str
     ticks_remaining: int
@@ -90,6 +93,7 @@ class TreatmentRecord:
 # ---------------------------------------------------------------------------
 # MedicAI
 # ---------------------------------------------------------------------------
+
 
 class MedicAI(TacticalAIBase):
     """Tactical AI for medic units that actively seek and treat wounded.
@@ -174,18 +178,14 @@ class MedicAI(TacticalAIBase):
                 continue
 
             # Find best patient for this medic
-            patient = self._find_best_patient(
-                medic, sorted_wounded, assigned_patients, context
-            )
+            patient = self._find_best_patient(medic, sorted_wounded, assigned_patients, context)
             if patient is None:
                 continue
 
             assigned_patients.add(patient.id)
 
             # Check distance
-            dist = medic.position.tile_coord.chebyshev_distance(
-                patient.position.tile_coord
-            )
+            dist = medic.position.tile_coord.chebyshev_distance(patient.position.tile_coord)
 
             if dist <= HEAL_ADJACENT_RANGE:
                 # Adjacent — start healing
@@ -228,9 +228,7 @@ class MedicAI(TacticalAIBase):
         if medic.id in self._active_treatments:
             return False
 
-        dist = medic.position.tile_coord.chebyshev_distance(
-            patient.position.tile_coord
-        )
+        dist = medic.position.tile_coord.chebyshev_distance(patient.position.tile_coord)
         if dist > HEAL_ADJACENT_RANGE:
             return False
 
@@ -241,8 +239,7 @@ class MedicAI(TacticalAIBase):
             patient_start_hp=patient.health.hp,
         )
         self._logger.info(
-            f"Medic {medic.id} started treating {patient.id} "
-            f"({MIN_TREATMENT_TICKS} ticks)"
+            f"Medic {medic.id} started treating {patient.id} ({MIN_TREATMENT_TICKS} ticks)"
         )
         return True
 
@@ -284,9 +281,7 @@ class MedicAI(TacticalAIBase):
                 # Treatment complete or patient has reached cap
                 completed.append(record)
                 del self._active_treatments[medic_id]
-                self._logger.info(
-                    f"Medic {medic_id} completed treating {record.patient_id}"
-                )
+                self._logger.info(f"Medic {medic_id} completed treating {record.patient_id}")
 
         return completed
 
@@ -307,9 +302,7 @@ class MedicAI(TacticalAIBase):
         return [
             u
             for u in context.friendly_units
-            if u.is_alive
-            and u.can_act
-            and u.unit_type == UnitType.MEDIC_TEAM
+            if u.is_alive and u.can_act and u.unit_type == UnitType.MEDIC_TEAM
         ]
 
     @staticmethod
@@ -399,7 +392,9 @@ class MedicAI(TacticalAIBase):
                 continue
             enemy_pos = enemy.position.tile_coord
             # Check if enemy can see the midpoint
-            if hasattr(context.game_map, 'has_line_of_sight') and callable(context.game_map.has_line_of_sight):
+            if hasattr(context.game_map, "has_line_of_sight") and callable(
+                context.game_map.has_line_of_sight
+            ):
                 if context.game_map.has_line_of_sight(enemy_pos, mid):
                     return False
             else:

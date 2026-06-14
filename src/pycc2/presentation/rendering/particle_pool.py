@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -35,16 +36,13 @@ class ParticlePool:
         )
 
     def acquire(self):
-        if self._pool:
-            p = self._pool.pop()
-        else:
-            p = self._new_particle()
+        p = self._pool.pop() if self._pool else self._new_particle()
         p._pool_active = True
         self._active_count += 1
         return p
 
     def release(self, particle) -> None:
-        if getattr(particle, '_pool_active', False) is False:
+        if getattr(particle, "_pool_active", False) is False:
             return
         particle._pool_active = False
         self._active_count -= 1
@@ -53,10 +51,7 @@ class ParticlePool:
             self._pool.append(particle)
 
     def acquire_dict(self) -> dict:
-        if self._dict_pool:
-            d = self._dict_pool.pop()
-        else:
-            d = {}
+        d = self._dict_pool.pop() if self._dict_pool else {}
         self._dict_active_count += 1
         return d
 

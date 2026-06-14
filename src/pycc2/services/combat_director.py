@@ -28,7 +28,9 @@ class CombatDirector:
     _game_map: GameMap | None = field(init=False, default=None)
     _pending_effects: list[dict] = field(init=False, default_factory=list)
     _move_orders: dict[str, dict] = field(init=False, default_factory=dict)
-    _camera_position: object | None = field(init=False, default=None)  # R10: Camera position for sound falloff
+    _camera_position: object | None = field(
+        init=False, default=None
+    )  # R10: Camera position for sound falloff
 
     def initialize(self) -> None:
         from pycc2.domain.systems.ballistic import BallisticEngine
@@ -105,24 +107,27 @@ class CombatDirector:
                     del self._move_orders[uid]
                 # Reset movement mode to normal
                 unit = next((u for u in units if u.id == uid), None)
-                if unit and hasattr(unit, 'set_movement_mode'):
+                if unit and hasattr(unit, "set_movement_mode"):
                     unit.set_movement_mode("normal")
 
         elif cmd == "defend":
             """Defend command: Reduces mobility, improves accuracy."""
             import logging
+
             logger = logging.getLogger(__name__)
 
             for uid in unit_ids:
                 unit = next((u for u in units if u.id == uid), None)
-                if unit and hasattr(unit, 'set_movement_mode'):
+                if unit and hasattr(unit, "set_movement_mode"):
                     # Toggle defend mode (or set if not already defending)
                     if unit.movement_mode != "defend":
                         unit.set_movement_mode("defend", duration_ticks=-1)  # Indefinite
                         # Stop any current movement
                         if uid in self._move_orders:
                             del self._move_orders[uid]
-                        logger.info(f"[COMMAND] {unit.name or uid} entering DEFEND mode (+25% accuracy, -50% speed)")
+                        logger.info(
+                            f"[COMMAND] {unit.name or uid} entering DEFEND mode (+25% accuracy, -50% speed)"
+                        )
                     else:
                         # Cancel defend mode
                         unit.set_movement_mode("normal")
@@ -131,15 +136,18 @@ class CombatDirector:
         elif cmd == "fast_move":
             """Fast Move command: Moves faster but more visible to enemies."""
             import logging
+
             logger = logging.getLogger(__name__)
 
             for uid in unit_ids:
                 unit = next((u for u in units if u.id == uid), None)
-                if unit and hasattr(unit, 'set_movement_mode'):
+                if unit and hasattr(unit, "set_movement_mode"):
                     # Toggle fast move mode
                     if unit.movement_mode != "fast_move":
                         unit.set_movement_mode("fast_move", duration_ticks=-1)
-                        logger.info(f"[COMMAND] {unit.name or uid} entering FAST MOVE mode (1.5x speed, +50% detection)")
+                        logger.info(
+                            f"[COMMAND] {unit.name or uid} entering FAST MOVE mode (1.5x speed, +50% detection)"
+                        )
                     else:
                         unit.set_movement_mode("normal")
                         logger.info(f"[COMMAND] {unit.name or uid} exiting FAST MOVE mode")
@@ -147,33 +155,43 @@ class CombatDirector:
         elif cmd == "sneak":
             """Sneak Move command: Moves slower but harder to detect."""
             import logging
+
             logger = logging.getLogger(__name__)
 
             for uid in unit_ids:
                 unit = next((u for u in units if u.id == uid), None)
-                if unit and hasattr(unit, 'set_movement_mode') and getattr(unit, 'can_sneak', False):
+                if (
+                    unit
+                    and hasattr(unit, "set_movement_mode")
+                    and getattr(unit, "can_sneak", False)
+                ):
                     # Toggle sneak mode
                     if unit.movement_mode != "sneak":
                         unit.set_movement_mode("sneak", duration_ticks=-1)
-                        logger.info(f"[COMMAND] {unit.name or uid} entering SNEAK mode (0.6x speed, -50% detection)")
+                        logger.info(
+                            f"[COMMAND] {unit.name or uid} entering SNEAK mode (0.6x speed, -50% detection)"
+                        )
                     else:
                         unit.set_movement_mode("normal")
                         logger.info(f"[COMMAND] {unit.name or uid} exiting SNEAK mode")
                 elif unit:
-                    logger.warning(f"[COMMAND] {unit.name or uid} cannot use SNEAK mode (unit type not supported)")
+                    logger.warning(
+                        f"[COMMAND] {unit.name or uid} cannot use SNEAK mode (unit type not supported)"
+                    )
 
         elif cmd == "hide":
             """Hide command: Similar to defend but with concealment bonus."""
             import logging
+
             logger = logging.getLogger(__name__)
 
             for uid in unit_ids:
                 unit = next((u for u in units if u.id == uid), None)
-                if unit and hasattr(unit, 'set_movement_mode') and getattr(unit, 'can_hide', False):
+                if unit and hasattr(unit, "set_movement_mode") and getattr(unit, "can_hide", False):
                     if unit.movement_mode != "defend":
                         unit.set_movement_mode("defend", duration_ticks=-1)
                         # Apply concealment bonus if available
-                        if hasattr(unit, 'combat_state') and unit.combat_state:
+                        if hasattr(unit, "combat_state") and unit.combat_state:
                             unit.combat_state.concealment.special_bonus += 0.2
                         if uid in self._move_orders:
                             del self._move_orders[uid]
@@ -182,6 +200,7 @@ class CombatDirector:
         elif cmd == "deploy_smoke":
             """Deploy smoke grenade at unit position."""
             import logging
+
             logger = logging.getLogger(__name__)
 
             for uid in unit_ids:
@@ -190,12 +209,14 @@ class CombatDirector:
                 # Verify unit can use smoke
                 if not unit:
                     continue
-                if not getattr(unit, 'can_use_smoke', False):
-                    logger.warning(f"[SMOKE] {unit.name or uid} cannot deploy smoke (no capability)")
+                if not getattr(unit, "can_use_smoke", False):
+                    logger.warning(
+                        f"[SMOKE] {unit.name or uid} cannot deploy smoke (no capability)"
+                    )
                     continue
 
                 # Check ammo
-                if hasattr(unit, 'weapon') and unit.weapon:
+                if hasattr(unit, "weapon") and unit.weapon:
                     # Consume smoke ammo (if tracked separately)
                     # For now, just verify unit has weapon system
 
@@ -204,10 +225,12 @@ class CombatDirector:
                         from pycc2.domain.systems.ammo_type_system import AmmoTypeSystem
 
                         # Check if AmmoTypeSystem has smoke deployment
-                        if hasattr(AmmoTypeSystem, 'deploy_smoke'):
+                        if hasattr(AmmoTypeSystem, "deploy_smoke"):
                             success = AmmoTypeSystem.deploy_smoke(unit, self._game_map)
                             if not success:
-                                logger.warning(f"[SMOKE] Failed to deploy smoke for {unit.name or uid}")
+                                logger.warning(
+                                    f"[SMOKE] Failed to deploy smoke for {unit.name or uid}"
+                                )
                                 continue
                     except Exception as e:
                         logger.warning(f"[SMOKE] Error deploying smoke: {e}")
@@ -223,7 +246,7 @@ class CombatDirector:
                     )
 
                     # Apply smoke to concealment system if available
-                    if hasattr(unit, 'combat_state') and unit.combat_state:
+                    if hasattr(unit, "combat_state") and unit.combat_state:
                         unit.combat_state.concealment.in_smoke = True
                         # Smoke fades after some time (handled by combat_state turn processing)
 
@@ -249,23 +272,26 @@ class CombatDirector:
             game_map=self._game_map,
         )
 
-        if attacker.weapon.fire():
-            if self.sound_system:
-                weapon_type = "rifle"
-                if "mg" in (attacker.weapon.primary_weapon_id or "").lower():
-                    weapon_type = "mg"
-                elif "pistol" in (attacker.weapon.primary_weapon_id or "").lower():
-                    weapon_type = "pistol"
-                # R10: Battle sound distance falloff — use distance-based volume
-                source_pos = attacker.position.pixel_position
-                camera_pos = getattr(self, '_camera_position', None)
-                if camera_pos is not None and hasattr(self.sound_system, 'play_sound_with_distance'):
-                    sound_id = f"RIFLE_SHOT" if weapon_type == "rifle" else (
-                        "MG_BURST" if weapon_type == "mg" else "PISTOL_SHOT")
-                    self.sound_system.play_sound_with_distance(
-                        sound_id, source_pos, camera_pos, max_distance=500.0)
-                else:
-                    self.sound_system.play_shot(weapon_type)
+        if attacker.weapon.fire() and self.sound_system:
+            weapon_type = "rifle"
+            if "mg" in (attacker.weapon.primary_weapon_id or "").lower():
+                weapon_type = "mg"
+            elif "pistol" in (attacker.weapon.primary_weapon_id or "").lower():
+                weapon_type = "pistol"
+            # R10: Battle sound distance falloff — use distance-based volume
+            source_pos = attacker.position.pixel_position
+            camera_pos = getattr(self, "_camera_position", None)
+            if camera_pos is not None and hasattr(self.sound_system, "play_sound_with_distance"):
+                sound_id = (
+                    "RIFLE_SHOT"
+                    if weapon_type == "rifle"
+                    else ("MG_BURST" if weapon_type == "mg" else "PISTOL_SHOT")
+                )
+                self.sound_system.play_sound_with_distance(
+                    sound_id, source_pos, camera_pos, max_distance=500.0
+                )
+            else:
+                self.sound_system.play_shot(weapon_type)
 
         self.event_bus.publish(
             UnitAttacked(
@@ -290,17 +316,20 @@ class CombatDirector:
 
         attacker_pos = attacker.position.pixel_position
         target_pos = target.position.pixel_position
-        self.event_bus.publish_named("ProjectileFired", {
-            "attacker_id": attacker.id,
-            "target_id": target.id,
-            "weapon_type": weapon_type,
-            "start_x": attacker_pos.x,
-            "start_y": attacker_pos.y,
-            "end_x": target_pos.x,
-            "end_y": target_pos.y,
-            "damage": result.damage_dealt if result else 0,
-            "is_hit": result.hit if result else False,
-        })
+        self.event_bus.publish_named(
+            "ProjectileFired",
+            {
+                "attacker_id": attacker.id,
+                "target_id": target.id,
+                "weapon_type": weapon_type,
+                "start_x": attacker_pos.x,
+                "start_y": attacker_pos.y,
+                "end_x": target_pos.x,
+                "end_y": target_pos.y,
+                "damage": result.damage_dealt if result else 0,
+                "is_hit": result.hit if result else False,
+            },
+        )
 
         if result and result.hit:
             target.take_damage(int(result.damage_dealt))
@@ -326,10 +355,12 @@ class CombatDirector:
                 self.event_bus.publish(
                     UnitKilled(
                         unit_id=target.id,
-                        faction=target.faction.name if hasattr(target.faction, 'name') else str(target.faction),
+                        faction=target.faction.name
+                        if hasattr(target.faction, "name")
+                        else str(target.faction),
                         attacker_id=attacker.id,
-                        attacker_role=getattr(attacker, 'role', ''),
-                        unit_type=getattr(target, 'unit_type', ''),
+                        attacker_role=getattr(attacker, "role", ""),
+                        unit_type=getattr(target, "unit_type", ""),
                         position=(
                             target.position.tile_coord.x,
                             target.position.tile_coord.y,
@@ -402,7 +433,7 @@ class CombatDirector:
                     effect["position"], effect["damage"], effect.get("is_kill", False)
                 )
                 # P3-02: Spawn shell casing at hit position (ejected brass)
-                if hasattr(renderer, 'spawn_shell_casing'):
+                if hasattr(renderer, "spawn_shell_casing"):
                     position = effect["position"]
                     renderer.spawn_shell_casing(position.x, position.y)
                 # P2-01: Enriched combat particles — dirt splash, blood pool, hit marker
@@ -414,8 +445,7 @@ class CombatDirector:
                     renderer.spawn_blood_pool(position.x, position.y, size=10)
                 if hasattr(renderer, "spawn_hit_marker"):
                     renderer.spawn_hit_marker(
-                        position.x, position.y,
-                        damage_type='critical' if is_kill else 'normal'
+                        position.x, position.y, damage_type="critical" if is_kill else "normal"
                     )
                 # 爆炸武器触发大爆炸 + 屏幕震动
                 weapon_id = effect.get("weapon_id", "")
@@ -426,14 +456,17 @@ class CombatDirector:
                     # P2-03: Warm white flash for large explosions
                     if hasattr(renderer, "trigger_flash"):
                         renderer.trigger_flash((255, 240, 200), 0.5, 0.15)
-                    self.event_bus.publish_named("Explosion", {
-                        "intensity": 4.0,
-                        "position": (
-                            effect["position"].x if hasattr(effect["position"], "x") else 0,
-                            effect["position"].y if hasattr(effect["position"], "y") else 0,
-                        ),
-                        "weapon_id": weapon_id,
-                    })
+                    self.event_bus.publish_named(
+                        "Explosion",
+                        {
+                            "intensity": 4.0,
+                            "position": (
+                                effect["position"].x if hasattr(effect["position"], "x") else 0,
+                                effect["position"].y if hasattr(effect["position"], "y") else 0,
+                            ),
+                            "weapon_id": weapon_id,
+                        },
+                    )
                 else:
                     renderer.spawn_explosion(effect["position"], "small")
                     if camera and hasattr(camera, "shake"):
@@ -456,7 +489,15 @@ class CombatDirector:
 
     @staticmethod
     def _is_explosive_weapon(weapon_id: str) -> bool:
-        explosive_keywords = ("tank_cannon", "mortar", "at_gun", "bazooka", "piat", "panzerschreck", "panzerfaust")
+        explosive_keywords = (
+            "tank_cannon",
+            "mortar",
+            "at_gun",
+            "bazooka",
+            "piat",
+            "panzerschreck",
+            "panzerfaust",
+        )
         wid_lower = weapon_id.lower()
         return any(kw in wid_lower for kw in explosive_keywords)
 

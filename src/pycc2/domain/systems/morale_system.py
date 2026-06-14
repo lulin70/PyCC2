@@ -20,7 +20,7 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,7 @@ if TYPE_CHECKING:
 
 class MoraleEvent(Enum):
     """Events that can affect unit morale."""
+
     ALLY_KILLED = auto()
     LEADER_KILLED = auto()
     UNDER_HEAVY_FIRE = auto()
@@ -47,16 +48,18 @@ class MoraleEvent(Enum):
 
 class MoraleState(Enum):
     """CC2 morale states with behavioral effects."""
-    RALLYED = "rallyed"      # >70: Full combat effectiveness
-    WAVERING = "wavering"    # 40-70: Slightly degraded
-    PINNED = "pinned"        # 20-40: Cannot move, reduced fire
-    BROKEN = "broken"        # <20: May flee, refuses orders
-    ROUTING = "routing"      # Actively fleeing
+
+    RALLYED = "rallyed"  # >70: Full combat effectiveness
+    WAVERING = "wavering"  # 40-70: Slightly degraded
+    PINNED = "pinned"  # 20-40: Cannot move, reduced fire
+    BROKEN = "broken"  # <20: May flee, refuses orders
+    ROUTING = "routing"  # Actively fleeing
 
 
 @dataclass
 class RoutingTarget:
     """Target position for routing/fleeing unit."""
+
     position: Vec2 | None = None
     is_fleeing: bool = False
     flee_ticks_remaining: int = 0
@@ -65,6 +68,7 @@ class RoutingTarget:
 @dataclass(slots=True)
 class MoraleCalculationResult:
     """Result of a morale event calculation."""
+
     morale_delta: int
     suppression_delta: int
     state_changed: bool
@@ -80,6 +84,7 @@ class MoraleCalculator:
     Calculates morale changes from discrete events (ally killed, leader
     killed, etc.) and provides panic contagion / natural recovery helpers.
     """
+
     EVENT_WEIGHTS: dict[MoraleEvent, int] = field(
         default_factory=lambda: {
             MoraleEvent.ALLY_KILLED: -15,
@@ -181,18 +186,18 @@ class MoraleSystem:
     BROKEN_THRESHOLD: int = 20  # Same as pinned upper bound
 
     # Recovery rates
-    BASE_RECOVERY_RATE: float = 0.5       # Morale points per second
+    BASE_RECOVERY_RATE: float = 0.5  # Morale points per second
     COMMANDER_BONUS_MULTIPLIER: float = 2.0  # Near commander recovery bonus
-    COVER_BONUS: float = 0.3              # In cover recovery bonus
+    COVER_BONUS: float = 0.3  # In cover recovery bonus
 
     # Suppression impact on morale
     SUPPRESSION_TO_MORALE_RATIO: float = 0.3  # 30% of suppression affects morale
 
     # Routing behavior
-    ROUTING_CHECK_INTERVAL: int = 30      # Check every 30 ticks
-    ROUTING_FLEE_DURATION: int = 180      # 3 seconds at 60 FPS
-    FLEE_CHANCE_BROKEN: float = 0.15      # 15% chance per check when broken
-    FLEE_CHANCE_ROUTING: float = 0.4      # 40% chance when already routing
+    ROUTING_CHECK_INTERVAL: int = 30  # Check every 30 ticks
+    ROUTING_FLEE_DURATION: int = 180  # 3 seconds at 60 FPS
+    FLEE_CHANCE_BROKEN: float = 0.15  # 15% chance per check when broken
+    FLEE_CHANCE_ROUTING: float = 0.4  # 40% chance when already routing
 
     @staticmethod
     def get_state(morale_value: int) -> MoraleState:
@@ -216,7 +221,7 @@ class MoraleSystem:
 
     @staticmethod
     def _play_morale_collapse_voice(
-        unit: "Unit",
+        unit: Unit,
         new_state: MoraleState,
         voice_callback: Callable[[str, str], None] | None = None,
     ) -> None:
@@ -231,7 +236,7 @@ class MoraleSystem:
         if voice_callback is None:
             return
         try:
-            faction = unit.faction if hasattr(unit, 'faction') else None
+            faction = unit.faction if hasattr(unit, "faction") else None
             if faction is not None:
                 voice_callback(new_state.value, faction)
         except Exception as e:
@@ -257,12 +262,12 @@ class MoraleSystem:
             - new_state: New morale state (if changed)
             - current_morale: Updated morale value
         """
-        if not hasattr(unit, 'morale') or unit.morale is None:
+        if not hasattr(unit, "morale") or unit.morale is None:
             return {
-                'morale_delta': 0,
-                'state_changed': False,
-                'new_state': None,
-                'current_morale': 0,
+                "morale_delta": 0,
+                "state_changed": False,
+                "new_state": None,
+                "current_morale": 0,
             }
 
         old_state = MoraleSystem.get_state(unit.morale.value)
@@ -275,7 +280,7 @@ class MoraleSystem:
         unit.morale.apply_delta(-morale_reduction)
 
         # Also add to suppression tracker if available
-        if hasattr(unit.morale, 'add_suppression'):
+        if hasattr(unit.morale, "add_suppression"):
             suppr_amount = int(amount * dt * 60)
             unit.morale.add_suppression(suppr_amount)
 
@@ -283,10 +288,10 @@ class MoraleSystem:
         state_changed = old_state != new_state
 
         result = {
-            'morale_delta': -morale_reduction,
-            'state_changed': state_changed,
-            'new_state': new_state if state_changed else None,
-            'current_morale': unit.morale.value,
+            "morale_delta": -morale_reduction,
+            "state_changed": state_changed,
+            "new_state": new_state if state_changed else None,
+            "current_morale": unit.morale.value,
         }
 
         # Log significant state changes
@@ -305,10 +310,7 @@ class MoraleSystem:
 
     @staticmethod
     def update_morale_recovery(
-        unit: Unit,
-        dt: float,
-        near_commander: bool = False,
-        in_cover: bool = True
+        unit: Unit, dt: float, near_commander: bool = False, in_cover: bool = True
     ) -> dict:
         """
         Passive morale recovery when not under fire.
@@ -330,14 +332,14 @@ class MoraleSystem:
             - current_morale: Updated morale
             - state_changed: Whether state improved
         """
-        if not hasattr(unit, 'morale') or unit.morale is None:
-            return {'recovered': 0, 'current_morale': 0, 'state_changed': False}
+        if not hasattr(unit, "morale") or unit.morale is None:
+            return {"recovered": 0, "current_morale": 0, "state_changed": False}
 
         # Don't recover if currently routing or broken below threshold
         current_state = MoraleSystem.get_state(unit.morale.value)
         if current_state in (MoraleState.ROUTING, MoraleState.BROKEN):
             if unit.morale.value < MoraleSystem.PINNED_THRESHOLD:
-                return {'recovered': 0, 'current_morale': unit.morale.value, 'state_changed': False}
+                return {"recovered": 0, "current_morale": unit.morale.value, "state_changed": False}
 
         old_state = current_state
 
@@ -352,11 +354,11 @@ class MoraleSystem:
             recovery += MoraleSystem.COVER_BONUS * dt
 
         # Faster recovery from low suppression
-        if hasattr(unit.morale, 'suppression') and unit.morale.suppression == 0:
+        if hasattr(unit.morale, "suppression") and unit.morale.suppression == 0:
             recovery *= 1.5  # Bonus when fully recovered from suppression
 
         # Apply recovery (use natural_recovery if available for fractional tracking)
-        if hasattr(unit.morale, 'natural_recovery'):
+        if hasattr(unit.morale, "natural_recovery"):
             unit.morale.natural_recovery()
             recovered_int = 1 if recovery >= 1.0 else 0
         else:
@@ -365,20 +367,20 @@ class MoraleSystem:
                 unit.morale.apply_delta(recovered_int)
 
         # Decay suppression
-        if hasattr(unit.morale, 'decay_suppression'):
+        if hasattr(unit.morale, "decay_suppression"):
             decay_amount = int(5 * dt * 60)  # 5 points per second at 60 FPS
             unit.morale.decay_suppression(decay_amount)
 
         new_state = MoraleSystem.get_state(unit.morale.value)
 
         return {
-            'recovered': recovered_int,
-            'current_morale': unit.morale.value,
-            'state_changed': old_state != new_state and new_state.value > old_state.value,
+            "recovered": recovered_int,
+            "current_morale": unit.morale.value,
+            "state_changed": old_state != new_state and new_state.value > old_state.value,
         }
 
     @staticmethod
-    def check_routing_behavior(unit: Unit, game_map: "GameMap" = None) -> Tuple[bool, object]:
+    def check_routing_behavior(unit: Unit, game_map: GameMap = None) -> tuple[bool, object]:
         """
         Check if unit should attempt to flee.
 
@@ -397,7 +399,7 @@ class MoraleSystem:
         - Returns target position (map edge direction) if fleeing
         """
 
-        if not hasattr(unit, 'morale') or unit.morale is None:
+        if not hasattr(unit, "morale") or unit.morale is None:
             return (False, None)
 
         current_state = MoraleSystem.get_state(unit.morale.value)
@@ -417,19 +419,18 @@ class MoraleSystem:
             if random.random() < MoraleSystem.FLEE_CHANCE_BROKEN:
                 should_flee = True
                 # Set routing state
-                if hasattr(unit, '_routing_target'):
+                if hasattr(unit, "_routing_target"):
                     unit._routing_target = RoutingTarget(
-                        is_fleeing=True,
-                        flee_ticks_remaining=MoraleSystem.ROUTING_FLEE_DURATION
+                        is_fleeing=True, flee_ticks_remaining=MoraleSystem.ROUTING_FLEE_DURATION
                     )
 
         elif current_state == MoraleState.ROUTING:
             # Continue routing or rally check
-            if hasattr(unit, '_routing_target') and unit._routing_target.is_fleeing:
+            if hasattr(unit, "_routing_target") and unit._routing_target.is_fleeing:
                 if random.random() < MoraleSystem.FLEE_CHANCE_ROUTING:
                     should_flee = True
                     # Calculate flee direction (toward nearest map edge)
-                    if hasattr(unit, 'position') and unit.position:
+                    if hasattr(unit, "position") and unit.position:
                         target_pos = MoraleSystem._calculate_flee_target(unit, game_map)
                         unit._routing_target.position = target_pos
 
@@ -444,7 +445,7 @@ class MoraleSystem:
         return (should_flee, target_pos)
 
     @staticmethod
-    def _calculate_flee_target(unit: "Unit", game_map: "GameMap" = None) -> tuple[int, int] | None:
+    def _calculate_flee_target(unit: Unit, game_map: GameMap = None) -> tuple[int, int] | None:
         """
         Calculate target position for fleeing unit.
 
@@ -461,7 +462,7 @@ class MoraleSystem:
             # Fallback: try to get map from unit's position
             return None
 
-        if not hasattr(unit, 'position') or unit.position is None:
+        if not hasattr(unit, "position") or unit.position is None:
             return None
 
         ux = unit.position.tile_coord.x
@@ -500,11 +501,11 @@ class MoraleSystem:
             Accuracy multiplier (1.0 = normal, <1.0 = penalty, >1.0 = bonus)
         """
         modifiers = {
-            MoraleState.RALLYED: 1.05,   # Slight bonus
-            MoraleState.WAVERING: 0.95,   # Slight penalty
-            MoraleState.PINNED: 0.60,     # Major penalty (can still fire)
-            MoraleState.BROKEN: 0.30,     # Severe penalty
-            MoraleState.ROUTING: 0.10,    # Minimal (fleeing)
+            MoraleState.RALLYED: 1.05,  # Slight bonus
+            MoraleState.WAVERING: 0.95,  # Slight penalty
+            MoraleState.PINNED: 0.60,  # Major penalty (can still fire)
+            MoraleState.BROKEN: 0.30,  # Severe penalty
+            MoraleState.ROUTING: 0.10,  # Minimal (fleeing)
         }
         return modifiers.get(morale_state, 1.0)
 
@@ -520,11 +521,11 @@ class MoraleSystem:
             Speed multiplier (0.0 = cannot move, 1.5 = fleeing speed)
         """
         modifiers = {
-            MoraleState.RALLYED: 1.0,     # Normal
-            MoraleState.WAVERING: 0.85,   # Slower response
-            MoraleState.PINNED: 0.0,      # Cannot move!
-            MoraleState.BROKEN: 0.50,     # Reluctant movement
-            MoraleState.ROUTING: 1.5,     # Running away fast
+            MoraleState.RALLYED: 1.0,  # Normal
+            MoraleState.WAVERING: 0.85,  # Slower response
+            MoraleState.PINNED: 0.0,  # Cannot move!
+            MoraleState.BROKEN: 0.50,  # Reluctant movement
+            MoraleState.ROUTING: 1.5,  # Running away fast
         }
         return modifiers.get(morale_state, 1.0)
 
@@ -542,7 +543,7 @@ class MoraleSystem:
         Returns:
             True if unit can move, False otherwise
         """
-        if not hasattr(unit, 'morale') or unit.morale is None:
+        if not hasattr(unit, "morale") or unit.morale is None:
             return True  # No morale system = can always move
 
         current_state = MoraleSystem.get_state(unit.morale.value)
@@ -553,6 +554,7 @@ class MoraleSystem:
         if current_state == MoraleState.BROKEN:
             # 70% chance to refuse orders
             import random
+
             return random.random() > 0.7
 
         return True
@@ -570,7 +572,7 @@ class MoraleSystem:
         Returns:
             True if unit accepts orders, False if refusing
         """
-        if not hasattr(unit, 'morale') or unit.morale is None:
+        if not hasattr(unit, "morale") or unit.morale is None:
             return True
 
         current_state = MoraleSystem.get_state(unit.morale.value)
@@ -581,18 +583,19 @@ class MoraleSystem:
         if current_state == MoraleState.BROKEN:
             # High chance to refuse
             import random
+
             return random.random() > 0.6
 
         return True
 
     @staticmethod
-    def apply_panic_contagion(unit: "Unit", all_units: list["Unit"]) -> None:
+    def apply_panic_contagion(unit: Unit, all_units: list[Unit]) -> None:
         """Apply morale penalty to nearby friendly units when this unit breaks.
 
         When a squad member enters BROKEN or ROUTING state, nearby friendly
         units (within 10 tiles) suffer a morale penalty of -5.
         """
-        if not hasattr(unit, 'morale') or unit.morale is None:
+        if not hasattr(unit, "morale") or unit.morale is None:
             return
 
         # Only apply if this unit is in BROKEN or ROUTING state
@@ -608,7 +611,7 @@ class MoraleSystem:
                 continue
             if other.faction != unit.faction:
                 continue
-            if not hasattr(other, 'morale') or other.morale is None:
+            if not hasattr(other, "morale") or other.morale is None:
                 continue
 
             ox = other.position.tile_coord.x
@@ -619,7 +622,7 @@ class MoraleSystem:
                 other.morale.apply_delta(-5)
 
     @staticmethod
-    def apply_nco_rally(all_units: list["Unit"]) -> None:
+    def apply_nco_rally(all_units: list[Unit]) -> None:
         """Apply NCO rally bonus to nearby friendly units.
 
         When a COMMANDER or officer-type unit is within 5 tiles of a
@@ -628,9 +631,14 @@ class MoraleSystem:
         from pycc2.domain.entities.unit import UnitType
 
         # Find all NCO/commander units
-        ncos = [u for u in all_units
-                if u.is_alive and u.unit_type == UnitType.COMMANDER
-                and hasattr(u, 'morale') and u.morale is not None]
+        ncos = [
+            u
+            for u in all_units
+            if u.is_alive
+            and u.unit_type == UnitType.COMMANDER
+            and hasattr(u, "morale")
+            and u.morale is not None
+        ]
 
         for nco in ncos:
             nx = nco.position.tile_coord.x
@@ -643,7 +651,7 @@ class MoraleSystem:
                     continue
                 if not unit.is_alive:
                     continue
-                if not hasattr(unit, 'morale') or unit.morale is None:
+                if not hasattr(unit, "morale") or unit.morale is None:
                     continue
 
                 ux = unit.position.tile_coord.x
@@ -669,11 +677,16 @@ def demo_morale_system():
         state = MoraleSystem.get_state(val)
         acc_mod = MoraleSystem.get_accuracy_modifier(state)
         move_mod = MoraleSystem.get_movement_modifier(state)
-        logger.info("   Morale %3d → %-10s | Accuracy: %.2fx | Movement: %.2fx",
-                    val, state.value, acc_mod, move_mod)
+        logger.info(
+            "   Morale %3d → %-10s | Accuracy: %.2fx | Movement: %.2fx",
+            val,
+            state.value,
+            acc_mod,
+            move_mod,
+        )
 
     logger.info("✅ Morale System Ready for Integration!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     demo_morale_system()

@@ -45,6 +45,7 @@ logger = logging.getLogger(__name__)
 # JamConfig — per-weapon-type jam parameters
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class JamConfig:
     """Jam parameters for a specific weapon type."""
@@ -64,14 +65,16 @@ WEAPON_JAM_CONFIGS: dict[str, JamConfig] = {
     "kar98k": JamConfig(weapon_type="kar98k", jam_probability=0.001, jam_clear_ticks=3),
     "m1_garand": JamConfig(weapon_type="m1_garand", jam_probability=0.001, jam_clear_ticks=3),
     "m1_carbine": JamConfig(weapon_type="m1_carbine", jam_probability=0.001, jam_clear_ticks=3),
-    "sniper_rifle": JamConfig(weapon_type="sniper_rifle", jam_probability=0.0008, jam_clear_ticks=3),
-
+    "sniper_rifle": JamConfig(
+        weapon_type="sniper_rifle", jam_probability=0.0008, jam_clear_ticks=3
+    ),
     # SMGs — Sten is notoriously unreliable
     "sten": JamConfig(weapon_type="sten", jam_probability=0.015, jam_clear_ticks=5),
     "thompson": JamConfig(weapon_type="thompson", jam_probability=0.005, jam_clear_ticks=4),
     "mp40": JamConfig(weapon_type="mp40", jam_probability=0.006, jam_clear_ticks=4),
-    "m3_grease_gun": JamConfig(weapon_type="m3_grease_gun", jam_probability=0.008, jam_clear_ticks=5),
-
+    "m3_grease_gun": JamConfig(
+        weapon_type="m3_grease_gun", jam_probability=0.008, jam_clear_ticks=5
+    ),
     # LMG/MG
     "mg42": JamConfig(weapon_type="mg42", jam_probability=0.003, jam_clear_ticks=8),
     "mg34": JamConfig(weapon_type="mg34", jam_probability=0.003, jam_clear_ticks=8),
@@ -79,36 +82,36 @@ WEAPON_JAM_CONFIGS: dict[str, JamConfig] = {
     "m1919": JamConfig(weapon_type="m1919", jam_probability=0.003, jam_clear_ticks=8),
     "bren": JamConfig(weapon_type="bren", jam_probability=0.003, jam_clear_ticks=7),
     "bar": JamConfig(weapon_type="bar", jam_probability=0.003, jam_clear_ticks=7),
-
     # Pistols
     "pistol": JamConfig(weapon_type="pistol", jam_probability=0.005, jam_clear_ticks=2),
     "webley": JamConfig(weapon_type="webley", jam_probability=0.005, jam_clear_ticks=2),
     "luger": JamConfig(weapon_type="luger", jam_probability=0.005, jam_clear_ticks=2),
     "walther": JamConfig(weapon_type="walther", jam_probability=0.005, jam_clear_ticks=2),
-
     # AT weapons
     "piat": JamConfig(weapon_type="piat", jam_probability=0.008, jam_clear_ticks=6),
     "bazooka": JamConfig(weapon_type="bazooka", jam_probability=0.008, jam_clear_ticks=6),
-    "panzerschreck": JamConfig(weapon_type="panzerschreck", jam_probability=0.008, jam_clear_ticks=6),
+    "panzerschreck": JamConfig(
+        weapon_type="panzerschreck", jam_probability=0.008, jam_clear_ticks=6
+    ),
     "panzerfaust": JamConfig(weapon_type="panzerfaust", jam_probability=0.008, jam_clear_ticks=6),
     "at_gun": JamConfig(weapon_type="at_gun", jam_probability=0.008, jam_clear_ticks=6),
     "pak40": JamConfig(weapon_type="pak40", jam_probability=0.008, jam_clear_ticks=6),
-
     # Mortars
     "mortar": JamConfig(weapon_type="mortar", jam_probability=0.004, jam_clear_ticks=5),
     "60mm_mortar": JamConfig(weapon_type="60mm_mortar", jam_probability=0.004, jam_clear_ticks=5),
     "81mm_mortar": JamConfig(weapon_type="81mm_mortar", jam_probability=0.004, jam_clear_ticks=5),
-
     # Tank cannons
     "tank_cannon": JamConfig(weapon_type="tank_cannon", jam_probability=0.002, jam_clear_ticks=8),
     "kwk40_75mm": JamConfig(weapon_type="kwk40_75mm", jam_probability=0.002, jam_clear_ticks=8),
     "m3_75mm_m4": JamConfig(weapon_type="m3_75mm_m4", jam_probability=0.002, jam_clear_ticks=8),
     "17pdr": JamConfig(weapon_type="17pdr", jam_probability=0.002, jam_clear_ticks=8),
-
     # Flamethrowers
-    "flamethrower_m2": JamConfig(weapon_type="flamethrower_m2", jam_probability=0.010, jam_clear_ticks=6),
-    "flammenwerfer": JamConfig(weapon_type="flammenwerfer", jam_probability=0.010, jam_clear_ticks=6),
-
+    "flamethrower_m2": JamConfig(
+        weapon_type="flamethrower_m2", jam_probability=0.010, jam_clear_ticks=6
+    ),
+    "flammenwerfer": JamConfig(
+        weapon_type="flammenwerfer", jam_probability=0.010, jam_clear_ticks=6
+    ),
     # Coaxial MG
     "coax_mg34": JamConfig(weapon_type="coax_mg34", jam_probability=0.003, jam_clear_ticks=8),
 }
@@ -120,6 +123,7 @@ CAPTURED_WEAPON_CLEAR_MULTIPLIER: float = 1.5
 # ---------------------------------------------------------------------------
 # WeaponJamSystem
 # ---------------------------------------------------------------------------
+
 
 class WeaponJamSystem:
     """Evaluate and process weapon jams each tick.

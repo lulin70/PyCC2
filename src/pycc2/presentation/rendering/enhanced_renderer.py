@@ -32,10 +32,11 @@ from __future__ import annotations
 
 import logging
 import math
-from pycc2.presentation.rendering.surface_pool import SurfacePool
 from typing import TYPE_CHECKING
 
 import pygame
+
+from pycc2.presentation.rendering.surface_pool import SurfacePool
 
 logger = logging.getLogger(__name__)
 
@@ -48,45 +49,43 @@ if TYPE_CHECKING:
 from pycc2.presentation.rendering.autotile_system import (
     AutotileCache,
 )
-from pycc2.presentation.rendering.camera import ProjectionMode
-
-# Import shadow system for SE-direction shadows
-from pycc2.presentation.rendering.shadow_system import ShadowRenderer
-from pycc2.presentation.rendering.shadow_rendering_system import ShadowRenderingSystem
-from pycc2.presentation.rendering.lighting_effects import LightingEffectsSystem
-from pycc2.presentation.rendering.terrain_rendering_system import TerrainRenderingSystem
-
-# Import refactored modules (backward-compatible re-exports)
-from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
-from pycc2.presentation.rendering.particle_system import TopDownParticleSystem
-from pycc2.presentation.rendering.lighting_system import TopDownLightingConfig, LightingSystem
-from pycc2.presentation.rendering.terrain_renderer import TerrainRenderer
-from pycc2.presentation.rendering.unit_renderer import UnitRenderer
 from pycc2.presentation.rendering.building_renderer import BuildingRenderer
+from pycc2.presentation.rendering.camera import ProjectionMode
 from pycc2.presentation.rendering.decoration_renderer import DecorationRenderer
-from pycc2.presentation.rendering.terrain_tile_cache import (
-    TerrainTileCache,
-)
+from pycc2.presentation.rendering.environment_renderer import EnvironmentRenderer
+from pycc2.presentation.rendering.flash_effect_system import FlashEffectSystem
+from pycc2.presentation.rendering.lighting_effects import LightingEffectsSystem
+from pycc2.presentation.rendering.lighting_system import LightingSystem, TopDownLightingConfig
 from pycc2.presentation.rendering.palette_generator import PaletteGenerator
-from pycc2.presentation.rendering.procedural_texture_generator import ProceduralTextureGenerator
-from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
-from pycc2.presentation.rendering.render_context import RenderContext
-from pycc2.presentation.ui.theme import ThemeManager
 
 # Import extracted sub-modules (SRP refactoring)
 from pycc2.presentation.rendering.particle_effects_renderer import ParticleEffectsRenderer
-from pycc2.presentation.rendering.environment_renderer import EnvironmentRenderer
-from pycc2.presentation.rendering.ui_overlay_renderer import UIOverlayRenderer
+from pycc2.presentation.rendering.particle_system import TopDownParticleSystem
 from pycc2.presentation.rendering.post_processing import PostProcessingEffects
+from pycc2.presentation.rendering.procedural_texture_generator import ProceduralTextureGenerator
+from pycc2.presentation.rendering.render_context import RenderContext
+from pycc2.presentation.rendering.shadow_rendering_system import ShadowRenderingSystem
+
+# Import shadow system for SE-direction shadows
+from pycc2.presentation.rendering.shadow_system import ShadowRenderer
 from pycc2.presentation.rendering.shell_casing_system import ShellCasingSystem
-from pycc2.presentation.rendering.flash_effect_system import FlashEffectSystem
+
+# Import refactored modules (backward-compatible re-exports)
+from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
+from pycc2.presentation.rendering.terrain_renderer import TerrainRenderer
+from pycc2.presentation.rendering.terrain_rendering_system import TerrainRenderingSystem
+from pycc2.presentation.rendering.terrain_tile_cache import (
+    TerrainTileCache,
+)
+from pycc2.presentation.rendering.ui_overlay_renderer import UIOverlayRenderer
+from pycc2.presentation.rendering.unit_renderer import UnitRenderer
 from pycc2.presentation.rendering.weather_system import WeatherSystem
-
-
+from pycc2.presentation.ui.theme import ThemeManager
 
 # ============================================================
 # Dirty Rectangle Tracker (PERF: partial display update)
 # ============================================================
+
 
 class _DirtyRectTracker:
     """Track dirty screen regions for partial display updates.
@@ -103,7 +102,7 @@ class _DirtyRectTracker:
 
     def __init__(self, screen_w: int, screen_h: int, max_rects: int = 16):
         self._dirty_rects: list[pygame.Rect] = []
-        self._full_redraw: bool = True          # First frame always full redraw
+        self._full_redraw: bool = True  # First frame always full redraw
         self._screen_rect: pygame.Rect = pygame.Rect(0, 0, screen_w, screen_h)
         self._max_rects: int = max_rects
 
@@ -128,7 +127,10 @@ class _DirtyRectTracker:
             if rect.colliderect(existing):
                 union = rect.union(existing)
                 # Only merge if union is not much larger than sum (avoids bloating)
-                if union.width * union.height < rect.width * rect.height + existing.width * existing.height + 200:
+                if (
+                    union.width * union.height
+                    < rect.width * rect.height + existing.width * existing.height + 200
+                ):
                     self._dirty_rects[i] = union
                     merged = True
                     break
@@ -143,9 +145,9 @@ class _DirtyRectTracker:
     def get_update_rects(self) -> list[pygame.Rect] | None:
         """Return the list of rects to update, or *None* for full flip."""
         if self._full_redraw:
-            return None                     # Caller should use flip()
+            return None  # Caller should use flip()
         if len(self._dirty_rects) > self._max_rects:
-            return None                     # Too many regions → fall back
+            return None  # Too many regions → fall back
         if not self._dirty_rects:
             return [pygame.Rect(0, 0, 0, 0)]  # No-op: empty update
         return self._dirty_rects.copy()
@@ -158,9 +160,6 @@ class _DirtyRectTracker:
 
 
 # ============================================================
-
-
-
 
 
 class EnhancedRenderer:
@@ -191,7 +190,9 @@ class EnhancedRenderer:
     MIN_FONT_SIZE = 10  # Minimum UI font size (pixels)
     TRANSPARENT_BLACK = (0, 0, 0, 0)  # Fully transparent color
 
-    def __init__(self, attack_line_system=None, lighting_config: TopDownLightingConfig | None = None):
+    def __init__(
+        self, attack_line_system=None, lighting_config: TopDownLightingConfig | None = None
+    ):
         self._screen: pygame.Surface | None = None
         self._offscreen: pygame.Surface | None = None  # Off-screen buffer to eliminate flicker
         self._palette_gen = PaletteGenerator()
@@ -200,13 +201,19 @@ class EnhancedRenderer:
         self._height_lit_cache: dict[tuple[int, int, int, int], pygame.Surface] = {}
         self._sprite_cache: dict[str, pygame.Surface] = {}
         self._autotile_cache = AutotileCache()  # Cache for autotile variants
-        self._terrain_tile_cache = TerrainTileCache(self.TILE_SIZE)  # Pre-computed terrain tile cache with edge smoothing
-        self._building_clusters: list[list[tuple[int, int]]] | None = None  # Cached building clusters
+        self._terrain_tile_cache = TerrainTileCache(
+            self.TILE_SIZE
+        )  # Pre-computed terrain tile cache with edge smoothing
+        self._building_clusters: list[list[tuple[int, int]]] | None = (
+            None  # Cached building clusters
+        )
         self._frame_count = 0
         self._sprite_renderer = None  # 延迟初始化，等待display ready
         self._isometric_renderer = None  # Isometric renderer (lazy init)
         self._shadow_renderer = ShadowRenderer()  # SE-direction shadow system
-        self._shadow_rendering_sys = ShadowRenderingSystem(self._shadow_renderer, self.TILE_SIZE)  # Unified shadow coordinator
+        self._shadow_rendering_sys = ShadowRenderingSystem(
+            self._shadow_renderer, self.TILE_SIZE
+        )  # Unified shadow coordinator
         self._attack_line_system = attack_line_system  # Dependency injection for attack line system
         self._particle_system = TopDownParticleSystem()  # Top-down particle effects system
 
@@ -215,9 +222,7 @@ class EnhancedRenderer:
 
         # Initialize lighting effects system (time-of-day, CC2 grading, dynamic lights)
         self._lighting_effects_sys = LightingEffectsSystem(
-            self._lighting_config, 
-            self.TILE_SIZE,
-            max_dynamic_lights=8
+            self._lighting_config, self.TILE_SIZE, max_dynamic_lights=8
         )
 
         # Initialize terrain rendering system (extracted from EnhancedRenderer)
@@ -316,7 +321,10 @@ class EnhancedRenderer:
         except pygame.error as e:
             # Fallback for headless/testing environments without video mode set
             import warnings
-            warnings.warn(f"Could not create SRCALPHA surface: {e}. Using convert() fallback.")
+
+            warnings.warn(
+                f"Could not create SRCALPHA surface: {e}. Using convert() fallback.", stacklevel=2
+            )
             self._offscreen = pygame.Surface(screen.get_size()).convert()
 
         # Initialize post-processing effects (desaturation, vignette)
@@ -337,12 +345,14 @@ class EnhancedRenderer:
         # 现在display已初始化，可以创建SpriteRenderer加载PNG
         try:
             from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
+
             self._sprite_renderer = SpriteRenderer()
             self._sprite_renderer.initialize(screen)
             logger.info("✅ SpriteRenderer initialized with PNG support")
         except RuntimeError as e:
             import warnings
-            warnings.warn(f"SpriteRenderer initialization failed: {e}")
+
+            warnings.warn(f"SpriteRenderer initialization failed: {e}", stacklevel=2)
             self._sprite_renderer = None
 
         # Configure extracted sub-modules with dependencies (delegate pattern)
@@ -366,6 +376,7 @@ class EnhancedRenderer:
         # Precache tank rotation surfaces (P0-4: size-based cache key enables cross-frame reuse)
         try:
             from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+
             PixelArtist3D.precache_tank_rotations()
             logger.info("Tank rotation precache complete")
         except Exception as e:
@@ -436,7 +447,12 @@ class EnhancedRenderer:
 
     # ====== P2-03: Screen Flash Overlay System (delegated to FlashEffectSystem) ======
 
-    def trigger_flash(self, color: tuple[int, int, int] = (255, 255, 255), intensity: float = 0.4, duration: float = 0.12) -> None:
+    def trigger_flash(
+        self,
+        color: tuple[int, int, int] = (255, 255, 255),
+        intensity: float = 0.4,
+        duration: float = 0.12,
+    ) -> None:
         """Trigger a screen flash overlay effect.
 
         Args:
@@ -465,9 +481,9 @@ class EnhancedRenderer:
         """
         alive_ids: set[str] = set()
         for unit in units:
-            if not hasattr(unit, 'id') or not hasattr(unit, 'position'):
+            if not hasattr(unit, "id") or not hasattr(unit, "position"):
                 continue
-            if unit.position is None or not hasattr(unit.position, 'pixel_position'):
+            if unit.position is None or not hasattr(unit.position, "pixel_position"):
                 continue
 
             alive_ids.add(unit.id)
@@ -538,7 +554,7 @@ class EnhancedRenderer:
             dt: Delta time in seconds.
             units: List of units to check for morale state (optional).
         """
-        from pycc2.domain.systems.morale_system import MoraleSystem, MoraleState
+        from pycc2.domain.systems.morale_system import MoraleState, MoraleSystem
 
         suppressed_count = 0
         if units is not None:
@@ -546,9 +562,9 @@ class EnhancedRenderer:
                 if not unit.is_alive:
                     continue
                 # Only count ally/player units
-                if hasattr(unit, 'side') and unit.side not in ('allies', 'ally'):
+                if hasattr(unit, "side") and unit.side not in ("allies", "ally"):
                     continue
-                if hasattr(unit, 'morale') and unit.morale is not None:
+                if hasattr(unit, "morale") and unit.morale is not None:
                     morale_state = MoraleSystem.get_state(unit.morale.value)
                     if morale_state in (MoraleState.PINNED, MoraleState.BROKEN):
                         suppressed_count += 1
@@ -595,8 +611,10 @@ class EnhancedRenderer:
             self._dirty_tracker.mark_full_dirty()
 
         # Reuse cached overlay surface (avoid per-frame allocation)
-        if (self._suppression_overlay_cache is None
-                or self._suppression_overlay_cache.get_size() != (sw, sh)):
+        if (
+            self._suppression_overlay_cache is None
+            or self._suppression_overlay_cache.get_size() != (sw, sh)
+        ):
             self._suppression_overlay_cache = pygame.Surface((sw, sh), pygame.SRCALPHA)
         overlay = self._suppression_overlay_cache
         overlay.fill((0, 0, 0, 0))  # Clear for reuse
@@ -662,7 +680,9 @@ class EnhancedRenderer:
         self._suppression_overlay_cache = pygame.Surface((width, height), pygame.SRCALPHA)
         self._flash_surf_cache = pygame.Surface((width, height), pygame.SRCALPHA)
 
-    def _get_screen_overlays(self, screen_size: tuple[int, int]) -> tuple[pygame.Surface, pygame.Surface]:
+    def _get_screen_overlays(
+        self, screen_size: tuple[int, int]
+    ) -> tuple[pygame.Surface, pygame.Surface]:
         """Delegate to EnvironmentRenderer for cached overlay surfaces."""
         return self._environment._get_screen_overlays(screen_size)
 
@@ -727,7 +747,7 @@ class EnhancedRenderer:
         self._screen.blit(self._offscreen, (0, 0))
 
         # Post-processing (applied to display surface for flicker-free output)
-        if hasattr(self, '_post_processing') and self._post_processing is not None:
+        if hasattr(self, "_post_processing") and self._post_processing is not None:
             try:
                 processed = self._post_processing.apply_all(self._screen, color_style="war")
                 if processed is not None:
@@ -783,11 +803,15 @@ class EnhancedRenderer:
         self._draw_decorations(game_map, camera)
 
         # STEP 4.0: Draw ALL shadows FIRST (under everything - correct Z-order)
-        self._shadow_rendering_sys.render_building_shadows(self._offscreen, game_map, camera)  # Building shadows BEFORE roofs
-        self._shadow_rendering_sys.render_tree_shadows(self._offscreen, game_map, camera)      # Tree shadows BEFORE trees
+        self._shadow_rendering_sys.render_building_shadows(
+            self._offscreen, game_map, camera
+        )  # Building shadows BEFORE roofs
+        self._shadow_rendering_sys.render_tree_shadows(
+            self._offscreen, game_map, camera
+        )  # Tree shadows BEFORE trees
 
         # STEP 4.0-DYN: Dynamic shadow overlay (time-of-day aware, augments existing shadows)
-        if hasattr(self, '_dynamic_shadow_sys') and self._dynamic_shadow_sys is not None:
+        if hasattr(self, "_dynamic_shadow_sys") and self._dynamic_shadow_sys is not None:
             self._render_dynamic_shadows(game_map, camera)
 
         # STEP 4.4: Draw building roofs (CC2 top-down view — covers side-view terrain texture)
@@ -819,7 +843,7 @@ class EnhancedRenderer:
         # PERF: Mark unit screen regions as dirty
         if self._dirty_tracker is not None and not self._dirty_tracker._full_redraw:
             for unit in units:
-                if not hasattr(unit, 'position') or unit.position is None:
+                if not hasattr(unit, "position") or unit.position is None:
                     continue
                 try:
                     px = unit.position.pixel_position.x
@@ -856,7 +880,7 @@ class EnhancedRenderer:
                     self._dirty_tracker.mark_dirty(prect)
 
         # STEP 5.7-TRAIL: Render projectile trails (bullet/shell/rocket/mortar)
-        if hasattr(self, '_projectile_trail_sys') and self._projectile_trail_sys is not None:
+        if hasattr(self, "_projectile_trail_sys") and self._projectile_trail_sys is not None:
             self._projectile_trail_sys.render(self._offscreen)
 
         # P3-02: Render shell casings (ejected brass, physics-driven)
@@ -876,8 +900,7 @@ class EnhancedRenderer:
                 self._dirty_tracker.mark_full_dirty()
             # Reuse cached flash surface (avoid per-frame allocation)
             flash_size = self._offscreen.get_size()
-            if (self._flash_surf_cache is None
-                    or self._flash_surf_cache.get_size() != flash_size):
+            if self._flash_surf_cache is None or self._flash_surf_cache.get_size() != flash_size:
                 self._flash_surf_cache = pygame.Surface(flash_size, pygame.SRCALPHA)
             flash_surf = self._flash_surf_cache
             flash_surf.fill((0, 0, 0, 0))  # Clear for reuse
@@ -916,6 +939,7 @@ class EnhancedRenderer:
         """Delegate rendering to IsometricRenderer when in ISOMETRIC mode."""
         if self._isometric_renderer is None:
             from pycc2.presentation.rendering.isometric_renderer import IsometricRenderer
+
             self._isometric_renderer = IsometricRenderer()
             if self._screen is not None:
                 self._isometric_renderer.initialize(self._screen)
@@ -948,24 +972,33 @@ class EnhancedRenderer:
             self._sprite_cache[key] = SpriteGenerator.generate_sprite(deco_type_name, variant)
         return self._sprite_cache[key]
 
-    def _draw_enhanced_terrain(self, game_map: GameMap, camera: Camera, debug_mode: bool = False) -> None:
+    def _draw_enhanced_terrain(
+        self, game_map: GameMap, camera: Camera, debug_mode: bool = False
+    ) -> None:
         """Delegate to TerrainRenderer for enhanced terrain drawing."""
         self._terrain_renderer.draw_enhanced_terrain(game_map, camera, debug_mode)
 
     def _draw_building_roofs(
-        self, game_map: GameMap, camera: Camera,
+        self,
+        game_map: GameMap,
+        camera: Camera,
     ) -> None:
         """Delegate to BuildingRenderer for CC2-style building roofs."""
         self._building_renderer.draw_building_roofs(game_map, camera)
 
     def _draw_building_interiors(
-        self, game_map: GameMap, units: list[Unit], camera: Camera,
+        self,
+        game_map: GameMap,
+        units: list[Unit],
+        camera: Camera,
     ) -> None:
         """Delegate to BuildingRenderer for building interior view."""
         self._building_renderer.draw_building_interiors(game_map, units, camera)
 
     def _draw_building_floor_numbers(
-        self, game_map: GameMap, camera: Camera,
+        self,
+        game_map: GameMap,
+        camera: Camera,
     ) -> None:
         """Delegate to BuildingRenderer for floor count numbers."""
         self._building_renderer.draw_building_floor_numbers(game_map, camera)
@@ -978,18 +1011,21 @@ class EnhancedRenderer:
         """Try to get enhanced tile data from map."""
         try:
             # 优先使用GameMap的API方法
-            if hasattr(game_map, 'get_enhanced_tile'):
+            if hasattr(game_map, "get_enhanced_tile"):
                 tile_data = game_map.get_enhanced_tile(x, y)
                 if tile_data is not None:
                     # 延迟导入避免TYPE_CHECKING限制
                     from pycc2.domain.systems.enhanced_tile import EnhancedTile
+
                     if isinstance(tile_data, EnhancedTile):
                         return tile_data
                     elif isinstance(tile_data, dict):
                         return EnhancedTile.from_dict(tile_data)
             # 兼容旧属性名 enhanced_tiles（二维列表）
-            if hasattr(game_map, 'enhanced_tiles') and game_map.enhanced_tiles:
-                if 0 <= y < len(game_map.enhanced_tiles) and 0 <= x < len(game_map.enhanced_tiles[y]):
+            if hasattr(game_map, "enhanced_tiles") and game_map.enhanced_tiles:
+                if 0 <= y < len(game_map.enhanced_tiles) and 0 <= x < len(
+                    game_map.enhanced_tiles[y]
+                ):
                     return game_map.enhanced_tiles[y][x]
         except (AttributeError, IndexError, TypeError, KeyError):
             pass
@@ -1005,11 +1041,7 @@ class EnhancedRenderer:
         return int(game_map.tile_grid[y, x])
 
     def _generate_cc2_style_tile(
-        self, 
-        terrain_id: int, 
-        tile_x: int = 0, 
-        tile_y: int = 0,
-        bitmask: int = 0
+        self, terrain_id: int, tile_x: int = 0, tile_y: int = 0, bitmask: int = 0
     ) -> pygame.Surface:
         """
         Generate a CC2-authentic 48×48 terrain tile with autotile support.
@@ -1033,16 +1065,18 @@ class EnhancedRenderer:
 
         # Use the existing ProceduralTextureGenerator with new CC2 palette and autotile support
         return ProceduralTextureGenerator.generate_terrain_texture(
-            terrain_id,
-            variation=variation,
-            palette=self._palette_gen,
-            bitmask=bitmask
+            terrain_id, variation=variation, palette=self._palette_gen, bitmask=bitmask
         )
 
     def _render_terrain_transitions(
-        self, game_map: GameMap, camera: Camera,
-        start_x: int, end_x: int, start_y: int, end_y: int,
-        tile_screen_size: int
+        self,
+        game_map: GameMap,
+        camera: Camera,
+        start_x: int,
+        end_x: int,
+        start_y: int,
+        end_y: int,
+        tile_screen_size: int,
     ) -> None:
         """Delegate to TerrainRenderer for terrain transition strips."""
         self._terrain_renderer.render_terrain_transitions(
@@ -1050,9 +1084,14 @@ class EnhancedRenderer:
         )
 
     def _apply_terrain_edge_smoothing(
-        self, game_map: GameMap, camera: Camera,
-        start_x: int, end_x: int, start_y: int, end_y: int,
-        tile_screen_size: int
+        self,
+        game_map: GameMap,
+        camera: Camera,
+        start_x: int,
+        end_x: int,
+        start_y: int,
+        end_y: int,
+        tile_screen_size: int,
     ) -> None:
         """Delegate to TerrainRenderer for terrain edge smoothing."""
         self._terrain_renderer.apply_terrain_edge_smoothing(
@@ -1060,8 +1099,7 @@ class EnhancedRenderer:
         )
 
     def _draw_terrain_borders(
-        self, game_map: GameMap, camera: Camera,
-        start_x: int, end_x: int, start_y: int, end_y: int
+        self, game_map: GameMap, camera: Camera, start_x: int, end_x: int, start_y: int, end_y: int
     ) -> None:
         """Draw thin dark borders between tiles of different terrain types for readability.
 
@@ -1082,6 +1120,7 @@ class EnhancedRenderer:
             return
 
         from pycc2.domain.value_objects.vec2 import Vec2
+
         tile_screen_size = int(self.TILE_SIZE * camera.zoom)
         border_color = (20, 20, 20)
 
@@ -1099,18 +1138,22 @@ class EnhancedRenderer:
                 right_terrain = self._get_terrain_at(game_map, tx + 1, ty)
                 if right_terrain != current_terrain and right_terrain >= 0:
                     pygame.draw.line(
-                        self._offscreen, border_color,
+                        self._offscreen,
+                        border_color,
                         (sx + tile_screen_size, sy),
-                        (sx + tile_screen_size, sy + tile_screen_size), 1
+                        (sx + tile_screen_size, sy + tile_screen_size),
+                        1,
                     )
 
                 # Bottom border
                 bottom_terrain = self._get_terrain_at(game_map, tx, ty + 1)
                 if bottom_terrain != current_terrain and bottom_terrain >= 0:
                     pygame.draw.line(
-                        self._offscreen, border_color,
+                        self._offscreen,
+                        border_color,
                         (sx, sy + tile_screen_size),
-                        (sx + tile_screen_size, sy + tile_screen_size), 1
+                        (sx + tile_screen_size, sy + tile_screen_size),
+                        1,
                     )
 
     def _render_dynamic_shadows(self, game_map: GameMap, camera: Camera) -> None:
@@ -1131,21 +1174,17 @@ class EnhancedRenderer:
                 tile_val = game_map.tile_grid[row, col]
                 wx = col * ts + ts // 2
                 wy = row * ts + ts // 2
-                sx, sy = camera.world_to_screen(
-                    type('V', (), {'x': wx, 'y': wy})()
-                )
+                sx, sy = camera.world_to_screen(type("V", (), {"x": wx, "y": wy})())
                 sx, sy = int(sx), int(sy)
 
                 if tile_val == 3:
-                    shadow_sys.render_building_shadow(
-                        self._offscreen, sx, sy, ts, ts
-                    )
+                    shadow_sys.render_building_shadow(self._offscreen, sx, sy, ts, ts)
                 elif tile_val == 5:
-                    shadow_sys.render_tree_shadow(
-                        self._offscreen, sx, sy, tree_radius=12
-                    )
+                    shadow_sys.render_tree_shadow(self._offscreen, sx, sy, tree_radius=12)
 
-    def _apply_environment_lighting(self, game_map: GameMap, camera: Camera, units: list | None = None) -> None:
+    def _apply_environment_lighting(
+        self, game_map: GameMap, camera: Camera, units: list | None = None
+    ) -> None:
         """Delegate to EnvironmentRenderer for environment lighting effects."""
         self._environment._apply_environment_lighting(game_map, camera, units)
 
@@ -1154,12 +1193,11 @@ class EnhancedRenderer:
         return self._environment._get_health_tinted_color(base_color, unit)
 
     def _draw_direction_indicator(
-        self, cx: int, cy: int, radius: int, unit_color: tuple
+        self, cx: int, cy: int, radius: int, unit_color: tuple, unit=None
     ) -> None:
         """Delegate to UnitRenderer for direction arrow drawing."""
-        # NOTE: unit param is resolved via closure in original callback context.
-        # For direct calls, use self._unit_renderer.draw_direction_indicator(cx, cy, radius, color, unit).
-        self._unit_renderer.draw_direction_indicator(cx, cy, radius, unit_color, unit)  # type: ignore[arg-type]
+        if unit is not None:
+            self._unit_renderer.draw_direction_indicator(cx, cy, radius, unit_color, unit)
 
     def _draw_movement_mode_overlay(
         self, unit, cx: int, cy: int, radius: int, base_color: tuple
@@ -1179,15 +1217,16 @@ class EnhancedRenderer:
         """Delegate to EnvironmentRenderer for CC2-style color grading."""
         self._environment._apply_cc2_color_grading(surface)
 
-    def spawn_dynamic_light(self, position: tuple[int, int], 
-                           radius: float, 
-                           intensity: float,
-                           color: tuple[int, int, int] = (255, 255, 200),
-                           duration_ms: int = 200) -> None:
+    def spawn_dynamic_light(
+        self,
+        position: tuple[int, int],
+        radius: float,
+        intensity: float,
+        color: tuple[int, int, int] = (255, 255, 200),
+        duration_ms: int = 200,
+    ) -> None:
         """Delegate to EnvironmentRenderer for dynamic light registration."""
-        self._environment.spawn_dynamic_light(
-            position, radius, intensity, color, duration_ms
-        )
+        self._environment.spawn_dynamic_light(position, radius, intensity, color, duration_ms)
 
     def update_dynamic_lights(self, dt_ms: int) -> None:
         """Delegate to EnvironmentRenderer for dynamic light lifecycle update."""
@@ -1217,10 +1256,7 @@ class EnhancedRenderer:
 
                 for deco in enhanced_tile.decorations:
                     # Get sprite
-                    sprite = self._get_cached_sprite(
-                        deco.decoration_type.name,
-                        deco.variant
-                    )
+                    sprite = self._get_cached_sprite(deco.decoration_type.name, deco.variant)
 
                     # Calculate position with sub-tile offset
                     base_x = tx * self.TILE_SIZE
@@ -1233,6 +1269,7 @@ class EnhancedRenderer:
                     world_y = base_y + offset_y
 
                     from pycc2.domain.value_objects.vec2 import Vec2
+
                     screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
 
                     # Scale sprite
@@ -1248,17 +1285,20 @@ class EnhancedRenderer:
                     rect.center = (int(screen_pos[0]), int(screen_pos[1]))
                     self._offscreen.blit(sprite, rect)
 
-    def _draw_units(self, units: list[Unit], camera: Camera, selected_unit_ids: set[str] | None = None) -> None:
+    def _draw_units(
+        self, units: list[Unit], camera: Camera, selected_unit_ids: set[str] | None = None
+    ) -> None:
         """Delegate to UnitRenderer for unit drawing (with P2-04 smooth positions)."""
-        self._unit_renderer.draw_units(units, camera, selected_unit_ids, position_overrides=self._unit_positions)
+        self._unit_renderer.draw_units(
+            units, camera, selected_unit_ids, position_overrides=self._unit_positions
+        )
 
     def _draw_damage_vfx(self, unit: Unit, cx: int, cy: int) -> None:
         """Delegate to UnitRenderer for damage visual effects."""
         self._unit_renderer.draw_damage_vfx(unit, cx, cy)
 
     def _draw_hexagon(
-        self, cx: int, cy: int, radius: int, color: tuple[int, int, int],
-        selected: bool = False
+        self, cx: int, cy: int, radius: int, color: tuple[int, int, int], selected: bool = False
     ) -> None:
         """Delegate to UnitRenderer for hexagon-shaped unit drawing."""
         self._unit_renderer.draw_hexagon(cx, cy, radius, color, selected)
@@ -1305,21 +1345,35 @@ class EnhancedRenderer:
         """Delegate to ParticleEffectsRenderer for persistent blood pool stain."""
         self._particle_effects.spawn_blood_pool(x, y, size)
 
-    def spawn_hit_marker(self, x: float, y: float, damage_type: str = 'normal') -> None:
+    def spawn_hit_marker(self, x: float, y: float, damage_type: str = "normal") -> None:
         """Delegate to ParticleEffectsRenderer for hit marker visual feedback."""
         self._particle_effects.spawn_hit_marker(x, y, damage_type)
 
-    # ------------------------------------------------------------------ 
+    # ------------------------------------------------------------------
     # P2-02: Death fade-out animation
     # ------------------------------------------------------------------
 
     def start_death_fade(self, unit_id: str, position, duration_ms: int = 500) -> None:
         """Register a unit for death fade-out animation (alpha 255→0)."""
         import time as _time
-        px = position.x if hasattr(position, 'x') else float(position[0]) if hasattr(position, '__getitem__') else 0.0
-        py = position.y if hasattr(position, 'y') else float(position[1]) if hasattr(position, '__getitem__') else 0.0
+
+        px = (
+            position.x
+            if hasattr(position, "x")
+            else float(position[0])
+            if hasattr(position, "__getitem__")
+            else 0.0
+        )
+        py = (
+            position.y
+            if hasattr(position, "y")
+            else float(position[1])
+            if hasattr(position, "__getitem__")
+            else 0.0
+        )
         self._fading_units[unit_id] = {
-            "x": px, "y": py,
+            "x": px,
+            "y": py,
             "start_time": _time.monotonic(),
             "duration": duration_ms / 1000.0,
             "alpha": 255,
@@ -1328,6 +1382,7 @@ class EnhancedRenderer:
     def _render_fading_units(self, camera: Camera) -> None:
         """Render semi-transparent ghost for each dying unit; remove when fully faded."""
         import time as _time
+
         now = _time.monotonic()
         dead_ids = []
         for uid, state in self._fading_units.items():
@@ -1362,14 +1417,14 @@ class EnhancedRenderer:
         """Delegate to ParticleEffectsRenderer for particle updates."""
         self._particle_effects.update_particles(dt_ms)
 
-    def spawn_explosion(self, position, max_radius=40, duration_ms=500, 
-                        color=(255, 200, 50)) -> None:
+    def spawn_explosion(
+        self, position, max_radius=40, duration_ms=500, color=(255, 200, 50)
+    ) -> None:
         """Delegate to ParticleEffectsRenderer for explosion ring effect."""
-        self._particle_effects.spawn_explosion_ring(
-            position, max_radius, duration_ms, color
+        self._particle_effects.spawn_explosion_ring(position, max_radius, duration_ms, color)
+        self.spawn_dynamic_light(
+            position, radius=60, intensity=1.5, color=(255, 200, 100), duration_ms=duration_ms
         )
-        self.spawn_dynamic_light(position, radius=60, intensity=1.5, 
-                                color=(255, 200, 100), duration_ms=duration_ms)
 
     def spawn_muzzle_flash(self, position, direction) -> None:
         """Delegate to ParticleEffectsRenderer for muzzle flash (ParticleSystem version)."""
@@ -1410,21 +1465,26 @@ class EnhancedRenderer:
 
         for ty in range(start_y, end_y + 1):
             from pycc2.domain.value_objects.vec2 import Vec2
+
             start_pos = camera.world_to_screen(Vec2(start_x * self.TILE_SIZE, ty * self.TILE_SIZE))
             end_pos = camera.world_to_screen(Vec2(end_x * self.TILE_SIZE, ty * self.TILE_SIZE))
             pygame.draw.line(
-                self._offscreen, grid_color[:3],
+                self._offscreen,
+                grid_color[:3],
                 (int(start_pos[0]), int(start_pos[1])),
-                (int(end_pos[0]), int(end_pos[1])), 1
+                (int(end_pos[0]), int(end_pos[1])),
+                1,
             )
 
         for tx in range(start_x, end_x + 1):
             start_pos = camera.world_to_screen(Vec2(tx * self.TILE_SIZE, start_y * self.TILE_SIZE))
             end_pos = camera.world_to_screen(Vec2(tx * self.TILE_SIZE, end_y * self.TILE_SIZE))
             pygame.draw.line(
-                self._offscreen, grid_color[:3],
+                self._offscreen,
+                grid_color[:3],
                 (int(start_pos[0]), int(start_pos[1])),
-                (int(end_pos[0]), int(end_pos[1])), 1
+                (int(end_pos[0]), int(end_pos[1])),
+                1,
             )
 
     def shutdown(self) -> None:
@@ -1436,9 +1496,9 @@ class EnhancedRenderer:
         self._autotile_cache.clear()
         self._terrain_tile_cache.clear()
         self._building_clusters = None
-        if hasattr(self._terrain_renderer, '_transition_cache'):
+        if hasattr(self._terrain_renderer, "_transition_cache"):
             self._terrain_renderer._transition_cache.clear()
-        if hasattr(self._terrain_renderer, '_edge_smooth_cache'):
+        if hasattr(self._terrain_renderer, "_edge_smooth_cache"):
             self._terrain_renderer._edge_smooth_cache.clear()
 
     def resize(self, width: int, height: int) -> None:

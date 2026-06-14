@@ -3,11 +3,13 @@ Operation Timeline UI — displays campaign progress and day selection.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import pygame
+
     from pycc2.domain.systems.campaign_state import CampaignState
 
 
@@ -71,8 +73,8 @@ class OperationTimelineUI:
 
     def render(
         self,
-        screen: "pygame.Surface",
-        campaign_state: "CampaignState | None" = None,
+        screen: pygame.Surface,
+        campaign_state: CampaignState | None = None,
         font=None,
         small_font=None,
     ) -> list[dict]:
@@ -81,19 +83,17 @@ class OperationTimelineUI:
         cfg = self.config
         clickable_areas = []
 
-        current_day_name = (
-            campaign_state.current_day.name
-            if campaign_state else "DAY_1_SEPT17"
-        )
+        current_day_name = campaign_state.current_day.name if campaign_state else "DAY_1_SEPT17"
 
         for i, day_key in enumerate(self._days_order):
             info = DAY_INFO[day_key]
             y_pos = cfg.y + i * cfg.day_height
 
-            is_current = (day_key == current_day_name)
+            is_current = day_key == current_day_name
             is_past = (
                 i < self._days_order.index(current_day_name)
-                if current_day_name in self._days_order else False
+                if current_day_name in self._days_order
+                else False
             )
 
             if is_current:
@@ -118,22 +118,21 @@ class OperationTimelineUI:
                 desc_surf = small_font.render(info["desc"], True, (180, 180, 180))
                 screen.blit(desc_surf, (cfg.x + 10, y_pos + 24))
 
-            clickable_areas.append({
-                "day_key": day_key,
-                "rect": day_rect,
-                "is_current": is_current,
-                "clickable": is_past or is_current,
-            })
+            clickable_areas.append(
+                {
+                    "day_key": day_key,
+                    "rect": day_rect,
+                    "is_current": is_current,
+                    "clickable": is_past or is_current,
+                }
+            )
 
         return clickable_areas
 
-    def handle_click(
-        self, x: int, y: int, clickable_areas: list[dict]
-    ) -> str | None:
+    def handle_click(self, x: int, y: int, clickable_areas: list[dict]) -> str | None:
         for area in clickable_areas:
-            if area["rect"].collidepoint(x, y):
-                if area["clickable"]:
-                    return area["day_key"]
+            if area["rect"].collidepoint(x, y) and area["clickable"]:
+                return area["day_key"]
         return None
 
     def get_day_info(self, day_key: str) -> dict | None:

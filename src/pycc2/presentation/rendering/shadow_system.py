@@ -3,7 +3,7 @@ Global SE-Direction Shadow System for PyCC2
 
 Renders consistent Southeast-pointing shadows for all game objects,
 matching the authentic Close Combat 2 visual style where shadows
-cast from every object (trees, units, vehicles, buildings) 
+cast from every object (trees, units, vehicles, buildings)
 point toward the Southeast.
 
 Shadow Parameters by Object Type:
@@ -16,7 +16,6 @@ Shadow Parameters by Object Type:
 from __future__ import annotations
 
 import logging
-from typing import Optional, Tuple
 
 import pygame
 
@@ -32,31 +31,33 @@ class ShadowRenderer:
     """
 
     # Light source direction: Northwest → shadows point Southeast
-    SHADOW_OFFSET_X = 3   # pixels right per 24px unit
-    SHADOW_OFFSET_Y = 2   # pixels down per 24px unit
+    SHADOW_OFFSET_X = 3  # pixels right per 24px unit
+    SHADOW_OFFSET_Y = 2  # pixels down per 24px unit
 
     # Base shadow color (near-black with alpha) - DARKER for visibility
     DEFAULT_SHADOW_COLOR = (5, 5, 8)
 
     # Common shadow sizes to pre-render at init time
     _COMMON_SIZES = [
-        (6, 3),      # Infantry
-        (12, 4),     # Small vehicle
-        (16, 5),     # Medium vehicle/tank
-        (20, 6),     # Large vehicle
-        (24, 8),     # Small building
-        (32, 10),    # Medium building
-        (40, 12),    # Large building
-        (14, 6),     # Small tree
-        (18, 8),     # Medium tree
-        (22, 10),    # Large tree
+        (6, 3),  # Infantry
+        (12, 4),  # Small vehicle
+        (16, 5),  # Medium vehicle/tank
+        (20, 6),  # Large vehicle
+        (24, 8),  # Small building
+        (32, 10),  # Medium building
+        (40, 12),  # Large building
+        (14, 6),  # Small tree
+        (18, 8),  # Medium tree
+        (22, 10),  # Large tree
     ]
 
     def __init__(self):
         """Initialize shadow renderer with cached shadow surfaces."""
-        self._shadow_cache: dict[Tuple[int, int, int], pygame.Surface] = {}
+        self._shadow_cache: dict[tuple[int, int, int], pygame.Surface] = {}
         self._pre_render_common_shadows()
-        logger.info("ShadowRenderer initialized with %d pre-cached shadows", len(self._shadow_cache))
+        logger.info(
+            "ShadowRenderer initialized with %d pre-cached shadows", len(self._shadow_cache)
+        )
 
     def _pre_render_common_shadows(self) -> None:
         """Pre-render common shadow sizes at init time for performance."""
@@ -93,10 +94,10 @@ class ShadowRenderer:
     def render_shadow(
         self,
         surface: pygame.Surface,
-        obj_rect: Tuple[int, int, int, int],
+        obj_rect: tuple[int, int, int, int],
         obj_height: int = 1,
-        shadow_color: Optional[Tuple[int, int, int]] = None,
-        is_hidden: bool = False
+        shadow_color: tuple[int, int, int] | None = None,
+        is_hidden: bool = False,
     ) -> None:
         """
         Render a SE-pointing shadow ellipse beneath an object.
@@ -146,7 +147,7 @@ class ShadowRenderer:
         x: int,
         y: int,
         unit_type: str = "infantry",
-        is_hidden: bool = False
+        is_hidden: bool = False,
     ) -> None:
         """
         Render shadow for infantry/unit.
@@ -169,17 +170,16 @@ class ShadowRenderer:
 
         surface.blit(shadow_surf, (shadow_x, shadow_y))
 
-        logger.debug("Rendered unit shadow at (%d, %d) [type=%s, hidden=%s]", 
-                    shadow_x, shadow_y, unit_type, is_hidden)
+        logger.debug(
+            "Rendered unit shadow at (%d, %d) [type=%s, hidden=%s]",
+            shadow_x,
+            shadow_y,
+            unit_type,
+            is_hidden,
+        )
 
     def render_vehicle_shadow(
-        self,
-        surface: pygame.Surface,
-        x: int,
-        y: int,
-        w: int,
-        h: int,
-        is_hidden: bool = False
+        self, surface: pygame.Surface, x: int, y: int, w: int, h: int, is_hidden: bool = False
     ) -> None:
         """
         Render shadow for tank/vehicle.
@@ -204,8 +204,13 @@ class ShadowRenderer:
 
         surface.blit(shadow_surf, (shadow_x, shadow_y))
 
-        logger.debug("Rendered vehicle shadow at (%d, %d) [size=%dx%d]", 
-                    shadow_x, shadow_y, shadow_w, shadow_h)
+        logger.debug(
+            "Rendered vehicle shadow at (%d, %d) [size=%dx%d]",
+            shadow_x,
+            shadow_y,
+            shadow_w,
+            shadow_h,
+        )
 
     def render_tree_shadow(
         self,
@@ -213,7 +218,7 @@ class ShadowRenderer:
         x: int,
         y: int,
         tree_size: str = "medium",
-        is_hidden: bool = False
+        is_hidden: bool = False,
     ) -> None:
         """
         Render shadow for tree.
@@ -228,9 +233,9 @@ class ShadowRenderer:
         # FIXED: Larger shadows with higher visibility
         # Tree shadow dimensions based on canopy size
         size_map = {
-            "small": (18, 8),    # Increased from (14, 6)
+            "small": (18, 8),  # Increased from (14, 6)
             "medium": (24, 10),  # Increased from (18, 8)
-            "large": (30, 12),   # Increased from (22, 10)
+            "large": (30, 12),  # Increased from (22, 10)
         }
 
         shadow_w, shadow_h = size_map.get(tree_size, (24, 10))
@@ -243,17 +248,10 @@ class ShadowRenderer:
 
         surface.blit(shadow_surf, (shadow_x, shadow_y))
 
-        logger.debug("Rendered tree shadow at (%d, %d) [size=%s]",
-                    shadow_x, shadow_y, tree_size)
+        logger.debug("Rendered tree shadow at (%d, %d) [size=%s]", shadow_x, shadow_y, tree_size)
 
     def render_building_shadow(
-        self,
-        surface: pygame.Surface,
-        x: int,
-        y: int,
-        w: int,
-        h: int,
-        is_hidden: bool = False
+        self, surface: pygame.Surface, x: int, y: int, w: int, h: int, is_hidden: bool = False
     ) -> None:
         """
         Render shadow for building.
@@ -279,8 +277,13 @@ class ShadowRenderer:
 
         surface.blit(shadow_surf, (shadow_x, shadow_y))
 
-        logger.debug("Rendered building shadow at (%d, %d) [size=%dx%d]",
-                    shadow_x, shadow_y, shadow_w, shadow_h)
+        logger.debug(
+            "Rendered building shadow at (%d, %d) [size=%dx%d]",
+            shadow_x,
+            shadow_y,
+            shadow_w,
+            shadow_h,
+        )
 
     def clear_cache(self) -> None:
         """Clear all cached shadow surfaces."""

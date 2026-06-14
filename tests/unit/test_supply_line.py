@@ -19,21 +19,20 @@ from __future__ import annotations
 import pytest
 
 from pycc2.domain.systems.supply_line import (
+    XXX_CORPS_TIMELINE,
     SupplyLevel,
     SupplyLineManager,
     SupplyState,
     SupplyType,
-    XXX_CORPS_TIMELINE,
     XXXCorpsPosition,
 )
-
 
 # ---------------------------------------------------------------------------
 # SupplyType enum
 # ---------------------------------------------------------------------------
 
-class TestSupplyType:
 
+class TestSupplyType:
     def test_has_land(self):
         assert SupplyType.LAND is not None
 
@@ -55,8 +54,8 @@ class TestSupplyType:
 # SupplyLevel enum
 # ---------------------------------------------------------------------------
 
-class TestSupplyLevel:
 
+class TestSupplyLevel:
     def test_has_full(self):
         assert SupplyLevel.FULL is not None
 
@@ -77,8 +76,8 @@ class TestSupplyLevel:
 # SupplyState
 # ---------------------------------------------------------------------------
 
-class TestSupplyState:
 
+class TestSupplyState:
     def test_creation_defaults(self):
         ss = SupplyState(sector_id="arnhem", day=1)
         assert ss.sector_id == "arnhem"
@@ -101,8 +100,10 @@ class TestSupplyState:
 
     def test_calculate_supply_airdrop_lz_controlled(self):
         ss = SupplyState(
-            sector_id="arnhem", day=1,
-            supply_type=SupplyType.AIRDROP, lz_controlled=True,
+            sector_id="arnhem",
+            day=1,
+            supply_type=SupplyType.AIRDROP,
+            lz_controlled=True,
         )
         result = ss.calculate_supply()
         assert result == SupplyLevel.REDUCED
@@ -112,8 +113,10 @@ class TestSupplyState:
 
     def test_calculate_supply_airdrop_lz_lost(self):
         ss = SupplyState(
-            sector_id="arnhem", day=3,
-            supply_type=SupplyType.AIRDROP, lz_controlled=False,
+            sector_id="arnhem",
+            day=3,
+            supply_type=SupplyType.AIRDROP,
+            lz_controlled=False,
         )
         result = ss.calculate_supply()
         assert result == SupplyLevel.NONE
@@ -131,8 +134,10 @@ class TestSupplyState:
 
     def test_lz_name_field(self):
         ss = SupplyState(
-            sector_id="arnhem", day=1,
-            lz_controlled=True, lz_name="LZ-S/DZ-X",
+            sector_id="arnhem",
+            day=1,
+            lz_controlled=True,
+            lz_name="LZ-S/DZ-X",
         )
         assert ss.lz_name == "LZ-S/DZ-X"
 
@@ -147,8 +152,8 @@ class TestSupplyState:
 # XXXCorpsPosition enum
 # ---------------------------------------------------------------------------
 
-class TestXXXCorpsPosition:
 
+class TestXXXCorpsPosition:
     def test_has_all_positions(self):
         assert XXXCorpsPosition.START is not None
         assert XXXCorpsPosition.VEGHEL is not None
@@ -166,8 +171,8 @@ class TestXXXCorpsPosition:
 # XXX_CORPS_TIMELINE
 # ---------------------------------------------------------------------------
 
-class TestXXXCorpsTimeline:
 
+class TestXXXCorpsTimeline:
     def test_day_1_start(self):
         assert XXX_CORPS_TIMELINE[1] == XXXCorpsPosition.START
 
@@ -203,8 +208,8 @@ class TestXXXCorpsTimeline:
 # SupplyLineManager
 # ---------------------------------------------------------------------------
 
-class TestSupplyLineManager:
 
+class TestSupplyLineManager:
     def test_creation_defaults(self):
         mgr = SupplyLineManager()
         assert mgr.daily_supply_points == 100
@@ -234,7 +239,6 @@ class TestSupplyLineManager:
 
 
 class TestSupplyLineManagerAdvanceDay:
-
     def test_advance_day_increments(self):
         mgr = SupplyLineManager.create_default()
         mgr.advance_day()
@@ -290,7 +294,6 @@ class TestSupplyLineManagerAdvanceDay:
 
 
 class TestSupplyLineManagerAllocation:
-
     def test_allocate_empty_sectors(self):
         mgr = SupplyLineManager()
         assert mgr.allocate_supply() == {}
@@ -330,7 +333,6 @@ class TestSupplyLineManagerAllocation:
 
 
 class TestSupplyLineManagerGermanSupply:
-
     def test_german_supply_always_land(self):
         mgr = SupplyLineManager.create_default()
         gs = mgr.get_german_supply("arnhem")
@@ -356,7 +358,6 @@ class TestSupplyLineManagerGermanSupply:
 
 
 class TestSupplyLineManagerLZControl:
-
     def test_lz_lost_blocks_airdrop(self):
         mgr = SupplyLineManager.create_default()
         mgr.sector_supply["arnhem"].lz_controlled = False

@@ -218,7 +218,8 @@ class DifficultySystem:
         Maps experience levels to difficulty presets, then applies
         experience-based modifiers on top.
         """
-        from pycc2.domain.systems.game_settings import EXPERIENCE_EFFECTS, ExperienceLevel as ExpLevel
+        from pycc2.domain.systems.game_settings import EXPERIENCE_EFFECTS
+        from pycc2.domain.systems.game_settings import ExperienceLevel as ExpLevel
 
         mapping: dict[ExpLevel, DifficultyLevel] = {
             ExpLevel.CONSCRIPT: DifficultyLevel.EASY,
@@ -230,7 +231,9 @@ class DifficultySystem:
         preset = cls.PRESETS[target_level]
 
         exp_effects = EXPERIENCE_EFFECTS[experience_level]
-        modified_base_hit = max(0.05, min(0.95, preset.base_hit_chance * exp_effects.accuracy_modifier))
+        modified_base_hit = max(
+            0.05, min(0.95, preset.base_hit_chance * exp_effects.accuracy_modifier)
+        )
         modified_morale = preset.morale_stability * exp_effects.morale_resistance
 
         return dataclasses.replace(

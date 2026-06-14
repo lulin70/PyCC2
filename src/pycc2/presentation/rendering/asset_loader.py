@@ -1,4 +1,5 @@
 """Asset Loader - 支持从文件加载CC2原版资源，fallback到程序化生成"""
+
 from __future__ import annotations
 
 import logging
@@ -127,7 +128,11 @@ class AssetLoader:
         # 尝试多种路径格式
         possible_paths = [
             # 格式1: 带方向的精灵 (infantry_squad_d0.png)
-            self.assets_dir / "sprites" / "units" / faction / f"{unit_type.lower()}_d{direction}.png",
+            self.assets_dir
+            / "sprites"
+            / "units"
+            / faction
+            / f"{unit_type.lower()}_d{direction}.png",
             # 格式2: 简单命名 (rifleman.png) - 我们生成的格式
             self.assets_dir / "sprites" / "units" / faction / f"{sprite_name}.png",
             # 格式3: 映射名称带方向
@@ -163,7 +168,7 @@ class AssetLoader:
         self,
         unit_type: str,
         direction: int = 0,
-        faction: str = 'allies',
+        faction: str = "allies",
     ) -> pygame.Surface | None:
         """
         加载单位精灵 - 优先使用CC2写实像素艺术生成器
@@ -182,18 +187,15 @@ class AssetLoader:
             return self._sprite_cache[cache_key]
 
         try:
-            from pycc2.domain.value_objects.direction import Direction
             from pycc2.domain.entities.unit import Faction
+            from pycc2.domain.value_objects.direction import Direction
             from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
 
             dir_enum = list(Direction)[direction] if direction < 8 else Direction.SOUTH
             fac_enum = Faction(faction)
 
             sprite = PixelArtist3D.create_infantry_sprite(
-                direction=dir_enum,
-                faction=fac_enum,
-                state='idle',
-                frame=0
+                direction=dir_enum, faction=fac_enum, state="idle", frame=0
             )
 
             self._sprite_cache[cache_key] = sprite
@@ -211,7 +213,7 @@ class AssetLoader:
         surface = pygame.Surface((24, 24), pygame.SRCALPHA)
         surface.fill((0, 0, 0, 0))
 
-        color = (74, 144, 217) if 'allies' in unit_type.lower() else (217, 74, 74)
+        color = (74, 144, 217) if "allies" in unit_type.lower() else (217, 74, 74)
         pygame.draw.circle(surface, color, (12, 12), 8)
         pygame.draw.circle(surface, (255, 255, 255), (12, 12), 8, 1)
 

@@ -6,6 +6,7 @@ Improves rendering performance by storing generated tiles in a two-level diction
 """
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

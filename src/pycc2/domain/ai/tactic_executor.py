@@ -23,9 +23,9 @@ if TYPE_CHECKING:
     from pycc2.domain.ai.squad_degradation import NCORallyBehavior
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
+    from pycc2.domain.interfaces import IEventPublisher
     from pycc2.domain.systems.ballistic import BallisticEngine
     from pycc2.domain.systems.pathfinder import PathFinder
-    from pycc2.domain.interfaces import IEventPublisher
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,9 @@ class TacticExecutor:
         self._unit_registry[unit.id] = unit
 
     def register_smoke_capability(
-        self, unit_id: str, capability: SmokeGrenadeCapability,
+        self,
+        unit_id: str,
+        capability: SmokeGrenadeCapability,
     ) -> None:
         """Register smoke deployment capability for a unit."""
         self._smoke_capabilities[unit_id] = capability
@@ -76,7 +78,7 @@ class TacticExecutor:
         unit = self._get_unit(intent.unit_id)
         if unit is not None:
             morale_check = self._check_morale_preconditions(unit, intent)
-            if not morale_check['can_execute']:
+            if not morale_check["can_execute"]:
                 self._logger.debug(
                     f"Command {intent.tactic_type.name} blocked for unit {unit.id}: "
                     f"{morale_check['reason']}"
@@ -138,12 +140,12 @@ class TacticExecutor:
             Dict with 'can_execute' (bool) and 'reason' (str)
         """
         # Import here to avoid circular imports
-        from pycc2.domain.systems.morale_system import MoraleSystem, MoraleState
+        from pycc2.domain.systems.morale_system import MoraleState, MoraleSystem
 
-        result = {'can_execute': True, 'reason': ''}
+        result = {"can_execute": True, "reason": ""}
 
         # Check if unit has morale component
-        if not hasattr(unit, 'morale') or unit.morale is None:
+        if not hasattr(unit, "morale") or unit.morale is None:
             return result
 
         # Safely get morale value (handle both real components and mocks)
@@ -176,27 +178,27 @@ class TacticExecutor:
         if current_state == MoraleState.ROUTING:
             # Unit is actively fleeing - block all commands except idle
             if intent.tactic_type != TacticType.IDLE:
-                result['can_execute'] = False
-                result['reason'] = 'Unit is routing and cannot receive commands'
+                result["can_execute"] = False
+                result["reason"] = "Unit is routing and cannot receive commands"
                 return result
 
         elif current_state == MoraleState.PINNED:
             # Pinned units cannot move but can fire defensively
             if intent.tactic_type in movement_commands:
-                result['can_execute'] = False
-                result['reason'] = 'Unit is pinned and cannot move'
+                result["can_execute"] = False
+                result["reason"] = "Unit is pinned and cannot move"
                 return result
 
             # Allow defensive actions with reduced effectiveness warning
             if intent.tactic_type not in defensive_commands:
-                result['can_execute'] = False
-                result['reason'] = 'Unit is pinned - only defensive actions allowed'
+                result["can_execute"] = False
+                result["reason"] = "Unit is pinned - only defensive actions allowed"
 
         elif current_state == MoraleState.BROKEN:
             # Broken units have a chance to refuse orders (30% refusal rate)
             if random.random() < 0.3:
-                result['can_execute'] = False
-                result['reason'] = 'Unit is broken and refused orders (morale check failed)'
+                result["can_execute"] = False
+                result["reason"] = "Unit is broken and refused orders (morale check failed)"
                 return result
 
             # Even if order is accepted, apply penalty (logged for awareness)
@@ -379,18 +381,14 @@ class TacticExecutor:
         if unit is None:
             return False
         if intent.target_position is None:
-            self._logger.warning(
-                f"DEPLOY_SMOKE for {intent.unit_id} has no target_position"
-            )
+            self._logger.warning(f"DEPLOY_SMOKE for {intent.unit_id} has no target_position")
             return False
 
         # Check smoke capability
         capability = self._smoke_capabilities.get(intent.unit_id)
         if capability is not None:
             if not capability.has_smoke:
-                self._logger.debug(
-                    f"Unit {intent.unit_id} has no smoke charges remaining"
-                )
+                self._logger.debug(f"Unit {intent.unit_id} has no smoke charges remaining")
                 return False
             capability.use_smoke()
         # Units without registered capability can still deploy smoke
@@ -398,9 +396,9 @@ class TacticExecutor:
 
         # Determine wind drift direction from environment
         drift_direction = (0, 0)
-        env = getattr(self, '_environment', None)
+        env = getattr(self, "_environment", None)
         if env is not None:
-            wind = getattr(env, 'wind_direction', (0, 0))
+            wind = getattr(env, "wind_direction", (0, 0))
             wx, wy = wind
             length = (wx * wx + wy * wy) ** 0.5
             if length >= 0.01:
@@ -418,9 +416,9 @@ class TacticExecutor:
         self.smoke_manager.deploy(smoke)
 
         # Update unit concealment: unit is now in smoke
-        combat_state = getattr(unit, 'combat_state', None)
+        combat_state = getattr(unit, "combat_state", None)
         if combat_state is not None:
-            concealment = getattr(combat_state, 'concealment', None)
+            concealment = getattr(combat_state, "concealment", None)
             if concealment is not None:
                 concealment.in_smoke = True
 
@@ -477,9 +475,7 @@ class TacticExecutor:
 
         # Unit is at the source — try to start pickup
         if intent.target_position is None:
-            self._logger.warning(
-                f"SCAVENGE_AMMO for {intent.unit_id} has no target_position"
-            )
+            self._logger.warning(f"SCAVENGE_AMMO for {intent.unit_id} has no target_position")
             return False
 
         # Find the source in the fallen cache
@@ -500,9 +496,7 @@ class TacticExecutor:
             source = sources[0]
 
         if source is None:
-            self._logger.debug(
-                f"Unit {intent.unit_id} found no ammo source at target position"
-            )
+            self._logger.debug(f"Unit {intent.unit_id} found no ammo source at target position")
             return False
 
         # Attempt to start the pickup
@@ -528,13 +522,10 @@ class TacticExecutor:
             return True
         elif result == PickupResult.WRONG_STANCE:
             self._logger.debug(
-                f"Unit {intent.unit_id} cannot scavenge: wrong stance "
-                f"(must be PRONE or CROUCHING)"
+                f"Unit {intent.unit_id} cannot scavenge: wrong stance (must be PRONE or CROUCHING)"
             )
         elif result == PickupResult.SUPPRESSED:
-            self._logger.debug(
-                f"Unit {intent.unit_id} cannot scavenge: suppressed"
-            )
+            self._logger.debug(f"Unit {intent.unit_id} cannot scavenge: suppressed")
         elif result == PickupResult.ALREADY_PICKING_UP:
             return True  # Already in progress, not a failure
 
@@ -611,9 +602,7 @@ class TacticExecutor:
         }
         self.event_bus.publish(event)
 
-        self._logger.info(
-            f"Unit {intent.unit_id} surrendered"
-        )
+        self._logger.info(f"Unit {intent.unit_id} surrendered")
         return True
 
     def _execute_heal_wounded(self, intent: TacticIntent) -> bool:
@@ -636,30 +625,25 @@ class TacticExecutor:
 
         # Must be a medic unit
         if unit.unit_type != UnitType.MEDIC_TEAM:
-            self._logger.warning(
-                f"HEAL_WOUNDED for {intent.unit_id} is not a medic unit"
-            )
+            self._logger.warning(f"HEAL_WOUNDED for {intent.unit_id} is not a medic unit")
             return False
 
         # Find the patient
         patient = self._get_unit(intent.target_unit_id or "") if intent.target_unit_id else None
         if patient is None:
-            self._logger.warning(
-                f"HEAL_WOUNDED for {intent.unit_id} has no valid target"
-            )
+            self._logger.warning(f"HEAL_WOUNDED for {intent.unit_id} has no valid target")
             return False
 
         # Check if patient is still alive and wounded
         if not patient.is_alive:
             return False
         if patient.health.hp_ratio >= HEAL_CAP_RATIO:
-            self._logger.debug(
-                f"Patient {patient.id} no longer needs treatment"
-            )
+            self._logger.debug(f"Patient {patient.id} no longer needs treatment")
             return True
 
         # Check if medic is suppressed
         from pycc2.domain.systems.combat_mechanics_enhanced import SuppressionEffect
+
         suppression = unit.suppression_level
         if suppression in (
             SuppressionEffect.MODERATE,
@@ -667,15 +651,11 @@ class TacticExecutor:
             SuppressionEffect.PINNED,
             SuppressionEffect.PANIC,
         ):
-            self._logger.debug(
-                f"Medic {intent.unit_id} is suppressed, cannot heal"
-            )
+            self._logger.debug(f"Medic {intent.unit_id} is suppressed, cannot heal")
             return False
 
         # Check distance — must be adjacent
-        dist = unit.position.tile_coord.chebyshev_distance(
-            patient.position.tile_coord
-        )
+        dist = unit.position.tile_coord.chebyshev_distance(patient.position.tile_coord)
         if dist > HEAL_ADJACENT_RANGE:
             # Move toward patient first
             move_intent = TacticIntent(
@@ -728,9 +708,7 @@ class TacticExecutor:
 
         # Check if unit can dig
         if not self._trench_digging.can_dig(unit, self.game_map):
-            self._logger.debug(
-                f"Unit {intent.unit_id} cannot dig trench at current position"
-            )
+            self._logger.debug(f"Unit {intent.unit_id} cannot dig trench at current position")
             return False
 
         # Start digging if not already in progress
@@ -785,9 +763,7 @@ class TacticExecutor:
             return False
 
         if intent.target_position is None:
-            self._logger.warning(
-                f"CLEAR_BUILDING for {intent.unit_id} has no target_position"
-            )
+            self._logger.warning(f"CLEAR_BUILDING for {intent.unit_id} has no target_position")
             return False
 
         target_pos = intent.target_position
@@ -801,9 +777,7 @@ class TacticExecutor:
                 target_pos, unit_pos, self.game_map
             )
             if approach_pos is None:
-                self._logger.debug(
-                    f"Unit {intent.unit_id} cannot find approach to building"
-                )
+                self._logger.debug(f"Unit {intent.unit_id} cannot find approach to building")
                 return False
             move_intent = TacticIntent(
                 unit_id=intent.unit_id,
@@ -817,7 +791,8 @@ class TacticExecutor:
 
         # Find all enemy units in the building
         defenders = [
-            u for u in self._unit_registry.values()
+            u
+            for u in self._unit_registry.values()
             if u.is_alive
             and u.position.tile_coord == target_pos
             and u.id != intent.unit_id
@@ -825,9 +800,7 @@ class TacticExecutor:
         ]
 
         # Apply grenade effects
-        effects = BuildingClearingAI.apply_grenade_effects(
-            target_pos, self.game_map, defenders
-        )
+        effects = BuildingClearingAI.apply_grenade_effects(target_pos, self.game_map, defenders)
 
         # Apply defender penalty
         for defender in defenders:
@@ -867,9 +840,7 @@ class TacticExecutor:
             return False
 
         if intent.target_position is None:
-            self._logger.warning(
-                f"CALL_ARTILLERY for {intent.unit_id} has no target_position"
-            )
+            self._logger.warning(f"CALL_ARTILLERY for {intent.unit_id} has no target_position")
             return False
 
         # Check if a new mission can be started
@@ -881,7 +852,7 @@ class TacticExecutor:
             return False
 
         # Calculate weather scatter
-        env = getattr(self, '_environment', None)
+        env = getattr(self, "_environment", None)
         scatter = ArtilleryManager.calculate_weather_scatter(env)
 
         # Start the mission
@@ -928,16 +899,11 @@ class TacticExecutor:
 
         # Verify melee conditions
         if not MeleeCombatSystem.can_melee(unit, target):
-            self._logger.debug(
-                f"Unit {intent.unit_id} cannot melee target {intent.target_unit_id}"
-            )
+            self._logger.debug(f"Unit {intent.unit_id} cannot melee target {intent.target_unit_id}")
             return False
 
         # Determine if charging (moving into melee)
-        is_charging = (
-            unit.state_machine.current
-            and unit.state_machine.current.name == "MOVING"
-        )
+        is_charging = unit.state_machine.current and unit.state_machine.current.name == "MOVING"
 
         # Resolve melee
         result = MeleeCombatSystem.resolve_melee(unit, target, is_charging)
@@ -977,9 +943,7 @@ class TacticExecutor:
 
         tank = self._get_unit(intent.target_unit_id or "") if intent.target_unit_id else None
         if tank is None:
-            self._logger.warning(
-                f"MOUNT_TANK for {intent.unit_id} has no target tank"
-            )
+            self._logger.warning(f"MOUNT_TANK for {intent.unit_id} has no target tank")
             return False
 
         all_units = list(self._unit_registry.values())
@@ -992,9 +956,7 @@ class TacticExecutor:
         # Check mount conditions
         if not self._tank_rider_system.can_mount(unit, tank, all_units):
             # If not in range, move toward the tank
-            dist = unit.position.tile_coord.chebyshev_distance(
-                tank.position.tile_coord
-            )
+            dist = unit.position.tile_coord.chebyshev_distance(tank.position.tile_coord)
             if dist > 2:
                 move_intent = TacticIntent(
                     unit_id=intent.unit_id,
@@ -1003,9 +965,7 @@ class TacticExecutor:
                     priority=intent.priority,
                 )
                 return self._execute_move_to(move_intent)
-            self._logger.debug(
-                f"Unit {intent.unit_id} cannot mount tank {tank.id}"
-            )
+            self._logger.debug(f"Unit {intent.unit_id} cannot mount tank {tank.id}")
             return False
 
         # Start mounting
@@ -1021,9 +981,7 @@ class TacticExecutor:
                 "timestamp": time.time(),
             }
             self.event_bus.publish(event)
-            self._logger.info(
-                f"Unit {intent.unit_id} mounting tank {tank.id}"
-            )
+            self._logger.info(f"Unit {intent.unit_id} mounting tank {tank.id}")
             return True
 
         return False
@@ -1059,8 +1017,7 @@ class TacticExecutor:
             }
             self.event_bus.publish(event)
             self._logger.info(
-                f"Unit {intent.unit_id} dismounting from tank "
-                f"{'(instant)' if instant else ''}"
+                f"Unit {intent.unit_id} dismounting from tank {'(instant)' if instant else ''}"
             )
             return True
 
@@ -1081,9 +1038,7 @@ class TacticExecutor:
             return False
 
         if intent.target_position is None:
-            self._logger.warning(
-                f"LAY_MINE for {intent.unit_id} has no target_position"
-            )
+            self._logger.warning(f"LAY_MINE for {intent.unit_id} has no target_position")
             return False
 
         # Check if unit is at the target position
@@ -1130,9 +1085,7 @@ class TacticExecutor:
             "timestamp": time.time(),
         }
         self.event_bus.publish(event)
-        self._logger.info(
-            f"Unit {intent.unit_id} started laying {mine_type.name}"
-        )
+        self._logger.info(f"Unit {intent.unit_id} started laying {mine_type.name}")
         return True
 
     def _execute_detect_mines(self, intent: TacticIntent) -> bool:
@@ -1157,15 +1110,11 @@ class TacticExecutor:
                 "unit_id": intent.unit_id,
                 "action": "mines_detected",
                 "count": len(detected),
-                "positions": [
-                    (m.position.x, m.position.y) for m in detected
-                ],
+                "positions": [(m.position.x, m.position.y) for m in detected],
                 "timestamp": time.time(),
             }
             self.event_bus.publish(event)
-            self._logger.info(
-                f"Unit {intent.unit_id} detected {len(detected)} mines"
-            )
+            self._logger.info(f"Unit {intent.unit_id} detected {len(detected)} mines")
 
         return True
 
@@ -1185,9 +1134,7 @@ class TacticExecutor:
             return False
 
         if intent.target_position is None:
-            self._logger.warning(
-                f"ASSAULT_FORTIFIED for {intent.unit_id} has no target_position"
-            )
+            self._logger.warning(f"ASSAULT_FORTIFIED for {intent.unit_id} has no target_position")
             return False
 
         # Check if unit has an active assault
@@ -1195,9 +1142,7 @@ class TacticExecutor:
 
         if assault is None:
             # Start a new assault — move toward target
-            dist = unit.position.tile_coord.chebyshev_distance(
-                intent.target_position
-            )
+            dist = unit.position.tile_coord.chebyshev_distance(intent.target_position)
             if dist > 1:
                 move_intent = TacticIntent(
                     unit_id=intent.unit_id,

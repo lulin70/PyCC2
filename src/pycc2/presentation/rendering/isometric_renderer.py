@@ -67,13 +67,13 @@ logger = logging.getLogger(__name__)
 
 # Terrain ID to tile generator mapping
 _TERRAIN_GENERATORS: dict[int, callable] = {  # type: ignore[type-arg]
-    0: generate_grass_tile,   # OPEN
-    1: generate_road_tile,    # ROAD
-    2: generate_grass_tile,   # GRASS
-    3: generate_grass_tile,   # WOODS (uses grass base with darker tint)
-    6: generate_water_tile,   # WATER
+    0: generate_grass_tile,  # OPEN
+    1: generate_road_tile,  # ROAD
+    2: generate_grass_tile,  # GRASS
+    3: generate_grass_tile,  # WOODS (uses grass base with darker tint)
+    6: generate_water_tile,  # WATER
     7: generate_hedgerow_tile,  # HEDGE
-    9: generate_dirt_tile,    # ROUGH
+    9: generate_dirt_tile,  # ROUGH
     10: generate_water_tile,  # SHALLOW
     12: generate_crater_tile,  # CRATER
 }
@@ -276,9 +276,7 @@ class IsometricRenderer:
         for ty in range(start_y, end_y):
             for tx in range(start_x, end_x):
                 terrain_id = self._get_terrain_at(game_map, tx, ty)
-                renderables.append(
-                    tile_to_renderable(tx, ty, terrain_id)
-                )
+                renderables.append(tile_to_renderable(tx, ty, terrain_id))
                 self._tile_count += 1
 
         # Add units
@@ -297,13 +295,15 @@ class IsometricRenderer:
             if renderable.layer == RenderLayer.TERRAIN:
                 terrain_id = renderable.data if renderable.data is not None else 0
                 self._draw_terrain_tile(
-                    renderable.world_x, renderable.world_y,
-                    terrain_id, camera, game_map, quantized_zoom,
+                    renderable.world_x,
+                    renderable.world_y,
+                    terrain_id,
+                    camera,
+                    game_map,
+                    quantized_zoom,
                 )
             elif renderable.layer == RenderLayer.UNIT:
-                self._draw_unit_isometric(
-                    renderable.data, camera, selected_unit_ids
-                )
+                self._draw_unit_isometric(renderable.data, camera, selected_unit_ids)
 
         # Debug grid overlay
         if debug_mode:
@@ -394,9 +394,7 @@ class IsometricRenderer:
             self._cache_hits += 1
         return self._tile_cache[terrain_id]
 
-    def _get_scaled_terrain_tile(
-        self, terrain_id: int, quantized_zoom: float
-    ) -> pygame.Surface:
+    def _get_scaled_terrain_tile(self, terrain_id: int, quantized_zoom: float) -> pygame.Surface:
         """Get a pre-scaled terrain tile from cache, or create and cache it."""
         cache_key = (terrain_id, quantized_zoom)
         if cache_key in self._scaled_tile_cache:
@@ -496,12 +494,12 @@ class IsometricRenderer:
             height_levels = 2  # default
             damage_state = 0  # INTACT
             try:
-                if hasattr(game_map, 'get_enhanced_tile'):
+                if hasattr(game_map, "get_enhanced_tile"):
                     etile = game_map.get_enhanced_tile(int(tile_x), int(tile_y))
                     if etile is not None:
-                        if hasattr(etile, 'height'):
+                        if hasattr(etile, "height"):
                             height_levels = max(1, etile.height)
-                        if hasattr(etile, 'damage_state'):
+                        if hasattr(etile, "damage_state"):
                             damage_state = etile.damage_state
             except Exception as e:
                 logging.debug(f"Building tile info lookup failed: {e}")
@@ -536,22 +534,22 @@ class IsometricRenderer:
             return
 
         try:
-            if not getattr(unit, 'is_alive', True):
+            if not getattr(unit, "is_alive", True):
                 return
 
             from pycc2.domain.value_objects.vec2 import Vec2
 
             # Get unit world position
-            pos = getattr(unit, 'position', None)
+            pos = getattr(unit, "position", None)
             if pos is None:
                 return
 
-            pixel_pos = getattr(pos, 'pixel_position', None)
+            pixel_pos = getattr(pos, "pixel_position", None)
             if pixel_pos is not None:
                 world_pos = pixel_pos
             else:
-                tile_x = getattr(pos, 'tile_x', 0) or 0
-                tile_y = getattr(pos, 'tile_y', 0) or 0
+                tile_x = getattr(pos, "tile_x", 0) or 0
+                tile_y = getattr(pos, "tile_y", 0) or 0
                 world_pos = Vec2(tile_x * 32, tile_y * 32)
 
             # Convert to isometric screen position
@@ -560,14 +558,14 @@ class IsometricRenderer:
 
             # Determine unit type for visual
             unit_type_str = ""
-            if hasattr(unit, 'unit_type'):
+            if hasattr(unit, "unit_type"):
                 ut = unit.unit_type
-                unit_type_str = ut.name.upper() if hasattr(ut, 'name') else str(ut).upper()
+                unit_type_str = ut.name.upper() if hasattr(ut, "name") else str(ut).upper()
 
             faction = ""
-            if hasattr(unit, 'faction'):
+            if hasattr(unit, "faction"):
                 f = unit.faction
-                faction = f.name.lower() if hasattr(f, 'name') else str(f).lower()
+                faction = f.name.lower() if hasattr(f, "name") else str(f).lower()
 
             # Draw unit marker
             radius = max(6, int(10 * camera.zoom))
@@ -576,6 +574,7 @@ class IsometricRenderer:
                 color = (255, 200, 0)
                 # Hexagon for tanks
                 import math
+
                 points = []
                 for i in range(6):
                     angle = math.pi / 3 * i
@@ -594,9 +593,7 @@ class IsometricRenderer:
             is_selected = selected_unit_ids and unit.id in selected_unit_ids
             if is_selected:
                 select_radius = radius + 4
-                pygame.draw.circle(
-                    self._offscreen, (255, 255, 0), (sx, sy), select_radius, 2
-                )
+                pygame.draw.circle(self._offscreen, (255, 255, 0), (sx, sy), select_radius, 2)
 
         except Exception as e:
             logging.debug(f"Isometric unit rendering failed: {e}")
@@ -626,9 +623,11 @@ class IsometricRenderer:
             sp1 = camera.world_to_screen(start_world)
             sp2 = camera.world_to_screen(end_world)
             pygame.draw.line(
-                self._offscreen, grid_color,
+                self._offscreen,
+                grid_color,
                 (int(sp1[0]), int(sp1[1])),
-                (int(sp2[0]), int(sp2[1])), 1
+                (int(sp2[0]), int(sp2[1])),
+                1,
             )
 
         for tx in range(start_x, end_x + 1):
@@ -637,9 +636,11 @@ class IsometricRenderer:
             sp1 = camera.world_to_screen(start_world)
             sp2 = camera.world_to_screen(end_world)
             pygame.draw.line(
-                self._offscreen, grid_color,
+                self._offscreen,
+                grid_color,
                 (int(sp1[0]), int(sp1[1])),
-                (int(sp2[0]), int(sp2[1])), 1
+                (int(sp2[0]), int(sp2[1])),
+                1,
             )
 
     def shutdown(self) -> None:

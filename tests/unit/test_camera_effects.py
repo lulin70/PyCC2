@@ -3,9 +3,14 @@ Tests for Camera Effects System.
 """
 
 from pycc2.presentation.rendering.camera_effects import (
-    EffectType, CameraEffect, EffectStack,
-    create_shake, create_zoom_impact, create_slow_motion,
-    create_push_pull, create_screen_freeze,
+    CameraEffect,
+    EffectStack,
+    EffectType,
+    create_push_pull,
+    create_screen_freeze,
+    create_shake,
+    create_slow_motion,
+    create_zoom_impact,
 )
 
 
@@ -162,11 +167,13 @@ class TestEffectStack:
     def test_max_effects_limit(self):
         stack = EffectStack(max_effects=3)
         for i in range(5):
-            stack.push(CameraEffect(
-                effect_type=EffectType.SHAKE,
-                duration=1.0,
-                priority=i,
-            ))
+            stack.push(
+                CameraEffect(
+                    effect_type=EffectType.SHAKE,
+                    duration=1.0,
+                    priority=i,
+                )
+            )
         assert len(stack) <= 3
 
     def test_priority_sorting(self):
@@ -180,12 +187,14 @@ class TestEffectStack:
 
     def test_get_total_offset_shake(self):
         stack = EffectStack()
-        stack.push(CameraEffect(
-            effect_type=EffectType.SHAKE,
-            intensity=10.0,
-            duration=1.0,
-            easing="linear",
-        ))
+        stack.push(
+            CameraEffect(
+                effect_type=EffectType.SHAKE,
+                intensity=10.0,
+                duration=1.0,
+                easing="linear",
+            )
+        )
         ox, oy = stack.get_total_offset()
         assert isinstance(ox, float)
         assert isinstance(oy, float)
@@ -196,12 +205,14 @@ class TestEffectStack:
 
     def test_get_zoom_multiplier_with_zoom(self):
         stack = EffectStack()
-        stack.push(CameraEffect(
-            effect_type=EffectType.ZOOM_IMPACT,
-            zoom_factor=0.8,
-            duration=1.0,
-            easing="linear",
-        ))
+        stack.push(
+            CameraEffect(
+                effect_type=EffectType.ZOOM_IMPACT,
+                zoom_factor=0.8,
+                duration=1.0,
+                easing="linear",
+            )
+        )
         zoom = stack.get_zoom_multiplier()
         assert 0.5 <= zoom <= 2.0
 
@@ -211,20 +222,24 @@ class TestEffectStack:
 
     def test_get_time_scale_with_slow_motion(self):
         stack = EffectStack()
-        stack.push(CameraEffect(
-            effect_type=EffectType.SLOW_MOTION,
-            time_scale=0.3,
-            duration=1.0,
-        ))
+        stack.push(
+            CameraEffect(
+                effect_type=EffectType.SLOW_MOTION,
+                time_scale=0.3,
+                duration=1.0,
+            )
+        )
         assert stack.get_time_scale() == 0.3
 
     def test_get_time_scale_minimum_is_0_1(self):
         stack = EffectStack()
-        stack.push(CameraEffect(
-            effect_type=EffectType.SLOW_MOTION,
-            time_scale=0.01,
-            duration=1.0,
-        ))
+        stack.push(
+            CameraEffect(
+                effect_type=EffectType.SLOW_MOTION,
+                time_scale=0.01,
+                duration=1.0,
+            )
+        )
         assert stack.get_time_scale() >= 0.1
 
     def test_is_frozen_no_effects(self):
@@ -233,10 +248,12 @@ class TestEffectStack:
 
     def test_is_frozen_with_freeze(self):
         stack = EffectStack()
-        stack.push(CameraEffect(
-            effect_type=EffectType.SCREEN_FREEZE,
-            duration=1.0,
-        ))
+        stack.push(
+            CameraEffect(
+                effect_type=EffectType.SCREEN_FREEZE,
+                duration=1.0,
+            )
+        )
         assert stack.is_frozen()
 
     def test_clear(self):

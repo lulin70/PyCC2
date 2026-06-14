@@ -17,10 +17,11 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-
+from pycc2.domain.ai.difficulty_system import DifficultyConfig, DifficultyLevel
+from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
 from pycc2.domain.ai.tactical_ai import (
-    FlankSide,
     FlankingAI,
+    FlankSide,
     InfantryTankCoordAI,
     SuppressionAI,
     TacticalContext,
@@ -30,15 +31,13 @@ from pycc2.domain.ai.tactical_ai import (
     _infer_facing,
     _threat_score,
 )
-from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
-from pycc2.domain.ai.difficulty_system import DifficultyConfig, DifficultyLevel
 from pycc2.domain.entities.unit import Faction, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
-
 
 # ---------------------------------------------------------------------------
 # Helpers — lightweight mock objects
 # ---------------------------------------------------------------------------
+
 
 def _make_mock_unit(
     uid: str = "u1",
@@ -136,13 +135,17 @@ def _make_context(
 # FlankSide enum
 # ---------------------------------------------------------------------------
 
-class TestFlankSide:
 
+class TestFlankSide:
     def test_has_left(self):
-        assert FlankSide.LEFT == FlankSide.LEFT, "FlankSide.LEFT should be defined and equal to itself"
+        assert FlankSide.LEFT == FlankSide.LEFT, (
+            "FlankSide.LEFT should be defined and equal to itself"
+        )
 
     def test_has_right(self):
-        assert FlankSide.RIGHT == FlankSide.RIGHT, "FlankSide.RIGHT should be defined and equal to itself"
+        assert FlankSide.RIGHT == FlankSide.RIGHT, (
+            "FlankSide.RIGHT should be defined and equal to itself"
+        )
 
     def test_two_values(self):
         assert len(FlankSide) == 2
@@ -152,13 +155,15 @@ class TestFlankSide:
 # _threat_score helper
 # ---------------------------------------------------------------------------
 
-class TestThreatScore:
 
+class TestThreatScore:
     def test_mg_squad_high_weight(self):
         unit = _make_mock_unit(unit_type=UnitType.MACHINE_GUN_SQUAD, x=10, y=10)
         ref = TileCoord(10, 10)
         score = _threat_score(unit, ref)
-        assert score >= 1.0, f"MG squad at same position should have high threat score (>= 1.0), got {score}"
+        assert score >= 1.0, (
+            f"MG squad at same position should have high threat score (>= 1.0), got {score}"
+        )
 
     def test_tank_highest_weight(self):
         tank = _make_mock_unit(unit_type=UnitType.TANK, x=10, y=10)
@@ -201,8 +206,8 @@ class TestThreatScore:
 # _infer_facing helper
 # ---------------------------------------------------------------------------
 
-class TestInferFacing:
 
+class TestInferFacing:
     def test_no_allies_returns_own_position(self):
         unit = _make_mock_unit(x=5, y=5)
         result = _infer_facing(unit, [])
@@ -225,8 +230,8 @@ class TestInferFacing:
 # _flank_position helper
 # ---------------------------------------------------------------------------
 
-class TestFlankPosition:
 
+class TestFlankPosition:
     def test_left_flank_offset(self):
         enemy = TileCoord(10, 10)
         facing = TileCoord(15, 10)  # Facing right
@@ -260,8 +265,8 @@ class TestFlankPosition:
 # FlankingAI
 # ---------------------------------------------------------------------------
 
-class TestFlankingAI:
 
+class TestFlankingAI:
     def test_evaluate_no_enemies(self):
         ai = FlankingAI()
         ctx = _make_context(
@@ -291,8 +296,7 @@ class TestFlankingAI:
         ai = FlankingAI()
         ctx = _make_context(
             friendlies=[
-                _make_mock_unit(uid=f"f{i}", unit_type=UnitType.INFANTRY_SQUAD)
-                for i in range(4)
+                _make_mock_unit(uid=f"f{i}", unit_type=UnitType.INFANTRY_SQUAD) for i in range(4)
             ],
             enemies=[_make_mock_unit(uid="e1", faction=Faction.AXIS)],
         )
@@ -304,8 +308,7 @@ class TestFlankingAI:
         diff = DifficultyConfig(level=DifficultyLevel.EASY, use_flanking=False)
         ctx = _make_context(
             friendlies=[
-                _make_mock_unit(uid=f"f{i}", unit_type=UnitType.INFANTRY_SQUAD)
-                for i in range(4)
+                _make_mock_unit(uid=f"f{i}", unit_type=UnitType.INFANTRY_SQUAD) for i in range(4)
             ],
             enemies=[_make_mock_unit(uid="e1", faction=Faction.AXIS)],
             difficulty=diff,
@@ -328,7 +331,9 @@ class TestFlankingAI:
             f"FlankingAI with 4 mobile units and 1 enemy should produce at least 2 intents "
             f"(pinning + flanking), got {len(intents)}"
         )
-        assert all(isinstance(i, TacticIntent) for i in intents), "All intents should be TacticIntent instances"
+        assert all(isinstance(i, TacticIntent) for i in intents), (
+            "All intents should be TacticIntent instances"
+        )
 
     def test_execute_no_enemies_returns_empty(self):
         ai = FlankingAI()
@@ -363,8 +368,8 @@ class TestFlankingAI:
 # SuppressionAI
 # ---------------------------------------------------------------------------
 
-class TestSuppressionAI:
 
+class TestSuppressionAI:
     def test_evaluate_no_mg_units(self):
         ai = SuppressionAI()
         ctx = _make_context(
@@ -395,7 +400,9 @@ class TestSuppressionAI:
         ctx = _make_context(
             friendlies=[_make_mock_unit(uid="mg1", unit_type=UnitType.MACHINE_GUN_SQUAD)],
             enemies=[
-                _make_mock_unit(uid="e_mg", faction=Faction.AXIS, unit_type=UnitType.MACHINE_GUN_SQUAD),
+                _make_mock_unit(
+                    uid="e_mg", faction=Faction.AXIS, unit_type=UnitType.MACHINE_GUN_SQUAD
+                ),
                 _make_mock_unit(uid="e_at", faction=Faction.AXIS, unit_type=UnitType.AT_GUN_TEAM),
             ],
         )
@@ -469,8 +476,8 @@ class TestSuppressionAI:
 # InfantryTankCoordAI
 # ---------------------------------------------------------------------------
 
-class TestInfantryTankCoordAI:
 
+class TestInfantryTankCoordAI:
     def test_evaluate_no_tanks(self):
         ai = InfantryTankCoordAI()
         ctx = _make_context(
@@ -561,8 +568,8 @@ class TestInfantryTankCoordAI:
 # VictoryPointAI
 # ---------------------------------------------------------------------------
 
-class TestVictoryPointAI:
 
+class TestVictoryPointAI:
     def test_evaluate_no_vl_data(self):
         ai = VictoryPointAI()
         ctx = _make_context(vl_positions=[])
@@ -606,7 +613,9 @@ class TestVictoryPointAI:
     def test_execute_capture_uncontrolled_vl(self):
         ai = VictoryPointAI()
         vl = (TileCoord(20, 20), None, 30)
-        friendly = _make_mock_unit(uid="f1", faction=Faction.ALLIES, unit_type=UnitType.INFANTRY_SQUAD, x=5, y=5)
+        friendly = _make_mock_unit(
+            uid="f1", faction=Faction.ALLIES, unit_type=UnitType.INFANTRY_SQUAD, x=5, y=5
+        )
         ctx = _make_context(friendlies=[friendly], enemies=[], vl_positions=[vl])
         intents = ai.execute(ctx)
         assert len(intents) > 0
@@ -629,7 +638,9 @@ class TestVictoryPointAI:
         ai = VictoryPointAI()
         vl = (TileCoord(20, 20), None, 40)  # High value
         friendlies = [
-            _make_mock_unit(uid=f"f{i}", faction=Faction.ALLIES, unit_type=UnitType.INFANTRY_SQUAD, x=5 + i, y=5)
+            _make_mock_unit(
+                uid=f"f{i}", faction=Faction.ALLIES, unit_type=UnitType.INFANTRY_SQUAD, x=5 + i, y=5
+            )
             for i in range(5)
         ]
         ctx = _make_context(friendlies=friendlies, enemies=[], vl_positions=[vl])
@@ -641,7 +652,9 @@ class TestVictoryPointAI:
         ai = VictoryPointAI()
         vl = (TileCoord(20, 20), None, 10)  # Low value
         friendlies = [
-            _make_mock_unit(uid=f"f{i}", faction=Faction.ALLIES, unit_type=UnitType.INFANTRY_SQUAD, x=5 + i, y=5)
+            _make_mock_unit(
+                uid=f"f{i}", faction=Faction.ALLIES, unit_type=UnitType.INFANTRY_SQUAD, x=5 + i, y=5
+            )
             for i in range(5)
         ]
         ctx = _make_context(friendlies=friendlies, enemies=[], vl_positions=[vl])
@@ -681,8 +694,8 @@ class TestVictoryPointAI:
 # TacticalOrchestrator
 # ---------------------------------------------------------------------------
 
-class TestTacticalOrchestrator:
 
+class TestTacticalOrchestrator:
     def test_register_ai(self):
         orch = TacticalOrchestrator()
         orch.register(FlankingAI())
@@ -777,8 +790,8 @@ class TestTacticalOrchestrator:
 # TacticalContext
 # ---------------------------------------------------------------------------
 
-class TestTacticalContext:
 
+class TestTacticalContext:
     def test_friendly_faction_from_units(self):
         ctx = _make_context(friendlies=[_make_mock_unit(uid="f1", faction=Faction.ALLIES)])
         assert ctx.friendly_faction == Faction.ALLIES

@@ -55,8 +55,8 @@ class TrenchDiggingAI:
             self._dig_progress[unit_id] += dt * progress_per_sec
 
             if self._dig_progress[unit_id] >= 1.0:
-                return 'completed'
-            return 'digging'
+                return "completed"
+            return "digging"
 
         return None
 

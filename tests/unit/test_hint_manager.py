@@ -1,4 +1,4 @@
-from pycc2.presentation.ui.hint_manager import HintManager, HINTS
+from pycc2.presentation.ui.hint_manager import HINTS, HintManager
 
 
 class TestHintManagerDefaultState:

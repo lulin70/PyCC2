@@ -67,6 +67,7 @@ MORALE_EVENT_DELTA: int = -5
 # FallenUnitCache — weapons/ammo dropped by surrendered units
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class FallenUnitCache:
     """Weapons and ammo dropped by a surrendered or dead unit.
@@ -85,6 +86,7 @@ class FallenUnitCache:
 # ---------------------------------------------------------------------------
 # SurrenderSystem
 # ---------------------------------------------------------------------------
+
 
 class SurrenderSystem:
     """Evaluate and process unit surrender each tick.
@@ -173,13 +175,8 @@ class SurrenderSystem:
         if nearby_friendlies > 0:
             return False
         # Immediate threat — enemy within THREAT_RADIUS
-        nearby_enemies = SurrenderSystem._count_nearby_enemies(
-            unit, all_units, THREAT_RADIUS
-        )
-        if nearby_enemies == 0:
-            return False
-
-        return True
+        nearby_enemies = SurrenderSystem._count_nearby_enemies(unit, all_units, THREAT_RADIUS)
+        return nearby_enemies != 0
 
     # ------------------------------------------------------------------
     # Probability calculation
@@ -204,9 +201,7 @@ class SurrenderSystem:
             prob -= VETERAN_ELITE_PENALTY
 
         # Nearby friendly penalty (even beyond isolation radius)
-        all_friendlies = SurrenderSystem._count_all_nearby_friendlies(
-            unit, all_units
-        )
+        all_friendlies = SurrenderSystem._count_all_nearby_friendlies(unit, all_units)
         prob -= NEARBY_FRIENDLY_PENALTY * all_friendlies
 
         return max(0.0, min(prob, 1.0))
@@ -241,14 +236,13 @@ class SurrenderSystem:
         # Zero out the unit's ammo
         unit.weapon.ammo_remaining = 0
         from pycc2.domain.components.weapon_component import WeaponState
+
         unit.weapon.state = WeaponState.OUT_OF_AMMO
 
         # Morale event for nearby friendly units
         self._propagate_morale_event(unit, all_units)
 
-        logger.info(
-            f"Unit {unit.id} ({unit.name}) surrendered at tick {current_tick}"
-        )
+        logger.info(f"Unit {unit.id} ({unit.name}) surrendered at tick {current_tick}")
 
     @staticmethod
     def _propagate_morale_event(unit: Unit, all_units: list[Unit]) -> None:
@@ -260,9 +254,7 @@ class SurrenderSystem:
                 continue
             if other.faction != unit.faction:
                 continue
-            dist = unit.position.tile_coord.chebyshev_distance(
-                other.position.tile_coord
-            )
+            dist = unit.position.tile_coord.chebyshev_distance(other.position.tile_coord)
             if dist <= MORALE_EVENT_RADIUS:
                 other.morale.apply_delta(MORALE_EVENT_DELTA)
 
@@ -271,36 +263,28 @@ class SurrenderSystem:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _count_nearby_friendlies(
-        unit: Unit, all_units: list[Unit], radius: int
-    ) -> int:
+    def _count_nearby_friendlies(unit: Unit, all_units: list[Unit], radius: int) -> int:
         return sum(
             1
             for u in all_units
             if u.id != unit.id
             and u.is_alive
             and u.faction == unit.faction
-            and unit.position.tile_coord.chebyshev_distance(u.position.tile_coord)
-            <= radius
+            and unit.position.tile_coord.chebyshev_distance(u.position.tile_coord) <= radius
         )
 
     @staticmethod
-    def _count_nearby_enemies(
-        unit: Unit, all_units: list[Unit], radius: int
-    ) -> int:
+    def _count_nearby_enemies(unit: Unit, all_units: list[Unit], radius: int) -> int:
         return sum(
             1
             for u in all_units
             if u.is_alive
             and u.faction != unit.faction
-            and unit.position.tile_coord.chebyshev_distance(u.position.tile_coord)
-            <= radius
+            and unit.position.tile_coord.chebyshev_distance(u.position.tile_coord) <= radius
         )
 
     @staticmethod
-    def _count_all_nearby_friendlies(
-        unit: Unit, all_units: list[Unit]
-    ) -> int:
+    def _count_all_nearby_friendlies(unit: Unit, all_units: list[Unit]) -> int:
         """Count all friendly units within a generous radius for penalty calc."""
         return sum(
             1
@@ -308,8 +292,7 @@ class SurrenderSystem:
             if u.id != unit.id
             and u.is_alive
             and u.faction == unit.faction
-            and unit.position.tile_coord.chebyshev_distance(u.position.tile_coord)
-            <= 15
+            and unit.position.tile_coord.chebyshev_distance(u.position.tile_coord) <= 15
         )
 
     @staticmethod
@@ -352,6 +335,7 @@ class SurrenderSystem:
 # ---------------------------------------------------------------------------
 # SurrenderAI — Tactical AI pattern for surrender
 # ---------------------------------------------------------------------------
+
 
 class SurrenderAI(TacticalAIBase):
     """Tactical AI that evaluates whether friendly units should surrender.

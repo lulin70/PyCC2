@@ -16,16 +16,18 @@ if TYPE_CHECKING:
 
 class LosStatus(Enum):
     """Line of sight status between two points."""
-    CLEAR = auto()           # No obstacles
-    BLOCKED_TERRAIN = auto() # Blocked by terrain (wall, building)
+
+    CLEAR = auto()  # No obstacles
+    BLOCKED_TERRAIN = auto()  # Blocked by terrain (wall, building)
     BLOCKED_HEIGHT = auto()  # Blocked by elevation difference (hill, building)
-    PARTIAL = auto()         # Partially blocked (soft cover)
-    OUT_OF_RANGE = auto()    # Beyond visual range
+    PARTIAL = auto()  # Partially blocked (soft cover)
+    OUT_OF_RANGE = auto()  # Beyond visual range
 
 
 @dataclass(slots=True)
 class LosResult:
     """Result of a LOS check."""
+
     status: LosStatus
     can_see: bool
     blocking_coord: TileCoord | None = None
@@ -143,7 +145,9 @@ class Lossystem:
 
         # Building floor bonus: higher floors provide better visibility
         building_bonus = self.get_building_visibility_bonus(
-            from_coord.x, from_coord.y, self._map,
+            from_coord.x,
+            from_coord.y,
+            self._map,
         )
         if building_bonus > 1.0:
             effective_range *= building_bonus
@@ -165,9 +169,13 @@ class Lossystem:
             if enhanced and "building_type" in enhanced:
                 building_type = enhanced["building_type"]
             if not self.check_window_firing_arc(
-                float(from_coord.x), float(from_coord.y),
-                float(to_coord.x), float(to_coord.y),
-                building_type, from_coord.x, from_coord.y,
+                float(from_coord.x),
+                float(from_coord.y),
+                float(to_coord.x),
+                float(to_coord.y),
+                building_type,
+                from_coord.x,
+                from_coord.y,
             ):
                 return LosResult(
                     status=LosStatus.BLOCKED_TERRAIN,
@@ -210,15 +218,14 @@ class Lossystem:
                         blocking_reason=f"Height blocked (+{height_diff:.1f} at {coord})",
                     )
 
-            if terrain.name in ("hedge", "woods"):
-                if i == len(line) - 2:
-                    return LosResult(
-                        status=LosStatus.PARTIAL,
-                        can_see=True,
-                        blocking_coord=coord,
-                        distance_tiles=distance,
-                        blocking_reason="Partial cover (soft)",
-                    )
+            if terrain.name in ("hedge", "woods") and i == len(line) - 2:
+                return LosResult(
+                    status=LosStatus.PARTIAL,
+                    can_see=True,
+                    blocking_coord=coord,
+                    distance_tiles=distance,
+                    blocking_reason="Partial cover (soft)",
+                )
 
         return LosResult(
             status=LosStatus.CLEAR,
@@ -266,13 +273,14 @@ class Lossystem:
             if x != x1 or y != y1:
                 prev_point = points[-1]
                 current_point = TileCoord(x, y)
-                if (prev_point.x != current_point.x and 
-                    prev_point.y != current_point.y):
+                if prev_point.x != current_point.x and prev_point.y != current_point.y:
                     # Diagonal move: ensure we include the intermediate tile
                     inter_x = prev_point.x
                     inter_y = prev_point.y
-                    inter_point = TileCoord(inter_x + sx if abs(x1 - x0) >= abs(y1 - y0) else inter_x,
-                                            inter_y + sy if abs(y1 - y0) > abs(x1 - x0) else inter_y)
+                    inter_point = TileCoord(
+                        inter_x + sx if abs(x1 - x0) >= abs(y1 - y0) else inter_x,
+                        inter_y + sy if abs(y1 - y0) > abs(x1 - x0) else inter_y,
+                    )
                     if inter_point != current_point and inter_point != prev_point:
                         points.append(inter_point)
 
@@ -337,7 +345,7 @@ class Lossystem:
         return status_map.get(los_result.status, "NO_TARGET")
 
     @staticmethod
-    def get_building_visibility_bonus(tile_x: int, tile_y: int, game_map: 'GameMap') -> float:
+    def get_building_visibility_bonus(tile_x: int, tile_y: int, game_map: GameMap) -> float:
         """Return LOS range multiplier for units inside a building.
 
         Higher buildings provide better visibility/LOS bonus for garrisoned units.
@@ -428,16 +436,19 @@ class Lossystem:
         # Using screen coordinates where y increases downward:
         #   east  = 0, north = -pi/2, west = pi/-pi, south = pi/2
         for window in windows:
-            wall = window['wall']
+            wall = window["wall"]
             half_arc = math.pi / 4  # 45-degree arc per wall face
 
-            if wall == 'east' and abs(self._angle_diff(angle, 0.0)) < half_arc:
-                return True
-            elif wall == 'south' and abs(self._angle_diff(angle, math.pi / 2)) < half_arc:
-                return True
-            elif wall == 'west' and abs(self._angle_diff(angle, math.pi)) < half_arc:
-                return True
-            elif wall == 'north' and abs(self._angle_diff(angle, -math.pi / 2)) < half_arc:
+            if (
+                wall == "east"
+                and abs(self._angle_diff(angle, 0.0)) < half_arc
+                or wall == "south"
+                and abs(self._angle_diff(angle, math.pi / 2)) < half_arc
+                or wall == "west"
+                and abs(self._angle_diff(angle, math.pi)) < half_arc
+                or wall == "north"
+                and abs(self._angle_diff(angle, -math.pi / 2)) < half_arc
+            ):
                 return True
 
         return False  # No window faces the target direction

@@ -1,4 +1,5 @@
 """Unit tests for the weapon-differentiated sound system."""
+
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -12,7 +13,6 @@ from pycc2.infrastructure.audio.weapon_sounds import (
     WeaponSoundGenerator,
     WeaponSoundProfile,
 )
-
 
 # -----------------------------------------------------------------------
 # WeaponSoundProfile creation and validation
@@ -69,8 +69,20 @@ class TestWeaponSoundProfile:
 
 class TestWeaponSoundProfilesDict:
     def test_profiles_has_key_weapons(self):
-        for key in ("MG42", "MG34", "BREN", "Lee-Enfield", "Kar98k", "M1 Garand",
-                     "STEN", "MP40", "PIAT", "Pak 40", "Mortar", "Flammenwerfer"):
+        for key in (
+            "MG42",
+            "MG34",
+            "BREN",
+            "Lee-Enfield",
+            "Kar98k",
+            "M1 Garand",
+            "STEN",
+            "MP40",
+            "PIAT",
+            "Pak 40",
+            "Mortar",
+            "Flammenwerfer",
+        ):
             assert key in WEAPON_SOUND_PROFILES, f"Missing profile for {key}"
 
     def test_mg42_profile_values(self):
@@ -110,7 +122,9 @@ class TestSoundGenerationNonEmpty:
         assert isinstance(result, np.ndarray)
         assert result.dtype == np.int16
         expected_samples = int(SAMPLE_RATE * rifle_profile.duration)
-        assert len(result) == expected_samples, f"Rifle sound should have {expected_samples} samples for {rifle_profile.duration}s duration, got {len(result)}"
+        assert len(result) == expected_samples, (
+            f"Rifle sound should have {expected_samples} samples for {rifle_profile.duration}s duration, got {len(result)}"
+        )
         assert np.any(result != 0), "Rifle sound should contain non-zero audio data"
 
     def test_mg_sound_non_empty(self, mg_profile):
@@ -130,35 +144,45 @@ class TestSoundGenerationNonEmpty:
         profile = WEAPON_SOUND_PROFILES["STEN"]
         result = WeaponSoundGenerator.generate_weapon_sound(profile)
         expected_samples = int(SAMPLE_RATE * profile.duration)
-        assert len(result) == expected_samples, f"SMG (STEN) sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        assert len(result) == expected_samples, (
+            f"SMG (STEN) sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        )
         assert np.any(result != 0), "SMG sound should contain non-zero audio data"
 
     def test_at_weapon_sound_non_empty(self):
         profile = WEAPON_SOUND_PROFILES["PIAT"]
         result = WeaponSoundGenerator.generate_weapon_sound(profile)
         expected_samples = int(SAMPLE_RATE * profile.duration)
-        assert len(result) == expected_samples, f"AT weapon (PIAT) sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        assert len(result) == expected_samples, (
+            f"AT weapon (PIAT) sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        )
         assert np.any(result != 0), "AT weapon sound should contain non-zero audio data"
 
     def test_mortar_sound_non_empty(self):
         profile = WEAPON_SOUND_PROFILES["Mortar"]
         result = WeaponSoundGenerator.generate_weapon_sound(profile)
         expected_samples = int(SAMPLE_RATE * profile.duration)
-        assert len(result) == expected_samples, f"Mortar sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        assert len(result) == expected_samples, (
+            f"Mortar sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        )
         assert np.any(result != 0), "Mortar sound should contain non-zero audio data"
 
     def test_tank_gun_sound_non_empty(self):
         profile = WEAPON_SOUND_PROFILES["Pak 40"]
         result = WeaponSoundGenerator.generate_weapon_sound(profile)
         expected_samples = int(SAMPLE_RATE * profile.duration)
-        assert len(result) == expected_samples, f"Tank gun (Pak 40) sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        assert len(result) == expected_samples, (
+            f"Tank gun (Pak 40) sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        )
         assert np.any(result != 0), "Tank gun sound should contain non-zero audio data"
 
     def test_flamethrower_sound_non_empty(self):
         profile = WEAPON_SOUND_PROFILES["Flammenwerfer"]
         result = WeaponSoundGenerator.generate_weapon_sound(profile)
         expected_samples = int(SAMPLE_RATE * profile.duration)
-        assert len(result) == expected_samples, f"Flamethrower sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        assert len(result) == expected_samples, (
+            f"Flamethrower sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        )
         assert np.any(result != 0), "Flamethrower sound should contain non-zero audio data"
 
     def test_pistol_sound_non_empty(self):
@@ -173,7 +197,9 @@ class TestSoundGenerationNonEmpty:
         )
         result = WeaponSoundGenerator.generate_weapon_sound(profile)
         expected_samples = int(SAMPLE_RATE * profile.duration)
-        assert len(result) == expected_samples, f"Pistol sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        assert len(result) == expected_samples, (
+            f"Pistol sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        )
         assert np.any(result != 0), "Pistol sound should contain non-zero audio data"
 
     def test_sniper_sound_non_empty(self):
@@ -188,7 +214,9 @@ class TestSoundGenerationNonEmpty:
         )
         result = WeaponSoundGenerator.generate_weapon_sound(profile)
         expected_samples = int(SAMPLE_RATE * profile.duration)
-        assert len(result) == expected_samples, f"Sniper sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        assert len(result) == expected_samples, (
+            f"Sniper sound should have {expected_samples} samples for {profile.duration}s duration, got {len(result)}"
+        )
         assert np.any(result != 0), "Sniper sound should contain non-zero audio data"
 
 
@@ -296,7 +324,9 @@ class TestVolumeScaling:
 
 class TestPlayWeaponSound:
     def test_play_weapon_sound_with_mocked_pygame(self):
-        with patch("pycc2.infrastructure.audio.weapon_sounds.WeaponSoundGenerator.generate_weapon_sound") as mock_gen:
+        with patch(
+            "pycc2.infrastructure.audio.weapon_sounds.WeaponSoundGenerator.generate_weapon_sound"
+        ) as mock_gen:
             mock_gen.return_value = np.zeros(1000, dtype=np.int16)
             with patch("pygame.mixer.init"):
                 with patch("pygame.mixer.get_init", return_value=True):

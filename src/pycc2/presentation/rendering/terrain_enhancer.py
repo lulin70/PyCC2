@@ -1,6 +1,7 @@
 """
 Phase 2: 地形改进 - Perlin噪声生成器和边缘混合
 """
+
 from __future__ import annotations
 
 import math
@@ -67,7 +68,7 @@ class PerlinNoise:
         return self.lerp(
             v,
             self.lerp(u, self.grad(self.p[aa], x, y), self.grad(self.p[ba], x - 1, y)),
-            self.lerp(u, self.grad(self.p[ab], x, y - 1), self.grad(self.p[bb], x - 1, y - 1))
+            self.lerp(u, self.grad(self.p[ab], x, y - 1), self.grad(self.p[bb], x - 1, y - 1)),
         )
 
     def octave_noise(
@@ -76,7 +77,7 @@ class PerlinNoise:
         y: float,
         octaves: int = 4,
         persistence: float = 0.5,
-        lacunarity: float = 2.0
+        lacunarity: float = 2.0,
     ) -> float:
         """
         多层Perlin噪声（分形噪声）
@@ -120,11 +121,7 @@ class TerrainEnhancer:
         for y in range(size):
             for x in range(size):
                 # 多层噪声
-                noise_val = self.perlin.octave_noise(
-                    x / 8.0, y / 8.0,
-                    octaves=3,
-                    persistence=0.5
-                )
+                noise_val = self.perlin.octave_noise(x / 8.0, y / 8.0, octaves=3, persistence=0.5)
 
                 # 映射到颜色变化 [-20, +20]
                 variation = int(noise_val * 20)
@@ -132,7 +129,7 @@ class TerrainEnhancer:
                 new_color = (
                     max(0, min(255, base_color[0] + variation)),
                     max(0, min(255, base_color[1] + variation)),
-                    max(0, min(255, base_color[2] + variation))
+                    max(0, min(255, base_color[2] + variation)),
                 )
                 surface.set_at((x, y), new_color)
 
@@ -152,17 +149,13 @@ class TerrainEnhancer:
 
         for y in range(size):
             for x in range(size):
-                noise_val = self.perlin.octave_noise(
-                    x / 6.0, y / 6.0,
-                    octaves=4,
-                    persistence=0.6
-                )
+                noise_val = self.perlin.octave_noise(x / 6.0, y / 6.0, octaves=4, persistence=0.6)
                 variation = int(noise_val * 25)
                 base_color = (166, 138, 95)
                 new_color = (
                     max(0, min(255, base_color[0] + variation)),
                     max(0, min(255, base_color[1] + variation)),
-                    max(0, min(255, base_color[2] + variation))
+                    max(0, min(255, base_color[2] + variation)),
                 )
                 surface.set_at((x, y), new_color)
 
@@ -180,27 +173,21 @@ class TerrainEnhancer:
             for x in range(size):
                 # 水波噪声
                 noise_val = self.perlin.octave_noise(
-                    (x + wave_offset) / 10.0,
-                    (y + wave_offset) / 10.0,
-                    octaves=2,
-                    persistence=0.4
+                    (x + wave_offset) / 10.0, (y + wave_offset) / 10.0, octaves=2, persistence=0.4
                 )
                 variation = int(noise_val * 15)
                 base_color = (64, 120, 172)
                 new_color = (
                     max(0, min(255, base_color[0] + variation)),
                     max(0, min(255, base_color[1] + variation)),
-                    max(0, min(255, base_color[2] + variation))
+                    max(0, min(255, base_color[2] + variation)),
                 )
                 surface.set_at((x, y), new_color)
 
         return surface
 
     def blend_terrain_edges(
-        self,
-        tile_surface: Surface,
-        neighbors: dict[str, int],
-        current_terrain: int
+        self, tile_surface: Surface, neighbors: dict[str, int], current_terrain: int
     ) -> Surface:
         """
         地形边缘混合 - 平滑不同地形类型的过渡
@@ -220,8 +207,8 @@ class TerrainEnhancer:
         blend_width = size // 8
 
         # 北边混合
-        if neighbors.get('n', current_terrain) != current_terrain:
-            neighbor_color = self._get_terrain_base_color(neighbors.get('n', 0))
+        if neighbors.get("n", current_terrain) != current_terrain:
+            neighbor_color = self._get_terrain_base_color(neighbors.get("n", 0))
             for y in range(blend_width):
                 alpha = y / blend_width  # 0 -> 1
                 for x in range(size):
@@ -229,13 +216,13 @@ class TerrainEnhancer:
                     blended = (
                         int(current[0] * alpha + neighbor_color[0] * (1 - alpha)),
                         int(current[1] * alpha + neighbor_color[1] * (1 - alpha)),
-                        int(current[2] * alpha + neighbor_color[2] * (1 - alpha))
+                        int(current[2] * alpha + neighbor_color[2] * (1 - alpha)),
                     )
                     result.set_at((x, y), blended)
 
         # 南边混合
-        if neighbors.get('s', current_terrain) != current_terrain:
-            neighbor_color = self._get_terrain_base_color(neighbors.get('s', 0))
+        if neighbors.get("s", current_terrain) != current_terrain:
+            neighbor_color = self._get_terrain_base_color(neighbors.get("s", 0))
             for y in range(size - blend_width, size):
                 alpha = (size - y) / blend_width
                 for x in range(size):
@@ -243,13 +230,13 @@ class TerrainEnhancer:
                     blended = (
                         int(current[0] * alpha + neighbor_color[0] * (1 - alpha)),
                         int(current[1] * alpha + neighbor_color[1] * (1 - alpha)),
-                        int(current[2] * alpha + neighbor_color[2] * (1 - alpha))
+                        int(current[2] * alpha + neighbor_color[2] * (1 - alpha)),
                     )
                     result.set_at((x, y), blended)
 
         # 东边混合
-        if neighbors.get('e', current_terrain) != current_terrain:
-            neighbor_color = self._get_terrain_base_color(neighbors.get('e', 0))
+        if neighbors.get("e", current_terrain) != current_terrain:
+            neighbor_color = self._get_terrain_base_color(neighbors.get("e", 0))
             for x in range(size - blend_width, size):
                 alpha = (size - x) / blend_width
                 for y in range(size):
@@ -257,13 +244,13 @@ class TerrainEnhancer:
                     blended = (
                         int(current[0] * alpha + neighbor_color[0] * (1 - alpha)),
                         int(current[1] * alpha + neighbor_color[1] * (1 - alpha)),
-                        int(current[2] * alpha + neighbor_color[2] * (1 - alpha))
+                        int(current[2] * alpha + neighbor_color[2] * (1 - alpha)),
                     )
                     result.set_at((x, y), blended)
 
         # 西边混合
-        if neighbors.get('w', current_terrain) != current_terrain:
-            neighbor_color = self._get_terrain_base_color(neighbors.get('w', 0))
+        if neighbors.get("w", current_terrain) != current_terrain:
+            neighbor_color = self._get_terrain_base_color(neighbors.get("w", 0))
             for x in range(blend_width):
                 alpha = x / blend_width
                 for y in range(size):
@@ -271,7 +258,7 @@ class TerrainEnhancer:
                     blended = (
                         int(current[0] * alpha + neighbor_color[0] * (1 - alpha)),
                         int(current[1] * alpha + neighbor_color[1] * (1 - alpha)),
-                        int(current[2] * alpha + neighbor_color[2] * (1 - alpha))
+                        int(current[2] * alpha + neighbor_color[2] * (1 - alpha)),
                     )
                     result.set_at((x, y), blended)
 
@@ -280,19 +267,19 @@ class TerrainEnhancer:
     def _get_terrain_base_color(self, terrain_id: int) -> tuple[int, int, int]:
         """获取地形基础颜色"""
         terrain_colors = {
-            0: (96, 143, 48),   # 草地
+            0: (96, 143, 48),  # 草地
             1: (149, 126, 94),  # 道路
-            2: (96, 143, 48),   # 开阔地
-            3: (52, 120, 52),   # 树林
-            4: (52, 120, 52),   # 密林
-            5: (95, 92, 88),    # 建筑
-            6: (95, 92, 88),    # 建筑
+            2: (96, 143, 48),  # 开阔地
+            3: (52, 120, 52),  # 树林
+            4: (52, 120, 52),  # 密林
+            5: (95, 92, 88),  # 建筑
+            6: (95, 92, 88),  # 建筑
             7: (64, 120, 172),  # 水
-            8: (68, 112, 34),   # 树篱
-            9: (110, 110, 110), # 墙
-            10: (149, 126, 94), # 桥
-            11: (166, 138, 95), # 粗糙地形
-            12: (120, 100, 70), # 弹坑
+            8: (68, 112, 34),  # 树篱
+            9: (110, 110, 110),  # 墙
+            10: (149, 126, 94),  # 桥
+            11: (166, 138, 95),  # 粗糙地形
+            12: (120, 100, 70),  # 弹坑
             13: (90, 120, 90),  # 沼泽
         }
         return terrain_colors.get(terrain_id, (96, 143, 48))

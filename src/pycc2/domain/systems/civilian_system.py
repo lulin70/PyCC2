@@ -16,6 +16,7 @@ class CivilianState(Enum):
 @dataclass
 class Civilian:
     """A civilian NPC on the battlefield."""
+
     name: str
     position: tuple[float, float]
     state: CivilianState = CivilianState.IDLE
@@ -57,11 +58,14 @@ class CivilianSystem:
             if not civ.alive:
                 continue
 
-            min_dist = min(
-                ((cp[0] - civ.position[0]) ** 2 +
-                 (cp[1] - civ.position[1]) ** 2) ** 0.5
-                for cp in combat_positions
-            ) if combat_positions else float('inf')
+            min_dist = (
+                min(
+                    ((cp[0] - civ.position[0]) ** 2 + (cp[1] - civ.position[1]) ** 2) ** 0.5
+                    for cp in combat_positions
+                )
+                if combat_positions
+                else float("inf")
+            )
 
             if min_dist < self._flee_radius:
                 if min_dist < 3.0:

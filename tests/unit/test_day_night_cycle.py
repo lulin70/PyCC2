@@ -6,11 +6,12 @@ Tests time progression, period detection, effects, and searchlight logic.
 from __future__ import annotations
 
 import pytest
+
 from pycc2.domain.systems.day_night_cycle import (
-    TimeOfDay,
-    GameTime,
     DayNightEffects,
+    GameTime,
     Searchlight,
+    TimeOfDay,
 )
 
 
@@ -109,21 +110,24 @@ class TestGameTimeSetTime:
 
 
 class TestGameTimePeriodDetection:
-    @pytest.mark.parametrize("hour,expected_period", [
-        (5.5, TimeOfDay.DAWN),
-        (6.0, TimeOfDay.DAWN),
-        (6.9, TimeOfDay.DAWN),
-        (7.0, TimeOfDay.DAY),
-        (12.0, TimeOfDay.DAY),
-        (17.9, TimeOfDay.DAY),
-        (18.0, TimeOfDay.DUSK),
-        (19.0, TimeOfDay.DUSK),
-        (19.9, TimeOfDay.DUSK),
-        (20.0, TimeOfDay.NIGHT),
-        (0.0, TimeOfDay.NIGHT),
-        (4.0, TimeOfDay.NIGHT),
-        (4.9, TimeOfDay.NIGHT),
-    ])
+    @pytest.mark.parametrize(
+        "hour,expected_period",
+        [
+            (5.5, TimeOfDay.DAWN),
+            (6.0, TimeOfDay.DAWN),
+            (6.9, TimeOfDay.DAWN),
+            (7.0, TimeOfDay.DAY),
+            (12.0, TimeOfDay.DAY),
+            (17.9, TimeOfDay.DAY),
+            (18.0, TimeOfDay.DUSK),
+            (19.0, TimeOfDay.DUSK),
+            (19.9, TimeOfDay.DUSK),
+            (20.0, TimeOfDay.NIGHT),
+            (0.0, TimeOfDay.NIGHT),
+            (4.0, TimeOfDay.NIGHT),
+            (4.9, TimeOfDay.NIGHT),
+        ],
+    )
     def test_period_detection_accuracy(self, hour, expected_period):
         gt = GameTime()
         gt.set_time(hour)
@@ -131,12 +135,15 @@ class TestGameTimePeriodDetection:
 
 
 class TestDayNightEffectsVisionModifiers:
-    @pytest.mark.parametrize("tod,expected_modifier", [
-        (TimeOfDay.DAWN, 0.9),
-        (TimeOfDay.DAY, 1.0),
-        (TimeOfDay.DUSK, 0.8),
-        (TimeOfDay.NIGHT, 0.3),
-    ])
+    @pytest.mark.parametrize(
+        "tod,expected_modifier",
+        [
+            (TimeOfDay.DAWN, 0.9),
+            (TimeOfDay.DAY, 1.0),
+            (TimeOfDay.DUSK, 0.8),
+            (TimeOfDay.NIGHT, 0.3),
+        ],
+    )
     def test_vision_penalty_values(self, tod, expected_modifier):
         effects = DayNightEffects()
         base = 10.0
@@ -151,12 +158,15 @@ class TestDayNightEffectsVisionModifiers:
 
 
 class TestDayNightEffectsStealthBonuses:
-    @pytest.mark.parametrize("tod,expected_bonus", [
-        (TimeOfDay.DAWN, 0.1),
-        (TimeOfDay.DAY, 0.0),
-        (TimeOfDay.DUSK, 0.2),
-        (TimeOfDay.NIGHT, 0.5),
-    ])
+    @pytest.mark.parametrize(
+        "tod,expected_bonus",
+        [
+            (TimeOfDay.DAWN, 0.1),
+            (TimeOfDay.DAY, 0.0),
+            (TimeOfDay.DUSK, 0.2),
+            (TimeOfDay.NIGHT, 0.5),
+        ],
+    )
     def test_stealth_bonus_values(self, tod, expected_bonus):
         effects = DayNightEffects()
         base = 0.3
@@ -178,12 +188,15 @@ class TestDayNightEffectsAccuracyModifiers:
 
 
 class TestDayNightEffectsLightingColors:
-    @pytest.mark.parametrize("tod,expected_rgb", [
-        (TimeOfDay.DAWN, (255, 200, 150)),
-        (TimeOfDay.DAY, (255, 255, 255)),
-        (TimeOfDay.DUSK, (255, 180, 120)),
-        (TimeOfDay.NIGHT, (80, 100, 140)),
-    ])
+    @pytest.mark.parametrize(
+        "tod,expected_rgb",
+        [
+            (TimeOfDay.DAWN, (255, 200, 150)),
+            (TimeOfDay.DAY, (255, 255, 255)),
+            (TimeOfDay.DUSK, (255, 180, 120)),
+            (TimeOfDay.NIGHT, (80, 100, 140)),
+        ],
+    )
     def test_lighting_color_values(self, tod, expected_rgb):
         effects = DayNightEffects()
         color = effects.get_lighting_color(tod)
@@ -200,9 +213,7 @@ class TestDayNightCombinedEffects:
     def test_combined_vision_weather_and_night(self):
         effects = DayNightEffects()
         base = 10.0
-        combined = effects.get_combined_vision_modifier(
-            base, TimeOfDay.NIGHT, weather_modifier=0.7
-        )
+        combined = effects.get_combined_vision_modifier(base, TimeOfDay.NIGHT, weather_modifier=0.7)
         expected = base * 0.3 * 0.7
         assert combined == pytest.approx(expected, rel=1e-2)
 
@@ -254,7 +265,9 @@ class TestSearchlightIllumination:
     def test_illuminated_tiles_list_non_empty_when_active(self):
         sl = Searchlight(position_x=10, position_y=10)
         tiles = sl.get_illuminated_tiles()
-        assert len(tiles) >= 1, f"Active searchlight should illuminate at least 1 tile (center), got {len(tiles)}"
+        assert len(tiles) >= 1, (
+            f"Active searchlight should illuminate at least 1 tile (center), got {len(tiles)}"
+        )
 
     def test_illuminated_tiles_empty_when_inactive(self):
         sl = Searchlight(position_x=10, position_y=10, is_active=False)
@@ -270,9 +283,7 @@ class TestSearchlightUpdate:
         assert sl.current_direction != initial
 
     def test_sweep_reverses_at_boundary(self):
-        sl = Searchlight(
-            position_x=0, position_y=0, sweep_speed=1000
-        )
+        sl = Searchlight(position_x=0, position_y=0, sweep_speed=1000)
         sl.update(0.2)
         sign_after = sl._sweep_sign
         assert sign_after != 1 or sl._current_direction < 180

@@ -102,22 +102,22 @@ CC2_TO_PYCC2_MAP: dict[int, TerrainType] = {
     # CC2 uses these for visual variants (e.g. different road surfaces,
     # damaged buildings, seasonal grass). They share gameplay properties
     # with their base type.
-    0x10: TerrainType.GRASS,       # Grass variation 1
-    0x11: TerrainType.GRASS,       # Grass variation 2
-    0x12: TerrainType.ROAD,        # Road variation 1 (dirt road)
-    0x13: TerrainType.ROAD,        # Road variation 2 (paved)
-    0x14: TerrainType.WOODS,       # Woods variation 1 (sparse)
-    0x15: TerrainType.WOODS,       # Woods variation 2 (autumn)
+    0x10: TerrainType.GRASS,  # Grass variation 1
+    0x11: TerrainType.GRASS,  # Grass variation 2
+    0x12: TerrainType.ROAD,  # Road variation 1 (dirt road)
+    0x13: TerrainType.ROAD,  # Road variation 2 (paved)
+    0x14: TerrainType.WOODS,  # Woods variation 1 (sparse)
+    0x15: TerrainType.WOODS,  # Woods variation 2 (autumn)
     0x16: TerrainType.BUILDING_ENTERABLE,  # Building variation 1
-    0x17: TerrainType.BUILDING_SOLID,      # Building variation 1
-    0x18: TerrainType.HEDGE,       # Hedge variation (fence line)
-    0x19: TerrainType.ROUGH,       # Rough variation 1 (rocky)
-    0x1A: TerrainType.ROUGH,       # Rough variation 2 (rubble field)
-    0x1B: TerrainType.SHALLOW,     # Shallow water variation (ford)
-    0x1C: TerrainType.CRATER,      # Rubble variation (shell hole)
-    0x1D: TerrainType.SWAMP,       # Swamp variation (marsh)
-    0x1E: TerrainType.OPEN,        # Open variation (hardstanding)
-    0x1F: TerrainType.OPEN,        # Open variation (yard)
+    0x17: TerrainType.BUILDING_SOLID,  # Building variation 1
+    0x18: TerrainType.HEDGE,  # Hedge variation (fence line)
+    0x19: TerrainType.ROUGH,  # Rough variation 1 (rocky)
+    0x1A: TerrainType.ROUGH,  # Rough variation 2 (rubble field)
+    0x1B: TerrainType.SHALLOW,  # Shallow water variation (ford)
+    0x1C: TerrainType.CRATER,  # Rubble variation (shell hole)
+    0x1D: TerrainType.SWAMP,  # Swamp variation (marsh)
+    0x1E: TerrainType.OPEN,  # Open variation (hardstanding)
+    0x1F: TerrainType.OPEN,  # Open variation (yard)
 }
 
 # Standard CC2 map dimensions used for dimension inference.
@@ -172,7 +172,9 @@ class CC2MapData:
             Dictionary matching the PyCC2 map JSON schema (see data/maps/_schema.json).
         """
         return {
-            "id": Path(self.source_path).stem if self.source_path else self.name.lower().replace(" ", "_"),
+            "id": Path(self.source_path).stem
+            if self.source_path
+            else self.name.lower().replace(" ", "_"),
             "name": self.name,
             "width": self.width,
             "height": self.height,
@@ -230,7 +232,7 @@ class CC2MapParser:
             raise ValueError(f"CC2 map file is empty: {filepath}")
 
         header = self._parse_header(raw_bytes)
-        terrain_bytes = raw_bytes[header.data_offset:]
+        terrain_bytes = raw_bytes[header.data_offset :]
 
         if not terrain_bytes:
             raise ValueError(f"No terrain data after header in: {filepath}")
@@ -281,7 +283,7 @@ class CC2MapParser:
 
         raw_bytes = filepath.read_bytes()
         header = self._parse_header(raw_bytes)
-        terrain_bytes = raw_bytes[header.data_offset:]
+        terrain_bytes = raw_bytes[header.data_offset :]
 
         expected_size = width * height
         if len(terrain_bytes) < expected_size:

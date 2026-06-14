@@ -10,6 +10,7 @@ from enum import Enum
 
 class UnitIconType(Enum):
     """Types of unit icons for minimap."""
+
     INFANTRY = "circle"
     VEHICLE = "rectangle"
     MG_TEAM = "diamond"
@@ -30,36 +31,36 @@ class MinimapIconSystem:
     """
 
     ICON_COLORS = {
-        'allied': (0, 255, 0),     # Green
-        'axis': (255, 50, 50),      # Red
-        'neutral': (200, 200, 0),   # Yellow
+        "allied": (0, 255, 0),  # Green
+        "axis": (255, 50, 50),  # Red
+        "neutral": (200, 200, 0),  # Yellow
     }
 
     def get_icon_type(self, unit) -> UnitIconType:
         """Determine icon type based on unit attributes."""
-        unit_type = getattr(unit, 'unit_type', '').lower()
+        unit_type = getattr(unit, "unit_type", "").lower()
 
-        if 'officer' in unit_type or 'commander' in unit_type:
+        if "officer" in unit_type or "commander" in unit_type:
             return UnitIconType.OFFICER
-        elif 'vehicle' in unit_type or 'tank' in unit_type:
+        elif "vehicle" in unit_type or "tank" in unit_type:
             return UnitIconType.VEHICLE
-        elif 'mg' in unit_type or 'machinegun' in unit_type:
+        elif "mg" in unit_type or "machinegun" in unit_type:
             return UnitIconType.MG_TEAM
-        elif 'infantry' in unit_type or 'rifle' in unit_type or 'soldier' in unit_type:
+        elif "infantry" in unit_type or "rifle" in unit_type or "soldier" in unit_type:
             return UnitIconType.INFANTRY
         else:
             return UnitIconType.UNKNOWN
 
     def get_icon_color(self, unit) -> tuple[int, int, int]:
         """Get color based on faction."""
-        faction = getattr(unit, 'faction', 'unknown').lower()
+        faction = getattr(unit, "faction", "unknown").lower()
 
-        if faction in ('allied', 'player', 'friendly'):
-            return self.ICON_COLORS['allied']
-        elif faction in ('axis', 'enemy', 'hostile'):
-            return self.ICON_COLORS['axis']
+        if faction in ("allied", "player", "friendly"):
+            return self.ICON_COLORS["allied"]
+        elif faction in ("axis", "enemy", "hostile"):
+            return self.ICON_COLORS["axis"]
         else:
-            return self.ICON_COLORS['neutral']
+            return self.ICON_COLORS["neutral"]
 
     def render_icon(
         self,
@@ -101,6 +102,7 @@ class MinimapIconSystem:
         """Draw a star shape."""
         try:
             import pygame
+
             points = []
             for i in range(10):
                 angle = math.pi / 2 + i * math.pi / 5

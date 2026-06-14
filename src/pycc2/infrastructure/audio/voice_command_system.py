@@ -9,6 +9,7 @@ from enum import Enum, auto
 
 class VoiceCommandType(Enum):
     """Types of voice commands."""
+
     MOVING = auto()
     CONTACT = auto()
     TAKING_FIRE = auto()

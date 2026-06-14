@@ -3,20 +3,20 @@ Eliminates duplicate pool implementations across sprite_renderer,
 particle_system, and dynamic_shadow_system."""
 
 from collections import OrderedDict
+
 import pygame
-from typing import Tuple
 
 
 class SurfacePool:
     """LRU Surface pool to reuse pygame.Surface objects and reduce GC pressure."""
 
     def __init__(self, max_size: int = 30):
-        self._pool: OrderedDict[Tuple[int, int], pygame.Surface] = OrderedDict()
+        self._pool: OrderedDict[tuple[int, int], pygame.Surface] = OrderedDict()
         self._max_size = max_size
         self._hits = 0
         self._misses = 0
 
-    def get(self, size: Tuple[int, int]) -> pygame.Surface:
+    def get(self, size: tuple[int, int]) -> pygame.Surface:
         """Get or create a Surface of the given size. Marks as recently used (LRU)."""
         if size in self._pool:
             self._pool.move_to_end(size)  # LRU: mark as recently used
@@ -33,7 +33,7 @@ class SurfacePool:
 
         return surface
 
-    def release(self, size: Tuple[int, int]) -> None:
+    def release(self, size: tuple[int, int]) -> None:
         """Explicitly release a Surface back to pool (optional, GC will handle)."""
         pass  # Surfaces stay in pool until evicted by LRU
 

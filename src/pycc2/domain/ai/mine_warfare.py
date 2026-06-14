@@ -54,11 +54,11 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-MINE_LAY_TICKS: int = 20          # Ticks to lay one mine
-MAX_MINES_PER_SQUAD: int = 5      # Max mines per engineer squad per battle
-MINE_DETECT_RANGE: int = 3        # Detection range when moving slowly
+MINE_LAY_TICKS: int = 20  # Ticks to lay one mine
+MAX_MINES_PER_SQUAD: int = 5  # Max mines per engineer squad per battle
+MINE_DETECT_RANGE: int = 3  # Detection range when moving slowly
 MINE_DETECT_CHANCE: float = 0.60  # 60% per tick when adjacent
-MINE_DEFUSE_TICKS: int = 10       # Ticks to defuse a mine
+MINE_DEFUSE_TICKS: int = 10  # Ticks to defuse a mine
 MINE_DEFUSE_DETONATE_CHANCE: float = 0.10  # 10% chance of detonation
 MINE_TRIGGER_SUPPRESSION: int = 30  # Suppression added on mine trigger
 
@@ -83,14 +83,16 @@ _PLACEABLE_TERRAIN: set[TerrainType] = {
 # Mine types
 # ---------------------------------------------------------------------------
 
+
 class MineType(Enum):
-    AT_MINE = auto()   # Anti-tank mine
-    AP_MINE = auto()   # Anti-personnel mine
+    AT_MINE = auto()  # Anti-tank mine
+    AP_MINE = auto()  # Anti-personnel mine
 
 
 @dataclass(slots=True)
 class MineProperties:
     """Properties for each mine type."""
+
     mine_type: MineType
     damage: int
     trigger_chance: float
@@ -125,12 +127,14 @@ _MINE_PROPERTIES: dict[MineType, MineProperties] = {
 # Mine instance
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class Mine:
     """A single mine placed on the map."""
+
     mine_type: MineType
     position: TileCoord
-    owner_faction: str   # Faction name that placed the mine
+    owner_faction: str  # Faction name that placed the mine
     detected_by: set[str] = field(default_factory=set)  # Faction names that detected it
     active: bool = True
 
@@ -148,13 +152,15 @@ class Mine:
 # Laying/Detection progress
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class LayProgress:
     """Tracks mine laying progress for an engineer squad."""
+
     unit_id: str
-    progress: int = 0       # 0 to MINE_LAY_TICKS
+    progress: int = 0  # 0 to MINE_LAY_TICKS
     mine_type: MineType = MineType.AP_MINE
-    mines_laid: int = 0     # Count of mines laid this battle
+    mines_laid: int = 0  # Count of mines laid this battle
 
     @property
     def is_complete(self) -> bool:
@@ -168,9 +174,10 @@ class LayProgress:
 @dataclass(slots=True)
 class DefuseProgress:
     """Tracks mine defusal progress for an engineer squad."""
+
     unit_id: str
-    mine_index: int         # Index into the mine list
-    progress: int = 0       # 0 to MINE_DEFUSE_TICKS
+    mine_index: int  # Index into the mine list
+    progress: int = 0  # 0 to MINE_DEFUSE_TICKS
 
     @property
     def is_complete(self) -> bool:
@@ -180,6 +187,7 @@ class DefuseProgress:
 # ---------------------------------------------------------------------------
 # MineWarfareSystem
 # ---------------------------------------------------------------------------
+
 
 class MineWarfareSystem:
     """Manages mine placement, detection, and triggering.
@@ -228,9 +236,7 @@ class MineWarfareSystem:
         terrain = game_map.get_terrain(pos)
         return terrain in _PLACEABLE_TERRAIN
 
-    def start_laying(
-        self, unit: Unit, mine_type: MineType, game_map: GameMap
-    ) -> bool:
+    def start_laying(self, unit: Unit, mine_type: MineType, game_map: GameMap) -> bool:
         """Start laying a mine at the unit's current position."""
         if not self.can_lay_mine(unit, game_map):
             return False
@@ -284,9 +290,7 @@ class MineWarfareSystem:
 
         return False
 
-    def detect_mines(
-        self, unit: Unit, game_map: GameMap
-    ) -> list[Mine]:
+    def detect_mines(self, unit: Unit, game_map: GameMap) -> list[Mine]:
         """Attempt to detect mines near an engineer unit.
 
         Engineers moving slowly (SNEAK speed) detect mines within range.
@@ -348,8 +352,7 @@ class MineWarfareSystem:
             mine_index=mine_index,
         )
         self._logger.debug(
-            f"Unit {unit.id} started defusing mine at "
-            f"({mine.position.x}, {mine.position.y})"
+            f"Unit {unit.id} started defusing mine at ({mine.position.x}, {mine.position.y})"
         )
         return True
 
@@ -365,7 +368,9 @@ class MineWarfareSystem:
         progress.progress += 1
 
         if progress.is_complete:
-            mine = self._mines[progress.mine_index] if progress.mine_index < len(self._mines) else None
+            mine = (
+                self._mines[progress.mine_index] if progress.mine_index < len(self._mines) else None
+            )
             self._defuse_progress.pop(unit.id, None)
 
             if mine is None or not mine.active:
@@ -376,9 +381,7 @@ class MineWarfareSystem:
             if random.random() < MINE_DEFUSE_DETONATE_CHANCE:
                 # Mine detonates!
                 self._trigger_mine(mine, unit)
-                self._logger.info(
-                    f"Mine detonated while unit {unit.id} was defusing!"
-                )
+                self._logger.info(f"Mine detonated while unit {unit.id} was defusing!")
                 return True
 
             # Successfully defused
@@ -391,9 +394,7 @@ class MineWarfareSystem:
 
         return False
 
-    def check_trigger(
-        self, unit: Unit, position: TileCoord
-    ) -> Mine | None:
+    def check_trigger(self, unit: Unit, position: TileCoord) -> Mine | None:
         """Check if a unit moving into a position triggers a mine.
 
         Returns the triggered mine, or None if no mine was triggered.
@@ -438,9 +439,9 @@ class MineWarfareSystem:
         unit.take_damage(props.damage)
 
         # Apply heavy suppression
-        combat_state = getattr(unit, 'combat_state', None)
+        combat_state = getattr(unit, "combat_state", None)
         if combat_state is not None:
-            suppression = getattr(combat_state, 'suppression', None)
+            suppression = getattr(combat_state, "suppression", None)
             if suppression is not None:
                 suppression.add_suppression(MINE_TRIGGER_SUPPRESSION)
 
@@ -456,6 +457,7 @@ class MineWarfareSystem:
 # ---------------------------------------------------------------------------
 # MineWarfareAI
 # ---------------------------------------------------------------------------
+
 
 class MineWarfareAI(TacticalAIBase):
     """Evaluate when/where engineers should lay mines and issue LAY_MINE orders.
@@ -492,7 +494,8 @@ class MineWarfareAI(TacticalAIBase):
 
         # Engineer availability (not all used up)
         available = sum(
-            1 for e in engineers  # type: ignore[misc]
+            1
+            for e in engineers  # type: ignore[misc]
             if self._system.get_lay_progress(e.id) is None
             or self._system.get_lay_progress(e.id).can_lay_more  # type: ignore[union-attr]
         )
@@ -575,7 +578,8 @@ class MineWarfareAI(TacticalAIBase):
     def _find_engineers(context: TacticalContext) -> list[Unit]:
         """Find engineer-capable units (AT_GUN_TEAM used as proxy)."""
         return [
-            u for u in context.friendly_units
+            u
+            for u in context.friendly_units
             if u.is_alive and u.can_act and u.unit_type == UnitType.AT_GUN_TEAM
         ]
 
@@ -598,12 +602,10 @@ class MineWarfareAI(TacticalAIBase):
     def _choose_mine_type(context: TacticalContext) -> MineType:
         """Choose mine type based on enemy composition."""
         enemy_armor = sum(
-            1 for e in context.enemy_units
-            if e.is_alive and e.unit_type == UnitType.TANK
+            1 for e in context.enemy_units if e.is_alive and e.unit_type == UnitType.TANK
         )
         enemy_infantry = sum(
-            1 for e in context.enemy_units
-            if e.is_alive and e.unit_type != UnitType.TANK
+            1 for e in context.enemy_units if e.is_alive and e.unit_type != UnitType.TANK
         )
 
         if enemy_armor >= 2:

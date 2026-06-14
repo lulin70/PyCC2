@@ -33,17 +33,19 @@ from pycc2.domain.systems.campaign_four_layer import (
 )
 from pycc2.domain.systems.cc2_authentic_weapons import Faction
 
-
 # ---------------------------------------------------------------------------
 # VictoryLocationDef
 # ---------------------------------------------------------------------------
 
-class TestVictoryLocationDef:
 
+class TestVictoryLocationDef:
     def test_creation_regular(self):
         vl = VictoryLocationDef(
-            vl_id="vl_1", name="Church", position=(10, 5),
-            value=10, vl_type="regular",
+            vl_id="vl_1",
+            name="Church",
+            position=(10, 5),
+            value=10,
+            vl_type="regular",
         )
         assert vl.vl_id == "vl_1"
         assert vl.name == "Church"
@@ -53,32 +55,44 @@ class TestVictoryLocationDef:
 
     def test_creation_bridge(self):
         vl = VictoryLocationDef(
-            vl_id="vl_bridge", name="Bridge", position=(12, 5),
-            value=40, vl_type="bridge",
+            vl_id="vl_bridge",
+            name="Bridge",
+            position=(12, 5),
+            value=40,
+            vl_type="bridge",
         )
         assert vl.value == 40
         assert vl.vl_type == "bridge"
 
     def test_creation_landing_zone(self):
         vl = VictoryLocationDef(
-            vl_id="vl_lz", name="LZ Alpha", position=(5, 10),
-            value=20, vl_type="landing_zone",
+            vl_id="vl_lz",
+            name="LZ Alpha",
+            position=(5, 10),
+            value=20,
+            vl_type="landing_zone",
         )
         assert vl.vl_type == "landing_zone"
         assert vl.value == 20
 
     def test_creation_road(self):
         vl = VictoryLocationDef(
-            vl_id="vl_road", name="Main Road", position=(8, 8),
-            value=30, vl_type="road",
+            vl_id="vl_road",
+            name="Main Road",
+            position=(8, 8),
+            value=30,
+            vl_type="road",
         )
         assert vl.vl_type == "road"
         assert vl.value == 30
 
     def test_frozen_immutability(self):
         vl = VictoryLocationDef(
-            vl_id="vl_1", name="Church", position=(10, 5),
-            value=10, vl_type="regular",
+            vl_id="vl_1",
+            name="Church",
+            position=(10, 5),
+            value=10,
+            vl_type="regular",
         )
         with pytest.raises(AttributeError):
             vl.value = 99  # type: ignore[misc]
@@ -93,13 +107,16 @@ class TestVictoryLocationDef:
 # BattleDefinition
 # ---------------------------------------------------------------------------
 
-class TestBattleDefinition:
 
+class TestBattleDefinition:
     @pytest.fixture()
     def sample_vl(self):
         return VictoryLocationDef(
-            vl_id="vl_1", name="Test VL", position=(5, 5),
-            value=20, vl_type="regular",
+            vl_id="vl_1",
+            name="Test VL",
+            position=(5, 5),
+            value=20,
+            vl_type="regular",
         )
 
     @pytest.fixture()
@@ -145,11 +162,19 @@ class TestBattleDefinition:
 
     def test_battle_empty_reinforcements(self):
         battle = BattleDefinition(
-            battle_id="b2", map_id="m2", name="No Reinforcements",
-            day=2, sector="nijmegen", operation_id="op_2",
-            attacker=Faction.AMERICAN, defender=Faction.GERMAN,
-            victory_locations=[], time_of_day="day", weather="overcast",
-            reinforcement_turns={}, map_value=10,
+            battle_id="b2",
+            map_id="m2",
+            name="No Reinforcements",
+            day=2,
+            sector="nijmegen",
+            operation_id="op_2",
+            attacker=Faction.AMERICAN,
+            defender=Faction.GERMAN,
+            victory_locations=[],
+            time_of_day="day",
+            weather="overcast",
+            reinforcement_turns={},
+            map_value=10,
         )
         assert battle.reinforcement_turns == {}
 
@@ -158,16 +183,24 @@ class TestBattleDefinition:
 # OperationDefinition
 # ---------------------------------------------------------------------------
 
-class TestOperationDefinition:
 
+class TestOperationDefinition:
     @pytest.fixture()
     def sample_operation(self):
         battle = BattleDefinition(
-            battle_id="b1", map_id="m1", name="Battle 1",
-            day=1, sector="arnhem", operation_id="op_1",
-            attacker=Faction.BRITISH, defender=Faction.GERMAN,
-            victory_locations=[], time_of_day="dawn", weather="clear",
-            reinforcement_turns={}, map_value=20,
+            battle_id="b1",
+            map_id="m1",
+            name="Battle 1",
+            day=1,
+            sector="arnhem",
+            operation_id="op_1",
+            attacker=Faction.BRITISH,
+            defender=Faction.GERMAN,
+            victory_locations=[],
+            time_of_day="dawn",
+            weather="clear",
+            reinforcement_turns={},
+            map_value=20,
         )
         return OperationDefinition(
             operation_id="op_1",
@@ -190,9 +223,14 @@ class TestOperationDefinition:
 
     def test_custom_max_units(self):
         op = OperationDefinition(
-            operation_id="op_2", name="Custom", sector="nijmegen",
-            battles=[], requisition_points_allies=100,
-            requisition_points_axis=80, max_infantry=12, max_support=8,
+            operation_id="op_2",
+            name="Custom",
+            sector="nijmegen",
+            battles=[],
+            requisition_points_allies=100,
+            requisition_points_axis=80,
+            max_infantry=12,
+            max_support=8,
         )
         assert op.max_infantry == 12
         assert op.max_support == 8
@@ -206,12 +244,14 @@ class TestOperationDefinition:
 # SectorCampaignDefinition
 # ---------------------------------------------------------------------------
 
-class TestSectorCampaignDefinition:
 
+class TestSectorCampaignDefinition:
     def test_arnhem_sector(self):
         sector = SectorCampaignDefinition(
-            sector_id="arnhem", name="Arnhem Sector",
-            operations=[], scoring_type="holding",
+            sector_id="arnhem",
+            name="Arnhem Sector",
+            operations=[],
+            scoring_type="holding",
             historical_days=(1, 9),
         )
         assert sector.scoring_type == "holding"
@@ -219,16 +259,20 @@ class TestSectorCampaignDefinition:
 
     def test_nijmegen_sector(self):
         sector = SectorCampaignDefinition(
-            sector_id="nijmegen", name="Nijmegen Sector",
-            operations=[], scoring_type="advance_speed",
+            sector_id="nijmegen",
+            name="Nijmegen Sector",
+            operations=[],
+            scoring_type="advance_speed",
             historical_days=(2, 7),
         )
         assert sector.scoring_type == "advance_speed"
 
     def test_sector_frozen(self):
         sector = SectorCampaignDefinition(
-            sector_id="eindhoven", name="Eindhoven Sector",
-            operations=[], scoring_type="advance_speed",
+            sector_id="eindhoven",
+            name="Eindhoven Sector",
+            operations=[],
+            scoring_type="advance_speed",
             historical_days=(1, 3),
         )
         with pytest.raises(AttributeError):
@@ -239,8 +283,8 @@ class TestSectorCampaignDefinition:
 # GrandCampaignDefinition
 # ---------------------------------------------------------------------------
 
-class TestGrandCampaignDefinition:
 
+class TestGrandCampaignDefinition:
     def test_default_values(self):
         gc = GrandCampaignDefinition()
         assert gc.campaign_id == "market_garden"
@@ -252,7 +296,8 @@ class TestGrandCampaignDefinition:
 
     def test_custom_values(self):
         gc = GrandCampaignDefinition(
-            campaign_id="custom", name="Custom Campaign",
+            campaign_id="custom",
+            name="Custom Campaign",
             daily_supply_points=150,
         )
         assert gc.campaign_id == "custom"
@@ -260,8 +305,10 @@ class TestGrandCampaignDefinition:
 
     def test_with_sectors(self):
         sector = SectorCampaignDefinition(
-            sector_id="arnhem", name="Arnhem",
-            operations=[], scoring_type="holding",
+            sector_id="arnhem",
+            name="Arnhem",
+            operations=[],
+            scoring_type="holding",
             historical_days=(1, 9),
         )
         gc = GrandCampaignDefinition(sectors=[sector])
@@ -273,8 +320,8 @@ class TestGrandCampaignDefinition:
 # create_market_garden_campaign()
 # ---------------------------------------------------------------------------
 
-class TestCreateMarketGardenCampaign:
 
+class TestCreateMarketGardenCampaign:
     @pytest.fixture()
     def campaign(self):
         return create_market_garden_campaign()
@@ -319,7 +366,9 @@ class TestCreateMarketGardenCampaign:
     def test_arnhem_bridge_value_40(self, campaign):
         arnhem = campaign.sectors[0]
         landing = arnhem.operations[0]
-        bridge_battle = [b for b in landing.battles if "bridge" in b.battle_id and "rail" not in b.battle_id][0]
+        bridge_battle = [
+            b for b in landing.battles if "bridge" in b.battle_id and "rail" not in b.battle_id
+        ][0]
         bridge_vls = [vl for vl in bridge_battle.victory_locations if vl.vl_type == "bridge"]
         assert any(vl.value == 40 for vl in bridge_vls)
 
@@ -339,7 +388,9 @@ class TestCreateMarketGardenCampaign:
         arnhem = campaign.sectors[0]
         for op in arnhem.operations:
             for battle in op.battles:
-                assert len(battle.victory_locations) >= 1, f"Battle {battle.battle_id} should have at least 1 victory location"
+                assert len(battle.victory_locations) >= 1, (
+                    f"Battle {battle.battle_id} should have at least 1 victory location"
+                )
 
     def test_daily_supply_points(self, campaign):
         assert campaign.daily_supply_points == 100
@@ -349,18 +400,18 @@ class TestCreateMarketGardenCampaign:
 # Runtime State Classes
 # ---------------------------------------------------------------------------
 
-class TestBattleState:
 
+class TestBattleState:
     def test_creation_default(self):
-        bs = BattleState(battle_id="b1", status="pending",
-                         vl_control={}, casualties={})
+        bs = BattleState(battle_id="b1", status="pending", vl_control={}, casualties={})
         assert bs.battle_id == "b1"
         assert bs.status == "pending"
         assert bs.turns_elapsed == 0
 
     def test_with_vl_control(self):
         bs = BattleState(
-            battle_id="b1", status="active",
+            battle_id="b1",
+            status="active",
             vl_control={"vl_1": Faction.BRITISH},
             casualties={"BRITISH": {"kia": 2, "wounded": 5}},
         )
@@ -368,8 +419,7 @@ class TestBattleState:
         assert bs.casualties["BRITISH"]["kia"] == 2
 
     def test_mutable_state(self):
-        bs = BattleState(battle_id="b1", status="pending",
-                         vl_control={}, casualties={})
+        bs = BattleState(battle_id="b1", status="pending", vl_control={}, casualties={})
         bs.status = "allied_victory"
         bs.turns_elapsed = 15
         assert bs.status == "allied_victory"
@@ -377,7 +427,6 @@ class TestBattleState:
 
 
 class TestOperationState:
-
     def test_creation_default(self):
         os = OperationState(operation_id="op1", status="pending")
         assert os.current_battle_index == 0
@@ -385,10 +434,10 @@ class TestOperationState:
         assert os.total_victory_points == {}
 
     def test_with_battle_results(self):
-        bs = BattleState(battle_id="b1", status="allied_victory",
-                         vl_control={}, casualties={})
+        bs = BattleState(battle_id="b1", status="allied_victory", vl_control={}, casualties={})
         os = OperationState(
-            operation_id="op1", status="active",
+            operation_id="op1",
+            status="active",
             battle_results=[bs],
             total_victory_points={"BRITISH": 50, "GERMAN": 20},
         )
@@ -397,20 +446,17 @@ class TestOperationState:
 
 
 class TestSectorState:
-
     def test_creation_default(self):
         ss = SectorState(sector_id="arnhem", status="pending")
         assert ss.supply_available is True
         assert ss.lz_controlled is True
 
     def test_lz_lost(self):
-        ss = SectorState(sector_id="arnhem", status="active",
-                         lz_controlled=False)
+        ss = SectorState(sector_id="arnhem", status="active", lz_controlled=False)
         assert ss.lz_controlled is False
 
 
 class TestGrandCampaignState:
-
     def test_creation_default(self):
         gcs = GrandCampaignState()
         assert gcs.current_day == 1
@@ -428,8 +474,7 @@ class TestGrandCampaignState:
     def test_complete_battle(self):
         gcs = GrandCampaignState()
         gcs.sectors["arnhem"] = SectorState(sector_id="arnhem", status="active")
-        bs = BattleState(battle_id="b1", status="allied_victory",
-                         vl_control={}, casualties={})
+        bs = BattleState(battle_id="b1", status="allied_victory", vl_control={}, casualties={})
         gcs.sectors["arnhem"].operations.append(
             OperationState(operation_id="op1", status="active", battle_results=[bs])
         )
@@ -439,7 +484,8 @@ class TestGrandCampaignState:
         gcs = GrandCampaignState()
         gcs.sectors["arnhem"] = SectorState(sector_id="arnhem", status="active")
         op = OperationState(
-            operation_id="op1", status="complete",
+            operation_id="op1",
+            status="complete",
             total_victory_points={"BRITISH": 100, "GERMAN": 30},
         )
         gcs.sectors["arnhem"].operations.append(op)
@@ -448,19 +494,29 @@ class TestGrandCampaignState:
 
     def test_requisition_remaining(self):
         op = OperationState(
-            operation_id="op1", status="active",
+            operation_id="op1",
+            status="active",
             requisition_remaining={"BRITISH": 150, "GERMAN": 80},
         )
         assert op.requisition_remaining["BRITISH"] == 150
         assert op.requisition_remaining["GERMAN"] == 80
 
     def test_battle_result_persistence(self):
-        bs1 = BattleState(battle_id="b1", status="allied_victory",
-                          vl_control={"vl_1": Faction.BRITISH}, casualties={})
-        bs2 = BattleState(battle_id="b2", status="axis_victory",
-                          vl_control={"vl_1": Faction.GERMAN}, casualties={})
+        bs1 = BattleState(
+            battle_id="b1",
+            status="allied_victory",
+            vl_control={"vl_1": Faction.BRITISH},
+            casualties={},
+        )
+        bs2 = BattleState(
+            battle_id="b2",
+            status="axis_victory",
+            vl_control={"vl_1": Faction.GERMAN},
+            casualties={},
+        )
         op = OperationState(
-            operation_id="op1", status="active",
+            operation_id="op1",
+            status="active",
             battle_results=[bs1, bs2],
         )
         assert len(op.battle_results) == 2

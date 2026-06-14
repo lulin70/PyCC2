@@ -26,9 +26,9 @@ from pycc2.domain.ai.smoke_tactical_ai import (
 from pycc2.domain.ai.squad_degradation import (
     RALLY_COOLDOWN_TICKS,
     RALLY_RESTORE_MORALE,
+    NCORallyBehavior,
     SquadDegradationManager,
     SquadState,
-    NCORallyBehavior,
 )
 from pycc2.domain.ai.surrender_system import (
     SurrenderSystem,
@@ -42,15 +42,15 @@ from pycc2.domain.ai.weapon_jam import (
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent, MoraleState
 from pycc2.domain.components.position_component import PositionComponent
-from pycc2.domain.components.weapon_component import WeaponComponent, WeaponState
 from pycc2.domain.components.vision_component import VisionComponent
+from pycc2.domain.components.weapon_component import WeaponComponent, WeaponState
 from pycc2.domain.entities.unit import Faction, Unit, UnitState, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
-
 
 # ---------------------------------------------------------------------------
 # Helpers — create units without pygame
 # ---------------------------------------------------------------------------
+
 
 def _make_unit(
     unit_id: str = "test_unit",
@@ -93,6 +93,7 @@ def _kill_unit(unit: Unit) -> None:
 # ---------------------------------------------------------------------------
 # FallenUnitCache tests
 # ---------------------------------------------------------------------------
+
 
 class TestFallenUnitCache:
     def test_fallen_unit_cache_creation(self) -> None:
@@ -146,6 +147,7 @@ class TestFallenUnitCache:
 # ---------------------------------------------------------------------------
 # AmmoPickupSystem tests
 # ---------------------------------------------------------------------------
+
 
 class TestAmmoPickup:
     def test_ammo_pickup_from_friendly(self) -> None:
@@ -217,8 +219,8 @@ class TestAmmoPickup:
         assert len(enemy_sources) >= 1, "Should find enemy corpse within 3 tiles"
 
         # Verify penalty constants
-        assert pickup_system.CAPTURED_ACCURACY_PENALTY == pytest.approx(0.20)
-        assert pickup_system.CAPTURED_RELOAD_PENALTY == pytest.approx(0.50)
+        assert pytest.approx(0.20) == pickup_system.CAPTURED_ACCURACY_PENALTY
+        assert pytest.approx(0.50) == pickup_system.CAPTURED_RELOAD_PENALTY
 
     def test_ammo_pickup_requires_stance(self) -> None:
         """Must be PRONE or CROUCHING to pick up."""
@@ -228,54 +230,44 @@ class TestAmmoPickup:
         # Default stance is STANDING via combat_state — should fail
         from pycc2.domain.systems.combat_mechanics_enhanced import Stance
 
-        with patch.object(
-            AmmoPickupSystem, "_get_unit_stance", return_value=Stance.STANDING
-        ):
+        with patch.object(AmmoPickupSystem, "_get_unit_stance", return_value=Stance.STANDING):
             assert pickup_system.can_pickup(unit) is False
 
-        with patch.object(
-            AmmoPickupSystem, "_get_unit_stance", return_value=Stance.PRONE
+        with (
+            patch.object(AmmoPickupSystem, "_get_unit_stance", return_value=Stance.PRONE),
+            patch.object(AmmoPickupSystem, "_is_suppressed_moderate", return_value=False),
         ):
-            with patch.object(
-                AmmoPickupSystem, "_is_suppressed_moderate", return_value=False
-            ):
-                assert pickup_system.can_pickup(unit) is True
+            assert pickup_system.can_pickup(unit) is True
 
-        with patch.object(
-            AmmoPickupSystem, "_get_unit_stance", return_value=Stance.CROUCHING
+        with (
+            patch.object(AmmoPickupSystem, "_get_unit_stance", return_value=Stance.CROUCHING),
+            patch.object(AmmoPickupSystem, "_is_suppressed_moderate", return_value=False),
         ):
-            with patch.object(
-                AmmoPickupSystem, "_is_suppressed_moderate", return_value=False
-            ):
-                assert pickup_system.can_pickup(unit) is True
+            assert pickup_system.can_pickup(unit) is True
 
     def test_ammo_pickup_blocked_when_suppressed(self) -> None:
         """Cannot pick up when suppression > MODERATE."""
         pickup_system = AmmoPickupSystem()
         unit = _make_unit(unit_id="suppressed_unit")
 
-        with patch.object(
-            AmmoPickupSystem, "_is_suppressed_moderate", return_value=True
-        ):
+        with patch.object(AmmoPickupSystem, "_is_suppressed_moderate", return_value=True):
             assert pickup_system.can_pickup(unit) is False
 
-        with patch.object(
-            AmmoPickupSystem, "_is_suppressed_moderate", return_value=False
+        with (
+            patch.object(AmmoPickupSystem, "_is_suppressed_moderate", return_value=False),
+            patch.object(AmmoPickupSystem, "_get_unit_stance", return_value=MagicMock()),
         ):
-            with patch.object(
-                AmmoPickupSystem, "_get_unit_stance", return_value=MagicMock()
-            ):
-                # With stance returning PRONE, it should be allowed
-                from pycc2.domain.systems.combat_mechanics_enhanced import Stance
-                with patch.object(
-                    AmmoPickupSystem, "_get_unit_stance", return_value=Stance.PRONE
-                ):
-                    assert pickup_system.can_pickup(unit) is True
+            # With stance returning PRONE, it should be allowed
+            from pycc2.domain.systems.combat_mechanics_enhanced import Stance
+
+            with patch.object(AmmoPickupSystem, "_get_unit_stance", return_value=Stance.PRONE):
+                assert pickup_system.can_pickup(unit) is True
 
 
 # ---------------------------------------------------------------------------
 # WeaponJamSystem tests
 # ---------------------------------------------------------------------------
+
 
 class TestWeaponJam:
     def test_weapon_jam_probability(self) -> None:
@@ -310,7 +302,10 @@ class TestWeaponJam:
 
         # Force a jam by setting probability to 1.0
         from pycc2.domain.ai.weapon_jam import JamConfig
-        forced_config = {"rifle": JamConfig(weapon_type="rifle", jam_probability=1.0, jam_clear_ticks=3)}
+
+        forced_config = {
+            "rifle": JamConfig(weapon_type="rifle", jam_probability=1.0, jam_clear_ticks=3)
+        }
         jam_system = WeaponJamSystem(jam_configs=forced_config, rng=rng)
 
         jam_system.check_jam_on_fire(unit)
@@ -339,12 +334,13 @@ class TestWeaponJam:
 
     def test_captured_weapon_jam_penalty(self) -> None:
         """Captured weapons have +1% jam rate and +50% clear time."""
-        assert CAPTURED_WEAPON_JAM_PENALTY == pytest.approx(0.01)
-        assert CAPTURED_WEAPON_CLEAR_MULTIPLIER == pytest.approx(1.5)
+        assert pytest.approx(0.01) == CAPTURED_WEAPON_JAM_PENALTY
+        assert pytest.approx(1.5) == CAPTURED_WEAPON_CLEAR_MULTIPLIER
 
         # Verify captured weapon gets increased clear time
         rng = random.Random(42)
         from pycc2.domain.ai.weapon_jam import JamConfig
+
         forced_config = {
             "rifle": JamConfig(weapon_type="rifle", jam_probability=1.0, jam_clear_ticks=3),
             "de_mp40": JamConfig(weapon_type="de_mp40", jam_probability=1.0, jam_clear_ticks=4),
@@ -367,6 +363,7 @@ class TestWeaponJam:
 # ---------------------------------------------------------------------------
 # SurrenderSystem tests
 # ---------------------------------------------------------------------------
+
 
 class TestSurrender:
     def test_surrender_conditions(self) -> None:
@@ -464,6 +461,7 @@ class TestSurrender:
 # SquadDegradation tests
 # ---------------------------------------------------------------------------
 
+
 class TestSquadDegradation:
     def test_squad_degradation_on_leader_killed(self) -> None:
         """SquadDegradationManager degrades squad when leader dies."""
@@ -517,6 +515,7 @@ class TestSquadDegradation:
 # ---------------------------------------------------------------------------
 # NCORally tests
 # ---------------------------------------------------------------------------
+
 
 class TestNCORally:
     def test_nco_rally_restores_morale(self) -> None:
@@ -590,6 +589,7 @@ class TestNCORally:
 # ---------------------------------------------------------------------------
 # Smoke system tests
 # ---------------------------------------------------------------------------
+
 
 class TestSmokeSystem:
     def test_smoke_deployment_properties(self) -> None:

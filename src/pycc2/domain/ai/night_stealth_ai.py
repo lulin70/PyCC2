@@ -59,6 +59,7 @@ _COVER_TERRAIN_TYPES: set[str] = {"woods", "hedge", "building_enterable", "crate
 # NightStealthAI
 # ---------------------------------------------------------------------------
 
+
 class NightStealthAI(TacticalAIBase):
     """Tactical AI for night stealth operations.
 
@@ -105,12 +106,10 @@ class NightStealthAI(TacticalAIBase):
         vl_boost = 0.0
         if context.vl_positions:
             friendly_faction = (
-                context.friendly_units[0].faction.name
-                if context.friendly_units else None
+                context.friendly_units[0].faction.name if context.friendly_units else None
             )
             uncontrolled_vls = [
-                v for v in context.vl_positions
-                if v[1] is None or v[1] != friendly_faction
+                v for v in context.vl_positions if v[1] is None or v[1] != friendly_faction
             ]
             if uncontrolled_vls:
                 vl_boost = 0.15
@@ -123,9 +122,7 @@ class NightStealthAI(TacticalAIBase):
             for enemy in context.enemy_units:
                 if not enemy.is_alive:
                     continue
-                dist = unit.position.tile_coord.chebyshev_distance(
-                    enemy.position.tile_coord
-                )
+                dist = unit.position.tile_coord.chebyshev_distance(enemy.position.tile_coord)
                 if dist <= 3:
                     enemy_penalty = 0.3
                     break
@@ -157,14 +154,12 @@ class NightStealthAI(TacticalAIBase):
         assigned: set[str] = set()
 
         friendly_faction = (
-            context.friendly_units[0].faction.name
-            if context.friendly_units else None
+            context.friendly_units[0].faction.name if context.friendly_units else None
         )
 
         # Find uncontrolled VLs as infiltration targets
         uncontrolled_vls = [
-            v for v in context.vl_positions
-            if v[1] is None or v[1] != friendly_faction
+            v for v in context.vl_positions if v[1] is None or v[1] != friendly_faction
         ]
 
         for unit in available:
@@ -213,9 +208,7 @@ class NightStealthAI(TacticalAIBase):
                 dist = unit_pos.chebyshev_distance(vl_pos)
                 if dist > 3:
                     # Use cover route toward VL
-                    cover_route_dest = self._find_cover_route_toward(
-                        unit, vl_pos, context
-                    )
+                    cover_route_dest = self._find_cover_route_toward(unit, vl_pos, context)
                     if cover_route_dest is not None:
                         assigned.add(unit.id)
                         intents.append(
@@ -230,9 +223,9 @@ class NightStealthAI(TacticalAIBase):
 
             # Priority 4: Set up ambush if enemy is nearby
             nearby_enemies = [
-                e for e in context.enemy_units
-                if e.is_alive
-                and unit_pos.chebyshev_distance(e.position.tile_coord) <= 8
+                e
+                for e in context.enemy_units
+                if e.is_alive and unit_pos.chebyshev_distance(e.position.tile_coord) <= 8
             ]
             if nearby_enemies and self._has_cover(unit, context):
                 assigned.add(unit.id)
@@ -312,7 +305,7 @@ class NightStealthAI(TacticalAIBase):
         terrain = game_map.get_terrain(pos)
         if terrain is None:
             return False
-        terrain_type = getattr(terrain, 'terrain_type', '')
+        terrain_type = getattr(terrain, "terrain_type", "")
         return terrain_type in _ROAD_TERRAIN_TYPES
 
     @staticmethod
@@ -353,12 +346,12 @@ class NightStealthAI(TacticalAIBase):
                     continue
 
                 # Avoid roads at night
-                terrain_type = getattr(terrain, 'terrain_type', '')
+                terrain_type = getattr(terrain, "terrain_type", "")
                 if terrain_type in _ROAD_TERRAIN_TYPES:
                     continue
 
-                concealment = getattr(terrain, 'concealment_modifier', 0.0)
-                cover = getattr(terrain, 'cover_modifier', 0.0)
+                concealment = getattr(terrain, "concealment_modifier", 0.0)
+                cover = getattr(terrain, "cover_modifier", 0.0)
 
                 if concealment < 0.1:
                     continue
@@ -434,12 +427,12 @@ class NightStealthAI(TacticalAIBase):
                 continue
 
             # Avoid roads at night
-            terrain_type = getattr(terrain, 'terrain_type', '')
+            terrain_type = getattr(terrain, "terrain_type", "")
             if terrain_type in _ROAD_TERRAIN_TYPES:
                 continue
 
-            concealment = getattr(terrain, 'concealment_modifier', 0.0)
-            cover = getattr(terrain, 'cover_modifier', 0.0)
+            concealment = getattr(terrain, "concealment_modifier", 0.0)
+            cover = getattr(terrain, "cover_modifier", 0.0)
 
             # Progress toward target
             current_dist = pos.chebyshev_distance(target)

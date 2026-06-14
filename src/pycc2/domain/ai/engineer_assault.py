@@ -90,27 +90,30 @@ _ENGINEER_TYPES: set[UnitType] = {
 # Assault phase
 # ---------------------------------------------------------------------------
 
+
 class AssaultPhase(Enum):
-    APPROACH = auto()       # Moving toward target under covering fire
-    PLACE_CHARGE = auto()   # Placing demo charge at target
-    RETREAT = auto()        # Retreating to safe distance
-    DETONATE = auto()       # Detonating the charge
-    FLAMETHROWER = auto()   # Using flamethrower on target
-    BANGALORE = auto()      # Using bangalore torpedo
-    COMPLETE = auto()       # Assault complete
+    APPROACH = auto()  # Moving toward target under covering fire
+    PLACE_CHARGE = auto()  # Placing demo charge at target
+    RETREAT = auto()  # Retreating to safe distance
+    DETONATE = auto()  # Detonating the charge
+    FLAMETHROWER = auto()  # Using flamethrower on target
+    BANGALORE = auto()  # Using bangalore torpedo
+    COMPLETE = auto()  # Assault complete
 
 
 # ---------------------------------------------------------------------------
 # Assault state
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class AssaultState:
     """Tracks the state of an ongoing engineer assault."""
+
     engineer_id: str
     target_position: TileCoord
     phase: AssaultPhase = AssaultPhase.APPROACH
-    charge_progress: int = 0       # 0 to DEMO_CHARGE_PLACE_TICKS
+    charge_progress: int = 0  # 0 to DEMO_CHARGE_PLACE_TICKS
     flamethrower_bursts_used: int = 0
     bangalore_direction: TileCoord | None = None
 
@@ -123,9 +126,11 @@ class AssaultState:
 # Fire zone
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class FireZone:
     """Tracks a fire zone created by a flamethrower."""
+
     position: TileCoord
     remaining_ticks: int
     damage_per_tick: int = FLAMETHROWER_FIRE_DAMAGE_PER_TICK
@@ -134,6 +139,7 @@ class FireZone:
 # ---------------------------------------------------------------------------
 # EngineerAssaultAI
 # ---------------------------------------------------------------------------
+
 
 class EngineerAssaultAI(TacticalAIBase):
     """Evaluate and execute assaults on fortified enemy positions.
@@ -175,10 +181,7 @@ class EngineerAssaultAI(TacticalAIBase):
         fort_ratio = min(len(fortified) / 3.0, 1.0)
 
         # Engineer availability
-        available = [
-            e for e in engineers
-            if e.id not in self._assaults
-        ]
+        available = [e for e in engineers if e.id not in self._assaults]
         eng_ratio = min(len(available) / max(len(engineers), 1), 1.0)
 
         score = 0.5 * fort_ratio + 0.5 * eng_ratio
@@ -208,10 +211,7 @@ class EngineerAssaultAI(TacticalAIBase):
                 intents.append(intent)
 
         # Start new assaults
-        available = [
-            e for e in engineers
-            if e.id not in assigned and e.id not in self._assaults
-        ]
+        available = [e for e in engineers if e.id not in assigned and e.id not in self._assaults]
 
         for engineer in available:
             # Find nearest fortified position
@@ -268,7 +268,9 @@ class EngineerAssaultAI(TacticalAIBase):
         return expired
 
     def apply_demo_charge(
-        self, position: TileCoord, game_map: GameMap,
+        self,
+        position: TileCoord,
+        game_map: GameMap,
         event_bus: IEventPublisher | None = None,
     ) -> list[TileCoord]:
         """Apply demo charge effects at a position.
@@ -292,30 +294,25 @@ class EngineerAssaultAI(TacticalAIBase):
                 # Destroy building walls
                 if terrain == TerrainType.BUILDING_SOLID:
                     game_map.modify_terrain(tc.x, tc.y, TerrainType.OPEN)
-                    self._logger.info(
-                        f"Demo charge destroyed building wall at "
-                        f"({tc.x}, {tc.y})"
-                    )
+                    self._logger.info(f"Demo charge destroyed building wall at ({tc.x}, {tc.y})")
 
                 # Destroy bridge
                 elif terrain == TerrainType.BRIDGE:
                     game_map.modify_terrain(tc.x, tc.y, TerrainType.BRIDGE_DESTROYED)
-                    self._logger.info(
-                        f"Demo charge destroyed bridge at "
-                        f"({tc.x}, {tc.y})"
-                    )
+                    self._logger.info(f"Demo charge destroyed bridge at ({tc.x}, {tc.y})")
                     if event_bus is not None:
-                        event_bus.publish_named("BridgeDestroyed", {
-                            "event_type": "BridgeDestroyed",
-                            "position": (tc.x, tc.y),
-                            "message": "Bridge Destroyed",
-                        })
+                        event_bus.publish_named(
+                            "BridgeDestroyed",
+                            {
+                                "event_type": "BridgeDestroyed",
+                                "position": (tc.x, tc.y),
+                                "message": "Bridge Destroyed",
+                            },
+                        )
 
         return affected
 
-    def apply_flamethrower(
-        self, origin: TileCoord, target: TileCoord
-    ) -> FireZone:
+    def apply_flamethrower(self, origin: TileCoord, target: TileCoord) -> FireZone:
         """Apply flamethrower effects at the target position.
 
         Creates a fire zone at the target position.
@@ -356,9 +353,7 @@ class EngineerAssaultAI(TacticalAIBase):
             terrain = game_map.get_terrain(current)
             if terrain in BANGALORE_CLEARABLE:
                 cleared.append(current)
-                self._logger.info(
-                    f"Bangalore cleared hedge at ({current.x}, {current.y})"
-                )
+                self._logger.info(f"Bangalore cleared hedge at ({current.x}, {current.y})")
 
             current = TileCoord(current.x + step_x, current.y + step_y)
 
@@ -373,9 +368,7 @@ class EngineerAssaultAI(TacticalAIBase):
         import random
 
         if random.random() < FLAMETHROWER_EXPLODE_CHANCE:
-            self._logger.info(
-                f"Flamethrower fuel tank exploded on unit {engineer.id}!"
-            )
+            self._logger.info(f"Flamethrower fuel tank exploded on unit {engineer.id}!")
             return True
         return False
 
@@ -455,15 +448,18 @@ class EngineerAssaultAI(TacticalAIBase):
 
             # Damage enemies at the target position
             for enemy in context.enemy_units:
-                if enemy.is_alive and enemy.position.tile_coord.chebyshev_distance(target_pos) <= DEMO_CHARGE_RADIUS:
+                if (
+                    enemy.is_alive
+                    and enemy.position.tile_coord.chebyshev_distance(target_pos)
+                    <= DEMO_CHARGE_RADIUS
+                ):
                     enemy.take_damage(DEMO_CHARGE_DAMAGE)
 
             state.phase = AssaultPhase.COMPLETE
             self._assaults.pop(engineer.id, None)
 
             self._logger.info(
-                f"Engineer {engineer.id} detonated charge at "
-                f"({target_pos.x}, {target_pos.y})"
+                f"Engineer {engineer.id} detonated charge at ({target_pos.x}, {target_pos.y})"
             )
             return TacticIntent(
                 unit_id=engineer.id,
@@ -478,7 +474,8 @@ class EngineerAssaultAI(TacticalAIBase):
     def _find_engineers(context: TacticalContext) -> list[Unit]:
         """Find engineer-capable units."""
         return [
-            u for u in context.friendly_units
+            u
+            for u in context.friendly_units
             if u.is_alive and u.can_act and u.unit_type in _ENGINEER_TYPES
         ]
 
@@ -502,9 +499,7 @@ class EngineerAssaultAI(TacticalAIBase):
                 key = (pos.x, pos.y)
                 fortified.setdefault(key, []).append(enemy.id)
 
-        return [
-            (TileCoord(k[0], k[1]), v) for k, v in fortified.items()
-        ]
+        return [(TileCoord(k[0], k[1]), v) for k, v in fortified.items()]
 
     @staticmethod
     def _find_unit(unit_id: str, units: list[Unit]) -> Unit | None:

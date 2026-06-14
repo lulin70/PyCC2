@@ -59,7 +59,9 @@ class FlashEffectSystem:
         self._elapsed = 0.0
         logger.debug(
             "Screen flash triggered: color=%s, intensity=%.2f, duration=%.2fs",
-            color, intensity, duration,
+            color,
+            intensity,
+            duration,
         )
 
     def update(self, dt: float) -> None:

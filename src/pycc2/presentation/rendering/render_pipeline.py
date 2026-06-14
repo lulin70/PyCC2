@@ -4,18 +4,18 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from pycc2.domain.interfaces import IAIService
-
 import pygame
+
+from pycc2.domain.interfaces import IAIService
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
-    from pycc2.presentation.rendering.camera import Camera
     from pycc2.domain.interfaces.display_config import DisplayConfig
+    from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-    from pycc2.presentation.rendering.window_config import WindowManager
     from pycc2.presentation.rendering.weather_system import WeatherRenderer
+    from pycc2.presentation.rendering.window_config import WindowManager
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +67,8 @@ class RenderPipeline:
 
         # Render weather effects (before HUD) - P0-3 Fix: Use injected values or defaults
         if self.weather_renderer is not None:
-            from pycc2.domain.systems.environment import WeatherCondition, TimeOfDay
+            from pycc2.domain.systems.environment import TimeOfDay, WeatherCondition
+
             screen = self.window_manager.get_screen()
             cam_x, cam_y = int(camera.x), int(camera.y)
             # Use provided values or fallback to defaults (backward compatible)
@@ -174,7 +175,10 @@ class RenderPipeline:
 
         # Overlay – reuse cached surface
         overlay_size = (sw, sh)
-        if self._post_battle_overlay_cache is None or self._post_battle_overlay_cache_size != overlay_size:
+        if (
+            self._post_battle_overlay_cache is None
+            or self._post_battle_overlay_cache_size != overlay_size
+        ):
             self._post_battle_overlay_cache = pygame.Surface(overlay_size, pygame.SRCALPHA)
             self._post_battle_overlay_cache_size = overlay_size
         overlay = self._post_battle_overlay_cache
@@ -189,7 +193,10 @@ class RenderPipeline:
 
         # Panel – reuse cached surface
         panel_size = (panel_w, panel_h)
-        if self._post_battle_panel_cache is None or self._post_battle_panel_cache_size != panel_size:
+        if (
+            self._post_battle_panel_cache is None
+            or self._post_battle_panel_cache_size != panel_size
+        ):
             self._post_battle_panel_cache = pygame.Surface(panel_size, pygame.SRCALPHA)
             self._post_battle_panel_cache_size = panel_size
         panel_surf = self._post_battle_panel_cache

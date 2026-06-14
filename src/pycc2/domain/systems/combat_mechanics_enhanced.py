@@ -33,14 +33,16 @@ logger = logging.getLogger(__name__)
 # PHASE C1: SUPPRESSION SYSTEM
 # ========================================================================
 
+
 class SuppressionEffect(Enum):
     """Effects of suppression on unit performance."""
-    NONE = auto()           # No effect (suppression < 30)
-    LIGHT = auto()          # -10% accuracy, slight morale risk
-    MODERATE = auto()       # -25% accuracy, -20% movement, cannot sprint
-    HEAVY = auto()          # -50% accuracy, -50% movement, pinned (no offensive actions)
-    PINNED = auto()         # -75% accuracy, cannot move or attack (hunkered down)
-    PANIC = auto()          # Cannot act, fleeing behavior, potential rout
+
+    NONE = auto()  # No effect (suppression < 30)
+    LIGHT = auto()  # -10% accuracy, slight morale risk
+    MODERATE = auto()  # -25% accuracy, -20% movement, cannot sprint
+    HEAVY = auto()  # -50% accuracy, -50% movement, pinned (no offensive actions)
+    PINNED = auto()  # -75% accuracy, cannot move or attack (hunkered down)
+    PANIC = auto()  # Cannot act, fleeing behavior, potential rout
 
 
 @dataclass
@@ -58,25 +60,25 @@ class SuppressionState:
     - Stack: Multiple hits increase suppression (tactical value of MGs)
     """
 
-    current_suppression: float = 0.0      # Current suppression (0-100)
-    max_suppression: float = 100.0        # Maximum possible
+    current_suppression: float = 0.0  # Current suppression (0-100)
+    max_suppression: float = 100.0  # Maximum possible
 
     # Configuration thresholds
-    light_threshold: float = 25.0         # Light effects begin
-    moderate_threshold: float = 45.0      # Moderate effects
-    heavy_threshold: float = 65.0         # Heavy effects
-    pinned_threshold: float = 80.0        # Pinned (cannot act offensively)
-    panic_threshold: float = 95.0         # Panic (complete breakdown)
+    light_threshold: float = 25.0  # Light effects begin
+    moderate_threshold: float = 45.0  # Moderate effects
+    heavy_threshold: float = 65.0  # Heavy effects
+    pinned_threshold: float = 80.0  # Pinned (cannot act offensively)
+    panic_threshold: float = 95.0  # Panic (complete breakdown)
 
     # Recovery parameters
-    base_recovery_rate: float = 8.0       # Base recovery per turn phase
-    cover_recovery_bonus: float = 4.0     # Extra recovery in good cover
-    out_of_los_recovery_mult: float = 1.5 # Faster recovery when hidden
+    base_recovery_rate: float = 8.0  # Base recovery per turn phase
+    cover_recovery_bonus: float = 4.0  # Extra recovery in good cover
+    out_of_los_recovery_mult: float = 1.5  # Faster recovery when hidden
 
     # State tracking
-    turns_since_last_hit: int = 0         # For recovery calculation
-    is_pinned: bool = False              # Cached state
-    is_panicked: bool = False            # Cached state
+    turns_since_last_hit: int = 0  # For recovery calculation
+    is_pinned: bool = False  # Cached state
+    is_panicked: bool = False  # Cached state
 
     def apply_suppression(self, amount: float) -> tuple[SuppressionEffect, bool]:
         """
@@ -97,8 +99,8 @@ class SuppressionState:
         state_changed = old_effect != new_effect
 
         # Update cached states
-        self.is_pinned = (new_effect in [SuppressionEffect.PINNED, SuppressionEffect.PANIC])
-        self.is_panicked = (new_effect == SuppressionEffect.PANIC)
+        self.is_pinned = new_effect in [SuppressionEffect.PINNED, SuppressionEffect.PANIC]
+        self.is_panicked = new_effect == SuppressionEffect.PANIC
 
         return new_effect, state_changed
 
@@ -131,8 +133,8 @@ class SuppressionState:
 
         # Update cached states
         effect = self.get_current_effect()
-        self.is_pinned = (effect in [SuppressionEffect.PINNED, SuppressionEffect.PANIC])
-        self.is_panicked = (effect == SuppressionEffect.PANIC)
+        self.is_pinned = effect in [SuppressionEffect.PINNED, SuppressionEffect.PANIC]
+        self.is_panicked = effect == SuppressionEffect.PANIC
 
         return effect
 
@@ -172,8 +174,8 @@ class SuppressionState:
             SuppressionEffect.LIGHT: 0.95,
             SuppressionEffect.MODERATE: 0.80,
             SuppressionEffect.HEAVY: 0.50,
-            SuppressionEffect.PINNED: 0.0,   # Cannot move
-            SuppressionEffect.PANIC: 1.5,    # Fleeing (uncontrolled)
+            SuppressionEffect.PINNED: 0.0,  # Cannot move
+            SuppressionEffect.PANIC: 1.5,  # Fleeing (uncontrolled)
         }
         return penalties.get(effect, 1.0)
 
@@ -185,19 +187,19 @@ class SuppressionState:
     def to_dict(self) -> dict[str, Any]:
         """Serialize for save/load."""
         return {
-            'current': self.current_suppression,
-            'pinned': self.is_pinned,
-            'panicked': self.is_panicked,
-            'turns_since_hit': self.turns_since_last_hit,
+            "current": self.current_suppression,
+            "pinned": self.is_pinned,
+            "panicked": self.is_panicked,
+            "turns_since_hit": self.turns_since_last_hit,
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> 'SuppressionState':
+    def from_dict(cls, data: dict[str, Any]) -> SuppressionState:
         """Deserialize from saved data."""
-        state = cls(current_suppression=data.get('current', 0.0))
-        state.is_pinned = data.get('pinned', False)
-        state.is_panicked = data.get('panicked', False)
-        state.turns_since_last_hit = data.get('turns_since_hit', 0)
+        state = cls(current_suppression=data.get("current", 0.0))
+        state.is_pinned = data.get("pinned", False)
+        state.is_panicked = data.get("panicked", False)
+        state.turns_since_last_hit = data.get("turns_since_hit", 0)
         return state
 
 
@@ -206,7 +208,7 @@ def calculate_suppression_from_attack(
     hit_success: bool,
     damage_amount: float,
     is_near_miss: bool = False,
-    is_explosive: bool = False
+    is_explosive: bool = False,
 ) -> float:
     """
     Calculate suppression inflicted by an attack.
@@ -240,20 +242,23 @@ def calculate_suppression_from_attack(
 # PHASE C2: CONCEALMENT & VISION SYSTEM
 # ========================================================================
 
+
 class Stance(Enum):
     """Unit stance affecting visibility and concealment."""
-    STANDING = auto()       # Normal (default)
-    CROUCHING = auto()      # Slightly harder to see
-    PRONE = auto()          # Much harder to see, slower movement
-    IN_BUILDING = auto()    # Inside structure (excellent concealment)
+
+    STANDING = auto()  # Normal (default)
+    CROUCHING = auto()  # Slightly harder to see
+    PRONE = auto()  # Much harder to see, slower movement
+    IN_BUILDING = auto()  # Inside structure (excellent concealment)
 
 
 class VisibilityLevel(Enum):
     """How visible a unit is to enemies."""
-    HIDDEN = auto()         # Cannot be seen at all
-    PARTIAL = auto()        # Spotted but hard to target (-accuracy)
-    CLEAR = auto()          # Fully visible (normal targeting)
-    EXPOSED = auto()        # Highlighted target (+enemy accuracy)
+
+    HIDDEN = auto()  # Cannot be seen at all
+    PARTIAL = auto()  # Spotted but hard to target (-accuracy)
+    CLEAR = auto()  # Fully visible (normal targeting)
+    EXPOSED = auto()  # Highlighted target (+enemy accuracy)
 
 
 @dataclass
@@ -273,29 +278,31 @@ class ConcealmentProfile:
     """
 
     # Base concealment from terrain (set by tile properties)
-    terrain_concealment: float = 0.0      # 0.0 to 0.6 from EnhancedTile
+    terrain_concealment: float = 0.0  # 0.0 to 0.6 from EnhancedTile
 
     # Stance modifiers
-    stance_modifiers: dict[Stance, float] = field(default_factory=lambda: {
-        Stance.STANDING: 0.0,
-        Stance.CROUCHING: 0.2,
-        Stance.PRONE: 0.4,
-        Stance.IN_BUILDING: 0.6,
-    })
+    stance_modifiers: dict[Stance, float] = field(
+        default_factory=lambda: {
+            Stance.STANDING: 0.0,
+            Stance.CROUCHING: 0.2,
+            Stance.PRONE: 0.4,
+            Stance.IN_BUILDING: 0.6,
+        }
+    )
     current_stance: Stance = Stance.STANDING
 
     # Dynamic modifiers
-    movement_penalty: float = -0.2        # Moving reduces concealment
-    firing_penalty: float = -0.5          # Recently fired reveals position
-    firing_decay_rate: float = 0.3        # How fast firing penalty decays per turn
+    movement_penalty: float = -0.2  # Moving reduces concealment
+    firing_penalty: float = -0.5  # Recently fired reveals position
+    firing_decay_rate: float = 0.3  # How fast firing penalty decays per turn
 
     # Special modifiers
-    special_bonus: float = 0.0           # From camo net, smoke, etc.
+    special_bonus: float = 0.0  # From camo net, smoke, etc.
 
     # State tracking
     is_moving: bool = False
-    turns_since_fired: int = 10          # High = penalty fully decayed
-    in_smoke: bool = False               # Smoke provides +0.5
+    turns_since_fired: int = 10  # High = penalty fully decayed
+    in_smoke: bool = False  # Smoke provides +0.5
 
     def calculate_total_concealment(self) -> float:
         """
@@ -374,7 +381,7 @@ class ConcealmentProfile:
         self.current_stance = new_stance
 
 
-@dataclass 
+@dataclass
 class VisionSystem:
     """
     Handles line-of-sight (LOS) calculations and detection.
@@ -395,10 +402,10 @@ class VisionSystem:
 
     # Height advantages
     HEIGHT_VISION_BONUS_PER_LEVEL: int = 1  # Each height level = +1 vision
-    MAX_VISION_RANGE: int = 15             # Hard cap
+    MAX_VISION_RANGE: int = 15  # Hard cap
 
     # Detection thresholds
-    DETECTION_CHANCE_HIDDEN: float = 0.05   # 5% chance to spot hidden unit (adjacent)
+    DETECTION_CHANCE_HIDDEN: float = 0.05  # 5% chance to spot hidden unit (adjacent)
     DETECTION_CHANCE_PARTIAL: float = 0.40  # 40% chance to clearly identify partial
 
     def calculate_vision_range(
@@ -406,7 +413,7 @@ class VisionSystem:
         unit_height: int,
         is_scout: bool = False,
         is_vehicle: bool = False,
-        weather_modifier: float = 1.0
+        weather_modifier: float = 1.0,
     ) -> int:
         """Calculate effective vision range for a unit."""
         vision = self.BASE_VISION_RANGE
@@ -434,7 +441,7 @@ class VisionSystem:
         target_height: int,
         terrain_grid: list[list[int]],  # Need terrain for blocking checks
         map_width: int,
-        map_height: int
+        map_height: int,
     ) -> bool:
         """
         Check if observer has clear LOS to target.
@@ -483,7 +490,7 @@ class VisionSystem:
         concealment: float,
         distance: int,
         observer_is_scout: bool = False,
-        in_smoke: bool = False
+        in_smoke: bool = False,
     ) -> tuple[bool, VisibilityLevel]:
         """
         Attempt to detect a concealed unit.
@@ -522,6 +529,7 @@ class VisionSystem:
 # INTEGRATION HELPERS
 # ========================================================================
 
+
 @dataclass
 class CombatState:
     """
@@ -529,6 +537,7 @@ class CombatState:
 
     This is what gets attached to each Unit entity.
     """
+
     suppression: SuppressionState = field(default_factory=SuppressionState)
     concealment: ConcealmentProfile = field(default_factory=ConcealmentProfile)
     vision: VisionSystem = field(default_factory=VisionSystem)
@@ -537,11 +546,7 @@ class CombatState:
     last_fired_tick: int = -1
 
     def process_attack_received(
-        self,
-        weapon_suppress_ability: float,
-        hit: bool,
-        damage: float,
-        is_explosive: bool = False
+        self, weapon_suppress_ability: float, hit: bool, damage: float, is_explosive: bool = False
     ) -> dict[str, Any]:
         """
         Process incoming attack - update both systems.
@@ -552,8 +557,7 @@ class CombatState:
         # Apply suppression
         suppr_effect, suppr_changed = self.suppression.apply_suppression(
             calculate_suppression_from_attack(
-                weapon_suppress_ability, hit, damage,
-                is_explosive=is_explosive
+                weapon_suppress_ability, hit, damage, is_explosive=is_explosive
             )
         )
 
@@ -561,13 +565,13 @@ class CombatState:
         # (Note: This is for when THIS unit fires, handled separately)
 
         return {
-            'suppression_effect': suppr_effect.name,
-            'suppression_changed': suppr_changed,
-            'current_suppression': self.suppression.current_suppression,
-            'accuracy_penalty': self.suppression.get_accuracy_penalty(),
-            'movement_penalty': self.suppression.get_movement_penalty(),
-            'can_act': self.suppression.can_take_offensive_action(),
-            'concealment': self.concealment.calculate_total_concealment(),
+            "suppression_effect": suppr_effect.name,
+            "suppression_changed": suppr_changed,
+            "current_suppression": self.suppression.current_suppression,
+            "accuracy_penalty": self.suppression.get_accuracy_penalty(),
+            "movement_penalty": self.suppression.get_movement_penalty(),
+            "can_act": self.suppression.can_take_offensive_action(),
+            "concealment": self.concealment.calculate_total_concealment(),
         }
 
     def process_turn_start(self) -> dict[str, Any]:
@@ -575,16 +579,16 @@ class CombatState:
         # Suppression recovery
         suppr_effect = self.suppression.recover(
             in_cover=True,  # Would check actual cover
-            out_of_los=False  # Would check actual LOS
+            out_of_los=False,  # Would check actual LOS
         )
 
         # Concealment decay (firing penalty fades)
         self.concealment.advance_turn()
 
         return {
-            'new_suppression_effect': suppr_effect.name,
-            'recovered_suppression': self.suppression.current_suppression,
-            'current_concealment': self.concealment.calculate_total_concealment(),
+            "new_suppression_effect": suppr_effect.name,
+            "recovered_suppression": self.suppression.current_suppression,
+            "current_concealment": self.concealment.calculate_total_concealment(),
         }
 
 
@@ -606,15 +610,18 @@ def demo_combat_systems():
     state.suppression.current_suppression = 10.0  # Slightly stressed
 
     logger.debug("\n📊 Initial State:")
-    logger.debug("   Suppression: %s/100 (%s)",
-                 state.suppression.current_suppression,
-                 state.suppression.get_current_effect().name)
-    logger.debug("   Concealment: %.2f",
-                 state.concealment.calculate_total_concealment())
-    logger.debug("   Accuracy Penalty: %.0f%%",
-                 (1 - state.suppression.get_accuracy_penalty()) * 100)
-    logger.debug("   Movement Penalty: %.0f%%",
-                 (1 - state.suppression.get_movement_penalty()) * 100)
+    logger.debug(
+        "   Suppression: %s/100 (%s)",
+        state.suppression.current_suppression,
+        state.suppression.get_current_effect().name,
+    )
+    logger.debug("   Concealment: %.2f", state.concealment.calculate_total_concealment())
+    logger.debug(
+        "   Accuracy Penalty: %.0f%%", (1 - state.suppression.get_accuracy_penalty()) * 100
+    )
+    logger.debug(
+        "   Movement Penalty: %.0f%%", (1 - state.suppression.get_movement_penalty()) * 100
+    )
 
     # Simulate coming under heavy MG fire
     logger.debug("\n💥 SIMULATION: Under MG42 Fire (High Suppress Weapon)")
@@ -628,16 +635,21 @@ def demo_combat_systems():
         )
         logger.debug(
             "   Burst %s: Suppression → %.1f (%s) | Accuracy: %.0f%% | Can Act: %s",
-            i + 1, result['current_suppression'], result['suppression_effect'],
-            result['accuracy_penalty'] * 100,
-            'YES' if result['can_act'] else 'NO - PINNED')
+            i + 1,
+            result["current_suppression"],
+            result["suppression_effect"],
+            result["accuracy_penalty"] * 100,
+            "YES" if result["can_act"] else "NO - PINNED",
+        )
 
     # Simulate recovery
     logger.debug("\n😤 RECOVERY: Turn Ends (In Cover)")
     recovery = state.process_turn_start()
-    logger.debug("   After Recovery: %.1f (%s)",
-                 recovery['recovered_suppression'],
-                 recovery['new_suppression_effect'])
+    logger.debug(
+        "   After Recovery: %.1f (%s)",
+        recovery["recovered_suppression"],
+        recovery["new_suppression_effect"],
+    )
 
     # Show concealment effects
     logger.debug("\n👁️ CONCEALMENT SYSTEM TEST:")
@@ -645,13 +657,12 @@ def demo_combat_systems():
         state.concealment.set_stance(stance)
         conc = state.concealment.calculate_total_concealment()
         vis = state.vision.attempt_detection(conc, distance=5)[1]
-        logger.debug("   %s: Concealment=%.2f | Visibility=%s",
-                     stance.name, conc, vis.name)
+        logger.debug("   %s: Concealment=%.2f | Visibility=%s", stance.name, conc, vis.name)
 
     logger.debug("\n" + "=" * 80)
     logger.debug("✅ Demo Complete - Systems Ready for Integration!")
     logger.debug("=" * 80)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     demo_combat_systems()
