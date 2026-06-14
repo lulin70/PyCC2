@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import json
+import os
 from dataclasses import dataclass
 from enum import Enum, auto
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -17,6 +20,12 @@ class SettingsTab(Enum):
 
 @dataclass(slots=True)
 class SettingsState:
+    _SAVE_PATH = os.path.join(
+        os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config')),
+        'pycc2',
+        'settings.json',
+    )
+
     master_volume: float = 0.8
     music_volume: float = 0.6
     sfx_volume: float = 1.0
@@ -28,6 +37,37 @@ class SettingsState:
     damage_numbers: bool = True
     difficulty: str = "MEDIUM"
     autosave_interval: int = 300
+
+    def save(self) -> None:
+        """Persist settings to disk."""
+        path = Path(self._SAVE_PATH)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        data = {
+            'master_volume': self.master_volume,
+            'music_volume': self.music_volume,
+            'sfx_volume': self.sfx_volume,
+            'quality_preset': self.quality_preset,
+            'show_fps': self.show_fps,
+            'show_debug': self.show_debug,
+            'screen_shake': self.screen_shake,
+            'particles': self.particles,
+            'damage_numbers': self.damage_numbers,
+            'difficulty': self.difficulty,
+            'autosave_interval': self.autosave_interval,
+        }
+        path.write_text(json.dumps(data, indent=2))
+
+    @classmethod
+    def load(cls) -> SettingsState:
+        """Load settings from disk, falling back to defaults."""
+        path = Path(cls._SAVE_PATH)
+        if path.exists():
+            try:
+                data = json.loads(path.read_text())
+                return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
+            except (json.JSONDecodeError, TypeError):
+                pass
+        return cls()
 
 
 class SettingsMenu:
@@ -73,9 +113,11 @@ class SettingsMenu:
         self._visible = not self._visible
 
     def show(self) -> None:
+        self.state = SettingsState.load()
         self._visible = True
 
     def hide(self) -> None:
+        self.state.save()
         self._visible = False
 
     def handle_input(self, event, mouse_pos) -> str | None:
@@ -236,8 +278,8 @@ class SettingsMenu:
                     rows = []
                     for action in ACTION_LABELS:
                         label = ACTION_LABELS[action]
-                        key_code = bindings.get(action, 0)
-                        key_name = self._keybind_manager.key_name(key_code) if key_code else "???"
+                        key_combo = bindings.get(action, (0,))
+                        key_name = self._keybind_manager.key_name(key_combo) if key_combo else "???"
                         if self._keybind_manager.is_listening and self._keybind_manager.listening_action == action:
                             key_name = "Press any key..."
                         rows.append((label, key_name, "keybind"))

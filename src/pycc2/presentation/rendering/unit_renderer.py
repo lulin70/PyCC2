@@ -289,10 +289,7 @@ class UnitRenderer:
 
             smoke_color = (120, 120, 120)
 
-            if get_pooled:
-                smoke_surf = get_pooled((size * 2, size * 2))
-            else:
-                smoke_surf = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
+            smoke_surf = get_pooled((size * 2, size * 2))
             pygame.draw.circle(smoke_surf, (*smoke_color, alpha), (size, size), size)
             offscreen.blit(smoke_surf, (px - size, py - size))
 
@@ -304,18 +301,12 @@ class UnitRenderer:
             size = particle.get('size', 3)
 
             glow_size = size + 2
-            if get_pooled:
-                glow_surf = get_pooled((glow_size * 2, glow_size * 2))
-            else:
-                glow_surf = pygame.Surface((glow_size * 2, glow_size * 2), pygame.SRCALPHA)
+            glow_surf = get_pooled((glow_size * 2, glow_size * 2))
             pygame.draw.circle(glow_surf, (*color, 80), (glow_size, glow_size), glow_size)
             offscreen.blit(glow_surf, (px - glow_size, py - glow_size))
 
             bright_color = tuple(min(255, c + 40) for c in color)
-            if get_pooled:
-                core_surf = get_pooled((size * 2, size * 2))
-            else:
-                core_surf = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
+            core_surf = get_pooled((size * 2, size * 2))
             pygame.draw.circle(core_surf, (*bright_color, 200), (size, size), size // 2 + 1)
             offscreen.blit(core_surf, (px - size, py - size))
 
@@ -425,10 +416,7 @@ class UnitRenderer:
             trail_cy = cy - int(offset_dist * math.sin(facing))
 
             trail_size = radius * 2 + 4
-            if get_pooled:
-                trail_surf = get_pooled((trail_size, trail_size))
-            else:
-                trail_surf = pygame.Surface((trail_size, trail_size), pygame.SRCALPHA)
+            trail_surf = get_pooled((trail_size, trail_size))
             trail_center = trail_size // 2
 
             trail_color = (*base_color[:3], 100)
@@ -439,10 +427,7 @@ class UnitRenderer:
             offscreen.blit(trail_surf, (trail_cx - trail_center, trail_cy - trail_center))
 
         elif movement_mode == "sneak":
-            if get_pooled:
-                alpha_surface = get_pooled((radius * 2 + 10, radius * 2 + 10))
-            else:
-                alpha_surface = pygame.Surface((radius * 2 + 10, radius * 2 + 10), pygame.SRCALPHA)
+            alpha_surface = get_pooled((radius * 2 + 10, radius * 2 + 10))
             center = radius + 5
 
             sneak_color = (*base_color[:3], 140)
@@ -458,10 +443,7 @@ class UnitRenderer:
 
         elif movement_mode == "defend":
             shield_color = (100, 200, 255, 180)
-            if get_pooled:
-                shield_surf = get_pooled((radius * 2 + 20, radius * 2 + 20))
-            else:
-                shield_surf = pygame.Surface((radius * 2 + 20, radius * 2 + 20), pygame.SRCALPHA)
+            shield_surf = get_pooled((radius * 2 + 20, radius * 2 + 20))
             center = radius + 10
 
             inner_r = radius + 4

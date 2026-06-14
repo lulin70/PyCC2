@@ -12,7 +12,124 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
+
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Pydantic validation models for save data (prevent illegal value injection)
+# ---------------------------------------------------------------------------
+
+# Reasonable upper bounds to reject absurd values while allowing normal gameplay
+_MAX_HP = 1000
+_MAX_AMMO = 500
+_MAX_MORALE = 100
+_MAX_SUPPRESSION = 200
+_MAX_VISION_RANGE = 30
+_MAX_TICK = 10_000_000
+_MAX_KILLS = 100_000
+_MAX_TILE_COORD = 1000
+_MAX_ZOOM = 20.0
+
+
+class SaveHealthData(BaseModel):
+    """Validation model for unit health data in save files."""
+
+    hp: int = Field(ge=0, le=_MAX_HP)
+    max_hp: int = Field(ge=1, le=_MAX_HP)
+    state: str = Field(default="HEALTHY")
+
+    @model_validator(mode="after")
+    def hp_not_exceed_max(self) -> "SaveHealthData":
+        if self.hp > self.max_hp:
+            raise ValueError(f"hp {self.hp} exceeds max_hp {self.max_hp}")
+        return self
+
+
+class SaveMoraleData(BaseModel):
+    """Validation model for unit morale data in save files."""
+
+    value: int = Field(ge=0, le=_MAX_MORALE)
+    panic_threshold: int = Field(default=30, ge=0, le=_MAX_MORALE)
+    suppression: int = Field(default=0, ge=0, le=_MAX_SUPPRESSION)
+    state: str = Field(default="RALLIED")
+
+
+class SaveWeaponData(BaseModel):
+    """Validation model for unit weapon data in save files."""
+
+    primary_weapon_id: str = Field(default="")
+    ammo_remaining: int = Field(ge=0, le=_MAX_AMMO)
+    max_ammo: int = Field(default=10, ge=0, le=_MAX_AMMO)
+    reload_ticks_left: int = Field(default=0, ge=0)
+    state: str = Field(default="READY")
+
+    @model_validator(mode="after")
+    def ammo_not_exceed_max(self) -> "SaveWeaponData":
+        if self.max_ammo > 0 and self.ammo_remaining > self.max_ammo:
+            raise ValueError(f"ammo_remaining {self.ammo_remaining} exceeds max_ammo {self.max_ammo}")
+        return self
+
+
+class SavePositionData(BaseModel):
+    """Validation model for unit position data in save files."""
+
+    tile_coord: dict[str, int] = Field(default_factory=lambda: {"x": 0, "y": 0})
+    pixel_offset: dict[str, int] = Field(default_factory=lambda: {"x": 0, "y": 0})
+    facing_rad: float = Field(default=0.0, ge=-6.2832, le=6.2832)
+
+
+class SaveVisionData(BaseModel):
+    """Validation model for unit vision data in save files."""
+
+    range_tiles: int = Field(default=6, ge=0, le=_MAX_VISION_RANGE)
+    angle_rad: float = Field(default=3.1416, ge=0.0, le=6.2832)
+
+
+class SaveUnitData(BaseModel):
+    """Validation model for unit data in save files."""
+
+    id: str = Field(default="")
+    name: str = Field(default="")
+    faction: str = Field(default="ALLIES")
+    unit_type: str = Field(default="INFANTRY_SQUAD")
+    health: SaveHealthData = Field(default_factory=lambda: SaveHealthData(hp=1, max_hp=1))
+    morale: SaveMoraleData = Field(default_factory=SaveMoraleData)
+    weapon: SaveWeaponData = Field(default_factory=SaveWeaponData)
+    position: SavePositionData = Field(default_factory=SavePositionData)
+    vision: SaveVisionData = Field(default_factory=SaveVisionData)
+    squad_id: str | None = Field(default=None)
+    is_alive: bool = Field(default=True)
+
+
+class SaveCameraData(BaseModel):
+    """Validation model for camera data in save files."""
+
+    position: dict[str, float] = Field(default_factory=lambda: {"x": 0.0, "y": 0.0})
+    zoom: float = Field(default=1.0, gt=0.0, le=_MAX_ZOOM)
+
+
+class SaveBattleStatsData(BaseModel):
+    """Validation model for battle stats in save files."""
+
+    allies_kills: int = Field(default=0, ge=0, le=_MAX_KILLS)
+    axis_kills: int = Field(default=0, ge=0, le=_MAX_KILLS)
+    ticks_elapsed: int = Field(default=0, ge=0, le=_MAX_TICK)
+
+
+class SaveGameStateData(BaseModel):
+    """Validation model for the top-level game state in save files."""
+
+    version: str = Field(default="0.1.1")
+    tick: int = Field(default=0, ge=0, le=_MAX_TICK)
+    paused: bool = Field(default=False)
+    side_turn: str = Field(default="allies")
+    camera: SaveCameraData = Field(default_factory=SaveCameraData)
+    selected_unit_ids: list[str] = Field(default_factory=list)
+    units: list[SaveUnitData] = Field(default_factory=list)
+    battle_stats: SaveBattleStatsData = Field(default_factory=SaveBattleStatsData)
+
+    model_config = {"extra": "allow"}
 
 
 class SaveSlotStatus(Enum):
@@ -204,18 +321,28 @@ class SecureSaveManager:
             if not hmac.compare_digest(stored_hmac, computed_hmac):
                 return None, None, SaveSlotStatus.CORRUPTED
 
+            # Pydantic validation: reject illegal values (negative HP, absurd ammo, etc.)
+            state_data = data.get("state", {})
+            try:
+                validated = SaveGameStateData(**state_data)
+                # Use validated data (coerced & bounds-checked) for further processing
+                state_data = validated.model_dump()
+            except ValidationError as exc:
+                logger.warning("Save data validation failed for slot %d: %s", slot, exc)
+                return None, None, SaveSlotStatus.CORRUPTED
+
             meta_dict = data.get("meta", {})
             save_version = meta_dict.get("version", "0.0")
             if save_version != self.CURRENT_VERSION:
                 meta = SaveMetaData(
                     **{k: v for k, v in meta_dict.items() if k in SaveMetaData.__dataclass_fields__}
                 )
-                return data.get("state"), meta, SaveSlotStatus.INCOMPATIBLE
+                return state_data, meta, SaveSlotStatus.INCOMPATIBLE
 
             meta = SaveMetaData(
                 **{k: v for k, v in meta_dict.items() if k in SaveMetaData.__dataclass_fields__}
             )
-            return data.get("state"), meta, SaveSlotStatus.OK
+            return state_data, meta, SaveSlotStatus.OK
 
         except (json.JSONDecodeError, KeyError, TypeError, ValueError):
             return None, None, SaveSlotStatus.CORRUPTED

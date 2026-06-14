@@ -1,11 +1,14 @@
-# インストールガイド — PyCC2 **v0.1.1**
+# インストールガイド — PyCC2 **v0.3.41**
 
-PyCC2 v0.1.1の全サポートプラットフォームにおける完全なインストール手順。
+> **このドキュメントはv0.3.41に更新されています。以前のバージョン情報はGit履歴を参照してください。**
+
+PyCC2 v0.3.41の全サポートプラットフォームにおける完全なインストール手順。
 
 ### バージョン履歴
 
 | バージョン | 日付 | メモ |
 |------------|------|------|
+| v2.0 | 2026-06-14 | v0.3.41に更新: テスト~3513, 起動方法 `pycc2`, コア依存関係(pygame/numpy/pydantic) |
 | v1.8 | 2026-05-19 | P5/P6/P7完了: キャンペーンコア(~60%)、戦闘深度(~85%)、コンテンツ拡張(M6-M10)、CC2フィデリティ~71%、1566テスト、10ミッション、10マップ |
 | v1.7 | 2026-05-19 | CC2ギャップ分析、ロードマップをP5キャンペーンコアに修正、夜戦システム、対戦車装甲、気象レンダリング、3言語ドキュメント、1377テスト |
 | v1.6 | 2026-05-19 | P4第2週: キャンペーンが5ミッションに拡張、チュートリアルシステム、パフォーマンス最適化、1270テスト |
@@ -127,7 +130,7 @@ pip install -e .
 ```bash
 python -c "import pycc2; print('PyCC2 imported successfully')"
 python -m pytest tests/ -q --tb=no
-# 期待値: 2767 passed in ~30 seconds
+# 期待値: ~3513 passed
 ```
 
 ---
@@ -185,7 +188,7 @@ sudo apt update && sudo apt install -y python3.12 python3.12-venv python3-pip li
 python -m venv .venv
 .venv\Scripts\activate
 pip install -e .
-python scripts/visual_test.py
+pycc2
 ```
 
 ---
@@ -195,7 +198,7 @@ python scripts/visual_test.py
 ### テストスイート
 
 ```bash
-# 完全なテストスイート（1377個すべて通過するはず）
+# 完全なテストスイート（~3513個すべて通過するはず）
 python -m pytest tests/ -q
 
 # クイックスモークテスト（インポートが機能することのみ確認）
@@ -210,7 +213,11 @@ print('All core modules importable')
 ### デモの起動
 
 ```bash
-python scripts/visual_test.py
+# ゲームを開始
+pycc2
+
+# またはPythonモジュールとして実行
+python -m pycc2.main
 ```
 
 以下が表示されるはずです：
@@ -264,8 +271,8 @@ PyCC2は手続き的オーディオを使用します（数学的に音声を生
 ### パフォーマンスが遅く感じる
 
 1. ネイティブPythonを実行していることを確認（Apple Silicon MacでのRosetta翻訳ではない）
-2. ウィンドウサイズを縮小：`scripts/visual_test.py`を編集し、ディスプレイディメンションを変更
-3. 低品質プリセット：`DisplayConfig.from_screen(...)`パラメータを変更
+2. ウィンドウサイズを縮小：設定メニュー（F10）で変更
+3. 低品質プリセット：設定メニュー（F10）で変更
 
 ### `SyntaxError: expected ':'`またはmatch/caseエラー
 

@@ -31,6 +31,7 @@ from pycc2.presentation.rendering.surface_pool import SurfacePool
 class SpriteRenderer:
     TILE_SIZE: int = 48  # CC2 authentic: 48×48 pixel tiles
     SPRITE_SIZE: int = 32  # CC2-style units (scaled up for 48px tiles)
+    MAX_DAMAGE_NUMBERS: int = 50  # Upper limit for floating damage numbers
 
     def __init__(self, display_config: DisplayConfig | None = None):
         from pycc2.domain.interfaces.display_config import DisplayConfig as DC
@@ -1165,6 +1166,9 @@ class SpriteRenderer:
 
     def spawn_damage_number(self, position: Vec2, damage: int, is_kill: bool = False) -> None:
         """生成浮动伤害数字"""
+        # Enforce upper limit to prevent unbounded growth
+        if len(self._damage_numbers) >= self.MAX_DAMAGE_NUMBERS:
+            self._damage_numbers.pop(0)
         self._damage_numbers.append(
             {
                 "pos": (position.x, position.y),

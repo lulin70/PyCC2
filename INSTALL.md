@@ -1,6 +1,8 @@
-# Installation Guide — PyCC2 v0.3.0
+# Installation Guide — PyCC2 v0.3.41
 
-**Complete installation instructions for all platforms | Updated: 2026-05-30**
+> **This document has been updated to v0.3.41. For earlier version information, see Git history.**
+
+**Complete installation instructions for all platforms | Updated: 2026-06-14**
 
 ---
 
@@ -226,7 +228,7 @@ sfx_volume = 0.9
 ### Test Suite
 
 ```bash
-# Full test suite (3372 tests expected)
+# Full test suite (~3513 tests expected)
 pytest tests/ -q --tb=short
 
 # Quick smoke test (just confirms import works)
@@ -446,6 +448,6 @@ After successful installation:
 
 ---
 
-*Document Version*: 3.0
-*Last Updated*: 2026-05-30
-*Compatible with*: PyCC2 v0.3.0+
+*Document Version*: 3.41
+*Last Updated*: 2026-06-14
+*Compatible with*: PyCC2 v0.3.41+

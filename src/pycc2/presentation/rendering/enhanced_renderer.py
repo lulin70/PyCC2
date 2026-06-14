@@ -314,6 +314,10 @@ class EnhancedRenderer:
         self._suppression_overlay_alpha: float = 0.0
         self._suppression_overlay_max_alpha: float = 80.0
         self._suppression_overlay_decay: float = 120.0  # alpha units per second
+
+        # Cached full-screen overlay surfaces (avoid per-frame allocation)
+        self._suppression_overlay_cache: pygame.Surface | None = None
+        self._flash_surf_cache: pygame.Surface | None = None
     
     def initialize(self, screen: pygame.Surface) -> None:
         """Initialize renderer with display surface."""
@@ -602,7 +606,12 @@ class EnhancedRenderer:
         if self._dirty_tracker is not None:
             self._dirty_tracker.mark_full_dirty()
 
-        overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
+        # Reuse cached overlay surface (avoid per-frame allocation)
+        if (self._suppression_overlay_cache is None
+                or self._suppression_overlay_cache.get_size() != (sw, sh)):
+            self._suppression_overlay_cache = pygame.Surface((sw, sh), pygame.SRCALPHA)
+        overlay = self._suppression_overlay_cache
+        overlay.fill((0, 0, 0, 0))  # Clear for reuse
 
         # Draw red gradient strips along all four edges
         edge_width = min(60, sw // 6)
@@ -657,6 +666,13 @@ class EnhancedRenderer:
         self._cached_warm_overlay = None
         self._cached_vignette = None
         self._cached_screen_size = None
+        self._suppression_overlay_cache = None
+        self._flash_surf_cache = None
+
+    def _rebuild_overlay_cache(self, width: int, height: int) -> None:
+        """Rebuild cached full-screen overlay surfaces when screen size changes."""
+        self._suppression_overlay_cache = pygame.Surface((width, height), pygame.SRCALPHA)
+        self._flash_surf_cache = pygame.Surface((width, height), pygame.SRCALPHA)
 
     def _get_screen_overlays(self, screen_size: tuple[int, int]) -> tuple[pygame.Surface, pygame.Surface]:
         """Delegate to EnvironmentRenderer for cached overlay surfaces."""
@@ -672,13 +688,15 @@ class EnhancedRenderer:
         debug_mode: bool = False,
     ) -> None:
         """
-        Main render method - STABLE VERSION with minimal complexity.
+        Main render entry point.
 
         Pipeline:
         1. Clear off-screen buffer (solid color, no alpha blending)
-        2. Draw terrain (simple colored tiles, no textures)
-        3. Draw units
-        4. Atomic blit off-screen → display surface (eliminates flicker)
+        2. Draw terrain, buildings, shadows
+        3. Draw units and combat overlays
+        4. Draw weather, lighting, particles
+        5. Draw HUD and screen effects
+        6. Atomic blit off-screen → display surface (eliminates flicker)
         """
         if self._screen is None:
             return
@@ -701,6 +719,53 @@ class EnhancedRenderer:
         # STEP 1: Clear off-screen buffer (use theme background color)
         theme_bg = ThemeManager.get_current().colors.background
         self._offscreen.fill(theme_bg)
+
+        # STEP 2-4: Terrain, buildings, shadows, environment lighting
+        self._render_terrain(game_map, camera, debug_mode, units)
+
+        # STEP 5: Units, fading ghosts, unit shadows, attack/command lines
+        self._render_units(units, camera, selected_unit_ids)
+
+        # STEP 5.7-5.8: Particles, trails, shell casings, lighting
+        self._render_weather_and_lighting(camera)
+
+        # STEP 5.9: HUD overlay
+        self._render_hud()
+
+        # STEP 6: Screen effects (flash, suppression, weather)
+        self._render_effects()
+
+        # STEP 7: Atomic blit off-screen buffer → display surface
+        self._screen.blit(self._offscreen, (0, 0))
+
+        # Post-processing (applied to display surface for flicker-free output)
+        if hasattr(self, '_post_processing') and self._post_processing is not None:
+            try:
+                processed = self._post_processing.apply_all(self._screen, color_style="war")
+                if processed is not None:
+                    self._screen.blit(processed, (0, 0))
+            except (pygame.error, ValueError, TypeError) as exc:
+                logger.debug("Post-processing skipped: %s", exc)
+
+        # Atomic flip — use dirty-rect partial update when possible
+        if self._dirty_tracker is not None:
+            dirty_rects = self._dirty_tracker.get_update_rects()
+            if dirty_rects is not None:
+                pygame.display.update(dirty_rects)
+            else:
+                pygame.display.flip()
+            self._dirty_tracker.next_frame()
+        else:
+            pygame.display.flip()
+
+    def _render_terrain(
+        self,
+        game_map: GameMap,
+        camera: Camera,
+        debug_mode: bool,
+        units: list[Unit] | None = None,
+    ) -> None:
+        """Render terrain tiles, decorations, shadows, buildings, and environment lighting."""
 
         # STEP 2: Draw terrain — use enhanced texturing with simple fallback
         # Terrain covers most of the screen; if camera moved we need full redraw.
@@ -741,7 +806,7 @@ class EnhancedRenderer:
         self._draw_building_roofs(game_map, camera)
 
         # STEP 4.5: Draw building interiors (auto-switch when units are inside)
-        self._draw_building_interiors(game_map, units, camera)
+        self._draw_building_interiors(game_map, units or [], camera)
 
         # STEP 4.6: Draw building floor numbers on roof
         self._draw_building_floor_numbers(game_map, camera)
@@ -751,6 +816,14 @@ class EnhancedRenderer:
 
         # STEP 4.8: Environment lighting pass (after terrain/buildings, before units)
         self._apply_environment_lighting(game_map, camera, units)
+
+    def _render_units(
+        self,
+        units: list[Unit],
+        camera: Camera,
+        selected_unit_ids: set[str] | None = None,
+    ) -> None:
+        """Render all units, fading ghosts, unit shadows, attack and command lines."""
 
         # STEP 5: Draw units (positions already smoothed by _smooth_positions in update phase)
         self._draw_units(units, camera, selected_unit_ids)
@@ -782,6 +855,9 @@ class EnhancedRenderer:
         # STEP 5.6: Draw queued command lines (Shift+right-click)
         self._draw_queued_commands(units, camera)
 
+    def _render_weather_and_lighting(self, camera: Camera) -> None:
+        """Render weather effects and lighting (particles, trails, shell casings, time-of-day)."""
+
         # STEP 5.7: Render particle effects (explosions, smoke, muzzle flash, etc.)
         self._particle_system.render(self._offscreen)
 
@@ -802,21 +878,21 @@ class EnhancedRenderer:
         self._lighting_effects_sys.apply_time_of_day_tint(self._offscreen)
         self._lighting_effects_sys.render_dynamic_lights(self._offscreen)
 
-        # STEP 5.9: Render CC2 three-panel HUD (if enabled and attached)
-        if self._hud_enabled and self._hud is not None:
-            self._hud.render(self._offscreen)
-            # PERF: HUD updates every frame (selection, health bars, etc.)
-            if self._dirty_tracker is not None and not self._dirty_tracker._full_redraw:
-                # Mark bottom HUD area as dirty (CC2 three-panel layout at bottom)
-                sw, sh = self._offscreen.get_size()
-                self._dirty_tracker.mark_dirty(pygame.Rect(0, sh - 120, sw, 120))
+    def _render_effects(self) -> None:
+        """Render visual effects (suppression, damage, flash, weather overlays)."""
 
         # P2-03: Screen flash overlay (after all rendering, before atomic flip)
         if self._flash_sys.is_active:
             # PERF: Flash is full-screen overlay → must dirty entire screen
             if self._dirty_tracker is not None:
                 self._dirty_tracker.mark_full_dirty()
-            flash_surf = pygame.Surface(self._offscreen.get_size(), pygame.SRCALPHA)
+            # Reuse cached flash surface (avoid per-frame allocation)
+            flash_size = self._offscreen.get_size()
+            if (self._flash_surf_cache is None
+                    or self._flash_surf_cache.get_size() != flash_size):
+                self._flash_surf_cache = pygame.Surface(flash_size, pygame.SRCALPHA)
+            flash_surf = self._flash_surf_cache
+            flash_surf.fill((0, 0, 0, 0))  # Clear for reuse
             flash_surf.fill((*self._flash_sys.color, int(max(0, self._flash_sys.alpha))))
             self._offscreen.blit(flash_surf, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
 
@@ -831,28 +907,15 @@ class EnhancedRenderer:
                 self._dirty_tracker.mark_full_dirty()
             self._weather_sys.render(self._offscreen)
 
-        # STEP 6: Atomic blit off-screen buffer → display surface
-        self._screen.blit(self._offscreen, (0, 0))
-
-        # Post-processing (applied to display surface for flicker-free output)
-        if hasattr(self, '_post_processing') and self._post_processing is not None:
-            try:
-                processed = self._post_processing.apply_all(self._screen, color_style="war")
-                if processed is not None:
-                    self._screen.blit(processed, (0, 0))
-            except (pygame.error, ValueError, TypeError) as exc:
-                logger.debug("Post-processing skipped: %s", exc)
-
-        # Atomic flip — use dirty-rect partial update when possible
-        if self._dirty_tracker is not None:
-            dirty_rects = self._dirty_tracker.get_update_rects()
-            if dirty_rects is not None:
-                pygame.display.update(dirty_rects)
-            else:
-                pygame.display.flip()
-            self._dirty_tracker.next_frame()
-        else:
-            pygame.display.flip()
+    def _render_hud(self) -> None:
+        """Render HUD overlay."""
+        if self._hud_enabled and self._hud is not None:
+            self._hud.render(self._offscreen)
+            # PERF: HUD updates every frame (selection, health bars, etc.)
+            if self._dirty_tracker is not None and not self._dirty_tracker._full_redraw:
+                # Mark bottom HUD area as dirty (CC2 three-panel layout at bottom)
+                sw, sh = self._offscreen.get_size()
+                self._dirty_tracker.mark_dirty(pygame.Rect(0, sh - 120, sw, 120))
 
     def _render_isometric(
         self,
