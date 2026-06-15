@@ -9,11 +9,31 @@ from typing import TYPE_CHECKING
 import pygame
 
 from pycc2.domain.entities.unit import UnitState
+from pycc2.domain.interfaces import (
+    IAchievementBridge,
+    ICombatCamera,
+    ICombatDirector,
+    IDayNightCycle,
+    IDeploymentManager,
+    IDynamicShadowSystem,
+    IEffectStack,
+    IEnvironmentalAudio,
+    IHUDManager,
+    IInputRouter,
+    IPauseMenu,
+    IPopupManager,
+    IProjectileTrailSystem,
+    IRenderPipeline,
+    ISaveController,
+    IVictoryManager,
+    IWeatherSystem,
+)
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.interfaces.camera_protocol import ICamera as Camera
+    from pycc2.domain.interfaces.campaign_ui_protocol import ICampaignUI
     from pycc2.domain.interfaces.display_config import DisplayConfig
     from pycc2.domain.interfaces.input_handler_protocol import IInputHandler as PygameInputHandler
     from pycc2.domain.interfaces.interaction_controller_protocol import (
@@ -25,9 +45,7 @@ if TYPE_CHECKING:
     from pycc2.presentation.ui.deployment_ui import DeploymentUI
     from pycc2.presentation.ui.time_control import TimeControlUI
     from pycc2.services.ai_service import AIService
-    from pycc2.services.deployment_manager import DeploymentManager
     from pycc2.services.event_bus import EventBus
-    from pycc2.services.hud_manager import HUDManager
 
     from .event_dispatcher import EventDispatcher
 
@@ -73,36 +91,36 @@ class GameLoop:
     _current_time: float = field(default_factory=time.perf_counter)
     _fps: float = 0.0
     _total_ticks: int = 0
-    _hud_manager: HUDManager | None = field(init=False, default=None)
-    _victory_manager: object | None = field(init=False, default=None)
+    _hud_manager: IHUDManager | None = field(init=False, default=None)
+    _victory_manager: IVictoryManager | None = field(init=False, default=None)
 
-    _combat_director: object | None = field(init=False, default=None)
-    _render_pipeline: object | None = field(init=False, default=None)
-    _input_router: object | None = field(init=False, default=None)
-    _save_controller: object | None = field(init=False, default=None)
+    _combat_director: ICombatDirector | None = field(init=False, default=None)
+    _render_pipeline: IRenderPipeline | None = field(init=False, default=None)
+    _input_router: IInputRouter | None = field(init=False, default=None)
+    _save_controller: ISaveController | None = field(init=False, default=None)
     _ai_update_interval: int = field(init=False, default=3)
     _ai_tick_counter: int = field(init=False, default=0)
-    _pause_menu: object | None = field(init=False, default=None)
-    _deployment_manager: DeploymentManager = field(init=False, default=None)
+    _pause_menu: IPauseMenu | None = field(init=False, default=None)
+    _deployment_manager: IDeploymentManager = field(init=False, default=None)
     _deployment_ui_factory: object | None = None  # Callable[[int, int], IDeploymentUI]
     _event_dispatcher: EventDispatcher = field(init=False, default=None)
-    _campaign_ui: object | None = field(init=False, default=None)
+    _campaign_ui: ICampaignUI | None = field(init=False, default=None)
     time_control: TimeControlUI | None = field(init=False, default=None)
-    _popup_manager: object | None = field(init=False, default=None)
-    _effect_stack: object | None = field(init=False, default=None)
-    _combat_camera: object | None = field(init=False, default=None)
-    _achievement_bridge: object | None = field(init=False, default=None)
-    _projectile_trail_sys: object | None = field(init=False, default=None)
-    _environmental_audio: object | None = field(init=False, default=None)
+    _popup_manager: IPopupManager | None = field(init=False, default=None)
+    _effect_stack: IEffectStack | None = field(init=False, default=None)
+    _combat_camera: ICombatCamera | None = field(init=False, default=None)
+    _achievement_bridge: IAchievementBridge | None = field(init=False, default=None)
+    _projectile_trail_sys: IProjectileTrailSystem | None = field(init=False, default=None)
+    _environmental_audio: IEnvironmentalAudio | None = field(init=False, default=None)
     _victory_delay: float = field(init=False, default=0.0)
     _weather_renderer: object | None = field(init=False, default=None)
     _weather_state: object | None = field(init=False, default=None)
     _day_night_time: float | None = field(init=False, default=None)
     _lighting_renderer: object | None = field(init=False, default=None)
-    _weather_system: object | None = field(init=False, default=None)
+    _weather_system: IWeatherSystem | None = field(init=False, default=None)
     _weather_effects: object | None = field(init=False, default=None)
-    _day_night_cycle: object | None = field(init=False, default=None)
-    _dynamic_shadow_sys: object | None = field(init=False, default=None)
+    _day_night_cycle: IDayNightCycle | None = field(init=False, default=None)
+    _dynamic_shadow_sys: IDynamicShadowSystem | None = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         from pycc2.services.game_loop_assembler import GameLoopAssembler
@@ -171,22 +189,7 @@ class GameLoop:
             self.state.camera.constrain_to_map(map_w, map_h)
 
             # Apply cinematic camera effects (shake, zoom, push-pull)
-            camera_offset = (0.0, 0.0)
-            if self._effect_stack is not None and not self._effect_stack.is_empty():
-                camera_offset = self._effect_stack.get_total_offset()
-                if camera_offset != (0.0, 0.0):
-                    from pycc2.domain.value_objects.vec2 import Vec2
-
-                    self.state.camera.position = Vec2(
-                        self.state.camera.position.x + camera_offset[0],
-                        self.state.camera.position.y + camera_offset[1],
-                    )
-
-            # Apply slow-motion time scale from EffectStack
-            if self._effect_stack is not None and not self._effect_stack.is_empty():
-                time_scale = self._effect_stack.get_time_scale()
-                if time_scale < 1.0:
-                    time_speed *= time_scale
+            camera_offset = self._apply_camera_effects(time_speed)
 
             self._render_pipeline.update_fps(self._fps)
 
@@ -211,81 +214,9 @@ class GameLoop:
             if self.settings_menu and self.settings_menu.visible:
                 if screen:
                     self.settings_menu.render(screen)
-            elif (
-                self._deployment_manager.is_active
-                and self._deployment_manager.deployment_ui is not None
-                and screen
-            ):
-                # === 部署阶段渲染 ===
-                deployment_ui = self._deployment_manager.deployment_ui
-
-                # Step 1: 渲染地图和单位
-                self._render_pipeline.render(
-                    game_map=self.state.game_map,
-                    units=self.state.units,
-                    camera=self.state.camera,
-                    alpha=alpha,
-                    selected_unit_ids=self.state.selected_unit_ids,
-                    debug_mode=self.state.debug_mode,
-                    paused=self.state.paused,
-                    tick=self.state.tick,
-                    show_post_battle=self._victory_manager.show_post_battle,
-                    game_result=self._victory_manager.game_result,
-                    battle_stats=self._victory_manager.battle_stats,
-                )
-
-                # Step 2: 渲染天气/光照效果
-                if self._weather_renderer is not None:
-                    if self._weather_state is not None:
-                        self._weather_renderer.render(
-                            screen, self.state.camera, self._weather_state
-                        )
-                if self._lighting_renderer is not None:
-                    if self._day_night_time is not None:
-                        self._lighting_renderer.render(screen, self._day_night_time)
-
-                # Step 3: 渲染部署UI（包含单位列表、详情、命令栏）
-                dc = self.display_config
-                tile_size = dc.base_tile_size if dc else 16
-                deployment_ui.render(
-                    screen,
-                    font=None,
-                    map_offset_x=0,
-                    map_offset_y=0,
-                    tile_size=tile_size,
-                )
-
-            else:
-                # === 战斗阶段渲染 ===
-
-                # Step 1: 渲染地图和单位
-                self._render_pipeline.render(
-                    game_map=self.state.game_map,
-                    units=self.state.units,
-                    camera=self.state.camera,
-                    alpha=alpha,
-                    selected_unit_ids=self.state.selected_unit_ids,
-                    debug_mode=self.state.debug_mode,
-                    paused=self.state.paused,
-                    tick=self.state.tick,
-                    show_post_battle=self._victory_manager.show_post_battle,
-                    game_result=self._victory_manager.game_result,
-                    battle_stats=self._victory_manager.battle_stats,
-                )
-
-                # Step 2: 渲染天气/光照效果
-                if self._weather_renderer is not None:
-                    if self._weather_state is not None:
-                        self._weather_renderer.render(
-                            screen, self.state.camera, self._weather_state
-                        )
-                if self._lighting_renderer is not None:
-                    if self._day_night_time is not None:
-                        self._lighting_renderer.render(screen, self._day_night_time)
-
-                # Step 3: 渲染CC2统一底部HUD面板（单位列表+详情+小地图+命令栏）
-                if screen and self._hud_manager:
-                    self._hud_manager.render(screen, self.state.camera, self.state)
+            elif screen:
+                # Common render pipeline for both deployment and battle phases
+                self._render_scene(screen, alpha)
 
             if self.hint_manager and screen:
                 self.hint_manager.render(screen)
@@ -311,7 +242,7 @@ class GameLoop:
                 self.interaction_controller.render_overlay(screen, self.state.camera)
 
             # Draw pause menu overlay
-            if self._pause_menu.is_active and screen:
+            if self._pause_menu and self._pause_menu.is_active and screen:
                 self._pause_menu.render(screen)
 
             # Restore camera position after cinematic effects
@@ -329,6 +260,75 @@ class GameLoop:
 
         self.shutdown()
         return 0
+
+    def _apply_camera_effects(self, time_speed: float) -> tuple[float, float]:
+        """Apply cinematic camera effects and return the offset for later restoration."""
+        camera_offset = (0.0, 0.0)
+        if self._effect_stack is not None and not self._effect_stack.is_empty():
+            camera_offset = self._effect_stack.get_total_offset()
+            if camera_offset != (0.0, 0.0):
+                from pycc2.domain.value_objects.vec2 import Vec2
+
+                self.state.camera.position = Vec2(
+                    self.state.camera.position.x + camera_offset[0],
+                    self.state.camera.position.y + camera_offset[1],
+                )
+
+            # Apply slow-motion time scale from EffectStack
+            time_scale = self._effect_stack.get_time_scale()
+            if time_scale < 1.0:
+                time_speed *= time_scale
+
+        return camera_offset
+
+    def _render_scene(self, screen, alpha: float) -> None:
+        """Render the game scene — shared by both deployment and battle phases.
+
+        This method eliminates the code duplication between deployment and battle
+        rendering by extracting the common render pipeline + weather/lighting steps,
+        then branching only for the phase-specific UI overlay.
+        """
+        # Step 1: Render map and units (common to both phases)
+        self._render_pipeline.render(
+            game_map=self.state.game_map,
+            units=self.state.units,
+            camera=self.state.camera,
+            alpha=alpha,
+            selected_unit_ids=self.state.selected_unit_ids,
+            debug_mode=self.state.debug_mode,
+            paused=self.state.paused,
+            tick=self.state.tick,
+            show_post_battle=self._victory_manager.show_post_battle,
+            game_result=self._victory_manager.game_result,
+            battle_stats=self._victory_manager.battle_stats,
+        )
+
+        # Step 2: Render weather/lighting effects (common to both phases)
+        if self._weather_renderer is not None and self._weather_state is not None:
+            self._weather_renderer.render(screen, self.state.camera, self._weather_state)
+        if self._lighting_renderer is not None and self._day_night_time is not None:
+            self._lighting_renderer.render(screen, self._day_night_time)
+
+        # Step 3: Phase-specific UI overlay
+        if (
+            self._deployment_manager.is_active
+            and self._deployment_manager.deployment_ui is not None
+        ):
+            # Deployment phase: render deployment UI
+            deployment_ui = self._deployment_manager.deployment_ui
+            dc = self.display_config
+            tile_size = dc.base_tile_size if dc else 16
+            deployment_ui.render(
+                screen,
+                font=None,
+                map_offset_x=0,
+                map_offset_y=0,
+                tile_size=tile_size,
+            )
+        else:
+            # Battle phase: render CC2 unified bottom HUD panel
+            if self._hud_manager:
+                self._hud_manager.render(screen, self.state.camera, self.state)
 
     def _update_logic(self, dt: float) -> None:
         if self.state.paused:
@@ -379,7 +379,7 @@ class GameLoop:
             try:
                 # Sync time-of-day from day-night cycle
                 if self._day_night_cycle is not None:
-                    tod = getattr(self._day_night_cycle, "time_of_day", None)
+                    tod = self._day_night_cycle.time_of_day
                     if tod is not None:
                         hour = int(tod * 24) % 24
                         self._environmental_audio.set_time_of_day(hour)
@@ -394,13 +394,14 @@ class GameLoop:
                         is_raining = "rain" in str(weather_type).lower()
                         self._environmental_audio.set_weather_rain(is_raining)
 
-                # Estimate combat intensity from unit states
-                attacking_count = sum(
-                    1
-                    for u in self.state.units
-                    if u.is_alive and u.state_machine.current == UnitState.ATTACKING
-                )
-                total_alive = sum(1 for u in self.state.units if u.is_alive)
+                # Estimate combat intensity from unit states (single pass)
+                attacking_count = 0
+                total_alive = 0
+                for u in self.state.units:
+                    if u.is_alive:
+                        total_alive += 1
+                        if u.state_machine.current == UnitState.ATTACKING:
+                            attacking_count += 1
                 intensity = min(1.0, attacking_count / max(1, total_alive * 0.15))
                 self._environmental_audio.set_combat_intensity(intensity)
             except Exception:
@@ -416,7 +417,7 @@ class GameLoop:
             if hasattr(unit, "move_target") and unit.move_target is not None:
                 arrived = unit.update_movement(dt)
                 if arrived:
-                    logger.debug(f"[MOVEMENT] {unit.display_name} arrived at destination")
+                    logger.debug("[MOVEMENT] %s arrived at destination", unit.display_name)
 
     def _update_fatigue(self, dt: float) -> None:
         # Update unit fatigue, veterancy, and weather effects
@@ -448,8 +449,6 @@ class GameLoop:
         self._combat_director.process_effects(renderer=self.renderer, camera=self.state.camera)
 
         # Process queued commands for units that completed their current command
-        # (movement arrival is handled in Unit.update_movement(); this handles
-        # attack/reload completion and other IDLE transitions with queued commands)
         for unit in self.state.units:
             if not unit.is_alive:
                 continue
@@ -463,7 +462,7 @@ class GameLoop:
         self._process_combat_popups()
 
     def _update_camera(self, dt: float) -> None:
-        # 更新相机屏幕震动
+        # Update camera screen shake
         self.state.camera.update_shake(dt)
 
     def _update_visual_effects(self, dt: float) -> None:
@@ -500,7 +499,7 @@ class GameLoop:
             if self._day_night_time is not None:
                 self._dynamic_shadow_sys.set_time_of_day(self._day_night_time)
             elif self._day_night_cycle is not None:
-                tod = getattr(self._day_night_cycle, "time_of_day", 0.5)
+                tod = self._day_night_cycle.time_of_day
                 self._dynamic_shadow_sys.set_time_of_day(tod)
 
     def _update_hud(self, dt: float) -> None:
@@ -681,21 +680,15 @@ class GameLoop:
         """Return the current deployment state, or None if not in deployment."""
         return self._deployment_manager.get_state()
 
-    def set_campaign_ui(self, campaign_ui: object) -> None:
-        """Set the CampaignUI instance for campaign flow integration.
-
-        When a campaign UI is active, the game loop renders it and
-        delegates input to it.  The campaign UI drives state transitions
-        (operation select -> briefing -> battle select -> preview ->
-        deploy -> battle -> report).
-        """
+    def set_campaign_ui(self, campaign_ui: ICampaignUI) -> None:
+        """Set the CampaignUI instance for campaign flow integration."""
         self._campaign_ui = campaign_ui
         # Propagate reference to event dispatcher so it can route input
         if self._event_dispatcher is not None:
             self._event_dispatcher._campaign_ui_ref = campaign_ui
 
     @property
-    def campaign_ui(self) -> object | None:
+    def campaign_ui(self) -> ICampaignUI | None:
         """Return the current CampaignUI, if any."""
         return self._campaign_ui
 

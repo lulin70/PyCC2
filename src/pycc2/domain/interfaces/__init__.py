@@ -4,16 +4,34 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import Any, TypeVar, overload
 
+from .achievement_bridge_protocol import IAchievementBridge as IAchievementBridge
 from .ai_service_protocol import IAIService as IAIService
 from .bottom_panel_protocol import IBottomPanel as IBottomPanel
 from .camera_protocol import ICamera as ICamera
+from .campaign_ui_protocol import ICampaignUI as ICampaignUI
+from .combat_camera_protocol import ICombatCamera as ICombatCamera
+from .combat_director_protocol import ICombatDirector as ICombatDirector
+from .day_night_protocol import IDayNightCycle as IDayNightCycle
+from .deployment_manager_protocol import IDeploymentManager as IDeploymentManager
 from .deployment_ui_protocol import IDeploymentUI as IDeploymentUI
 from .display_config import DisplayConfig as DisplayConfig
+from .effect_stack_protocol import IEffectStack as IEffectStack
+from .environmental_audio_protocol import IEnvironmentalAudio as IEnvironmentalAudio
+from .hud_manager_protocol import IHUDManager as IHUDManager
 from .input_handler_protocol import IInputHandler as IInputHandler
+from .input_router_protocol import IInputRouter as IInputRouter
 from .interaction_controller_protocol import IInteractionController as IInteractionController
 from .minimap_protocol import IMinimap as IMinimap
+from .pause_menu_protocol import IPauseMenu as IPauseMenu
+from .popup_manager_protocol import IPopupManager as IPopupManager
+from .projectile_trail_protocol import IProjectileTrailSystem as IProjectileTrailSystem
+from .render_pipeline_protocol import IRenderPipeline as IRenderPipeline
 from .renderer_protocol import IRenderer as IRenderer
+from .save_controller_protocol import ISaveController as ISaveController
+from .shadow_system_protocol import IDynamicShadowSystem as IDynamicShadowSystem
 from .sound_system_protocol import ISoundSystem as ISoundSystem
+from .victory_manager_protocol import IVictoryManager as IVictoryManager
+from .weather_system_protocol import IWeatherSystem as IWeatherSystem
 from .window_manager_protocol import IWindowManager as IWindowManager
 
 E = TypeVar("E")
