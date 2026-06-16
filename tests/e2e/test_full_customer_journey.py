@@ -144,6 +144,7 @@ class TestFullCustomerJourney:
 
     def test_04_deployment_phase_works(self):
         """User can deploy units and start battle."""
+        from pycc2.presentation.ui.deployment_ui import DeploymentUI
         from pycc2.services.deployment_manager import DeploymentManager
 
         dm = DeploymentManager()
@@ -157,7 +158,9 @@ class TestFullCustomerJourney:
             "enemy_zone": [(x, y) for y in range(20) for x in range(20, 30)],
             "no_mans_land": [(x, y) for y in range(20) for x in range(10, 20)],
         }
-        dm.start(map_data=map_data, faction="ally")
+        ui = DeploymentUI(width=800, height=600)
+        ui.start_deployment(map_data=map_data, faction="ally")
+        dm.start(map_data=map_data, faction="ally", deployment_ui=ui)
         assert dm.is_active
 
     def test_05_commands_can_be_issued(self):
@@ -313,8 +316,8 @@ class TestFullCustomerJourney:
         from pycc2.presentation.ui.keybind_manager import KeybindManager
 
         km = KeybindManager()
-        assert km.get_key("move") == pygame.K_z
-        assert km.get_action(pygame.K_z) == "move"
+        assert km.get_key("move") == (pygame.K_z,)
+        assert km.get_action((pygame.K_z,)) == "move"
 
     def test_15_vl_flags_render(self):
         """User can see VL flags on the map."""

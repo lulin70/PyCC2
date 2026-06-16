@@ -135,8 +135,12 @@ class TestCompleteBattleFlow:
             "objectives": [],
         }
 
-        # 3. Start deployment
-        dm.start(map_data=map_data, faction="ally")
+        # 3. Start deployment with UI injected
+        from pycc2.presentation.ui.deployment_ui import DeploymentUI
+
+        ui = DeploymentUI(width=800, height=600)
+        ui.start_deployment(map_data=map_data, faction="ally")
+        dm.start(map_data=map_data, faction="ally", deployment_ui=ui)
         assert dm.is_active
         assert dm.deployment_ui is not None
 

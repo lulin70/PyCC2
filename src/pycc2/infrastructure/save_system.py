@@ -195,9 +195,10 @@ class SecureSaveManager:
                     import secrets
 
                     key = secrets.token_bytes(32)
+                    SecureSaveManager._using_default_key = True
                 return key
             except (AttributeError, UnicodeEncodeError) as e:
-                logging.info(f"HMAC key from env failed: {e}")
+                logger.info("HMAC key from env failed: %s", e)
         config_path = Path(__file__).resolve().parent.parent / "config" / "secrets.toml"
         if config_path.exists():
             try:
@@ -214,9 +215,10 @@ class SecureSaveManager:
                             import secrets
 
                             key = secrets.token_bytes(32)
+                            SecureSaveManager._using_default_key = True
                         return key
-            except Exception as e:
-                logging.info(f"HMAC key from config failed: {e}")
+            except (OSError, ValueError, UnicodeDecodeError) as e:
+                logger.info("HMAC key from config failed: %s", e)
         import warnings
 
         is_production = os.environ.get("PYCC2_ENV", "").lower() == "production"
@@ -227,17 +229,17 @@ class SecureSaveManager:
                 "provide config/secrets.toml with hmac_key."
             )
         warnings.warn(
-            "No HMAC key configured. Using random key for this session. "
+            "No HMAC key configured. Using project-derived key for development. "
             "Set PYCC2_SAVE_HMAC_KEY env var for persistent keys.",
             UserWarning,
             stacklevel=2,
         )
         SecureSaveManager._using_default_key = True
-        # Dev environment: use random session key for security.
+        # Dev environment: derive a stable key from project path.
+        # This ensures saves remain readable across sessions in the same project.
         # Production must set PYCC2_SAVE_HMAC_KEY or config/secrets.toml.
-        import secrets
-
-        return secrets.token_bytes(32)
+        project_id = str(Path(__file__).resolve().parent.parent)
+        return hashlib.sha256(b"pycc2-dev-hmac:" + project_id.encode()).digest()
 
     @staticmethod
     def _sanitize_filename(filename: str) -> str:

@@ -69,6 +69,18 @@ def _make_map_data_with_water(width: int = 30, height: int = 20) -> dict:
 class TestDeploymentE2E:
     """Full E2E test for the deployment phase."""
 
+    @staticmethod
+    def _create_dm_with_ui(map_data: dict, faction: str = "ally"):
+        """Create a DeploymentManager with a DeploymentUI injected."""
+        from pycc2.presentation.ui.deployment_ui import DeploymentUI
+        from pycc2.services.deployment_manager import DeploymentManager
+
+        dm = DeploymentManager()
+        ui = DeploymentUI(width=800, height=600)
+        ui.start_deployment(map_data=map_data, faction=faction)
+        dm.start(map_data=map_data, faction=faction, deployment_ui=ui)
+        return dm, ui
+
     def test_01_start_deployment_manager(self):
         """Step 1: Start deployment manager and verify it activates."""
         from pycc2.services.deployment_manager import DeploymentManager
@@ -77,7 +89,7 @@ class TestDeploymentE2E:
         assert not dm.is_active
 
         map_data = _make_map_data()
-        dm.start(map_data=map_data, faction="ally")
+        dm, ui = self._create_dm_with_ui(map_data)
 
         assert dm.is_active
         assert dm.deployment_ui is not None
@@ -85,13 +97,11 @@ class TestDeploymentE2E:
     def test_02_verify_three_zone_types(self):
         """Step 2: Verify three zone types (FRIENDLY, NO_MANS_LAND, ENEMY_CONTROLLED) are defined."""
         from pycc2.presentation.ui.deployment_ui import ZoneType
-        from pycc2.services.deployment_manager import DeploymentManager
 
-        dm = DeploymentManager()
         map_data = _make_map_data()
-        dm.start(map_data=map_data, faction="ally")
+        dm, ui = self._create_dm_with_ui(map_data)
 
-        state = dm.get_state()
+        state = ui.state
         assert state is not None
 
         # Verify all three zone types exist
@@ -109,13 +119,10 @@ class TestDeploymentE2E:
 
     def test_03_verify_force_pool_generated(self):
         """Step 3: Verify force pool is generated with available units."""
-        from pycc2.services.deployment_manager import DeploymentManager
-
-        dm = DeploymentManager()
         map_data = _make_map_data()
-        dm.start(map_data=map_data, faction="ally")
+        dm, ui = self._create_dm_with_ui(map_data)
 
-        state = dm.get_state()
+        state = ui.state
         assert state is not None
         assert len(state.available_units) >= 6, (
             f"Force pool should have at least 6 units, got {len(state.available_units)}"
@@ -128,19 +135,16 @@ class TestDeploymentE2E:
 
     def test_04_deploy_units_to_valid_positions(self):
         """Step 4: Deploy units to valid positions (drag-drop simulation)."""
-        from pycc2.services.deployment_manager import DeploymentManager
-
-        dm = DeploymentManager()
         map_data = _make_map_data()
-        dm.start(map_data=map_data, faction="ally")
+        dm, ui = self._create_dm_with_ui(map_data)
 
-        state = dm.get_state()
+        state = ui.state
         # Place first available unit at (0, 0) — should be in friendly zone
-        result = dm.deployment_ui.place_unit(0, 0, 0)
+        result = ui.place_unit(0, 0, 0)
         assert result is True, "Should be able to place unit at (0,0) in friendly zone"
 
         # Place second unit at (1, 0)
-        result = dm.deployment_ui.place_unit(1, 1, 0)
+        result = ui.place_unit(1, 1, 0)
         assert result is True, "Should be able to place unit at (1,0) in friendly zone"
 
         # Verify units are placed
@@ -148,49 +152,40 @@ class TestDeploymentE2E:
 
     def test_05_invalid_positions_rejected(self):
         """Step 5: Verify invalid positions are rejected (enemy zone, wrong terrain)."""
-        from pycc2.services.deployment_manager import DeploymentManager
-
-        dm = DeploymentManager()
         map_data = _make_map_data_with_water()
-        dm.start(map_data=map_data, faction="ally")
+        dm, ui = self._create_dm_with_ui(map_data)
 
         # Try to place in enemy zone (x=25 for a 30-wide map)
-        result = dm.deployment_ui.place_unit(0, 25, 0)
+        result = ui.place_unit(0, 25, 0)
         assert result is False, "Should NOT be able to place unit in enemy zone"
 
         # Try to place on water tile (1, 1)
-        result = dm.deployment_ui.place_unit(0, 1, 1)
+        result = ui.place_unit(0, 1, 1)
         assert result is False, "Should NOT be able to place unit on water"
 
         # Try to place on solid building (2, 2)
-        result = dm.deployment_ui.place_unit(0, 2, 2)
+        result = ui.place_unit(0, 2, 2)
         assert result is False, "Should NOT be able to place unit on solid building"
 
     def test_06_set_pre_battle_orders(self):
         """Step 6: Set pre-battle orders (right-click to set move target)."""
-        from pycc2.services.deployment_manager import DeploymentManager
-
-        dm = DeploymentManager()
         map_data = _make_map_data()
-        dm.start(map_data=map_data, faction="ally")
+        dm, ui = self._create_dm_with_ui(map_data)
 
         # Place a unit first
-        dm.deployment_ui.place_unit(0, 0, 0)
+        ui.place_unit(0, 0, 0)
 
         # Set pending order for the placed unit
-        unit = dm.get_state().placed_units[0]
+        unit = ui.state.placed_units[0]
         dm.set_pending_order(unit.unit_template_id, 5, 5)
 
     def test_07_verify_pending_orders_stored(self):
         """Step 7: Verify pending orders are stored correctly."""
-        from pycc2.services.deployment_manager import DeploymentManager
-
-        dm = DeploymentManager()
         map_data = _make_map_data()
-        dm.start(map_data=map_data, faction="ally")
+        dm, ui = self._create_dm_with_ui(map_data)
 
-        dm.deployment_ui.place_unit(0, 0, 0)
-        unit = dm.get_state().placed_units[0]
+        ui.place_unit(0, 0, 0)
+        unit = ui.state.placed_units[0]
         dm.set_pending_order(unit.unit_template_id, 5, 5)
 
         order = dm.get_pending_order(unit.unit_template_id)
@@ -199,36 +194,31 @@ class TestDeploymentE2E:
 
     def test_08_click_begin_battle(self):
         """Step 8: Click Begin Battle to finalize deployment."""
-        from pycc2.services.deployment_manager import DeploymentManager
-
-        dm = DeploymentManager()
         map_data = _make_map_data()
-        dm.start(map_data=map_data, faction="ally")
+        dm, ui = self._create_dm_with_ui(map_data)
 
         # Place at least one unit
-        dm.deployment_ui.place_unit(0, 0, 0)
+        ui.place_unit(0, 0, 0)
 
         # Verify deployment is complete enough
-        assert dm.deployment_ui.is_deployment_complete()
+        assert ui.is_deployment_complete()
 
         # Begin battle
-        result = dm.deployment_ui.begin_battle()
+        result = ui.begin_battle()
         assert result is not None, "begin_battle() should return a result dict"
 
     def test_09_verify_transition_to_battle_phase(self):
         """Step 9: Verify transition to battle phase after begin_battle."""
         from pycc2.presentation.ui.deployment_ui import DeploymentPhase
-        from pycc2.services.deployment_manager import DeploymentManager
 
-        dm = DeploymentManager()
         map_data = _make_map_data()
-        dm.start(map_data=map_data, faction="ally")
+        dm, ui = self._create_dm_with_ui(map_data)
 
-        dm.deployment_ui.place_unit(0, 0, 0)
-        dm.deployment_ui.begin_battle()
+        ui.place_unit(0, 0, 0)
+        ui.begin_battle()
 
         # Phase should be ACTIVE
-        assert dm.deployment_ui.state.phase == DeploymentPhase.ACTIVE
+        assert ui.state.phase == DeploymentPhase.ACTIVE
 
     def test_10_verify_pending_orders_applied(self):
         """Step 10: Verify pending orders are applied to units after complete()."""
@@ -236,16 +226,14 @@ class TestDeploymentE2E:
 
         from pycc2.domain.entities.game_map import GameMap
         from pycc2.presentation.rendering.camera import Camera
-        from pycc2.services.deployment_manager import DeploymentManager
         from pycc2.services.game_loop import GameState
 
-        dm = DeploymentManager()
         map_data = _make_map_data()
-        dm.start(map_data=map_data, faction="ally")
+        dm, ui = self._create_dm_with_ui(map_data)
 
         # Place a unit and set order
-        dm.deployment_ui.place_unit(0, 0, 0)
-        unit = dm.get_state().placed_units[0]
+        ui.place_unit(0, 0, 0)
+        unit = ui.state.placed_units[0]
         dm.set_pending_order(unit.unit_template_id, 5, 5)
 
         # Create a GameState for complete()
@@ -286,16 +274,14 @@ class TestDeploymentE2E:
         from pycc2.domain.entities.game_map import GameMap
         from pycc2.domain.entities.unit import Faction
         from pycc2.presentation.rendering.camera import Camera
-        from pycc2.services.deployment_manager import DeploymentManager
         from pycc2.services.game_loop import GameState
 
-        dm = DeploymentManager()
         map_data = _make_map_data()
-        dm.start(map_data=map_data, faction="ally")
+        dm, ui = self._create_dm_with_ui(map_data)
 
         # Place multiple units
-        dm.deployment_ui.place_unit(0, 0, 0)
-        dm.deployment_ui.place_unit(1, 1, 0)
+        ui.place_unit(0, 0, 0)
+        ui.place_unit(1, 1, 0)
 
         game_map = GameMap(
             id="test",
