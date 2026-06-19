@@ -236,11 +236,11 @@ class MoraleSystem:
         if voice_callback is None:
             return
         try:
-            faction = unit.faction if hasattr(unit, "faction") else None
+            faction = unit.faction
             if faction is not None:
                 voice_callback(new_state.value, faction)
-        except Exception as e:
-            logging.info(f"Morale collapse voice playback error: {e}")
+        except (AttributeError, TypeError, ValueError) as e:
+            logging.info("Morale collapse voice playback error: %s", e)
 
     @staticmethod
     def apply_suppression(unit: Unit, amount: float, dt: float) -> dict:
@@ -262,7 +262,7 @@ class MoraleSystem:
             - new_state: New morale state (if changed)
             - current_morale: Updated morale value
         """
-        if not hasattr(unit, "morale") or unit.morale is None:
+        if unit.morale is None:
             return {
                 "morale_delta": 0,
                 "state_changed": False,
@@ -280,7 +280,7 @@ class MoraleSystem:
         unit.morale.apply_delta(-morale_reduction)
 
         # Also add to suppression tracker if available
-        if hasattr(unit.morale, "add_suppression"):
+        if unit.morale is not None and hasattr(unit.morale, "add_suppression"):
             suppr_amount = int(amount * dt * 60)
             unit.morale.add_suppression(suppr_amount)
 
@@ -332,7 +332,7 @@ class MoraleSystem:
             - current_morale: Updated morale
             - state_changed: Whether state improved
         """
-        if not hasattr(unit, "morale") or unit.morale is None:
+        if unit.morale is None:
             return {"recovered": 0, "current_morale": 0, "state_changed": False}
 
         # Don't recover if currently routing or broken below threshold
@@ -399,7 +399,7 @@ class MoraleSystem:
         - Returns target position (map edge direction) if fleeing
         """
 
-        if not hasattr(unit, "morale") or unit.morale is None:
+        if unit.morale is None:
             return (False, None)
 
         current_state = MoraleSystem.get_state(unit.morale.value)
@@ -430,7 +430,7 @@ class MoraleSystem:
                 if random.random() < MoraleSystem.FLEE_CHANCE_ROUTING:
                     should_flee = True
                     # Calculate flee direction (toward nearest map edge)
-                    if hasattr(unit, "position") and unit.position:
+                    if unit.position is not None and unit.position:
                         target_pos = MoraleSystem._calculate_flee_target(unit, game_map)
                         unit._routing_target.position = target_pos
 
@@ -462,7 +462,7 @@ class MoraleSystem:
             # Fallback: try to get map from unit's position
             return None
 
-        if not hasattr(unit, "position") or unit.position is None:
+        if unit.position is None:
             return None
 
         ux = unit.position.tile_coord.x
@@ -543,7 +543,7 @@ class MoraleSystem:
         Returns:
             True if unit can move, False otherwise
         """
-        if not hasattr(unit, "morale") or unit.morale is None:
+        if unit.morale is None:
             return True  # No morale system = can always move
 
         current_state = MoraleSystem.get_state(unit.morale.value)
@@ -572,7 +572,7 @@ class MoraleSystem:
         Returns:
             True if unit accepts orders, False if refusing
         """
-        if not hasattr(unit, "morale") or unit.morale is None:
+        if unit.morale is None:
             return True
 
         current_state = MoraleSystem.get_state(unit.morale.value)
@@ -595,7 +595,7 @@ class MoraleSystem:
         When a squad member enters BROKEN or ROUTING state, nearby friendly
         units (within 10 tiles) suffer a morale penalty of -5.
         """
-        if not hasattr(unit, "morale") or unit.morale is None:
+        if unit.morale is None:
             return
 
         # Only apply if this unit is in BROKEN or ROUTING state
@@ -611,7 +611,7 @@ class MoraleSystem:
                 continue
             if other.faction != unit.faction:
                 continue
-            if not hasattr(other, "morale") or other.morale is None:
+            if other.morale is None:
                 continue
 
             ox = other.position.tile_coord.x
@@ -636,7 +636,6 @@ class MoraleSystem:
             for u in all_units
             if u.is_alive
             and u.unit_type == UnitType.COMMANDER
-            and hasattr(u, "morale")
             and u.morale is not None
         ]
 
@@ -651,7 +650,7 @@ class MoraleSystem:
                     continue
                 if not unit.is_alive:
                     continue
-                if not hasattr(unit, "morale") or unit.morale is None:
+                if unit.morale is None:
                     continue
 
                 ux = unit.position.tile_coord.x

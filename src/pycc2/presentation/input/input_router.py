@@ -106,9 +106,15 @@ class InputRouter:
                     input_event.modifiers[1] if hasattr(input_event, "modifiers") else False
                 )
                 if units:
+                    # P4 fix: Save drag state BEFORE handle_right_mouse_up resets it
+                    was_dragging = self.interaction_controller._is_right_dragging
+
                     self.interaction_controller.handle_right_mouse_up(input_event.position, units)
-                    # If not dragging (simple right-click), also handle as right-click command
-                    if not self.interaction_controller._is_right_dragging:
+
+                    # Only call handle_right_click for simple right-clicks (no radial menu used)
+                    # handle_right_mouse_up() internally resets _is_right_dragging to False,
+                    # so we must check the saved state to avoid double execution
+                    if not was_dragging:
                         self.interaction_controller.handle_right_click(
                             input_event.position, units, shift_held=shift_held
                         )

@@ -128,10 +128,25 @@ class UnitRenderer:
                 elif hasattr(unit, "category"):
                     unit_type_str = str(unit.category).lower()
 
-                base_radius = max(12, int(15 * camera.zoom))
+                # P3 fix: Increased base radius from 12→24 for better visibility
+                base_radius = max(32, int(32 * camera.zoom))
 
                 get_health_tinted = self._ctx.get_health_tinted_color
                 offscreen = self._ctx.offscreen
+
+                # Determine faction color for outer ring (Allies=blue, Axis=red)
+                faction_color = (100, 149, 237)  # Default cornflower blue
+                if hasattr(unit, "faction"):
+                    from pycc2.domain.entities.unit import Faction
+
+                    if unit.faction == Faction.AXIS:
+                        faction_color = (220, 60, 60)  # Red for Axis
+                    elif unit.faction == Faction.ALLIES:
+                        faction_color = (100, 149, 237)  # Blue for Allies
+
+                # Draw faction-colored outer ring (3px wide, radius+4)
+                outer_ring_radius = base_radius + 4
+                pygame.draw.circle(offscreen, faction_color, (cx, cy), outer_ring_radius, 3)
 
                 if (
                     "tank" in unit_type_str
@@ -197,6 +212,9 @@ class UnitRenderer:
                     color = get_health_tinted(color, unit) if get_health_tinted else color
                     pygame.draw.circle(offscreen, color, (cx, cy), radius)
                     pygame.draw.circle(offscreen, (255, 255, 255), (cx, cy), radius, 2)
+
+                # P3 fix: Draw direction indicator arrow based on unit facing
+                self._draw_direction_arrow(offscreen, cx, cy, base_radius, unit, color)
 
                 try:
                     font = pygame.font.Font(None, max(16, int(18 * camera.zoom)))
@@ -503,3 +521,56 @@ class UnitRenderer:
             )
 
             offscreen.blit(shield_surf, (cx - center, cy - center))
+
+    def _draw_direction_arrow(
+        self,
+        surface: pygame.Surface,
+        cx: int,
+        cy: int,
+        radius: int,
+        unit,
+        unit_color: tuple,
+    ) -> None:
+        """Draw a direction arrow showing unit facing direction.
+
+        Reads facing from unit.position.facing_rad (PositionComponent).
+        Falls back to -π/2 (up) if no facing info available.
+        """
+        # Get facing angle from PositionComponent
+        facing = -math.pi / 2  # Default: pointing up
+        if hasattr(unit, "position") and hasattr(unit.position, "facing_rad"):
+            facing = unit.position.facing_rad
+        elif hasattr(unit, "facing_direction"):
+            facing = unit.facing_direction
+        elif hasattr(unit, "direction"):
+            facing = unit.direction
+
+        # Arrow dimensions scale with unit size
+        arrow_length = max(6, int(radius * 0.7))
+        arrow_width = max(3, arrow_length // 3)
+
+        # Calculate arrow tip position
+        end_x = cx + int(arrow_length * math.cos(facing))
+        end_y = cy + int(arrow_length * math.sin(facing))
+
+        # Choose contrasting color for arrow
+        brightness = sum(unit_color[:3]) / 3
+        arrow_color = (40, 40, 40) if brightness > 127 else (255, 255, 255)
+
+        # Draw arrow shaft
+        pygame.draw.line(surface, arrow_color, (cx, cy), (end_x, end_y), 2)
+
+        # Draw arrowhead
+        left_angle = facing + math.pi - (math.pi / 6)
+        right_angle = facing + math.pi + (math.pi / 6)
+
+        left_x = end_x + int(arrow_width * math.cos(left_angle))
+        left_y = end_y + int(arrow_width * math.sin(left_angle))
+        right_x = end_x + int(arrow_width * math.cos(right_angle))
+        right_y = end_y + int(arrow_width * math.sin(right_angle))
+
+        pygame.draw.polygon(
+            surface,
+            arrow_color,
+            [(end_x, end_y), (left_x, left_y), (right_x, right_y)],
+        )

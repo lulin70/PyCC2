@@ -64,13 +64,13 @@ class RangeIndicator:
         min_range = 0.0
         max_range = 0.0
 
-        weapon_comp = getattr(unit, "weapon_component", None)
+        weapon_comp = unit.weapon_component
         if weapon_comp:
-            min_range = getattr(weapon_comp, "min_range", 0.0)
-            max_range = getattr(weapon_comp, "max_range", 0.0)
+            min_range = weapon_comp.min_range if weapon_comp is not None else 0.0
+            max_range = weapon_comp.max_range if weapon_comp is not None else 0.0
 
         if max_range == 0.0:
-            max_range = getattr(unit, "vision_range", 10.0)
+            max_range = unit.vision_range if unit.vision_range is not None else 10.0
 
         return (min_range, max_range)
 
@@ -123,7 +123,7 @@ class RangeIndicator:
             if pos is None:
                 return
 
-            screen_pos = camera.world_to_screen(__to_vec2(pos))
+            screen_pos = camera.world_to_screen(_to_vec2(pos))
 
             scale = camera.zoom
             min_radius = int(self._min_range * 32 * scale)  # 32 pixels per tile
@@ -151,8 +151,8 @@ class RangeIndicator:
                     (int(screen_pos[0]) - max_radius - 2, int(screen_pos[1]) - max_radius - 2),
                 )
 
-        except Exception as e:
-            logging.debug(f"Range indicator rendering failed: {e}")
+        except (pygame.error, ValueError, TypeError) as e:
+            logging.debug("Range indicator rendering failed: %s", e)
 
     def contains_point(
         self,
@@ -183,7 +183,7 @@ class RangeIndicator:
             return "outside_max"
 
 
-def __to_vec2(pos: tuple[float, float]):
+def _to_vec2(pos: tuple[float, float]):
     """Helper to convert tuple to Vec2."""
     from pycc2.domain.value_objects.vec2 import Vec2
 

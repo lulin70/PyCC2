@@ -1890,8 +1890,8 @@ class FourLayerCampaignManager:
 
                     try:
                         unit.state_machine.force_transition(UnitState.DEAD)
-                    except Exception as e:
-                        logging.warning(f"Unit state transition to DEAD failed: {e}")
+                    except (ValueError, RuntimeError) as e:
+                        logging.warning("Unit state transition to DEAD failed: %s", e)
 
                 # Remove dead members from squad
                 if hasattr(unit, "squad_ref") and unit.squad_ref is not None:

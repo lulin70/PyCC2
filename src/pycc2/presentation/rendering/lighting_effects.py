@@ -14,6 +14,7 @@ Created: v0.3.9 (extracted from enhanced_renderer.py ~280 lines)
 
 import contextlib
 import logging
+from collections import deque
 from typing import TYPE_CHECKING
 
 import pygame
@@ -64,7 +65,7 @@ class LightingEffectsSystem:
         self._max_dynamic_lights = max_dynamic_lights
 
         # 动态光源状态
-        self._dynamic_lights: list[dict] = []
+        self._dynamic_lights: deque[dict] = deque()
 
         # 时间色调缓存（避免每帧重新生成）
         self._tod_tint_cache: pygame.Surface | None = None
@@ -314,7 +315,7 @@ class LightingEffectsSystem:
 
         # 性能保护：强制最大并发光源数
         if len(self._dynamic_lights) >= self._max_dynamic_lights:
-            self._dynamic_lights.pop(0)  # 移除最旧的光源
+            self._dynamic_lights.popleft()  # 移除最旧的光源
 
         # 半径上限防止超大表面
         MAX_RADIUS = 200

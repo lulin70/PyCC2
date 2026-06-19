@@ -40,7 +40,7 @@ class SpriteRenderer:
     """
 
     TILE_SIZE: int = 48  # CC2 authentic: 48×48 pixel tiles
-    SPRITE_SIZE: int = 32  # CC2-style units (scaled up for 48px tiles)
+    SPRITE_SIZE: int = 48  # CC2-style units (matched to 48px tiles)
     MAX_DAMAGE_NUMBERS: int = 50  # Upper limit for floating damage numbers
 
     def __init__(self, display_config: DisplayConfig | None = None):
@@ -48,7 +48,7 @@ class SpriteRenderer:
 
         self._display_config: DisplayConfig = display_config or DC()
         self.TILE_SIZE: int = 48
-        self.SPRITE_SIZE: int = 32
+        self.SPRITE_SIZE: int = 48
         self._screen: Surface | None = None
         self._target_surface: Surface | None = None
         self._surface_pool = SurfacePool(max_size=30)
@@ -504,8 +504,8 @@ class SpriteRenderer:
                 try:
                     from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
                     scaled = PixelArtist3D.apply_wounded_overlay(scaled, hp_ratio)
-                except Exception as e:
-                    logging.debug(f"Wounded overlay failed: {e}")
+                except (pygame.error, ValueError, TypeError) as e:
+                    logging.debug("Wounded overlay failed: %s", e)
 
             self.draw_surface.blit(scaled, draw_pos)
 
@@ -565,8 +565,8 @@ class SpriteRenderer:
 
             rot_rect = turret_rotated.get_rect(center=(int(sp[0]), int(sp[1])))
             self.draw_surface.blit(turret_rotated, rot_rect)
-        except Exception as e:
-            logging.debug(f"Turret overlay failed: {e}")
+        except (pygame.error, ValueError, TypeError, ImportError) as e:
+            logging.debug("Turret overlay failed: %s", e)
 
     def _draw_selection_ring(self, center: tuple[float, float], radius: int) -> None:
         """CC2风格：选中单位成员轮廓 - 基于时间脉动的黄色描边"""
@@ -740,15 +740,15 @@ class SpriteRenderer:
             elif morale_state == MoraleState.WAVERING:
                 self._draw_wavering_indicator(base_x, base_y, zoom)
 
-        except Exception as e:
-            logger.warning(f"Failed to draw morale indicator: {e}")
+        except (pygame.error, ValueError, AttributeError) as e:
+            logger.warning("Failed to draw morale indicator: %s", e)
             try:
                 if hasattr(unit, "morale") and hasattr(unit.morale, "state"):
                     ms = unit.morale.state.value
                     if ms >= 2:
                         self._draw_morale_icon(sp, zoom, ms)
-            except Exception as e:
-                logging.debug(f"Morale icon draw failed: {e}")
+            except (pygame.error, ValueError) as e:
+                logging.debug("Morale icon draw failed: %s", e)
 
     def _draw_pinned_indicator(self, x: int, y: int, zoom: float) -> None:
         """Draw yellow "!" icon with pulsing ring for pinned units."""
@@ -882,8 +882,8 @@ class SpriteRenderer:
 
             if mode == "fast_move":
                 self._draw_fast_move_indicator(sp, zoom)
-        except Exception as e:
-            logger.debug(f"Failed to draw movement mode indicator: {e}")
+        except (pygame.error, ValueError) as e:
+            logger.debug("Failed to draw movement mode indicator: %s", e)
             pass
 
     def _draw_defend_posture(self, x: int, y: int, size: int) -> None:
@@ -1008,8 +1008,26 @@ class SpriteRenderer:
     def update_animations(self) -> None:
         self._effect_renderer.update_animations()
 
+    def update_flash(self, dt: float) -> None:
+        self._effect_renderer.update_effects()
+
+    def update_weather(self, dt: float) -> None:
+        pass  # Weather rendering handled by dedicated weather renderer
+
+    def update_shell_casings(self, dt: float) -> None:
+        pass  # Shell casings handled by dedicated shell casing system
+
+    def update_suppression_overlay(self, dt: float, units) -> None:
+        pass  # Suppression overlay handled by dedicated overlay system
+
+    def _smooth_positions(self, units, dt: float) -> None:
+        pass  # Position smoothing handled by movement system
+
     def resize(self, w: int, h: int) -> None:
-        pass
+        """Handle window resize — invalidate viewport-dependent caches only."""
+        self._surface_pool.clear()
+        self._cache_manager.terrain_cache.clear()
+        self._cache_manager.tile_cache.invalidate()
 
     def shutdown(self) -> None:
         self._screen = None

@@ -294,8 +294,19 @@ class GameMap:
         """Return enhanced tile data for the given coordinates, if available."""
         if self.tiles_enhanced is None:
             return None
-        key = f"{x},{y}"
-        return self.tiles_enhanced.get(key)
+        if isinstance(self.tiles_enhanced, dict):
+            key = f"{x},{y}"
+            return self.tiles_enhanced.get(key)
+        if isinstance(self.tiles_enhanced, list):
+            # tiles_enhanced is a 2D array: list of rows, each row is a list of tile dicts
+            if 0 <= y < len(self.tiles_enhanced):
+                row = self.tiles_enhanced[y]
+                if isinstance(row, list) and 0 <= x < len(row):
+                    tile = row[x]
+                    if isinstance(tile, dict):
+                        return tile
+            return None
+        return None
 
     def has_enhanced_data(self) -> bool:
         """Return True if tiles_enhanced data is present."""

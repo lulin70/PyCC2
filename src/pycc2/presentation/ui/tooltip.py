@@ -194,8 +194,8 @@ class Tooltip:
 
             surface.blit(tooltip_surface, (x, y))
 
-        except Exception as e:
-            logging.debug(f"Tooltip rendering failed: {e}")
+        except (pygame.error, ValueError, TypeError) as e:
+            logging.debug("Tooltip rendering failed: %s", e)
 
     def _get_display_lines(self) -> list[tuple[str, tuple[int, int, int]]]:
         """Generate formatted text lines for display."""

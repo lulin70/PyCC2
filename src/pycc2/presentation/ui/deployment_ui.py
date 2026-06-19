@@ -479,7 +479,7 @@ class DeploymentUI:
             unit.is_placed = True
             self._state.placed_units.append(unit)
             self._state.requisition_points_spent += unit.deployment_cost
-        except Exception:
+        except (AttributeError, ValueError, TypeError):
             # If placement fails, rollback
             unit.position = None
             unit.is_placed = False
@@ -1024,7 +1024,7 @@ class DeploymentUI:
         # Create ghost surface ONCE (not every frame)
         try:
             self._ghost_surface = self._create_ghost_surface(unit)
-        except Exception:
+        except (pygame.error, ValueError, TypeError):
             self._ghost_surface = None  # Safe fallback
 
         # Select the unit (for placement highlights)
@@ -1145,8 +1145,8 @@ class DeploymentUI:
                 ghost.blit(label, (cx - label.get_width() // 2, cy - radius - 12))
 
             return ghost
-        except Exception as e:
-            logging.debug(f"Ghost surface rendering failed: {e}")
+        except (pygame.error, ValueError, TypeError) as e:
+            logging.debug("Ghost surface rendering failed: %s", e)
             return None
 
     def _render_unit_details_panel(self, screen: pygame.Surface) -> None:

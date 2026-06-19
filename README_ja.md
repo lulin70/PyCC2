@@ -194,7 +194,7 @@
 | **武器種** | 69のCC2本格的武器 |
 | **キャンペーン戦闘** | 3セクター、9日間にわたる29の戦闘 |
 | **AIビヘイビア** | 6種の戦術AIタイプ（側面攻撃、制圧、VPなど） |
-| **コードファイル** | ~253 Pythonモジュール（v0.3.30以降+7：surface_pool.py、fade_transition.py + shell_casing_system.py、flash_effect_system.py、weather_system.py、resource_cache.py + v0.3.31-v0.3.34の天候/薬莢システム） |
+| **コードファイル** | ~283 Pythonモジュール（v0.3.30以降+37：surface_pool.py、fade_transition.py + shell_casing_system.py、flash_effect_system.py、weather_system.py、resource_cache.py + v0.3.31-v0.3.34の天候/薬莢システム + casualty_system, unit_diversity_expansion, cover_seek_ai 等） |
 | **クラス定義** | 330以上のクラス |
 | **抽出モジュール** | 22のレンダリング/データシステム（新規：ShellCasingSystem、FlashEffectSystem、WeatherSystem、ResourceCacheManager + 既存19） |
 | **技術的負債** | 1000行超のゴッドクラス4個残存（deployment_ui 1323↓、pixel_artist_3d 2340、campaign_four_layer 1987、pixel_artist 1971） |
@@ -609,4 +609,4 @@ Close Combat 2はそれぞれの所有者の商標です。これは教育目的
 
 ---
 
-<p align="center"><sub>2026-06-13生成 | v0.3.39（Beta Candidate） | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a></sub></p>
+<p align="center"><sub>2026-06-16生成 | v0.3.41（Beta Candidate） | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a></sub></p>

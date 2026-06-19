@@ -303,6 +303,7 @@ class FakeAIService:
 
     def __init__(self, managed_unit_count=0, tick_return_value=None):
         self._registered_units: dict = {}
+        self._unit_entities: dict = {}  # P0 AI safety net compatibility (2026-06-19)
         self._tick_count: int = 0
         self._execute_intents_count: int = 0
         self._managed_unit_count_override: int = managed_unit_count

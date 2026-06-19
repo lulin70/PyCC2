@@ -46,7 +46,7 @@ from pycc2.domain.value_objects.tile_coord import TileCoord
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
-    from pycc2.domain.systems.los_system import Lossystem
+    from pycc2.domain.systems.los_system import LOSSystem
 
 
 logger = logging.getLogger(__name__)

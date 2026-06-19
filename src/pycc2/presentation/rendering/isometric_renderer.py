@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 import pygame
@@ -66,7 +67,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # Terrain ID to tile generator mapping
-_TERRAIN_GENERATORS: dict[int, callable] = {  # type: ignore[type-arg]
+_TERRAIN_GENERATORS: dict[int, Callable[..., None]] = {
     0: generate_grass_tile,  # OPEN
     1: generate_road_tile,  # ROAD
     2: generate_grass_tile,  # GRASS
@@ -283,8 +284,8 @@ class IsometricRenderer:
         for unit in units:
             try:
                 renderables.append(unit_to_renderable(unit))
-            except Exception as e:
-                logging.debug(f"Unit to renderable conversion failed: {e}")
+            except (AttributeError, ValueError, TypeError) as e:
+                logging.debug("Unit to renderable conversion failed: %s", e)
                 continue
 
         # Sort back-to-front
@@ -501,8 +502,8 @@ class IsometricRenderer:
                             height_levels = max(1, etile.height)
                         if hasattr(etile, "damage_state"):
                             damage_state = etile.damage_state
-            except Exception as e:
-                logging.debug(f"Building tile info lookup failed: {e}")
+            except (AttributeError, ValueError, TypeError) as e:
+                logging.debug("Building tile info lookup failed: %s", e)
 
             scaled = self._get_scaled_building_surface(
                 terrain_id, height_levels, damage_state, quantized_zoom
@@ -595,8 +596,8 @@ class IsometricRenderer:
                 select_radius = radius + 4
                 pygame.draw.circle(self._offscreen, (255, 255, 0), (sx, sy), select_radius, 2)
 
-        except Exception as e:
-            logging.debug(f"Isometric unit rendering failed: {e}")
+        except (pygame.error, ValueError, TypeError) as e:
+            logging.debug("Isometric unit rendering failed: %s", e)
             return
 
     def _draw_debug_grid(

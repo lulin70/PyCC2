@@ -155,7 +155,7 @@ class TestPathPreview:
     ):
         """Test danger assessment when enemies can see path."""
         enemy = MagicMock()
-        mock_los_system.can_see.return_value = (True, MagicMock())
+        mock_los_system.check_los.return_value = (True, MagicMock())
 
         preview = PathPreview(
             pathfinder=mock_pathfinder,

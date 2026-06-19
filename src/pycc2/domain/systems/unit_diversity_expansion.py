@@ -100,7 +100,7 @@ class UnitDiversityGenerator:
 
         gen = UnitDiversityGenerator()
         all_units = gen.generate_variants(base_templates)
-        print(f"Total: {gen.count_total_units()}")
+        logger.debug("Total: %d", gen.count_total_units())
     """
 
     def __init__(self) -> None:

@@ -251,8 +251,8 @@ class WeaponSoundGenerator:
                 mixer.init(frequency=cls.SAMPLE_RATE, size=-16, channels=1, buffer=512)
             sound = mixer.Sound(array=scaled)
             sound.play()
-        except Exception as e:
-            logging.info(f"Weapon sound playback failed: {e}")
+        except (pygame.error, ValueError, OSError) as e:
+            logging.info("Weapon sound playback failed: %s", e)
 
     @classmethod
     def get_weapon_profile(cls, weapon_id: str) -> WeaponSoundProfile:

@@ -232,8 +232,8 @@ class InteractionController:
                         type_key = unit_type_str
 
                     radius = type_radius.get(type_key, 20) * self._camera.zoom
-                except Exception as e:
-                    logging.debug(f"Unit click radius lookup failed: {e}")
+                except (AttributeError, ValueError, TypeError) as e:
+                    logging.debug("Unit click radius lookup failed: %s", e)
 
                 # Ensure minimum radius for easy clicking
                 radius = max(radius, 15 * self._camera.zoom)
@@ -243,7 +243,7 @@ class InteractionController:
                     min_dist_sq = dist_sq
                     hit_unit = unit
 
-            except Exception as e:
+            except (AttributeError, ValueError, TypeError) as e:
                 # CRITICAL: Never crash on a single unit - just skip it
                 logger.warning("hit_test failed for unit %d: %s", idx, e)
                 continue

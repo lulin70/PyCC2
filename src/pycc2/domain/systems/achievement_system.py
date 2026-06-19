@@ -127,7 +127,7 @@ class AchievementManager:
             for listener in self._listeners:
                 try:
                     listener(definition)
-                except Exception as e:
+                except (RuntimeError, ValueError, TypeError) as e:
                     logger.warning("Achievement listener failed: %s", e)
             return True
 
@@ -154,7 +154,7 @@ class AchievementManager:
             for listener in self._listeners:
                 try:
                     listener(definition)
-                except Exception as e:
+                except (RuntimeError, ValueError, TypeError) as e:
                     logger.warning("Achievement listener failed: %s", e)
             return True
 

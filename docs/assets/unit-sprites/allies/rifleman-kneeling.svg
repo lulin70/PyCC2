@@ -1,0 +1,14 @@
+<svg width="24" height="32" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Drop Shadow -->
+  <ellipse cx="10" cy="28" rx="8" ry="4" fill="rgba(0,0,0,0.15)"/>
+  <!-- Body - Leaning Forward -->
+  <ellipse cx="10" cy="22" rx="9" ry="8" fill="#5B6B3A"/>
+  <!-- Helmet -->
+  <ellipse cx="9" cy="16" rx="5" ry="4.5" fill="#3D4F24"/>
+  <ellipse cx="9" cy="15" rx="3.5" ry="2" fill="#4A5C2A"/>
+  <!-- Boots -->
+  <rect x="3" y="31" width="4" height="5" rx="2" fill="#4A3C28"/>
+  <rect x="13" y="29" width="4" height="7" rx="2" fill="#4A3C28"/>
+  <!-- Rifle Extended -->
+  <line x1="6" y1="20" x2="22" y2="16" stroke="#3A3020" stroke-width="2" stroke-linecap="round"/>
+</svg>

@@ -228,7 +228,7 @@ GAME_PRESETS: dict[GamePreset, GameSettings] = {
 # ExperienceLevel -> DifficultyLevel mapping
 # ========================================================================
 
-_EXPERIENCE_TO_DIFFICULTY: dict[ExperienceLevel, DifficultyLevel] = None  # type: ignore[assignment]
+_EXPERIENCE_TO_DIFFICULTY: dict[ExperienceLevel, DifficultyLevel] | None = None
 
 
 def _get_experience_to_difficulty_map() -> dict[ExperienceLevel, DifficultyLevel]:

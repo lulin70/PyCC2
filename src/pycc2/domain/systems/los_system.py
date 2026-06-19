@@ -8,6 +8,7 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 from pycc2.domain.value_objects.tile_coord import TileCoord
+from pycc2.domain.value_objects.terrain_type import TerrainType
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
@@ -218,14 +219,19 @@ class LOSSystem:
                         blocking_reason=f"Height blocked (+{height_diff:.1f} at {coord})",
                     )
 
-            if terrain.name in ("hedge", "woods") and i == len(line) - 2:
-                return LosResult(
-                    status=LosStatus.PARTIAL,
-                    can_see=True,
-                    blocking_coord=coord,
-                    distance_tiles=distance,
-                    blocking_reason="Partial cover (soft)",
-                )
+            # Soft cover: hedges and dense vegetation reduce visibility
+            # without completely blocking (e.g., Normandy bocage)
+            _name = getattr(terrain, "name", "")
+            if terrain is TerrainType.HEDGE or _name.lower() == "hedge":
+                fraction_along = i / len(line) if len(line) > 1 else 0
+                if fraction_along < 0.95:
+                    return LosResult(
+                        status=LosStatus.PARTIAL,
+                        can_see=True,
+                        blocking_coord=coord,
+                        distance_tiles=distance,
+                        blocking_reason=f"Partial cover ({terrain.name})",
+                    )
 
         return LosResult(
             status=LosStatus.CLEAR,

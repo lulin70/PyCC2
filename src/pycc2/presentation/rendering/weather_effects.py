@@ -161,8 +161,8 @@ class EnhancedWeatherSystem:
             color = (180, 200, 220, particle.alpha)
             try:
                 pygame.draw.line(surface, color[:3], start_pos, end_pos, particle.size)
-            except Exception as e:
-                logging.warning(f"Rain particle draw failed: {e}", exc_info=True)
+            except (pygame.error, ValueError, TypeError) as e:
+                logging.warning("Rain particle draw failed: %s", e, exc_info=True)
 
     def _render_snow(self, surface: Surface):
         """渲染雪花"""
@@ -171,8 +171,8 @@ class EnhancedWeatherSystem:
             color = (255, 255, 255, particle.alpha)
             try:
                 pygame.draw.circle(surface, color[:3], pos, particle.size)
-            except Exception as e:
-                logging.warning(f"Snow particle draw failed: {e}", exc_info=True)
+            except (pygame.error, ValueError, TypeError) as e:
+                logging.warning("Snow particle draw failed: %s", e, exc_info=True)
 
     def _render_fog(self, surface: Surface):
         """渲染雾效"""

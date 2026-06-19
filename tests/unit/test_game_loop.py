@@ -64,7 +64,10 @@ def mock_window_manager():
     screen.get_width.return_value = 1280
     screen.get_height.return_value = 720
     screen.get_size.return_value = (1280, 720)
+    screen.blit = Mock()
+    screen.get_rect.return_value = pygame.Rect(0, 0, 1280, 720)
     wm.get_screen.return_value = screen
+    wm._screen = screen
     wm.fps = 60.0
     wm.tick.return_value = 16
     return wm
@@ -179,6 +182,13 @@ class TestPauseResume:
 class TestIntegration:
     def test_run_complete_loop_without_crash(self, game_loop):
         pygame.font.init()
+        # Integration test requires REAL pygame.Surface (not Mock) because
+        # CC2BottomPanel.render() calls draw.rect(target, ...) which needs a real Surface.
+        # This was a pre-existing bug: using Mock(screen) caused TypeError at draw.rect().
+        real_screen = pygame.Surface((1280, 720))
+        game_loop.window_manager._screen = real_screen
+        game_loop.window_manager.get_screen.return_value = real_screen
+
         with patch("pycc2.services.game_loop.time.perf_counter") as mock_time:
             call_count = [0]
 

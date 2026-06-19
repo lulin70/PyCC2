@@ -37,13 +37,26 @@ class Minimap:
         # Fade transition for smooth show/hide
         self._fade = FadeTransition(fade_duration=0.2)
 
+        # Cache terrain surface to avoid re-drawing every frame when map hasn't changed
+        self._terrain_cache: Surface | None = None
+        self._terrain_cache_map_id: int = 0
+
+        # Reusable viewport surface (avoids per-frame allocation)
+        self._viewport_surface: Surface | None = None
+        self._viewport_size: tuple[int, int] = (0, 0)
+
     def set_map(self, game_map: GameMap) -> None:
         """Set the game map for rendering."""
         self._game_map = game_map
+        # Invalidate terrain cache when map changes
+        self._terrain_cache = None
+        self._terrain_cache_map_id = id(game_map) if game_map else 0
 
     def set_projection_mode(self, is_isometric: bool) -> None:
         """Set the minimap projection mode."""
-        self._is_isometric = is_isometric
+        if is_isometric != self._is_isometric:
+            self._is_isometric = is_isometric
+            self._terrain_cache = None  # Cache invalid on projection change
 
     def update_units(self, units: list[Unit]) -> None:
         """Update unit positions for minimap display."""
@@ -113,14 +126,27 @@ class Minimap:
         surface.blit(self._surface, (x, y))
 
     def _draw_terrain(self) -> None:
-        """Draw simplified terrain on minimap."""
+        """Draw simplified terrain on minimap (with caching)."""
         if not self._game_map or not self._surface:
             return
 
+        # Use cached terrain surface if available and valid
+        current_map_id = id(self._game_map)
+        if (self._terrain_cache is not None
+                and self._terrain_cache_map_id == current_map_id):
+            self._surface.blit(self._terrain_cache, (0, 0))
+            return
+
+        # Rebuild terrain cache
         if self._is_isometric:
             self._draw_terrain_isometric()
         else:
             self._draw_terrain_orthographic()
+
+        # Cache the result (copy of just the terrain portion)
+        self._terrain_cache = Surface((self.size, self.size))
+        self._terrain_cache.blit(self._surface, (0, 0))
+        self._terrain_cache_map_id = current_map_id
 
     def _draw_terrain_orthographic(self) -> None:
         """Draw simplified terrain on minimap (orthographic/square tiles).
@@ -318,11 +344,16 @@ class Minimap:
         mini_w = int((vp_w / max(1, map_width)) * self.size)
         mini_h = int((vp_h / max(1, map_height)) * self.size)
 
-        # Draw semi-transparent viewport rectangle
-        viewport_color = (255, 255, 255, 100)
-        viewport_surface = Surface((mini_w, mini_h), pygame.SRCALPHA)
-        viewport_surface.fill(viewport_color)
-        self._surface.blit(viewport_surface, (mini_x, mini_y), special_flags=pygame.BLEND_RGBA_ADD)
+        # Draw semi-transparent viewport rectangle (reuse surface to avoid allocation)
+        viewport_color = (255, 255, 255, 40)
+        vp_size = (mini_w, mini_h)
+        if self._viewport_surface is None or self._viewport_size != vp_size:
+            self._viewport_surface = Surface(vp_size, pygame.SRCALPHA)
+            self._viewport_size = vp_size
+        else:
+            self._viewport_surface.fill((0, 0, 0, 0))  # Clear without realloc
+        self._viewport_surface.fill(viewport_color)
+        self._surface.blit(self._viewport_surface, (mini_x, mini_y), special_flags=pygame.BLEND_RGBA_ADD)
 
         # Draw viewport border
         draw.rect(self._surface, (255, 255, 255), Rect(mini_x, mini_y, mini_w, mini_h), 1)

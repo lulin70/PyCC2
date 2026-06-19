@@ -183,8 +183,8 @@ class StrategicMapView:
 
             surface.blit(self._bg_surface, (0, 0))
 
-        except Exception as e:
-            logging.debug(f"Strategic map rendering failed: {e}")
+        except (pygame.error, ValueError, TypeError) as e:
+            logging.debug("Strategic map rendering failed: %s", e)
 
     def get_sector(self, sector_id: str) -> Sector | None:
         """Get sector by ID."""

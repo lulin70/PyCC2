@@ -5,6 +5,7 @@ Unit Entity - Core Game Unit
 from __future__ import annotations
 
 import logging
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING
@@ -103,7 +104,7 @@ class Unit:
     _defend_mobility_penalty: float = 0.5  # 50% slower when defending
 
     # Command queue (Shift+right-click queued commands)
-    _command_queue: list[dict] = field(default_factory=list)
+    _command_queue: deque[dict] = field(default_factory=deque)
 
     # Popup tracking (used by game_loop._process_combat_popups)
     _prev_morale_state: object = field(init=False, default=None)
@@ -284,7 +285,7 @@ class Unit:
     def get_next_queued_command(self) -> dict | None:
         """Get and remove the next command from the queue."""
         if self._command_queue:
-            return self._command_queue.pop(0)
+            return self._command_queue.popleft()
         return None
 
     @property
@@ -305,9 +306,9 @@ class Unit:
             self.set_move_target(TileCoord(int(tx), int(ty)))
         elif cmd_type == "attack":
             try:
-                self.state_machine.transition(UnitState.ATTACKING)
-            except Exception as e:
-                logging.warning(f"Unit state transition to ATTACKING failed: {e}")
+                self.state_machine.try_transition(UnitState.ATTACKING)
+            except (ValueError, RuntimeError) as e:
+                logging.warning("Unit state transition to ATTACKING failed: %s", e)
 
     def __post_init__(self) -> None:
         from pycc2.domain.state_machine import StateMachine
@@ -603,9 +604,9 @@ class Unit:
         self.move_target = tile
         if self.state_machine.current != UnitState.MOVING:
             try:
-                self.state_machine.transition(UnitState.MOVING)
-            except Exception as e:
-                logging.warning(f"Unit state transition to MOVING failed: {e}")
+                self.state_machine.try_transition(UnitState.MOVING)
+            except (ValueError, RuntimeError) as e:
+                logging.warning("Unit state transition to MOVING failed: %s", e)
 
     def update_movement(self, dt: float = 1.0) -> bool:
         """
@@ -623,9 +624,9 @@ class Unit:
         if self.is_out_of_fuel:
             self.move_target = None
             try:
-                self.state_machine.transition(UnitState.IDLE)
-            except Exception as e:
-                logger.debug("State transition to IDLE failed: %s", e)
+                self.state_machine.try_transition(UnitState.IDLE)
+            except (ValueError, RuntimeError) as e:
+                logging.warning("Unit state transition to IDLE failed: %s", e)
             return True
 
         # Get current and target positions
@@ -636,9 +637,9 @@ class Unit:
         if current.x == target.x and current.y == target.y:
             self.move_target = None
             try:
-                self.state_machine.transition(UnitState.IDLE)
-            except Exception as e:
-                logging.warning(f"Unit state transition to IDLE failed: {e}")
+                self.state_machine.try_transition(UnitState.IDLE)
+            except (ValueError, RuntimeError) as e:
+                logging.warning("Unit state transition to IDLE failed: %s", e)
             return True  # Arrived!
 
         # Calculate direction
@@ -691,9 +692,9 @@ class Unit:
                 self._execute_queued_command(next_cmd)
             else:
                 try:
-                    self.state_machine.transition(UnitState.IDLE)
-                except Exception as e:
-                    logging.warning(f"Unit state transition to IDLE (after move) failed: {e}")
+                    self.state_machine.try_transition(UnitState.IDLE)
+                except (ValueError, RuntimeError) as e:
+                    logging.warning("Unit state transition to IDLE (after move) failed: %s", e)
             return True
         else:
             # Move toward target

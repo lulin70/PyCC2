@@ -118,9 +118,9 @@ class Casualty:
         self._is_being_dragged = False
 
         # Disable unit actions
-        if hasattr(self._unit, "can_move"):
+        if self._unit.can_move is not None:
             self._unit.can_move = False
-        if hasattr(self._unit, "can_attack"):
+        if self._unit.can_attack is not None:
             self._unit.can_attack = False
 
         event = {
@@ -185,7 +185,7 @@ class Casualty:
             return {"success": False, "reason": f"Cannot drag in state {self._state}"}
 
         if self._config.medic_required:
-            unit_type = getattr(medic_unit, "unit_type", None)
+            unit_type = medic_unit.unit_type
             type_name = str(unit_type).lower() if unit_type else ""
 
             if "medic" not in type_name:
@@ -196,16 +196,16 @@ class Casualty:
         self._is_being_dragged = True
 
         # Record medic's original speed for restoration later
-        if hasattr(medic_unit, "move_speed"):
-            self._original_medic_speed = getattr(medic_unit, "move_speed", 1.0)
+        if medic_unit.move_speed is not None:
+            self._original_medic_speed = medic_unit.move_speed
             medic_unit.move_speed *= self._config.drag_speed_multiplier
 
         # Get positions
-        pos_comp = getattr(self._unit, "position", None)
+        pos_comp = self._unit.position
         if pos_comp:
             self._drag_start_pos = (
-                getattr(pos_comp, "x", 0.0),
-                getattr(pos_comp, "y", 0.0),
+                pos_comp.x,
+                pos_comp.y,
             )
 
         event = {
@@ -225,7 +225,7 @@ class Casualty:
             return {"success": False, "reason": "Not being dragged"}
 
         # Restore medic speed
-        if self._medic_unit and hasattr(self._medic_unit, "move_speed"):
+        if self._medic_unit and self._medic_unit.move_speed is not None:
             if hasattr(self, "_original_medic_speed"):
                 self._medic_unit.move_speed = self._original_medic_speed
 
@@ -244,7 +244,7 @@ class Casualty:
         self._evac_timer = 0.0
 
         # Restore medic speed
-        if self._medic_unit and hasattr(self._medic_unit, "move_speed"):
+        if self._medic_unit and self._medic_unit.move_speed is not None:
             if hasattr(self, "_original_medic_speed"):
                 self._medic_unit.move_speed = self._original_medic_speed
 
@@ -267,12 +267,12 @@ class Casualty:
         self._medic_unit = None
 
         # Apply morale bonus to squad
-        if hasattr(self._unit, "squad") and self._unit.squad:
-            if hasattr(self._unit.squad, "morale"):
-                squad_morale = getattr(self._unit.squad.morale, "current", None)
-                if squad_morale is not None:
-                    # This would need proper morale component access
-                    pass
+        if self._unit.squad is not None:
+            squad_morale = getattr(self._unit.squad, "morale", None)
+            if squad_morale is not None and hasattr(squad_morale, "value"):
+                # Apply morale bonus for casualty evacuation
+                evacuation_bonus = 5.0  # Small morale boost from successful evacuation
+                squad_morale.value = min(squad_morale.value + evacuation_bonus, 100.0)
 
         event = {
             "event": "casualty_evacuated",
@@ -294,15 +294,15 @@ class Casualty:
         self._state = CasualtyState.DEAD
 
         # Mark unit as dead
-        if hasattr(self._unit, "health"):
+        if self._unit.health is not None:
             self._unit.health.current_hp = 0
-        if hasattr(self._unit, "state_machine"):
+        if self._unit.state_machine is not None:
             from pycc2.domain.entities.unit import UnitState
 
             try:
                 self._unit.state_machine.force_state(UnitState.DEAD)
-            except Exception as e:
-                logging.warning(f"Casualty state transition to DEAD failed: {e}")
+            except (ValueError, RuntimeError) as e:
+                logging.warning("Casualty state transition to DEAD failed: %s", e)
 
         # Apply morale penalty to squad
         morale_penalty = self._config.morale_death_penalty
@@ -413,10 +413,10 @@ class CasualtyManager:
             if not casualty.is_rescuable:
                 continue
 
-            pos_comp = getattr(casualty.unit, "position", None)
+            pos_comp = casualty.unit.position
             if pos_comp:
-                cx = getattr(pos_comp, "x", 0.0)
-                cy = getattr(pos_comp, "y", 0.0)
+                cx = pos_comp.x
+                cy = pos_comp.y
 
                 distance = ((cx - position[0]) ** 2 + (cy - position[1]) ** 2) ** 0.5
 

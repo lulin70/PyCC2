@@ -186,8 +186,8 @@ class TerrainRenderingSystem:
                     if is_autotile_terrain(terrain_val):
                         try:
                             bitmask = get_neighbor_bitmap(game_map, tx, ty, terrain_val)
-                        except Exception as e:
-                            logger.debug(f"Autotile bitmask failed: {e}")
+                        except (ValueError, AttributeError, TypeError) as e:
+                            logger.debug("Autotile bitmask failed: %s", e)
 
                     texture = None
                     if self._terrain_tile_cache is not None:
@@ -276,8 +276,8 @@ class TerrainRenderingSystem:
                         sx, sy = int(screen_pos[0]), int(screen_pos[1])
                         self._terrain_bg.blit(texture, (sx, sy))
 
-                except Exception as e:
-                    logger.debug(f"Terrain cache build failed at ({tx},{ty}): {e}")
+                except (pygame.error, ValueError, TypeError) as e:
+                    logger.debug("Terrain cache build failed at (%d,%d): %s", tx, ty, e)
                     continue
 
         # 缓存构建完成
@@ -464,8 +464,8 @@ class TerrainRenderingSystem:
                     if is_autotile_terrain(terrain_val):
                         try:
                             bitmask = get_neighbor_bitmap(game_map, tx, ty, terrain_val)
-                        except Exception as e:
-                            logger.debug(f"Autotile bitmask failed: {e}")
+                        except (ValueError, AttributeError, TypeError) as e:
+                            logger.debug("Autotile bitmask failed: %s", e)
 
                     texture = None
                     if self._terrain_tile_cache is not None:
@@ -561,8 +561,8 @@ class TerrainRenderingSystem:
 
                         target_surface.blit(texture, (sx, sy))
 
-                except Exception as e:
-                    logger.debug(f"Terrain render failed at ({tx},{ty}): {e}")
+                except (pygame.error, ValueError, TypeError) as e:
+                    logger.debug("Terrain render failed at (%d,%d): %s", tx, ty, e)
                     continue
 
     def _get_enhanced_tile(self, game_map: "GameMap", x: int, y: int):

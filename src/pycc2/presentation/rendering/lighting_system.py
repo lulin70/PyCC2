@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import math
+from collections import deque
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -45,7 +46,7 @@ class LightingSystem:
 
     def __init__(self, config: TopDownLightingConfig | None = None):
         self._config = config or TopDownLightingConfig()
-        self._dynamic_lights: list[dict] = []
+        self._dynamic_lights: deque[dict] = deque()
         self._max_dynamic_lights = 8
         self._tod_tint_cache: pygame.Surface | None = None
         self._last_time_of_day: str = self._config.time_of_day
@@ -96,7 +97,7 @@ class LightingSystem:
         Automatically removed after duration expires.
         """
         if len(self._dynamic_lights) >= self._max_dynamic_lights:
-            self._dynamic_lights.pop(0)
+            self._dynamic_lights.popleft()
 
         self._dynamic_lights.append(
             {
@@ -117,7 +118,7 @@ class LightingSystem:
             light["elapsed"] += dt_ms
             if light["elapsed"] < light["duration"]:
                 alive.append(light)
-        self._dynamic_lights = alive
+        self._dynamic_lights = deque(alive)
 
     def apply_height_lighting(self, surface: pygame.Surface, height: int) -> pygame.Surface:
         """Apply height-based lighting to a surface.
@@ -268,7 +269,7 @@ class LightingSystem:
             pixel_array[:, :, 2] = b_channel.astype(np.uint8)
 
             del pixel_array
-        except Exception:
+        except (pygame.error, ValueError, TypeError):
             pass
         finally:
             surface.unlock()
@@ -313,5 +314,5 @@ class LightingSystem:
                 surface.blit(
                     light_surf, (cx - center, cy - center), special_flags=pygame.BLEND_RGBA_ADD
                 )
-            except Exception as e:
+            except (pygame.error, ValueError, TypeError) as e:
                 logger.warning("Dynamic light rendering failed: %s", e)

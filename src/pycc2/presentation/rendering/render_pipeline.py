@@ -20,6 +20,18 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+# Enhanced post-processing feature flag
+try:
+    from config.rendering_features import is_enhanced_post_processing_enabled
+    _ENHANCED_POST_PROCESSING_AVAILABLE = True
+    if is_enhanced_post_processing_enabled():
+        from pycc2.presentation.rendering.enhanced_post_processing import (
+            apply_enhanced_post_processing
+        )
+except ImportError:
+    _ENHANCED_POST_PROCESSING_AVAILABLE = False
+
+
 @dataclass
 class RenderPipeline:
     renderer: EnhancedRenderer

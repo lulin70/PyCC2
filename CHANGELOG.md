@@ -2,6 +2,47 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.3.42] - 2026-06-19
+
+### P0-A: Terrain Rendering Overhaul
+- Integrated 22 textured PNG terrain tiles (GRASS, WOODS, WATER, ROAD, HEDGE, BUILDING, etc.)
+- AssetLoader dual-strategy lookup: numeric ID + TerrainType enum name
+- Replaced flat procedural colors with high-quality texture tiles
+
+### P0-B: Unit Sprite Visibility Fix
+- SPRITE_SIZE increased from 32→48px (matching TILE_SIZE for CC2 clarity)
+- base_radius increased from 24→32px (fallback shapes)
+- Replaced placeholder unit PNGs with high-quality pixel art (~737KB each)
+- SpriteRenderer and UnitRenderer synchronized to new 48px standard
+
+### P1-A: Minimap Integration (was placeholder)
+- Minimap now fully wired into GameLoop → HUDManager → CC2BottomPanel pipeline
+- Real-time data sync: units, selected_unit, camera viewport every frame
+- Fixed viewport_color undefined bug in minimap.py
+- Minimap.show() called at initialization for immediate visibility
+
+### P1-B: Combat Effects System (verified complete)
+- TopDownParticleSystem: explosion rings, muzzle flash, smoke clouds, hit markers, death animations
+- CombatPopupManager: floating damage numbers, critical hit indicators
+- All effects integrated into EnhancedRenderer._render_effects() pipeline
+
+### P2-A: Troop Roster UI Enhancement
+- Roster item height increased 24→26px for better readability
+- HP numeric value displayed next to health bar (e.g., "100/100")
+- Morale status indicator: green/yellow/red dot per unit
+- Health bar border darkened for contrast
+
+### Test Infrastructure Fixes (11 failures → 0)
+- test_sprite_renderer.py: Updated SPRITE_SIZE assertions (32→48, < to <=)
+- test_display_config.py: Added pygame_init fixture for display-dependent tests
+- test_performance_baseline.py: Fixed SurfacePool API (stats property), SaveGameStateData schema compliance
+
+### Project Cleanup
+- Deleted 19 process/report .md files from root directory
+- Deleted 22 debug/one-off scripts from scripts/
+- Deleted 11 redundant diagnostic screenshots
+- Total test count: 4269 passed, 0 failed, 49 known pygame-init errors (pass individually)
+
 ## [0.3.41] - 2026-06-14
 
 ### Architecture: SpriteRenderer Responsibility Separation

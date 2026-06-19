@@ -7,7 +7,7 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    pass
+    import numpy as np
 
 
 # ============================================================
@@ -130,8 +130,8 @@ class PixelCanvas:
         self._pixels: np.ndarray = np.full((height, width, 4), self._bg, dtype=np.uint8)
 
     @property
-    def pixels(self):
-        return self._pixels  # type: ignore[return-value]
+    def pixels(self) -> "np.ndarray":
+        return self._pixels
 
     def set_pixel(self, x: int, y: int, color: tuple[int, ...]) -> None:
         """设置单个像素"""
@@ -144,7 +144,8 @@ class PixelCanvas:
     def get_pixel(self, x: int, y: int) -> tuple[int, int, int, int]:
         """获取像素"""
         if 0 <= x < self.width and 0 <= y < self.height:
-            return tuple(self._pixels[y, x])  # type: ignore[return-value]
+            px = self._pixels[y, x]
+            return (int(px[0]), int(px[1]), int(px[2]), int(px[3]))
         return (0, 0, 0, 0)
 
     def fill_rect(self, x: int, y: int, w: int, h: int, color: tuple[int, ...]) -> None:

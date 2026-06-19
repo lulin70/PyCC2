@@ -31,6 +31,19 @@ if TYPE_CHECKING:
     from pycc2.presentation.rendering.camera import Camera
 
 
+
+# Enhanced rendering feature flag
+try:
+    from config.rendering_features import is_enhanced_terrain_enabled
+    _ENHANCED_TERRAIN_AVAILABLE = True
+    if is_enhanced_terrain_enabled():
+        from pycc2.presentation.rendering.enhanced_terrain_generator import (
+            generate_enhanced_grass,
+            generate_enhanced_dirt,
+        )
+except ImportError:
+    _ENHANCED_TERRAIN_AVAILABLE = False
+
 class TerrainRenderer:
     """Handles all terrain-related rendering operations.
 

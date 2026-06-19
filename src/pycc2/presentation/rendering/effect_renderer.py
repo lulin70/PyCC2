@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import math
+from collections import deque
 from typing import TYPE_CHECKING
 
 import pygame
@@ -36,6 +37,16 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+
+# Enhanced particles feature flag
+try:
+    from config.rendering_features import is_enhanced_particles_enabled
+    _ENHANCED_PARTICLES_AVAILABLE = True
+    if is_enhanced_particles_enabled():
+        from pycc2.presentation.rendering.enhanced_particle_system import EnhancedParticleSystem
+except ImportError:
+    _ENHANCED_PARTICLES_AVAILABLE = False
+
 class EffectRenderer:
     """Handles all visual effect rendering and lifecycle management.
 
@@ -55,7 +66,7 @@ class EffectRenderer:
         self._display_config: DisplayConfig = display_config or DC()
         self._animation_tick: int = 0
         self._effect_particles: list[dict] = []
-        self._damage_numbers: list[dict] = []
+        self._damage_numbers: deque[dict] = deque()
         self._flash_units: dict[str, int] = {}
         self._death_animations: dict[str, dict] = {}
         self._unit_animators: dict[str, UnitAnimator] = {}
@@ -74,7 +85,7 @@ class EffectRenderer:
 
     def spawn_damage_number(self, position: Vec2, damage: int, is_kill: bool = False) -> None:
         if len(self._damage_numbers) >= self.MAX_DAMAGE_NUMBERS:
-            self._damage_numbers.pop(0)
+            self._damage_numbers.popleft()
         self._damage_numbers.append({
             "pos": (position.x, position.y),
             "damage": damage,
@@ -98,8 +109,8 @@ class EffectRenderer:
         facing_rad = 0.0
         try:
             facing_rad = getattr(position, "facing_rad", 0.0) or 0.0
-        except Exception as e:
-            logging.debug(f"Facing direction read failed: {e}")
+        except (AttributeError, TypeError) as e:
+            logging.debug("Facing direction read failed: %s", e)
         self._death_animations[unit_id] = {
             "progress": 0,
             "total_ticks": 40,
@@ -163,7 +174,7 @@ class EffectRenderer:
             dn["life"] -= 1
             if dn["life"] > 0:
                 alive_dn.append(dn)
-        self._damage_numbers = alive_dn
+        self._damage_numbers = deque(alive_dn)
 
         # Update death animations
         expired_death = []
@@ -409,7 +420,7 @@ class EffectRenderer:
         return self._effect_particles
 
     @property
-    def damage_numbers(self) -> list[dict]:
+    def damage_numbers(self) -> deque[dict]:
         return self._damage_numbers
 
     @property
@@ -421,13 +432,16 @@ class EffectRenderer:
             self._unit_animators[unit_id] = UnitAnimator()
         return self._unit_animators[unit_id]
 
-    def get_font(self, size: int) -> font.Font:
+    def get_font(self, size: int) -> font.Font | None:
         cached = self._font_cache.get(size)
         if cached is not None:
             return cached
-        f = font.Font(None, size)
-        self._font_cache[size] = f
-        return f
+        try:
+            f = font.Font(None, size)
+            self._font_cache[size] = f
+            return f
+        except (pygame.error, RuntimeError):
+            return None
 
     def clear(self) -> None:
         """Clear all effect state."""

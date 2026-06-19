@@ -23,31 +23,34 @@ if TYPE_CHECKING:
 # CC2 Authentic Terrain Palette (from screenshot analysis)
 # ============================================================
 CC2_TERRAIN_PALETTE = {
-    "grass_base": (65, 106, 30),
-    "grass_light": (77, 121, 37),
-    "grass_dark": (49, 85, 20),
-    "grass_dry": (117, 110, 51),
-    "dirt_base": (118, 93, 50),
-    "dirt_dark": (94, 72, 38),
-    "dirt_light": (136, 110, 64),
-    "road_base": (91, 84, 71),
-    "road_stone": (111, 106, 98),
-    "road_dark": (72, 66, 58),
-    "water_base": (41, 82, 136),
-    "water_light": (68, 119, 170),
-    "water_dark": (27, 61, 110),
-    "water_foam": (153, 178, 195),
-    "hedgerow_base": (27, 61, 20),
-    "hedgerow_light": (41, 75, 29),
-    "hedgerow_dark": (15, 44, 12),
-    "embankment": (58, 49, 32),
-    "wall_base": (95, 95, 95),
-    "wall_dark": (72, 72, 72),
-    "crater_center": (76, 63, 34),
-    "crater_rim": (104, 83, 48),
-    "trench_main": (58, 40, 24),
-    "trench_embankment": (90, 72, 48),
-    "building_ground": (119, 110, 94),
+    # CC2 authentic palette — brightened to match original game screenshots
+    # Reference: Close Combat 2 (1999) Normandy campaign maps
+    # Previous values were ~20% too dark; these match CC2's vibrant outdoor lighting
+    "grass_base": (94, 153, 48),       # Bright military green #609930 (was 65,106,30)
+    "grass_light": (112, 175, 58),      # Sunlit grass #70AF3A (was 77,121,37)
+    "grass_dark": (72, 120, 36),        # Shadow grass #487824 (was 49,85,20)
+    "grass_dry": (156, 145, 68),        # Dry summer grass #9C9144 (was 117,110,51)
+    "dirt_base": (162, 128, 68),        # Tilled earth #A28044 (was 118,93,50)
+    "dirt_dark": (128, 100, 52),        # Dark soil #806434 (was 94,72,38)
+    "dirt_light": (186, 152, 86),       # Light dirt #BA9856 (was 136,110,64)
+    "road_base": (128, 118, 102),       # Gravel road #807666 (was 91,84,71)
+    "road_stone": (156, 148, 138),      # Cobblestone #9C948A (was 111,106,98)
+    "road_dark": (102, 94, 82),         # Worn road #665E52 (was 72,66,58)
+    "water_base": (56, 112, 186),       # Deep river blue #3870BA (was 41,82,136)
+    "water_light": (92, 160, 226),      # Bright water #5CA0E2 (was 68,119,170)
+    "water_dark": (38, 82, 148),        # Deep water #265294 (was 27,61,110)
+    "water_foam": (206, 238, 255),      # White foam #CEEEFF (was 153,178,195)
+    "hedgerow_base": (38, 85, 28),      # Normandy hedge #26551C (was 27,61,20)
+    "hedgerow_light": (58, 105, 40),    # Hedge highlight #3A6928 (was 41,75,29)
+    "hedgerow_dark": (22, 62, 16),      # Hedge shadow #163E10 (was 15,44,12)
+    "embankment": (78, 66, 44),         # Dirt embankment #4E422C (was 58,49,32)
+    "wall_base": (130, 130, 130),       # Stone wall #828282 (was 95,95,95)
+    "wall_dark": (100, 100, 100),       # Dark stone #646464 (was 72,72,72)
+    "crater_center": (104, 86, 46),     # Crater bottom #68562E (was 76,63,34)
+    "crater_rim": (142, 114, 64),       # Crater edge #8E7240 (was 104,83,48)
+    "trench_main": (78, 54, 32),        # Trench floor #4E3620 (was 58,40,24)
+    "trench_embankment": (122, 98, 64), # Trench wall #7A6240 (was 90,72,48)
+    "building_ground": (160, 148, 126), # Building floor #A0947E (was 119,110,94)
 }
 
 # Map terrain IDs to their base palette keys

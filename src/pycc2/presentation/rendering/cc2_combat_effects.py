@@ -180,8 +180,8 @@ class EnhancedParticleSystem:
                     # 其他粒子使用小圆点
                     color = (*particle.color, alpha)
                     pygame.draw.circle(surface, color[:3], (screen_x, screen_y), particle.size)
-            except Exception as e:
-                logging.warning(f"Particle draw failed: {e}", exc_info=True)
+            except (pygame.error, ValueError, TypeError) as e:
+                logging.warning("Particle draw failed: %s", e, exc_info=True)
 
     def clear(self):
         """清除所有粒子"""

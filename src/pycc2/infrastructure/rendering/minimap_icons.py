@@ -94,8 +94,8 @@ class MinimapIconSystem:
             else:
                 pygame.draw.circle(surface, color, (x, y), size // 2)
 
-        except Exception as e:
-            logging.debug(f"Unit icon draw failed: {e}")
+        except (pygame.error, ValueError, TypeError) as e:
+            logging.debug("Unit icon draw failed: %s", e)
 
     @staticmethod
     def _draw_star(surface, cx, cy, color, size):
@@ -111,5 +111,5 @@ class MinimapIconSystem:
                 py = cy - r * math.sin(angle)
                 points.append((px, py))
             pygame.draw.polygon(surface, color, points)
-        except Exception as e:
-            logging.debug(f"Star shape draw failed: {e}")
+        except (pygame.error, ValueError, TypeError) as e:
+            logging.debug("Star shape draw failed: %s", e)

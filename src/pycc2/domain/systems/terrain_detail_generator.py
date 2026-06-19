@@ -569,7 +569,7 @@ def batch_enhance_maps(
                 "decorations": enhanced.get("_decoration_count", 0),
             }
 
-        except Exception as e:
+        except (json.JSONDecodeError, OSError, ValueError, TypeError) as e:
             logger.error("❌ Error processing %s: %s", map_file.name, e)
             results["maps"][map_file.stem] = {"error": str(e)}
 

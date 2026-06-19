@@ -188,7 +188,7 @@ class DeploymentRenderer:
                         ui._selected_unit_index = idx
                         try:
                             ui._ghost_surface = ui._create_ghost_surface(unit)
-                        except Exception as e:
+                        except (pygame.error, ValueError, TypeError) as e:
                             logging.debug(f"Ghost surface creation failed: {e}")
                             ui._ghost_surface = None
 
@@ -903,7 +903,7 @@ class DeploymentRenderer:
             # Large bold text
             try:
                 battle_font = pygame.font.Font(None, 26)
-            except Exception as e:
+            except (pygame.error, ValueError) as e:
                 logging.debug(f"Battle font fallback: {e}")
                 battle_font = ui._font_normal
 
@@ -1152,18 +1152,18 @@ class DeploymentRenderer:
                 # Create default normal font (was missing - caused button text to not render!)
                 try:
                     ui._font_normal = pygame.font.Font(None, 20)
-                except Exception as e:
+                except (pygame.error, ValueError) as e:
                     logging.debug(f"Normal font creation failed: {e}")
                     ui._font_normal = None
         if ui._font_small is None:
             try:
                 ui._font_small = pygame.font.Font(None, 16)
-            except Exception as e:
+            except (pygame.error, ValueError) as e:
                 logging.debug(f"Small font creation failed: {e}")
                 ui._font_small = None
         if ui._font_large is None:
             try:
                 ui._font_large = pygame.font.Font(None, 32)
-            except Exception as e:
+            except (pygame.error, ValueError) as e:
                 logging.debug(f"Large font creation failed: {e}")
                 ui._font_large = None

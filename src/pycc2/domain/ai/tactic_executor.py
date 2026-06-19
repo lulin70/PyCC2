@@ -56,6 +56,7 @@ class TacticExecutor:
         self._tank_rider_system: TankRiderSystem = TankRiderSystem()
         self._mine_warfare_system: MineWarfareSystem = MineWarfareSystem()
         self._engineer_assault_ai: EngineerAssaultAI = EngineerAssaultAI()
+        self._environment = None
         self._logger = logging.getLogger("pycc2.ai.executor")
 
     def register_unit(self, unit: Unit) -> None:
@@ -117,9 +118,12 @@ class TacticExecutor:
             return False
         try:
             return bool(handler(intent))
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, AttributeError) as e:
             self._logger.error(
-                f"Error executing {intent.tactic_type.name} for {intent.unit_id}: {e}",
+                "Error executing %s for %s: %s",
+                intent.tactic_type.name,
+                intent.unit_id,
+                e,
                 exc_info=True,
             )
             return False
@@ -145,7 +149,7 @@ class TacticExecutor:
         result = {"can_execute": True, "reason": ""}
 
         # Check if unit has morale component
-        if not hasattr(unit, "morale") or unit.morale is None:
+        if unit.morale is None:
             return result
 
         # Safely get morale value (handle both real components and mocks)
@@ -396,9 +400,9 @@ class TacticExecutor:
 
         # Determine wind drift direction from environment
         drift_direction = (0, 0)
-        env = getattr(self, "_environment", None)
+        env = self._environment
         if env is not None:
-            wind = getattr(env, "wind_direction", (0, 0))
+            wind = env.wind_direction if env is not None else (0, 0)
             wx, wy = wind
             length = (wx * wx + wy * wy) ** 0.5
             if length >= 0.01:
@@ -416,9 +420,9 @@ class TacticExecutor:
         self.smoke_manager.deploy(smoke)
 
         # Update unit concealment: unit is now in smoke
-        combat_state = getattr(unit, "combat_state", None)
+        combat_state = unit.combat_state
         if combat_state is not None:
-            concealment = getattr(combat_state, "concealment", None)
+            concealment = combat_state.concealment if combat_state is not None else None
             if concealment is not None:
                 concealment.in_smoke = True
 
@@ -852,7 +856,7 @@ class TacticExecutor:
             return False
 
         # Calculate weather scatter
-        env = getattr(self, "_environment", None)
+        env = self._environment
         scatter = ArtilleryManager.calculate_weather_scatter(env)
 
         # Start the mission

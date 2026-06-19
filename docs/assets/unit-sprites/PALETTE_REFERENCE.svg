@@ -1,0 +1,21 @@
+<svg viewBox="0 0 210 60" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="35" height="35" rx="2" fill="#5B6B3A"/>
+  <text x="17" y="50" text-anchor="middle" font-family="monospace" font-size="8" fill="#ccc">OLIVE DRAB</text>
+  <rect x="5" y="52" width="25" height="10" rx="1" fill="#222"/><text x="17" y="60" text-anchor="middle" font-family="monospace" font-size="7" fill="#5B6B3A">#5B6B3A</text>
+  
+  <rect x="42" y="0" width="35" height="35" rx="2" fill="#3D4F24"/>
+  <text x="59" y="50" text-anchor="middle" font-family="monospace" font-size="8" fill="#ccc">M1 HELMET</text>
+  <rect x="47" y="52" width="25" height="10" rx="1" fill="#222"/><text x="59" y="60" text-anchor="middle" font-family="monospace" font-size="7" fill="#3D4F24">#3D4F24</text>
+  
+  <rect x="84" y="0" width="35" height="35" rx="2" fill="#4A3C28"/>
+  <text x="101" y="50" text-anchor="middle" font-family="monospace" font-size="8" fill="#ccc">BOOTS/GEAR</text>
+  <rect x="89" y="52" width="25" height="10" rx="1" fill="#222"/><text x="101" y="60" text-anchor="middle" font-family="monospace" font-size="7" fill="#4A3C28">#4A3C28</text>
+  
+  <rect x="126" y="0" width="35" height="35" rx="2" fill="#4A5040"/>
+  <text x="143" y="50" text-anchor="middle" font-family="monospace" font-size="8" fill="#ccc">FELDGRAU</text>
+  <rect x="131" y="52" width="25" height="10" rx="1" fill="#222"/><text x="143" y="60" text-anchor="middle" font-family="monospace" font-size="7" fill="#4A5040">#4A5040</text>
+  
+  <rect x="168" y="0" width="35" height="35" rx="2" fill="#3A4030"/>
+  <text x="185" y="50" text-anchor="middle" font-family="monospace" font-size="8" fill="#ccc">STAHLHELM</text>
+  <rect x="173" y="52" width="25" height="10" rx="1" fill="#222"/><text x="185" y="60" text-anchor="middle" font-family="monospace" font-size="7" fill="#3A4030">#3A4030</text>
+</svg>

@@ -323,8 +323,8 @@ class EventDispatcher:
                 and event.button == 1
             ):
                 logger.info(f"[BATTLE MODE] route_input returned: {result}")
-        except Exception as e:
-            logger.error(f"[BATTLE MODE] Error in route_input: {e}")
+        except (RuntimeError, ValueError, AttributeError) as e:
+            logger.error("[BATTLE MODE] Error in route_input: %s", e)
 
         if event.type == pygame.KEYDOWN:
             if self.time_control and self.time_control.handle_key(event.key):

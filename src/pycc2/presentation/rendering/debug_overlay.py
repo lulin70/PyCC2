@@ -5,6 +5,7 @@ Multi-level debug visualization overlay for development and testing.
 Levels: OFF, BASIC, VERBOSE
 """
 
+from collections import deque
 from enum import Enum, auto
 from typing import Any
 
@@ -31,7 +32,7 @@ class DebugOverlay:
         self._font: Font | None = None
         self._debug_info: dict = {}
         self._performance_metrics: dict = {}
-        self._ai_decisions: list[dict] = []
+        self._ai_decisions: deque[dict] = deque()
 
     def initialize(self) -> None:
         """Initialize debug overlay resources."""
@@ -61,7 +62,7 @@ class DebugOverlay:
     def add_ai_decision(self, decision: dict) -> None:
         """Add an AI decision trace entry."""
         if len(self._ai_decisions) > 20:
-            self._ai_decisions.pop(0)
+            self._ai_decisions.popleft()
         self._ai_decisions.append(decision)
 
     def render(self, surface: Surface) -> None:
@@ -104,7 +105,7 @@ class DebugOverlay:
         surface.blit(title, (10, y_offset))
         y_offset += 22
 
-        for decision in self._ai_decisions[-10:]:
+        for decision in list(self._ai_decisions)[-10:]:
             unit_info = decision.get("unit", "Unknown")
             action = decision.get("action", "None")
             reason = decision.get("reason", "")

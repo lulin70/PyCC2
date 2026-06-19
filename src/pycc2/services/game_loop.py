@@ -329,6 +329,12 @@ class GameLoop:
             # Battle phase: render CC2 unified bottom HUD panel
             if self._hud_manager:
                 self._hud_manager.render(screen, self.state.camera, self.state)
+            elif self.use_full_hud:
+                # HUD expected but missing — log warning for debugging
+                logger.warning(
+                    "[HUD] Battle phase active but _hud_manager is None. "
+                    "Check GameLoopAssembler._init_hud() completed successfully."
+                )
 
     def _update_logic(self, dt: float) -> None:
         if self.state.paused:
@@ -389,7 +395,7 @@ class GameLoop:
 
                 # Sync weather (rain)
                 if self._weather_state is not None:
-                    weather_type = getattr(self._weather_state, "weather_type", None)
+                    weather_type = self._weather_state.weather_type
                     if weather_type is not None:
                         is_raining = "rain" in str(weather_type).lower()
                         self._environmental_audio.set_weather_rain(is_raining)
@@ -404,17 +410,16 @@ class GameLoop:
                             attacking_count += 1
                 intensity = min(1.0, attacking_count / max(1, total_alive * 0.15))
                 self._environmental_audio.set_combat_intensity(intensity)
-            except Exception:
+            except (AttributeError, ValueError, TypeError):
                 pass
 
     def _update_unit_movement(self, dt: float) -> None:
         # Update unit movements (smooth movement toward targets)
         for unit in self.state.units:
             # Update movement mode timers (Fast Move, Sneak, Defend)
-            if hasattr(unit, "update_movement_mode"):
-                unit.update_movement_mode()
+            unit.update_movement_mode()
 
-            if hasattr(unit, "move_target") and unit.move_target is not None:
+            if unit.move_target is not None:
                 arrived = unit.update_movement(dt)
                 if arrived:
                     logger.debug("[MOVEMENT] %s arrived at destination", unit.display_name)
@@ -467,24 +472,11 @@ class GameLoop:
 
     def _update_visual_effects(self, dt: float) -> None:
         # P2-03: Update screen flash overlay alpha (fade-out)
-        if hasattr(self.renderer, "update_flash"):
-            self.renderer.update_flash(dt)
-
-        # P3-01: Update weather atmosphere animation
-        if hasattr(self.renderer, "update_weather"):
-            self.renderer.update_weather(dt)
-
-        # P3-02: Update shell casing physics
-        if hasattr(self.renderer, "update_shell_casings"):
-            self.renderer.update_shell_casings(dt)
-
-        # Suppression overlay: update red edge flash for pinned/broken player units
-        if hasattr(self.renderer, "update_suppression_overlay"):
-            self.renderer.update_suppression_overlay(dt, self.state.units)
-
-        # P2-04: Smooth unit position interpolation (lerp toward real positions)
-        if hasattr(self.renderer, "_smooth_positions"):
-            self.renderer._smooth_positions(self.state.units, dt)
+        self.renderer.update_flash(dt)
+        self.renderer.update_weather(dt)
+        self.renderer.update_shell_casings(dt)
+        self.renderer.update_suppression_overlay(dt, self.state.units)
+        self.renderer._smooth_positions(self.state.units, dt)
 
         # Update cinematic camera effect stack
         if self._effect_stack is not None:
@@ -504,10 +496,68 @@ class GameLoop:
 
     def _update_hud(self, dt: float) -> None:
         # P2-05: Update UI fade transitions (HUDManager panel/minimap fades)
-        if self._hud_manager is not None and hasattr(self._hud_manager, "update"):
+        if self._hud_manager is not None:
             self._hud_manager.update(dt)
 
+    def _ensure_ai_units_registered(self) -> None:
+        """Safety net: auto-register non-player units that lack AI behavior trees.
+
+        This handles cases where units are added directly to state.units
+        without going through the deployment flow (e.g., test scripts,
+        debug commands, or scenario editors).
+        """
+        if self.ai_service is None:
+            return
+
+        # Determine player faction from existing registrations or default
+        player_faction = getattr(self.state, "player_faction", None)
+        if player_faction is None:
+            # Heuristic: if any ALLIES unit exists, player is ALLIES
+            from pycc2.domain.entities.unit import Faction
+
+            has_allies = any(u.faction == Faction.ALLIES for u in self.state.units)
+            player_faction = Faction.ALLIES if has_allies else Faction.AXIS
+
+        # Find unregistered enemy units
+        registered_ids = set(self.ai_service._unit_entities.keys())
+        unregistered_enemies = [
+            u
+            for u in self.state.units
+            if u.id not in registered_ids
+            and u.faction != player_faction
+            and u.is_alive
+        ]
+
+        if not unregistered_enemies:
+            return
+
+        try:
+            from pycc2.domain.ai.unit_bt_factory import UnitBTFactory
+            from pycc2.domain.entities.unit import UnitType
+
+            for unit in unregistered_enemies:
+                # Select appropriate behavior tree by unit type
+                if unit.unit_type == UnitType.MACHINE_GUN_SQUAD:
+                    bt = UnitBTFactory.create_mg_squad_bt(unit_id=unit.id)
+                elif unit.unit_type == UnitType.COMMANDER:
+                    bt = UnitBTFactory.create_commander_bt(unit_id=unit.id)
+                else:
+                    bt = UnitBTFactory.create_infantry_bt(unit_id=unit.id)
+
+                self.ai_service.register_ai_unit(unit, bt)
+                logger.info(
+                    "Auto-registered AI unit: %s [%s] (%s)",
+                    unit.name,
+                    unit.id,
+                    unit.unit_type.name,
+                )
+        except ImportError as e:
+            logger.warning("Could not auto-register AI units: %s", e)
+
     def _update_ai(self, dt: float) -> None:
+        # Safety net: ensure enemy units are registered before ticking
+        self._ensure_ai_units_registered()
+
         if self.ai_service is not None and self.ai_service.managed_unit_count > 0:
             self._ai_tick_counter += 1
             if self._ai_tick_counter >= self._ai_update_interval:
@@ -556,7 +606,7 @@ class GameLoop:
         target_id = data.get("target_id")
         if target_id and self._popup_manager:
             target = next((u for u in self.state.units if u.id == target_id), None)
-            if target and hasattr(target, "position") and target.position is not None:
+            if target and target.position is not None:
                 pp = target.position.pixel_position
                 self._popup_manager.add_taking_fire(pp.x, pp.y)
 
@@ -593,12 +643,12 @@ class GameLoop:
                 continue
             # Get pixel position for popup placement
             px, py = 0.0, 0.0
-            if hasattr(unit, "position") and unit.position is not None:
+            if unit.position is not None:
                 pp = unit.position.pixel_position
                 px, py = pp.x, pp.y
 
             # Check morale state changes → popup
-            if hasattr(unit, "morale") and unit.morale is not None:
+            if unit.morale is not None:
                 morale_state = MoraleSystem.get_state(unit.morale.value)
                 # Track previous state to detect transitions
                 prev_state = getattr(unit, "_prev_morale_state", None)
@@ -610,9 +660,9 @@ class GameLoop:
                 unit._prev_morale_state = morale_state
 
             # Check for out-of-ammo
-            if hasattr(unit, "weapon") and unit.weapon is not None:
-                weapon_state = getattr(unit.weapon, "state", None)
-                if weapon_state is not None and hasattr(weapon_state, "name"):
+            if unit.weapon is not None:
+                weapon_state = unit.weapon.state
+                if weapon_state is not None:
                     if weapon_state.name == "EMPTY" and not getattr(
                         unit, "_ammo_popup_shown", False
                     ):
@@ -625,7 +675,7 @@ class GameLoop:
         for unit in self.state.units:
             if not unit.is_alive and not getattr(unit, "_kia_popup_shown", False):
                 px, py = 0.0, 0.0
-                if hasattr(unit, "position") and unit.position is not None:
+                if unit.position is not None:
                     pp = unit.position.pixel_position
                     px, py = pp.x, pp.y
                 self._popup_manager.add_kia(px, py)

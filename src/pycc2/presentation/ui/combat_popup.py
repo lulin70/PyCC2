@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from collections import deque
 from dataclasses import dataclass, field
 
 import pygame
@@ -45,7 +46,7 @@ class CombatPopupManager:
     """Manages floating combat text popups."""
 
     def __init__(self, max_popups: int = 20):
-        self._popups: list[CombatPopup] = []
+        self._popups: deque[CombatPopup] = deque()
         self._max_popups = max_popups
         self._font: pygame.font.Font | None = None
         # Surface pool for popup alpha surfaces
@@ -68,7 +69,7 @@ class CombatPopupManager:
 
         # Remove oldest if too many
         if len(self._popups) > self._max_popups:
-            self._popups.pop(0)
+            self._popups.popleft()
 
     def add_taking_fire(self, x: float, y: float) -> None:
         self.add_popup("Taking fire!", x, y, (255, 100, 100))
@@ -91,7 +92,7 @@ class CombatPopupManager:
     def render(self, surface: pygame.Surface, camera) -> None:
         """Render all active popups."""
         # Remove expired
-        self._popups = [p for p in self._popups if not p.is_expired]
+        self._popups = deque(p for p in self._popups if not p.is_expired)
 
         if not self._popups or self._font is None:
             return

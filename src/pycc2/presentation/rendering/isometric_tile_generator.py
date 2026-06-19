@@ -12,6 +12,7 @@ All tiles use the CC2 color palette derived from UI_REALISTIC_PIXEL_SPEC.md.
 from __future__ import annotations
 
 import random
+from collections.abc import Callable
 
 import pygame
 
@@ -90,7 +91,7 @@ def _create_diamond_mask(width: int = TILE_W, height: int = TILE_H) -> pygame.Ma
 
 def _draw_on_diamond(
     surface: pygame.Surface,
-    draw_func: callable,  # type: ignore[type-arg]
+    draw_func: Callable[..., None],
     width: int = TILE_W,
     height: int = TILE_H,
 ) -> None:

@@ -54,8 +54,8 @@ class VoiceCommandSystem:
             try:
                 sound_system.play(f"voice_{cmd_type.name.lower()}")
                 return True
-            except Exception as e:
-                logging.info(f"Voice command sound play failed: {e}")
+            except (pygame.error, ValueError, OSError) as e:
+                logging.info("Voice command sound play failed: %s", e)
 
         return True  # Assume success for testing
 

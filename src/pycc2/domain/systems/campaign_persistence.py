@@ -199,7 +199,7 @@ class CampaignPersistenceManager:
             logger.info("[Campaign] Saved progress for %s", campaign_id)
             return True
 
-        except Exception as e:
+        except (json.JSONDecodeError, ValueError, TypeError, OSError) as e:
             logger.error("[Campaign] Error saving campaign: %s", e)
             return False
 
@@ -259,7 +259,7 @@ class CampaignPersistenceManager:
             )
             return progress
 
-        except Exception as e:
+        except (json.JSONDecodeError, ValueError, TypeError, OSError) as e:
             logger.error("[Campaign] Error loading campaign: %s", e)
             return None
 
@@ -345,8 +345,8 @@ class CampaignPersistenceManager:
                     }
                 )
 
-            except Exception as e:
-                logging.info(f"Campaign save parse failed for {filepath.stem}: {e}")
+            except (json.JSONDecodeError, ValueError, OSError) as e:
+                logging.info("Campaign save parse failed for %s: %s", filepath.stem, e)
                 campaigns.append(
                     {
                         "campaign_id": filepath.stem,

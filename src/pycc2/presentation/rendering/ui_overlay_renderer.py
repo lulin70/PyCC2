@@ -379,7 +379,7 @@ class UIOverlayRenderer:
         self._los_overlay.fill((0, 0, 0, 0))
 
         vision_range = getattr(unit, "vision", None)
-        max_range = vision_range.range if vision_range else 10
+        max_range = vision_range.range_tiles if vision_range else 10
 
         for ty in range(max(0, uy - max_range), min(game_map.height, uy + max_range + 1)):
             for tx in range(max(0, ux - max_range), min(game_map.width, ux + max_range + 1)):

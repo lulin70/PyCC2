@@ -99,11 +99,18 @@ def mock_game_loop(sample_game_map, sample_units):
     loop.state = state
     loop.sound_system = None
     loop.renderer = MagicMock()
-    loop._victory_manager = MagicMock()
-    loop._victory_manager.battle_stats = MagicMock()
-    loop._victory_manager.battle_stats.allies_kills = 5
-    loop._victory_manager.battle_stats.axis_kills = 2
-    loop._victory_manager.battle_stats.ticks_elapsed = 5678
+    # Use a SimpleNamespace for battle_stats so serialization produces real ints
+    from types import SimpleNamespace
+    victory_mgr = MagicMock()
+    victory_mgr.battle_stats = SimpleNamespace(
+        allies_kills=5,
+        axis_kills=2,
+        ticks_elapsed=5678,
+    )
+    victory_mgr.show_post_battle = False
+    victory_mgr.game_result = None
+    loop._victory_manager = victory_mgr
+    loop.victory_manager = victory_mgr  # Property access for save system
     return loop
 
 

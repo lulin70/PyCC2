@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 from collections.abc import Callable
 from typing import Any, Required, TypeVar, get_type_hints, overload
 
@@ -20,7 +20,7 @@ class EventBus(IEventPublisher):
     def __init__(self) -> None:
         self._handlers: dict[type, list[Callable]] = defaultdict(list)
         self._named_handlers: dict[str, list[Callable[[dict], None]]] = defaultdict(list)
-        self._queue: list[tuple[float, dict | object]] = []
+        self._queue: deque[tuple[float, dict | object]] = deque()
         self._error_count: int = 0
         self._total_published: int = 0
         self._registered_types: set[type] = set()
@@ -205,7 +205,7 @@ class EventBus(IEventPublisher):
     def enqueue(self, event: dict | object) -> None:
         if len(self._queue) >= self._MAX_QUEUE_SIZE:
             logger.warning("Event queue overflow (%d), dropping oldest event", len(self._queue))
-            self._queue.pop(0)
+            self._queue.popleft()
         self._queue.append((time.time(), event))
 
     def process_queue(self) -> int:

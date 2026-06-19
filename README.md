@@ -1,12 +1,12 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.3.41 | Beta Candidate | June 14, 2026**
+**v0.3.42 | Beta Candidate | June 19, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-%7E3985%20passed-brightgreen.svg" alt="Tests" />
-<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%8888%25-yellow.svg" alt="CC2 Fidelity" />
+<img src="https://img.shields.io/badge/Tests-%7E4269%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%8885%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Beta%20Candidate-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
 </p>
@@ -194,7 +194,7 @@
 | **Weapon Types** | 69 authentic CC2 weapons |
 | **Campaign Battles** | 29 battles across 9 days, 3 sectors |
 | **AI Behaviors** | 6 tactical AI types (flanking, suppression, VP, etc.) |
-| **Code Files** | ~253 Python modules (+7 new since v0.3.30: surface_pool.py, fade_transition.py + shell_casing_system.py, flash_effect_system.py, weather_system.py, resource_cache.py + weather/shell systems in v0.3.31-v0.3.34) |
+| **Code Files** | ~283 Python modules (+37 new since v0.3.30: surface_pool.py, fade_transition.py + shell_casing_system.py, flash_effect_system.py, weather_system.py, resource_cache.py + weather/shell systems in v0.3.31-v0.3.34 + casualty_system, unit_diversity_expansion, cover_seek_ai, etc.) |
 | **Class Definitions** | 330+ classes |
 | **Extracted Modules** | 22 rendering/data systems (new: ShellCasingSystem, FlashEffectSystem, WeatherSystem, ResourceCacheManager + previous 19) |
 | **Technical Debt** | 4 God Classes >1000 lines remaining (deployment_ui 1323↓, pixel_artist_3d 2340, campaign_four_layer 1987, pixel_artist 1971) |
@@ -609,4 +609,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Generated on 2026-06-13 | v0.3.39 (Beta Candidate) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
+<p align="center"><sub>Generated on 2026-06-16 | v0.3.41 (Beta Candidate) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>

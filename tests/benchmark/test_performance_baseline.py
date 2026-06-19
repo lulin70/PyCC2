@@ -335,19 +335,19 @@ class TestRenderingPerformance:
             for size in test_sizes:
                 renderer._get_pooled_surface(size)
 
-        # Measure efficiency
-        len(renderer._surface_pool)
+        # Measure efficiency (access stats to trigger len if needed)
+        _ = renderer._surface_pool.stats
 
         for _ in range(50):
             for size in test_sizes:
                 total_requests += 1
-                size_in_pool = size in renderer._surface_pool
+                size_in_pool = size in renderer._surface_pool._pool
                 renderer._get_pooled_surface(size)
                 if size_in_pool:
                     pool_hits += 1
 
         hit_rate = (pool_hits / total_requests * 100) if total_requests > 0 else 0
-        final_pool_size = len(renderer._surface_pool)
+        final_pool_size = renderer._surface_pool.stats["size"]
 
         result = BenchmarkResult(
             name="test_surface_pool_efficiency",
@@ -365,8 +365,9 @@ class TestRenderingPerformance:
         assert result.passed, (
             f"Surface pool hit rate={hit_rate:.1f}% (threshold: {result.threshold}%)"
         )
-        assert final_pool_size <= renderer._MAX_SURFACE_POOL_SIZE, (
-            f"Pool size {final_pool_size} exceeded max {renderer._MAX_SURFACE_POOL_SIZE}"
+        max_pool = renderer._surface_pool.stats["max_size"]
+        assert final_pool_size <= max_pool, (
+            f"Pool size {final_pool_size} exceeded max {max_pool}"
         )
 
     @pytest.mark.benchmark
@@ -569,16 +570,39 @@ class TestGameLogicPerformance:
         with tempfile.TemporaryDirectory() as tmpdir:
             save_mgr = SecureSaveManager(base_dir=tmpdir)
 
-            # Create simplified game state (avoid complex nested objects with Enums)
+            # Create simplified game state (match SaveSystem SaveGameStateData schema)
             game_state = {
-                "units": [{"id": f"unit_{i}", "hp": 100, "x": i, "y": 0} for i in range(60)],
-                "map_data": {
-                    "width": game_map.width,
-                    "height": game_map.height,
-                    "tile_grid": game_map.tile_grid.tolist(),
-                },
+                "units": [
+                    {
+                        "id": f"unit_{i}",
+                        "name": f"Squad_{i}",
+                        "faction": "ALLIES" if i < 30 else "AXIS",
+                        "unit_type": "INFANTRY_SQUAD",
+                        "hp": 100,
+                        "max_hp": 100,
+                        "morale": {
+                            "value": 80,
+                            "panic_threshold": 30,
+                            "suppression": 0,
+                            "state": "RALLIED",
+                        },
+                        "position": {"x": float(i * 48), "y": 0.0, "facing_rad": 0.0},
+                        "vision": {"range_tiles": 6, "angle_rad": 3.1416},
+                        "weapon": {
+                            "primary_weapon_id": "rifle",
+                            "ammo_remaining": 10,
+                            "max_ammo": 10,
+                            "reload_ticks_left": 0,
+                            "state": "READY",
+                        },
+                        "is_alive": True,
+                    }
+                    for i in range(60)
+                ],
                 "tick": 1000,
-                "mission_id": "benchmark_mission",
+                "paused": False,
+                "side_turn": "allies",
+                "selected_unit_ids": [],
             }
 
             def save_and_load():
@@ -674,15 +698,15 @@ class TestMemoryUsage:
 
         # Simulate many different surface size requests
         np.random.seed(42)
-        len(renderer._surface_pool)
+        _ = renderer._surface_pool.stats  # Use stats property instead of len()
 
         for _ in range(200):
             w = np.random.randint(100, 1200)
             h = np.random.randint(100, 900)
             renderer._get_pooled_surface((w, h))
 
-        sizes_after = len(renderer._surface_pool)
-        max_allowed = renderer._MAX_SURFACE_POOL_SIZE
+        sizes_after = renderer._surface_pool.stats["size"]
+        max_allowed = renderer._surface_pool.stats["max_size"]
 
         # Pool should not grow beyond maximum
         stability_ratio = (sizes_after / max_allowed) * 100 if max_allowed > 0 else 0

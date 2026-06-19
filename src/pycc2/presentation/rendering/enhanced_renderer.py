@@ -338,7 +338,7 @@ class EnhancedRenderer:
             # Initialize dirty rectangle tracker for partial display updates
             self._dirty_tracker = _DirtyRectTracker(sw, sh)
             logger.info("DirtyRectTracker initialized (%dx%d, max_rects=16)", sw, sh)
-        except Exception as e:
+        except (pygame.error, ValueError, RuntimeError) as e:
             logger.warning("PostProcessingEffects init failed (non-critical): %s", e)
             self._post_processing = None
 
@@ -379,7 +379,7 @@ class EnhancedRenderer:
 
             PixelArtist3D.precache_tank_rotations()
             logger.info("Tank rotation precache complete")
-        except Exception as e:
+        except (pygame.error, ValueError, OSError) as e:
             logger.warning("Tank rotation precache skipped: %s", e)
 
         # Set default light fog atmosphere (P3-01: was ghost feature, now active)
@@ -755,16 +755,9 @@ class EnhancedRenderer:
             except (pygame.error, ValueError, TypeError) as exc:
                 logger.debug("Post-processing skipped: %s", exc)
 
-        # Atomic flip — use dirty-rect partial update when possible
-        if self._dirty_tracker is not None:
-            dirty_rects = self._dirty_tracker.get_update_rects()
-            if dirty_rects is not None:
-                pygame.display.update(dirty_rects)
-            else:
-                pygame.display.flip()
-            self._dirty_tracker.next_frame()
-        else:
-            pygame.display.flip()
+        # ✅ FIX: 移除display.flip() - GameLoop.run()负责最终的flip
+        # 原因: 双重flip导致画面闪烁和FPS降至19
+        # Note: GameLoop.run()在line 257执行统一的display.flip()
 
     def _render_terrain(
         self,

@@ -317,7 +317,7 @@ class PixVoxelLoader:
                         self.iso_dir,
                     )
 
-        except Exception as exc:
+        except (OSError, ValueError, RuntimeError) as exc:
             logger.warning("Auto-download error: %s", exc)
 
     def _try_auto_download_ortho(self) -> None:
@@ -342,7 +342,7 @@ class PixVoxelLoader:
                         self.ortho_dir,
                     )
 
-        except Exception as exc:
+        except (OSError, ValueError, RuntimeError) as exc:
             logger.warning("Auto-download ortho error: %s", exc)
 
     def _extract_and_organize(
@@ -398,7 +398,7 @@ class PixVoxelLoader:
             return True
         except ImportError:
             logger.debug("py7zr not available")
-        except Exception as exc:
+        except (OSError, RuntimeError, ValueError) as exc:
             logger.warning("py7zr extraction failed: %s", exc)
 
         # Method 2: 7z command
@@ -595,8 +595,8 @@ class PixVoxelLoader:
             with open(manifest_path, encoding="utf-8") as f:
                 self._manifest = json.load(f)
             return self._manifest
-        except Exception as e:
-            logger.warning(f"加载清单文件失败: {e}")
+        except (json.JSONDecodeError, OSError, ValueError) as e:
+            logger.warning("加载清单文件失败: %s", e)
             return None
 
     def load_sprite(
@@ -673,8 +673,8 @@ class PixVoxelLoader:
                     self._cache[cache_key] = surface
                     logger.debug(f"加载 PixVoxel 精灵: {sprite_path.name}")
                     return surface
-                except Exception as e:
-                    logger.warning(f"加载精灵失败 {sprite_path}: {e}")
+                except (pygame.error, ValueError, OSError) as e:
+                    logger.warning("加载精灵失败 %s: %s", sprite_path, e)
                     continue
 
         # 尝试从清单文件查找
@@ -775,8 +775,8 @@ class PixVoxelLoader:
                             if w != size or h != size:
                                 surface = pygame.transform.scale(surface, (size, size))
                         return surface
-                    except Exception as e:
-                        logger.warning(f"从清单加载精灵失败: {e}")
+                    except (pygame.error, ValueError, OSError) as e:
+                        logger.warning("从清单加载精灵失败: %s", e)
                         continue
 
         return None
@@ -969,8 +969,8 @@ class PixVoxelLoader:
                     state="idle",
                     frame=0,
                 )
-        except Exception as e:
-            logger.debug(f"PixelArtist3D fallback 失败: {e}")
+        except (RuntimeError, ValueError, ImportError) as e:
+            logger.debug("PixelArtist3D fallback 失败: %s", e)
 
         # Fallback: 使用 PixelArtist
         try:
@@ -983,8 +983,8 @@ class PixVoxelLoader:
                 size=size,
             )
             return canvas.to_surface()
-        except Exception as e:
-            logger.debug(f"PixelArtist fallback 失败: {e}")
+        except (RuntimeError, ValueError, ImportError) as e:
+            logger.debug("PixelArtist fallback 失败: %s", e)
 
         # 最终 fallback: 简单圆形
         return self._create_fallback_circle(unit_type, faction, size)

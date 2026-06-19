@@ -85,7 +85,7 @@ class GameLoopAssembler:
             env_audio.initialize(pygame.mixer)
             self._loop._environmental_audio = env_audio
             logger.info("EnvironmentalAudioSystem initialized and wired into GameLoop")
-        except Exception as e:
+        except (RuntimeError, ValueError, OSError) as e:
             logger.warning(
                 "EnvironmentalAudioSystem init failed (non-critical, game runs without ambient audio): %s",
                 e,
@@ -164,18 +164,27 @@ class GameLoopAssembler:
         self._loop._popup_manager = CombatPopupManager()
 
     def _init_hud(self) -> None:
+        logger.info(f"[HUD] _init_hud called - use_full_hud={self._loop.use_full_hud}")
         if not self._loop.use_full_hud:
+            logger.warning("[HUD] Skipping HUD initialization - use_full_hud=False")
             return
         from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
         from pycc2.presentation.rendering.minimap import Minimap
         from pycc2.services.hud_manager import HUDManager as HM
 
+        logger.info("[HUD] Creating HUDManager instance...")
         self._loop._hud_manager = HM()
         dc = self._loop.display_config
+        logger.info(f"[HUD] display_config={dc}, ui_scale={dc.ui_scale if dc else 'N/A'}")
+        
         # Create presentation objects here (Composition Root) and inject into service
+        logger.info("[HUD] Creating Minimap...")
         minimap = Minimap(display_config=dc, size=int(140 * dc.ui_scale))
+        logger.info("[HUD] Creating CC2BottomPanel...")
         cc2_panel = CC2BottomPanel()
         cc2_panel.initialize()
+        
+        logger.info("[HUD] Initializing HUDManager with all dependencies...")
         self._loop._hud_manager.initialize(
             state=self._loop.state,
             display_config=dc,
@@ -189,6 +198,7 @@ class GameLoopAssembler:
             minimap=minimap,
             cc2_panel=cc2_panel,
         )
+        logger.info("[HUD] ✅ HUD initialization complete!")
 
     def _init_event_dispatcher(self) -> None:
         from pycc2.services.event_dispatcher import EventDispatcher as ED

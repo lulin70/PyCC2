@@ -85,6 +85,7 @@ class AttackLineSystem:
         # R8: Attack line fade-out animation
         self._fading_lines: list[dict] = []  # [{source, target, color, alpha, start_tick}]
         self._fade_duration_ms: int = 1500  # 1.5 seconds fade
+        self._active_source = None
 
     def begin_attack(self, unit_id: str, source_pos: Vec2) -> None:
         """Start drawing attack line from this unit."""
@@ -192,7 +193,7 @@ class AttackLineSystem:
         if not attacker.weapon:
             return AttackLineStatus.NO_TARGET
 
-        weapon_range = getattr(attacker.weapon, "max_range", 300)
+        weapon_range = getattr(attacker.weapon, "max_range", 300) if attacker.weapon is not None else 300
         target.weapon_range = weapon_range
 
         if target.distance > weapon_range:
@@ -214,7 +215,7 @@ class AttackLineSystem:
 
                 if not can_see:
                     return AttackLineStatus.BLOCKED
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError) as e:
                 logger.warning("[AttackLine] LOS check failed: %s, assuming clear", e)
 
         # Calculate hit probability for 4-color system
@@ -235,7 +236,7 @@ class AttackLineSystem:
         - Weather effects
         """
         # Base probability from distance ratio
-        weapon_range = getattr(attacker.weapon, "max_range", 300)
+        weapon_range = getattr(attacker.weapon, "max_range", 300) if attacker.weapon is not None else 300
         if weapon_range <= 0:
             return 0.0
         distance_ratio = min(target.distance / weapon_range, 1.0)
@@ -254,8 +255,8 @@ class AttackLineSystem:
                     cover_level = getattr(tile, "cover_level", 0)
                     concealment = getattr(tile, "concealment", 0)
                     cover_penalty = cover_level * 0.15 + concealment * 0.10
-            except Exception as e:
-                logging.debug(f"Cover penalty calculation failed: {e}")
+            except (ValueError, TypeError, AttributeError) as e:
+                logging.debug("Cover penalty calculation failed: %s", e)
 
         # Attacker accuracy modifier (fatigue, veterancy, mode)
         accuracy_mod = 1.0
@@ -281,7 +282,7 @@ class AttackLineSystem:
             elif mode == "sneak":
                 accuracy_mod *= 0.8
         # Morale accuracy modifier
-        if hasattr(attacker, "morale") and attacker.morale is not None:
+        if attacker.morale is not None:
             from pycc2.domain.systems.morale_system import MoraleSystem
 
             morale_state = MoraleSystem.get_state(attacker.morale.value)
@@ -301,7 +302,7 @@ class AttackLineSystem:
                     weather_penalty = 0.15
 
         # Captured weapon penalty
-        if hasattr(attacker.weapon, "is_captured") and attacker.weapon.is_captured:
+        if attacker.weapon is not None and attacker.weapon.is_captured:
             accuracy_mod *= 0.8
 
         hit_prob = base_prob - cover_penalty - weather_penalty
@@ -341,7 +342,7 @@ class AttackLineSystem:
         target = self._confirmed_attacks.get(unit_id)
         if target is not None:
             # R8: Start fade-out animation instead of instant removal
-            source_pos = getattr(self, "_active_source", None)
+            source_pos = self._active_source
             if source_pos is not None:
                 import time
 

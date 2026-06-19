@@ -126,6 +126,7 @@ class HUDManager:
         self._bind_interaction_callbacks()
 
         self._minimap.set_map(state.game_map)
+        self._minimap.show()  # Ensure minimap is visible from start
 
     # ------------------------------------------------------------------
     # Command callbacks (CC2 7-command system + roster + zoom)
@@ -349,6 +350,32 @@ class HUDManager:
             logger.debug(f"[CAMERA] Centered on {unit.display_name} at ({pos.x:.0f}, {pos.y:.0f})")
 
     # ------------------------------------------------------------------
+    # Update
+    # ------------------------------------------------------------------
+
+    def update(self, dt: float) -> None:
+        """Update HUD animations and transitions."""
+        if self._cc2_panel is not None:
+            self._cc2_panel.update(dt)
+
+        # Update minimap data every frame
+        if self._minimap is not None and self._state is not None:
+            self._minimap.update(dt)
+            # Sync unit positions
+            self._minimap.update_units(self._state.units)
+            # Sync selected unit highlight
+            selected_id = None
+            if self._state.selected_unit_ids:
+                selected_id = next(iter(self._state.selected_unit_ids), None)
+            self._minimap.set_selected_unit(selected_id)
+            # Sync camera viewport
+            if self._state.camera is not None:
+                cam = self._state.camera
+                self._minimap.set_camera_viewport(
+                    (cam.position.x, cam.position.y, cam.viewport_width, cam.viewport_height)
+                )
+
+    # ------------------------------------------------------------------
     # Rendering
     # ------------------------------------------------------------------
 
@@ -380,8 +407,8 @@ class HUDManager:
                     )
                     friendly_units = [u for u in game_state.units if u.faction in allied_factions]
                     self._cc2_panel.set_friendly_units(friendly_units)
-                except Exception as e:
-                    logger.warning(f"Failed to set friendly units: {e}")
+                except (ValueError, AttributeError, ImportError) as e:
+                    logger.warning("Failed to set friendly units: %s", e)
 
                 # 渲染CC2统一底部面板
                 self._cc2_panel.render(
@@ -391,8 +418,8 @@ class HUDManager:
                     minimap=self._minimap,
                 )
 
-        except Exception as e:
-            logger.error(f"HUDManager.render() crashed: {e}")
+        except (RuntimeError, ValueError, OSError, AttributeError) as e:
+            logger.error("HUDManager.render() crashed: %s", e)
             import traceback
 
             traceback.print_exc()

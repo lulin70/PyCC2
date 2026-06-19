@@ -205,14 +205,14 @@ class EnhancedSoundSystem:
 
             return True
 
-        except Exception as e:
+        except (pygame.error, RuntimeError) as e:
             logger.warning("Init failed: %s", e)
             try:
                 mixer.init(frequency=44100, size=-16, channels=1, buffer=512)
                 self._initialized = True
                 logger.info("Fallback to mono")
                 return True
-            except Exception as e2:
+            except (pygame.error, RuntimeError) as e2:
                 logger.warning("Mono also failed: %s", e2)
                 return False
 
@@ -227,7 +227,7 @@ class EnhancedSoundSystem:
                     sound.set_volume(mapping.volume * self._sfx_volume)
                     self._cache_sound(event.name, sound)
                     logger.info("Loaded: %s", mapping.file_path)
-                except Exception as e:
+                except (pygame.error, FileNotFoundError, ValueError) as e:
                     logger.warning("Failed to load %s: %s", mapping.file_path, e)
 
     def _cache_sound(self, key: str, sound: mixer.Sound) -> None:
@@ -248,7 +248,7 @@ class EnhancedSoundSystem:
                     sound = mixer.Sound(str(full_path))
                     sound.set_volume(mapping.volume * self._sfx_volume)
                     self._cache_sound(mapping.event.name, sound)
-                except Exception as e:
+                except (pygame.error, FileNotFoundError, ValueError) as e:
                     logger.warning("Failed to load %s: %s", mapping.file_path, e)
 
     def play_combat_event(
@@ -315,7 +315,7 @@ class EnhancedSoundSystem:
             sound = mixer.Sound(str(full_path))
             self._cache_sound(mapping.event.name, sound)
             return sound
-        except Exception as e:
+        except (pygame.error, FileNotFoundError, ValueError) as e:
             logging.info(f"Sound file load failed: {e}")
             return None
 
@@ -350,7 +350,7 @@ class EnhancedSoundSystem:
                     self._cache_sound(event.name, sound)
                     return sound
 
-        except Exception as e:
+        except (pygame.error, RuntimeError, ValueError) as e:
             logger.warning("CC2 combat fallback failed for %s: %s", event.name, e)
 
         return None
@@ -799,7 +799,7 @@ class EnhancedSoundSystem:
                 self._cache_sound(event.name, sound)
                 return sound
 
-        except Exception as e:
+        except (pygame.error, RuntimeError, ValueError, ImportError) as e:
             logger.warning("Procedural fallback failed for %s: %s", event.name, e)
 
         return None
@@ -896,7 +896,7 @@ class EnhancedSoundSystem:
                     channel = mixer.Channel(0)
                 channel.play(sound)
                 return True
-        except Exception as e:
+        except (pygame.error, RuntimeError, ValueError) as e:
             logger.warning("Suppression fire failed: %s", e)
 
         return False

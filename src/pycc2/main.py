@@ -129,6 +129,7 @@ def _create_game_objects(game_map, camera, screen, wm, event_bus, ai_service=Non
         state=state,
         input_handler=input_handler,
         interaction_controller=interaction_controller,
+        display_config=display_config,
         hint_manager=hint_manager,
         settings_menu=settings_menu,
         tutorial_overlay=tutorial_overlay,
@@ -240,7 +241,7 @@ def _start_new_game(menu, menu_action, screen, wm):
 
     try:
         game_map = GameMap.from_json(map_path)
-    except Exception as e:
+    except (OSError, ValueError, json.JSONDecodeError) as e:
         logger.error(f"Failed to load map {map_path}: {e}")
         return None
 
@@ -269,7 +270,7 @@ def _start_new_game(menu, menu_action, screen, wm):
         player_side = game_settings.player_side
         faction = "allied" if player_side == "allied" else "axis"
         logger.info(f"Settings loaded: {player_side} side")
-    except Exception as e:
+    except (ValueError, KeyError, TypeError, AttributeError) as e:
         logger.error("Failed to get game settings: %s", e, exc_info=True)
         return None
 
@@ -320,7 +321,7 @@ def _start_new_game(menu, menu_action, screen, wm):
                 if scenario.get("map_id") == scenario_stem:
                     scenario_path = sp
                     break
-            except Exception as e:
+            except (json.JSONDecodeError, OSError, ValueError, KeyError) as e:
                 logging.info(f"Scenario file parse failed: {e}")
                 continue
 
@@ -334,7 +335,7 @@ def _start_new_game(menu, menu_action, screen, wm):
             map_data["special_rules"] = scenario_data.get("special_rules", [])
             map_data["scenario_id"] = scenario_data.get("scenario_id", "")
             logger.info("Loaded scenario data from %s", scenario_path.stem)
-        except Exception as e:
+        except (json.JSONDecodeError, OSError, ValueError, KeyError) as e:
             logger.warning("Failed to load scenario data from %s: %s", scenario_path, e)
 
     # Enter deployment phase
@@ -345,7 +346,7 @@ def _start_new_game(menu, menu_action, screen, wm):
             faction=faction,
             game_settings=game_settings,
         )
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error("Failed to start deployment: %s", e, exc_info=True)
         return None
 
@@ -364,7 +365,7 @@ def _run_game_loop(game_loop):
     """
     try:
         return game_loop.run()
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error("Game loop crashed: %s", e, exc_info=True)
         return 1
 
@@ -431,7 +432,7 @@ def main() -> int:
     except KeyboardInterrupt:
         logger.info("Game interrupted by user")
         return 130
-    except Exception as e:
+    except (pygame.error, RuntimeError, OSError, ValueError, TypeError) as e:
         logger.critical("Fatal error: %s", e, exc_info=True)
         return 1
     finally:
@@ -439,7 +440,7 @@ def main() -> int:
             import pygame
 
             pygame.quit()
-        except Exception as e:
+        except pygame.error as e:
             logging.debug(f"pygame.quit() failed: {e}")
 
 

@@ -25,7 +25,7 @@ import contextlib
 
 import pygame
 
-from pycc2.domain.systems.game_settings import (  # type: ignore[import-untyped]
+from pycc2.domain.systems.game_settings import (
     GAME_PRESETS,
     ExperienceLevel,
     GamePreset,
@@ -33,7 +33,7 @@ from pycc2.domain.systems.game_settings import (  # type: ignore[import-untyped]
     SideSettings,
     SupplyLevelSetting,
 )
-from pycc2.domain.systems.skirmish_generator import SkirmishType  # type: ignore[import-untyped]
+from pycc2.domain.systems.skirmish_generator import SkirmishType
 
 if TYPE_CHECKING:
     pass
@@ -191,6 +191,7 @@ class NewGameMenu:
         accent: tuple[int, int, int] | None = None,
     ) -> None:
         self._ensure_fonts()
+        assert self._font_normal is not None
         hovered = rect.collidepoint(self._mouse_pos)
 
         if selected:
@@ -204,7 +205,7 @@ class NewGameMenu:
         border = accent if accent else _BTN_BORDER
         pygame.draw.rect(surface, border, rect, width=2, border_radius=6)
 
-        txt_surf = self._font_normal.render(text, True, _BTN_TEXT)  # type: ignore[union-attr]
+        txt_surf = self._font_normal.render(text, True, _BTN_TEXT)
         txt_rect = txt_surf.get_rect(center=rect.center)
         surface.blit(txt_surf, txt_rect)
 
@@ -221,7 +222,8 @@ class NewGameMenu:
         self._ensure_fonts()
         c = color or _TEXT_COLOR
         f = font or self._font_normal
-        surf = f.render(text, True, c)  # type: ignore[union-attr]
+        assert f is not None
+        surf = f.render(text, True, c)
         surface.blit(surf, (x, y))
         return surf.get_height()
 
@@ -232,15 +234,18 @@ class NewGameMenu:
     def _render_main(self, surface: pygame.Surface) -> None:
         sw, sh = surface.get_size()
         self._buttons.clear()
+        self._ensure_fonts()
 
         # Title
         title = "PyCC2 — Close Combat 2: A Bridge Too Far"
-        ts = self._font_title.render(title, True, _TITLE_COLOR)  # type: ignore[union-attr]
+        assert self._font_title is not None
+        ts = self._font_title.render(title, True, _TITLE_COLOR)
         surface.blit(ts, ((sw - ts.get_width()) // 2, sh // 5))
 
         # Subtitle
         sub = "Operation Market Garden, September 1944"
-        ss = self._font_small.render(sub, True, _TEXT_DIM)  # type: ignore[union-attr]
+        assert self._font_small is not None
+        ss = self._font_small.render(sub, True, _TEXT_DIM)
         surface.blit(ss, ((sw - ss.get_width()) // 2, sh // 5 + 58))
 
         # Buttons
@@ -715,8 +720,8 @@ class NewGameMenu:
 
             manager = SecureSaveManager()
             self._save_slots = manager.list_all_slots()
-        except Exception as e:
-            logging.info(f"Save slot list refresh failed: {e}")
+        except (OSError, ValueError, RuntimeError) as e:
+            logging.info("Save slot list refresh failed: %s", e)
             self._save_slots = []
 
     def get_selected_load_slot(self) -> int:

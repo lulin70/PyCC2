@@ -177,7 +177,7 @@ class SoundEffectsMixin:
             ch = mixer.find_channel(True)
             if ch:
                 ch.play(sound)
-        except Exception as e:
+        except (pygame.error, ValueError, OSError) as e:
             from pycc2.presentation.audio.sound_system import SoundType
 
             logger.warning("Victory sound generation failed: %s", e)
@@ -209,7 +209,7 @@ class SoundEffectsMixin:
             ch = mixer.find_channel(True)
             if ch:
                 ch.play(sound)
-        except Exception as e:
+        except (pygame.error, ValueError, OSError) as e:
             from pycc2.presentation.audio.sound_system import SoundType
 
             logger.warning("Defeat sound generation failed: %s", e)

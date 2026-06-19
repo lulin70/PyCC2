@@ -156,7 +156,7 @@ class AssetLoader:
                     self._sprite_cache[cache_key] = surface
                     logger.debug("Cached PNG: %s", cache_key)
                     return surface
-                except Exception as e:
+                except (pygame.error, ValueError, OSError) as e:
                     logger.debug("Failed to load PNG %s: %s", sprite_path, e)
                     continue
 
@@ -202,7 +202,7 @@ class AssetLoader:
             logger.debug("Generated CC2 sprite: %s", cache_key)
             return sprite
 
-        except Exception as e:
+        except (pygame.error, ValueError, TypeError, ImportError) as e:
             logger.warning("CC2 sprite generation failed for %s: %s, using fallback", cache_key, e)
             return self.load_fallback_sprite(unit_type)
 
@@ -236,7 +236,7 @@ class AssetLoader:
         if cache_key in self._terrain_cache:
             return self._terrain_cache[cache_key]
 
-        # 地形tile命名: terrain_00.png, terrain_01.png, ...
+        # 策略1: 数字命名 (terrain_00.png, terrain_01.png, ...)
         tile_path = self.assets_dir / "terrain" / f"terrain_{tile_id:02d}.png"
 
         if tile_path.exists():
@@ -246,8 +246,23 @@ class AssetLoader:
                     surface = pygame.transform.scale(surface, (size, size))
                 self._terrain_cache[cache_key] = surface
                 return surface
-            except Exception as e:
+            except (pygame.error, ValueError, OSError) as e:
                 logger.error("Failed to load terrain tile %s: %s", tile_path, e)
+
+        # 策略2: 按TerrainType枚举名称查找 (GRASS.png, WOODS.png, ...)
+        try:
+            from pycc2.domain.value_objects.terrain_type import TerrainType
+
+            type_name = TerrainType(tile_id).name
+            named_path = self.assets_dir / "terrain" / f"{type_name}.png"
+            if named_path.exists():
+                surface = pygame.image.load(str(named_path)).convert_alpha()
+                if surface.get_width() != size or surface.get_height() != size:
+                    surface = pygame.transform.scale(surface, (size, size))
+                self._terrain_cache[cache_key] = surface
+                return surface
+        except (ValueError, IndexError):
+            pass
 
         return None
 
@@ -274,8 +289,8 @@ class AssetLoader:
                 surface = pygame.image.load(str(effect_path)).convert_alpha()
                 self._sprite_cache[cache_key] = surface
                 return surface
-            except Exception as e:
-                logging.debug(f"Effect sprite load failed: {e}")
+            except (pygame.error, ValueError, OSError) as e:
+                logging.debug("Effect sprite load failed: %s", e)
 
         return None
 

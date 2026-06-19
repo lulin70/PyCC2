@@ -105,7 +105,7 @@ class SpritesheetParser:
 
             return self._is_loaded
 
-        except Exception as e:
+        except (pygame.error, ValueError, OSError) as e:
             logger.error("[SpritesheetParser] Error loading %s: %s", image_path, e)
             return False
 
@@ -340,7 +340,7 @@ class SpritesheetParser:
         if not self._is_loaded or self._image is None:
             return None
 
-        dir_idx = direction.value if hasattr(direction, "value") else direction
+        dir_idx = direction.value if isinstance(direction, Enum) else direction
 
         # Find matching frame
         for frame_info in self._frames:

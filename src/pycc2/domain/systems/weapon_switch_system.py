@@ -81,8 +81,8 @@ class WeaponSwitchSystem:
                 accuracy=0.6,
             )
             self._weapons[WeaponSlot.SECONDARY] = secondary_weapon
-        except Exception as e:
-            logging.warning(f"Secondary weapon init failed: {e}")
+        except (ValueError, TypeError, AttributeError) as e:
+            logging.warning("Secondary weapon init failed: %s", e)
 
         try:
             melee_weapon = WeaponComponent(
@@ -94,8 +94,8 @@ class WeaponSwitchSystem:
                 is_melee=True,
             )
             self._weapons[WeaponSlot.MELEE] = melee_weapon
-        except Exception as e:
-            logging.warning(f"Melee weapon init failed: {e}")
+        except (ValueError, TypeError, AttributeError) as e:
+            logging.warning("Melee weapon init failed: %s", e)
 
     @property
     def active_slot(self) -> WeaponSlot:

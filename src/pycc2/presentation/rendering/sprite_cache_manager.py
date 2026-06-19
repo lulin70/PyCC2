@@ -12,6 +12,7 @@ Created: Refactoring — SpriteRenderer responsibility separation
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pygame
@@ -34,11 +35,12 @@ class SpriteCacheManager:
     """
 
     TILE_SIZE: int = 48
-    SPRITE_SIZE: int = 32
+    SPRITE_SIZE: int = 48  # Match TILE_SIZE for larger, clearer units
 
     def __init__(self, display_config: DisplayConfig | None = None):
         from pycc2.domain.interfaces.display_config import DisplayConfig as DC
         from pycc2.presentation.rendering.asset_loader import AssetLoader
+        from pycc2.presentation.rendering.cc2_sprite_loader import CC2SpriteLoader
         from pycc2.presentation.rendering.tile_cache import TileCache
 
         self._display_config: DisplayConfig = display_config or DC()
@@ -46,6 +48,35 @@ class SpriteCacheManager:
         self._terrain_cache: dict[int, Surface] = {}
         self._tile_cache: TileCache = TileCache()
         self._asset_loader: AssetLoader = AssetLoader()
+        
+        # CC2 Original Sprite Loader (NEW: 2026-06-16)
+        assets_root = Path(__file__).parent.parent.parent.parent / "assets"
+        self._cc2_loader: CC2SpriteLoader = CC2SpriteLoader(assets_root)
+        self._use_cc2_sprites: bool = self._cc2_loader.is_available()
+
+        if self._use_cc2_sprites:
+            logger.info("✅ CC2 original sprites detected - high quality mode enabled")
+        else:
+            logger.info("ℹ️ CC2 sprites not found - using procedural generation")
+
+        # SVG Sprite Loader (P0: 2026-06-19) — highest priority unit sprites
+        from pycc2.presentation.rendering.svg_sprite_loader import SVGSpriteLoader
+
+        self._svg_loader = SVGSpriteLoader()
+        self._use_svg_sprites: bool = self._svg_loader.is_available
+
+        if self._use_svg_sprites:
+            logger.info("✅ SVG unit sprites detected - vector art mode enabled")
+            # Pre-cache all SVG sprites
+            self._svg_cache = self._svg_loader.load_all(target_size=(self.SPRITE_SIZE, self.SPRITE_SIZE))
+            logger.info(
+                "✅ Pre-cached %d SVG sprites for instant lookup",
+                len(self._svg_cache),
+            )
+        else:
+            self._svg_loader = None
+            self._svg_cache = {}
+            logger.info("ℹ️ SVG sprites not found - falling back to PNG/procedural")
 
         self._generate_all_sprites()
         self._generate_terrain_tiles()
@@ -61,17 +92,28 @@ class SpriteCacheManager:
     ) -> Surface | None:
         """Look up a cached unit sprite with fallback chain.
 
-        Returns None if no sprite found in cache.
+        Falls back to create_unit_sprite() for SVG/procedural generation on cache miss.
         """
+        # Normalize enum values to lowercase strings for cache key matching
+        faction_str = faction.name.lower() if hasattr(faction, "name") else str(faction).lower()
+        unit_type_str = unit_type.name if hasattr(unit_type, "name") else str(unit_type)
+
         sz = sprite_size or self.SPRITE_SIZE
-        base_key = f"{faction}_{unit_type}_d{direction}"
-        return (
+        base_key = f"{faction_str}_{unit_type_str}_d{direction}"
+        cached = (
             self._sprite_cache.get(base_key)
             or self._sprite_cache.get(f"{base_key}_{sz}")
-            or self._sprite_cache.get(f"{faction}_{unit_type}_d0")
-            or self._sprite_cache.get(f"{faction}_{unit_type}_d0_{sz}")
-            or None
+            or self._sprite_cache.get(f"{faction_str}_{unit_type_str}_d0")
+            or self._sprite_cache.get(f"{faction_str}_{unit_type_str}_d0_{sz}")
         )
+        if cached is not None:
+            return cached
+
+        # Cache miss — generate via SVG loader or procedural (P0 fix: 2026-06-19)
+        generated = self.create_unit_sprite(faction_str, unit_type_str, direction, sprite_size=sz)
+        if generated is not None:
+            self._sprite_cache[base_key] = generated
+        return generated
 
     def create_unit_sprite(
         self,
@@ -80,9 +122,34 @@ class SpriteCacheManager:
         direction: int,
         turret_direction: int | None = None,
         state: str = "idle",
+        sprite_size: int | None = None,
     ) -> Surface:
-        """Create a unit sprite — priority: AssetLoader > PixelArtist3D > legacy procedural."""
-        # Try loading from assets
+        """Create a unit sprite — priority: SVG > CC2Original > AssetLoader > PixelArtist3D > legacy."""
+        # 0. Try SVG sprites (HIGHEST PRIORITY — P0: 2026-06-19)
+        if self._use_svg_sprites:
+            svg_sprite = self._try_svg_sprite(faction, unit_type, direction, state)
+            if svg_sprite is not None:
+                # Scale SVG to requested size if needed
+                if sprite_size is not None and sprite_size != self.SPRITE_SIZE:
+                    from pygame import transform as _tf
+                    return _tf.scale(svg_sprite, (sprite_size, sprite_size))
+                return svg_sprite
+
+        # 1. Try CC2 Original sprites
+        if self._use_cc2_sprites:
+            direction_map = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+            dir_str = direction_map[direction % 8]
+            cc2_sprite = self._cc2_loader.load_sprite(
+                unit_type=unit_type.lower(),
+                direction=dir_str,
+                animation=state,
+                frame=0
+            )
+            if cc2_sprite is not None:
+                logger.info(f"[SPRITE] ✅✅ CC2 Original: {unit_type}_d{direction}")
+                return cc2_sprite
+        
+        # 2. Try loading from assets
         loaded_sprite = self._asset_loader.load_unit_sprite(
             faction=faction,
             unit_type=unit_type,
@@ -142,8 +209,8 @@ class SpriteCacheManager:
             logger.info(f"[SPRITE] ✅ Generated CC2 pixel art: {faction}_{unit_type}_d{direction}")
             return cc2_sprite
 
-        except Exception as e:
-            logger.warning(f"[SPRITE] ❌ CC2 generation failed: {e}, using legacy fallback")
+        except (pygame.error, ValueError, TypeError, ImportError) as e:
+            logger.warning("[SPRITE] ❌ CC2 generation failed: %s, using legacy fallback", e)
 
         # Fallback: legacy procedural generator
         from pycc2.presentation.rendering.pixel_artist import create_unit_sprite
@@ -154,6 +221,89 @@ class SpriteCacheManager:
             direction=direction, size=self.SPRITE_SIZE, state=state,
         )
         return canvas.to_surface()
+
+    # ====== SVG sprite resolution (P0: 2026-06-19) ======
+
+    # Map internal unit_type names to SVG posture names
+    _SVG_POSTURE_MAP: dict[str, str] = {
+        "INFANTRY_SQUAD": "standing",
+        "RIFLE_SQUAD": "standing",
+        "MACHINE_GUN_SQUAD": "standing",  # Default standing; use "mg_deployed" when deployed
+        "MG_TEAM": "standing",
+        "COMMANDER": "standing",
+        "OFFICER": "standing",
+        "SNIPER_TEAM": "prone",
+        "MEDIC_TEAM": "kneeling",
+        "AT_GUN_TEAM": "kneeling",
+        "MORTAR_TEAM": "kneeling",
+        "ENGINEER_SQUAD": "kneeling",
+    }
+
+    def _try_svg_sprite(
+        self,
+        faction: str,
+        unit_type: str,
+        direction: int,
+        state: str = "idle",
+        animation_frame: int | None = None,
+    ) -> Surface | None:
+        """Try to load an SVG sprite, with direction rotation and animation frames.
+
+        Maps unit_type → SVG posture, looks up pre-cached base sprite,
+        then rotates to face the requested direction.
+
+        Animation support (P2):
+            - Prone posture uses 4-frame cycle (f0→f1→f2→f3→f0...)
+            - animation_frame 0-3 selects specific frame
+            - If None, uses base prone sprite (no animation)
+        """
+        # Normalize faction
+        faction_lower = faction.name.lower() if hasattr(faction, "name") else str(faction).lower()
+        if faction_lower not in ("allies", "axis"):
+            # Polish units use allies-style sprites
+            if faction_lower in ("polish", "american", "british"):
+                faction_lower = "allies"
+            else:
+                faction_lower = "axis"
+
+        # Map unit type to posture
+        unit_str = unit_type.name if hasattr(unit_type, "name") else str(unit_type)
+        posture = self._SVG_POSTURE_MAP.get(unit_str, "standing")
+
+        # Special case: MG units in deployed state
+        if "mg" in unit_str.lower() and state == "deployed":
+            posture = "mg_deployed"
+
+        # Special case: prone/crawl states with animation frame support
+        if state in ("prone", "crawl", "crawling"):
+            posture = "prone"
+            # P2: Use animation frame for prone crawling cycle
+            if animation_frame is not None and 0 <= animation_frame <= 3:
+                cache_key = f"{faction_lower}_{posture}_f{animation_frame}"
+                base_sprite = self._svg_cache.get(cache_key)
+                if base_sprite is not None:
+                    return self._rotate_for_direction(base_sprite, direction)
+                # Fall through to base prone if specific frame missing
+
+        # Build cache key
+        cache_key = f"{faction_lower}_{posture}"
+
+        # Check pre-cached sprites
+        base_sprite = self._svg_cache.get(cache_key)
+        if base_sprite is None:
+            return None
+
+        return self._rotate_for_direction(base_sprite, direction)
+
+    @staticmethod
+    def _rotate_for_direction(base_sprite: Surface, direction: int) -> Surface:
+        """Rotate sprite to face given direction.
+
+        Direction mapping: 0=North(0°), 1=NE(45°), ..., 7=NW(315°)
+        """
+        if direction != 0:
+            return pygame.transform.rotate(base_sprite, direction * 45)
+        return base_sprite
 
     def get_terrain_tile(self, tile_id: int, size: int) -> Surface | None:
         """Get a scaled terrain tile from the tile cache."""

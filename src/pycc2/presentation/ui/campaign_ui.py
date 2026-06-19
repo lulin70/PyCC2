@@ -134,8 +134,8 @@ class CampaignUI:
             self._font_title = pygame.font.SysFont("consolas", 28, bold=True)
             self._font_normal = pygame.font.SysFont("consolas", 18)
             self._font_small = pygame.font.SysFont("consolas", 14)
-        except Exception as e:
-            logging.debug(f"Campaign UI font fallback: {e}")
+        except (pygame.error, ValueError, OSError) as e:
+            logging.debug("Campaign UI font fallback: %s", e)
             self._font_title = pygame.font.Font(None, 36)
             self._font_normal = pygame.font.Font(None, 24)
             self._font_small = pygame.font.Font(None, 18)
@@ -1570,8 +1570,8 @@ class CampaignUI:
                                 rh = int((r + 1) * tile_h) - int(r * tile_h)
                                 draw.rect(surface, color, Rect(rx, ry, rw, rh))
                         return
-        except Exception as e:
-            logging.debug(f"Campaign map rendering failed: {e}")
+        except (pygame.error, ValueError, TypeError) as e:
+            logging.debug("Campaign map rendering failed: %s", e)
 
         # Fallback: placeholder grid
         grid_size = 10

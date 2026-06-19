@@ -61,6 +61,7 @@ class TestMouseEvents:
         assert result.button == 3
 
     def test_mousebutton_4_zoom_in_increases_zoom(self, input_handler):
+        """Scroll wheel zoom was disabled in favor of HUD-only zoom controls (2026-06-19)."""
         initial_zoom = input_handler.camera.zoom
         event = MagicMock()
         event.type = pygame.MOUSEBUTTONDOWN
@@ -68,9 +69,11 @@ class TestMouseEvents:
         event.pos = (640, 360)
         result = input_handler.process_event(event)
         assert result is None
-        assert input_handler.camera.zoom > initial_zoom
+        # Zoom should NOT change — scroll wheel zoom disabled
+        assert input_handler.camera.zoom == initial_zoom
 
     def test_mousebutton_5_zoom_out_decreases_zoom(self, input_handler):
+        """Scroll wheel zoom was disabled in favor of HUD-only zoom controls (2026-06-19)."""
         input_handler.camera.zoom = 2.0
         event = MagicMock()
         event.type = pygame.MOUSEBUTTONDOWN
@@ -78,7 +81,8 @@ class TestMouseEvents:
         event.pos = (640, 360)
         result = input_handler.process_event(event)
         assert result is None
-        assert input_handler.camera.zoom < 2.0
+        # Zoom should NOT change — scroll wheel zoom disabled
+        assert input_handler.camera.zoom == 2.0
 
 
 class TestKeyboardEvents:

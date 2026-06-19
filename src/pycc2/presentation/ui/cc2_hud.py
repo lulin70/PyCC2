@@ -28,6 +28,26 @@ if TYPE_CHECKING:
     from pycc2.presentation.rendering.camera import Camera
 
 
+
+# Enhanced UI rendering feature flag
+try:
+    from config.rendering_features import is_enhanced_ui_enabled
+    _ENHANCED_UI_AVAILABLE = True
+    if is_enhanced_ui_enabled():
+        from pycc2.presentation.ui.enhanced_ui_renderer import (
+            draw_button, draw_panel, draw_icon, EnhancedUIRenderer
+        )
+except ImportError:
+    _ENHANCED_UI_AVAILABLE = False
+
+# Unit portrait renderer (Step 1: Integration)
+try:
+    from pycc2.presentation.ui.unit_portrait_renderer import UnitPortraitRenderer
+    _PORTRAIT_RENDERER_AVAILABLE = True
+except ImportError:
+    _PORTRAIT_RENDERER_AVAILABLE = False
+    logger.warning("UnitPortraitRenderer not available - portraits disabled")
+
 class CC2HUD:
     """Close Combat 2 style three-panel HUD.
 
@@ -57,26 +77,27 @@ class CC2HUD:
     ICON_SIZE: int = 16
     MINIMAP_SIZE: int = 100
 
-    # === Color Palette (CC2 Authentic) ===
-    BG_COLOR = (20, 22, 26)  # Deep blue-gray background
-    BORDER_COLOR = (60, 65, 70)  # Medium gray border
-    TEXT_COLOR = (200, 200, 190)  # Off-white text (CC2 font color)
-    HIGHLIGHT_COLOR = (255, 220, 100)  # Gold highlight (selected)
+    # === Color Palette (CC2 Authentic - Warm Military Tone) ===
+    # Updated from cold blue-gray to warm olive-green military style
+    BG_COLOR = (58, 64, 48)  # Deep olive-green background (was: blue-gray)
+    BORDER_COLOR = (90, 96, 80)  # Olive border (was: medium gray)
+    TEXT_COLOR = (220, 220, 210)  # Off-white text (slightly warmer)
+    HIGHLIGHT_COLOR = (255, 220, 100)  # Gold highlight (selected) - unchanged
 
-    # Status colors
+    # Status colors (CC2 original - unchanged)
     STATUS_HEALTHY = (80, 180, 80)  # Green
     STATUS_WOUNDED = (200, 180, 60)  # Yellow
     STATUS_CRITICAL = (200, 80, 60)  # Red
     STATUS_DEAD = (40, 40, 40)  # Black
 
-    # Resource bar colors
+    # Resource bar colors (unchanged)
     AP_BAR_COLOR = (60, 160, 60)  # Green for AP
     AT_BAR_COLOR = (160, 120, 60)  # Orange-brown for AT
 
-    # Panel backgrounds
-    PANEL_BG_DARK = (15, 17, 21)
-    PANEL_BG_MID = (25, 28, 33)
-    PANEL_BG_LIGHT = (35, 38, 45)
+    # Panel backgrounds (warm olive tones)
+    PANEL_BG_DARK = (48, 52, 40)  # Deep olive panel (was: deep blue-gray)
+    PANEL_BG_MID = (58, 64, 48)  # Mid olive panel (was: mid blue-gray)
+    PANEL_BG_LIGHT = (68, 74, 58)  # Light olive panel (was: light blue-gray)
 
     def __init__(self, screen_width: int, screen_height: int):
         """Initialize HUD with screen dimensions.
@@ -149,6 +170,16 @@ class CC2HUD:
         self._on_unit_select: callable | None = None
         self._on_command: callable | None = None
         self._on_hide_toggle: callable | None = None
+
+        # Unit portrait renderer (Step 1: Integration)
+        self._portrait_renderer: UnitPortraitRenderer | None = None
+        if _PORTRAIT_RENDERER_AVAILABLE:
+            try:
+                self._portrait_renderer = UnitPortraitRenderer(max_cache_size=50)
+                logger.info("UnitPortraitRenderer initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize UnitPortraitRenderer: {e}")
+                self._portrait_renderer = None
 
     def initialize(self) -> None:
         """Initialize fonts and generate procedural icons."""
@@ -692,7 +723,7 @@ class CC2HUD:
                 draw.rect(surface, (55, 58, 65), prev_rect, 1)
 
     def _render_unit_details(self, surface: Surface, x: int, y: int, w: int, unit: Unit) -> None:
-        """Render detailed information for selected unit.
+        """Render detailed information for selected unit (Step 1: Portrait Integration).
 
         Args:
             surface: Target surface
@@ -704,15 +735,61 @@ class CC2HUD:
         line_h = 15
         small_line_h = 13
 
-        # Unit header: icon + name + AP dots
-        icon_key = self._get_unit_icon_key(unit)
-        icon = self._unit_icons.get(icon_key)
-        if icon:
-            surface.blit(icon, (x, line_y))
+        # === STEP 1: Unit Portrait (96x96) ===
+        portrait_rendered = False
+        if self._portrait_renderer:
+            try:
+                # Extract unit attributes for portrait rendering
+                infantry_type = getattr(unit, "infantry_type", "RIFLEMAN")
+                if hasattr(infantry_type, "name"):
+                    infantry_type = infantry_type.name
+                
+                faction = getattr(unit, "faction", "ALLY")
+                if hasattr(faction, "name"):
+                    faction = faction.name
+                
+                # Calculate health ratio for damage effects
+                hp = getattr(getattr(unit, "health", None), "hp", 100)
+                hp_max = getattr(getattr(unit, "health", None), "max_hp", 100)
+                health_ratio = hp / max(hp_max, 1)
+                
+                # Render 96x96 portrait
+                portrait = self._portrait_renderer.render_portrait(
+                    infantry_type=infantry_type,
+                    faction=faction,
+                    health_ratio=health_ratio
+                )
+                
+                # Display portrait at left side of panel
+                if portrait:
+                    surface.blit(portrait, (x, line_y))
+                    portrait_rendered = True
+                    logger.debug(f"Portrait rendered for {infantry_type} ({faction})")
+                    
+            except Exception as e:
+                logger.warning(f"Failed to render portrait: {e}")
+                # Fallback to icon rendering below
 
+        # Adjust layout if portrait was rendered
+        if portrait_rendered:
+            # Portrait takes 96x96, text starts to the right
+            name_x = x + 96 + 8
+            icon_x = x + 96 + 8
+        else:
+            # No portrait: use original layout with small icon
+            name_x = x + self.ICON_SIZE + 4
+            icon_x = x
+            
+            # Fallback: render small 16x16 icon
+            icon_key = self._get_unit_icon_key(unit)
+            icon = self._unit_icons.get(icon_key)
+            if icon:
+                surface.blit(icon, (icon_x, line_y))
+
+        # Unit name
         name = getattr(unit, "name", "Unknown")[:18]
         name_surf = self._font_normal.render(name, True, self.HIGHLIGHT_COLOR)
-        surface.blit(name_surf, (x + self.ICON_SIZE + 4, line_y + 2))
+        surface.blit(name_surf, (name_x, line_y + 2))
 
         # AP dots indicator
         ap_dots = "●" * min(self._ap_remaining, 5) + "○" * max(0, 5 - self._ap_remaining)

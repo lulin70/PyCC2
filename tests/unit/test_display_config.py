@@ -1,9 +1,23 @@
 from __future__ import annotations
 
+import os
+import pytest
+
 from pycc2.domain.interfaces.display_config import (
     DisplayConfig,
     QualityPreset,
 )
+
+
+@pytest.fixture(scope="module")
+def pygame_init():
+    """Initialize pygame display for tests that need surface operations."""
+    os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+    import pygame
+    pygame.init()
+    screen = pygame.display.set_mode((800, 600))
+    yield screen
+    pygame.quit()
 
 
 class TestFromScreen:
@@ -219,23 +233,24 @@ class TestWindowCap:
 class TestDisplayConfigWithSpriteRenderer:
     """集成测试: DisplayConfig 与 SpriteRenderer 协同工作"""
 
-    def test_renderer_accepts_display_config(self):
+    def test_renderer_accepts_display_config(self, pygame_init):
         from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
         dc = DisplayConfig.from_preset(QualityPreset.HIGH)
         renderer = SpriteRenderer(display_config=dc)
-        # TILE_SIZE/SPRITE_SIZE updated to 48/32 to match CC2 screenshot analysis
+        # P0-B: SPRITE_SIZE updated to 48 for CC2 visibility
         assert renderer.TILE_SIZE == 48
-        assert renderer.SPRITE_SIZE == 32
+        assert renderer.SPRITE_SIZE == 48
 
-    def test_renderer_default_config_matches_old_behavior(self):
+    def test_renderer_default_config_matches_old_behavior(self, pygame_init):
         from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
         renderer = SpriteRenderer()
+        # P0-B: Both sizes now 48 for CC2-style rendering
         assert renderer.TILE_SIZE == 48
-        assert renderer.SPRITE_SIZE == 32
+        assert renderer.SPRITE_SIZE == 48
 
-    def test_renderer_with_low_preset(self):
+    def test_renderer_with_low_preset(self, pygame_init):
         from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
         dc = DisplayConfig.from_preset(QualityPreset.LOW)
@@ -243,7 +258,7 @@ class TestDisplayConfigWithSpriteRenderer:
         # TILE_SIZE is fixed at 48 to match Vec2.TILE_SIZE and EnhancedRenderer
         assert renderer.TILE_SIZE == 48
 
-    def test_renderer_terrain_cache_uses_dynamic_size(self):
+    def test_renderer_terrain_cache_uses_dynamic_size(self, pygame_init):
         from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
         dc = DisplayConfig(base_tile_size=64, sprite_scale=1.0)
@@ -252,14 +267,15 @@ class TestDisplayConfigWithSpriteRenderer:
         for tile_id, surf in renderer._terrain_cache.items():
             assert surf.get_size() == (48, 48), f"Terrain {tile_id} size mismatch"
 
-    def test_renderer_sprite_cache_uses_dynamic_size(self):
+    def test_renderer_sprite_cache_uses_dynamic_size(self, pygame_init):
         from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
         dc = DisplayConfig(base_tile_size=48, sprite_scale=1.0)
         renderer = SpriteRenderer(display_config=dc)
-        # SPRITE_SIZE is fixed at 32 for CC2-style small units (scaled from old 24)
+        # P0-B: SPRITE_SIZE updated to 48, SVG sprites may be 48-67 (vector art)
+        valid_sizes = {14, 22, 24, 28, 32, 36, 38, 40, 45, 48, 64, 67}
         for key, surf in renderer._sprite_cache.items():
             size = surf.get_size()
-            assert size[0] in (14, 22, 24, 28, 32, 36, 38, 40, 48), (
+            assert size[0] in valid_sizes, (
                 f"Sprite {key} size {size} unexpected"
             )

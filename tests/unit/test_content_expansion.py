@@ -88,8 +88,9 @@ class TestNewTerrainTypes:
     def test_swamp_is_passable(self):
         assert TerrainType.SWAMP.is_passable is True
 
-    def test_crater_depression_height(self):
-        assert TerrainType.CRATER.height == -1
+    def test_crater_height_is_ground_level(self):
+        """Crater height=0: LOS sees prone unit at ground level; cover via cover_bonus."""
+        assert TerrainType.CRATER.height == 0
 
     def test_total_terrain_types_is_15(self):
         assert len(TerrainType) == 22

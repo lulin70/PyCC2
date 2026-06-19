@@ -48,10 +48,14 @@ class PygameInputHandler:
                     modifiers=self._get_modifiers(),
                 )
             elif event.button == 4:
-                self.camera.adjust_zoom(1.2, anchor=event.pos)
+                # Disabled: mouse wheel zoom removed
+                # Zoom is now only available via HUD panel controls (CC2BottomPanel)
+                # self.camera.adjust_zoom(1.2, anchor=event.pos)
                 return None
             elif event.button == 5:
-                self.camera.adjust_zoom(0.8, anchor=event.pos)
+                # Disabled: mouse wheel zoom removed
+                # Zoom is now only available via HUD panel controls (CC2BottomPanel)
+                # self.camera.adjust_zoom(0.8, anchor=event.pos)
                 return None
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:

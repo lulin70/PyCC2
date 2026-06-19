@@ -13,6 +13,7 @@ from pycc2.presentation.ui.panel import Panel
 from pycc2.presentation.ui.radial_menu import RadialCommand, RadialMenu
 from pycc2.presentation.ui.theme import Theme
 from pycc2.presentation.ui.tooltip import Tooltip
+from pycc2.presentation.ui.unit_portrait_renderer import UnitPortraitRenderer
 
 __all__ = [
     "Button",
@@ -27,6 +28,7 @@ __all__ = [
     "Panel",
     "RadialCommand",
     "RadialMenu",
-    "Tooltip",
     "Theme",
+    "Tooltip",
+    "UnitPortraitRenderer",
 ]

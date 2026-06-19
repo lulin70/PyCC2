@@ -143,8 +143,8 @@ class WindowManager:
                 main_screen = NSScreen.mainScreen()
                 if main_screen is not None:
                     return main_screen.backingScaleFactor() or 1.0
-            except Exception as e:
-                logging.debug(f"macOS NSScreen backing scale factor failed: {e}")
+            except (OSError, AttributeError, ImportError) as e:
+                logging.debug("macOS NSScreen backing scale factor failed: %s", e)
             try:
                 objc = ctypes.cdll.LoadLibrary("/System/Library/Frameworks/AppKit.framework/AppKit")
                 objc.NSScreen_mainScreen.restype = ctypes.c_void_p
@@ -153,8 +153,8 @@ class WindowManager:
                 if screen:
                     scale = objc.NSScreen_backingScaleFactor(screen)
                     return scale if scale > 0 else 1.0
-            except Exception as e:
-                logging.debug(f"macOS ctypes DPI detection failed: {e}")
+            except (OSError, AttributeError, ImportError) as e:
+                logging.debug("macOS ctypes DPI detection failed: %s", e)
         elif system == "Linux":
             try:
                 import subprocess
@@ -171,8 +171,8 @@ class WindowManager:
                         if len(parts) == 2:
                             dpi_x = float(parts[0].split()[0])
                             return dpi_x / 96.0
-            except Exception as e:
-                logging.debug(f"Linux DPI detection failed: {e}")
+            except (OSError, ValueError, RuntimeError) as e:
+                logging.debug("Linux DPI detection failed: %s", e)
         elif system == "Windows":
             try:
                 user32 = ctypes.windll.user32  # type: ignore[attr-defined]
@@ -180,8 +180,8 @@ class WindowManager:
                 dc = user32.GetDC(0)
                 dpi_x = ctypes.windll.gdi32.GetDeviceCaps(dc, 88)  # type: ignore[attr-defined]
                 return float(dpi_x) / 96.0
-            except Exception as e:
-                logging.debug(f"Windows DPI detection failed: {e}")
+            except (OSError, AttributeError, ImportError) as e:
+                logging.debug("Windows DPI detection failed: %s", e)
         return 1.0
 
     @property

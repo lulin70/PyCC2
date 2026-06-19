@@ -126,8 +126,8 @@ class ContextMenu:
         """Build the menu surface with all items."""
         try:
             self._font = pygame.font.SysFont("arial", self.FONT_SIZE)
-        except Exception as e:
-            logging.debug(f"Context menu font fallback: {e}")
+        except (pygame.error, ValueError, OSError) as e:
+            logging.debug("Context menu font fallback: %s", e)
             self._font = pygame.font.Font(None, self.FONT_SIZE)
 
         width = 180

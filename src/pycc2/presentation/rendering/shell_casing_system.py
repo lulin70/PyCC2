@@ -122,7 +122,7 @@ class ShellCasingSystem:
                 casing_surf.fill((0, 0, 0, 0))
                 pygame.draw.ellipse(casing_surf, (*c["color"], alpha), casing_surf.get_rect())
                 offscreen.blit(casing_surf, (sx - int(c["size"]), sy))
-            except Exception:
+            except (pygame.error, ValueError, TypeError):
                 pass
 
     @property

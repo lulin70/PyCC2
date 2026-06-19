@@ -281,3 +281,119 @@ class TestGetBlockingTerrain:
         los = LOSSystem(game_map)
         blocking = los.get_blocking_terrain(TileCoord(0, 0), TileCoord(5, 0))
         assert len(blocking) > 0
+
+
+# ===========================================================================
+# Tests — Battlefield Common Sense Fixes
+# ===========================================================================
+
+
+@pytest.mark.unit
+class TestBattlefieldLOSFixes:
+    """Tests for battlefield-common-sense LOS behavior fixes."""
+
+    def test_water_does_not_block_los(self):
+        """Cross-river shooting: water blocks movement but NOT line of sight."""
+        # Place water tile between shooter and target
+        terrain_map = {
+            (3, 0): StubTerrain("water", blocks_los=False),
+        }
+        game_map = _make_game_map(terrain_map=terrain_map)
+        los = LOSSystem(game_map)
+        can_see, result = los.check_los(TileCoord(0, 0), TileCoord(6, 0))
+        assert can_see is True
+        assert result.status == LosStatus.CLEAR
+
+    def test_water_at_multiple_positions(self):
+        """Water tiles anywhere along the path should not block LOS."""
+        terrain_map = {
+            (2, 2): StubTerrain("water", blocks_los=False),
+            (3, 3): StubTerrain("water", blocks_los=False),
+            (4, 4): StubTerrain("water", blocks_los=False),
+        }
+        game_map = _make_game_map(terrain_map=terrain_map)
+        los = LOSSystem(game_map)
+        can_see, result = los.check_los(TileCoord(0, 0), TileCoord(8, 8))
+        assert can_see is True
+
+    def test_crater_height_is_zero_not_negative(self):
+        """Crater should have height=0 for LOS purposes (unit head at ground level)."""
+        from pycc2.domain.value_objects.terrain_type import TerrainType
+        assert TerrainType.CRATER.height == 0, (
+            "Crater height should be 0, not -1. "
+            "Cover comes from cover_bonus, not LOS height."
+        )
+
+    def test_foxhole_height_is_zero_not_negative(self):
+        """Foxhole height=0: prone soldier's eye level at ground."""
+        from pycc2.domain.value_objects.terrain_type import TerrainType
+        assert TerrainType.FOXHOLE.height == 0
+
+    def test_trench_height_is_zero_not_negative(self):
+        """Trench height=0: defensive position eye level at ground."""
+        from pycc2.domain.value_objects.terrain_type import TerrainType
+        assert TerrainType.TRENCH.height == 0
+
+    def test_crater_does_not_block_los_through(self):
+        """Bullets fly over craters; crater doesn't block LOS to target behind it."""
+        terrain_map = {
+            (3, 3): StubTerrain("crater", blocks_los=False),
+        }
+        game_map = _make_game_map(terrain_map=terrain_map)
+        los = LOSSystem(game_map)
+        can_see, result = los.check_los(TileCoord(1, 1), TileCoord(6, 6))
+        assert can_see is True
+
+    def test_foxhole_does_not_block_los(self):
+        """Foxholes provide cover via cover_bonus, not by blocking LOS."""
+        terrain_map = {
+            (3, 0): StubTerrain("foxhole", blocks_los=False),
+        }
+        game_map = _make_game_map(terrain_map=terrain_map)
+        los = LOSSystem(game_map)
+        can_see, result = los.check_los(TileCoord(0, 0), TileCoord(6, 0))
+        assert can_see is True
+
+    def test_hedge_provides_partial_cover(self):
+        """Hedges (Normandy bocage) provide partial cover along the entire LOS path,
+        not just at the second-to-last position."""
+        terrain_map = {
+            (3, 3): StubTerrain("hedge", blocks_los=False),
+        }
+        game_map = _make_game_map(terrain_map=terrain_map)
+        los = LOSSystem(game_map)
+        can_see, result = los.check_los(TileCoord(1, 1), TileCoord(6, 6))
+        assert can_see is True  # Can still see through hedge
+        assert result.status == LosStatus.PARTIAL  # But with reduced visibility
+
+    def test_hedge_in_middle_of_path(self):
+        """Hedge in the middle of the LOS path still triggers partial coverage."""
+        terrain_map = {
+            (4, 4): StubTerrain("hedge", blocks_los=False),
+        }
+        game_map = _make_game_map(terrain_map=terrain_map)
+        los = LOSSystem(game_map)
+        can_see, result = los.check_los(TileCoord(0, 0), TileCoord(10, 10))
+        assert result.status == LosStatus.PARTIAL
+
+    def test_woods_still_blocks_completely(self):
+        """Dense woods should still completely block LOS (not partial)."""
+        terrain_map = {
+            (3, 3): StubTerrain("woods", blocks_los=True),
+        }
+        game_map = _make_game_map(terrain_map=terrain_map)
+        los = LOSSystem(game_map)
+        can_see, result = los.check_los(TileCoord(1, 1), TileCoord(6, 6))
+        assert can_see is False
+        assert result.status == LosStatus.BLOCKED_TERRAIN
+
+    def test_building_solid_always_blocks(self):
+        """Solid buildings must always block LOS regardless of position."""
+        terrain_map = {
+            (5, 5): StubTerrain("building_solid", blocks_los=True),
+        }
+        game_map = _make_game_map(terrain_map=terrain_map)
+        los = LOSSystem(game_map)
+        can_see, result = los.check_los(TileCoord(0, 0), TileCoord(10, 10))
+        assert can_see is False
+        assert result.status == LosStatus.BLOCKED_TERRAIN

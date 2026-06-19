@@ -303,7 +303,7 @@ class ResourceCacheManager:
             if callback:
                 try:
                     callback(downloaded, total_size)
-                except Exception:
+                except (RuntimeError, ValueError, TypeError):
                     pass  # callback errors must not break download
 
         return b"".join(chunks)

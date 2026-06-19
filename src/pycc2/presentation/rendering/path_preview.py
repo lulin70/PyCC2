@@ -160,7 +160,7 @@ class PathPreview:
 
         danger_count = 0
         for enemy in enemy_units:
-            can_see, _ = self.los_system.can_see(enemy, pos)  # type: ignore
+            can_see, _ = self.los_system.check_los(enemy.position.tile_coord, pos)
             if can_see:
                 danger_count += 1
 
@@ -253,8 +253,8 @@ class PathPreview:
                     text_surf = font.render(time_text, True, (255, 255, 255))
                     surface.blit(text_surf, (end_screen[0] + 5, end_screen[1] - 5))
 
-        except Exception as e:
-            logging.debug(f"Path preview rendering failed: {e}")
+        except (pygame.error, ValueError, TypeError) as e:
+            logging.debug("Path preview rendering failed: %s", e)
 
     @staticmethod
     def _draw_dashed_line(
@@ -290,8 +290,8 @@ class PathPreview:
                 y2 = start[1] + dy * end_frac
 
                 pygame.draw.line(surface, color[:3], (x1, y1), (x2, y2), 2)
-        except Exception as e:
-            logging.debug(f"Dashed line draw failed: {e}")
+        except (pygame.error, ValueError, TypeError) as e:
+            logging.debug("Dashed line draw failed: %s", e)
 
     def estimate_total_time(self, path: PreviewPath | None = None) -> float:
         """Estimate total movement time for path."""

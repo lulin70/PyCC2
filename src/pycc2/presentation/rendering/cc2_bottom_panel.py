@@ -85,7 +85,7 @@ class TooltipManager:
             bg_surf.fill((30, 28, 25, 230))  # dark semi-transparent
             surface.blit(bg_surf, bg_rect.topleft)
             surface.blit(text_surf, (bg_rect.x + padding, bg_rect.y + padding))
-        except Exception:
+        except (pygame.error, ValueError, OSError):
             pass  # Silently skip if font/render fails
 
 
@@ -167,7 +167,7 @@ class CC2BottomPanel:
         self._selected_unit_id: str | None = None
         self._friendly_units: list[Unit] = []
         self._roster_scroll_offset: int = 0
-        self._roster_item_height: int = 24
+        self._roster_item_height: int = 26  # P2-A: Increased from 24 for better readability
         self._visible_roster_items: int = 5
 
         # Battle timer (seconds)
@@ -268,8 +268,8 @@ class CC2BottomPanel:
             self._font_normal = pygame.font.SysFont("consolas", 15)
             self._font_title = pygame.font.SysFont("consolas", 17)
             self._font_large = pygame.font.SysFont("consolas", 22, bold=True)
-        except Exception as e:
-            logging.debug(f"SysFont fallback to default fonts: {e}")
+        except (pygame.error, OSError, ValueError) as e:
+            logging.debug("SysFont fallback to default fonts: %s", e)
             self._font_small = pygame.font.Font(None, 16)
             self._font_normal = pygame.font.Font(None, 20)
             self._font_title = pygame.font.Font(None, 22)
@@ -278,6 +278,11 @@ class CC2BottomPanel:
         self._command_icons = self._create_command_icons()
         self._roster_icons = self._create_roster_icons()
         self._commander_portrait = self._create_commander_portrait()
+
+        # Ensure fade is fully visible immediately (skip animation on init)
+        # Without this, render() returns early because _fade.is_visible=False (alpha=0)
+        self._fade.reset(visible=True)
+        self._visible = True
 
     def show(self) -> None:
         """Show the panel with fade-in effect."""
@@ -730,7 +735,7 @@ class CC2BottomPanel:
     def set_friendly_units(self, units: list[Unit]) -> None:
         """Set the list of friendly units for the roster."""
         self._friendly_units = sorted(
-            units, key=lambda u: (u.unit_type.value if hasattr(u.unit_type, "value") else 0, u.name)
+            units, key=lambda u: (u.unit_type.value, u.name)
         )
 
     def set_selected_unit(self, unit_id: str | None) -> None:
@@ -1008,24 +1013,24 @@ class CC2BottomPanel:
             icon_key = self._map_unit_type_to_icon_key(unit)
             roster_icon = self._roster_icons.get(icon_key)
             if roster_icon:
-                surface.blit(roster_icon, (x + 5, item_y + 4))
+                surface.blit(roster_icon, (x + 5, item_y + 5))
 
             # Unit name (truncated) — Unit uses .name, not .display_name
-            name = getattr(unit, "display_name", None) or getattr(unit, "name", "Unknown")
+            name = unit.name
             name = str(name)[:12]
             text_color = self.HIGHLIGHT_COLOR if is_selected else self.TEXT_COLOR
             name_surf = self._font_small.render(name, True, text_color)
             surface.blit(name_surf, (x + 23, item_y + 5))
 
             # Health bar with 1px dark border — HealthComponent uses .hp/.max_hp, not .current/.max
-            hp_current = getattr(unit.health, "hp", getattr(unit.health, "current", 0))
-            hp_max = getattr(unit.health, "max_hp", getattr(unit.health, "max", 1))
+            hp_current = unit.health.hp
+            hp_max = unit.health.max_hp
             hp_ratio = hp_current / max(hp_max, 1)
             bar_width = 50
-            bar_x = x + w - bar_width - 30
+            bar_x = x + w - bar_width - 45  # P2-A: Shifted left to make room for HP text
             # Dark border around health bar
-            draw.rect(surface, (40, 42, 48), Rect(bar_x - 1, item_y + 7, bar_width + 2, 10))
-            draw.rect(surface, (60, 60, 60), Rect(bar_x, item_y + 8, bar_width, 8))
+            draw.rect(surface, (40, 42, 48), Rect(bar_x - 1, item_y + 8, bar_width + 2, 10))
+            draw.rect(surface, (60, 60, 60), Rect(bar_x, item_y + 9, bar_width, 8))
             hp_color = (
                 (255, 50, 50)
                 if hp_ratio < 0.3
@@ -1033,7 +1038,24 @@ class CC2BottomPanel:
                 if hp_ratio < 0.6
                 else (50, 200, 50)
             )
-            draw.rect(surface, hp_color, Rect(bar_x, item_y + 8, int(bar_width * hp_ratio), 8))
+            draw.rect(surface, hp_color, Rect(bar_x, item_y + 9, int(bar_width * hp_ratio), 8))
+
+            # P2-A: HP numeric value next to bar for better readability
+            hp_text = f"{hp_current}/{hp_max}"
+            hp_text_surf = self._font_small.render(hp_text, True, hp_color)
+            surface.blit(hp_text_surf, (bar_x + bar_width + 3, item_y + 7))
+
+            # P2-A: Morale status indicator (small colored dot after name)
+            if hasattr(unit, 'morale') and unit.morale is not None:
+                morale_val = unit.morale.value
+                if morale_val > 70:
+                    morale_dot_color = (100, 220, 100)  # Green - good morale
+                elif morale_val > 40:
+                    morale_dot_color = (220, 200, 80)   # Yellow - caution
+                else:
+                    morale_dot_color = (255, 100, 100)  # Red - low morale
+                dot_x = x + 23 + name_surf.get_width() + 4
+                draw.circle(surface, morale_dot_color, (dot_x, item_y + 13), 3)
 
             self._roster_item_rects.append((item_rect, unit.id))
             item_y += self._roster_item_height
@@ -1052,7 +1074,7 @@ class CC2BottomPanel:
 
     def _map_unit_type_to_icon_key(self, unit: Unit) -> str:
         """Map a unit's type to the roster icon key."""
-        type_name = unit.unit_type.name.lower() if hasattr(unit.unit_type, "name") else ""
+        type_name = unit.unit_type.name.lower()
         if "tank" in type_name or "armor" in type_name or "vehicle" in type_name:
             return "tank"
         elif "mg" in type_name or "machine" in type_name:
@@ -1097,7 +1119,7 @@ class CC2BottomPanel:
             portrait_offset = 28  # Shift title right to make room for portrait
 
         # Title — Unit uses .name, not .display_name
-        display_name = getattr(unit, "display_name", None) or getattr(unit, "name", "Unknown")
+        display_name = unit.name
         title = self._font_title.render(str(display_name), True, self.HIGHLIGHT_COLOR)
         surface.blit(title, (x + 8 + portrait_offset, line_y))
         line_y += line_height + 5
@@ -1114,8 +1136,8 @@ class CC2BottomPanel:
         line_y += line_height + 5
 
         # Health — HealthComponent uses .hp/.max_hp
-        hp_current = getattr(unit.health, "hp", getattr(unit.health, "current", 0))
-        hp_max = getattr(unit.health, "max_hp", getattr(unit.health, "max", 1))
+        hp_current = unit.health.hp
+        hp_max = unit.health.max_hp
         hp_text = f"HP: {hp_current}/{hp_max}"
         hp_color = (255, 80, 80) if hp_current < hp_max * 0.3 else self.TEXT_COLOR
         surface.blit(self._font_normal.render(hp_text, True, hp_color), (x + 8, line_y))
@@ -1128,11 +1150,7 @@ class CC2BottomPanel:
         line_y += line_height + 3
 
         # Morale — MoraleComponent uses .value, not .current
-        morale_val = (
-            getattr(unit.morale, "value", getattr(unit.morale, "current", 75))
-            if hasattr(unit, "morale")
-            else 75
-        )
+        morale_val = unit.morale.value if unit.morale is not None else 75
         morale_text = f"Morale: {morale_val}%"
         morale_color = (
             (255, 80, 80)
@@ -1152,12 +1170,8 @@ class CC2BottomPanel:
 
         # Ammo
         # Ammo — WeaponComponent uses .ammo_remaining/.max_ammo
-        ammo_current = (
-            getattr(unit.weapon, "ammo_remaining", getattr(unit.weapon, "ammo", 30))
-            if hasattr(unit, "weapon")
-            else 30
-        )
-        ammo_max = getattr(unit.weapon, "max_ammo", 30) if hasattr(unit, "weapon") else 30
+        ammo_current = unit.weapon.ammo_remaining if unit.weapon is not None else 30
+        ammo_max = unit.weapon.max_ammo if unit.weapon is not None else 30
         ammo_text = f"Ammo: {ammo_current}/{ammo_max}"
         surface.blit(self._font_normal.render(ammo_text, True, self.TEXT_COLOR), (x + 8, line_y))
         # Ammo bar with 1px dark border
@@ -1221,7 +1235,7 @@ class CC2BottomPanel:
         line_y += line_height + 3
 
         # Status
-        state_name = unit.state_machine.current.name if hasattr(unit, "state_machine") else "IDLE"
+        state_name = unit.state_machine.current.name if unit.state_machine is not None else "IDLE"
         status_text = f"Status: {state_name}"
         surface.blit(self._font_small.render(status_text, True, (180, 180, 180)), (x + 8, line_y))
         line_y += line_height + 3
@@ -1537,14 +1551,10 @@ class CC2BottomPanel:
         if self._selected_unit_id:
             unit = next((u for u in self._friendly_units if u.id == self._selected_unit_id), None)
             if unit:
-                hp_current = getattr(unit.health, "hp", getattr(unit.health, "current", 0))
-                hp_max = getattr(unit.health, "max_hp", getattr(unit.health, "max", 1))
+                hp_current = unit.health.hp
+                hp_max = unit.health.max_hp
                 hp_ratio = hp_current / max(hp_max, 1)
-                morale = (
-                    getattr(unit.morale, "value", getattr(unit.morale, "current", 75))
-                    if hasattr(unit, "morale")
-                    else 75
-                )
+                morale = unit.morale.value if unit.morale is not None else 75
 
                 # Calculate urgency (0-100)
                 urgency_value = int((1 - hp_ratio) * 50 + (1 - morale / 100) * 50)
@@ -1827,8 +1837,8 @@ class CC2BottomPanel:
         # Render timer text (monospace bold, centered)
         try:
             timer_font = pygame.font.SysFont("consolas", 18, bold=True)
-        except Exception as e:
-            logging.debug(f"Timer font fallback: {e}")
+        except (pygame.error, OSError, ValueError) as e:
+            logging.debug("Timer font fallback: %s", e)
             timer_font = pygame.font.Font(None, 24)
 
         timer_text = timer_font.render(time_str, True, timer_color)
@@ -2035,7 +2045,7 @@ class CC2BottomPanel:
 
     def _get_unit_type_color(self, unit: Unit) -> tuple[int, int, int]:
         """Get color for unit type icon."""
-        type_name = unit.unit_type.name.lower() if hasattr(unit.unit_type, "name") else ""
+        type_name = unit.unit_type.name.lower()
         if "tank" in type_name or "armor" in type_name or "vehicle" in type_name:
             return (255, 180, 0)  # Gold for vehicles
         elif "mg" in type_name or "machine" in type_name:

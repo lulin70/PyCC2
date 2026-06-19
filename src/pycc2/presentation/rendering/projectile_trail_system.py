@@ -14,6 +14,7 @@ Integrates with existing ParticleSystem and AnimationSystem.
 import contextlib
 import math
 import random
+from collections import deque
 
 import pygame
 
@@ -142,7 +143,7 @@ class ProjectileTrailSystem:
     """Manages all active projectile trails."""
 
     def __init__(self, max_trails: int = 50):
-        self._trails: list[ProjectileTrail] = []
+        self._trails: deque[ProjectileTrail] = deque()
         self._max_trails = max_trails
 
     def add_trail(
@@ -156,7 +157,7 @@ class ProjectileTrailSystem:
     ) -> None:
         """Add a new projectile trail."""
         if len(self._trails) >= self._max_trails:
-            self._trails.pop(0)
+            self._trails.popleft()
         self._trails.append(ProjectileTrail(start_x, start_y, end_x, end_y, trail_type, duration))
 
     def add_bullet_trail(self, sx: float, sy: float, ex: float, ey: float) -> None:
@@ -173,7 +174,7 @@ class ProjectileTrailSystem:
 
     def update(self, dt: float) -> None:
         """Update all trails, removing expired ones."""
-        self._trails = [t for t in self._trails if t.update(dt)]
+        self._trails = deque(t for t in self._trails if t.update(dt))
 
     def render(self, surface: pygame.Surface) -> None:
         """Render all active trails."""

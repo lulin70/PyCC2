@@ -238,8 +238,21 @@ class DeploymentManager:
                         faction=enemy_faction,
                         requisition_points=enemy_rp,
                     )
-                except Exception as e:
-                    logger.warning(f"Failed to generate AI deployment: {e}")
+                except (RuntimeError, ValueError, AttributeError) as e:
+                    logger.warning("Failed to generate AI deployment: %s", e)
+                    self._ai_deployments = []
+            else:
+                # No game_settings — generate default AI deployment so the enemy
+                # actually exists in battle. Without this, the player faces zero
+                # enemy units and the game is unplayable.
+                try:
+                    self._ai_deployments = generate_ai_deployment(
+                        map_data=map_data,
+                        faction=enemy_faction,
+                        requisition_points=self.AI_DEFENDER_BASE_RP,
+                    )
+                except (RuntimeError, ValueError, AttributeError) as e:
+                    logger.warning("Failed to generate default AI deployment: %s", e)
                     self._ai_deployments = []
 
             # Pre-create AI Unit entities (hidden during deployment, ready for battle)
@@ -256,8 +269,8 @@ class DeploymentManager:
                 len(self._ai_units),
             )
 
-        except Exception as e:
-            logger.error(f"Failed to start deployment: {e}")
+        except (RuntimeError, ValueError, AttributeError) as e:
+            logger.error("Failed to start deployment: %s", e)
             import traceback
 
             traceback.print_exc()
@@ -278,8 +291,8 @@ class DeploymentManager:
 
         try:
             result = self.deployment_ui.begin_battle()
-        except Exception as e:
-            logger.error(f"Failed to call begin_battle(): {e}")
+        except (RuntimeError, ValueError, AttributeError) as e:
+            logger.error("Failed to call begin_battle(): %s", e)
             self.deployment_phase_active = False
             return None
 
@@ -494,8 +507,8 @@ class DeploymentManager:
             )
             return unit
 
-        except Exception as e:
-            logger.error(f"Failed to create unit from placement: {e}")
+        except (RuntimeError, ValueError, AttributeError) as e:
+            logger.error("Failed to create unit from placement: %s", e)
             return None
 
     def _create_ai_units(

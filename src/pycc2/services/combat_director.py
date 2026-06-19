@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import math
+from collections import deque
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -97,7 +98,7 @@ class CombatDirector:
                 if unit and self.pathfinder:
                     path = self.pathfinder.find_path(unit.position.tile_coord, target_tc, game_map)
                     if path:
-                        self._move_orders[uid] = {"path": path[1:], "current_idx": 0}
+                        self._move_orders[uid] = {"path": deque(list(path)[1:]), "current_idx": 0}
 
         elif cmd == "take_cover":
             for uid in unit_ids:
@@ -218,7 +219,7 @@ class CombatDirector:
                                     unit.name or uid,
                                 )
                                 continue
-                    except Exception as e:
+                    except (ImportError, AttributeError, ValueError, RuntimeError) as e:
                         logger.warning("[SMOKE] Error deploying smoke: %s", e)
                         # Continue with visual effect even if system call fails
 
@@ -527,7 +528,7 @@ class CombatDirector:
             if dist <= move_pixels:
                 unit.position.tile_coord = target_tc
                 unit.update_garrison_status(game_map)
-                path.pop(0)
+                path.popleft()
                 if self.sound_system:
                     tc = unit.position.tile_coord
                     terrain = "grass"

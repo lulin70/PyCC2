@@ -673,7 +673,15 @@ class InfantryPixelRenderer:
         weapon_metal,
         boots_color,
     ):
-        """Pure top-down prone soldier - elongated ellipse body along facing direction."""
+        """Enhanced top-down prone soldier with state-specific details.
+        
+        States handled:
+        - crawl: crawling animation with moving limbs
+        - defend: stable prone firing position
+        - attack: aggressive prone advance
+        - sneak: low-profile infiltration
+        - hide: camouflaged/ambush position
+        """
         import math
 
         import pygame
@@ -691,27 +699,138 @@ class InfantryPixelRenderer:
             Direction.NORTHWEST: 225,
         }
         angle = math.radians(dir_angles.get(direction, 0))
+        
+        # 根据状态调整参数
+        if state == "crawl":
+            body_len = 18
+            body_w = 4
+            helmet_size = 2
+            weapon_offset = 6
+            # 爬行动画：交替移动肘部/膝盖
+            limb_offset = 2 if frame % 2 == 1 else -2
+        elif state == "defend":
+            body_len = 16
+            body_w = 5  # 更宽 - 稳定射击姿态
+            helmet_size = 3
+            weapon_offset = 8  # 武器向前延伸
+            limb_offset = 0  # 稳定姿态
+        elif state in ["attack", "sneak"]:
+            body_len = 17
+            body_w = 3
+            helmet_size = 2
+            weapon_offset = 7
+            limb_offset = 1 if frame % 2 == 1 else -1
+        else:  # hide
+            body_len = 15
+            body_w = 4
+            helmet_size = 2
+            weapon_offset = 5
+            limb_offset = 0
+            # 隐蔽时颜色变暗
+            body_color = tuple(int(c * 0.85) for c in body_color)
 
-        body_len = 20
-        body_w = 3
+        # 绘制更大的阴影（卧倒时阴影更分散）
+        shadow_surface = pygame.Surface((24, 24), pygame.SRCALPHA)
+        shadow_width = body_len + 4
+        shadow_height = body_w + 2
+        shadow_x = cx - shadow_width // 2
+        shadow_y = cy - shadow_height // 2
+        pygame.draw.ellipse(shadow_surface, (0, 0, 0, 35), 
+                          (shadow_x, shadow_y, shadow_width, shadow_height))
+        surface.blit(shadow_surface, (0, 0))
 
+        # 绘制身体（增强的椭圆形）
+        body_dark = tuple(max(0, c - 25) for c in body_color)
         for i in range(body_len):
             t = i / max(body_len - 1, 1)
-            perp_x = int(math.sin(angle) * (t - 0.5) * body_w)
-            perp_y = int(-math.cos(angle) * (t - 0.5) * body_w)
+            # 身体中间最宽
+            width_factor = 1.0 - abs(t - 0.5) * 0.4
+            current_w = int(body_w * width_factor)
+            
+            perp_x = int(math.sin(angle) * (t - 0.5) * current_w)
+            perp_y = int(-math.cos(angle) * (t - 0.5) * current_w)
             px = cx + int(math.cos(angle) * (i - body_len // 2)) + perp_x
             py = cy + int(math.sin(angle) * (i - body_len // 2)) + perp_y
+            
+            # 使用渐变色增加立体感
             if 0 <= px < 24 and 0 <= py < 24:
-                surface.set_at((px, py), body_color)
+                color = body_color if i % 3 != 1 else body_dark
+                surface.set_at((px, py), color)
 
-        tip_x = cx + int(math.cos(angle) * (body_len // 2 + 4))
-        tip_y = cy + int(math.sin(angle) * (body_len // 2 + 4))
+        # 绘制钢盔（在身体前端）
+        helmet_color = palette.get("helmet", (85, 85, 75))
+        helmet_x = cx + int(math.cos(angle) * (body_len // 2 - 2))
+        helmet_y = cy + int(math.sin(angle) * (body_len // 2 - 2))
+        pygame.draw.circle(surface, helmet_color, (helmet_x, helmet_y), helmet_size)
+        
+        # 钢盔高光
+        hl_color = tuple(min(255, c + 40) for c in helmet_color)
+        hl_x = helmet_x + int(math.cos(angle - math.pi/4))
+        hl_y = helmet_y + int(math.sin(angle - math.pi/4))
+        if 0 <= hl_x < 24 and 0 <= hl_y < 24:
+            surface.set_at((hl_x, hl_y), hl_color)
+
+        # 绘制四肢（肘部和膝盖）
+        if state == "crawl":
+            # 爬行时显示弯曲的肘部
+            elbow_dist = body_len // 3
+            perp_angle = angle + math.pi / 2
+            elbow1_x = cx + int(math.cos(angle) * elbow_dist) + int(math.cos(perp_angle) * (2 + limb_offset))
+            elbow1_y = cy + int(math.sin(angle) * elbow_dist) + int(math.sin(perp_angle) * (2 + limb_offset))
+            elbow2_x = cx + int(math.cos(angle) * elbow_dist) - int(math.cos(perp_angle) * (2 - limb_offset))
+            elbow2_y = cy + int(math.sin(angle) * elbow_dist) - int(math.sin(perp_angle) * (2 - limb_offset))
+            
+            pygame.draw.circle(surface, body_dark, (elbow1_x, elbow1_y), 1)
+            pygame.draw.circle(surface, body_dark, (elbow2_x, elbow2_y), 1)
+            
+            # 膝盖
+            knee_dist = -body_len // 4
+            knee1_x = cx + int(math.cos(angle) * knee_dist) + int(math.cos(perp_angle) * (2 - limb_offset))
+            knee1_y = cy + int(math.sin(angle) * knee_dist) + int(math.sin(perp_angle) * (2 - limb_offset))
+            knee2_x = cx + int(math.cos(angle) * knee_dist) - int(math.cos(perp_angle) * (2 + limb_offset))
+            knee2_y = cy + int(math.sin(angle) * knee_dist) - int(math.sin(perp_angle) * (2 + limb_offset))
+            
+            pygame.draw.circle(surface, boots_color, (knee1_x, knee1_y), 1)
+            pygame.draw.circle(surface, boots_color, (knee2_x, knee2_y), 1)
+        
+        elif state == "defend":
+            # 防御姿态：双腿分开稳定
+            leg_spread = 4
+            perp_angle = angle + math.pi / 2
+            foot1_x = cx - int(math.cos(angle) * (body_len // 3)) + int(math.cos(perp_angle) * leg_spread)
+            foot1_y = cy - int(math.sin(angle) * (body_len // 3)) + int(math.sin(perp_angle) * leg_spread)
+            foot2_x = cx - int(math.cos(angle) * (body_len // 3)) - int(math.cos(perp_angle) * leg_spread)
+            foot2_y = cy - int(math.sin(angle) * (body_len // 3)) - int(math.sin(perp_angle) * leg_spread)
+            
+            pygame.draw.circle(surface, boots_color, (foot1_x, foot1_y), 1)
+            pygame.draw.circle(surface, boots_color, (foot2_x, foot2_y), 1)
+
+        # 绘制武器
+        tip_x = cx + int(math.cos(angle) * (body_len // 2 + weapon_offset))
+        tip_y = cy + int(math.sin(angle) * (body_len // 2 + weapon_offset))
+        weapon_start_x = cx + int(math.cos(angle) * (body_len // 4))
+        weapon_start_y = cy + int(math.sin(angle) * (body_len // 4))
+        
         w_width = 2 if infantry_type == InfantryType.MG else 1
-        pygame.draw.line(surface, weapon_color, (cx, cy), (tip_x, tip_y), w_width)
+        pygame.draw.line(surface, weapon_color, (weapon_start_x, weapon_start_y), (tip_x, tip_y), w_width)
+        
+        # 机枪双脚架
+        if infantry_type == InfantryType.MG:
+            bipod_x = tip_x - int(math.cos(angle) * 2)
+            bipod_y = tip_y - int(math.sin(angle) * 2)
+            perp = angle + math.pi / 2
+            pygame.draw.line(surface, weapon_metal, 
+                           (bipod_x, bipod_y),
+                           (bipod_x + int(math.cos(perp) * 2), bipod_y + int(math.sin(perp) * 2)), 1)
+            pygame.draw.line(surface, weapon_metal,
+                           (bipod_x, bipod_y),
+                           (bipod_x - int(math.cos(perp) * 2), bipod_y - int(math.sin(perp) * 2)), 1)
 
-        shadow_surface = pygame.Surface((24, 24), pygame.SRCALPHA)
-        pygame.draw.ellipse(shadow_surface, (0, 0, 0, 30), (cx - 6, cy - 3, 12, 6))
-        surface.blit(shadow_surface, (0, 0))
+        # 绘制装备（背包在背部可见）
+        equipment_color = palette.get("equipment", tuple(max(0, c - 20) for c in body_color))
+        pack_x = cx - int(math.cos(angle) * 3)
+        pack_y = cy - int(math.sin(angle) * 3)
+        pygame.draw.ellipse(surface, equipment_color, (pack_x - 2, pack_y - 1, 4, 3))
 
         return surface
 

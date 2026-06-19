@@ -267,8 +267,8 @@ class ShadowRenderingSystem:
                             surface, TREE_DEBUG_COLOR, (sx + 4, sy + 2), shadow_radius, 2
                         )
 
-        except Exception as e:
-            logger.debug(f"Debug shadow bounds rendering failed: {e}")
+        except (pygame.error, ValueError, TypeError) as e:
+            logger.debug("Debug shadow bounds rendering failed: %s", e)
 
     def _get_unit_screen_position(
         self, unit: "Unit", camera: "Camera"
@@ -307,7 +307,7 @@ class ShadowRenderingSystem:
                         world_pos = Vec2(tile_x * 16, tile_y * 16)
                         pos = camera.world_to_screen(world_pos)
                         cx, cy = int(pos[0]), int(pos[1])
-                except Exception as e:
+                except (AttributeError, ValueError, TypeError) as e:
                     logger.warning("Unit position lookup failed: %s", e)
 
         return cx, cy

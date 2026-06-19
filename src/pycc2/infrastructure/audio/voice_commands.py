@@ -244,8 +244,8 @@ def play_command(command: VoiceCommand, faction: Faction, volume: float = 0.5) -
             mixer.init(frequency=SAMPLE_RATE, size=-16, channels=1, buffer=512)
         sound = mixer.Sound(array=raw)
         sound.play()
-    except Exception as e:
-        logging.info(f"Voice command sound playback failed: {e}")
+    except (ValueError, OSError, RuntimeError, ImportError, ModuleNotFoundError) as e:
+        logging.info("Voice command sound playback failed: %s", e)
 
 
 # Morale state to VoiceCommand mapping

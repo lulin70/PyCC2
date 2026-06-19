@@ -98,7 +98,7 @@ class DirectionSpriteSet:
             self.is_loaded = len(self.directions) > 0
             return self.is_loaded
 
-        except Exception as e:
+        except (pygame.error, ValueError, OSError) as e:
             logger.error("[DirectionSprite] Error loading %s: %e", filepath, e)
             return False
 
@@ -241,8 +241,8 @@ class DirectionSpriteManager:
             default_path = f"assets/sprites/units/{faction}/{unit_type}.png"
             try:
                 sprite_set.load_from_spritesheet(default_path)
-            except Exception as e:
-                logging.debug(f"Spritesheet load failed: {e}")
+            except (pygame.error, ValueError, OSError) as e:
+                logging.debug("Spritesheet load failed: %s", e)
 
         if not sprite_set.is_loaded:
             self._generate_placeholder(sprite_set, unit_type, faction)

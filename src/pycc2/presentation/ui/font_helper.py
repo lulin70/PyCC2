@@ -32,8 +32,8 @@ def safe_init_font(
         font = pygame.font.SysFont(font_name, size, bold=bold)
         if font is not None:
             return font
-    except Exception as e:
-        logger.debug(f"SysFont failed ({font_name}, {size}): {e}")
+    except (pygame.error, ValueError, OSError) as e:
+        logger.debug("SysFont failed (%s, %d): %s", font_name, size, e)
 
     # 尝试2: Bitmap font (兼容性最好)
     try:
@@ -43,8 +43,8 @@ def safe_init_font(
         if font is not None:
             logger.debug(f"Fallback to bitmap font size={size}")
             return font
-    except Exception as e:
-        logger.debug(f"Bitmap font failed: {e}")
+    except (pygame.error, ValueError, OSError) as e:
+        logger.debug("Bitmap font failed: %s", e)
 
     # 全部失败
     logger.warning(f"All font methods failed for size={size}")
@@ -73,6 +73,6 @@ def safe_render_text(
 
     try:
         return font.render(text, antialias, color)
-    except Exception as e:
-        logger.debug(f"Text render failed: {e}")
+    except (pygame.error, ValueError, TypeError) as e:
+        logger.debug("Text render failed: %s", e)
         return None

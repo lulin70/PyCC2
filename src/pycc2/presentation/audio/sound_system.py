@@ -7,7 +7,7 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 import numpy as np
-from pygame import mixer
+from pygame import mixer, error as pygame_error
 
 from pycc2.presentation.audio.sound_effects import SoundEffectsMixin
 
@@ -280,7 +280,7 @@ class SoundSystem(SoundEffectsMixin):
             self._initialized = True
             self._available = True
             logger.info("Initialized stereo mixer (2 channels)")
-        except Exception as stereo_err:
+        except (pygame_error, RuntimeError, Exception) as stereo_err:
             logger.info("Stereo init failed: %s, trying mono fallback...", stereo_err)
             try:
                 mixer.quit()
@@ -295,7 +295,7 @@ class SoundSystem(SoundEffectsMixin):
                 self._initialized = True
                 self._available = True
                 logger.info("Fallback to mono mixer (1 channel)")
-            except Exception as mono_err:
+            except (pygame_error, RuntimeError, Exception) as mono_err:
                 logger.warning("Mono init also failed: %s", mono_err)
                 logger.warning("Audio system disabled - game will run without sound")
                 self._available = False
@@ -305,7 +305,7 @@ class SoundSystem(SoundEffectsMixin):
         if self._initialized:
             try:
                 self._pregenerate_common_sounds()
-            except Exception as sound_err:
+            except (pygame_error, RuntimeError, ValueError) as sound_err:
                 logger.warning("Warning: Sound pregeneration failed: %s", sound_err)
                 logger.info("Individual sounds will be generated on-demand")
 
@@ -597,7 +597,7 @@ class SoundSystem(SoundEffectsMixin):
                         ch = mixer.Channel(lowest_priority_channel)
                         ch.stop()
                         del self._active_sounds[lowest_priority_channel]
-                    except Exception as e:
+                    except (pygame_error, RuntimeError, ValueError) as e:
                         logger.warning("Channel stop failed: %s", e)
                 else:
                     self._dropped_sound_count += 1
@@ -682,6 +682,6 @@ class MusicPlayer:
     def stop(self) -> None:
         if not self._sys._available:
             return
-        with contextlib.suppress(Exception):
+        with contextlib.suppress(pygame_error):
             mixer.music.stop()
         self._playing = False

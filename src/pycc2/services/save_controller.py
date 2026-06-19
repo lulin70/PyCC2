@@ -58,7 +58,7 @@ class SaveController:
                     game_loop.sound_system.play_ui_command()
                 logger.info("Game loaded successfully from slot %d", slot)
                 return True
-        except Exception as e:
+        except (OSError, ValueError, RuntimeError) as e:
             logger.error("Failed to restore game state from slot %d: %s", slot, e, exc_info=True)
 
         if game_loop.sound_system:

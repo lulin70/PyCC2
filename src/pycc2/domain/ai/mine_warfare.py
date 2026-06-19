@@ -493,12 +493,11 @@ class MineWarfareAI(TacticalAIBase):
         choke_ratio = min(len(chokepoints) / 3.0, 1.0)
 
         # Engineer availability (not all used up)
-        available = sum(
-            1
-            for e in engineers  # type: ignore[misc]
-            if self._system.get_lay_progress(e.id) is None
-            or self._system.get_lay_progress(e.id).can_lay_more  # type: ignore[union-attr]
-        )
+        available = 0
+        for e in engineers:
+            progress = self._system.get_lay_progress(e.id)
+            if progress is None or progress.can_lay_more:
+                available += 1
         eng_ratio = min(available / max(len(engineers), 1), 1.0)
 
         # Enemy pressure — lower score if enemies are very close

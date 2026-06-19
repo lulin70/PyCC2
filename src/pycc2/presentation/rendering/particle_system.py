@@ -17,6 +17,7 @@ import contextlib
 import logging
 import math
 import random
+from collections import deque
 from typing import TYPE_CHECKING
 
 import pygame
@@ -47,7 +48,7 @@ class TopDownParticleSystem:
     _MAX_RENDER_SURFACE_POOL = 30
 
     def __init__(self, max_particles: int = 256, pool: ParticlePool | None = None):
-        self.particles: list[dict] = []
+        self.particles: deque[dict] = deque()
         self.max_particles = max_particles
         self._pool: ParticlePool | None = pool
         self._render_surface_pool = SurfacePool(max_size=self._MAX_RENDER_SURFACE_POOL)
@@ -56,7 +57,7 @@ class TopDownParticleSystem:
                 from .particle_pool import ParticlePool as _PP
 
                 self._pool = _PP(preallocate=max_particles)
-            except Exception as e:
+            except (RuntimeError, ValueError, OSError) as e:
                 logger.warning("ParticlePool creation failed: %s", e)
                 self._pool = None
 
@@ -68,7 +69,7 @@ class TopDownParticleSystem:
     def _add_particle(self, particle: dict) -> None:
         """添加粒子，超出上限时移除最老的"""
         if len(self.particles) >= self.max_particles:
-            oldest = self.particles.pop(0)
+            oldest = self.particles.popleft()
             if self._pool is not None:
                 self._pool.release_dict(oldest)
 
@@ -199,11 +200,11 @@ class TopDownParticleSystem:
         # Evict oldest blood pool if at limit
         blood_count = sum(1 for p in self.particles if p.get("persistent", False))
         if blood_count >= self._MAX_BLOOD_POOLS:
-            for i, p in enumerate(self.particles):
+            for p in list(self.particles):
                 if p.get("persistent", False):
-                    removed = self.particles.pop(i)
+                    self.particles.remove(p)
                     if self._pool is not None:
-                        self._pool.release_dict(removed)
+                        self._pool.release_dict(p)
                     break
 
         self._add_particle(
@@ -256,7 +257,7 @@ class TopDownParticleSystem:
             elif self._pool is not None:
                 self._pool.release_dict(p)
 
-        self.particles = alive
+        self.particles = deque(alive)
 
     def render(self, surface: pygame.Surface) -> None:
         """渲染所有活跃粒子到目标surface"""
