@@ -16,14 +16,15 @@ real SVG sprites, real HUD panel, and real AI system.
 import os
 import sys
 
-os.environ["SDL_VIDEODRIVER"] = "dummy"
+# P1 Fix: SDL_VIDEODRIVER is set by conftest.py; don't duplicate here
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 import pytest
 
 import pygame
 
-pygame.init()
+# P1 Fix: Removed module-level pygame.init() — let conftest handle lazy init
+# pygame.init() is now called inside game_env fixture only
 
 from pycc2.domain.entities.unit import Unit, Faction, UnitType
 from pycc2.domain.components.health_component import HealthComponent
@@ -42,7 +43,13 @@ from pycc2.services.game_loop_assembler import GameLoopAssembler
 
 @pytest.fixture(scope="module")
 def game_env():
-    """Create a complete game environment with units on both sides."""
+    """Create a complete game environment with units on both sides.
+
+    P1 Fix: Lazy pygame init — only when this fixture is requested.
+    """
+    # Ensure pygame is initialized before creating window
+    if not pygame.get_init():
+        pygame.init()
     wm = WindowManager(DisplayInfo(base_width=1280, base_height=720))
     screen = wm.initialize()
 

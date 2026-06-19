@@ -261,7 +261,7 @@ class AssetLoader:
                     surface = pygame.transform.scale(surface, (size, size))
                 self._terrain_cache[cache_key] = surface
                 return surface
-        except (ValueError, IndexError):
+        except (pygame.error, ValueError, IndexError):
             pass
 
         return None
