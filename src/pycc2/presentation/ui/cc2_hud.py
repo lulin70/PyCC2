@@ -28,28 +28,30 @@ if TYPE_CHECKING:
     from pycc2.presentation.rendering.camera import Camera
 
 
-
 # Enhanced UI rendering feature flag
 try:
     from config.rendering_features import is_enhanced_ui_enabled
+
     _ENHANCED_UI_AVAILABLE = True
     if is_enhanced_ui_enabled():
         from pycc2.presentation.ui.enhanced_ui_renderer import (
-        EnhancedUIRenderer,  # noqa: F401
-        draw_button,  # noqa: F401
-        draw_icon,  # noqa: F401
-        draw_panel,  # noqa: F401
-    )
+            EnhancedUIRenderer,  # noqa: F401
+            draw_button,  # noqa: F401
+            draw_icon,  # noqa: F401
+            draw_panel,  # noqa: F401
+        )
 except ImportError:
     _ENHANCED_UI_AVAILABLE = False
 
 # Unit portrait renderer (Step 1: Integration)
 try:
     from pycc2.presentation.ui.unit_portrait_renderer import UnitPortraitRenderer
+
     _PORTRAIT_RENDERER_AVAILABLE = True
 except ImportError:
     _PORTRAIT_RENDERER_AVAILABLE = False
     logger.warning("UnitPortraitRenderer not available - portraits disabled")
+
 
 class CC2HUD:
     """Close Combat 2 style three-panel HUD.
@@ -758,9 +760,7 @@ class CC2HUD:
 
                 # Render 96x96 portrait
                 portrait = self._portrait_renderer.render_portrait(
-                    infantry_type=infantry_type,
-                    faction=faction,
-                    health_ratio=health_ratio
+                    infantry_type=infantry_type, faction=faction, health_ratio=health_ratio
                 )
 
                 # Display portrait at left side of panel

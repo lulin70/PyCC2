@@ -11,6 +11,7 @@ Verifies:
 P1 Fix (v6): Module-level pygame init with graceful fallback.
 Works in both standalone and full-suite test runs.
 """
+
 import os
 import sys
 
@@ -22,6 +23,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 # Module-level pygame init: safe for full-suite runs
 try:
     import pygame
+
     if not pygame.get_init():
         pygame.init()
     # Ensure display mode exists for SVG rendering
@@ -139,15 +141,11 @@ class TestSVGSpriteIntegration:
         if not svg_cache_mgr._use_svg_sprites:
             pytest.skip("SVG sprites not available")
         # MG standing (default)
-        standing = svg_cache_mgr._try_svg_sprite(
-            "allies", "MACHINE_GUN_SQUAD", 0, state="idle"
-        )
+        standing = svg_cache_mgr._try_svg_sprite("allies", "MACHINE_GUN_SQUAD", 0, state="idle")
         assert standing is not None, "MG default should be standing"
 
         # MG deployed (distinct sprite)
-        deployed = svg_cache_mgr._try_svg_sprite(
-            "allies", "MACHINE_GUN_SQUAD", 0, state="deployed"
-        )
+        deployed = svg_cache_mgr._try_svg_sprite("allies", "MACHINE_GUN_SQUAD", 0, state="deployed")
         assert deployed is not None, "MG deployed should use mg_deployed sprite"
 
         # Both should exist in cache

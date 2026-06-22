@@ -43,17 +43,15 @@ class CC2SpriteLoader:
         self.cc2_sprite_path = self.assets_root / "sprites" / "cc2_original"
         self.sprite_cache: dict[str, pygame.Surface] = {}
         self._load_stats = {
-            "loaded": 0,      # 从文件加载的次数
-            "failed": 0,      # 加载失败的次数
-            "cached": 0,      # 从缓存返回的次数
-            "initialized": True  # 初始化标记
+            "loaded": 0,  # 从文件加载的次数
+            "failed": 0,  # 加载失败的次数
+            "cached": 0,  # 从缓存返回的次数
+            "initialized": True,  # 初始化标记
         }
 
         availability = "available" if self.is_available() else "not available"
         logger.info(
-            "CC2SpriteLoader initialized - assets path: %s (%s)",
-            self.cc2_sprite_path,
-            availability
+            "CC2SpriteLoader initialized - assets path: %s (%s)", self.cc2_sprite_path, availability
         )
 
     def is_available(self) -> bool:
@@ -68,8 +66,7 @@ class CC2SpriteLoader:
 
         if not self.cc2_sprite_path.is_dir():
             logger.warning(
-                "CC2 sprite path exists but is not a directory: %s",
-                self.cc2_sprite_path
+                "CC2 sprite path exists but is not a directory: %s", self.cc2_sprite_path
             )
             return False
 
@@ -78,11 +75,7 @@ class CC2SpriteLoader:
         return len(subdirs) > 0
 
     def load_sprite(
-        self,
-        unit_type: str,
-        direction: str,
-        animation: str = "idle",
-        frame: int = 0
+        self, unit_type: str, direction: str, animation: str = "idle", frame: int = 0
     ) -> pygame.Surface | None:
         """
         加载特定精灵
@@ -125,10 +118,12 @@ class CC2SpriteLoader:
             surface = pygame.image.load(str(sprite_file)).convert_alpha()
             self.sprite_cache[cache_key] = surface
             self._load_stats["loaded"] += 1
-            logger.debug("Loaded CC2 sprite: %s (%dx%d)",
-                        sprite_file.name,
-                        surface.get_width(),
-                        surface.get_height())
+            logger.debug(
+                "Loaded CC2 sprite: %s (%dx%d)",
+                sprite_file.name,
+                surface.get_width(),
+                surface.get_height(),
+            )
             return surface
 
         except pygame.error as e:
@@ -137,16 +132,13 @@ class CC2SpriteLoader:
             return None
         except Exception as e:
             self._load_stats["failed"] += 1
-            logger.error("Unexpected error loading CC2 sprite %s: %s",
-                        sprite_file, e, exc_info=True)
+            logger.error(
+                "Unexpected error loading CC2 sprite %s: %s", sprite_file, e, exc_info=True
+            )
             return None
 
     def _build_sprite_path(
-        self,
-        unit_type: str,
-        direction: str,
-        animation: str,
-        frame: int
+        self, unit_type: str, direction: str, animation: str, frame: int
     ) -> Path:
         """
         构建精灵文件路径
@@ -192,15 +184,30 @@ class CC2SpriteLoader:
 
         # 车辆关键词
         vehicle_keywords = [
-            "tank", "sherman", "panzer", "tiger", "stug",
-            "halftrack", "sdkfz", "jeep", "truck", "car",
-            "armored", "artillery"
+            "tank",
+            "sherman",
+            "panzer",
+            "tiger",
+            "stug",
+            "halftrack",
+            "sdkfz",
+            "jeep",
+            "truck",
+            "car",
+            "armored",
+            "artillery",
         ]
 
         # 建筑关键词
         building_keywords = [
-            "house", "building", "barn", "church", "bunker",
-            "fortification", "wall", "bridge"
+            "house",
+            "building",
+            "barn",
+            "church",
+            "bunker",
+            "fortification",
+            "wall",
+            "bridge",
         ]
 
         # 检查是否为车辆

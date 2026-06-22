@@ -104,12 +104,14 @@ if start_action:
     except Exception as e:
         print(f"  _start_new_game error: {e}")
         import traceback
+
         traceback.print_exc()
 
 if game_loop is None:
     print("  Fallback: creating minimal game for screenshots...")
     # Direct creation if _start_new_game fails
     from pycc2.services.game_loop_assembler import GameLoopAssembler
+
     assembler = GameLoopAssembler()
     game_loop = assembler.assemble(screen, wm)
 
@@ -206,6 +208,7 @@ if game_loop.state.units:
     u = game_loop.state.units[0]
     px = u.position.pixel_position
     from pycc2.domain.value_objects.vec2 import Vec2
+
     game_loop.state.camera.set_position(Vec2(px.x - 640, px.y - 360))
 
 screen.fill((28, 32, 24))
@@ -225,7 +228,7 @@ if game_loop.state.selected_unit_ids:
     selected_id = next(iter(game_loop.state.selected_unit_ids), None)
     if selected_id:
         selected_unit = next((u for u in game_loop.state.units if u.id == selected_id), None)
-        if selected_unit and hasattr(game_loop.renderer, 'render_los_overlay'):
+        if selected_unit and hasattr(game_loop.renderer, "render_los_overlay"):
             try:
                 game_loop.renderer.render_los_overlay(
                     screen, selected_unit, game_loop.state.game_map, game_loop.state.camera
@@ -262,8 +265,9 @@ for s in screenshots:
 # Verify SVG sprites were used
 try:
     from pycc2.presentation.rendering.sprite_cache_manager import SpriteCacheManager
+
     mgr = SpriteCacheManager()
-    svg_count = len(mgr._svg_cache) if hasattr(mgr, '_svg_cache') else 0
+    svg_count = len(mgr._svg_cache) if hasattr(mgr, "_svg_cache") else 0
     print(f"\nSVG sprites cached: {svg_count}/16")
 except Exception as e:
     print(f"\nSVG sprite check error: {e}")

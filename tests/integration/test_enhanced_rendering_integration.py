@@ -2,6 +2,7 @@
 
 验证4个增强模块能否正确集成到实际游戏渲染管线。
 """
+
 import os
 
 import pygame
@@ -32,8 +33,9 @@ def test_terrain_integration_import(pygame_init):
     """测试: terrain_renderer能否导入增强模块"""
     try:
         from pycc2.presentation.rendering import terrain_renderer
+
         # 检查是否有集成标记
-        assert hasattr(terrain_renderer, '_ENHANCED_TERRAIN_AVAILABLE')
+        assert hasattr(terrain_renderer, "_ENHANCED_TERRAIN_AVAILABLE")
     except ImportError as e:
         pytest.skip(f"terrain_renderer未找到: {e}")
 
@@ -42,7 +44,8 @@ def test_particles_integration_import(pygame_init):
     """测试: effect_renderer能否导入增强模块"""
     try:
         from pycc2.presentation.rendering import effect_renderer
-        assert hasattr(effect_renderer, '_ENHANCED_PARTICLES_AVAILABLE')
+
+        assert hasattr(effect_renderer, "_ENHANCED_PARTICLES_AVAILABLE")
     except ImportError as e:
         pytest.skip(f"effect_renderer未找到: {e}")
 
@@ -51,7 +54,8 @@ def test_postprocessing_integration_import(pygame_init):
     """测试: render_pipeline能否导入增强模块"""
     try:
         from pycc2.presentation.rendering import render_pipeline
-        assert hasattr(render_pipeline, '_ENHANCED_POST_PROCESSING_AVAILABLE')
+
+        assert hasattr(render_pipeline, "_ENHANCED_POST_PROCESSING_AVAILABLE")
     except ImportError as e:
         pytest.skip(f"render_pipeline未找到: {e}")
 
@@ -60,7 +64,8 @@ def test_ui_integration_import(pygame_init):
     """测试: cc2_hud能否导入增强模块"""
     try:
         from pycc2.presentation.ui import cc2_hud
-        assert hasattr(cc2_hud, '_ENHANCED_UI_AVAILABLE')
+
+        assert hasattr(cc2_hud, "_ENHANCED_UI_AVAILABLE")
     except ImportError as e:
         pytest.skip(f"cc2_hud未找到: {e}")
 
@@ -74,9 +79,11 @@ def test_feature_toggle_works(pygame_init, monkeypatch):
     import importlib
 
     import config.rendering_features
+
     importlib.reload(config.rendering_features)
 
     from config.rendering_features import get_features
+
     features = get_features()
 
     assert features.USE_ENHANCED_TERRAIN

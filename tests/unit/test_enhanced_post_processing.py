@@ -34,6 +34,7 @@ class TestEnhancedPostProcessing:
         from pycc2.presentation.rendering.enhanced_post_processing import (
             EnhancedPostProcessing,
         )
+
         return EnhancedPostProcessing()
 
     @pytest.fixture()
@@ -45,8 +46,9 @@ class TestEnhancedPostProcessing:
         # Fill with gradient for visual testing
         for y in range(300):
             color_value = int(255 * (y / 300))
-            pygame.draw.line(surface, (color_value, color_value // 2, 255 - color_value),
-                           (0, y), (400, y))
+            pygame.draw.line(
+                surface, (color_value, color_value // 2, 255 - color_value), (0, y), (400, y)
+            )
         return surface
 
     # ===== HAPPY PATH TESTS =====
@@ -72,7 +74,9 @@ class TestEnhancedPostProcessing:
         # Colors should be different (within reason)
         assert original_color != result_color or abs(original_color[0] - result_color[0]) > 0
 
-    def test_apply_chromatic_aberration_returns_surface(self, post_processor, test_surface, pygame_display):
+    def test_apply_chromatic_aberration_returns_surface(
+        self, post_processor, test_surface, pygame_display
+    ):
         """Test that chromatic aberration returns a valid surface."""
         import pygame
 
@@ -82,7 +86,9 @@ class TestEnhancedPostProcessing:
         assert isinstance(result, pygame.Surface)
         assert result.get_size() == test_surface.get_size()
 
-    def test_apply_enhanced_vignette_returns_surface(self, post_processor, test_surface, pygame_display):
+    def test_apply_enhanced_vignette_returns_surface(
+        self, post_processor, test_surface, pygame_display
+    ):
         """Test that vignette application returns a valid surface."""
         import pygame
 
@@ -100,7 +106,7 @@ class TestEnhancedPostProcessing:
 
         # Center should be brighter than edge
         center_color = result.get_at((200, 150))  # Center
-        edge_color = result.get_at((10, 10))      # Top-left corner
+        edge_color = result.get_at((10, 10))  # Top-left corner
 
         # Center should have higher brightness
         center_brightness = sum(center_color[:3])
@@ -108,7 +114,9 @@ class TestEnhancedPostProcessing:
 
         assert center_brightness > edge_brightness
 
-    def test_apply_war_atmosphere_returns_surface(self, post_processor, test_surface, pygame_display):
+    def test_apply_war_atmosphere_returns_surface(
+        self, post_processor, test_surface, pygame_display
+    ):
         """Test that war atmosphere application returns a valid surface."""
         import pygame
 
@@ -134,9 +142,7 @@ class TestEnhancedPostProcessing:
         """Test that damage flash returns a valid surface."""
         import pygame
 
-        result = post_processor.apply_damage_flash(
-            test_surface, intensity=0.5, color=(255, 0, 0)
-        )
+        result = post_processor.apply_damage_flash(test_surface, intensity=0.5, color=(255, 0, 0))
 
         assert result is not None
         assert isinstance(result, pygame.Surface)
@@ -153,7 +159,9 @@ class TestEnhancedPostProcessing:
         # Red channel should be higher or equal
         assert result_color[0] >= original[0]
 
-    def test_apply_full_post_processing_all_enabled(self, post_processor, test_surface, pygame_display):
+    def test_apply_full_post_processing_all_enabled(
+        self, post_processor, test_surface, pygame_display
+    ):
         """Test full post-processing pipeline with all effects enabled."""
         import pygame
 
@@ -162,14 +170,16 @@ class TestEnhancedPostProcessing:
             enable_grain=True,
             enable_vignette=True,
             enable_color_grade=True,
-            enable_chromatic_aberration=True
+            enable_chromatic_aberration=True,
         )
 
         assert result is not None
         assert isinstance(result, pygame.Surface)
         assert result.get_size() == test_surface.get_size()
 
-    def test_apply_full_post_processing_selective(self, post_processor, test_surface, pygame_display):
+    def test_apply_full_post_processing_selective(
+        self, post_processor, test_surface, pygame_display
+    ):
         """Test full post-processing with selective effects."""
         import pygame
 
@@ -178,7 +188,7 @@ class TestEnhancedPostProcessing:
             enable_grain=True,
             enable_vignette=True,
             enable_color_grade=False,
-            enable_chromatic_aberration=False
+            enable_chromatic_aberration=False,
         )
 
         assert result is not None
@@ -202,14 +212,18 @@ class TestEnhancedPostProcessing:
         assert result is not None
         assert result.get_size() == test_surface.get_size()
 
-    def test_chromatic_aberration_zero_intensity(self, post_processor, test_surface, pygame_display):
+    def test_chromatic_aberration_zero_intensity(
+        self, post_processor, test_surface, pygame_display
+    ):
         """Test chromatic aberration with zero intensity (boundary)."""
         result = post_processor.apply_chromatic_aberration(test_surface, intensity=0.0)
 
         assert result is not None
         assert result.get_size() == test_surface.get_size()
 
-    def test_chromatic_aberration_high_intensity(self, post_processor, test_surface, pygame_display):
+    def test_chromatic_aberration_high_intensity(
+        self, post_processor, test_surface, pygame_display
+    ):
         """Test chromatic aberration with high intensity (boundary)."""
         result = post_processor.apply_chromatic_aberration(test_surface, intensity=10.0)
 

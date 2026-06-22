@@ -33,6 +33,7 @@ class TestEnhancedParticleSystem:
         from pycc2.presentation.rendering.enhanced_particle_system import (
             EnhancedParticleSystem,
         )
+
         return EnhancedParticleSystem()
 
     # ===== HAPPY PATH TESTS =====
@@ -112,11 +113,14 @@ class TestEnhancedParticleSystem:
 
         # Manually create a particle with known velocity
         particle = EnhancedParticle(
-            x=100.0, y=100.0,
-            vx=50.0, vy=-30.0,
-            life=1.0, max_life=1.0,
+            x=100.0,
+            y=100.0,
+            vx=50.0,
+            vy=-30.0,
+            life=1.0,
+            max_life=1.0,
             color=(255, 255, 255),
-            size=5.0
+            size=5.0,
         )
         particle_system.particles.append(particle)
 
@@ -138,12 +142,15 @@ class TestEnhancedParticleSystem:
         from pycc2.presentation.rendering.enhanced_particle_system import EnhancedParticle
 
         particle = EnhancedParticle(
-            x=100.0, y=100.0,
-            vx=0.0, vy=0.0,
-            life=1.0, max_life=1.0,
+            x=100.0,
+            y=100.0,
+            vx=0.0,
+            vy=0.0,
+            life=1.0,
+            max_life=1.0,
             color=(255, 255, 255),
             size=5.0,
-            gravity=100.0
+            gravity=100.0,
         )
         particle_system.particles.append(particle)
 
@@ -160,13 +167,16 @@ class TestEnhancedParticleSystem:
         from pycc2.presentation.rendering.enhanced_particle_system import EnhancedParticle
 
         particle = EnhancedParticle(
-            x=100.0, y=100.0,
-            vx=0.0, vy=0.0,
-            life=1.0, max_life=1.0,
+            x=100.0,
+            y=100.0,
+            vx=0.0,
+            vy=0.0,
+            life=1.0,
+            max_life=1.0,
             color=(255, 255, 255),
             size=5.0,
             rotation=0.0,
-            rotation_speed=180.0  # 180 degrees per second
+            rotation_speed=180.0,  # 180 degrees per second
         )
         particle_system.particles.append(particle)
 
@@ -207,11 +217,13 @@ class TestEnhancedParticleSystem:
             particle = EnhancedParticle(
                 x=100.0 + i * 50,
                 y=200.0,
-                vx=0.0, vy=0.0,
-                life=1.0, max_life=1.0,
+                vx=0.0,
+                vy=0.0,
+                life=1.0,
+                max_life=1.0,
                 color=(255, 100, 100),
                 size=10.0,
-                particle_type=ptype
+                particle_type=ptype,
             )
             particle_system.particles.append(particle)
 
@@ -326,11 +338,14 @@ class TestEnhancedParticleSystem:
         from pycc2.presentation.rendering.enhanced_particle_system import EnhancedParticle
 
         particle = EnhancedParticle(
-            x=100.0, y=100.0,
-            vx=10000.0, vy=-10000.0,
-            life=1.0, max_life=1.0,
+            x=100.0,
+            y=100.0,
+            vx=10000.0,
+            vy=-10000.0,
+            life=1.0,
+            max_life=1.0,
             color=(255, 255, 255),
-            size=5.0
+            size=5.0,
         )
         particle_system.particles.append(particle)
 
@@ -348,11 +363,14 @@ class TestEnhancedParticleSystem:
         surface = pygame.Surface((400, 400), pygame.SRCALPHA)
 
         particle = EnhancedParticle(
-            x=200.0, y=200.0,
-            vx=0.0, vy=0.0,
-            life=1.0, max_life=1.0,
+            x=200.0,
+            y=200.0,
+            vx=0.0,
+            vy=0.0,
+            life=1.0,
+            max_life=1.0,
             color=(255, 255, 255),
-            size=0.0  # Zero size
+            size=0.0,  # Zero size
         )
         particle_system.particles.append(particle)
 
@@ -366,12 +384,14 @@ class TestEnhancedParticleSystem:
         from pycc2.presentation.rendering.enhanced_particle_system import EnhancedParticle
 
         particle = EnhancedParticle(
-            x=100.0, y=100.0,
-            vx=0.0, vy=0.0,
+            x=100.0,
+            y=100.0,
+            vx=0.0,
+            vy=0.0,
             life=-1.0,  # Already dead
             max_life=1.0,
             color=(255, 255, 255),
-            size=5.0
+            size=5.0,
         )
         particle_system.particles.append(particle)
 

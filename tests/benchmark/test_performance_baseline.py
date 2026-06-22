@@ -366,9 +366,7 @@ class TestRenderingPerformance:
             f"Surface pool hit rate={hit_rate:.1f}% (threshold: {result.threshold}%)"
         )
         max_pool = renderer._surface_pool.stats["max_size"]
-        assert final_pool_size <= max_pool, (
-            f"Pool size {final_pool_size} exceeded max {max_pool}"
-        )
+        assert final_pool_size <= max_pool, f"Pool size {final_pool_size} exceeded max {max_pool}"
 
     @pytest.mark.benchmark
     def test_viewport_culling_effectiveness(self, pygame_init, benchmark_maps):

@@ -319,19 +319,21 @@ class TestBattlefieldLOSFixes:
     def test_crater_height_is_zero_not_negative(self):
         """Crater should have height=0 for LOS purposes (unit head at ground level)."""
         from pycc2.domain.value_objects.terrain_type import TerrainType
+
         assert TerrainType.CRATER.height == 0, (
-            "Crater height should be 0, not -1. "
-            "Cover comes from cover_bonus, not LOS height."
+            "Crater height should be 0, not -1. Cover comes from cover_bonus, not LOS height."
         )
 
     def test_foxhole_height_is_zero_not_negative(self):
         """Foxhole height=0: prone soldier's eye level at ground."""
         from pycc2.domain.value_objects.terrain_type import TerrainType
+
         assert TerrainType.FOXHOLE.height == 0
 
     def test_trench_height_is_zero_not_negative(self):
         """Trench height=0: defensive position eye level at ground."""
         from pycc2.domain.value_objects.terrain_type import TerrainType
+
         assert TerrainType.TRENCH.height == 0
 
     def test_crater_does_not_block_los_through(self):

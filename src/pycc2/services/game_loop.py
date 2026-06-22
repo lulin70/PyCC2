@@ -523,9 +523,7 @@ class GameLoop:
         unregistered_enemies = [
             u
             for u in self.state.units
-            if u.id not in registered_ids
-            and u.faction != player_faction
-            and u.is_alive
+            if u.id not in registered_ids and u.faction != player_faction and u.is_alive
         ]
 
         if not unregistered_enemies:

@@ -20,6 +20,7 @@ import pygame
 @dataclass
 class EnhancedParticle:
     """增强粒子 - 支持纹理和多属性"""
+
     x: float
     y: float
     vx: float
@@ -42,12 +43,7 @@ class EnhancedParticleSystem:
         self.particles: list[EnhancedParticle] = []
         self.rng = random.Random()
 
-    def create_enhanced_explosion(
-        self,
-        x: float,
-        y: float,
-        intensity: float = 1.0
-    ) -> None:
+    def create_enhanced_explosion(self, x: float, y: float, intensity: float = 1.0) -> None:
         """创建增强爆炸效果 - 多层粒子"""
 
         # Layer 1: 火焰核心 (80-120个高速粒子)
@@ -64,9 +60,9 @@ class EnhancedParticleSystem:
             if color_choice < 0.4:
                 color = (255, 240, 100)  # 黄色
             elif color_choice < 0.7:
-                color = (255, 150, 50)   # 橙色
+                color = (255, 150, 50)  # 橙色
             else:
-                color = (255, 80, 30)    # 红色
+                color = (255, 80, 30)  # 红色
 
             particle = EnhancedParticle(
                 x=x,
@@ -78,7 +74,7 @@ class EnhancedParticleSystem:
                 color=color,
                 size=self.rng.uniform(2, 5),
                 fade_rate=0.03,
-                particle_type="circle"
+                particle_type="circle",
             )
             self.particles.append(particle)
 
@@ -105,7 +101,7 @@ class EnhancedParticleSystem:
                 size=self.rng.uniform(8, 15),
                 fade_rate=0.01,
                 gravity=10.0,  # 轻微重力
-                particle_type="smoke"
+                particle_type="smoke",
             )
             self.particles.append(particle)
 
@@ -133,7 +129,7 @@ class EnhancedParticleSystem:
                 gravity=200.0,  # 强重力
                 particle_type="square",
                 rotation=self.rng.uniform(0, 360),
-                rotation_speed=self.rng.uniform(-500, 500)
+                rotation_speed=self.rng.uniform(-500, 500),
             )
             self.particles.append(particle)
 
@@ -159,16 +155,11 @@ class EnhancedParticleSystem:
                 size=self.rng.uniform(1, 2),
                 fade_rate=0.05,
                 gravity=300.0,
-                particle_type="spark"
+                particle_type="spark",
             )
             self.particles.append(particle)
 
-    def create_muzzle_flash(
-        self,
-        x: float,
-        y: float,
-        direction_angle: float
-    ) -> None:
+    def create_muzzle_flash(self, x: float, y: float, direction_angle: float) -> None:
         """创建枪口焰 - 方向性"""
 
         # 30个粒子，集中在射击方向
@@ -192,17 +183,11 @@ class EnhancedParticleSystem:
                 color=color,
                 size=self.rng.uniform(2, 4),
                 fade_rate=0.08,
-                particle_type="circle"
+                particle_type="circle",
             )
             self.particles.append(particle)
 
-    def create_smoke_trail(
-        self,
-        x: float,
-        y: float,
-        vx: float,
-        vy: float
-    ) -> None:
+    def create_smoke_trail(self, x: float, y: float, vx: float, vy: float) -> None:
         """创建烟雾轨迹 - 持续效果"""
 
         # 每帧5个烟雾粒子
@@ -224,16 +209,11 @@ class EnhancedParticleSystem:
                 color=color,
                 size=self.rng.uniform(4, 8),
                 fade_rate=0.02,
-                particle_type="smoke"
+                particle_type="smoke",
             )
             self.particles.append(particle)
 
-    def create_dirt_spray(
-        self,
-        x: float,
-        y: float,
-        direction_angle: float
-    ) -> None:
+    def create_dirt_spray(self, x: float, y: float, direction_angle: float) -> None:
         """创建泥土飞溅 - 地面命中"""
 
         for _ in range(25):
@@ -258,16 +238,11 @@ class EnhancedParticleSystem:
                 size=self.rng.uniform(1, 3),
                 fade_rate=0.03,
                 gravity=250.0,
-                particle_type="square"
+                particle_type="square",
             )
             self.particles.append(particle)
 
-    def create_blood_splatter(
-        self,
-        x: float,
-        y: float,
-        direction_angle: float
-    ) -> None:
+    def create_blood_splatter(self, x: float, y: float, direction_angle: float) -> None:
         """创建血液飞溅"""
 
         for _ in range(20):
@@ -291,7 +266,7 @@ class EnhancedParticleSystem:
                 size=self.rng.uniform(2, 5),
                 fade_rate=0.025,
                 gravity=150.0,
-                particle_type="circle"
+                particle_type="circle",
             )
             self.particles.append(particle)
 
@@ -344,19 +319,12 @@ class EnhancedParticleSystem:
             temp_surface = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
 
             if particle.particle_type == "circle":
-                pygame.draw.circle(
-                    temp_surface,
-                    (*particle.color, alpha),
-                    (size, size),
-                    size
-                )
+                pygame.draw.circle(temp_surface, (*particle.color, alpha), (size, size), size)
             elif particle.particle_type == "square":
                 # 旋转方块
                 rect_surface = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
                 pygame.draw.rect(
-                    rect_surface,
-                    (*particle.color, alpha),
-                    (size // 2, size // 2, size, size)
+                    rect_surface, (*particle.color, alpha), (size // 2, size // 2, size, size)
                 )
                 temp_surface = pygame.transform.rotate(rect_surface, particle.rotation)
             elif particle.particle_type == "spark":
@@ -368,7 +336,7 @@ class EnhancedParticleSystem:
                     (*particle.color, alpha),
                     (size, size),
                     (end_x, end_y),
-                    max(1, size // 2)
+                    max(1, size // 2),
                 )
             elif particle.particle_type == "smoke":
                 # 半透明圆形烟雾
@@ -376,14 +344,14 @@ class EnhancedParticleSystem:
                     temp_surface,
                     (*particle.color, alpha // 2),  # 烟雾更透明
                     (size, size),
-                    size
+                    size,
                 )
 
             # 绘制到主surface
             surface.blit(
                 temp_surface,
                 (screen_x - size, screen_y - size),
-                special_flags=pygame.BLEND_ALPHA_SDL2
+                special_flags=pygame.BLEND_ALPHA_SDL2,
             )
 
     def get_particle_count(self) -> int:

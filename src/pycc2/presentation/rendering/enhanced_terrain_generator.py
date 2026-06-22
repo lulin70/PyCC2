@@ -31,6 +31,7 @@ class EnhancedTerrainGenerator:
     @staticmethod
     def perlin_noise_2d(x: float, y: float, seed: int = 0) -> float:
         """简化的2D Perlin噪声实现"""
+
         # 使用伪随机梯度
         def fade(t: float) -> float:
             return t * t * t * (t * (t * 6 - 15) + 10)
@@ -79,7 +80,7 @@ class EnhancedTerrainGenerator:
         y: float,
         octaves: int = 4,
         persistence: float = 0.5,
-        lacunarity: float = 2.0
+        lacunarity: float = 2.0,
     ) -> float:
         """多层分形噪声 - 关键优化点"""
         total = 0.0
@@ -88,11 +89,7 @@ class EnhancedTerrainGenerator:
         max_value = 0.0
 
         for i in range(octaves):
-            total += self.perlin_noise_2d(
-                x * frequency,
-                y * frequency,
-                self.seed + i
-            ) * amplitude
+            total += self.perlin_noise_2d(x * frequency, y * frequency, self.seed + i) * amplitude
 
             max_value += amplitude
             amplitude *= persistence
@@ -114,12 +111,7 @@ class EnhancedTerrainGenerator:
         # Layer 1: 粗糙地形 (大尺度噪声)
         for x in range(TILE_W):
             for y in range(TILE_H):
-                noise_val = self.octave_noise(
-                    x / 16.0,
-                    y / 16.0,
-                    octaves=2,
-                    persistence=0.6
-                )
+                noise_val = self.octave_noise(x / 16.0, y / 16.0, octaves=2, persistence=0.6)
                 # 映射到颜色变化 (-20 到 +20)
                 brightness = int(noise_val * 20)
 
@@ -132,12 +124,7 @@ class EnhancedTerrainGenerator:
         # Layer 2: 中等细节 (草丛)
         for x in range(0, TILE_W, 4):
             for y in range(0, TILE_H, 4):
-                noise_val = self.octave_noise(
-                    x / 8.0,
-                    y / 8.0,
-                    octaves=3,
-                    persistence=0.5
-                )
+                noise_val = self.octave_noise(x / 8.0, y / 8.0, octaves=3, persistence=0.5)
 
                 if noise_val > 0.3:  # 亮草丛
                     for dx in range(4):
@@ -169,7 +156,7 @@ class EnhancedTerrainGenerator:
             grass_blade = (
                 min(255, light_color[0] + 10),
                 min(255, light_color[1] + 10),
-                min(255, light_color[2] + 5)
+                min(255, light_color[2] + 5),
             )
 
             # 绘制2像素草叶
@@ -193,12 +180,7 @@ class EnhancedTerrainGenerator:
         # Layer 1: 地形起伏
         for x in range(TILE_W):
             for y in range(TILE_H):
-                noise_val = self.octave_noise(
-                    x / 12.0,
-                    y / 12.0,
-                    octaves=3,
-                    persistence=0.55
-                )
+                noise_val = self.octave_noise(x / 12.0, y / 12.0, octaves=3, persistence=0.55)
                 brightness = int(noise_val * 25)
 
                 r = max(0, min(255, base_color[0] + brightness))
@@ -229,10 +211,7 @@ class EnhancedTerrainGenerator:
             # 随机亮度变化
             brightness = self.rng.randint(-15, 15)
             current = surface.get_at((px, py))
-            adjusted = tuple(
-                max(0, min(255, c + brightness))
-                for c in current[:3]
-            )
+            adjusted = tuple(max(0, min(255, c + brightness)) for c in current[:3])
             surface.set_at((px, py), adjusted)
 
         return surface
@@ -241,7 +220,7 @@ class EnhancedTerrainGenerator:
         self,
         surface: pygame.Surface,
         neighbor_type: str,
-        edge: str  # "top", "right", "bottom", "left"
+        edge: str,  # "top", "right", "bottom", "left"
     ) -> None:
         """应用平滑边缘过渡 - 替代硬alpha混合"""
         if neighbor_type not in CC2_ISOMETRIC_PALETTE:

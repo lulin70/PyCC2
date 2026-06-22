@@ -30,7 +30,6 @@ def cache_manager(pygame_display):
 
 
 class TestSpriteCacheManager:
-
     # --- Initialization ---
 
     def test_init_creates_caches(self, cache_manager):

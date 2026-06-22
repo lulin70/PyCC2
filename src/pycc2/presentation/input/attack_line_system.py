@@ -193,7 +193,9 @@ class AttackLineSystem:
         if not attacker.weapon:
             return AttackLineStatus.NO_TARGET
 
-        weapon_range = getattr(attacker.weapon, "max_range", 300) if attacker.weapon is not None else 300
+        weapon_range = (
+            getattr(attacker.weapon, "max_range", 300) if attacker.weapon is not None else 300
+        )
         target.weapon_range = weapon_range
 
         if target.distance > weapon_range:
@@ -236,7 +238,9 @@ class AttackLineSystem:
         - Weather effects
         """
         # Base probability from distance ratio
-        weapon_range = getattr(attacker.weapon, "max_range", 300) if attacker.weapon is not None else 300
+        weapon_range = (
+            getattr(attacker.weapon, "max_range", 300) if attacker.weapon is not None else 300
+        )
         if weapon_range <= 0:
             return 0.0
         distance_ratio = min(target.distance / weapon_range, 1.0)

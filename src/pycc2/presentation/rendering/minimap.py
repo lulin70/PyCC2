@@ -132,8 +132,7 @@ class Minimap:
 
         # Use cached terrain surface if available and valid
         current_map_id = id(self._game_map)
-        if (self._terrain_cache is not None
-                and self._terrain_cache_map_id == current_map_id):
+        if self._terrain_cache is not None and self._terrain_cache_map_id == current_map_id:
             self._surface.blit(self._terrain_cache, (0, 0))
             return
 
@@ -353,7 +352,9 @@ class Minimap:
         else:
             self._viewport_surface.fill((0, 0, 0, 0))  # Clear without realloc
         self._viewport_surface.fill(viewport_color)
-        self._surface.blit(self._viewport_surface, (mini_x, mini_y), special_flags=pygame.BLEND_RGBA_ADD)
+        self._surface.blit(
+            self._viewport_surface, (mini_x, mini_y), special_flags=pygame.BLEND_RGBA_ADD
+        )
 
         # Draw viewport border
         draw.rect(self._surface, (255, 255, 255), Rect(mini_x, mini_y, mini_w, mini_h), 1)

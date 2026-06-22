@@ -101,6 +101,7 @@ def mock_game_loop(sample_game_map, sample_units):
     loop.renderer = MagicMock()
     # Use a SimpleNamespace for battle_stats so serialization produces real ints
     from types import SimpleNamespace
+
     victory_mgr = MagicMock()
     victory_mgr.battle_stats = SimpleNamespace(
         allies_kills=5,

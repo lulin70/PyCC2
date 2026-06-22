@@ -41,10 +41,8 @@ class TestCC2SpriteLoaderInitialization:
             CC2SpriteLoader(tmp_path)
 
         # 验证日志包含初始化信息
-        assert any("CC2SpriteLoader initialized" in record.message
-                  for record in caplog.records)
-        assert any("not available" in record.message
-                  for record in caplog.records)
+        assert any("CC2SpriteLoader initialized" in record.message for record in caplog.records)
+        assert any("not available" in record.message for record in caplog.records)
 
 
 class TestCC2SpriteLoaderAvailability:
@@ -84,8 +82,7 @@ class TestCC2SpriteLoaderAvailability:
             result = loader.is_available()
 
         assert not result
-        assert any("not a directory" in record.message
-                  for record in caplog.records)
+        assert any("not a directory" in record.message for record in caplog.records)
 
 
 class TestCC2SpriteLoaderPathBuilding:
@@ -121,15 +118,18 @@ class TestCC2SpriteLoaderPathBuilding:
         assert "house" in str(path)
         assert "S_idle_000.png" in str(path)
 
-    @pytest.mark.parametrize("unit_type,expected_category", [
-        ("rifle_squad", "infantry"),
-        ("sherman_tank", "vehicles"),
-        ("panzer_iv", "vehicles"),
-        ("halftrack", "vehicles"),
-        ("church", "buildings"),
-        ("bunker", "buildings"),
-        ("unknown_unit", "infantry"),  # 默认分类
-    ])
+    @pytest.mark.parametrize(
+        "unit_type,expected_category",
+        [
+            ("rifle_squad", "infantry"),
+            ("sherman_tank", "vehicles"),
+            ("panzer_iv", "vehicles"),
+            ("halftrack", "vehicles"),
+            ("church", "buildings"),
+            ("bunker", "buildings"),
+            ("unknown_unit", "infantry"),  # 默认分类
+        ],
+    )
     def test_unit_category_detection(self, tmp_path, unit_type, expected_category):
         """测试单位类别自动检测"""
         loader = CC2SpriteLoader(tmp_path)
@@ -165,7 +165,7 @@ class TestCC2SpriteLoaderLoading:
         assert stats["loaded"] == 0
         assert stats["cached"] == 0
 
-    @patch('pygame.image.load')
+    @patch("pygame.image.load")
     def test_load_sprite_success(self, mock_load, tmp_path):
         """测试成功加载精灵"""
         # 设置mock - 需要mock convert_alpha()的返回值
@@ -192,7 +192,7 @@ class TestCC2SpriteLoaderLoading:
         assert stats["loaded"] == 1
         assert stats["failed"] == 0
 
-    @patch('pygame.image.load')
+    @patch("pygame.image.load")
     def test_sprite_caching(self, mock_load, tmp_path):
         """测试精灵缓存功能 - 确保第二次调用使用缓存"""
         # 设置mock
@@ -225,7 +225,7 @@ class TestCC2SpriteLoaderLoading:
         # 验证mock只被调用一次
         assert mock_load.call_count == 1
 
-    @patch('pygame.image.load')
+    @patch("pygame.image.load")
     def test_load_sprite_with_pygame_error(self, mock_load, tmp_path, caplog):
         """测试加载失败时的错误处理"""
         # 设置mock抛出异常
@@ -242,8 +242,7 @@ class TestCC2SpriteLoaderLoading:
             result = loader.load_sprite("test_unit", "N", "idle", 0)
 
         assert result is None
-        assert any("Failed to load CC2 sprite" in record.message
-                  for record in caplog.records)
+        assert any("Failed to load CC2 sprite" in record.message for record in caplog.records)
 
         stats = loader.get_load_stats()
         assert stats["failed"] == 1
@@ -252,7 +251,7 @@ class TestCC2SpriteLoaderLoading:
 class TestCC2SpriteLoaderPreloading:
     """测试预加载功能"""
 
-    @patch('pygame.image.load')
+    @patch("pygame.image.load")
     def test_preload_unit(self, mock_load, tmp_path):
         """测试单位预加载"""
         # 设置mock
@@ -285,8 +284,7 @@ class TestCC2SpriteLoaderPreloading:
             loaded_count = loader.preload_unit("nonexistent_unit")
 
         assert loaded_count == 0
-        assert any("Preloaded 0 sprites" in record.message
-                  for record in caplog.records)
+        assert any("Preloaded 0 sprites" in record.message for record in caplog.records)
 
 
 class TestCC2SpriteLoaderCacheManagement:
@@ -331,7 +329,7 @@ class TestCC2SpriteLoaderIntegration:
 
     @pytest.mark.skipif(
         not Path("assets/sprites/cc2_original").exists(),
-        reason="CC2 original sprites not available"
+        reason="CC2 original sprites not available",
     )
     def test_load_real_cc2_sprite_if_available(self):
         """如果CC2原版精灵可用，测试加载真实精灵"""
@@ -370,8 +368,7 @@ class TestCC2SpriteLoaderCallVerification:
             loader = CC2SpriteLoader(tmp_path)
 
         # 通过日志验证初始化被执行
-        assert any("CC2SpriteLoader initialized" in record.message
-                  for record in caplog.records)
+        assert any("CC2SpriteLoader initialized" in record.message for record in caplog.records)
 
         # 通过统计验证初始化被执行
         stats = loader.get_load_stats()
@@ -405,7 +402,7 @@ class TestCC2SpriteLoaderCallVerification:
 class TestCC2SpriteLoaderPerformance:
     """性能测试 - 确保不影响游戏帧率"""
 
-    @patch('pygame.image.load')
+    @patch("pygame.image.load")
     def test_cache_performance(self, mock_load, tmp_path):
         """测试缓存性能（简化版，不依赖benchmark插件）"""
         mock_surface = MagicMock()
@@ -424,6 +421,7 @@ class TestCC2SpriteLoaderPerformance:
 
         # 多次从缓存加载
         import time
+
         start = time.time()
         for _ in range(1000):
             result = loader.load_sprite("test", "N", "idle", 0)

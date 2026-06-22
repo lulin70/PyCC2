@@ -12,6 +12,7 @@
 - "terrain,particles": 启用多个特性（逗号分隔）
 - 空或其他: 使用默认配置
 """
+
 import os
 
 
@@ -103,7 +104,9 @@ if __name__ == "__main__":
 
     print("PyCC2 Rendering Features Status")
     print("=" * 50)
-    print(f"Environment: PYCC2_ENHANCED_RENDERING={os.environ.get('PYCC2_ENHANCED_RENDERING', '(not set)')}")
+    print(
+        f"Environment: PYCC2_ENHANCED_RENDERING={os.environ.get('PYCC2_ENHANCED_RENDERING', '(not set)')}"
+    )
     print()
 
     status = _features.get_status()

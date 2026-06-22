@@ -38,7 +38,7 @@ class EnhancedUIRenderer:
         rect: pygame.Rect,
         text: str,
         font: pygame.font.Font,
-        state: str = "normal"  # normal, hover, pressed, disabled
+        state: str = "normal",  # normal, hover, pressed, disabled
     ) -> None:
         """绘制增强按钮 - 3层阴影+高光"""
 
@@ -67,7 +67,9 @@ class EnhancedUIRenderer:
             pygame.draw.rect(surface, cls.CC2_UI_COLORS["shadow"], rect, 2, border_radius=3)
         else:
             # 正常：高光边框
-            pygame.draw.rect(surface, cls.CC2_UI_COLORS["panel_highlight"], rect, 1, border_radius=3)
+            pygame.draw.rect(
+                surface, cls.CC2_UI_COLORS["panel_highlight"], rect, 1, border_radius=3
+            )
 
         # Layer 4: 内部高光（只在上边）
         if state != "pressed":
@@ -75,7 +77,11 @@ class EnhancedUIRenderer:
             pygame.draw.rect(surface, cls.CC2_UI_COLORS["icon_highlight"], highlight_rect)
 
         # 绘制文字
-        text_color = cls.CC2_UI_COLORS["text_disabled"] if state == "disabled" else cls.CC2_UI_COLORS["text_normal"]
+        text_color = (
+            cls.CC2_UI_COLORS["text_disabled"]
+            if state == "disabled"
+            else cls.CC2_UI_COLORS["text_normal"]
+        )
         text_surface = font.render(text, True, text_color)
         text_rect = text_surface.get_rect(center=rect.center)
 
@@ -92,7 +98,7 @@ class EnhancedUIRenderer:
         surface: pygame.Surface,
         rect: pygame.Rect,
         title: str = "",
-        font: pygame.font.Font = None
+        font: pygame.font.Font = None,
     ) -> None:
         """绘制增强面板 - 多层边框+标题栏"""
 
@@ -111,7 +117,9 @@ class EnhancedUIRenderer:
         # Layer 4: 内边框（高光）
         inner_rect = rect.copy()
         inner_rect.inflate_ip(-4, -4)
-        pygame.draw.rect(surface, cls.CC2_UI_COLORS["panel_highlight"], inner_rect, 1, border_radius=3)
+        pygame.draw.rect(
+            surface, cls.CC2_UI_COLORS["panel_highlight"], inner_rect, 1, border_radius=3
+        )
 
         # 标题栏
         if title and font:
@@ -120,11 +128,15 @@ class EnhancedUIRenderer:
 
             # 标题背景（稍亮）
             title_bg = tuple(min(255, c + 15) for c in cls.CC2_UI_COLORS["panel_bg"])
-            pygame.draw.rect(surface, title_bg, title_rect, border_top_left_radius=5, border_top_right_radius=5)
+            pygame.draw.rect(
+                surface, title_bg, title_rect, border_top_left_radius=5, border_top_right_radius=5
+            )
 
             # 标题文字
             title_surface = font.render(title, True, cls.CC2_UI_COLORS["text_normal"])
-            title_text_rect = title_surface.get_rect(center=(title_rect.centerx, title_rect.centery))
+            title_text_rect = title_surface.get_rect(
+                center=(title_rect.centerx, title_rect.centery)
+            )
             surface.blit(title_surface, title_text_rect)
 
             # 标题分隔线
@@ -133,7 +145,7 @@ class EnhancedUIRenderer:
                 cls.CC2_UI_COLORS["panel_border"],
                 (rect.x + 5, rect.y + title_height),
                 (rect.x + rect.width - 5, rect.y + title_height),
-                2
+                2,
             )
 
     @classmethod
@@ -142,7 +154,7 @@ class EnhancedUIRenderer:
         surface: pygame.Surface,
         rect: pygame.Rect,
         icon_type: str,  # move, attack, defend, etc.
-        state: str = "normal"
+        state: str = "normal",
     ) -> None:
         """绘制增强图标 - 高质量像素艺术"""
 
@@ -172,7 +184,7 @@ class EnhancedUIRenderer:
                 (center_x, center_y - size),
                 (center_x + size, center_y + size),
                 (center_x, center_y + size // 2),
-                (center_x - size, center_y + size)
+                (center_x - size, center_y + size),
             ]
             pygame.draw.polygon(surface, secondary_color, points)
             pygame.draw.polygon(surface, cls.CC2_UI_COLORS["shadow"], points, 2)
@@ -180,10 +192,20 @@ class EnhancedUIRenderer:
         elif icon_type == "attack":
             # 十字准星
             pygame.draw.circle(surface, secondary_color, (center_x, center_y), size, 2)
-            pygame.draw.line(surface, secondary_color,
-                           (center_x - size, center_y), (center_x + size, center_y), 2)
-            pygame.draw.line(surface, secondary_color,
-                           (center_x, center_y - size), (center_x, center_y + size), 2)
+            pygame.draw.line(
+                surface,
+                secondary_color,
+                (center_x - size, center_y),
+                (center_x + size, center_y),
+                2,
+            )
+            pygame.draw.line(
+                surface,
+                secondary_color,
+                (center_x, center_y - size),
+                (center_x, center_y + size),
+                2,
+            )
 
         elif icon_type == "defend":
             # 盾牌
@@ -193,16 +215,21 @@ class EnhancedUIRenderer:
                 (center_x + size, center_y + size // 2),
                 (center_x, center_y + size),
                 (center_x - size, center_y + size // 2),
-                (center_x - size, center_y - size // 2)
+                (center_x - size, center_y - size // 2),
             ]
             pygame.draw.polygon(surface, secondary_color, points)
             pygame.draw.polygon(surface, cls.CC2_UI_COLORS["shadow"], points, 2)
 
         elif icon_type == "info":
             # 信息符号 (i)
-            pygame.draw.circle(surface, secondary_color, (center_x, center_y - size // 2), size // 4)
-            pygame.draw.rect(surface, secondary_color,
-                           (center_x - size // 4, center_y - size // 4, size // 2, size))
+            pygame.draw.circle(
+                surface, secondary_color, (center_x, center_y - size // 2), size // 4
+            )
+            pygame.draw.rect(
+                surface,
+                secondary_color,
+                (center_x - size // 4, center_y - size // 4, size // 2, size),
+            )
 
         # 高光效果（非disabled状态）
         if state != "disabled":
@@ -210,11 +237,7 @@ class EnhancedUIRenderer:
             pygame.draw.rect(surface, cls.CC2_UI_COLORS["icon_highlight"], highlight_rect)
 
     @classmethod
-    def draw_minimap_frame(
-        cls,
-        surface: pygame.Surface,
-        rect: pygame.Rect
-    ) -> None:
+    def draw_minimap_frame(cls, surface: pygame.Surface, rect: pygame.Rect) -> None:
         """绘制小地图边框 - 多层装饰"""
 
         # 外阴影
@@ -244,7 +267,7 @@ class EnhancedUIRenderer:
             (rect.left, rect.top),
             (rect.right - corner_size, rect.top),
             (rect.left, rect.bottom - corner_size),
-            (rect.right - corner_size, rect.bottom - corner_size)
+            (rect.right - corner_size, rect.bottom - corner_size),
         ]
 
         for cx, cy in corners:
@@ -259,7 +282,7 @@ class EnhancedUIRenderer:
         progress: float,  # 0.0 to 1.0
         color: tuple[int, int, int] = (100, 200, 100),
         show_text: bool = True,
-        font: pygame.font.Font = None
+        font: pygame.font.Font = None,
     ) -> None:
         """绘制增强进度条"""
 
@@ -280,7 +303,7 @@ class EnhancedUIRenderer:
                     surface,
                     shade,
                     (fill_rect.x, fill_rect.y + i),
-                    (fill_rect.x + fill_rect.width, fill_rect.y + i)
+                    (fill_rect.x + fill_rect.width, fill_rect.y + i),
                 )
 
             # 高光
@@ -288,7 +311,7 @@ class EnhancedUIRenderer:
                 surface,
                 cls.CC2_UI_COLORS["icon_highlight"],
                 (fill_rect.x, fill_rect.y + 1),
-                (fill_rect.x + fill_rect.width, fill_rect.y + 1)
+                (fill_rect.x + fill_rect.width, fill_rect.y + 1),
             )
 
         # 文字
@@ -300,19 +323,26 @@ class EnhancedUIRenderer:
 
 
 # 便捷函数
-def draw_button(surface: pygame.Surface, rect: pygame.Rect, text: str,
-                font: pygame.font.Font, state: str = "normal") -> None:
+def draw_button(
+    surface: pygame.Surface,
+    rect: pygame.Rect,
+    text: str,
+    font: pygame.font.Font,
+    state: str = "normal",
+) -> None:
     """快速绘制增强按钮"""
     EnhancedUIRenderer.draw_enhanced_button(surface, rect, text, font, state)
 
 
-def draw_panel(surface: pygame.Surface, rect: pygame.Rect,
-               title: str = "", font: pygame.font.Font = None) -> None:
+def draw_panel(
+    surface: pygame.Surface, rect: pygame.Rect, title: str = "", font: pygame.font.Font = None
+) -> None:
     """快速绘制增强面板"""
     EnhancedUIRenderer.draw_enhanced_panel(surface, rect, title, font)
 
 
-def draw_icon(surface: pygame.Surface, rect: pygame.Rect,
-              icon_type: str, state: str = "normal") -> None:
+def draw_icon(
+    surface: pygame.Surface, rect: pygame.Rect, icon_type: str, state: str = "normal"
+) -> None:
     """快速绘制增强图标"""
     EnhancedUIRenderer.draw_enhanced_icon(surface, rect, icon_type, state)

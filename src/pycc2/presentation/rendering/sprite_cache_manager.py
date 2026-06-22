@@ -68,7 +68,9 @@ class SpriteCacheManager:
         if self._use_svg_sprites:
             logger.info("✅ SVG unit sprites detected - vector art mode enabled")
             # Pre-cache all SVG sprites
-            self._svg_cache = self._svg_loader.load_all(target_size=(self.SPRITE_SIZE, self.SPRITE_SIZE))
+            self._svg_cache = self._svg_loader.load_all(
+                target_size=(self.SPRITE_SIZE, self.SPRITE_SIZE)
+            )
             logger.info(
                 "✅ Pre-cached %d SVG sprites for instant lookup",
                 len(self._svg_cache),
@@ -132,6 +134,7 @@ class SpriteCacheManager:
                 # Scale SVG to requested size if needed
                 if sprite_size is not None and sprite_size != self.SPRITE_SIZE:
                     from pygame import transform as _tf
+
                     return _tf.scale(svg_sprite, (sprite_size, sprite_size))
                 return svg_sprite
 
@@ -140,10 +143,7 @@ class SpriteCacheManager:
             direction_map = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
             dir_str = direction_map[direction % 8]
             cc2_sprite = self._cc2_loader.load_sprite(
-                unit_type=unit_type.lower(),
-                direction=dir_str,
-                animation=state,
-                frame=0
+                unit_type=unit_type.lower(), direction=dir_str, animation=state, frame=0
             )
             if cc2_sprite is not None:
                 logger.info(f"[SPRITE] ✅✅ CC2 Original: {unit_type}_d{direction}")
@@ -182,28 +182,46 @@ class SpriteCacheManager:
                 if turret_direction is not None:
                     turret_enum = list(Direction)[turret_direction % 8]
                 cc2_sprite = PixelArtist3D.create_tank_sprite(
-                    direction=dir_enum, faction=fac_enum,
-                    turret_direction=turret_enum, state="idle", frame=0,
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    turret_direction=turret_enum,
+                    state="idle",
+                    frame=0,
                 )
             elif unit_type in ("HALFTRACK",):
                 cc2_sprite = PixelArtist3D.create_halftrack_sprite(
-                    direction=dir_enum, faction=fac_enum, state="idle", frame=0,
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    state="idle",
+                    frame=0,
                 )
             elif unit_type in ("JEEP", "SCOUT_CAR"):
                 cc2_sprite = PixelArtist3D.create_jeep_sprite(
-                    direction=dir_enum, faction=fac_enum, state="idle", frame=0,
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    state="idle",
+                    frame=0,
                 )
             elif unit_type in ("AT_GUN_TEAM",):
                 cc2_sprite = PixelArtist3D.create_at_gun_sprite(
-                    direction=dir_enum, faction=fac_enum, state="idle", frame=0,
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    state="idle",
+                    frame=0,
                 )
             elif unit_type in ("MORTAR_TEAM",):
                 cc2_sprite = PixelArtist3D.create_mortar_team_sprite(
-                    direction=dir_enum, faction=fac_enum, state="idle", frame=0,
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    state="idle",
+                    frame=0,
                 )
             else:
                 cc2_sprite = PixelArtist3D.create_infantry_sprite(
-                    direction=dir_enum, faction=fac_enum, state=state, frame=0,
+                    direction=dir_enum,
+                    faction=fac_enum,
+                    state=state,
+                    frame=0,
                 )
 
             logger.info(f"[SPRITE] ✅ Generated CC2 pixel art: {faction}_{unit_type}_d{direction}")
@@ -215,10 +233,15 @@ class SpriteCacheManager:
         # Fallback: legacy procedural generator
         from pycc2.presentation.rendering.pixel_artist import create_unit_sprite
 
-        logger.info(f"[SPRITE] ⚠️  Fallback to legacy procedural: {faction}_{unit_type}_d{direction}")
+        logger.info(
+            f"[SPRITE] ⚠️  Fallback to legacy procedural: {faction}_{unit_type}_d{direction}"
+        )
         canvas = create_unit_sprite(
-            faction=faction, unit_type=unit_type,
-            direction=direction, size=self.SPRITE_SIZE, state=state,
+            faction=faction,
+            unit_type=unit_type,
+            direction=direction,
+            size=self.SPRITE_SIZE,
+            state=state,
         )
         return canvas.to_surface()
 
@@ -373,7 +396,9 @@ class SpriteCacheManager:
                 default_key = f"{faction}_{unit_type_name}_d0"
                 if default_key not in self._sprite_cache:
                     self._sprite_cache[default_key] = self.create_unit_sprite(
-                        faction, unit_type_name, 0,
+                        faction,
+                        unit_type_name,
+                        0,
                     )
 
     def _generate_terrain_tiles(self) -> None:

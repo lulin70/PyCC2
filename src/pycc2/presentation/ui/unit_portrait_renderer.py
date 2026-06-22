@@ -30,6 +30,7 @@ try:
 
     from pycc2.domain.entities.unit import Faction
     from pycc2.presentation.rendering.pixel_artist_enums import InfantryType
+
     _PYGAME_AVAILABLE = True
 except ImportError as e:
     logger.warning(f"Portrait renderer dependencies unavailable: {e}")
@@ -76,10 +77,7 @@ class UnitPortraitRenderer:
         logger.info(f"UnitPortraitRenderer initialized (cache_size={max_cache_size})")
 
     def render_portrait(
-        self,
-        unit_type: InfantryType,
-        faction: Faction,
-        health_percent: float = 1.0
+        self, unit_type: InfantryType, faction: Faction, health_percent: float = 1.0
     ) -> pygame.Surface:
         """Generate 96x96 unit portrait
 
@@ -124,11 +122,7 @@ class UnitPortraitRenderer:
         return portrait
 
     def render_portrait_scaled(
-        self,
-        unit_type: InfantryType,
-        faction: Faction,
-        size: int,
-        health_percent: float = 1.0
+        self, unit_type: InfantryType, faction: Faction, size: int, health_percent: float = 1.0
     ) -> pygame.Surface:
         """Generate scaled portrait
 
@@ -171,14 +165,11 @@ class UnitPortraitRenderer:
             "size": len(self._cache),
             "hits": self._cache_hits,
             "misses": self._cache_misses,
-            "hit_rate": hit_rate
+            "hit_rate": hit_rate,
         }
 
     def _validate_inputs(
-        self,
-        unit_type: InfantryType,
-        faction: Faction,
-        health_percent: float
+        self, unit_type: InfantryType, faction: Faction, health_percent: float
     ) -> None:
         """Validate input parameters
 
@@ -190,15 +181,10 @@ class UnitPortraitRenderer:
         if not isinstance(faction, Faction):
             raise ValueError(f"Invalid faction: {faction}")
         if not 0.0 <= health_percent <= 1.0:
-            raise ValueError(
-                f"health_percent must be 0.0-1.0, got {health_percent}"
-            )
+            raise ValueError(f"health_percent must be 0.0-1.0, got {health_percent}")
 
     def _get_cache_key(
-        self,
-        unit_type: InfantryType,
-        faction: Faction,
-        health_percent: float
+        self, unit_type: InfantryType, faction: Faction, health_percent: float
     ) -> str:
         """Generate cache key with quantized health
 
@@ -208,10 +194,7 @@ class UnitPortraitRenderer:
         return f"{unit_type.value}_{faction.value}_{health_level}"
 
     def _render_portrait_internal(
-        self,
-        unit_type: InfantryType,
-        faction: Faction,
-        health_percent: float
+        self, unit_type: InfantryType, faction: Faction, health_percent: float
     ) -> pygame.Surface:
         """Internal rendering logic with 6 layers"""
         try:
@@ -241,13 +224,11 @@ class UnitPortraitRenderer:
             logger.error(f"Portrait rendering failed: {e}")
             return self._render_fallback_portrait(unit_type, faction)
 
-    def _render_background_layer(
-        self,
-        surface: pygame.Surface,
-        faction: Faction
-    ) -> None:
+    def _render_background_layer(self, surface: pygame.Surface, faction: Faction) -> None:
         """Layer 1: Faction-colored background with noise"""
-        base_color = (45, 85, 55) if faction == Faction.ALLIES else (75, 70, 60)  # Olive green / Gray-brown
+        base_color = (
+            (45, 85, 55) if faction == Faction.ALLIES else (75, 70, 60)
+        )  # Olive green / Gray-brown
 
         # Fill with base color
         surface.fill(base_color)
@@ -260,11 +241,7 @@ class UnitPortraitRenderer:
             noise_color = tuple(max(0, min(255, c + brightness)) for c in base_color)
             surface.set_at((x, y), noise_color)
 
-    def _render_shoulder_layer(
-        self,
-        surface: pygame.Surface,
-        faction: Faction
-    ) -> None:
+    def _render_shoulder_layer(self, surface: pygame.Surface, faction: Faction) -> None:
         """Layer 2: Shoulder/uniform outline"""
         uniform_color = (60, 100, 70) if faction == Faction.ALLIES else (90, 85, 75)
 
@@ -278,11 +255,7 @@ class UnitPortraitRenderer:
             y_pos = 75 + i * 4
             pygame.draw.line(surface, stripe_color, (25, y_pos), (40, y_pos), 2)
 
-    def _render_face_layer(
-        self,
-        surface: pygame.Surface,
-        faction: Faction
-    ) -> None:
+    def _render_face_layer(self, surface: pygame.Surface, faction: Faction) -> None:
         """Layer 3: Simplified face (oval)"""
         skin_color = (210, 180, 140) if faction == Faction.ALLIES else (200, 170, 130)
 
@@ -295,13 +268,12 @@ class UnitPortraitRenderer:
         pygame.draw.ellipse(surface, shadow_color, (50, 48, 4, 3))  # Right eye
 
     def _render_helmet_layer(
-        self,
-        surface: pygame.Surface,
-        unit_type: InfantryType,
-        faction: Faction
+        self, surface: pygame.Surface, unit_type: InfantryType, faction: Faction
     ) -> None:
         """Layer 4: Helmet/headgear (unit type specific)"""
-        helmet_color = (50, 80, 50) if faction == Faction.ALLIES else (70, 70, 70)  # Dark olive / Dark gray
+        helmet_color = (
+            (50, 80, 50) if faction == Faction.ALLIES else (70, 70, 70)
+        )  # Dark olive / Dark gray
 
         # Different helmet shapes by unit type
         if unit_type == InfantryType.RIFLEMAN:
@@ -325,10 +297,7 @@ class UnitPortraitRenderer:
             pygame.draw.ellipse(surface, helmet_color, (36, 26, 24, 16))
 
     def _render_badge_layer(
-        self,
-        surface: pygame.Surface,
-        unit_type: InfantryType,
-        health_percent: float
+        self, surface: pygame.Surface, unit_type: InfantryType, health_percent: float
     ) -> None:
         """Layer 5: Unit type badge"""
         # Badge background (bottom right corner)
@@ -343,12 +312,7 @@ class UnitPortraitRenderer:
         else:
             badge_color = (120, 100, 80)  # Bronze
 
-        pygame.draw.rect(
-            surface,
-            badge_color,
-            (badge_x, badge_y, badge_size, badge_size),
-            2
-        )
+        pygame.draw.rect(surface, badge_color, (badge_x, badge_y, badge_size, badge_size), 2)
 
         # Unit type symbol
         symbol_color = (50, 50, 50)
@@ -358,16 +322,16 @@ class UnitPortraitRenderer:
         if unit_type == InfantryType.RIFLEMAN:
             # Rifle symbol (diagonal line)
             pygame.draw.line(
-                surface,
-                symbol_color,
-                (center_x - 5, center_y + 5),
-                (center_x + 5, center_y - 5),
-                2
+                surface, symbol_color, (center_x - 5, center_y + 5), (center_x + 5, center_y - 5), 2
             )
         elif unit_type == InfantryType.SNIPER:
             # Crosshair
-            pygame.draw.line(surface, symbol_color, (center_x - 6, center_y), (center_x + 6, center_y), 2)
-            pygame.draw.line(surface, symbol_color, (center_x, center_y - 6), (center_x, center_y + 6), 2)
+            pygame.draw.line(
+                surface, symbol_color, (center_x - 6, center_y), (center_x + 6, center_y), 2
+            )
+            pygame.draw.line(
+                surface, symbol_color, (center_x, center_y - 6), (center_x, center_y + 6), 2
+            )
         elif unit_type == InfantryType.OFFICER:
             # Star
             for i in range(5):
@@ -376,11 +340,7 @@ class UnitPortraitRenderer:
                 y1 = center_y + int(6 * np.sin(np.radians(angle)))
                 pygame.draw.circle(surface, symbol_color, (x1, y1), 1)
 
-    def _render_wear_layer(
-        self,
-        surface: pygame.Surface,
-        health_percent: float
-    ) -> None:
+    def _render_wear_layer(self, surface: pygame.Surface, health_percent: float) -> None:
         """Layer 6: Wear/damage texture based on health"""
         if health_percent >= 1.0:
             return  # Perfect condition
@@ -417,9 +377,7 @@ class UnitPortraitRenderer:
             pygame.draw.line(surface, red_color, (86, 10), (10, 86), 4)
 
     def _render_fallback_portrait(
-        self,
-        unit_type: InfantryType,
-        faction: Faction
+        self, unit_type: InfantryType, faction: Faction
     ) -> pygame.Surface:
         """Fallback: simple colored square when rendering fails"""
         surface = pygame.Surface((96, 96))

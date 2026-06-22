@@ -37,10 +37,10 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-
 # Enhanced particles feature flag
 try:
     from config.rendering_features import is_enhanced_particles_enabled
+
     _ENHANCED_PARTICLES_AVAILABLE = True
     if is_enhanced_particles_enabled():
         from pycc2.presentation.rendering.enhanced_particle_system import (
@@ -48,6 +48,7 @@ try:
         )
 except ImportError:
     _ENHANCED_PARTICLES_AVAILABLE = False
+
 
 class EffectRenderer:
     """Handles all visual effect rendering and lifecycle management.
@@ -88,13 +89,15 @@ class EffectRenderer:
     def spawn_damage_number(self, position: Vec2, damage: int, is_kill: bool = False) -> None:
         if len(self._damage_numbers) >= self.MAX_DAMAGE_NUMBERS:
             self._damage_numbers.popleft()
-        self._damage_numbers.append({
-            "pos": (position.x, position.y),
-            "damage": damage,
-            "is_kill": is_kill,
-            "life": 60,
-            "vy": -1.5,
-        })
+        self._damage_numbers.append(
+            {
+                "pos": (position.x, position.y),
+                "damage": damage,
+                "is_kill": is_kill,
+                "life": 60,
+                "vy": -1.5,
+            }
+        )
 
     def spawn_muzzle_flash(self, position: Vec2, direction: float) -> None:
         self._particle_emitter.emit_muzzle_flash(position.x, position.y, direction, count=10)
@@ -129,7 +132,9 @@ class EffectRenderer:
         cfg = configs.get(size, configs["medium"])
         x, y = position.x, position.y
         self._particle_emitter.emit_explosion_core(x, y, count=cfg["core"], life=cfg["core_life"])
-        self._particle_emitter.emit_explosion_smoke_cloud(x, y, count=cfg["smoke"], life=cfg["smoke_life"])
+        self._particle_emitter.emit_explosion_smoke_cloud(
+            x, y, count=cfg["smoke"], life=cfg["smoke_life"]
+        )
         self._particle_emitter.emit_debris(x, y, count=cfg["debris"])
         self._particle_emitter.emit_explosion_ring(x, y)
 
@@ -216,7 +221,11 @@ class EffectRenderer:
                 if ring_sz > 0:
                     try:
                         gfxdraw.circle(
-                            surface, (*color[:3],), (int(sp[0]), int(sp[1])), ring_sz, 1,
+                            surface,
+                            (*color[:3],),
+                            (int(sp[0]), int(sp[1])),
+                            ring_sz,
+                            1,
                         )
                     except (TypeError, ValueError):
                         draw.circle(surface, color[:3], (int(sp[0]), int(sp[1])), ring_sz, 1)
@@ -230,7 +239,9 @@ class EffectRenderer:
                     smoke_alpha = int(alpha * (1.0 - p.progress * 0.7))
                     if smoke_sz > 0 and smoke_alpha > 0:
                         surf = self._get_pooled_surface(smoke_sz * 2, smoke_sz * 2)
-                        draw.circle(surf, (*p.color, min(255, smoke_alpha)), (smoke_sz, smoke_sz), smoke_sz)
+                        draw.circle(
+                            surf, (*p.color, min(255, smoke_alpha)), (smoke_sz, smoke_sz), smoke_sz
+                        )
                         surface.blit(surf, (int(sp[0]) - smoke_sz, int(sp[1]) - smoke_sz))
                 else:
                     surf = self._get_pooled_surface(sz * 2, sz * 2)
@@ -391,7 +402,11 @@ class EffectRenderer:
                 draw_surface.blit(flattened, (int(sp[0]) - offset, int(sp[1]) - new_h // 2))
 
     def render_hit_flash(
-        self, unit_id: str, sp: tuple[float, float], sz: int, draw_surface: Surface,
+        self,
+        unit_id: str,
+        sp: tuple[float, float],
+        sz: int,
+        draw_surface: Surface,
     ) -> None:
         """Render hit flash overlay for a unit."""
         if unit_id in self._flash_units:

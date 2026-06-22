@@ -176,7 +176,11 @@ class SpriteRenderer:
     ) -> Surface:
         """Delegated to SpriteCacheManager."""
         return self._cache_manager.create_unit_sprite(
-            faction, unit_type, direction, turret_direction, state,
+            faction,
+            unit_type,
+            direction,
+            turret_direction,
+            state,
         )
 
     def _generate_terrain_tiles(self) -> None:
@@ -365,7 +369,9 @@ class SpriteRenderer:
                 death = self._effect_renderer.death_animations.get(unit.id)
                 if death:
                     self._effect_renderer.render_death_animation(
-                        unit, camera, death,
+                        unit,
+                        camera,
+                        death,
                         self._cache_manager.sprite_cache,
                         self.SPRITE_SIZE,
                         self.draw_surface,
@@ -387,6 +393,7 @@ class SpriteRenderer:
         if position_overrides and hasattr(unit, "id") and unit.id in position_overrides:
             ox, oy = position_overrides[unit.id]
             from pycc2.domain.value_objects.vec2 import Vec2
+
             pos = Vec2(ox, oy)
         sp = camera.world_to_screen(pos)
 
@@ -404,7 +411,9 @@ class SpriteRenderer:
         is_prone = sprite_state in prone_states and "TANK" not in utype
 
         if is_prone:
-            sprite = self._cache_manager.create_unit_sprite(faction, utype, dir_idx, state=sprite_state)
+            sprite = self._cache_manager.create_unit_sprite(
+                faction, utype, dir_idx, state=sprite_state
+            )
         else:
             sprite = self._cache_manager.get_unit_sprite(faction, utype, dir_idx, self.SPRITE_SIZE)
 
@@ -502,6 +511,7 @@ class SpriteRenderer:
             if hp_ratio < 0.5:
                 try:
                     from pycc2.presentation.rendering.pixel_artist_3d import PixelArtist3D
+
                     scaled = PixelArtist3D.apply_wounded_overlay(scaled, hp_ratio)
                 except (pygame.error, ValueError, TypeError) as e:
                     logging.debug("Wounded overlay failed: %s", e)
@@ -979,7 +989,9 @@ class SpriteRenderer:
     ) -> None:
         """Delegated to EffectRenderer."""
         self._effect_renderer.render_death_animation(
-            unit, camera, death,
+            unit,
+            camera,
+            death,
             self._cache_manager.sprite_cache,
             self.SPRITE_SIZE,
             self.draw_surface,

@@ -127,7 +127,9 @@ class TestEnhancedUIRenderer:
 
         rect = pygame.Rect(50, 50, 300, 200)
 
-        EnhancedUIRenderer.draw_enhanced_panel(test_surface, rect, title="Test Panel", font=test_font)
+        EnhancedUIRenderer.draw_enhanced_panel(
+            test_surface, rect, title="Test Panel", font=test_font
+        )
 
         assert test_surface is not None
 
@@ -153,7 +155,9 @@ class TestEnhancedUIRenderer:
 
         rect = pygame.Rect(100, 100, 48, 48)
 
-        EnhancedUIRenderer.draw_enhanced_icon(test_surface, rect, icon_type="attack", state="normal")
+        EnhancedUIRenderer.draw_enhanced_icon(
+            test_surface, rect, icon_type="attack", state="normal"
+        )
 
         assert test_surface is not None
 
@@ -165,7 +169,9 @@ class TestEnhancedUIRenderer:
 
         rect = pygame.Rect(100, 100, 48, 48)
 
-        EnhancedUIRenderer.draw_enhanced_icon(test_surface, rect, icon_type="defend", state="normal")
+        EnhancedUIRenderer.draw_enhanced_icon(
+            test_surface, rect, icon_type="defend", state="normal"
+        )
 
         assert test_surface is not None
 
@@ -201,7 +207,9 @@ class TestEnhancedUIRenderer:
 
         rect = pygame.Rect(100, 100, 48, 48)
 
-        EnhancedUIRenderer.draw_enhanced_icon(test_surface, rect, icon_type="attack", state="disabled")
+        EnhancedUIRenderer.draw_enhanced_icon(
+            test_surface, rect, icon_type="attack", state="disabled"
+        )
 
         assert test_surface is not None
 
@@ -300,9 +308,7 @@ class TestEnhancedUIRenderer:
 
         rect = pygame.Rect(100, 100, 5, 5)
 
-        EnhancedUIRenderer.draw_enhanced_button(
-            test_surface, rect, "X", test_font, state="normal"
-        )
+        EnhancedUIRenderer.draw_enhanced_button(test_surface, rect, "X", test_font, state="normal")
 
         assert test_surface is not None
 
@@ -340,9 +346,7 @@ class TestEnhancedUIRenderer:
 
         rect = pygame.Rect(100, 100, 200, 30)
 
-        EnhancedUIRenderer.draw_progress_bar(
-            test_surface, rect, progress=0.0, show_text=False
-        )
+        EnhancedUIRenderer.draw_progress_bar(test_surface, rect, progress=0.0, show_text=False)
 
         assert test_surface is not None
 
@@ -355,9 +359,7 @@ class TestEnhancedUIRenderer:
         rect = pygame.Rect(100, 100, 200, 30)
 
         # Should handle gracefully (clip to 1.0)
-        EnhancedUIRenderer.draw_progress_bar(
-            test_surface, rect, progress=1.5, show_text=False
-        )
+        EnhancedUIRenderer.draw_progress_bar(test_surface, rect, progress=1.5, show_text=False)
 
         assert test_surface is not None
 
@@ -370,9 +372,7 @@ class TestEnhancedUIRenderer:
         rect = pygame.Rect(100, 100, 200, 30)
 
         # Should handle gracefully
-        EnhancedUIRenderer.draw_progress_bar(
-            test_surface, rect, progress=-0.5, show_text=False
-        )
+        EnhancedUIRenderer.draw_progress_bar(test_surface, rect, progress=-0.5, show_text=False)
 
         assert test_surface is not None
 
@@ -416,9 +416,7 @@ class TestEnhancedUIRenderer:
 
         rect = pygame.Rect(100, 100, 150, 40)
 
-        EnhancedUIRenderer.draw_enhanced_button(
-            test_surface, rect, "", test_font, state="normal"
-        )
+        EnhancedUIRenderer.draw_enhanced_button(test_surface, rect, "", test_font, state="normal")
 
         assert test_surface is not None
 

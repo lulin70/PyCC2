@@ -23,11 +23,7 @@ class EnhancedPostProcessing:
         self.rng = random.Random(42)
         self._grain_cache = {}
 
-    def apply_film_grain(
-        self,
-        surface: pygame.Surface,
-        intensity: float = 0.15
-    ) -> pygame.Surface:
+    def apply_film_grain(self, surface: pygame.Surface, intensity: float = 0.15) -> pygame.Surface:
         """添加胶片颗粒 - 增加真实感"""
         width, height = surface.get_size()
 
@@ -47,9 +43,7 @@ class EnhancedPostProcessing:
         return result
 
     def apply_chromatic_aberration(
-        self,
-        surface: pygame.Surface,
-        intensity: float = 2.0
+        self, surface: pygame.Surface, intensity: float = 2.0
     ) -> pygame.Surface:
         """应用色差效果 - 镜头真实感"""
         width, height = surface.get_size()
@@ -83,7 +77,7 @@ class EnhancedPostProcessing:
         surface: pygame.Surface,
         intensity: float = 0.7,
         inner_radius: float = 0.5,
-        outer_radius: float = 1.2
+        outer_radius: float = 1.2,
     ) -> pygame.Surface:
         """增强暗角效果 - 多层渐变"""
         width, height = surface.get_size()
@@ -100,7 +94,7 @@ class EnhancedPostProcessing:
             for x in range(width):
                 dx = x - center_x
                 dy = y - center_y
-                dist = (dx ** 2 + dy ** 2) ** 0.5
+                dist = (dx**2 + dy**2) ** 0.5
 
                 # 归一化距离
                 norm_dist = dist / max_dist
@@ -132,7 +126,7 @@ class EnhancedPostProcessing:
         surface: pygame.Surface,
         desaturation: float = 0.4,
         contrast_boost: float = 1.2,
-        warmth: int = 8
+        warmth: int = 8,
     ) -> pygame.Surface:
         """应用战争氛围色彩分级"""
         width, height = surface.get_size()
@@ -162,10 +156,7 @@ class EnhancedPostProcessing:
         return result
 
     def apply_depth_blur(
-        self,
-        surface: pygame.Surface,
-        focus_y: int,
-        blur_radius: int = 2
+        self, surface: pygame.Surface, focus_y: int, blur_radius: int = 2
     ) -> pygame.Surface:
         """应用基于深度的模糊 - 模拟景深"""
         width, height = surface.get_size()
@@ -207,7 +198,7 @@ class EnhancedPostProcessing:
         self,
         surface: pygame.Surface,
         intensity: float = 0.5,
-        color: tuple[int, int, int] = (255, 0, 0)
+        color: tuple[int, int, int] = (255, 0, 0),
     ) -> pygame.Surface:
         """应用伤害闪屏效果"""
         result = surface.copy()
@@ -227,7 +218,7 @@ class EnhancedPostProcessing:
         enable_grain: bool = True,
         enable_vignette: bool = True,
         enable_color_grade: bool = True,
-        enable_chromatic_aberration: bool = False
+        enable_chromatic_aberration: bool = False,
     ) -> pygame.Surface:
         """应用完整后处理管线"""
         result = surface
@@ -235,10 +226,7 @@ class EnhancedPostProcessing:
         # 1. 色彩分级（最先，影响所有后续效果）
         if enable_color_grade:
             result = self.apply_war_atmosphere(
-                result,
-                desaturation=0.35,
-                contrast_boost=1.15,
-                warmth=8
+                result, desaturation=0.35, contrast_boost=1.15, warmth=8
             )
 
         # 2. 色差（可选，边缘效果）
@@ -248,10 +236,7 @@ class EnhancedPostProcessing:
         # 3. 暗角
         if enable_vignette:
             result = self.apply_enhanced_vignette(
-                result,
-                intensity=0.65,
-                inner_radius=0.4,
-                outer_radius=1.1
+                result, intensity=0.65, inner_radius=0.4, outer_radius=1.1
             )
 
         # 4. 胶片颗粒（最后，最表层）
@@ -266,10 +251,7 @@ _post_processor = EnhancedPostProcessing()
 
 
 # 便捷函数
-def apply_enhanced_post_processing(
-    surface: pygame.Surface,
-    **kwargs
-) -> pygame.Surface:
+def apply_enhanced_post_processing(surface: pygame.Surface, **kwargs) -> pygame.Surface:
     """应用增强后处理 - 8.5+质量"""
     return _post_processor.apply_full_post_processing(surface, **kwargs)
 
