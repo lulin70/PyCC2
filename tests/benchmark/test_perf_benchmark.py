@@ -7,6 +7,8 @@ Run with: SDL_VIDEODRIVER=dummy python -m pytest tests/benchmark/test_perf_bench
 import os
 import time
 
+import pytest
+
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
