@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
-from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.value_objects.terrain_type import TerrainType
+from pycc2.domain.value_objects.tile_coord import TileCoord
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap

@@ -6,6 +6,8 @@ import logging
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
+import pygame
+
 
 class VoiceCommandType(Enum):
     """Types of voice commands."""

@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pygame
-from pygame import Surface, transform
+from pygame import Surface
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class SpriteCacheManager:
         self._terrain_cache: dict[int, Surface] = {}
         self._tile_cache: TileCache = TileCache()
         self._asset_loader: AssetLoader = AssetLoader()
-        
+
         # CC2 Original Sprite Loader (NEW: 2026-06-16)
         assets_root = Path(__file__).parent.parent.parent.parent / "assets"
         self._cc2_loader: CC2SpriteLoader = CC2SpriteLoader(assets_root)
@@ -148,7 +148,7 @@ class SpriteCacheManager:
             if cc2_sprite is not None:
                 logger.info(f"[SPRITE] ✅✅ CC2 Original: {unit_type}_d{direction}")
                 return cc2_sprite
-        
+
         # 2. Try loading from assets
         loaded_sprite = self._asset_loader.load_unit_sprite(
             faction=faction,

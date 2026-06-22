@@ -35,8 +35,11 @@ try:
     _ENHANCED_UI_AVAILABLE = True
     if is_enhanced_ui_enabled():
         from pycc2.presentation.ui.enhanced_ui_renderer import (
-            draw_button, draw_panel, draw_icon, EnhancedUIRenderer
-        )
+        EnhancedUIRenderer,  # noqa: F401
+        draw_button,  # noqa: F401
+        draw_icon,  # noqa: F401
+        draw_panel,  # noqa: F401
+    )
 except ImportError:
     _ENHANCED_UI_AVAILABLE = False
 
@@ -743,29 +746,29 @@ class CC2HUD:
                 infantry_type = getattr(unit, "infantry_type", "RIFLEMAN")
                 if hasattr(infantry_type, "name"):
                     infantry_type = infantry_type.name
-                
+
                 faction = getattr(unit, "faction", "ALLY")
                 if hasattr(faction, "name"):
                     faction = faction.name
-                
+
                 # Calculate health ratio for damage effects
                 hp = getattr(getattr(unit, "health", None), "hp", 100)
                 hp_max = getattr(getattr(unit, "health", None), "max_hp", 100)
                 health_ratio = hp / max(hp_max, 1)
-                
+
                 # Render 96x96 portrait
                 portrait = self._portrait_renderer.render_portrait(
                     infantry_type=infantry_type,
                     faction=faction,
                     health_ratio=health_ratio
                 )
-                
+
                 # Display portrait at left side of panel
                 if portrait:
                     surface.blit(portrait, (x, line_y))
                     portrait_rendered = True
                     logger.debug(f"Portrait rendered for {infantry_type} ({faction})")
-                    
+
             except Exception as e:
                 logger.warning(f"Failed to render portrait: {e}")
                 # Fallback to icon rendering below
@@ -779,7 +782,7 @@ class CC2HUD:
             # No portrait: use original layout with small icon
             name_x = x + self.ICON_SIZE + 4
             icon_x = x
-            
+
             # Fallback: render small 16x16 icon
             icon_key = self._get_unit_icon_key(unit)
             icon = self._unit_icons.get(icon_key)

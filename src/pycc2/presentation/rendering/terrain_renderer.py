@@ -38,9 +38,9 @@ try:
     _ENHANCED_TERRAIN_AVAILABLE = True
     if is_enhanced_terrain_enabled():
         from pycc2.presentation.rendering.enhanced_terrain_generator import (
-            generate_enhanced_grass,
-            generate_enhanced_dirt,
-        )
+        generate_enhanced_dirt,  # noqa: F401
+        generate_enhanced_grass,  # noqa: F401
+    )
 except ImportError:
     _ENHANCED_TERRAIN_AVAILABLE = False
 

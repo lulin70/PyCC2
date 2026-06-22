@@ -565,7 +565,7 @@ class TestGameLogicPerformance:
 
         from pycc2.infrastructure.save_system import SecureSaveManager
 
-        game_map = benchmark_maps["50x42"]
+        benchmark_maps["50x42"]
 
         with tempfile.TemporaryDirectory() as tmpdir:
             save_mgr = SecureSaveManager(base_dir=tmpdir)

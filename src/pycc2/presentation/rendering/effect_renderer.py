@@ -43,7 +43,9 @@ try:
     from config.rendering_features import is_enhanced_particles_enabled
     _ENHANCED_PARTICLES_AVAILABLE = True
     if is_enhanced_particles_enabled():
-        from pycc2.presentation.rendering.enhanced_particle_system import EnhancedParticleSystem
+        from pycc2.presentation.rendering.enhanced_particle_system import (
+            EnhancedParticleSystem,  # noqa: F401
+        )
 except ImportError:
     _ENHANCED_PARTICLES_AVAILABLE = False
 
@@ -194,6 +196,7 @@ class EffectRenderer:
     def render_effects(self, surface: Surface, camera: Camera) -> None:
         """Render particle effects."""
         from pygame import gfxdraw
+
         from pycc2.domain.value_objects.vec2 import Vec2
 
         sx, sy = self._screen_shake.update()

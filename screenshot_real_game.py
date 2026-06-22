@@ -18,7 +18,6 @@ Key improvements over old script:
 
 import os
 import sys
-import time
 
 os.environ["SDL_VIDEODRIVER"] = "dummy"
 
@@ -28,9 +27,9 @@ import pygame
 
 pygame.init()
 
+from pycc2.main import _start_new_game
 from pycc2.presentation.rendering.window_config import DisplayInfo, WindowManager
 from pycc2.presentation.ui.new_game_menu import NewGameMenu
-from pycc2.main import _start_new_game
 
 OUT_DIR = "/Users/lin/trae_projects/PyCC2/screenshots"
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -47,9 +46,9 @@ def save_screen(screen, name):
 
 def tick_game_loop(game_loop, count=5):
     """Run N game loop ticks for rendering updates."""
-    for i in range(count):
+    for _i in range(count):
         # Process empty event queue (required by run())
-        for event in [pygame.event.Event(pygame.NOEVENT)]:
+        for _event in [pygame.event.Event(pygame.NOEVENT)]:
             pass
         try:
             # Single tick: update logic + render
@@ -135,12 +134,12 @@ if game_loop._deployment_manager and game_loop._deployment_manager.is_active:
 # --- Ensure units exist for battle screenshot ---
 if len(game_loop.state.units) == 0:
     print("  No units found, placing test units...")
-    from pycc2.domain.entities.unit import Unit, Faction, UnitType
     from pycc2.domain.components.health_component import HealthComponent
     from pycc2.domain.components.morale_component import MoraleComponent
     from pycc2.domain.components.position_component import PositionComponent
     from pycc2.domain.components.vision_component import VisionComponent
     from pycc2.domain.components.weapon_component import WeaponComponent
+    from pycc2.domain.entities.unit import Faction, Unit, UnitType
     from pycc2.domain.value_objects.tile_coord import TileCoord
 
     allies_unit = Unit(

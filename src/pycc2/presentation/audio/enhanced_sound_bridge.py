@@ -13,12 +13,13 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import pygame
+from pygame import mixer
+
 if TYPE_CHECKING:
     import numpy as np
 
 logger = logging.getLogger(__name__)
-
-from pygame import mixer
 
 
 class CombatSoundEvent(Enum):

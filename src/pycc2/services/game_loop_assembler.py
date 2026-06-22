@@ -176,14 +176,14 @@ class GameLoopAssembler:
         self._loop._hud_manager = HM()
         dc = self._loop.display_config
         logger.info(f"[HUD] display_config={dc}, ui_scale={dc.ui_scale if dc else 'N/A'}")
-        
+
         # Create presentation objects here (Composition Root) and inject into service
         logger.info("[HUD] Creating Minimap...")
         minimap = Minimap(display_config=dc, size=int(140 * dc.ui_scale))
         logger.info("[HUD] Creating CC2BottomPanel...")
         cc2_panel = CC2BottomPanel()
         cc2_panel.initialize()
-        
+
         logger.info("[HUD] Initializing HUDManager with all dependencies...")
         self._loop._hud_manager.initialize(
             state=self._loop.state,

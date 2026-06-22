@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from ..domain.value_objects.vec2 import Vec2
 
 from pycc2.presentation.rendering.animation_system import (
-    AnimationType,
     ParticleEmitter,
     ScreenShake,
     UnitAnimator,

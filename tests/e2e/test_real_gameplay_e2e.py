@@ -19,23 +19,20 @@ import sys
 # P1 Fix: SDL_VIDEODRIVER is set by conftest.py; don't duplicate here
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
+import pygame
 import pytest
 
-import pygame
-
-# P1 Fix: Removed module-level pygame.init() — let conftest handle lazy init
-# pygame.init() is now called inside game_env fixture only
-
-from pycc2.domain.entities.unit import Unit, Faction, UnitType
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent
 from pycc2.domain.components.position_component import PositionComponent
 from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
+
+# P1 Fix: Removed module-level pygame.init() — let conftest handle lazy init
+# pygame.init() is now called inside game_env fixture only
+from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.presentation.rendering.window_config import DisplayInfo, WindowManager
-from pycc2.services.game_loop_assembler import GameLoopAssembler
-
 
 # ===========================================================================
 # Fixtures
@@ -53,16 +50,16 @@ def game_env():
     wm = WindowManager(DisplayInfo(base_width=1280, base_height=720))
     screen = wm.initialize()
 
-    from pycc2.services.game_loop import GameLoop, GameState
-    from pycc2.domain.entities.game_map import GameMap
-    from pycc2.presentation.rendering.camera import Camera
-    from pycc2.services.event_bus import EventBus
-    from pycc2.domain.value_objects.vec2 import Vec2
-    from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-    from pycc2.presentation.input.interaction_controller import InteractionController
-
     # Create minimal game state with real map
     import numpy as np
+
+    from pycc2.domain.entities.game_map import GameMap
+    from pycc2.domain.value_objects.vec2 import Vec2
+    from pycc2.presentation.input.interaction_controller import InteractionController
+    from pycc2.presentation.rendering.camera import Camera
+    from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
+    from pycc2.services.event_bus import EventBus
+    from pycc2.services.game_loop import GameLoop, GameState
 
     tile_grid = np.zeros((30, 40), dtype=np.int8)  # All grass (terrain type 0)
     game_map = GameMap(
@@ -306,7 +303,7 @@ class TestRealGameplayOperations:
 
     def test_phase3_los_clear_to_visible_enemy(self, game_env):
         """Phase 3: Check that allied unit has clear LOS to visible Axis MG."""
-        from pycc2.domain.systems.los_system import LOSSystem, LosStatus
+        from pycc2.domain.systems.los_system import LosStatus, LOSSystem
 
         game_map = game_env["loop"].state.game_map
         los = LOSSystem(game_map=game_map)
@@ -315,12 +312,12 @@ class TestRealGameplayOperations:
 
         can_see, los_result = los.check_los(allies.position.tile_coord, axis_mg.position.tile_coord)
         assert los_result.status != LosStatus.OUT_OF_RANGE, \
-            f"Enemy MG should be within visual range (distance ~12 tiles)"
+            "Enemy MG should be within visual range (distance ~12 tiles)"
         print(f"  ✅ LOS to Axis MG: {los_result.status.name}")
 
     def test_phase3_los_blocked_by_terrain(self, game_env):
         """Phase 3b: Place a building between units → LOS should be blocked."""
-        from pycc2.domain.systems.los_system import LOSSystem, LosStatus
+        from pycc2.domain.systems.los_system import LosStatus, LOSSystem
         from pycc2.domain.value_objects.terrain_type import TerrainType
 
         game_map = game_env["loop"].state.game_map
@@ -513,9 +510,8 @@ class TestRealGameplayOperations:
         loop = game_env["loop"]
 
         # Run many ticks to let AI think
-        intents_before = []
         if loop.ai_service:
-            intents_before = loop.ai_service.tick() or []
+            loop.ai_service.tick() or []
 
         for _ in range(30):  # Simulate ~0.5 seconds of gameplay
             loop._update_logic(0.016)

@@ -38,7 +38,6 @@ def pygame_screen(pygame_display):
 
     P1 Fix: Depend on conftest's pygame_display for proper init ordering.
     """
-    import pygame
 
     try:
         screen = pygame.display.set_mode((800, 600))

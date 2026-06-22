@@ -3,6 +3,7 @@
 验证4个增强模块能否正确集成到实际游戏渲染管线。
 """
 import os
+
 import pygame
 import pytest
 
@@ -19,7 +20,7 @@ def pygame_init():
 def test_rendering_features_config_loads():
     """测试: 配置模块能否正常加载"""
     from config.rendering_features import get_features
-    
+
     features = get_features()
     assert features is not None
     status = features.get_status()
@@ -68,19 +69,20 @@ def test_feature_toggle_works(pygame_init, monkeypatch):
     """测试: Feature toggle机制能否工作"""
     # 测试启用所有特性
     monkeypatch.setenv("PYCC2_ENHANCED_RENDERING", "all")
-    
+
     # 重新导入以应用环境变量
     import importlib
+
     import config.rendering_features
     importlib.reload(config.rendering_features)
-    
+
     from config.rendering_features import get_features
     features = get_features()
-    
-    assert features.USE_ENHANCED_TERRAIN == True
-    assert features.USE_ENHANCED_PARTICLES == True
-    assert features.USE_ENHANCED_POST_PROCESSING == True
-    assert features.USE_ENHANCED_UI == True
+
+    assert features.USE_ENHANCED_TERRAIN
+    assert features.USE_ENHANCED_PARTICLES
+    assert features.USE_ENHANCED_POST_PROCESSING
+    assert features.USE_ENHANCED_UI
 
 
 if __name__ == "__main__":

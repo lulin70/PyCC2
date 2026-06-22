@@ -36,7 +36,7 @@ except Exception:
     pass  # Defer to fixture-level init
 
 from pycc2.presentation.rendering.sprite_cache_manager import SpriteCacheManager
-from pycc2.presentation.rendering.svg_sprite_loader import SVGSpriteLoader, SPRITE_CATALOG
+from pycc2.presentation.rendering.svg_sprite_loader import SPRITE_CATALOG, SVGSpriteLoader
 
 
 @pytest.fixture()

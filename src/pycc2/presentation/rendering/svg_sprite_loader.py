@@ -25,7 +25,6 @@ Created: 2026-06-19 — P0 UI alignment with docs/assets/unit-sprites/
 from __future__ import annotations
 
 import logging
-import math
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -294,7 +293,6 @@ class SVGSpriteLoader:
             return None
 
         root = tree.getroot()
-        ns = {"svg": "http://www.w3.org/2000/svg"}
 
         # Get dimensions from viewBox or width/height attrs
         vb = root.get("viewBox")

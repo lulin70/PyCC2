@@ -31,7 +31,6 @@ from pycc2.domain.systems.los_system import LosStatus, LOSSystem
 from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

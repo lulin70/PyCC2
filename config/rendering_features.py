@@ -13,16 +13,15 @@
 - 空或其他: 使用默认配置
 """
 import os
-from typing import Dict, Set
 
 
 class RenderingFeatures:
     """渲染特性管理器"""
-    
+
     def __init__(self):
         """从环境变量初始化feature flags"""
         env_var = os.environ.get("PYCC2_ENHANCED_RENDERING", "").lower()
-        
+
         # 解析环境变量
         if env_var in ("all", "1", "true"):
             enabled_features = {"terrain", "particles", "postprocess", "ui"}
@@ -31,14 +30,14 @@ class RenderingFeatures:
         else:
             # 默认配置：逐步启用（先地形和粒子，后处理和UI需要更多测试）
             enabled_features = set()  # 默认全部关闭，向后兼容
-        
+
         # 设置各个feature flags
         self.USE_ENHANCED_TERRAIN = "terrain" in enabled_features
         self.USE_ENHANCED_PARTICLES = "particles" in enabled_features
         self.USE_ENHANCED_POST_PROCESSING = "postprocess" in enabled_features
         self.USE_ENHANCED_UI = "ui" in enabled_features
-    
-    def get_status(self) -> Dict[str, bool]:
+
+    def get_status(self) -> dict[str, bool]:
         """获取所有特性状态"""
         return {
             "enhanced_terrain": self.USE_ENHANCED_TERRAIN,
@@ -46,14 +45,14 @@ class RenderingFeatures:
             "enhanced_post_processing": self.USE_ENHANCED_POST_PROCESSING,
             "enhanced_ui": self.USE_ENHANCED_UI,
         }
-    
+
     def enable_all(self) -> None:
         """启用所有增强特性（用于测试）"""
         self.USE_ENHANCED_TERRAIN = True
         self.USE_ENHANCED_PARTICLES = True
         self.USE_ENHANCED_POST_PROCESSING = True
         self.USE_ENHANCED_UI = True
-    
+
     def disable_all(self) -> None:
         """禁用所有增强特性（回退到旧版本）"""
         self.USE_ENHANCED_TERRAIN = False
@@ -101,18 +100,17 @@ USE_ENHANCED_UI = _features.USE_ENHANCED_UI
 
 if __name__ == "__main__":
     # 测试和诊断
-    import sys
-    
+
     print("PyCC2 Rendering Features Status")
     print("=" * 50)
     print(f"Environment: PYCC2_ENHANCED_RENDERING={os.environ.get('PYCC2_ENHANCED_RENDERING', '(not set)')}")
     print()
-    
+
     status = _features.get_status()
     for feature, enabled in status.items():
         symbol = "✓" if enabled else "✗"
         print(f"  {symbol} {feature}: {enabled}")
-    
+
     print()
     print("Usage:")
     print("  export PYCC2_ENHANCED_RENDERING=all     # Enable all")

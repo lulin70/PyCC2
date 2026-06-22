@@ -130,7 +130,7 @@ class PixelCanvas:
         self._pixels: np.ndarray = np.full((height, width, 4), self._bg, dtype=np.uint8)
 
     @property
-    def pixels(self) -> "np.ndarray":
+    def pixels(self) -> np.ndarray:
         return self._pixels
 
     def set_pixel(self, x: int, y: int, color: tuple[int, ...]) -> None:

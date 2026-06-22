@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import math
 import random
-from typing import Tuple
 
 import pygame
 
@@ -24,56 +23,56 @@ from pycc2.presentation.rendering.isometric_tile_generator import (
 
 class EnhancedTerrainGenerator:
     """高质量地形纹理生成器 - 目标评分 8.5+"""
-    
+
     def __init__(self, seed: int = 42):
         self.seed = seed
         self.rng = random.Random(seed)
-    
+
     @staticmethod
     def perlin_noise_2d(x: float, y: float, seed: int = 0) -> float:
         """简化的2D Perlin噪声实现"""
         # 使用伪随机梯度
         def fade(t: float) -> float:
             return t * t * t * (t * (t * 6 - 15) + 10)
-        
+
         def lerp(a: float, b: float, t: float) -> float:
             return a + t * (b - a)
-        
+
         def gradient(h: int, x: float, y: float) -> float:
             """伪随机梯度向量"""
             h = h & 3
             u = x if h < 2 else y
             v = y if h < 2 else x
             return (u if (h & 1) == 0 else -u) + (v if (h & 2) == 0 else -v)
-        
+
         # 网格坐标
         xi = int(math.floor(x)) & 255
         yi = int(math.floor(y)) & 255
-        
+
         # 网格内相对坐标
         xf = x - math.floor(x)
         yf = y - math.floor(y)
-        
+
         # 淡化曲线
         u = fade(xf)
         v = fade(yf)
-        
+
         # 哈希值（简化版）
         def hash_coord(x: int, y: int) -> int:
             return ((x * 374761393 + y * 668265263 + seed * 1073807359) & 0x7FFFFFFF) % 256
-        
+
         # 四角梯度
         aa = hash_coord(xi, yi)
         ab = hash_coord(xi, yi + 1)
         ba = hash_coord(xi + 1, yi)
         bb = hash_coord(xi + 1, yi + 1)
-        
+
         # 双线性插值
         x1 = lerp(gradient(aa, xf, yf), gradient(ba, xf - 1, yf), u)
         x2 = lerp(gradient(ab, xf, yf - 1), gradient(bb, xf - 1, yf - 1), u)
-        
+
         return lerp(x1, x2, v)
-    
+
     def octave_noise(
         self,
         x: float,
@@ -87,31 +86,31 @@ class EnhancedTerrainGenerator:
         frequency = 1.0
         amplitude = 1.0
         max_value = 0.0
-        
+
         for i in range(octaves):
             total += self.perlin_noise_2d(
                 x * frequency,
                 y * frequency,
                 self.seed + i
             ) * amplitude
-            
+
             max_value += amplitude
             amplitude *= persistence
             frequency *= lacunarity
-        
+
         return total / max_value if max_value != 0 else 0
-    
+
     def generate_enhanced_grass_tile(self) -> pygame.Surface:
         """增强草地瓷砖 - 多层细节"""
         surface = pygame.Surface((TILE_W, TILE_H), pygame.SRCALPHA)
-        
+
         base_color = CC2_ISOMETRIC_PALETTE["grass_base"]
         light_color = CC2_ISOMETRIC_PALETTE["grass_light"]
         dark_color = CC2_ISOMETRIC_PALETTE["grass_dark"]
-        
+
         # 填充基础颜色
         surface.fill((*base_color, 255))
-        
+
         # Layer 1: 粗糙地形 (大尺度噪声)
         for x in range(TILE_W):
             for y in range(TILE_H):
@@ -123,13 +122,13 @@ class EnhancedTerrainGenerator:
                 )
                 # 映射到颜色变化 (-20 到 +20)
                 brightness = int(noise_val * 20)
-                
+
                 r = max(0, min(255, base_color[0] + brightness))
                 g = max(0, min(255, base_color[1] + brightness))
                 b = max(0, min(255, base_color[2] + brightness))
-                
+
                 surface.set_at((x, y), (r, g, b))
-        
+
         # Layer 2: 中等细节 (草丛)
         for x in range(0, TILE_W, 4):
             for y in range(0, TILE_H, 4):
@@ -139,7 +138,7 @@ class EnhancedTerrainGenerator:
                     octaves=3,
                     persistence=0.5
                 )
-                
+
                 if noise_val > 0.3:  # 亮草丛
                     for dx in range(4):
                         for dy in range(4):
@@ -147,7 +146,7 @@ class EnhancedTerrainGenerator:
                                 current = surface.get_at((x + dx, y + dy))
                                 blended = tuple(
                                     int(c * 0.7 + lc * 0.3)
-                                    for c, lc in zip(current[:3], light_color)
+                                    for c, lc in zip(current[:3], light_color, strict=False)
                                 )
                                 surface.set_at((x + dx, y + dy), blended)
                 elif noise_val < -0.3:  # 暗草丛
@@ -157,40 +156,40 @@ class EnhancedTerrainGenerator:
                                 current = surface.get_at((x + dx, y + dy))
                                 blended = tuple(
                                     int(c * 0.7 + dc * 0.3)
-                                    for c, dc in zip(current[:3], dark_color)
+                                    for c, dc in zip(current[:3], dark_color, strict=False)
                                 )
                                 surface.set_at((x + dx, y + dy), blended)
-        
+
         # Layer 3: 微观细节 (草叶纤维)
         for _ in range(30):  # 30根草叶
             gx = self.rng.randint(2, TILE_W - 3)
             gy = self.rng.randint(2, TILE_H - 3)
-            
+
             # 草叶颜色（比基础色亮）
             grass_blade = (
                 min(255, light_color[0] + 10),
                 min(255, light_color[1] + 10),
                 min(255, light_color[2] + 5)
             )
-            
+
             # 绘制2像素草叶
             surface.set_at((gx, gy), grass_blade)
             if self.rng.random() > 0.5:
                 surface.set_at((gx, gy + 1), grass_blade)
-        
+
         return surface
-    
+
     def generate_enhanced_dirt_tile(self) -> pygame.Surface:
         """增强泥土瓷砖 - 真实颗粒感"""
         surface = pygame.Surface((TILE_W, TILE_H), pygame.SRCALPHA)
-        
+
         base_color = CC2_ISOMETRIC_PALETTE["dirt_road"]
         light_color = CC2_ISOMETRIC_PALETTE["dirt_light"]
         dark_color = CC2_ISOMETRIC_PALETTE["dirt_dark"]
-        
+
         # 填充基础
         surface.fill((*base_color, 255))
-        
+
         # Layer 1: 地形起伏
         for x in range(TILE_W):
             for y in range(TILE_H):
@@ -201,35 +200,32 @@ class EnhancedTerrainGenerator:
                     persistence=0.55
                 )
                 brightness = int(noise_val * 25)
-                
+
                 r = max(0, min(255, base_color[0] + brightness))
                 g = max(0, min(255, base_color[1] + brightness))
                 b = max(0, min(255, base_color[2] + brightness))
-                
+
                 surface.set_at((x, y), (r, g, b))
-        
+
         # Layer 2: 泥土块和小石头
         for _ in range(40):
             px = self.rng.randint(1, TILE_W - 2)
             py = self.rng.randint(1, TILE_H - 2)
-            
+
             # 随机选择亮或暗
-            if self.rng.random() > 0.5:
-                clump_color = light_color
-            else:
-                clump_color = dark_color
-            
+            clump_color = light_color if self.rng.random() > 0.5 else dark_color
+
             # 2x2块
             for dx in range(2):
                 for dy in range(2):
                     if px + dx < TILE_W and py + dy < TILE_H:
                         surface.set_at((px + dx, py + dy), clump_color)
-        
+
         # Layer 3: 细小颗粒
         for _ in range(60):
             px = self.rng.randint(0, TILE_W - 1)
             py = self.rng.randint(0, TILE_H - 1)
-            
+
             # 随机亮度变化
             brightness = self.rng.randint(-15, 15)
             current = surface.get_at((px, py))
@@ -238,9 +234,9 @@ class EnhancedTerrainGenerator:
                 for c in current[:3]
             )
             surface.set_at((px, py), adjusted)
-        
+
         return surface
-    
+
     def apply_smooth_edge_transition(
         self,
         surface: pygame.Surface,
@@ -250,12 +246,12 @@ class EnhancedTerrainGenerator:
         """应用平滑边缘过渡 - 替代硬alpha混合"""
         if neighbor_type not in CC2_ISOMETRIC_PALETTE:
             return
-        
+
         neighbor_color = CC2_ISOMETRIC_PALETTE[neighbor_type]
-        
+
         # 定义边缘区域（8像素渐变）
         blend_width = 8
-        
+
         if edge == "top":
             for y in range(blend_width):
                 alpha = y / blend_width  # 0到1
@@ -263,10 +259,10 @@ class EnhancedTerrainGenerator:
                     current = surface.get_at((x, y))
                     blended = tuple(
                         int(nc * (1 - alpha) + c * alpha)
-                        for nc, c in zip(neighbor_color, current[:3])
+                        for nc, c in zip(neighbor_color, current[:3], strict=False)
                     )
                     surface.set_at((x, y), blended)
-        
+
         elif edge == "bottom":
             for y in range(TILE_H - blend_width, TILE_H):
                 alpha = (TILE_H - 1 - y) / blend_width
@@ -274,10 +270,10 @@ class EnhancedTerrainGenerator:
                     current = surface.get_at((x, y))
                     blended = tuple(
                         int(nc * (1 - alpha) + c * alpha)
-                        for nc, c in zip(neighbor_color, current[:3])
+                        for nc, c in zip(neighbor_color, current[:3], strict=False)
                     )
                     surface.set_at((x, y), blended)
-        
+
         elif edge == "left":
             for x in range(blend_width):
                 alpha = x / blend_width
@@ -285,10 +281,10 @@ class EnhancedTerrainGenerator:
                     current = surface.get_at((x, y))
                     blended = tuple(
                         int(nc * (1 - alpha) + c * alpha)
-                        for nc, c in zip(neighbor_color, current[:3])
+                        for nc, c in zip(neighbor_color, current[:3], strict=False)
                     )
                     surface.set_at((x, y), blended)
-        
+
         elif edge == "right":
             for x in range(TILE_W - blend_width, TILE_W):
                 alpha = (TILE_W - 1 - x) / blend_width
@@ -296,7 +292,7 @@ class EnhancedTerrainGenerator:
                     current = surface.get_at((x, y))
                     blended = tuple(
                         int(nc * (1 - alpha) + c * alpha)
-                        for nc, c in zip(neighbor_color, current[:3])
+                        for nc, c in zip(neighbor_color, current[:3], strict=False)
                     )
                     surface.set_at((x, y), blended)
 
