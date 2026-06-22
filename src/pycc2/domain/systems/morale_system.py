@@ -634,9 +634,7 @@ class MoraleSystem:
         ncos = [
             u
             for u in all_units
-            if u.is_alive
-            and u.unit_type == UnitType.COMMANDER
-            and u.morale is not None
+            if u.is_alive and u.unit_type == UnitType.COMMANDER and u.morale is not None
         ]
 
         for nco in ncos:

@@ -33,15 +33,18 @@ from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
 
 @pytest.fixture
-def pygame_screen():
-    """Create a pygame surface for headless rendering."""
-    pygame.init()
+def pygame_screen(pygame_display):
+    """Create a pygame surface for headless rendering.
+
+    P1 Fix: Depend on conftest's pygame_display for proper init ordering.
+    """
+
     try:
         screen = pygame.display.set_mode((800, 600))
     except pygame.error:
         screen = pygame.Surface((800, 600), pygame.SRCALPHA)
     yield screen
-    pygame.quit()
+    # Don't quit here — conftest handles cleanup at session end
 
 
 @pytest.fixture

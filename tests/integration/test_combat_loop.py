@@ -81,11 +81,10 @@ def camera():
 
 
 @pytest.fixture
-def sprite_renderer():
+def sprite_renderer(pygame_display):
+    """P1 Fix: Depend on conftest's pygame_display for proper init ordering."""
     import pygame
 
-    if not pygame.get_init():
-        pygame.init()
     if not pygame.font.get_init():
         pygame.font.init()
     return SpriteRenderer()

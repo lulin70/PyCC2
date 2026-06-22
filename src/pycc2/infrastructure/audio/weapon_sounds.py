@@ -10,6 +10,8 @@ import logging
 from dataclasses import dataclass
 from typing import ClassVar
 
+import pygame
+
 logger = logging.getLogger(__name__)
 
 import numpy as np

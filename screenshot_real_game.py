@@ -18,7 +18,6 @@ Key improvements over old script:
 
 import os
 import sys
-import time
 
 os.environ["SDL_VIDEODRIVER"] = "dummy"
 
@@ -28,9 +27,9 @@ import pygame
 
 pygame.init()
 
+from pycc2.main import _start_new_game
 from pycc2.presentation.rendering.window_config import DisplayInfo, WindowManager
 from pycc2.presentation.ui.new_game_menu import NewGameMenu
-from pycc2.main import _start_new_game
 
 OUT_DIR = "/Users/lin/trae_projects/PyCC2/screenshots"
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -47,9 +46,9 @@ def save_screen(screen, name):
 
 def tick_game_loop(game_loop, count=5):
     """Run N game loop ticks for rendering updates."""
-    for i in range(count):
+    for _i in range(count):
         # Process empty event queue (required by run())
-        for event in [pygame.event.Event(pygame.NOEVENT)]:
+        for _event in [pygame.event.Event(pygame.NOEVENT)]:
             pass
         try:
             # Single tick: update logic + render
@@ -105,12 +104,14 @@ if start_action:
     except Exception as e:
         print(f"  _start_new_game error: {e}")
         import traceback
+
         traceback.print_exc()
 
 if game_loop is None:
     print("  Fallback: creating minimal game for screenshots...")
     # Direct creation if _start_new_game fails
     from pycc2.services.game_loop_assembler import GameLoopAssembler
+
     assembler = GameLoopAssembler()
     game_loop = assembler.assemble(screen, wm)
 
@@ -135,12 +136,12 @@ if game_loop._deployment_manager and game_loop._deployment_manager.is_active:
 # --- Ensure units exist for battle screenshot ---
 if len(game_loop.state.units) == 0:
     print("  No units found, placing test units...")
-    from pycc2.domain.entities.unit import Unit, Faction, UnitType
     from pycc2.domain.components.health_component import HealthComponent
     from pycc2.domain.components.morale_component import MoraleComponent
     from pycc2.domain.components.position_component import PositionComponent
     from pycc2.domain.components.vision_component import VisionComponent
     from pycc2.domain.components.weapon_component import WeaponComponent
+    from pycc2.domain.entities.unit import Faction, Unit, UnitType
     from pycc2.domain.value_objects.tile_coord import TileCoord
 
     allies_unit = Unit(
@@ -207,6 +208,7 @@ if game_loop.state.units:
     u = game_loop.state.units[0]
     px = u.position.pixel_position
     from pycc2.domain.value_objects.vec2 import Vec2
+
     game_loop.state.camera.set_position(Vec2(px.x - 640, px.y - 360))
 
 screen.fill((28, 32, 24))
@@ -226,7 +228,7 @@ if game_loop.state.selected_unit_ids:
     selected_id = next(iter(game_loop.state.selected_unit_ids), None)
     if selected_id:
         selected_unit = next((u for u in game_loop.state.units if u.id == selected_id), None)
-        if selected_unit and hasattr(game_loop.renderer, 'render_los_overlay'):
+        if selected_unit and hasattr(game_loop.renderer, "render_los_overlay"):
             try:
                 game_loop.renderer.render_los_overlay(
                     screen, selected_unit, game_loop.state.game_map, game_loop.state.camera
@@ -263,8 +265,9 @@ for s in screenshots:
 # Verify SVG sprites were used
 try:
     from pycc2.presentation.rendering.sprite_cache_manager import SpriteCacheManager
+
     mgr = SpriteCacheManager()
-    svg_count = len(mgr._svg_cache) if hasattr(mgr, '_svg_cache') else 0
+    svg_count = len(mgr._svg_cache) if hasattr(mgr, "_svg_cache") else 0
     print(f"\nSVG sprites cached: {svg_count}/16")
 except Exception as e:
     print(f"\nSVG sprite check error: {e}")

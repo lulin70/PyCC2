@@ -31,10 +31,10 @@ from pycc2.domain.systems.los_system import LosStatus, LOSSystem
 from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_map_with_terrain(
     width: int = 30,
@@ -64,24 +64,36 @@ def _make_map_with_terrain(
             for x in range(width):
                 t = terrain_overrides.get((x, y))
                 if t is not None:
-                    row.append({
-                        "base_terrain": int(t),
-                        "terrain_name": t.name.lower(),
-                        "elevation": float(t.height),
-                        "building_height": float(
-                            3.0 if t == TerrainType.BUILDING_SOLID
-                            else 2.0 if t in (TerrainType.WOODS, TerrainType.WALL, TerrainType.BUILDING_ENTERABLE)
-                            else 1.0 if t in (TerrainType.BUNKER, TerrainType.BRIDGE)
-                            else 0.0  # HEDGE, CRATER, FOXHOLE, TRENCH etc. — low profile
-                        ),
-                    })
+                    row.append(
+                        {
+                            "base_terrain": int(t),
+                            "terrain_name": t.name.lower(),
+                            "elevation": float(t.height),
+                            "building_height": float(
+                                3.0
+                                if t == TerrainType.BUILDING_SOLID
+                                else 2.0
+                                if t
+                                in (
+                                    TerrainType.WOODS,
+                                    TerrainType.WALL,
+                                    TerrainType.BUILDING_ENTERABLE,
+                                )
+                                else 1.0
+                                if t in (TerrainType.BUNKER, TerrainType.BRIDGE)
+                                else 0.0  # HEDGE, CRATER, FOXHOLE, TRENCH etc. — low profile
+                            ),
+                        }
+                    )
                 else:
-                    row.append({
-                        "base_terrain": 0,
-                        "terrain_name": "open",
-                        "elevation": 0.0,
-                        "building_height": 0.0,
-                    })
+                    row.append(
+                        {
+                            "base_terrain": 0,
+                            "terrain_name": "open",
+                            "elevation": 0.0,
+                            "building_height": 0.0,
+                        }
+                    )
             enhanced_list.append(row)
         gm.tiles_enhanced = enhanced_list
     return gm
@@ -161,18 +173,12 @@ class TestCrossRiverAssault:
         target = _make_infantry("axis_rifle", Faction.AXIS, 10, 10)
         return shooter, target
 
-    def test_can_see_enemy_across_river(
-        self, river_map: GameMap, river_units: tuple[Unit, Unit]
-    ):
+    def test_can_see_enemy_across_river(self, river_map: GameMap, river_units: tuple[Unit, Unit]):
         """Allied rifleman can see Axis soldier across the river."""
         los = LOSSystem(river_map)
         shooter, target = river_units
-        can_see, result = los.check_los(
-            shooter.position.tile_coord, target.position.tile_coord
-        )
-        assert can_see is True, (
-            f"Should see across river! Got: {result.blocking_reason}"
-        )
+        can_see, result = los.check_los(shooter.position.tile_coord, target.position.tile_coord)
+        assert can_see is True, f"Should see across river! Got: {result.blocking_reason}"
         assert result.status == LosStatus.CLEAR
 
     def test_water_does_not_block_attack_line(
@@ -182,9 +188,7 @@ class TestCrossRiverAssault:
         los = LOSSystem(river_map)
         shooter, target = river_units
         # Verify LOS is clear across water
-        can_see, result = los.check_los(
-            shooter.position.tile_coord, target.position.tile_coord
-        )
+        can_see, result = los.check_los(shooter.position.tile_coord, target.position.tile_coord)
         assert can_see is True
         # Verify water still has movement blocking (tactical correctness)
         assert TerrainType.WATER.movement_cost == float("inf")
@@ -232,9 +236,7 @@ class TestBocageFighting:
             },
         )
 
-    def test_hedge_gives_partial_cover_not_full_block(
-        self, bocage_map: GameMap
-    ):
+    def test_hedge_gives_partial_cover_not_full_block(self, bocage_map: GameMap):
         """Shooter can still see target through hedge, but with PARTIAL status."""
         los = LOSSystem(bocage_map)
         can_see, result = los.check_los(TileCoord(2, 8), TileCoord(8, 8))
@@ -243,16 +245,12 @@ class TestBocageFighting:
             f"Expected PARTIAL, got {result.status}: {result.blocking_reason}"
         )
 
-    def test_hedge_partial_still_allows_attack(
-        self, bocage_map: GameMap, pygame_env
-    ):
+    def test_hedge_partial_still_allows_attack(self, bocage_map: GameMap, pygame_env):
         """PARTIAL status integrates to CAN_ATTACK in attack line system."""
         los = LOSSystem(bocage_map)
         _, result = los.check_los(TileCoord(2, 8), TileCoord(8, 8))
         attack_status = los.integrate_to_attack_line_status(result)
-        assert attack_status == "CAN_ATTACK", (
-            "Partial cover should still allow attacking"
-        )
+        assert attack_status == "CAN_ATTACK", "Partial cover should still allow attacking"
 
     def test_hedge_at_different_positions(self):
         """Hedge triggers PARTIAL regardless of position along ray."""
@@ -295,9 +293,7 @@ class TestDefensivePositions:
         )
         los = LOSSystem(gm)
         can_see, result = los.check_los(TileCoord(1, 10), TileCoord(8, 10))
-        assert can_see is True, (
-            "Unit in crater should be visible (cover from cover_bonus, not LOS)"
-        )
+        assert can_see is True, "Unit in crater should be visible (cover from cover_bonus, not LOS)"
         assert result.status == LosStatus.CLEAR
 
     def test_unit_in_foxhole_is_visible(self):
@@ -326,20 +322,14 @@ class TestDefensivePositions:
         """Verify that crater/foxhole/trench provide cover via cover_bonus,
         which affects hit chance in combat resolution, NOT by blocking LOS."""
         # These terrains SHOULD have meaningful cover bonuses
-        assert TerrainType.CRATER.cover_bonus >= 0.20, (
-            "Crater should provide cover via cover_bonus"
-        )
+        assert TerrainType.CRATER.cover_bonus >= 0.20, "Crater should provide cover via cover_bonus"
         assert TerrainType.FOXHOLE.cover_bonus >= 0.25, (
             "Foxhole should provide cover via cover_bonus"
         )
-        assert TerrainType.TRENCH.cover_bonus >= 0.35, (
-            "Trench should provide cover via cover_bonus"
-        )
+        assert TerrainType.TRENCH.cover_bonus >= 0.35, "Trench should provide cover via cover_bonus"
         # But they should NOT block LOS
         for tt in [TerrainType.CRATER, TerrainType.FOXHOLE, TerrainType.TRENCH]:
-            assert tt.blocks_los is False, (
-                f"{tt.name} should not block LOS; cover via cover_bonus"
-            )
+            assert tt.blocks_los is False, f"{tt.name} should not block LOS; cover via cover_bonus"
 
     def test_negative_height_eliminated(self):
         """No terrain type should have negative height after the fix."""
@@ -387,9 +377,7 @@ class TestFullAttackCycleWithLOS:
         }
         return _make_map_with_terrain(width=25, height=15, terrain_overrides=overrides)
 
-    def test_cross_river_then_engage(
-        self, mixed_map: GameMap
-    ):
+    def test_cross_river_then_engage(self, mixed_map: GameMap):
         """Ally sees axis across river — LOS clear for engagement."""
         los = LOSSystem(mixed_map)
 
@@ -398,21 +386,15 @@ class TestFullAttackCycleWithLOS:
         axis = _make_infantry("axis_1", Faction.AXIS, 15, 5)
 
         # Step 1: Check LOS across river
-        can_see, result = los.check_los(
-            ally.position.tile_coord, axis.position.tile_coord
-        )
-        assert can_see is True, (
-            f"Should see across river to engage! {result.blocking_reason}"
-        )
+        can_see, result = los.check_los(ally.position.tile_coord, axis.position.tile_coord)
+        assert can_see is True, f"Should see across river to engage! {result.blocking_reason}"
         assert result.status == LosStatus.CLEAR
 
         # Step 2: Verify attack line status permits engagement
         attack_status = los.integrate_to_attack_line_status(result)
         assert attack_status in ("CAN_ATTACK", "CLEAR")
 
-    def test_hedge_combat_accuracy_penalty(
-        self, mixed_map: GameMap, pygame_env
-    ):
+    def test_hedge_combat_accuracy_penalty(self, mixed_map: GameMap, pygame_env):
         """Attacking through hedge should succeed but with PARTIAL status."""
         los = LOSSystem(mixed_map)
 
@@ -425,9 +407,7 @@ class TestFullAttackCycleWithLOS:
         attack_status = los.integrate_to_attack_line_status(result)
         assert attack_status == "CAN_ATTACK"
 
-    def test_crater_defense_still_takes_damage(
-        self, mixed_map: GameMap
-    ):
+    def test_crater_defense_still_takes_damage(self, mixed_map: GameMap):
         """Unit in crater is visible and can be shot; cover reduces hit chance
         but does not make them invulnerable via LOS blocking."""
         los = LOSSystem(mixed_map)
@@ -437,18 +417,12 @@ class TestFullAttackCycleWithLOS:
         shooter = _make_infantry("shooter", Faction.ALLIES, 8, 8)
         target = _make_infantry("target", Faction.AXIS, target_pos.x, target_pos.y)
 
-        can_see, result = los.check_los(
-            shooter.position.tile_coord, target.position.tile_coord
-        )
-        assert can_see is True, (
-            "Target in crater must be visible for shooting to be possible"
-        )
+        can_see, result = los.check_los(shooter.position.tile_coord, target.position.tile_coord)
+        assert can_see is True, "Target in crater must be visible for shooting to be possible"
         assert result.status == LosStatus.CLEAR
         # Cover bonus (not LOS) protects the target in combat resolution
 
-    def test_combined_scenario_river_plus_hedge(
-        self, mixed_map: GameMap
-    ):
+    def test_combined_scenario_river_plus_hedge(self, mixed_map: GameMap):
         """Complex scenario: LOS path crosses both river AND hedge.
         River: no block (FIX#1). Hedge: PARTIAL (FIX#3)."""
         los = LOSSystem(mixed_map)
@@ -458,9 +432,7 @@ class TestFullAttackCycleWithLOS:
         can_see, result = los.check_los(TileCoord(3, 5), TileCoord(17, 5))
         # River doesn't block (FIX#1); hedge may or may not be on exact path
         # depending on Bresenham line routing
-        assert can_see is True, (
-            f"Should see through combined terrain! {result.blocking_reason}"
-        )
+        assert can_see is True, f"Should see through combined terrain! {result.blocking_reason}"
 
 
 # ===========================================================================
@@ -475,7 +447,8 @@ class TestLOSRegressionGuards:
     def test_woods_still_blocks_completely(self):
         """Dense forest must still completely block LOS."""
         gm = _make_map_with_terrain(
-            width=15, height=15,
+            width=15,
+            height=15,
             terrain_overrides={(7, 7): TerrainType.WOODS},
         )
         los = LOSSystem(gm)
@@ -489,7 +462,8 @@ class TestLOSRegressionGuards:
     def test_building_solid_still_blocks(self):
         """Solid building must still completely block LOS."""
         gm = _make_map_with_terrain(
-            width=15, height=15,
+            width=15,
+            height=15,
             terrain_overrides={(7, 7): TerrainType.BUILDING_SOLID},
         )
         los = LOSSystem(gm)
@@ -503,7 +477,8 @@ class TestLOSRegressionGuards:
     def test_wall_still_blocks(self):
         """Wall must still block LOS."""
         gm = _make_map_with_terrain(
-            width=15, height=15,
+            width=15,
+            height=15,
             terrain_overrides={(7, 7): TerrainType.WALL},
         )
         los = LOSSystem(gm)
@@ -513,7 +488,8 @@ class TestLOSRegressionGuards:
     def test_bunker_still_blocks(self):
         """Bunker must block LOS via blocks_los (height=1 < threshold)."""
         gm = _make_map_with_terrain(
-            width=15, height=15,
+            width=15,
+            height=15,
             terrain_overrides={(7, 7): TerrainType.BUNKER},
         )
         los = LOSSystem(gm)

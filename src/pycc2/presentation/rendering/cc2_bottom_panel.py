@@ -734,9 +734,7 @@ class CC2BottomPanel:
 
     def set_friendly_units(self, units: list[Unit]) -> None:
         """Set the list of friendly units for the roster."""
-        self._friendly_units = sorted(
-            units, key=lambda u: (u.unit_type.value, u.name)
-        )
+        self._friendly_units = sorted(units, key=lambda u: (u.unit_type.value, u.name))
 
     def set_selected_unit(self, unit_id: str | None) -> None:
         """Set selected unit ID."""
@@ -1046,12 +1044,12 @@ class CC2BottomPanel:
             surface.blit(hp_text_surf, (bar_x + bar_width + 3, item_y + 7))
 
             # P2-A: Morale status indicator (small colored dot after name)
-            if hasattr(unit, 'morale') and unit.morale is not None:
+            if hasattr(unit, "morale") and unit.morale is not None:
                 morale_val = unit.morale.value
                 if morale_val > 70:
                     morale_dot_color = (100, 220, 100)  # Green - good morale
                 elif morale_val > 40:
-                    morale_dot_color = (220, 200, 80)   # Yellow - caution
+                    morale_dot_color = (220, 200, 80)  # Yellow - caution
                 else:
                     morale_dot_color = (255, 100, 100)  # Red - low morale
                 dot_x = x + 23 + name_surf.get_width() + 4

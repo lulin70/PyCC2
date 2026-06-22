@@ -12,6 +12,7 @@ import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
+import pygame
 from pygame import mixer
 
 if TYPE_CHECKING:

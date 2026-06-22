@@ -25,7 +25,6 @@ Created: 2026-06-19 — P0 UI alignment with docs/assets/unit-sprites/
 from __future__ import annotations
 
 import logging
-import math
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -150,8 +149,13 @@ def _parse_line_attrs(elem) -> dict:
     width = max(1, int(_parse_float(elem.get("stroke-width"), 1)))
     cap = elem.get("stroke-linecap", "butt")
     return {
-        "x1": x1, "y1": y1, "x2": x2, "y2": y2,
-        "stroke": stroke, "width": width, "cap": cap,
+        "x1": x1,
+        "y1": y1,
+        "x2": x2,
+        "y2": y2,
+        "stroke": stroke,
+        "width": width,
+        "cap": cap,
     }
 
 
@@ -192,7 +196,9 @@ class SVGSpriteLoader:
     @property
     def is_available(self) -> bool:
         """Check if SVG assets directory exists and has files."""
-        return self.svg_root.exists() and self.svg_root.is_dir() and any(self.svg_root.rglob("*.svg"))
+        return (
+            self.svg_root.exists() and self.svg_root.is_dir() and any(self.svg_root.rglob("*.svg"))
+        )
 
     def load(
         self,
@@ -235,7 +241,12 @@ class SVGSpriteLoader:
         if surface is not None:
             self._cache[cache_key] = surface
             self._loaded_count += 1
-            logger.debug("[SVGSpriteLoader] Loaded: %s (%dx%d)", cache_key, surface.get_width(), surface.get_height())
+            logger.debug(
+                "[SVGSpriteLoader] Loaded: %s (%dx%d)",
+                cache_key,
+                surface.get_width(),
+                surface.get_height(),
+            )
         else:
             self._failed_count += 1
 
@@ -251,7 +262,9 @@ class SVGSpriteLoader:
         for (faction, posture, frame), _ in SPRITE_CATALOG.items():
             sprite = self.load(faction, posture, frame, target_size)
             if sprite is not None:
-                cache_key = f"{faction}_{posture}_f{frame}" if frame is not None else f"{faction}_{posture}"
+                cache_key = (
+                    f"{faction}_{posture}_f{frame}" if frame is not None else f"{faction}_{posture}"
+                )
                 results[cache_key] = sprite
 
         logger.info(
@@ -294,7 +307,6 @@ class SVGSpriteLoader:
             return None
 
         root = tree.getroot()
-        ns = {"svg": "http://www.w3.org/2000/svg"}
 
         # Get dimensions from viewBox or width/height attrs
         vb = root.get("viewBox")
@@ -328,7 +340,9 @@ class SVGSpriteLoader:
                 else:
                     logger.debug("[SVGSpriteLoader] Skipping unsupported <%s>", tag)
             except Exception as e:
-                logger.warning("[SVGSpriteLoader] Error rendering <%s> in %s: %s", tag, svg_path.name, e)
+                logger.warning(
+                    "[SVGSpriteLoader] Error rendering <%s> in %s: %s", tag, svg_path.name, e
+                )
 
         # Scale if requested
         if target_size is not None and (vw, vh) != target_size:

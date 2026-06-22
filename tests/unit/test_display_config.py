@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+
 import pytest
 
 from pycc2.domain.interfaces.display_config import (
@@ -14,6 +15,7 @@ def pygame_init():
     """Initialize pygame display for tests that need surface operations."""
     os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
     import pygame
+
     pygame.init()
     screen = pygame.display.set_mode((800, 600))
     yield screen
@@ -276,6 +278,4 @@ class TestDisplayConfigWithSpriteRenderer:
         valid_sizes = {14, 22, 24, 28, 32, 36, 38, 40, 45, 48, 64, 67}
         for key, surf in renderer._sprite_cache.items():
             size = surf.get_size()
-            assert size[0] in valid_sizes, (
-                f"Sprite {key} size {size} unexpected"
-            )
+            assert size[0] in valid_sizes, f"Sprite {key} size {size} unexpected"

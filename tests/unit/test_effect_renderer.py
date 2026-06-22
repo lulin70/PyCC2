@@ -31,7 +31,6 @@ def effect_renderer(pygame_display):
 
 
 class TestEffectRenderer:
-
     # --- Initialization ---
 
     def test_init_default_state(self, effect_renderer):

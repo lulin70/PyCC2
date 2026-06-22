@@ -388,3 +388,34 @@ def pytest_configure(config):
     logger.info("Python version: %s", sys.version)
     logger.info("SDL_VIDEODRIVER: %s", os.environ.get("SDL_VIDEODRIVER", "not set"))
     logger.info("SDL_AUDIODRIVER: %s", os.environ.get("SDL_AUDIODRIVER", "not set"))
+
+
+# P1 Fix: Autouse fixture to recover pygame state before each test.
+# Many E2E/integration tests call pygame.quit() in teardown, breaking subsequent tests.
+@pytest.fixture(autouse=True)
+def _pygame_recovery():
+    """Auto-recover pygame state before each test that needs display."""
+    import pygame
+
+    try:
+        needs_recovery = False
+        if not pygame.get_init():
+            needs_recovery = True
+        else:
+            try:
+                pygame.display.get_surface()
+            except Exception:
+                needs_recovery = True
+
+        if needs_recovery:
+            try:
+                os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+                if not pygame.get_init():
+                    pygame.init()
+                pygame.display.set_mode((800, 600))
+            except Exception:
+                pass  # Best effort; test may skip via can_render
+
+        yield
+    except Exception:
+        yield

@@ -7,7 +7,8 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 import numpy as np
-from pygame import mixer, error as pygame_error
+from pygame import error as pygame_error
+from pygame import mixer
 
 from pycc2.presentation.audio.sound_effects import SoundEffectsMixin
 

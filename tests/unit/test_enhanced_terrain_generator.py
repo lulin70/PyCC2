@@ -33,6 +33,7 @@ class TestEnhancedTerrainGenerator:
         from pycc2.presentation.rendering.enhanced_terrain_generator import (
             EnhancedTerrainGenerator,
         )
+
         return EnhancedTerrainGenerator(seed=42)
 
     # ===== HAPPY PATH TESTS =====
@@ -44,7 +45,9 @@ class TestEnhancedTerrainGenerator:
             for y in [0.0, 2.3, 15.0, 200.0]:
                 noise_val = terrain_generator.perlin_noise_2d(x, y, seed=42)
                 # Perlin noise should be roughly in range [-1, 1]
-                assert -2.0 <= noise_val <= 2.0, f"Noise value {noise_val} out of range at ({x}, {y})"
+                assert -2.0 <= noise_val <= 2.0, (
+                    f"Noise value {noise_val} out of range at ({x}, {y})"
+                )
 
     def test_octave_noise_default_parameters(self, terrain_generator, pygame_display):
         """Test octave noise with default parameters produces valid output."""
@@ -57,29 +60,35 @@ class TestEnhancedTerrainGenerator:
         x, y = 10.0, 20.0
         octave_val = terrain_generator.octave_noise(x, y, octaves=1, persistence=0.5)
         perlin_val = terrain_generator.perlin_noise_2d(x, y, terrain_generator.seed)
-        
+
         # Should be very similar (within floating point precision)
         assert abs(octave_val - perlin_val) < 0.01
 
-    def test_generate_enhanced_grass_tile_returns_valid_surface(self, terrain_generator, pygame_display):
+    def test_generate_enhanced_grass_tile_returns_valid_surface(
+        self, terrain_generator, pygame_display
+    ):
         """Test that enhanced grass tile generation returns valid pygame Surface."""
         import pygame
+
         from pycc2.presentation.rendering.isometric_tile_generator import TILE_H, TILE_W
 
         surface = terrain_generator.generate_enhanced_grass_tile()
-        
+
         assert surface is not None
         assert isinstance(surface, pygame.Surface)
         assert surface.get_size() == (TILE_W, TILE_H)
         assert surface.get_flags() & pygame.SRCALPHA  # Has alpha channel
 
-    def test_generate_enhanced_dirt_tile_returns_valid_surface(self, terrain_generator, pygame_display):
+    def test_generate_enhanced_dirt_tile_returns_valid_surface(
+        self, terrain_generator, pygame_display
+    ):
         """Test that enhanced dirt tile generation returns valid pygame Surface."""
         import pygame
+
         from pycc2.presentation.rendering.isometric_tile_generator import TILE_H, TILE_W
 
         surface = terrain_generator.generate_enhanced_dirt_tile()
-        
+
         assert surface is not None
         assert isinstance(surface, pygame.Surface)
         assert surface.get_size() == (TILE_W, TILE_H)
@@ -88,46 +97,45 @@ class TestEnhancedTerrainGenerator:
     def test_grass_tile_has_color_variation(self, terrain_generator, pygame_display):
         """Test that grass tiles have color variation (not uniform)."""
         surface = terrain_generator.generate_enhanced_grass_tile()
-        
+
         # Sample multiple pixels
         colors_seen = set()
         for x in range(0, surface.get_width(), 8):
             for y in range(0, surface.get_height(), 8):
                 color = surface.get_at((x, y))
                 colors_seen.add(color[:3])  # Ignore alpha
-        
+
         # Should have multiple different colors (variation)
         assert len(colors_seen) > 5, "Grass tile lacks color variation"
 
     def test_dirt_tile_has_color_variation(self, terrain_generator, pygame_display):
         """Test that dirt tiles have color variation (not uniform)."""
         surface = terrain_generator.generate_enhanced_dirt_tile()
-        
+
         # Sample multiple pixels
         colors_seen = set()
         for x in range(0, surface.get_width(), 8):
             for y in range(0, surface.get_height(), 8):
                 color = surface.get_at((x, y))
                 colors_seen.add(color[:3])
-        
+
         assert len(colors_seen) > 5, "Dirt tile lacks color variation"
 
     def test_smooth_edge_transition_top(self, terrain_generator, pygame_display):
         """Test smooth edge transition on top edge."""
         import pygame
+
         from pycc2.presentation.rendering.isometric_tile_generator import TILE_H, TILE_W
 
         surface = pygame.Surface((TILE_W, TILE_H), pygame.SRCALPHA)
         surface.fill((100, 200, 100, 255))  # Green base
-        
-        terrain_generator.apply_smooth_edge_transition(
-            surface, "dirt_road", "top"
-        )
-        
+
+        terrain_generator.apply_smooth_edge_transition(surface, "dirt_road", "top")
+
         # Top pixels should be modified
         top_color = surface.get_at((TILE_W // 2, 0))
         base_color = surface.get_at((TILE_W // 2, TILE_H // 2))
-        
+
         # Colors should be different due to blending
         assert top_color[:3] != base_color[:3]
 
@@ -137,7 +145,7 @@ class TestEnhancedTerrainGenerator:
         """Test Perlin noise at origin (boundary condition)."""
         noise_val = terrain_generator.perlin_noise_2d(0.0, 0.0, seed=0)
         assert isinstance(noise_val, float)
-        assert not (noise_val != noise_val), "Noise should not be NaN"  # Check for NaN
+        assert noise_val == noise_val, "Noise should not be NaN"  # Check for NaN
 
     def test_perlin_noise_at_large_coordinates(self, terrain_generator, pygame_display):
         """Test Perlin noise at very large coordinates (boundary condition)."""
@@ -162,7 +170,7 @@ class TestEnhancedTerrainGenerator:
         # Very low persistence
         noise_val_low = terrain_generator.octave_noise(5.0, 5.0, persistence=0.0)
         assert isinstance(noise_val_low, float)
-        
+
         # Very high persistence
         noise_val_high = terrain_generator.octave_noise(5.0, 5.0, persistence=1.0)
         assert isinstance(noise_val_high, float)
@@ -170,15 +178,14 @@ class TestEnhancedTerrainGenerator:
     def test_smooth_edge_transition_invalid_neighbor(self, terrain_generator, pygame_display):
         """Test smooth edge transition with invalid neighbor type (error handling)."""
         import pygame
+
         from pycc2.presentation.rendering.isometric_tile_generator import TILE_H, TILE_W
 
         surface = pygame.Surface((TILE_W, TILE_H), pygame.SRCALPHA)
         surface.fill((100, 200, 100, 255))
-        
+
         # Should handle gracefully without crashing
-        terrain_generator.apply_smooth_edge_transition(
-            surface, "invalid_terrain_type", "top"
-        )
+        terrain_generator.apply_smooth_edge_transition(surface, "invalid_terrain_type", "top")
         # Should not modify surface (invalid type)
         assert surface is not None
 
@@ -197,7 +204,7 @@ class TestEnhancedTerrainGenerator:
             5.0, 5.0, octaves=5, persistence=0.0, lacunarity=2.0
         )
         assert isinstance(noise_val, float)
-        assert not (noise_val != noise_val), "Should not produce NaN"
+        assert noise_val == noise_val, "Should not produce NaN"
 
     # ===== REPRODUCIBILITY TESTS =====
 
@@ -206,13 +213,13 @@ class TestEnhancedTerrainGenerator:
         from pycc2.presentation.rendering.enhanced_terrain_generator import (
             EnhancedTerrainGenerator,
         )
-        
+
         gen1 = EnhancedTerrainGenerator(seed=12345)
         gen2 = EnhancedTerrainGenerator(seed=12345)
-        
+
         surface1 = gen1.generate_enhanced_grass_tile()
         surface2 = gen2.generate_enhanced_grass_tile()
-        
+
         # Sample a few pixels to verify they match
         for x in range(0, surface1.get_width(), 10):
             for y in range(0, surface1.get_height(), 10):
@@ -225,18 +232,20 @@ class TestEnhancedTerrainGenerator:
         from pycc2.presentation.rendering.enhanced_terrain_generator import (
             EnhancedTerrainGenerator,
         )
-        
+
         gen1 = EnhancedTerrainGenerator(seed=111)
         gen2 = EnhancedTerrainGenerator(seed=999)
-        
+
         # The generators should have different internal random states
         # This affects grass blade placement (Layer 3 in grass generation)
         rand_values_1 = [gen1.rng.random() for _ in range(5)]
         rand_values_2 = [gen2.rng.random() for _ in range(5)]
-        
+
         # At least one value should be different
-        assert rand_values_1 != rand_values_2, "Different seeds should produce different random sequences"
-        
+        assert rand_values_1 != rand_values_2, (
+            "Different seeds should produce different random sequences"
+        )
+
         # Verify that the seed attribute is different
         assert gen1.seed != gen2.seed, "Generators should have different seeds"
 
@@ -248,9 +257,9 @@ class TestEnhancedTerrainGenerator:
             generate_enhanced_dirt,
             generate_enhanced_grass,
         )
-        
+
         grass = generate_enhanced_grass()
         assert grass is not None
-        
+
         dirt = generate_enhanced_dirt()
         assert dirt is not None

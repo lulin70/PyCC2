@@ -16,46 +16,81 @@ real SVG sprites, real HUD panel, and real AI system.
 import os
 import sys
 
-os.environ["SDL_VIDEODRIVER"] = "dummy"
+# P1 Fix: SDL_VIDEODRIVER is set by conftest.py; don't duplicate here
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
+import pygame
 import pytest
 
-import pygame
-
-pygame.init()
-
-from pycc2.domain.entities.unit import Unit, Faction, UnitType
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent
 from pycc2.domain.components.position_component import PositionComponent
 from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
+
+# P1 Fix: Removed module-level pygame.init() — let conftest handle lazy init
+# pygame.init() is now called inside game_env fixture only
+from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.presentation.rendering.window_config import DisplayInfo, WindowManager
-from pycc2.services.game_loop_assembler import GameLoopAssembler
 
+# ===========================================================================
+# CI Display Detection
+# ===========================================================================
+
+
+def _can_create_display() -> bool:
+    """Check if pygame can create a scaled/double-buffered display.
+
+    WindowManager.initialize() uses SCALED | RESIZABLE | DOUBLEBUF + vsync=1
+    which fails in CI's SDL dummy driver even though basic set_mode() succeeds.
+    We must replicate the exact same flags to get an accurate check.
+    """
+    try:
+        os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+        if not pygame.get_init():
+            pygame.init()
+        flags = pygame.SCALED | pygame.RESIZABLE | pygame.DOUBLEBUF
+        surf = pygame.display.set_mode((320, 240), flags, vsync=1)  # noqa: F841
+        pygame.display.quit()
+        return True
+    except Exception:
+        return False
+
+
+_SKIP_REASON = "Requires display renderer (unavailable in this environment)"
+
+
+# Skip entire module if display cannot be created
+pytestmark = pytest.mark.skipif(not _can_create_display(), reason=_SKIP_REASON)
 
 # ===========================================================================
 # Fixtures
 # ===========================================================================
 
+
 @pytest.fixture(scope="module")
 def game_env():
-    """Create a complete game environment with units on both sides."""
+    """Create a complete game environment with units on both sides.
+
+    P1 Fix: Lazy pygame init — only when this fixture is requested.
+    """
+    # Ensure pygame is initialized before creating window
+    if not pygame.get_init():
+        pygame.init()
     wm = WindowManager(DisplayInfo(base_width=1280, base_height=720))
     screen = wm.initialize()
 
-    from pycc2.services.game_loop import GameLoop, GameState
-    from pycc2.domain.entities.game_map import GameMap
-    from pycc2.presentation.rendering.camera import Camera
-    from pycc2.services.event_bus import EventBus
-    from pycc2.domain.value_objects.vec2 import Vec2
-    from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-    from pycc2.presentation.input.interaction_controller import InteractionController
-
     # Create minimal game state with real map
     import numpy as np
+
+    from pycc2.domain.entities.game_map import GameMap
+    from pycc2.domain.value_objects.vec2 import Vec2
+    from pycc2.presentation.input.interaction_controller import InteractionController
+    from pycc2.presentation.rendering.camera import Camera
+    from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
+    from pycc2.services.event_bus import EventBus
+    from pycc2.services.game_loop import GameLoop, GameState
 
     tile_grid = np.zeros((30, 40), dtype=np.int8)  # All grass (terrain type 0)
     game_map = GameMap(
@@ -93,7 +128,7 @@ def game_env():
         loop.renderer._screen = screen
 
     # Wire interaction controller callbacks to game state (normally done by assembler)
-    ic.register_on_selected(lambda ids: setattr(loop.state, 'selected_unit_ids', ids))
+    ic.register_on_selected(lambda ids: setattr(loop.state, "selected_unit_ids", ids))
 
     # Place Allied squad in center-left
     allies = Unit(
@@ -178,9 +213,15 @@ class TestRealGameplayOperations:
         sp = loop.state.camera.world_to_screen(px)  # Returns tuple (x, y)
 
         # Debug: verify unit is in viewport
-        print(f"  [DEBUG] Unit pixel_pos=({px.x:.0f},{px.y:.0f}) screen_pos=({sp[0]:.0f},{sp[1]:.0f})")
-        print(f"  [DEBUG] Camera pos=({loop.state.camera.position.x:.0f},{loop.state.camera.position.y:.0f}) zoom={loop.state.camera.zoom}")
-        print(f"  [DEBUG] Viewport={loop.state.camera.viewport_width}x{loop.state.camera.viewport_height}")
+        print(
+            f"  [DEBUG] Unit pixel_pos=({px.x:.0f},{px.y:.0f}) screen_pos=({sp[0]:.0f},{sp[1]:.0f})"
+        )
+        print(
+            f"  [DEBUG] Camera pos=({loop.state.camera.position.x:.0f},{loop.state.camera.position.y:.0f}) zoom={loop.state.camera.zoom}"
+        )
+        print(
+            f"  [DEBUG] Viewport={loop.state.camera.viewport_width}x{loop.state.camera.viewport_height}"
+        )
 
         selected = ic.handle_left_click(sp, loop.state.units)
 
@@ -191,7 +232,9 @@ class TestRealGameplayOperations:
 
         # Direct hit_test check
         ht_result = ic.hit_test(sp, loop.state.units)
-        print(f"  [DEBUG] hit_test result: is_unit_click={ht_result.is_unit_click}, hit_unit={ht_result.hit_unit}")
+        print(
+            f"  [DEBUG] hit_test result: is_unit_click={ht_result.is_unit_click}, hit_unit={ht_result.hit_unit}"
+        )
 
         assert allies.id in selected, f"Unit {allies.id} should be selected"
         assert len(selected) == 1, "Should select exactly one unit"
@@ -199,7 +242,7 @@ class TestRealGameplayOperations:
 
         # HUD should now show this unit's details
         assert loop.state.selected_unit_ids == {allies.id}
-        print(f"  ✅ Selected: {allies.name} at tile ({px.x/48:.0f}, {px.y/48:.0f})")
+        print(f"  ✅ Selected: {allies.name} at tile ({px.x / 48:.0f}, {px.y / 48:.0f})")
 
     def test_phase1_select_enemy_shows_attack_cursor(self, game_env):
         """Phase 1b: Hovering over enemy with selection shows attack cursor."""
@@ -221,8 +264,9 @@ class TestRealGameplayOperations:
         # Cursor should be ATTACK type when hovering enemy while friendly unit selected
         from pycc2.presentation.ui.cursor_manager import CursorType
 
-        assert ic.cursor_manager.current == CursorType.ATTACK, \
+        assert ic.cursor_manager.current == CursorType.ATTACK, (
             "Hovering enemy with selection should show attack cursor"
+        )
 
     # ==================================================================
     # Phase 2: Move Command
@@ -258,7 +302,9 @@ class TestRealGameplayOperations:
 
         assert len(moves_issued) >= 1, "Move command should have been issued"
         assert allies.id in moves_issued[0]["ids"], "Allied unit should be in move command"
-        print(f"  ✅ Move command: -> ({moves_issued[0]['pos'][0]:.0f}, {moves_issued[0]['pos'][1]:.0f})")
+        print(
+            f"  ✅ Move command: -> ({moves_issued[0]['pos'][0]:.0f}, {moves_issued[0]['pos'][1]:.0f})"
+        )
 
     def test_phase2_move_via_radial_menu(self, game_env):
         """Phase 2b: User right-drag to show radial menu → select MOVE → release on target."""
@@ -299,7 +345,7 @@ class TestRealGameplayOperations:
 
     def test_phase3_los_clear_to_visible_enemy(self, game_env):
         """Phase 3: Check that allied unit has clear LOS to visible Axis MG."""
-        from pycc2.domain.systems.los_system import LOSSystem, LosStatus
+        from pycc2.domain.systems.los_system import LosStatus, LOSSystem
 
         game_map = game_env["loop"].state.game_map
         los = LOSSystem(game_map=game_map)
@@ -307,13 +353,14 @@ class TestRealGameplayOperations:
         axis_mg = game_env["axis_mg"]
 
         can_see, los_result = los.check_los(allies.position.tile_coord, axis_mg.position.tile_coord)
-        assert los_result.status != LosStatus.OUT_OF_RANGE, \
-            f"Enemy MG should be within visual range (distance ~12 tiles)"
+        assert los_result.status != LosStatus.OUT_OF_RANGE, (
+            "Enemy MG should be within visual range (distance ~12 tiles)"
+        )
         print(f"  ✅ LOS to Axis MG: {los_result.status.name}")
 
     def test_phase3_los_blocked_by_terrain(self, game_env):
         """Phase 3b: Place a building between units → LOS should be blocked."""
-        from pycc2.domain.systems.los_system import LOSSystem, LosStatus
+        from pycc2.domain.systems.los_system import LosStatus, LOSSystem
         from pycc2.domain.value_objects.terrain_type import TerrainType
 
         game_map = game_env["loop"].state.game_map
@@ -376,8 +423,9 @@ class TestRealGameplayOperations:
         ic.handle_right_click(ax_sp, loop.state.units)
 
         assert len(attacks_issued) >= 1, "Attack command should have been issued"
-        assert attacks_issued[0]["target"] == axis_mg.id, \
+        assert attacks_issued[0]["target"] == axis_mg.id, (
             f"Target should be Axis MG ({axis_mg.id}), got {attacks_issued[0]['target']}"
+        )
         print(f"  ✅ Attack: Alpha Squad -> {axis_mg.name}")
 
     def test_phase4_attack_via_radial_menu_fire(self, game_env):
@@ -439,7 +487,9 @@ class TestRealGameplayOperations:
         ic.handle_shortcut_key(pygame.K_d)
 
         # Should publish defend event with "command" key
-        defend_found = any(isinstance(e, dict) and e.get("command") == "defend" for e in published_events)
+        defend_found = any(
+            isinstance(e, dict) and e.get("command") == "defend" for e in published_events
+        )
         assert defend_found, "D key should issue defend command via publish(dict)"
         print(f"  ✅ Defend command issued via D key (captured {len(published_events)} events)")
 
@@ -499,16 +549,17 @@ class TestRealGameplayOperations:
                         pytest.skip(f"AI registration not available: {exc}")
 
         ai_count_after = loop.ai_service.managed_unit_count if loop.ai_service else 0
-        print(f"  ✅ AI managing {ai_count_after} Axis units (manual register fallback used={ai_count == 0})")
+        print(
+            f"  ✅ AI managing {ai_count_after} Axis units (manual register fallback used={ai_count == 0})"
+        )
 
     def test_phase6_ai_produces_intents_after_ticks(self, game_env):
         """Phase 6b: After enough ticks, AI produces movement/combat intents."""
         loop = game_env["loop"]
 
         # Run many ticks to let AI think
-        intents_before = []
         if loop.ai_service:
-            intents_before = loop.ai_service.tick() or []
+            loop.ai_service.tick() or []
 
         for _ in range(30):  # Simulate ~0.5 seconds of gameplay
             loop._update_logic(0.016)
@@ -548,8 +599,9 @@ class TestRealGameplayOperations:
         # Verify screen was drawn to (not blank)
         pixel_at_center = screen.get_at((640, 360))
         # Should NOT be pure background color (something was rendered)
-        assert (pixel_at_center.r, pixel_at_center.g, pixel_at_center.b) != (28, 32, 24), \
+        assert (pixel_at_center.r, pixel_at_center.g, pixel_at_center.b) != (28, 32, 24), (
             "Screen center should have rendered content (terrain/units/HUD)"
+        )
 
         # Save screenshot for manual inspection
         out_dir = os.path.join(os.path.dirname(__file__), "..", "screenshots")
@@ -576,8 +628,7 @@ class TestRealGameplayOperations:
         # The CC2BottomPanel uses BG_COLOR which is different from (28,32,24)
         bg_fill = (28, 32, 24)
         hud_color = (hud_pixel.r, hud_pixel.g, hud_pixel.b)
-        assert hud_color != bg_fill, \
-            f"HUD area should differ from background (got {hud_color})"
+        assert hud_color != bg_fill, f"HUD area should differ from background (got {hud_color})"
 
         print(f"  ✅ HUD panel verified at y=650: RGB{hud_color}")
 
@@ -607,10 +658,13 @@ class TestRealGameplayOperations:
         # At least some pixels around unit should differ from background
         bg = (28, 32, 24, 255)
         non_bg_pixels = [c for c in colors_around_unit if c[:3] != bg[:3]]
-        assert len(non_bg_pixels) >= 2, \
+        assert len(non_bg_pixels) >= 2, (
             f"Sprite should be visible near unit pos ({sp[0]:.0f}, {sp[1]:.0f}), got colors: {colors_around_unit}"
+        )
 
-        print(f"  ✅ Sprite visible at ({sp[0]:.0f}, {sp[1]:.0f}): {len(non_bg_pixels)}/{len(colors_around_unit)} non-bg pixels")
+        print(
+            f"  ✅ Sprite visible at ({sp[0]:.0f}, {sp[1]:.0f}): {len(non_bg_pixels)}/{len(colors_around_unit)} non-bg pixels"
+        )
 
     def test_phase7_terrain_bright_colors(self, game_env):
         """Phase 7d: Terrain uses brightened CC2 palette (not dark gray).
@@ -640,15 +694,19 @@ class TestRealGameplayOperations:
                 brightness_sum += (r + g + b) / 3
 
         # At least some samples should show rendered terrain (not background fill)
-        assert non_bg_count >= 2, \
+        assert non_bg_count >= 2, (
             f"Terrain should be rendered at >=2 sample points (got {non_bg_count}/4)"
+        )
         # Average brightness should be reasonable (not near-black)
         if non_bg_count > 0:
             avg_brightness = brightness_sum / non_bg_count
-            assert avg_brightness > 40, \
+            assert avg_brightness > 40, (
                 f"Terrain should be visibly brightened (avg brightness > 40), got {avg_brightness:.0f}"
+            )
 
-        print(f"  ✅ Terrain rendered: {non_bg_count}/4 non-bg samples, avg brightness={brightness_sum/max(non_bg_count,1):.0f}")
+        print(
+            f"  ✅ Terrain rendered: {non_bg_count}/4 non-bg samples, avg brightness={brightness_sum / max(non_bg_count, 1):.0f}"
+        )
 
 
 class TestGameplayCommandSequence:
@@ -695,7 +753,8 @@ class TestGameplayCommandSequence:
 
         los = LOSSystem(game_map=loop.state.game_map)
         can_see, los_result = los.check_los(
-            allies.position.tile_coord, axis_mg.position.tile_coord,
+            allies.position.tile_coord,
+            axis_mg.position.tile_coord,
         )
         log.append(f"LOS={los_result.status.name}")
 
