@@ -565,6 +565,8 @@ class MoraleSystem:
         Check if unit will accept player/AI orders.
 
         Broken and routing units may ignore commands.
+        Routing units are completely uncontrollable regardless of
+        their numeric morale value.
 
         Args:
             unit: Unit to check
@@ -574,6 +576,12 @@ class MoraleSystem:
         """
         if unit.morale is None:
             return True
+
+        # Check component-level routing state first — overrides numeric mapping.
+        # A unit in active routing mode (via start_routing()) must refuse orders
+        # even when its numeric morale value would map to BROKEN or another state.
+        if getattr(unit.morale, "_is_routing", False):
+            return False
 
         current_state = MoraleSystem.get_state(unit.morale.value)
 
