@@ -51,7 +51,7 @@ def _can_create_display() -> bool:
         if not pygame.get_init():
             pygame.init()
         flags = pygame.SCALED | pygame.RESIZABLE | pygame.DOUBLEBUF
-        surf = pygame.display.set_mode((320, 240), flags, vsync=1)
+        surf = pygame.display.set_mode((320, 240), flags, vsync=1)  # noqa: F841
         pygame.display.quit()
         return True
     except Exception:
