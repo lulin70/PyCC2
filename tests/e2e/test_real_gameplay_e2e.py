@@ -40,16 +40,18 @@ from pycc2.presentation.rendering.window_config import DisplayInfo, WindowManage
 
 
 def _can_create_display() -> bool:
-    """Check if pygame can create a hardware-accelerated display.
+    """Check if pygame can create a scaled/double-buffered display.
 
-    In CI environments (GitHub Actions, Docker), SDL_VIDEODRIVER=dummy
-    often cannot create a real renderer. Returns False in such cases.
+    WindowManager.initialize() uses SCALED | RESIZABLE | DOUBLEBUF + vsync=1
+    which fails in CI's SDL dummy driver even though basic set_mode() succeeds.
+    We must replicate the exact same flags to get an accurate check.
     """
     try:
         os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
         if not pygame.get_init():
             pygame.init()
-        surf = pygame.display.set_mode((320, 240))  # noqa: F841 — used to verify display works
+        flags = pygame.SCALED | pygame.RESIZABLE | pygame.DOUBLEBUF
+        surf = pygame.display.set_mode((320, 240), flags, vsync=1)
         pygame.display.quit()
         return True
     except Exception:
