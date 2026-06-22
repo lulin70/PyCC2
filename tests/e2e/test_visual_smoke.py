@@ -1,11 +1,11 @@
 import os
 
+import numpy as np
 import pytest
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
-import numpy as np
 import pygame
 
 from pycc2.domain.components.health_component import HealthComponent
@@ -26,6 +26,18 @@ from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 from pycc2.presentation.rendering.window_config import WindowManager
 
 
+def _can_create_display() -> bool:
+    """Check if pygame can create a display in this environment."""
+    try:
+        if not pygame.get_init():
+            pygame.init()
+        surf = pygame.display.set_mode((320, 240))  # noqa: F841 — used to verify display works
+        pygame.display.quit()
+        return True
+    except Exception:
+        return False
+
+
 def _make_unit(unit_id: str = "u1") -> Unit:
     return Unit(
         id=unit_id,
@@ -42,11 +54,15 @@ def _make_unit(unit_id: str = "u1") -> Unit:
 
 @pytest.fixture(autouse=True)
 def setup_pygame():
-    pygame.init()
+    if not pygame.get_init():
+        pygame.init()
     yield
-    pygame.quit()
+    # Don't quit — conftest _pygame_recovery handles cleanup
 
 
+@pytest.mark.skipif(
+    not _can_create_display(), reason="Requires display renderer (unavailable in CI)"
+)
 class TestVisualSmoke:
     def test_full_render_pipeline_no_crash(self):
         grid = np.zeros((16, 16), dtype=np.int8)

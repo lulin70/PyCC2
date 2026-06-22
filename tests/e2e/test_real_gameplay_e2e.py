@@ -35,6 +35,34 @@ from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.presentation.rendering.window_config import DisplayInfo, WindowManager
 
 # ===========================================================================
+# CI Display Detection
+# ===========================================================================
+
+
+def _can_create_display() -> bool:
+    """Check if pygame can create a hardware-accelerated display.
+
+    In CI environments (GitHub Actions, Docker), SDL_VIDEODRIVER=dummy
+    often cannot create a real renderer. Returns False in such cases.
+    """
+    try:
+        os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+        if not pygame.get_init():
+            pygame.init()
+        surf = pygame.display.set_mode((320, 240))  # noqa: F841 — used to verify display works
+        pygame.display.quit()
+        return True
+    except Exception:
+        return False
+
+
+_SKIP_REASON = "Requires display renderer (unavailable in this environment)"
+
+
+# Skip entire module if display cannot be created
+pytestmark = pytest.mark.skipif(not _can_create_display(), reason=_SKIP_REASON)
+
+# ===========================================================================
 # Fixtures
 # ===========================================================================
 
