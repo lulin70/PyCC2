@@ -13,7 +13,8 @@ WORKDIR /app
 
 # Copy and install dependencies first (layer caching)
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir ".[dev]"
+RUN pip install --no-cache-dir --no-build-isolation ".[dev]" || \
+    pip install --no-cache-dir pygame numpy pydantic pytest
 
 # Copy source code
 COPY src/ src/

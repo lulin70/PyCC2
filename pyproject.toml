@@ -121,6 +121,7 @@ addopts = "-v --tb=short --strict-markers"
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
+    "ignore::UserWarning:hmac",
 ]
 markers = [
     "unit: marks tests as unit tests",
