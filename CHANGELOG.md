@@ -43,6 +43,24 @@ All notable changes to PyCC2 will be documented in this file.
 - Deleted 11 redundant diagnostic screenshots
 - Total test count: 4269 passed, 0 failed, 49 known pygame-init errors (pass individually)
 
+## [0.3.42.1] - 2026-06-23
+
+### P0: Morale System Routing Bug Fix (PR #8)
+- **[FIX]** `MoraleSystem.can_accept_orders()` returned True for routing units
+- Root cause: `get_state(morale_value)` maps numeric value only — value=5 → BROKEN, never reaches ROUTING branch
+- Fix: Check component-level `_is_routing` flag before numeric state mapping in `can_accept_orders()`
+- Removed `@pytest.mark.xfail` from `test_routing_cannot_accept_orders` — now passes (+1 pass)
+- Test result: **4298 passed, 0 failed** (up from 4297)
+
+### P1: Directory Cleanup
+- Moved `screenshot_real_game.py` from root directory to `scripts/`
+- Root directory now contains only standard project config files
+
+### P0: Version Synchronization Fix (PR #9)
+- **[FIX]** `pyproject.toml` version updated from 0.3.41 → 0.3.42 (matches README/CHANGELOG)
+- **[FIX]** README test badge updated from ~4269 → ~4298 (matches actual test count)
+- All three version sources now consistent: pyproject.toml = README.md = CHANGELOG.md = 0.3.42
+
 ## [0.3.41] - 2026-06-14
 
 ### Architecture: SpriteRenderer Responsibility Separation
