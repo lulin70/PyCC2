@@ -23,6 +23,9 @@ from pycc2.domain.ai.tactical_ai_types import (  # noqa: F401
     PrioritizedIntent,
     TacticalAIBase,
     TacticalContext,
+    _flank_position,
+    _infer_facing,
+    _threat_score,
 )
 
 # -- AI modules --
@@ -39,6 +42,9 @@ __all__ = [
     "PrioritizedIntent",
     "TacticalAIBase",
     "TacticalContext",
+    "_flank_position",
+    "_infer_facing",
+    "_threat_score",
     "FlankingAI",
     "SuppressionAI",
     "InfantryTankCoordAI",
