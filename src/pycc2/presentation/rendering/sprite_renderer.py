@@ -14,9 +14,8 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.interfaces.display_config import DisplayConfig
+    from pycc2.domain.value_objects.vec2 import Vec2
     from pycc2.presentation.rendering.camera import Camera
-
-    from ..domain.value_objects.vec2 import Vec2
 
 from pycc2.presentation.rendering.animation_system import (
     ParticleEmitter,

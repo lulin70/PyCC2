@@ -576,7 +576,7 @@ class TerrainRenderingSystem:
             if hasattr(game_map, "height_map") and game_map.height_map is not None:
                 height = int(game_map.height_map[y, x])
 
-            from pycc2.domain.entities.enhanced_tile import EnhancedTile
+            from pycc2.domain.systems.enhanced_tile import EnhancedTile
 
             return EnhancedTile(
                 base_terrain=terrain_id, height=height, variation=0, decoration=None

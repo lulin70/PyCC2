@@ -30,9 +30,8 @@ from pycc2.presentation.rendering.surface_pool import SurfacePool
 
 if TYPE_CHECKING:
     from pycc2.domain.interfaces.display_config import DisplayConfig
+    from pycc2.domain.value_objects.vec2 import Vec2
     from pycc2.presentation.rendering.camera import Camera
-
-    from ..domain.value_objects.vec2 import Vec2
 
 logger = logging.getLogger(__name__)
 

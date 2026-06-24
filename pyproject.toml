@@ -105,6 +105,9 @@ explicit_package_bases = true
 module = [
     "pygame.*",
     "numpy.*",
+    "scipy.*",
+    "py7zr",
+    "AppKit",
 ]
 ignore_missing_imports = true
 
@@ -121,6 +124,7 @@ addopts = "-v --tb=short --strict-markers"
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
+    "ignore::UserWarning:hmac",
 ]
 markers = [
     "unit: marks tests as unit tests",

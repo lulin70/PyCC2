@@ -11,13 +11,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy and install dependencies first (layer caching)
+# Copy source code FIRST (setuptools needs src/ for egg_base)
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir ".[dev]"
-
-# Copy source code
 COPY src/ src/
 COPY tests/ tests/
+
+# Install dependencies (layer caching)
+RUN pip install --no-cache-dir --no-build-isolation ".[dev]" || \
+    pip install --no-cache-dir pygame numpy pydantic pytest
 
 # Set environment for headless CI
 ENV SDL_VIDEODRIVER=dummy
