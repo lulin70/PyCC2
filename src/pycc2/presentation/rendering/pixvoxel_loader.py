@@ -390,7 +390,7 @@ class PixVoxelLoader:
 
         # Method 1: py7zr Python library
         try:
-            import py7zr  # noqa: F811
+            import py7zr  # type: ignore[import-not-found]
 
             logger.info("Extracting with py7zr: %s", archive_path)
             with py7zr.SevenZipFile(str(archive_path), mode="r") as z:

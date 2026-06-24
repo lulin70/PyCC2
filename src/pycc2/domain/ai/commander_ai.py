@@ -643,7 +643,7 @@ class TacticalAdvisor:
 
 
 if TYPE_CHECKING:
-    from pycc2.domain.combat.combat_engagement import CombatEngagement
-    from pycc2.domain.difficulty.difficulty_system import DifficultyConfig
+    from pycc2.domain.ai.combat_engagement import CombatEngagement
+    from pycc2.domain.ai.difficulty_system import DifficultyConfig
 
     from pycc2.domain.ai.squad_coordinator import SquadCoordinator
