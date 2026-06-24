@@ -11,14 +11,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy and install dependencies first (layer caching)
+# Copy source code first
+COPY src/ src/
+COPY tests/ tests/
+
+# Copy and install dependencies (layer caching)
 COPY pyproject.toml ./
 RUN pip install --no-cache-dir --no-build-isolation ".[dev]" || \
     pip install --no-cache-dir pygame numpy pydantic pytest
-
-# Copy source code
-COPY src/ src/
-COPY tests/ tests/
 
 # Set environment for headless CI
 ENV SDL_VIDEODRIVER=dummy

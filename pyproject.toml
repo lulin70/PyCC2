@@ -109,6 +109,10 @@ module = [
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
+module = ["scipy.*", "py7zr", "AppKit"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
 module = ["tests.*"]
 disallow_untyped_defs = false
 
