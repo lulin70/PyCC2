@@ -21,7 +21,6 @@ Placement rules:
 from __future__ import annotations
 
 import logging
-import math
 from dataclasses import field
 
 logger = logging.getLogger(__name__)
@@ -29,6 +28,9 @@ logger = logging.getLogger(__name__)
 # Import extracted modules (SRP refactoring v0.3.29)
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.presentation.rendering.camera import Camera
+
+# Import extracted subsystems (SRP refactoring v0.3.31)
+from pycc2.presentation.ui.deployment_drag_drop import DeploymentDragDrop
 from pycc2.presentation.ui.deployment_factory import (
     build_default_roster,
     build_force_pool_from_settings,
@@ -47,6 +49,7 @@ from pycc2.presentation.ui.deployment_models import (
     DeploymentUnit,
     ZoneType,
 )
+from pycc2.presentation.ui.deployment_orders import DeploymentOrders
 from pycc2.presentation.ui.deployment_renderer import DeploymentRenderer
 
 # ---------------------------------------------------------------------------
@@ -119,20 +122,11 @@ class DeploymentUI:
         self._roster_layout: list[tuple[str, int]] = field(default_factory=list)
         # Each entry: ("category", -1) or ("unit", index)
 
-        # === Drag-and-drop state (Issue 3) ===
-        self._dragging_unit: DeploymentUnit | None = None
-        self._dragging_unit_index: int | None = None
-        self._drag_start_pos: tuple[int, int] | None = None
-        self._drag_current_pos: tuple[int, int] | None = None
-        self._ghost_surface: pygame.Surface | None = None  # Pre-rendered ghost sprite
-        self._is_dragging: bool = False
+        # === Drag-and-drop state (Issue 3) — extracted to DeploymentDragDrop ===
+        self._drag_drop = DeploymentDragDrop()
 
-        # === Pre-battle orders (GAP-8) ===
-        self._pending_orders: dict[
-            str, tuple[int, int]
-        ] = {}  # unit_template_id -> (target_x, target_y)
-        self._selected_placed_unit: DeploymentUnit | None = None  # For setting orders
-        self._highlight_surface_cache: dict[int, pygame.Surface] = {}
+        # === Pre-battle orders (GAP-8) — extracted to DeploymentOrders ===
+        self._orders = DeploymentOrders()
 
         # Extracted subsystems (SRP v0.3.29)
         self._los_system = DeploymentLOSSystem(
@@ -381,6 +375,8 @@ class DeploymentUI:
     ) -> str | None:
         """Handle a right-click during deployment.
 
+        Delegates to DeploymentOrders for order placement logic.
+
         Behaviour (GAP-8):
           - If a placed unit is selected, right-click on the map sets a
             pending move order for that unit.
@@ -394,45 +390,7 @@ class DeploymentUI:
           - ``"remove_unit:<x>,<y>"`` – placed unit removed (no unit selected)
           - ``None`` – click did nothing
         """
-        if self._state.phase not in (DeploymentPhase.DEPLOYING, DeploymentPhase.READY):
-            return None
-
-        # Right-click on roster → deselect
-        if screen_x < self._roster_width:
-            self._selected_unit_index = None
-            self._selected_placed_unit = None
-            return None
-
-        # Right-click on map
-        map_pos = self.screen_to_map(screen_x, screen_y, map_offset_x, map_offset_y, tile_size)
-        if map_pos is None:
-            return None
-
-        map_x, map_y = map_pos
-
-        # If a placed unit is selected, set a pending move order
-        if self._selected_placed_unit is not None and self._selected_placed_unit.is_placed:
-            # Set the pending order
-            self.set_pending_order(self._selected_placed_unit.unit_template_id, map_x, map_y)
-            result = f"set_order:{self._selected_placed_unit.unit_template_id},{map_x},{map_y}"
-            return result
-
-        # Otherwise, try to select a placed unit at this position
-        for pu in self._state.placed_units:
-            if pu.position == (map_x, map_y):
-                self._selected_placed_unit = pu
-                # Also find and set the roster index for the detail panel
-                for i, au in enumerate(self._state.available_units):
-                    if au is pu:
-                        self._selected_unit_index = i
-                        break
-                return f"select_placed_unit:{map_x},{map_y}"
-
-        # No placed unit selected and no unit at click position → remove (legacy behavior)
-        if self.remove_unit(map_x, map_y):
-            return f"remove_unit:{map_x},{map_y}"
-
-        return None
+        return self._orders.handle_right_click(screen_x, screen_y, self)
 
     def place_unit(self, unit_index: int, map_x: int, map_y: int) -> bool:
         """Place a unit at the given map tile position.
@@ -567,11 +525,11 @@ class DeploymentUI:
             "support_count": support_count,
             "requisition_spent": self._state.requisition_points_spent,
             "requisition_remaining": self.requisition_remaining,
-            "pending_orders": dict(self._pending_orders),  # GAP-8: include pre-battle orders
+            "pending_orders": self._orders.get_orders_for_battle(),  # GAP-8: include pre-battle orders
         }
 
     # ------------------------------------------------------------------
-    # Pre-battle orders (GAP-8)
+    # Pre-battle orders (GAP-8) — delegated to DeploymentOrders
     # ------------------------------------------------------------------
 
     def set_pending_order(self, unit_template_id: str, target_x: int, target_y: int) -> None:
@@ -579,20 +537,20 @@ class DeploymentUI:
 
         The unit will move toward (target_x, target_y) when battle begins.
         """
-        self._pending_orders[unit_template_id] = (target_x, target_y)
+        self._orders.set_pending_order(unit_template_id, target_x, target_y)
 
     def get_pending_order(self, unit_template_id: str) -> tuple[int, int] | None:
         """Return the pending order target for a unit, or None."""
-        return self._pending_orders.get(unit_template_id)
+        return self._orders.get_pending_order(unit_template_id)
 
     def clear_pending_order(self, unit_template_id: str) -> None:
         """Remove a pending order for a unit."""
-        self._pending_orders.pop(unit_template_id, None)
+        self._orders.clear_pending_order(unit_template_id)
 
     @property
     def pending_orders(self) -> dict[str, tuple[int, int]]:
         """Return a copy of all pending orders."""
-        return dict(self._pending_orders)
+        return self._orders.pending_orders
 
     # ------------------------------------------------------------------
     # Rendering
@@ -984,7 +942,7 @@ class DeploymentUI:
         return None
 
     # ========================================================================
-    # DRAG-AND-DROP SUPPORT (Issue 3)
+    # DRAG-AND-DROP SUPPORT (Issue 3) — delegated to DeploymentDragDrop
     # ========================================================================
 
     def handle_mouse_down(
@@ -995,42 +953,11 @@ class DeploymentUI:
         map_offset_y: int = 0,
         tile_size: int = 16,
     ) -> str | None:
-        """Handle mouse button DOWN - start drag from roster unit."""
-        if self._state.phase not in (DeploymentPhase.DEPLOYING, DeploymentPhase.READY):
-            return None
+        """Handle mouse button DOWN - start drag from roster unit.
 
-        # Only start drag from roster panel (left side)
-        if screen_x >= self._roster_width:
-            return None
-
-        # Find which roster unit was clicked
-        idx = self._roster_index_at(screen_x, screen_y)
-        if idx is None or idx < 0 or idx >= len(self._state.available_units):
-            return None
-
-        unit = self._state.available_units[idx]
-
-        # Can't drag already-placed units
-        if unit.is_placed:
-            return None
-
-        # Start dragging this unit
-        self._dragging_unit = unit
-        self._dragging_unit_index = idx
-        self._drag_start_pos = (screen_x, screen_y)
-        self._drag_current_pos = (screen_x, screen_y)
-        self._is_dragging = True
-
-        # Create ghost surface ONCE (not every frame)
-        try:
-            self._ghost_surface = self._create_ghost_surface(unit)
-        except (pygame.error, ValueError, TypeError):
-            self._ghost_surface = None  # Safe fallback
-
-        # Select the unit (for placement highlights)
-        self._selected_unit_index = idx
-
-        return f"drag_start:{idx}"
+        Delegates to DeploymentDragDrop.
+        """
+        return self._drag_drop.handle_mouse_down(screen_x, screen_y, self)
 
     def handle_mouse_move(
         self,
@@ -1040,11 +967,11 @@ class DeploymentUI:
         map_offset_y: int = 0,
         tile_size: int = 16,
     ) -> None:
-        """Handle mouse movement while dragging - update ghost position."""
-        if not self._is_dragging or self._dragging_unit is None:
-            return
+        """Handle mouse movement while dragging - update ghost position.
 
-        self._drag_current_pos = (screen_x, screen_y)
+        Delegates to DeploymentDragDrop.
+        """
+        self._drag_drop.handle_mouse_move(screen_x, screen_y)
 
     def handle_mouse_up(
         self,
@@ -1054,100 +981,15 @@ class DeploymentUI:
         map_offset_y: int = 0,
         tile_size: int = 16,
     ) -> str | None:
-        """Handle mouse button UP - complete drag (place or cancel)."""
-        if not self._is_dragging or self._dragging_unit is None:
-            return None
+        """Handle mouse button UP - complete drag (place or cancel).
 
-        result = None
-
-        # Try to place at current position if over map
-        if screen_x >= self._roster_width:
-            map_pos = self.screen_to_map(screen_x, screen_y, map_offset_x, map_offset_y, tile_size)
-
-            if map_pos is not None and self._dragging_unit_index is not None:
-                map_x, map_y = map_pos
-
-                # Check if valid placement
-                terrain = self._get_terrain_at(map_x, map_y)
-                can_place = (
-                    self.can_place_at(self._dragging_unit, map_x, map_y, terrain)
-                    and not any(pu.position == (map_x, map_y) for pu in self._state.placed_units)
-                    and self._dragging_unit.deployment_cost <= self.requisition_remaining
-                )
-
-                if can_place:
-                    # SUCCESS: Place the unit
-                    if self.place_unit(self._dragging_unit_index, map_x, map_y):
-                        result = f"place_unit:{self._dragging_unit_index}"
-                    else:
-                        result = "place_failed"
-                else:
-                    # Invalid zone - cancel with feedback
-                    result = "invalid_placement"
-        else:
-            # Dropped back on roster or off-map - just cancel
-            result = "drag_cancelled"
-
-        # Clear drag state
-        self._clear_drag_state()
-
-        return result
+        Delegates to DeploymentDragDrop.
+        """
+        return self._drag_drop.handle_mouse_up(screen_x, screen_y, self)
 
     def _clear_drag_state(self) -> None:
-        """Clear all drag-and-drop state."""
-        self._dragging_unit = None
-        self._dragging_unit_index = None
-        self._drag_start_pos = None
-        self._drag_current_pos = None
-        self._ghost_surface = None
-        self._is_dragging = False
-        # Don't clear selection - let user click again if needed
-
-    def _create_ghost_surface(self, unit: DeploymentUnit) -> pygame.Surface | None:
-        """Create a semi-transparent ghost sprite for dragged unit."""
-        if not _pygame_available:
-            return None
-
-        try:
-            size = 48
-            ghost = pygame.Surface((size, size), pygame.SRCALPHA)
-
-            # Unit type colors (matching placed units)
-            type_colors = {
-                "vehicle": (220, 180, 50),
-                "support": (100, 180, 220),
-                "recon": (180, 140, 220),
-                "infantry": (80, 220, 80),
-            }
-            color = type_colors.get(unit.unit_type, (200, 200, 200))
-
-            # Draw hexagon shape (like placed units)
-            cx, cy = size // 2, size // 2
-            radius = size // 3
-            points = []
-            for i in range(6):
-                angle = math.pi / 3 * i - math.pi / 6
-                x = cx + int(radius * math.cos(angle))
-                y = cy + int(radius * math.sin(angle))
-                points.append((x, y))
-
-            # Semi-transparent fill (alpha=150)
-            ghost.fill((0, 0, 0, 0))
-            s = pygame.Surface((size, size), pygame.SRCALPHA)
-            pygame.draw.polygon(s, (*color, 150), points)
-            pygame.draw.polygon(s, (*color, 200), points, 2)
-            ghost.blit(s, (0, 0))
-
-            # Add unit name label
-            if self._font_small:
-                label = self._font_small.render(unit.display_name[:4], True, (255, 255, 255, 200))
-                label.set_alpha(200)
-                ghost.blit(label, (cx - label.get_width() // 2, cy - radius - 12))
-
-            return ghost
-        except (pygame.error, ValueError, TypeError) as e:
-            logging.debug("Ghost surface rendering failed: %s", e)
-            return None
+        """Clear all drag-and-drop state. Delegates to DeploymentDragDrop."""
+        self._drag_drop.clear_drag_state()
 
     def _render_unit_details_panel(self, screen: pygame.Surface) -> None:
         """Render detailed unit information panel on the RIGHT side of screen."""
