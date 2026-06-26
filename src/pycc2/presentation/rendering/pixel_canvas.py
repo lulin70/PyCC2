@@ -215,7 +215,7 @@ class PixelCanvas:
                 x0 += sx
             if e2 < dx:
                 err += dx
-            y0 += sy
+                y0 += sy
 
     def draw_outline_rect(
         self, x: int, y: int, w: int, h: int, color: tuple[int, ...], thickness: int = 1

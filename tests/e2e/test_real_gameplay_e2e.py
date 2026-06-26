@@ -75,9 +75,12 @@ def game_env():
 
     P1 Fix: Lazy pygame init — only when this fixture is requested.
     """
-    # Ensure pygame is initialized before creating window
+    # Ensure pygame is initialized before creating window.
+    # _can_create_display() (module-level skipif check) quits the display
+    # subsystem after probing; re-initialize it here before WindowManager use.
     if not pygame.get_init():
         pygame.init()
+    pygame.display.init()
     wm = WindowManager(DisplayInfo(base_width=1280, base_height=720))
     screen = wm.initialize()
 
@@ -123,9 +126,11 @@ def game_env():
         state=state,
         interaction_controller=ic,  # Pass pre-created IC
     )
-    # Ensure the assembler-created renderer can access our test screen
+    # Ensure the assembler-created renderer can access our test screen.
+    # After EnhancedRenderer refactor, _screen is a read-only property delegating
+    # to RendererStateManager; use initialize() to set the screen properly.
     if loop.renderer:
-        loop.renderer._screen = screen
+        loop.renderer.initialize(screen)
 
     # Wire interaction controller callbacks to game state (normally done by assembler)
     ic.register_on_selected(lambda ids: setattr(loop.state, "selected_unit_ids", ids))

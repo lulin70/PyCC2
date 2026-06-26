@@ -31,12 +31,16 @@ def _can_create_display() -> bool:
 
     WindowManager.initialize() uses SCALED | RESIZABLE | DOUBLEBUF + vsync=1
     which fails in CI's SDL dummy driver even though basic set_mode() succeeds.
+    In headless mode we test with vsync=0 (the configuration the test uses).
     """
     try:
         if not pygame.get_init():
             pygame.init()
         flags = pygame.SCALED | pygame.RESIZABLE | pygame.DOUBLEBUF
-        surf = pygame.display.set_mode((320, 240), flags, vsync=1)  # noqa: F841
+        # Headless dummy driver cannot use vsync=1; test with vsync=0 which
+        # is what the test uses in headless mode.
+        vsync = 0 if os.environ.get("SDL_VIDEODRIVER") == "dummy" else 1
+        surf = pygame.display.set_mode((320, 240), flags, vsync=vsync)  # noqa: F841
         pygame.display.quit()
         return True
     except Exception:
@@ -80,7 +84,16 @@ class TestVisualSmoke:
         )
         units = [_make_unit("unit_001")]
         wm = WindowManager()
-        screen = wm.initialize()
+        # Headless (SDL dummy driver) cannot use vsync=1 (raises
+        # "failed to create renderer"); use vsync=0 in headless mode.
+        if os.environ.get("SDL_VIDEODRIVER") == "dummy":
+            screen = pygame.display.set_mode(
+                (wm.display_info.base_width, wm.display_info.base_height),
+                pygame.SCALED | pygame.RESIZABLE | pygame.DOUBLEBUF,
+                vsync=0,
+            )
+        else:
+            screen = wm.initialize()
         camera = Camera(position=Vec2(256.0, 256.0))
         renderer = EnhancedRenderer()
         renderer.initialize(screen)

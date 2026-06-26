@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 def draw_button(
-    ui: "CampaignUI",
+    ui: CampaignUI,
     surface: Surface,
     rect: Rect,
     text: str,
@@ -53,7 +53,7 @@ def wrap_text(text: str, font: Font, max_width: int) -> list[str]:
 
 
 def draw_strategic_map(
-    ui: "CampaignUI",
+    ui: CampaignUI,
     surface: Surface,
     x: int,
     y: int,
@@ -111,7 +111,7 @@ def draw_strategic_map(
     surface.blit(day_label, (x + size - 25, y + size - 22))
 
 
-def draw_mini_map(ui: "CampaignUI", surface: Surface, x: int, y: int, size: int, map_file: str) -> None:
+def draw_mini_map(ui: CampaignUI, surface: Surface, x: int, y: int, size: int, map_file: str) -> None:
     """Draw a simple terrain preview for the given map file."""
     # Try to load the map and render a mini preview
     try:

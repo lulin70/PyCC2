@@ -15,7 +15,7 @@ Example: Road with neighbors N,E,S = bitmask 0b0111 = 7 → draw road connection
 from __future__ import annotations
 
 from collections import deque
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pygame
 

@@ -10,7 +10,7 @@ import logging
 import random
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 logger = logging.getLogger(__name__)
 

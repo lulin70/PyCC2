@@ -33,10 +33,10 @@ class SoundEffectsMixin:
     """
 
     _available: bool
-    _config: "SoundConfig"
+    _config: SoundConfig
 
     @abstractmethod
-    def play(self, sound_type: "SoundType", volume: float | None = None) -> bool:
+    def play(self, sound_type: SoundType, volume: float | None = None) -> bool:
         """Play a sound effect. Implemented by the host class."""
         ...
 

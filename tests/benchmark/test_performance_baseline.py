@@ -336,18 +336,18 @@ class TestRenderingPerformance:
                 renderer._get_pooled_surface(size)
 
         # Measure efficiency (access stats to trigger len if needed)
-        _ = renderer._surface_pool.stats
+        _ = renderer._state_manager._surface_pool.stats
 
         for _ in range(50):
             for size in test_sizes:
                 total_requests += 1
-                size_in_pool = size in renderer._surface_pool._pool
+                size_in_pool = size in renderer._state_manager._surface_pool._pool
                 renderer._get_pooled_surface(size)
                 if size_in_pool:
                     pool_hits += 1
 
         hit_rate = (pool_hits / total_requests * 100) if total_requests > 0 else 0
-        final_pool_size = renderer._surface_pool.stats["size"]
+        final_pool_size = renderer._state_manager._surface_pool.stats["size"]
 
         result = BenchmarkResult(
             name="test_surface_pool_efficiency",
@@ -365,7 +365,7 @@ class TestRenderingPerformance:
         assert result.passed, (
             f"Surface pool hit rate={hit_rate:.1f}% (threshold: {result.threshold}%)"
         )
-        max_pool = renderer._surface_pool.stats["max_size"]
+        max_pool = renderer._state_manager._surface_pool.stats["max_size"]
         assert final_pool_size <= max_pool, f"Pool size {final_pool_size} exceeded max {max_pool}"
 
     @pytest.mark.benchmark
@@ -701,15 +701,15 @@ class TestMemoryUsage:
 
         # Simulate many different surface size requests
         np.random.seed(42)
-        _ = renderer._surface_pool.stats  # Use stats property instead of len()
+        _ = renderer._state_manager._surface_pool.stats  # Use stats property instead of len()
 
         for _ in range(200):
             w = np.random.randint(100, 1200)
             h = np.random.randint(100, 900)
             renderer._get_pooled_surface((w, h))
 
-        sizes_after = renderer._surface_pool.stats["size"]
-        max_allowed = renderer._surface_pool.stats["max_size"]
+        sizes_after = renderer._state_manager._surface_pool.stats["size"]
+        max_allowed = renderer._state_manager._surface_pool.stats["max_size"]
 
         # Pool should not grow beyond maximum
         stability_ratio = (sizes_after / max_allowed) * 100 if max_allowed > 0 else 0

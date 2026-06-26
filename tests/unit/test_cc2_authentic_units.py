@@ -104,7 +104,6 @@ class TestUnitDatabase:
             assert len(faction_units) < len(db)
 
     def test_get_units_by_role(self):
-        db = build_cc2_unit_database()
         rifle_units = get_units_by_role(InfantryRole.RIFLE)
         assert all(u.role == InfantryRole.RIFLE for u in rifle_units)
         assert len(rifle_units) >= 4

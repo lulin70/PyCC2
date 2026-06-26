@@ -20,8 +20,7 @@ if TYPE_CHECKING:
     from pycc2.domain.interfaces.hud_manager_protocol import IHUDManager
     from pycc2.domain.interfaces.input_router_protocol import IInputRouter
     from pycc2.domain.interfaces.pause_menu_protocol import IPauseMenu
-    from pycc2.domain.interfaces.ui_overlay_protocol import ISettingsMenu
-    from pycc2.domain.interfaces.ui_overlay_protocol import ITutorialOverlay
+    from pycc2.domain.interfaces.ui_overlay_protocol import ISettingsMenu, ITutorialOverlay
     from pycc2.domain.interfaces.victory_manager_protocol import IVictoryManager
     from pycc2.domain.interfaces.window_manager_protocol import IWindowManager
     from pycc2.presentation.audio.sound_system import SoundSystem

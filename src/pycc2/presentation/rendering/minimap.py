@@ -4,6 +4,8 @@ Minimap Component
 Renders a tactical minimap showing unit positions and terrain overview.
 """
 
+from typing import TYPE_CHECKING
+
 import pygame
 from pygame import Rect, Surface, draw
 
@@ -14,8 +16,6 @@ from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.presentation.rendering.fade_transition import FadeTransition
 from pycc2.presentation.rendering.visual_spec import VisualSpec
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pycc2.presentation.rendering.camera import Camera

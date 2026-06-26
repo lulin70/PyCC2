@@ -118,10 +118,13 @@ class Casualty:
         self._is_being_dragged = False
 
         # Disable unit actions
+        # NOTE: setattr intentionally used to bypass mypy — Unit.can_move is a method
+        # and Unit.can_attack is not statically declared. Runtime getattr check above
+        # ensures the attribute exists before assignment.
         if getattr(self._unit, "can_move", None) is not None:
-            setattr(self._unit, "can_move", False)
+            setattr(self._unit, "can_move", False)  # noqa: B010
         if getattr(self._unit, "can_attack", None) is not None:
-            setattr(self._unit, "can_attack", False)
+            setattr(self._unit, "can_attack", False)  # noqa: B010
 
         event = {
             "event": "casualty_wounded",
@@ -295,7 +298,9 @@ class Casualty:
 
         # Mark unit as dead
         if self._unit.health is not None:
-            setattr(self._unit.health, "current_hp", 0)
+            # NOTE: setattr intentionally used — current_hp is a read-only property,
+            # but we need to forcibly reset it for casualty death state.
+            setattr(self._unit.health, "current_hp", 0)  # noqa: B010
         if self._unit.state_machine is not None:
             from pycc2.domain.entities.unit import UnitState
 

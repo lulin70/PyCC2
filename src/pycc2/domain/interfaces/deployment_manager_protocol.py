@@ -27,7 +27,7 @@ class IDeploymentManager(Protocol):
         ...
 
     @property
-    def deployment_ui(self) -> "IDeploymentUI | None":
+    def deployment_ui(self) -> IDeploymentUI | None:
         """The current deployment UI instance, or None."""
         ...
 

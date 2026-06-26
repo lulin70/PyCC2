@@ -782,6 +782,7 @@ class TestE2ECoverageEveryUserOperation:
         p_pixels = pygame.surfarray.array3d(prone).tobytes()
         assert s_pixels != p_pixels, "Prone sprite must look different from standing"
 
+    @pytest.mark.slow
     def test_40_all_8_directions_prone_render(self):
         """All 8 directions of prone sprites render without crash."""
         from pycc2.presentation.rendering.pixel_artist import (

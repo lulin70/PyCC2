@@ -23,7 +23,6 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 from pycc2.domain.ai.ammo_pickup import FallenUnitCache
-from pycc2.domain.components.weapon_component import WeaponState
 from pycc2.domain.entities.unit import UnitType
 
 if TYPE_CHECKING:

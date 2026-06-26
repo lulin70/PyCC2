@@ -22,7 +22,7 @@ class IHUDManager(Protocol):
     """
 
     @property
-    def minimap(self) -> "IMinimap | None":
+    def minimap(self) -> IMinimap | None:
         """The minimap instance, or None if not initialized."""
         ...
 

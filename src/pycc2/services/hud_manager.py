@@ -22,8 +22,8 @@ if TYPE_CHECKING:
         IInteractionController as InteractionController,
     )
     from pycc2.domain.interfaces.minimap_protocol import IMinimap
-    from pycc2.domain.interfaces.renderer_protocol import IRenderer
     from pycc2.domain.interfaces.render_pipeline_protocol import IRenderPipeline
+    from pycc2.domain.interfaces.renderer_protocol import IRenderer
     from pycc2.domain.interfaces.window_manager_protocol import IWindowManager
     from pycc2.presentation.audio.sound_system import SoundSystem
     from pycc2.services.event_bus import EventBus

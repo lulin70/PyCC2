@@ -77,8 +77,6 @@ All notable changes to PyCC2 will be documented in this file.
 - Deleted 11 redundant diagnostic screenshots
 - Total test count: 4269 passed, 0 failed, 49 known pygame-init errors (pass individually)
 
-## [0.3.42.1] - 2026-06-23
-
 ### P0: Morale System Routing Bug Fix (PR #8)
 - **[FIX]** `MoraleSystem.can_accept_orders()` returned True for routing units
 - Root cause: `get_state(morale_value)` maps numeric value only — value=5 → BROKEN, never reaches ROUTING branch

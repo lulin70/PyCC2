@@ -25,8 +25,6 @@ from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.value_objects.vec2 import Vec2
-from pycc2.presentation.rendering.camera import Camera
-from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
 from pycc2.presentation.rendering.bottom_panel_command_bar import CommandBarRenderer
 from pycc2.presentation.rendering.bottom_panel_icons import (
     create_command_icons,
@@ -37,8 +35,10 @@ from pycc2.presentation.rendering.bottom_panel_input_handler import BottomPanelI
 from pycc2.presentation.rendering.bottom_panel_minimap_section import MinimapSectionRenderer
 from pycc2.presentation.rendering.bottom_panel_roster import RosterRenderer
 from pycc2.presentation.rendering.bottom_panel_soldier_monitor import SoldierMonitorRenderer
-from pycc2.presentation.rendering.bottom_panel_urgency import UrgencyIndicatorRenderer
 from pycc2.presentation.rendering.bottom_panel_unit_detail import UnitDetailRenderer
+from pycc2.presentation.rendering.bottom_panel_urgency import UrgencyIndicatorRenderer
+from pycc2.presentation.rendering.camera import Camera
+from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
 
 # ---------------------------------------------------------------------------
 # Helpers

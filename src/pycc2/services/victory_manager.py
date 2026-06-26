@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pycc2.domain.interfaces.combat_director_protocol import ICombatDirector
     from pycc2.domain.entities.unit import Unit
+    from pycc2.domain.interfaces.combat_director_protocol import ICombatDirector
     from pycc2.domain.systems.victory_conditions import (
         BattleStats,
         GameResult,

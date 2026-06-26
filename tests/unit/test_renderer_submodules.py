@@ -168,8 +168,9 @@ class TestAtmosphereController:
         assert controller.shell_sys.count == 0
 
     def test_render_shell_casings_does_not_crash(self, controller, pygame_display):
-        import pygame
         from types import SimpleNamespace
+
+        import pygame
 
         controller.spawn_shell_casing(0.0, 0.0)
         offscreen = pygame.Surface((400, 300), pygame.SRCALPHA)

@@ -1134,11 +1134,14 @@ class TestStageIUIDetailCheck:
         assert CC2BottomPanel.MINIMAP_SIZE == 120
 
     def test_i12_panel_has_all_sections(self, bottom_panel):
-        assert hasattr(bottom_panel, "_render_roster")
-        assert hasattr(bottom_panel, "_render_unit_details")
-        assert hasattr(bottom_panel, "_render_command_bar")
-        assert hasattr(bottom_panel, "_render_urgency_indicator")
-        assert hasattr(bottom_panel, "_render_minimap_section")
+        # After CC2BottomPanel refactoring, inline _render_* methods were split into
+        # dedicated renderer classes (RosterRenderer, UnitDetailRenderer, etc.).
+        # Verify the panel holds all five section renderer instances.
+        assert hasattr(bottom_panel, "_roster_renderer")
+        assert hasattr(bottom_panel, "_unit_detail_renderer")
+        assert hasattr(bottom_panel, "_command_bar_renderer")
+        assert hasattr(bottom_panel, "_urgency_renderer")
+        assert hasattr(bottom_panel, "_minimap_section_renderer")
 
     def test_i13_command_buttons_have_correct_keys(self, bottom_panel):
         key_map = {cmd["id"]: cmd["key"] for cmd in bottom_panel._commands}

@@ -1,9 +1,9 @@
 # PyCC2 User Guide
 
-**v0.3.39 | Beta Candidate — Fully Playable | June 13, 2026**
+**v0.3.42 | Beta Candidate — Fully Playable | June 13, 2026**
 
 > 🎮 **Game Status**: Beta Candidate — AI対戦可用、コア玩法完整！
-> This guide covers the current v0.3.39 features based on runtime verification.
+> This guide covers the current v0.3.42 features based on runtime verification.
 
 ---
 
@@ -142,7 +142,7 @@ Before each battle, you deploy your forces in designated zones.
 
 ### Deployment LOS Preview
 
-✅ **Working in v0.3.39**: Before placing a unit, hold Ctrl to preview its line-of-sight. This helps you position units with good fields of fire.
+✅ **Working in v0.3.42**: Before placing a unit, hold Ctrl to preview its line-of-sight. This helps you position units with good fields of fire.
 
 ### Force Limits
 
@@ -466,7 +466,7 @@ Never send tanks alone:
 | **Button Feedback** | v0.3.33 | Hover/click feedback and tooltip system for all command buttons |
 | **Post-Processing** | v0.3.34 | Desaturation and vignette effects now active (were never instantiated before) |
 
-### System Enhancements (v0.3.35-v0.3.39)
+### System Enhancements (v0.3.35-v0.3.42)
 
 | Feature | Version | Description |
 |---------|---------|-------------|
@@ -480,7 +480,7 @@ Never send tanks alone:
 
 ## 9. Known Issues
 
-Based on v0.3.39 runtime verification (June 13, 2026).
+Based on v0.3.42 runtime verification (June 13, 2026).
 
 ### P1 — Polish (Degrades Experience)
 
@@ -537,7 +537,7 @@ These were all fixed in M1/M2:
 
 *User Guide Version*: 3.39
 *Last Updated*: 2026-06-13
-*Game Version*: PyCC2 v0.3.39
+*Game Version*: PyCC2 v0.3.42
 *CC2 Fidelity*: ~88%
 *Status*: Beta Candidate — Fully Playable
 

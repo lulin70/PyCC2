@@ -19,12 +19,6 @@ from .effect_stack_protocol import IEffectStack as IEffectStack
 from .environmental_audio_protocol import IEnvironmentalAudio as IEnvironmentalAudio
 from .hud_manager_protocol import IHUDManager as IHUDManager
 from .input_handler_protocol import IInputHandler as IInputHandler
-from .ui_overlay_protocol import IHintManager as IHintManager
-from .ui_overlay_protocol import ILightingRenderer as ILightingRenderer
-from .ui_overlay_protocol import ISettingsMenu as ISettingsMenu
-from .ui_overlay_protocol import ITutorialOverlay as ITutorialOverlay
-from .ui_overlay_protocol import IWeatherRenderer as IWeatherRenderer
-from .ui_overlay_protocol import IWeatherState as IWeatherState
 from .input_router_protocol import IInputRouter as IInputRouter
 from .interaction_controller_protocol import IInteractionController as IInteractionController
 from .minimap_protocol import IMinimap as IMinimap
@@ -36,6 +30,12 @@ from .renderer_protocol import IRenderer as IRenderer
 from .save_controller_protocol import ISaveController as ISaveController
 from .shadow_system_protocol import IDynamicShadowSystem as IDynamicShadowSystem
 from .sound_system_protocol import ISoundSystem as ISoundSystem
+from .ui_overlay_protocol import IHintManager as IHintManager
+from .ui_overlay_protocol import ILightingRenderer as ILightingRenderer
+from .ui_overlay_protocol import ISettingsMenu as ISettingsMenu
+from .ui_overlay_protocol import ITutorialOverlay as ITutorialOverlay
+from .ui_overlay_protocol import IWeatherRenderer as IWeatherRenderer
+from .ui_overlay_protocol import IWeatherState as IWeatherState
 from .victory_manager_protocol import IVictoryManager as IVictoryManager
 from .weather_system_protocol import IWeatherSystem as IWeatherSystem
 from .window_manager_protocol import IWindowManager as IWindowManager

@@ -267,6 +267,7 @@ class TestSuppressionOverlayRenderer:
 
     def test_suppression_overlay_render_does_not_crash(self, pygame_display):
         import pygame
+
         from pycc2.presentation.rendering.suppression_overlay_renderer import (
             SuppressionOverlayRenderer,
         )

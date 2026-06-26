@@ -42,6 +42,7 @@ jobs:
   test:
     name: Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -69,6 +70,7 @@ jobs:
             --cov=src/pycc2 \
             --cov-report=xml \
             --cov-report=html \
+            --cov-fail-under=70 \
             --junitxml=junit.xml
 
       - name: Upload coverage to Codecov
@@ -96,6 +98,7 @@ jobs:
     name: Slow Tests (Python 3.12)
     needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') || github.event_name == 'pull_request' && github.base_ref == 'main'
     steps:
       - uses: actions/checkout@v7

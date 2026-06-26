@@ -12,7 +12,8 @@ Reference: Original CC2 screenshot layout specifications.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 logger = logging.getLogger(__name__)
 

@@ -19,7 +19,7 @@
 
 ---
 
-## What's New in v0.3.41
+## What's New in v0.3.42
 
 ### v0.3.35 — Quick Wins (2026-06-11)
 - Deleted AnimationController dead code (430 lines, 90% overlap with existing systems)
@@ -450,7 +450,7 @@ PyCC2/
 pytest tests/ -q
 
 # By category
-pytest tests/unit/ -q              # Unit tests (~3200)
+pytest tests/unit/ -q              # Unit tests (~3680)
 pytest tests/integration/ -q        # Integration tests
 pytest tests/e2e/ -q                # End-to-end tests (22 files, 38-phase real SDL mode)
 pytest tests/unit/test_smoke_zero_coverage.py  # Smoke tests for zero-coverage modules
@@ -458,8 +458,8 @@ pytest tests/unit/test_smoke_zero_coverage.py  # Smoke tests for zero-coverage m
 # With coverage report
 pytest tests/ --cov=src/pycc2 --cov-report=term-missing
 
-# E2E deep integration tests (38 scenarios, real SDL, 100% pass rate)
-python scripts/strict_e2e_journey.py
+# E2E deep integration tests (real SDL, user journey scenarios)
+pytest tests/e2e/ -m e2e -v
 ```
 
 **Test Coverage Highlights**:
@@ -609,4 +609,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Generated on 2026-06-16 | v0.3.41 (Beta Candidate) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
+<p align="center"><sub>Generated on 2026-06-16 | v0.3.42 (Beta Candidate) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
