@@ -10,7 +10,7 @@ import logging
 import random
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
 
@@ -176,7 +176,7 @@ class VehicleCrew:
         Returns:
             Dict with damage result details
         """
-        result = {
+        result: dict[str, Any] = {
             "damage_dealt": 0,
             "member_hit": None,
             "was_kill": False,
@@ -221,7 +221,7 @@ class VehicleCrew:
 
                 # Mark vehicle as destroyed/disabled
                 if self._vehicle is not None and hasattr(self._vehicle, "health"):
-                    self._vehicle.health.current_hp = 0
+                    self._vehicle.health.hp = 0
 
                 logger.warning("[Crew] All crew members dead! Vehicle disabled.")
         else:

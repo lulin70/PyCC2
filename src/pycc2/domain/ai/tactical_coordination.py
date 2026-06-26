@@ -273,7 +273,7 @@ class InfantryTankCoordAI(TacticalAIBase):
 
         # Score each candidate: prefer roads, then passable terrain
         best_pos = direct
-        best_score = -1
+        best_score = -1.0
 
         for pos in candidates:
             if not game_map.is_within_bounds(pos):

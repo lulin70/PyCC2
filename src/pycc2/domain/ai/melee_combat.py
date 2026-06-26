@@ -109,7 +109,7 @@ class GrenadeSystem:
     def can_throw_grenade(
         unit: Unit,
         target_coord: TileCoord,
-        game_map: GameMap = None,
+        game_map: GameMap | None = None,
     ) -> bool:
         """Check if unit can throw a grenade to target location."""
         if not unit.is_alive or not getattr(unit, "can_act", True):

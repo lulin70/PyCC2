@@ -220,7 +220,7 @@ class AchievementManager:
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             return True
-        except (OSError, json.JSONEncodeError):
+        except (OSError, TypeError):
             return False
 
     def load(self) -> bool:

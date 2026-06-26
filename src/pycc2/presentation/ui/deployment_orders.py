@@ -27,7 +27,7 @@ class DeploymentOrders:
             str, tuple[int, int]
         ] = {}  # unit_template_id -> (target_x, target_y)
         self._selected_placed_unit: DeploymentUnit | None = None  # For setting orders
-        self._highlight_surface_cache: dict[int, object] = {}  # type: ignore[assignment]
+        self._highlight_surface_cache: dict[int, object] = {}
 
     # ------------------------------------------------------------------
     # Public API – order management

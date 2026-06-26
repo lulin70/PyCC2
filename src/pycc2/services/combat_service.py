@@ -7,14 +7,15 @@ This service does NOT contain business rules - it delegates to domain layer.
 
 import logging
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum, auto
+from typing import Any, cast
 
-from pycc2.domain.combat.combat_result import CombatResult, ShotResult
+from pycc2.domain.combat.combat_result import CombatResult
 from pycc2.domain.entities.unit import Unit
-from pycc2.domain.systems.ballistic import BallisticEngine
+from pycc2.domain.systems.ballistic import BallisticEngine, ShotResult
 from pycc2.domain.systems.combat_resolver import CombatResolver
-from pycc2.domain.systems.morale_system import MoraleCalculator
+from pycc2.domain.systems.morale_system import MoraleCalculator, MoraleEvent
 from pycc2.services.event_bus import EventBus
 from pycc2.services.event_protocol import (
     UnitAttacked,
@@ -86,26 +87,20 @@ class CombatService:
 
         if shot_result.hit and damage_multiplier != 1.0:
             adjusted_damage = shot_result.damage_dealt * damage_multiplier
-            shot_result = ShotResult(
-                hit=True,
-                damage_dealt=adjusted_damage,
-                is_critical=shot_result.is_critical,
-                attacker_id=shot_result.attacker_id,
-                target_id=shot_result.target_id,
-            )
+            shot_result = replace(shot_result, damage_dealt=adjusted_damage)
             self._logger.info(
                 f"Angle bonus applied: {angle.name} -> {damage_multiplier:.1f}x damage"
             )
 
-        self.event_bus.publish(
+        self.event_bus.publish_named(
             "weapon_fired",
-            WeaponFired(
+            dict(WeaponFired(
                 unit_id=attacker.unit_id,
                 weapon_id=weapon_slot,
                 target_id=target.unit_id,
                 hit=shot_result.hit,
-                ammo_remaining=getattr(attacker, "ammo", 0),
-            ),
+                ammo_remaining=getattr(attacker.weapon, "ammo_remaining", 0),
+            )),
         )
 
         if not shot_result.hit:
@@ -118,30 +113,25 @@ class CombatService:
                 shot_results=[shot_result],
             )
 
-        damage_result = self.combat_resolver.apply_damage(target, shot_result.damage_dealt)
-        self.event_bus.publish(
+        damage_applied = target.take_damage(int(shot_result.damage_dealt))
+        self.event_bus.publish_named(
             "unit_attacked",
-            UnitAttacked(
+            dict(UnitAttacked(
                 attacker_id=attacker.unit_id,
                 target_id=target.unit_id,
                 is_hit=True,
-                damage=damage_result.damage_applied,
-            ),
+                damage=float(damage_applied),
+            )),
         )
 
-        morale_impact = self.morale_calculator.calculate_combat_morale_change(
-            target,
-            damage_taken=damage_result.damage_applied,
-            ally_nearby=False,
-        )
+        morale_impact = -max(1, damage_applied // 5)
         if angle == AttackAngle.REAR:
-            morale_impact *= 1.5
+            morale_impact = int(morale_impact * 1.5)
             self._logger.info("Rear attack morale penalty increased")
-        target.morale_component.apply_change(morale_impact)
+        target.morale.apply_delta(morale_impact)
 
         if not target.is_alive:
             self.event_bus.publish(
-                "unit_killed",
                 UnitKilled(
                     unit_id=target.unit_id,
                     killer_id=attacker.unit_id,
@@ -156,11 +146,9 @@ class CombatService:
         return CombatResult(
             shots_fired=1,
             shots_hit=1,
-            total_damage=damage_result.damage_applied,
+            total_damage=float(damage_applied),
             target_eliminated=not target.is_alive,
             shot_results=[shot_result],
-            morale_change=morale_impact,
-            attack_angle=angle,
         )
 
     def execute_suppression_fire(
@@ -181,8 +169,9 @@ class CombatService:
             List of shot results for each round
         """
         results = []
+        ballistic_any = cast(Any, self.ballistic_engine)
         for _ in range(burst_size):
-            result = self.ballistic_engine.calculate_suppression_shot(attacker, target_position)
+            result = ballistic_any.calculate_suppression_shot(attacker, target_position)
             results.append(result)
 
         self._logger.info(
@@ -203,11 +192,11 @@ class CombatService:
         """
         self._logger.warning(f"Melee: {attacker.name} vs {defender.name}")
         base_damage = 15.0
-        result = self.combat_resolver.apply_damage(defender, base_damage)
+        damage_applied = defender.take_damage(int(base_damage))
         return CombatResult(
             shots_fired=0,
             shots_hit=1,
-            total_damage=result.damage_applied,
+            total_damage=float(damage_applied),
             target_eliminated=not defender.is_alive,
         )
 
@@ -222,13 +211,13 @@ class CombatService:
             return False, "Attacker is eliminated"
         if not target.is_alive:
             return False, "Target is already eliminated"
-        if attacker.ammo <= 0:
+        if attacker.weapon.ammo_remaining <= 0:
             return False, "No ammunition"
         if attacker.faction == target.faction:
             return False, "Cannot engage friendly units"
 
         distance = self._calculate_distance(attacker, target)
-        weapon_range = attacker.weapon_component.range_meters / 10.0
+        weapon_range = getattr(attacker.weapon, "max_range", 120) / 10.0
 
         if distance > weapon_range:
             return False, f"Target out of range ({distance:.1f} > {weapon_range:.1f})"

@@ -7,6 +7,8 @@ so it can read state (fonts, rects, selections, etc.) directly.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pygame
 from pygame import Rect, Surface, draw
 
@@ -17,11 +19,14 @@ from .campaign_ui_helpers import (
     wrap_text,
 )
 
+if TYPE_CHECKING:
+    from .campaign_ui import CampaignUI
+
 
 class CampaignUIRenderer:
     """Renders every screen state for CampaignUI."""
 
-    def __init__(self, ui: object) -> None:
+    def __init__(self, ui: CampaignUI) -> None:
         self._ui = ui
 
     # ------------------------------------------------------------------
@@ -54,6 +59,7 @@ class CampaignUIRenderer:
     def _render_operation_select(self, surface: Surface) -> None:
         """Render operation selection screen."""
         ui = self._ui
+        assert ui._font_title is not None and ui._font_normal is not None and ui._font_small is not None
         sw, sh = surface.get_size()
         surface.fill(ui.BG_COLOR)
         ui._op_rects = {}
@@ -108,9 +114,7 @@ class CampaignUIRenderer:
                 )
 
             # Day badge
-            day_surf = ui._font_small.render(
-                f"Day {op.day}/{op.total_days}", True, (180, 180, 170)
-            )
+            day_surf = ui._font_small.render(f"Day {op.day}/{op.total_days}", True, (180, 180, 170))
             surface.blit(day_surf, (item_rect.left + 6, item_rect.top + 4))
 
             # Operation name
@@ -137,8 +141,12 @@ class CampaignUIRenderer:
         )
         ui._back_button_rect = Rect(sw // 2 + 5, btn_y, ui.BUTTON_WIDTH, ui.BUTTON_HEIGHT)
 
-        draw_button(ui, surface, ui._proceed_button_rect, "Proceed", ui._hovered_button == "proceed")
-        draw_button(ui, surface, ui._back_button_rect, "Back", ui._hovered_button == "back", ui.TEXT_COLOR)
+        draw_button(
+            ui, surface, ui._proceed_button_rect, "Proceed", ui._hovered_button == "proceed"
+        )
+        draw_button(
+            ui, surface, ui._back_button_rect, "Back", ui._hovered_button == "back", ui.TEXT_COLOR
+        )
 
     # ------------------------------------------------------------------
     # Briefing
@@ -147,6 +155,7 @@ class CampaignUIRenderer:
     def _render_briefing(self, surface: Surface) -> None:
         """Render operation briefing screen with day header, strategic map, and battle selection."""
         ui = self._ui
+        assert ui._font_title is not None and ui._font_normal is not None and ui._font_small is not None
         sw, sh = surface.get_size()
         surface.fill(ui.BG_COLOR)
         ui._battle_rects = {}
@@ -326,8 +335,12 @@ class CampaignUIRenderer:
             sw - ui.MARGIN - ui.BUTTON_WIDTH, btn_y, ui.BUTTON_WIDTH, ui.BUTTON_HEIGHT
         )
 
-        draw_button(ui, surface, ui._start_button_rect, "Start Battle", ui._hovered_button == "start")
-        draw_button(ui, surface, ui._back_button_rect, "Back", ui._hovered_button == "back", ui.TEXT_COLOR)
+        draw_button(
+            ui, surface, ui._start_button_rect, "Start Battle", ui._hovered_button == "start"
+        )
+        draw_button(
+            ui, surface, ui._back_button_rect, "Back", ui._hovered_button == "back", ui.TEXT_COLOR
+        )
 
     # ------------------------------------------------------------------
     # Battle Select
@@ -336,6 +349,7 @@ class CampaignUIRenderer:
     def _render_battle_select(self, surface: Surface) -> None:
         """Render battle selection screen (original layout)."""
         ui = self._ui
+        assert ui._font_title is not None and ui._font_normal is not None and ui._font_small is not None
         sw, sh = surface.get_size()
         surface.fill(ui.BG_COLOR)
         ui._battle_rects = {}
@@ -352,9 +366,7 @@ class CampaignUIRenderer:
         title_surf = ui._font_title.render(op.name, True, ui.HIGHLIGHT_COLOR)
         surface.blit(title_surf, (ui.MARGIN, header_y))
 
-        day_surf = ui._font_normal.render(
-            f"Day {op.day} of {op.total_days}", True, ui.TEXT_COLOR
-        )
+        day_surf = ui._font_normal.render(f"Day {op.day} of {op.total_days}", True, ui.TEXT_COLOR)
         surface.blit(day_surf, (sw - ui.MARGIN - day_surf.get_width(), header_y + 6))
 
         sep_y = header_y + title_surf.get_height() + 8
@@ -444,9 +456,7 @@ class CampaignUIRenderer:
 
                 if sel_battle.description:
                     dy = list_y + 32
-                    for line in wrap_text(
-                        sel_battle.description, ui._font_small, right_w - 20
-                    ):
+                    for line in wrap_text(sel_battle.description, ui._font_small, right_w - 20):
                         if dy + 16 > list_y + list_h:
                             break
                         ls = ui._font_small.render(line, True, (180, 180, 170))
@@ -474,8 +484,12 @@ class CampaignUIRenderer:
             sw - ui.MARGIN - ui.BUTTON_WIDTH, btn_y, ui.BUTTON_WIDTH, ui.BUTTON_HEIGHT
         )
 
-        draw_button(ui, surface, ui._start_button_rect, "Start Battle", ui._hovered_button == "start")
-        draw_button(ui, surface, ui._back_button_rect, "Back", ui._hovered_button == "back", ui.TEXT_COLOR)
+        draw_button(
+            ui, surface, ui._start_button_rect, "Start Battle", ui._hovered_button == "start"
+        )
+        draw_button(
+            ui, surface, ui._back_button_rect, "Back", ui._hovered_button == "back", ui.TEXT_COLOR
+        )
 
     # ------------------------------------------------------------------
     # Preview
@@ -484,6 +498,7 @@ class CampaignUIRenderer:
     def _render_preview(self, surface: Surface) -> None:
         """Render pre-battle preview with mini map, objectives, and forces."""
         ui = self._ui
+        assert ui._font_title is not None and ui._font_normal is not None and ui._font_small is not None
         sw, sh = surface.get_size()
         surface.fill(ui.BG_COLOR)
 
@@ -607,7 +622,9 @@ class CampaignUIRenderer:
         )
 
         draw_button(ui, surface, ui._deploy_button_rect, "Deploy", ui._hovered_button == "deploy")
-        draw_button(ui, surface, ui._back_button_rect, "Back", ui._hovered_button == "back", ui.TEXT_COLOR)
+        draw_button(
+            ui, surface, ui._back_button_rect, "Back", ui._hovered_button == "back", ui.TEXT_COLOR
+        )
 
     # ------------------------------------------------------------------
     # Report
@@ -616,6 +633,7 @@ class CampaignUIRenderer:
     def _render_report(self, surface: Surface) -> None:
         """Render post-battle report with narrative elements."""
         ui = self._ui
+        assert ui._font_title is not None and ui._font_normal is not None and ui._font_small is not None
         sw, sh = surface.get_size()
         surface.fill(ui.BG_COLOR)
 
@@ -758,8 +776,12 @@ class CampaignUIRenderer:
             sw - ui.MARGIN - ui.BUTTON_WIDTH, btn_y, ui.BUTTON_WIDTH, ui.BUTTON_HEIGHT
         )
 
-        draw_button(ui, surface, ui._continue_button_rect, "Continue", ui._hovered_button == "continue")
-        draw_button(ui, surface, ui._back_button_rect, "Back", ui._hovered_button == "back", ui.TEXT_COLOR)
+        draw_button(
+            ui, surface, ui._continue_button_rect, "Continue", ui._hovered_button == "continue"
+        )
+        draw_button(
+            ui, surface, ui._back_button_rect, "Back", ui._hovered_button == "back", ui.TEXT_COLOR
+        )
 
     @staticmethod
     def _generate_narrative_report(result: dict) -> list[str]:
@@ -827,6 +849,7 @@ class CampaignUIRenderer:
     def _render_campaign_end(self, surface: Surface) -> None:
         """Render the campaign end screen with historical outcome, casualties, and bridge status."""
         ui = self._ui
+        assert ui._font_title is not None and ui._font_normal is not None and ui._font_small is not None
         sw, sh = surface.get_size()
         surface.fill(ui.BG_COLOR)
 
@@ -995,13 +1018,9 @@ class CampaignUIRenderer:
         # Allied row
         allied_label = ui._font_normal.render("Allies", True, ui.COMPLETED_COLOR)
         surface.blit(allied_label, (col_x_side, dy))
-        allied_kia = ui._font_normal.render(
-            str(allied_cas.get("kia", 0)), True, ui.DEFEAT_COLOR
-        )
+        allied_kia = ui._font_normal.render(str(allied_cas.get("kia", 0)), True, ui.DEFEAT_COLOR)
         surface.blit(allied_kia, (col_x_kia, dy))
-        allied_wia = ui._font_normal.render(
-            str(allied_cas.get("wia", 0)), True, ui.HIGHLIGHT_COLOR
-        )
+        allied_wia = ui._font_normal.render(str(allied_cas.get("wia", 0)), True, ui.HIGHLIGHT_COLOR)
         surface.blit(allied_wia, (col_x_wia, dy))
 
         dy += 28
@@ -1026,9 +1045,7 @@ class CampaignUIRenderer:
         ui._new_campaign_button_rect = Rect(
             sw // 2 - ui.BUTTON_WIDTH - 10, btn_y, ui.BUTTON_WIDTH, ui.BUTTON_HEIGHT
         )
-        ui._main_menu_button_rect = Rect(
-            sw // 2 + 10, btn_y, ui.BUTTON_WIDTH, ui.BUTTON_HEIGHT
-        )
+        ui._main_menu_button_rect = Rect(sw // 2 + 10, btn_y, ui.BUTTON_WIDTH, ui.BUTTON_HEIGHT)
 
         draw_button(
             ui,

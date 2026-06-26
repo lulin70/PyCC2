@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pycc2.infrastructure.save_system import SecureSaveManager
     from pycc2.services.game_loop import GameLoop
 
 logger = logging.getLogger(__name__)
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SaveController:
-    save_manager: object | None = None
+    save_manager: SecureSaveManager | None = None
 
     def initialize(self) -> None:
         from pycc2.infrastructure.save_system import SecureSaveManager
@@ -73,7 +74,9 @@ class SaveController:
         return self.save_manager.list_all_slots()
 
     def export_state(self, game_loop: GameLoop) -> dict:
-        if hasattr(self.save_manager, "export_state_from_game_loop"):
+        if self.save_manager is not None and hasattr(
+            self.save_manager, "export_state_from_game_loop"
+        ):
             return self.save_manager.export_state_from_game_loop(game_loop)
 
         state = game_loop.state
@@ -163,7 +166,7 @@ class SaveController:
         if not units_data:
             return False
 
-        new_units = []
+        new_units: list[Unit] = []
         for ud in units_data:
             try:
                 faction = Faction[ud.get("faction", "ALLIES")]

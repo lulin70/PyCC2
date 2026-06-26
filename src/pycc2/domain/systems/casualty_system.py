@@ -118,10 +118,10 @@ class Casualty:
         self._is_being_dragged = False
 
         # Disable unit actions
-        if self._unit.can_move is not None:
-            self._unit.can_move = False
-        if self._unit.can_attack is not None:
-            self._unit.can_attack = False
+        if getattr(self._unit, "can_move", None) is not None:
+            setattr(self._unit, "can_move", False)
+        if getattr(self._unit, "can_attack", None) is not None:
+            setattr(self._unit, "can_attack", False)
 
         event = {
             "event": "casualty_wounded",
@@ -204,8 +204,8 @@ class Casualty:
         pos_comp = self._unit.position
         if pos_comp:
             self._drag_start_pos = (
-                pos_comp.x,
-                pos_comp.y,
+                getattr(pos_comp, "x", 0.0),
+                getattr(pos_comp, "y", 0.0),
             )
 
         event = {
@@ -295,12 +295,14 @@ class Casualty:
 
         # Mark unit as dead
         if self._unit.health is not None:
-            self._unit.health.current_hp = 0
+            setattr(self._unit.health, "current_hp", 0)
         if self._unit.state_machine is not None:
             from pycc2.domain.entities.unit import UnitState
 
             try:
-                self._unit.state_machine.force_state(UnitState.DEAD)
+                getattr(self._unit.state_machine, "force_state", lambda s: None)(
+                    UnitState.DEAD
+                )
             except (ValueError, RuntimeError) as e:
                 logging.warning("Casualty state transition to DEAD failed: %s", e)
 
@@ -415,8 +417,8 @@ class CasualtyManager:
 
             pos_comp = casualty.unit.position
             if pos_comp:
-                cx = pos_comp.x
-                cy = pos_comp.y
+                cx = getattr(pos_comp, "x", 0.0)
+                cy = getattr(pos_comp, "y", 0.0)
 
                 distance = ((cx - position[0]) ** 2 + (cy - position[1]) ** 2) ** 0.5
 

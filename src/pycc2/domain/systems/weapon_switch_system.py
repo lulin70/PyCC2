@@ -60,6 +60,7 @@ class WeaponSwitchSystem:
         self._last_switch_time: float = 0.0
         self._is_switching: bool = False
         self._switch_start_time: float = 0.0
+        self._switch_elapsed_ms: float = 0.0
 
         self._initialize_default_weapons()
 
@@ -74,11 +75,9 @@ class WeaponSwitchSystem:
         # Create default secondary (pistol) and melee weapons
         try:
             secondary_weapon = WeaponComponent(
-                name="Pistol",
-                damage=15,
-                range_meters=30,
-                fire_rate=3.0,
-                accuracy=0.6,
+                primary_weapon_id="pistol",
+                ammo_remaining=60,
+                max_ammo=60,
             )
             self._weapons[WeaponSlot.SECONDARY] = secondary_weapon
         except (ValueError, TypeError, AttributeError) as e:
@@ -86,12 +85,9 @@ class WeaponSwitchSystem:
 
         try:
             melee_weapon = WeaponComponent(
-                name="Bayonet/Knife",
-                damage=25,
-                range_meters=1,
-                fire_rate=1.5,
-                accuracy=0.9,
-                is_melee=True,
+                primary_weapon_id="bayonet",
+                ammo_remaining=0,
+                max_ammo=0,
             )
             self._weapons[WeaponSlot.MELEE] = melee_weapon
         except (ValueError, TypeError, AttributeError) as e:
@@ -152,6 +148,7 @@ class WeaponSwitchSystem:
 
         self._last_switch_time = time.perf_counter() * 1000
         self._switch_start_time = self._last_switch_time
+        self._switch_elapsed_ms = 0.0
         self._is_switching = True
 
         logger.info(
@@ -186,16 +183,13 @@ class WeaponSwitchSystem:
         if not self._is_switching:
             return
 
-        import time
-
-        current_time = time.perf_counter() * 1000
         config = self._slot_configs.get(self._active_slot)
 
         if config:
-            elapsed = current_time - self._switch_start_time
+            self._switch_elapsed_ms += delta_ms
             total_switch_time = config.draw_time_ms + config.holster_time_ms
 
-            if elapsed >= total_switch_time:
+            if self._switch_elapsed_ms >= total_switch_time:
                 self._is_switching = False
 
     def get_switch_progress(self) -> float:

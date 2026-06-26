@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    import pygame
     from pycc2.presentation.ui.keybind_manager import KeybindManager
 
 
@@ -82,15 +83,15 @@ class SettingsMenu:
         self._selected_option_idx: int = 0
 
         # Pre-create fonts to avoid per-frame allocation (lazy init)
-        self._font_lg = None
-        self._font_md = None
-        self._font_sm = None
+        self._font_lg: pygame.font.Font = None  # type: ignore[assignment]
+        self._font_md: pygame.font.Font = None  # type: ignore[assignment]
+        self._font_sm: pygame.font.Font = None  # type: ignore[assignment]
 
         # Cached surfaces (rebuilt on resize)
-        self._overlay: object | None = None
-        self._panel: object | None = None
+        self._overlay: pygame.Surface = None  # type: ignore[assignment]
+        self._panel: pygame.Surface = None  # type: ignore[assignment]
         self._cached_size: tuple[int, int] = (0, 0)
-        self._tab_surf: object | None = None
+        self._tab_surf: pygame.Surface = None  # type: ignore[assignment]
         self._tab_surf_size: tuple[int, int] = (0, 0)
 
     def _init_fonts(self) -> None:
@@ -290,7 +291,7 @@ class SettingsMenu:
                     from pycc2.presentation.ui.keybind_manager import ACTION_LABELS
 
                     bindings = self._keybind_manager.get_all_bindings()
-                    rows = []
+                    rows: list[tuple[str, object, str]] = []
                     for action in ACTION_LABELS:
                         label = ACTION_LABELS[action]
                         key_combo = bindings.get(action, (0,))
@@ -372,11 +373,11 @@ class SettingsMenu:
         if typ == "enum":
             if name == "Quality Preset":
                 presets = ["LOW", "MEDIUM", "HIGH", "ULTRA"]
-                idx = (presets.index(value) + direction) % len(presets)
+                idx = (presets.index(str(value)) + direction) % len(presets)
                 self.state.quality_preset = presets[idx]
             elif name == "Difficulty":
                 difficulties = ["EASY", "MEDIUM", "HARD", "VETERAN"]
-                idx = (difficulties.index(value) + direction) % len(difficulties)
+                idx = (difficulties.index(str(value)) + direction) % len(difficulties)
                 self.state.difficulty = difficulties[idx]
         elif typ == "slider":
             if name == "Master Volume":

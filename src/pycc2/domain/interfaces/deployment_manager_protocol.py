@@ -7,7 +7,10 @@ by game_loop.
 
 from __future__ import annotations
 
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from .deployment_ui_protocol import IDeploymentUI
 
 
 @runtime_checkable
@@ -24,7 +27,7 @@ class IDeploymentManager(Protocol):
         ...
 
     @property
-    def deployment_ui(self) -> object | None:
+    def deployment_ui(self) -> "IDeploymentUI | None":
         """The current deployment UI instance, or None."""
         ...
 
@@ -45,4 +48,8 @@ class IDeploymentManager(Protocol):
 
     def get_state(self) -> object | None:
         """Return the current deployment state, or None if not active."""
+        ...
+
+    def set_pending_order(self, unit_id: str, tx: int, ty: int) -> None:
+        """Set a pending pre-battle order for the given unit."""
         ...

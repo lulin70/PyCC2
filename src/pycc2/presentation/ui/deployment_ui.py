@@ -47,6 +47,7 @@ from pycc2.presentation.ui.deployment_models import (
     DeploymentPhase,
     DeploymentState,
     DeploymentUnit,
+    UnitCategory,
     ZoneType,
 )
 from pycc2.presentation.ui.deployment_orders import DeploymentOrders
@@ -115,12 +116,12 @@ class DeploymentUI:
         self._font_large: pygame.font.Font | None = None
 
         # Overlay surface cache (rebuilt when zones change)
-        self._overlay_cache: dict[str, pygame.Surface] | None = None
+        self._overlay_cache: pygame.Surface | None = None
         self._overlay_tile_size: int = 0
 
         # Roster layout cache (rebuilt when units change)
-        self._roster_layout: list[tuple[str, int]] = field(default_factory=list)
-        # Each entry: ("category", -1) or ("unit", index)
+        self._roster_layout: list[tuple[str, UnitCategory | int]] = field(default_factory=list)
+        # Each entry: ("category", category) or ("unit", index)
 
         # === Drag-and-drop state (Issue 3) — extracted to DeploymentDragDrop ===
         self._drag_drop = DeploymentDragDrop()
@@ -139,6 +140,70 @@ class DeploymentUI:
 
         # Extracted renderer (SRP v0.3.30)
         self._renderer = DeploymentRenderer(self)
+
+        # Renderer-managed UI state (retained for backward compatibility)
+        self._detail_panel_btn_rect: tuple[int, int, int, int] | None = None
+        self._detail_panel_btn_action: str | None = None
+        self._highlight_surface_cache: dict[int, pygame.Surface] = {}
+
+    # ------------------------------------------------------------------
+    # Delegated attributes for renderer compatibility
+    # ------------------------------------------------------------------
+
+    @property
+    def _dragging_unit(self) -> DeploymentUnit | None:
+        return self._drag_drop._dragging_unit
+
+    @_dragging_unit.setter
+    def _dragging_unit(self, value: DeploymentUnit | None) -> None:
+        self._drag_drop._dragging_unit = value
+
+    @property
+    def _dragging_unit_index(self) -> int | None:
+        return self._drag_drop._dragging_unit_index
+
+    @_dragging_unit_index.setter
+    def _dragging_unit_index(self, value: int | None) -> None:
+        self._drag_drop._dragging_unit_index = value
+
+    @property
+    def _drag_start_pos(self) -> tuple[int, int] | None:
+        return self._drag_drop._drag_start_pos
+
+    @_drag_start_pos.setter
+    def _drag_start_pos(self, value: tuple[int, int] | None) -> None:
+        self._drag_drop._drag_start_pos = value
+
+    @property
+    def _drag_current_pos(self) -> tuple[int, int] | None:
+        return self._drag_drop._drag_current_pos
+
+    @_drag_current_pos.setter
+    def _drag_current_pos(self, value: tuple[int, int] | None) -> None:
+        self._drag_drop._drag_current_pos = value
+
+    @property
+    def _is_dragging(self) -> bool:
+        return self._drag_drop._is_dragging
+
+    @_is_dragging.setter
+    def _is_dragging(self, value: bool) -> None:
+        self._drag_drop._is_dragging = value
+
+    @property
+    def _ghost_surface(self) -> pygame.Surface | None:
+        return self._drag_drop._ghost_surface
+
+    @_ghost_surface.setter
+    def _ghost_surface(self, value: pygame.Surface | None) -> None:
+        self._drag_drop._ghost_surface = value
+
+    def _create_ghost_surface(self, unit: DeploymentUnit) -> pygame.Surface | None:
+        return self._drag_drop._create_ghost_surface(unit, self)
+
+    @property
+    def _pending_orders(self) -> dict[str, tuple[int, int]]:
+        return self._orders._pending_orders
 
     # ------------------------------------------------------------------
     # Public API
@@ -901,6 +966,7 @@ class DeploymentUI:
             elif entry_type == "unit":
                 h = self._roster_item_height + 2
                 if y_offset <= click_y < y_offset + h:
+                    assert isinstance(entry_data, int)
                     return entry_data  # Return the unit index
                 y_offset += h
 

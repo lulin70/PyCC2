@@ -98,7 +98,7 @@ class EnhancedUIRenderer:
         surface: pygame.Surface,
         rect: pygame.Rect,
         title: str = "",
-        font: pygame.font.Font = None,
+        font: pygame.font.Font | None = None,
     ) -> None:
         """绘制增强面板 - 多层边框+标题栏"""
 
@@ -282,7 +282,7 @@ class EnhancedUIRenderer:
         progress: float,  # 0.0 to 1.0
         color: tuple[int, int, int] = (100, 200, 100),
         show_text: bool = True,
-        font: pygame.font.Font = None,
+        font: pygame.font.Font | None = None,
     ) -> None:
         """绘制增强进度条"""
 
@@ -335,7 +335,7 @@ def draw_button(
 
 
 def draw_panel(
-    surface: pygame.Surface, rect: pygame.Rect, title: str = "", font: pygame.font.Font = None
+    surface: pygame.Surface, rect: pygame.Rect, title: str = "", font: pygame.font.Font | None = None
 ) -> None:
     """快速绘制增强面板"""
     EnhancedUIRenderer.draw_enhanced_panel(surface, rect, title, font)

@@ -123,6 +123,7 @@ class KeybindManager:
             held_mods.append(pygame.K_LALT)
 
         # If the pressed key itself is a modifier, treat as single key
+        combo: tuple[int, ...]
         if key in _MOD_KEYS:
             combo = (key,)
         elif held_mods:

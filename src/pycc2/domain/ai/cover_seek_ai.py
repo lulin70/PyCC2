@@ -34,7 +34,7 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
 from pycc2.domain.ai.tactical_ai import TacticalAIBase, TacticalContext
@@ -188,6 +188,11 @@ class CoverScoringSystem:
         unit_y = int(unit.position_component.y)
         TileCoord(unit_x, unit_y)
 
+        # callers (find_best_cover) guarantee a map is present
+        if self._map is None:
+            return candidates
+        game_map: Any = cast(Any, self._map)
+
         # Get occupied positions
         occupied: set[tuple[int, int]] = set()
         if friendly_units:
@@ -219,7 +224,7 @@ class CoverScoringSystem:
                     cy = unit_y + dy
 
                     # Bounds check
-                    if not self._map.is_valid_coord(cx, cy):
+                    if not game_map.is_valid_coord(cx, cy):
                         continue
 
                     coord = TileCoord(cx, cy)
@@ -228,7 +233,7 @@ class CoverScoringSystem:
                     is_occupied = (cx, cy) in occupied
 
                     # Get tile properties
-                    tile = self._map.get_tile(coord)
+                    tile = game_map.get_tile(coord)
                     if tile is None:
                         continue
 
@@ -254,8 +259,9 @@ class CoverScoringSystem:
                     # Check LOS status (expensive, so limit checks)
                     is_in_los = False
                     if self._los and enemy_units:
+                        los_any: Any = cast(Any, self._los)
                         for enemy in enemy_units[:3]:  # Check up to 3 nearest enemies
-                            can_see, _ = self._los.can_see(unit_pos=coord, target_unit=enemy)
+                            can_see, _ = los_any.can_see(unit_pos=coord, target_unit=enemy)
                             if can_see:
                                 is_in_los = True
                                 break
@@ -522,7 +528,8 @@ class CoverSeekAI(TacticalAIBase):
             int(unit.position_component.x),
             int(unit.position_component.y),
         )
-        tile = self._scorer._map.get_tile(pos)
+        scorer_map: Any = cast(Any, self._scorer._map)
+        tile = scorer_map.get_tile(pos)
         if tile:
             return getattr(tile, "total_cover_bonus", 0)
         return 0

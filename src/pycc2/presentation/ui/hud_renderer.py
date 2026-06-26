@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 from pygame import Rect, Surface, draw
 
+from pycc2.domain.entities.unit import Faction
+from pycc2.presentation.rendering.pixel_artist_enums import InfantryType
+
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
 
@@ -60,23 +63,15 @@ class CC2HUDRenderer:
         content_h = hud.PANEL_HEIGHT - (hud.PADDING * 2) - 2
 
         # Render three panels
-        self._render_left_panel(
-            hud, surface, left_x + 2, content_y, hud._left_width - 4, content_h
-        )
-        self._render_center_panel(
-            hud, surface, center_x, content_y, hud._center_width, content_h
-        )
-        self._render_right_panel(
-            hud, surface, right_x, content_y, hud._right_width - 2, content_h
-        )
+        self._render_left_panel(hud, surface, left_x + 2, content_y, hud._left_width - 4, content_h)
+        self._render_center_panel(hud, surface, center_x, content_y, hud._center_width, content_h)
+        self._render_right_panel(hud, surface, right_x, content_y, hud._right_width - 2, content_h)
 
     # ==================================================================
     # LEFT PANEL – unit roster
     # ==================================================================
 
-    def _render_left_panel(
-        self, hud, surface: Surface, x: int, y: int, w: int, h: int
-    ) -> None:
+    def _render_left_panel(self, hud, surface: Surface, x: int, y: int, w: int, h: int) -> None:
         """Render left panel: unit roster with status indicators."""
         # Panel background
         draw.rect(surface, hud.PANEL_BG_DARK, Rect(x, y, w, h))
@@ -99,9 +94,7 @@ class CC2HUDRenderer:
         list_h = h - 26
         row_h = hud.ROW_HEIGHT
 
-        visible_units = hud._units[
-            hud._scroll_offset : hud._scroll_offset + hud._max_visible_units
-        ]
+        visible_units = hud._units[hud._scroll_offset : hud._scroll_offset + hud._max_visible_units]
 
         for i, unit in enumerate(visible_units):
             row_y = list_y + i * row_h
@@ -171,9 +164,7 @@ class CC2HUDRenderer:
     # CENTER PANEL – selected unit detail
     # ==================================================================
 
-    def _render_center_panel(
-        self, hud, surface: Surface, x: int, y: int, w: int, h: int
-    ) -> None:
+    def _render_center_panel(self, hud, surface: Surface, x: int, y: int, w: int, h: int) -> None:
         """Render center panel: detailed unit status display."""
         # Panel background
         draw.rect(surface, hud.PANEL_BG_MID, Rect(x, y, w, h))
@@ -277,9 +268,7 @@ class CC2HUDRenderer:
     # RIGHT PANEL – commands + minimap
     # ==================================================================
 
-    def _render_right_panel(
-        self, hud, surface: Surface, x: int, y: int, w: int, h: int
-    ) -> None:
+    def _render_right_panel(self, hud, surface: Surface, x: int, y: int, w: int, h: int) -> None:
         """Render right panel: command menu and minimap."""
         # Panel background
         draw.rect(surface, hud.PANEL_BG_LIGHT, Rect(x, y, w, h))
@@ -412,6 +401,17 @@ class CC2HUDRenderer:
                 if hasattr(faction, "name"):
                     faction = faction.name
 
+                # Convert to enums expected by portrait renderer
+                try:
+                    infantry_type_enum = InfantryType[infantry_type]
+                except (KeyError, TypeError):
+                    infantry_type_enum = InfantryType.RIFLEMAN
+
+                try:
+                    faction_enum = Faction[faction]
+                except (KeyError, TypeError):
+                    faction_enum = Faction.ALLIES
+
                 # Calculate health ratio for damage effects
                 hp = getattr(getattr(unit, "health", None), "hp", 100)
                 hp_max = getattr(getattr(unit, "health", None), "max_hp", 100)
@@ -419,7 +419,7 @@ class CC2HUDRenderer:
 
                 # Render 96x96 portrait
                 portrait = self._portrait_renderer.render_portrait(
-                    infantry_type=infantry_type, faction=faction, health_ratio=health_ratio
+                    infantry_type_enum, faction_enum, health_ratio
                 )
 
                 # Display portrait at left side of panel
@@ -464,11 +464,8 @@ class CC2HUDRenderer:
         line_y += 4
 
         # Operational status
-        state_name = getattr(
-            getattr(unit, "state_machine", None),
-            "current",
-            type("obj", (object,), {"name": "IDLE"}),
-        ).name
+        state_machine = getattr(unit, "state_machine", None)
+        state_name = getattr(getattr(state_machine, "current", None), "name", "IDLE")
         op_text = f"Operational: {state_name}"
         op_surf = hud._font_small.render(op_text, True, (180, 180, 175))
         surface.blit(op_surf, (x, line_y))
@@ -488,13 +485,12 @@ class CC2HUDRenderer:
         m_surf = hud._font_small.render(m_text, True, hud.TEXT_COLOR)
         surface.blit(m_surf, (x, line_y))
         self._draw_mini_bar(
-            hud,
             surface,
             x + 48,
             line_y,
             bar_w,
             10,
-            morale_val,
+            int(morale_val),
             self._get_morale_color(hud, morale_val),
         )
 
@@ -502,20 +498,19 @@ class CC2HUDRenderer:
         a_text = "AMMO:"
         a_surf = hud._font_small.render(a_text, True, hud.TEXT_COLOR)
         surface.blit(a_surf, (x + bar_w + 52, line_y))
-        self._draw_mini_bar(surface, x + bar_w + 90, line_y, bar_w, 10, ammo_pct, (100, 150, 255))
+        self._draw_mini_bar(surface, x + bar_w + 90, line_y, bar_w, 10, int(ammo_pct), (100, 150, 255))
 
         # AT
         at_text = "AT:"
         at_surf = hud._font_small.render(at_text, True, hud.TEXT_COLOR)
         surface.blit(at_surf, (x + (bar_w + 38) * 2, line_y))
         self._draw_mini_bar(
-            hud,
             surface,
             x + (bar_w + 38) * 2 + 18,
             line_y,
             bar_w - 10,
             10,
-            (hud._at_remaining / 5) * 100,
+            int((hud._at_remaining / 5) * 100),
             hud.AT_BAR_COLOR,
         )
         line_y += 14

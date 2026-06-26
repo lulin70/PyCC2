@@ -142,7 +142,7 @@ class Searchlight:
         self._current_direction = self.direction_deg
 
     def get_illuminated_tiles(self) -> list[tuple[int, int]]:
-        illuminated = []
+        illuminated: list[tuple[int, int]] = []
         if not self.is_active:
             return illuminated
 

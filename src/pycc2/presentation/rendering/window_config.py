@@ -138,7 +138,7 @@ class WindowManager:
         system = platform.system()
         if system == "Darwin":
             try:
-                from AppKit import NSScreen  # type: ignore[import-not-found]
+                from AppKit import NSScreen
 
                 main_screen = NSScreen.mainScreen()
                 if main_screen is not None:

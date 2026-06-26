@@ -63,6 +63,10 @@ class IMinimap(Protocol):
         """Render minimap at screen position (x, y)."""
         ...
 
+    def contains_point(self, screen_pos: tuple[int, int]) -> bool:
+        """Check if a screen position falls within the minimap area."""
+        ...
+
     def handle_click(self, screen_pos: tuple[int, int], camera: Any) -> bool:
         """Handle a mouse click on the minimap. Return True if consumed."""
         ...

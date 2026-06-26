@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    pass
+    import pygame
 
 
 from pycc2.domain.systems.day_night_cycle import (
@@ -21,8 +21,8 @@ class LightingRenderer:
     def __init__(self, screen_width: int, screen_height: int):
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self._overlay_surface = None
-        self._searchlight_surface = None
+        self._overlay_surface: pygame.Surface | None = None
+        self._searchlight_surface: pygame.Surface | None = None
         _effects = DayNightEffects()
         self._init_surfaces()
 
@@ -49,6 +49,8 @@ class LightingRenderer:
         if time_of_day != TimeOfDay.DAY:
             alpha = self._calculate_overlay_alpha(time_of_day)
             tint_color = (*color, alpha)
+            if self._overlay_surface is None:
+                return
             self._overlay_surface.fill(tint_color)
             screen.blit(self._overlay_surface, (0, 0))
 
@@ -67,6 +69,8 @@ class LightingRenderer:
     def _render_searchlights(self, screen, searchlights: list[Searchlight]) -> None:
         import pygame
 
+        if self._searchlight_surface is None:
+            return
         self._searchlight_surface.fill((0, 0, 0, 0))
         for sl in searchlights:
             if not sl.is_active:

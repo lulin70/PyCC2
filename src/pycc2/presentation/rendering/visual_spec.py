@@ -17,7 +17,7 @@ class VisualSpec:
     SELECTION_YELLOW: tuple[int, int, int] = (255, 215, 0)
     DANGER_RED: tuple[int, int, int] = (220, 20, 60)
     FOG_GRAY: tuple[int, int, int] = (30, 30, 35)
-    PANEL_BG: tuple[int, int, int] = (40, 44, 52, 220)
+    PANEL_BG: tuple[int, int, int, int] = (40, 44, 52, 220)
     HUD_TEXT_WHITE: tuple[int, int, int] = (240, 240, 240)
     TILE_BORDER_DARK: tuple[int, int, int] = (60, 64, 72)
 

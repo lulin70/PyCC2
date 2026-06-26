@@ -96,8 +96,14 @@ class SaveUnitData(BaseModel):
     faction: str = Field(default="ALLIES")
     unit_type: str = Field(default="INFANTRY_SQUAD")
     health: SaveHealthData = Field(default_factory=lambda: SaveHealthData(hp=1, max_hp=1))
-    morale: SaveMoraleData = Field(default_factory=SaveMoraleData)
-    weapon: SaveWeaponData = Field(default_factory=SaveWeaponData)
+    morale: SaveMoraleData = Field(
+        default_factory=lambda: SaveMoraleData(value=50, panic_threshold=30, suppression=0, state="RALLIED")
+    )
+    weapon: SaveWeaponData = Field(
+        default_factory=lambda: SaveWeaponData(
+            primary_weapon_id="", ammo_remaining=0, max_ammo=10, reload_ticks_left=0, state="READY"
+        )
+    )
     position: SavePositionData = Field(default_factory=SavePositionData)
     vision: SaveVisionData = Field(default_factory=SaveVisionData)
     squad_id: str | None = Field(default=None)
@@ -229,17 +235,20 @@ class SecureSaveManager:
                 "provide config/secrets.toml with hmac_key."
             )
         warnings.warn(
-            "No HMAC key configured. Using project-derived key for development. "
+            "No HMAC key configured. Using ephemeral random key for development. "
+            "Saves will NOT be readable after restart. "
             "Set PYCC2_SAVE_HMAC_KEY env var for persistent keys.",
             UserWarning,
             stacklevel=2,
         )
         SecureSaveManager._using_default_key = True
-        # Dev environment: derive a stable key from project path.
-        # This ensures saves remain readable across sessions in the same project.
-        # Production must set PYCC2_SAVE_HMAC_KEY or config/secrets.toml.
-        project_id = str(Path(__file__).resolve().parent.parent)
-        return hashlib.sha256(b"pycc2-dev-hmac:" + project_id.encode()).digest()
+        # Dev environment: use an ephemeral random key.
+        # Saves will not be readable after process restart, which makes the
+        # danger obvious during development. Production MUST set
+        # PYCC2_SAVE_HMAC_KEY or config/secrets.toml.
+        import secrets
+
+        return secrets.token_bytes(32)
 
     @staticmethod
     def _sanitize_filename(filename: str) -> str:

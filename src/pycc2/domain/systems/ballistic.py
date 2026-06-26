@@ -31,12 +31,10 @@ class BallisticEngine:
     rng: IRandomNumberGenerator
 
     _weapon_stats: dict[str, dict] = field(init=False, default_factory=dict)
+    _swiss_cheese: SwissCheeseEngine | None = field(init=False, default=None)
 
     def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "_weapon_stats",
-            {
+        self._weapon_stats = {
                 "rifle": {
                     "base_accuracy": 0.85,
                     "effective_range": 12.0,
@@ -102,14 +100,12 @@ class BallisticEngine:
                     "spread": 4.0,
                     "anti_tank_bonus": 2.0,
                 },
-            },
-        )
-        object.__setattr__(self, "_swiss_cheese", None)
+            }
 
     @property
     def swiss_cheese(self) -> SwissCheeseEngine:
         if self._swiss_cheese is None:
-            object.__setattr__(self, "_swiss_cheese", SwissCheeseEngine())
+            self._swiss_cheese = SwissCheeseEngine()
         return self._swiss_cheese
 
     def calculate_shot(

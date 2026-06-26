@@ -221,9 +221,7 @@ class DeploymentDragDrop:
     # Ghost sprite rendering
     # ------------------------------------------------------------------
 
-    def _create_ghost_surface(
-        self, unit: DeploymentUnit, ui
-    ) -> pygame.Surface | None:
+    def _create_ghost_surface(self, unit: DeploymentUnit, ui) -> pygame.Surface | None:
         """Create a semi-transparent ghost sprite for dragged unit.
 
         Parameters

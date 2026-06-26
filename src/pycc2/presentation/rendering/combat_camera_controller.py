@@ -23,19 +23,19 @@ from pycc2.presentation.rendering.camera_effects import (
 )
 
 if TYPE_CHECKING:
-    from pycc2.presentation.rendering.camera import Camera
+    from pycc2.domain.interfaces.camera_protocol import ICamera
 
 
 class CombatCameraController:
     """Maps combat events to cinematic camera effects."""
 
-    def __init__(self, camera: Optional["Camera"] = None):
+    def __init__(self, camera: Optional["ICamera"] = None):
         self._camera = camera
         self._effect_stack: EffectStack | None = None
         self._enabled = True
         self._kill_count = 0
 
-    def set_camera(self, camera: "Camera") -> None:
+    def set_camera(self, camera: "ICamera") -> None:
         self._camera = camera
 
     def set_effect_stack(self, stack: EffectStack) -> None:

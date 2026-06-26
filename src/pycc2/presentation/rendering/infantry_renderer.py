@@ -461,7 +461,11 @@ class InfantryRenderer:
         head_color = (
             self.HELMET_COLOR_ALLIES if faction == Faction.ALLIES else self.HELMET_COLOR_AXIS
         )
-        head_color = tuple(int(c * vis) for c in head_color)
+        head_color = (
+            int(head_color[0] * vis),
+            int(head_color[1] * vis),
+            int(head_color[2] * vis),
+        )
         pygame.draw.circle(surface, head_color, (head_x, cy + 2), 3)
 
     def _draw_infantry_death_topdown(

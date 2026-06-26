@@ -264,7 +264,7 @@ class UnitSpriteGenerator:
         )
         c.set_pixel(cx - 1, cy - 3, hl_color)
 
-        body_w, body_h = sz // 2.5, sz // 4
+        body_w, body_h = int(sz / 2.5), int(sz / 4)
         c.fill_ellipse(cx - body_w // 2, cy, body_w, body_h, pal.uniform)
 
         dir_angles = [270, 292.5, 315, 337.5, 0, 22.5, 45, 67.5]

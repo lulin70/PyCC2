@@ -18,6 +18,7 @@ from __future__ import annotations
 import logging
 import math
 import random
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
@@ -1125,7 +1126,7 @@ if __name__ == "__main__":
 
     import tempfile as _tf
 
-    _preview_path = str(_tf.gettempdir() / "cc2_style_preview.png")
+    _preview_path = str(Path(_tf.gettempdir()) / "cc2_style_preview.png")
     pygame.image.save(test_surface, _preview_path)
     logger.info("Preview saved to %s", _preview_path)
     logger.info("   Generated %d infantry sprites + tank + tree + building", len(directions))

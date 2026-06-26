@@ -8,12 +8,16 @@ explicit interfaces for all shared rendering dependencies.
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import pygame
 
 from pycc2.presentation.rendering.autotile_system import AutotileCache
 from pycc2.presentation.rendering.palette_generator import PaletteGenerator
 from pycc2.presentation.rendering.terrain_tile_cache import TerrainTileCache
+
+if TYPE_CHECKING:
+    from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
 
 class RenderContext:
@@ -54,7 +58,7 @@ class RenderContext:
         tile_size: int,
         screen: pygame.Surface | None = None,
         offscreen: pygame.Surface | None = None,
-        sprite_renderer: object | None = None,
+        sprite_renderer: SpriteRenderer | None = None,
         palette_gen: PaletteGenerator | None = None,
         texture_cache: dict | None = None,
         scaled_texture_cache: dict | None = None,

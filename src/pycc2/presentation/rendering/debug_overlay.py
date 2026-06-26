@@ -10,7 +10,7 @@ from enum import Enum, auto
 from typing import Any
 
 import pygame
-from pygame import Font, Surface
+from pygame import Surface
 
 from pycc2.infrastructure.config import Settings
 
@@ -29,7 +29,7 @@ class DebugOverlay:
     def __init__(self, settings: Settings):
         self.settings = settings
         self._level: DebugLevel = DebugLevel.OFF
-        self._font: Font | None = None
+        self._font: pygame.font.Font | None = None
         self._debug_info: dict = {}
         self._performance_metrics: dict = {}
         self._ai_decisions: deque[dict] = deque()
@@ -78,6 +78,7 @@ class DebugOverlay:
 
     def _render_basic_info(self, surface: Surface) -> None:
         """Render basic debug info (FPS, position, etc.)."""
+        assert self._font is not None
         y_offset = 35
         lines = [
             f"Debug Mode: {self._level.name}",
@@ -98,6 +99,7 @@ class DebugOverlay:
 
     def _render_verbose_info(self, surface: Surface) -> None:
         """Render verbose debug info including AI decisions."""
+        assert self._font is not None
         basic_height = 35 + 5 * 18
         y_offset = basic_height + 10
 

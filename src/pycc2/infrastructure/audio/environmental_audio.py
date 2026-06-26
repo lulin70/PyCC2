@@ -8,11 +8,14 @@ from __future__ import annotations
 
 import logging
 from enum import Enum, auto
-from typing import ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 logger = logging.getLogger(__name__)
 
 import numpy as np
+
+if TYPE_CHECKING:
+    import pygame
 
 
 class EnvironmentSoundType(Enum):
@@ -474,9 +477,9 @@ class EnvironmentalAudioSystem:
     """
 
     def __init__(self):
-        self._mixer = None
-        self._sound_cache: dict[EnvironmentSoundType, object] = {}
-        self._loop_channels: dict[EnvironmentSoundType, object] = {}
+        self._mixer: Any | None = None
+        self._sound_cache: dict[EnvironmentSoundType, pygame.mixer.Sound] = {}
+        self._loop_channels: dict[EnvironmentSoundType, pygame.mixer.Channel] = {}
         self._active_sounds: dict[EnvironmentSoundType, bool] = {
             EnvironmentSoundType.BIRDS: True,
             EnvironmentSoundType.WIND: False,
@@ -497,7 +500,7 @@ class EnvironmentalAudioSystem:
         self._is_raining: bool = False
         self._initialized: bool = False
 
-    def initialize(self, mixer) -> None:
+    def initialize(self, mixer: Any) -> None:
         """Initialize with pygame.mixer instance.
 
         Args:
@@ -511,7 +514,7 @@ class EnvironmentalAudioSystem:
         self._initialized = True
         logger.info("EnvironmentalAudioSystem initialized")
 
-    def _generate_sound(self, sound_type: EnvironmentSoundType) -> object:
+    def _generate_sound(self, sound_type: EnvironmentSoundType) -> pygame.mixer.Sound | None:
         """Generate and cache a sound.
 
         Args:
@@ -561,6 +564,8 @@ class EnvironmentalAudioSystem:
             logger.warning(f"No generator for sound type: {sound_type}")
             return None
 
+        if self._mixer is None:
+            return None
         raw_audio = generator()
         sound = self._mixer.Sound(array=raw_audio)
         sound.set_volume(self._volume)

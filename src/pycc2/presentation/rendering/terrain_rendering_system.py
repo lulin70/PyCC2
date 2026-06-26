@@ -203,7 +203,6 @@ class TerrainRenderingSystem:
                         variation = (tx * 7919 + ty * 104729 + terrain_val * 17) % 8
 
                         if is_autotile_terrain(terrain_val):
-                            cache_key = (terrain_val, variation, bitmask)
                             cached = (
                                 self._autotile_cache.get_variant(terrain_val, bitmask, variation)
                                 if self._autotile_cache
@@ -242,8 +241,8 @@ class TerrainRenderingSystem:
                                     self._scaled_texture_cache.clear()
                                 texture = self._scaled_texture_cache.get(scale_key)
                         else:
-                            cache_key = (terrain_val, variation, height, tile_screen_size)
-                            if cache_key not in self._scaled_texture_cache:
+                            scale_key = (terrain_val, variation, height, tile_screen_size)
+                            if scale_key not in self._scaled_texture_cache:
                                 base_texture = self.get_cached_texture(terrain_val, variation)
                                 if height > 0:
                                     lighting_sys = getattr(
@@ -258,12 +257,12 @@ class TerrainRenderingSystem:
                                     int(base_texture.get_width() * scale_factor),
                                     int(base_texture.get_height() * scale_factor),
                                 )
-                                self._scaled_texture_cache[cache_key] = (
+                                self._scaled_texture_cache[scale_key] = (
                                     pygame.transform.smoothscale(base_texture, new_size)
                                 )
                                 if len(self._scaled_texture_cache) > self._MAX_SCALED_CACHE:
                                     self._scaled_texture_cache.clear()
-                            texture = self._scaled_texture_cache.get(cache_key)
+                            texture = self._scaled_texture_cache.get(scale_key)
 
                         if texture is None:
                             texture = self.get_cached_texture(terrain_val, variation)
@@ -370,7 +369,7 @@ class TerrainRenderingSystem:
         if key not in sprite_cache:
             from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
 
-            sprite = SpriteGenerator.generate_decoration_sprite(deco_type_name, variant)
+            sprite = SpriteGenerator.generate_sprite(deco_type_name, variant)
             sprite_cache[key] = sprite
 
         return sprite_cache[key]
@@ -481,8 +480,6 @@ class TerrainRenderingSystem:
                         variation = (tx * 7919 + ty * 104729 + terrain_val * 17) % 8
 
                         if is_autotile_terrain(terrain_val):
-                            cache_key = (terrain_val, variation, bitmask)
-
                             cached = (
                                 self._autotile_cache.get_variant(terrain_val, bitmask, variation)
                                 if self._autotile_cache
@@ -522,9 +519,9 @@ class TerrainRenderingSystem:
                                     self._scaled_texture_cache.clear()
                                 texture = self._scaled_texture_cache.get(scale_key)
                         else:
-                            cache_key = (terrain_val, variation, height, tile_screen_size)
+                            scale_key = (terrain_val, variation, height, tile_screen_size)
 
-                            if cache_key not in self._scaled_texture_cache:
+                            if scale_key not in self._scaled_texture_cache:
                                 base_texture = self.get_cached_texture(terrain_val, variation)
 
                                 if height > 0:
@@ -541,13 +538,13 @@ class TerrainRenderingSystem:
                                     int(base_texture.get_width() * scale_factor),
                                     int(base_texture.get_height() * scale_factor),
                                 )
-                                self._scaled_texture_cache[cache_key] = (
+                                self._scaled_texture_cache[scale_key] = (
                                     pygame.transform.smoothscale(base_texture, new_size)
                                 )
                                 if len(self._scaled_texture_cache) > self._MAX_SCALED_CACHE:
                                     self._scaled_texture_cache.clear()
 
-                            texture = self._scaled_texture_cache.get(cache_key)
+                            texture = self._scaled_texture_cache.get(scale_key)
 
                         if texture is None:
                             texture = self.get_cached_texture(terrain_val, variation)
@@ -579,7 +576,7 @@ class TerrainRenderingSystem:
             from pycc2.domain.systems.enhanced_tile import EnhancedTile
 
             return EnhancedTile(
-                base_terrain=terrain_id, height=height, variation=0, decoration=None
+                base_terrain=terrain_id, height=height, variation=0
             )
         except (IndexError, AttributeError) as e:
             logger.debug(f"Failed to get enhanced tile at ({x},{y}): {e}")
@@ -626,8 +623,7 @@ class TerrainRenderingSystem:
             terrain_id,
             variation % 8,
             palette_gen,
-            size=48,
-            bitmask=bitmask if bitmask > 0 else None,
+            bitmask=bitmask,
         )
 
     def render_terrain_transitions(

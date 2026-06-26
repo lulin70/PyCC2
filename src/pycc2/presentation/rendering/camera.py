@@ -192,6 +192,14 @@ class Camera:
 
         self.position = Vec2(clamped_x, clamped_y)
 
+    @property
+    def x(self) -> float:
+        return self.position.x
+
+    @property
+    def y(self) -> float:
+        return self.position.y
+
     def focus_on(self, target: Vec2, immediate: bool = True) -> None:
         if immediate:
             self.position = target

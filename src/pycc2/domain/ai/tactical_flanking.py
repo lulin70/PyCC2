@@ -30,11 +30,11 @@ from pycc2.domain.ai.tactical_ai_types import (
     _infer_facing,
     _threat_score,
 )
+from pycc2.domain.value_objects.tile_coord import TileCoord
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
-    from pycc2.domain.value_objects.tile_coord import TileCoord
 
 
 class FlankingAI(TacticalAIBase):

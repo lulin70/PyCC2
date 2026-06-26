@@ -38,3 +38,8 @@ class IRenderPipeline(Protocol):
     def update_fps(self, fps: float) -> None:
         """Update the FPS display value."""
         ...
+
+    hud_manager: Any | None
+    command_bar: Any | None
+    unit_panel: Any | None
+    minimap: Any | None

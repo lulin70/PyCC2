@@ -9,6 +9,7 @@ play_victory, play_defeat, and UI sound helpers.
 from __future__ import annotations
 
 import logging
+from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -16,7 +17,7 @@ import pygame
 from pygame import mixer
 
 if TYPE_CHECKING:
-    pass
+    from pycc2.presentation.audio.sound_system import SoundConfig, SoundType
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,19 @@ class SoundEffectsMixin:
     - self._config: SoundConfig
     - self._make_sound(raw): callable
     """
+
+    _available: bool
+    _config: "SoundConfig"
+
+    @abstractmethod
+    def play(self, sound_type: "SoundType", volume: float | None = None) -> bool:
+        """Play a sound effect. Implemented by the host class."""
+        ...
+
+    @abstractmethod
+    def _make_sound(self, raw: np.ndarray) -> mixer.Sound:
+        """Create a mixer.Sound from raw audio data. Implemented by the host class."""
+        ...
 
     # ---- UI sounds ----
 

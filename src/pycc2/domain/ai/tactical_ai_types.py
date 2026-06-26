@@ -25,6 +25,7 @@ from pycc2.domain.value_objects.tile_coord import TileCoord
 if TYPE_CHECKING:
     from pycc2.domain.ai.blackboard import Blackboard
     from pycc2.domain.ai.difficulty_system import DifficultyConfig
+    from pycc2.domain.ai.tactic_intent import TacticIntent
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
 
@@ -177,5 +178,5 @@ class TacticalAIBase(ABC):
         """Return a priority score in [0.0, 1.0]."""
 
     @abstractmethod
-    def execute(self, context: TacticalContext) -> list[pycc2.domain.ai.tactic_intent.TacticIntent]:  # noqa: F821,E501
+    def execute(self, context: TacticalContext) -> list[TacticIntent]:
         """Return a list of TacticIntents for units this AI wants to control."""

@@ -1839,13 +1839,19 @@ if __name__ == "__main__":
             )
 
     logger.info("⚠️  USER-MENTIONED WEAPONS VERIFIED:")
-    logger.info(
-        "   ✅ US M1919 (M34): %s - %s", db.get("us_m1919").name, db.get("us_m1919").notes[:60]
-    )
+    _wp_m1919 = db.get("us_m1919")
+    assert _wp_m1919 is not None
+    logger.info("   ✅ US M1919 (M34): %s - %s", _wp_m1919.name, _wp_m1919.notes[:60])
+    _wp_m1919a4 = db.get("us_m1919a4")
+    assert _wp_m1919a4 is not None
     logger.info(
         "   ✅ US M1919A4 (M42): %s - %s",
-        db.get("us_m1919a4").name,
-        db.get("us_m1919a4").notes[:60],
+        _wp_m1919a4.name,
+        _wp_m1919a4.notes[:60],
     )
-    logger.info("   ✅ DE MG34: %s - %s", db.get("de_mg34").name, db.get("de_mg34").notes[:60])
-    logger.info("   ✅ DE MG42: %s - %s", db.get("de_mg42").name, db.get("de_mg42").notes[:60])
+    _wp_mg34 = db.get("de_mg34")
+    assert _wp_mg34 is not None
+    logger.info("   ✅ DE MG34: %s - %s", _wp_mg34.name, _wp_mg34.notes[:60])
+    _wp_mg42 = db.get("de_mg42")
+    assert _wp_mg42 is not None
+    logger.info("   ✅ DE MG42: %s - %s", _wp_mg42.name, _wp_mg42.notes[:60])

@@ -4,7 +4,7 @@ import logging
 import math
 from collections import deque
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pycc2.domain.interfaces import ISoundSystem
 
@@ -12,6 +12,10 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.interfaces import DisplayConfig
+    from pycc2.domain.systems.ballistic import BallisticEngine
+    from pycc2.domain.systems.pathfinder import PathFinder
+    from pycc2.domain.systems.victory_conditions import BattleStats
+    from pycc2.presentation.rendering.camera import Camera
     from pycc2.services.event_bus import EventBus
 
 logger = logging.getLogger(__name__)
@@ -22,14 +26,14 @@ class CombatDirector:
     event_bus: EventBus
     display_config: DisplayConfig
     sound_system: ISoundSystem | None = None
-    ballistic_engine: object | None = None
-    pathfinder: object | None = None
+    ballistic_engine: BallisticEngine | None = None
+    pathfinder: PathFinder | None = None
 
     _units: list[Unit] = field(init=False, default_factory=list)
     _game_map: GameMap | None = field(init=False, default=None)
     _pending_effects: list[dict] = field(init=False, default_factory=list)
     _move_orders: dict[str, dict] = field(init=False, default_factory=dict)
-    _camera_position: object | None = field(
+    _camera_position: Any | None = field(
         init=False, default=None
     )  # R10: Camera position for sound falloff
 
@@ -54,7 +58,7 @@ class CombatDirector:
         units: list[Unit],
         game_map: GameMap,
         dt: float,
-        battle_stats: object | None = None,
+        battle_stats: BattleStats | None = None,
     ) -> None:
         self.set_context(units, game_map)
 
@@ -208,11 +212,12 @@ class CombatDirector:
                 if hasattr(unit, "weapon") and unit.weapon:
                     # Deploy smoke effect
                     try:
-                        from pycc2.domain.systems.ammo_type_system import AmmoTypeSystem
+                        from pycc2.domain.systems.ammo_type_system import AmmoInventory
 
-                        # Check if AmmoTypeSystem has smoke deployment
-                        if hasattr(AmmoTypeSystem, "deploy_smoke"):
-                            success = AmmoTypeSystem.deploy_smoke(unit, self._game_map)
+                        # Check if AmmoInventory has smoke deployment
+                        deploy_smoke = getattr(AmmoInventory, "deploy_smoke", None)
+                        if deploy_smoke is not None:
+                            success = deploy_smoke(unit, self._game_map)
                             if not success:
                                 logger.warning(
                                     "[SMOKE] Failed to deploy smoke for %s",
@@ -386,7 +391,7 @@ class CombatDirector:
                 }
             )
 
-    def record_stats(self, data: dict, units: list[Unit], battle_stats: object) -> None:
+    def record_stats(self, data: dict, units: list[Unit], battle_stats: BattleStats) -> None:
         if battle_stats is None:
             return
         attacker_id = data.get("attacker_id", "")
@@ -407,7 +412,7 @@ class CombatDirector:
                 target_faction = "axis" if target.faction.name == "AXIS" else "allies"
                 battle_stats.record_unit_lost(target_faction)
 
-    def process_effects(self, renderer: object | None = None, camera: object | None = None) -> None:
+    def process_effects(self, renderer: Any | None = None, camera: Camera | None = None) -> None:
         if renderer is None or not hasattr(renderer, "spawn_hit_flash"):
             self._pending_effects.clear()
             return
@@ -488,7 +493,7 @@ class CombatDirector:
         wid_lower = weapon_id.lower()
         return any(kw in wid_lower for kw in explosive_keywords)
 
-    def process_deaths(self, units: list[Unit], battle_stats: object | None = None) -> None:
+    def process_deaths(self, units: list[Unit], battle_stats: BattleStats | None = None) -> None:
         dead_units = [u for u in units if not u.is_alive]
         for unit in dead_units:
             if battle_stats:
@@ -541,7 +546,7 @@ class CombatDirector:
                     self.sound_system.play_footstep(terrain)
                 if not path:
                     del self._move_orders[unit.id]
-                    self.event_bus.publish("UnitArrived", {"unit_id": unit.id})
+                    self.event_bus.publish_named("UnitArrived", {"unit_id": unit.id})
                 else:
                     self._move_orders[unit.id]["path"] = path
             else:

@@ -12,7 +12,7 @@ Reference: Original CC2 screenshot layout specifications.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -182,9 +182,9 @@ class CC2HUD:
         self._cached_hud_width: int = 0
 
         # Callbacks
-        self._on_unit_select: callable | None = None
-        self._on_command: callable | None = None
-        self._on_hide_toggle: callable | None = None
+        self._on_unit_select: Callable[..., Any] | None = None
+        self._on_command: Callable[..., Any] | None = None
+        self._on_hide_toggle: Callable[..., Any] | None = None
 
         # Delegated sub-components
         self._renderer = CC2HUDRenderer()
@@ -261,7 +261,7 @@ class CC2HUD:
         """Set the camera reference for minimap viewport rendering."""
         self._camera = camera
 
-    def register_callback(self, event_type: str, callback: callable) -> None:
+    def register_callback(self, event_type: str, callback: Callable[..., Any]) -> None:
         """Register event callback.
 
         Args:
@@ -296,6 +296,8 @@ class CC2HUD:
         if sw != self._cached_hud_width:
             self._hud_surface = Surface((sw, self.PANEL_HEIGHT), pygame.SRCALPHA)
             self._cached_hud_width = sw
+
+        assert self._hud_surface is not None
 
         # Reuse cached HUD surface
         self._hud_surface.fill((*self.BG_COLOR, 245))
@@ -387,6 +389,26 @@ class CC2HUD:
     def get_minimap(self) -> Minimap:
         """Get the minimap component for external use."""
         return self._minimap
+
+    # ------------------------------------------------------------------
+    # Backward-compatible delegations to renderer
+    # ------------------------------------------------------------------
+
+    def _get_status_color(self, unit: Unit) -> tuple[int, int, int]:
+        """Delegate status color lookup to the renderer."""
+        return self._renderer._get_status_color(self, unit)
+
+    def _get_morale_color(self, value: int) -> tuple[int, int, int]:
+        """Delegate morale color lookup to the renderer."""
+        return self._renderer._get_morale_color(self, value)
+
+    def _get_unit_icon_key(self, unit: Unit) -> str:
+        """Delegate unit icon key lookup to the renderer."""
+        return self._renderer._get_unit_icon_key(unit)
+
+    def _get_crew_string(self, unit: Unit) -> str:
+        """Delegate crew string generation to the renderer."""
+        return self._renderer._get_crew_string(unit)
 
     # ==================================================================
     # PRIVATE HELPERS

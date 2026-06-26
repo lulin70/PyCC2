@@ -84,6 +84,8 @@ class UIOverlayRenderer:
     def _draw_vl_flags_fallback(self, game_map: GameMap, camera: Camera) -> None:
         """Direct drawing fallback when SpriteRenderer is unavailable."""
         offscreen = self._ctx.offscreen
+        if offscreen is None:
+            return
         tile_size = self._ctx.tile_size
 
         objectives = getattr(game_map, "objectives", [])
@@ -180,6 +182,8 @@ class UIOverlayRenderer:
     ) -> None:
         """Draw directional arrows at screen edges pointing to off-screen VLs."""
         offscreen = self._ctx.offscreen
+        if offscreen is None:
+            return
         arrow_margin = 30
 
         for wx, wy, owner in off_screen_vls:
@@ -427,3 +431,60 @@ class UIOverlayRenderer:
         draw_dashed_line(
             self._ctx.offscreen, color, start, end, dash_length=dash_len, gap_length=dash_len
         )
+
+    # ------------------------------------------------------------------ #
+    #  HUD & Debug Grid
+    # ------------------------------------------------------------------ #
+
+    def render_hud(self, hud, hud_enabled: bool, dirty_tracker) -> None:
+        """Render HUD overlay."""
+        if not hud_enabled or hud is None or self._ctx.offscreen is None:
+            return
+        hud.render(self._ctx.offscreen)
+        # PERF: HUD updates every frame (selection, health bars, etc.)
+        if dirty_tracker is not None and not dirty_tracker._full_redraw:
+            # Mark bottom HUD area as dirty (CC2 three-panel layout at bottom)
+            sw, sh = self._ctx.offscreen.get_size()
+            dirty_tracker.mark_dirty(pygame.Rect(0, sh - 120, sw, 120))
+
+    def draw_grid(self, game_map: GameMap, camera: Camera) -> None:
+        """Draw grid overlay for debugging.
+
+        ⚠️ RELEASE MODE: 此方法仅在 debug_mode=True 时被调用
+        在正式发布版本中，此方法不会被调用，不会产生任何性能开销。
+        """
+        if self._ctx.offscreen is None:
+            return
+
+        bounds = camera.view_bounds
+        grid_color = (60, 80, 40, 80)  # Dim grey-green
+        tile_size = self._ctx.tile_size
+
+        start_x = max(0, int(bounds[0].x // tile_size))
+        end_x = min(game_map.width, int((bounds[1].x // tile_size) + 2))
+        start_y = max(0, int(bounds[0].y // tile_size))
+        end_y = min(game_map.height, int((bounds[1].y // tile_size) + 2))
+
+        for ty in range(start_y, end_y + 1):
+            from pycc2.domain.value_objects.vec2 import Vec2
+
+            start_pos = camera.world_to_screen(Vec2(start_x * tile_size, ty * tile_size))
+            end_pos = camera.world_to_screen(Vec2(end_x * tile_size, ty * tile_size))
+            pygame.draw.line(
+                self._ctx.offscreen,
+                grid_color[:3],
+                (int(start_pos[0]), int(start_pos[1])),
+                (int(end_pos[0]), int(end_pos[1])),
+                1,
+            )
+
+        for tx in range(start_x, end_x + 1):
+            start_pos = camera.world_to_screen(Vec2(tx * tile_size, start_y * tile_size))
+            end_pos = camera.world_to_screen(Vec2(tx * tile_size, end_y * tile_size))
+            pygame.draw.line(
+                self._ctx.offscreen,
+                grid_color[:3],
+                (int(start_pos[0]), int(start_pos[1])),
+                (int(end_pos[0]), int(end_pos[1])),
+                1,
+            )

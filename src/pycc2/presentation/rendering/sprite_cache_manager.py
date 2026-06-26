@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pycc2.domain.interfaces.display_config import DisplayConfig
+    from pycc2.presentation.rendering.svg_sprite_loader import SVGSpriteLoader
 
 
 class SpriteCacheManager:
@@ -62,7 +63,7 @@ class SpriteCacheManager:
         # SVG Sprite Loader (P0: 2026-06-19) — highest priority unit sprites
         from pycc2.presentation.rendering.svg_sprite_loader import SVGSpriteLoader
 
-        self._svg_loader = SVGSpriteLoader()
+        self._svg_loader: SVGSpriteLoader | None = SVGSpriteLoader()
         self._use_svg_sprites: bool = self._svg_loader.is_available
 
         if self._use_svg_sprites:

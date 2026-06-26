@@ -546,7 +546,7 @@ def batch_enhance_maps(
 
     generator = TerrainDetailGenerator(seed=seed, config=config)
 
-    results = {"processed": 0, "total_decorations": 0, "maps": {}}
+    results: dict[str, Any] = {"processed": 0, "total_decorations": 0, "maps": {}}
 
     for map_file in sorted(in_path.glob("*.json")):
         if map_file.name.startswith("_"):

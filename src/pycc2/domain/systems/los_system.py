@@ -80,12 +80,12 @@ class LOSSystem:
             Tuple of (can_see_bool, LosResult with details)
         """
         pos_a = TileCoord(
-            int(unit_a.position_component.x),
-            int(unit_a.position_component.y),
+            int(unit_a.position.tile_coord.x),
+            int(unit_a.position.tile_coord.y),
         )
         pos_b = TileCoord(
-            int(unit_b.position_component.x),
-            int(unit_b.position_component.y),
+            int(unit_b.position.tile_coord.x),
+            int(unit_b.position.tile_coord.y),
         )
 
         return self.check_los(pos_a, pos_b, max_range)
@@ -137,7 +137,7 @@ class LOSSystem:
         dy = abs(to_coord.y - from_coord.y)
         distance = (dx * dx + dy * dy) ** 0.5
 
-        effective_range = max_range or self.DEFAULT_VISUAL_RANGE
+        effective_range: float = max_range or self.DEFAULT_VISUAL_RANGE
 
         from_elev = self._get_elevation(from_coord)
         to_elev = self._get_elevation(to_coord)

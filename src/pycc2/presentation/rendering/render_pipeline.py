@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pygame
 
@@ -11,11 +11,11 @@ from pycc2.domain.interfaces import IAIService
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
+    from pycc2.domain.interfaces.camera_protocol import ICamera
     from pycc2.domain.interfaces.display_config import DisplayConfig
-    from pycc2.presentation.rendering.camera import Camera
-    from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-    from pycc2.presentation.rendering.weather_system import WeatherRenderer
-    from pycc2.presentation.rendering.window_config import WindowManager
+    from pycc2.domain.interfaces.renderer_protocol import IRenderer
+    from pycc2.domain.interfaces.window_manager_protocol import IWindowManager
+    from pycc2.presentation.rendering.weather_renderer import WeatherRenderer
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +35,13 @@ except ImportError:
 
 @dataclass
 class RenderPipeline:
-    renderer: EnhancedRenderer
-    window_manager: WindowManager
+    renderer: IRenderer
+    window_manager: IWindowManager
     display_config: DisplayConfig
-    hud_manager: object | None = None
-    command_bar: object | None = None
-    unit_panel: object | None = None
-    minimap: object | None = None
+    hud_manager: Any | None = None
+    command_bar: Any | None = None
+    unit_panel: Any | None = None
+    minimap: Any | None = None
     ai_service: IAIService | None = None
     use_full_hud: bool = True
     weather_renderer: WeatherRenderer | None = None
@@ -57,15 +57,15 @@ class RenderPipeline:
         self,
         game_map: GameMap,
         units: list[Unit],
-        camera: Camera,
+        camera: ICamera,
         alpha: float,
         selected_unit_ids: set[str],
         debug_mode: bool,
         paused: bool,
         tick: int,
         show_post_battle: bool = False,
-        game_result: object | None = None,
-        battle_stats: object | None = None,
+        game_result: Any | None = None,
+        battle_stats: Any | None = None,
         weather=None,  # P0-3 Fix: WeatherCondition or None (default=CLEAR)
         time_of_day=None,  # P0-3 Fix: TimeOfDay or None (default=DAY)
     ) -> None:
@@ -77,23 +77,6 @@ class RenderPipeline:
             selected_unit_ids=selected_unit_ids,
             debug_mode=debug_mode,
         )
-
-        # Render weather effects (before HUD) - P0-3 Fix: Use injected values or defaults
-        if self.weather_renderer is not None:
-            from pycc2.domain.systems.environment import TimeOfDay, WeatherCondition
-
-            screen = self.window_manager.get_screen()
-            cam_x, cam_y = int(camera.x), int(camera.y)
-            # Use provided values or fallback to defaults (backward compatible)
-            actual_weather = weather if weather is not None else WeatherCondition.CLEAR
-            actual_time = time_of_day if time_of_day is not None else TimeOfDay.DAY
-            self.weather_renderer.render(
-                screen,
-                weather=actual_weather,
-                time_of_day=actual_time,
-                camera_offset_x=cam_x,
-                camera_offset_y=cam_y,
-            )
 
         self._render_hud(
             game_map=game_map,
@@ -115,14 +98,14 @@ class RenderPipeline:
         self,
         game_map: GameMap,
         units: list[Unit],
-        camera: Camera,
+        camera: ICamera,
         selected_unit_ids: set[str],
         debug_mode: bool,
         paused: bool,
         tick: int,
         show_post_battle: bool = False,
-        game_result: object | None = None,
-        battle_stats: object | None = None,
+        game_result: Any | None = None,
+        battle_stats: Any | None = None,
     ) -> None:
         screen = self.window_manager.get_screen()
 
@@ -176,7 +159,7 @@ class RenderPipeline:
                 screen.blit(ai_text, (10, 30))
 
     def _render_post_battle_screen(
-        self, screen, game_result: object | None, battle_stats: object | None
+        self, screen, game_result: Any | None, battle_stats: Any | None
     ) -> None:
         import pygame
 
@@ -285,7 +268,7 @@ class RenderPipeline:
             y += 18
 
             for uid in self.ai_service.managed_unit_ids:
-                bb = self.ai_service.get_blackboard(uid)
+                bb: Any = self.ai_service.get_blackboard(uid)
                 if bb:
                     intent = bb.get("current_intent")
                     tactic = intent.tactic_type.name if intent else "idle"

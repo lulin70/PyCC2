@@ -17,12 +17,14 @@ if TYPE_CHECKING:
     from pycc2.domain.interfaces.bottom_panel_protocol import IBottomPanel
     from pycc2.domain.interfaces.camera_protocol import ICamera as Camera
     from pycc2.domain.interfaces.display_config import DisplayConfig
+    from pycc2.domain.interfaces.input_router_protocol import IInputRouter
     from pycc2.domain.interfaces.interaction_controller_protocol import (
         IInteractionController as InteractionController,
     )
     from pycc2.domain.interfaces.minimap_protocol import IMinimap
-    from pycc2.domain.interfaces.renderer_protocol import IRenderer as RenderPipeline
-    from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
+    from pycc2.domain.interfaces.renderer_protocol import IRenderer
+    from pycc2.domain.interfaces.render_pipeline_protocol import IRenderPipeline
+    from pycc2.domain.interfaces.window_manager_protocol import IWindowManager
     from pycc2.presentation.audio.sound_system import SoundSystem
     from pycc2.services.event_bus import EventBus
 
@@ -64,12 +66,12 @@ class HUDManager:
         sound_system: SoundSystem | None,
         interaction_controller: InteractionController | None,
         event_bus: EventBus,
-        renderer: object,
-        window_manager: WindowManager,
-        render_pipeline: RenderPipeline,
-        input_router: object,
-        minimap: object | None = None,
-        cc2_panel: object | None = None,
+        renderer: IRenderer,
+        window_manager: IWindowManager,
+        render_pipeline: IRenderPipeline,
+        input_router: IInputRouter,
+        minimap: IMinimap | None = None,
+        cc2_panel: IBottomPanel | None = None,
     ) -> None:
         dc = display_config
 
@@ -140,9 +142,13 @@ class HUDManager:
             return
 
         state = self._state
+        if state is None:
+            return
         sound_system = self._sound_system
         interaction_controller = self._interaction_controller
         event_bus = self._event_bus
+        if event_bus is None:
+            return
 
         def on_move():
             if sound_system:
@@ -244,7 +250,7 @@ class HUDManager:
             logger.info(f"[COMMAND] Defend issued to {state.selected_unit_ids}")
 
         # Unit selection from roster
-        def on_roster_select(unit_id: str):
+        def on_roster_select(unit_id: str | None):
             if unit_id:
                 state.selected_unit_ids = {unit_id}
                 logger.info(f"[CC2 PANEL] Selected unit: {unit_id}")
@@ -280,7 +286,11 @@ class HUDManager:
             return
 
         state = self._state
+        if state is None:
+            return
         event_bus = self._event_bus
+        if event_bus is None:
+            return
         interaction_controller = self._interaction_controller
 
         def execute_move(unit_ids: set[str], target):

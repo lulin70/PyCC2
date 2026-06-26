@@ -57,7 +57,7 @@ class TooltipManager:
             font_obj = font.SysFont("arial", self._font_size)
             text_surf = font_obj.render(self._text, True, (240, 235, 220))
             padding = 4
-            bg_rect = text_surf.get_rect.inflate(padding * 2, padding * 2)
+            bg_rect = text_surf.get_rect().inflate(padding * 2, padding * 2)
             bg_rect.topleft = (self._pos[0], self._pos[1] - bg_rect.height - 8)
             # Keep on screen
             bg_rect.clamp_ip(surface.get_rect())

@@ -113,9 +113,12 @@ class GameLoopAssembler:
         from pycc2.presentation.rendering.render_pipeline import RenderPipeline
         from pycc2.services.combat_director import CombatDirector
 
+        dc = self._loop.display_config
+        assert dc is not None, "display_config must be initialized before combat/render/input"
+
         self._loop._combat_director = CombatDirector(
             event_bus=self._loop.event_bus,
-            display_config=self._loop.display_config,
+            display_config=dc,
             sound_system=self._loop.sound_system,
         )
         self._loop._combat_director.initialize()
@@ -123,7 +126,7 @@ class GameLoopAssembler:
         self._loop._render_pipeline = RenderPipeline(
             renderer=self._loop.renderer,
             window_manager=self._loop.window_manager,
-            display_config=self._loop.display_config,
+            display_config=dc,
             ai_service=self._loop.ai_service,
             use_full_hud=self._loop.use_full_hud,
         )
@@ -175,7 +178,8 @@ class GameLoopAssembler:
         logger.info("[HUD] Creating HUDManager instance...")
         self._loop._hud_manager = HM()
         dc = self._loop.display_config
-        logger.info(f"[HUD] display_config={dc}, ui_scale={dc.ui_scale if dc else 'N/A'}")
+        assert dc is not None, "display_config must be initialized before HUD"
+        logger.info(f"[HUD] display_config={dc}, ui_scale={dc.ui_scale}")
 
         # Create presentation objects here (Composition Root) and inject into service
         logger.info("[HUD] Creating Minimap...")
@@ -185,6 +189,10 @@ class GameLoopAssembler:
         cc2_panel.initialize()
 
         logger.info("[HUD] Initializing HUDManager with all dependencies...")
+        render_pipeline = self._loop._render_pipeline
+        input_router = self._loop._input_router
+        assert render_pipeline is not None, "render_pipeline must be initialized before HUD"
+        assert input_router is not None, "input_router must be initialized before HUD"
         self._loop._hud_manager.initialize(
             state=self._loop.state,
             display_config=dc,
@@ -193,8 +201,8 @@ class GameLoopAssembler:
             event_bus=self._loop.event_bus,
             renderer=self._loop.renderer,
             window_manager=self._loop.window_manager,
-            render_pipeline=self._loop._render_pipeline,
-            input_router=self._loop._input_router,
+            render_pipeline=render_pipeline,
+            input_router=input_router,
             minimap=minimap,
             cc2_panel=cc2_panel,
         )
@@ -203,11 +211,18 @@ class GameLoopAssembler:
     def _init_event_dispatcher(self) -> None:
         from pycc2.services.event_dispatcher import EventDispatcher as ED
 
+        pause_menu = self._loop._pause_menu
+        deployment_manager = self._loop._deployment_manager
+        input_router = self._loop._input_router
+        assert pause_menu is not None, "pause_menu must be initialized before event dispatcher"
+        assert deployment_manager is not None, "deployment_manager must be initialized before event dispatcher"
+        assert input_router is not None, "input_router must be initialized before event dispatcher"
+
         self._loop._event_dispatcher = ED(
             state=self._loop.state,
-            pause_menu=self._loop._pause_menu,
-            deployment_manager=self._loop._deployment_manager,
-            input_router=self._loop._input_router,
+            pause_menu=pause_menu,
+            deployment_manager=deployment_manager,
+            input_router=input_router,
             time_control=self._loop.time_control,
             window_manager=self._loop.window_manager,
             settings_menu=self._loop.settings_menu,

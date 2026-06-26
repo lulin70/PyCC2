@@ -12,9 +12,7 @@ from .terrain_tile_cache import CC2_TERRAIN_PALETTE
 TILE_SIZE = 48
 
 
-def _texture_woods(
-    surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0
-) -> None:
+def _texture_woods(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:
     """WOODS (3): CC2 very dark green forest with individual tree canopies visible."""
     rng = random.Random(var * 41)
     base = (45, 68, 33)
@@ -64,9 +62,7 @@ def _texture_woods(
         del pixels
 
 
-def _texture_hedge(
-    surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0
-) -> None:
+def _texture_hedge(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:
     """HEDGE (7): CC2 authentic Normandy bocage hedgerow."""
     from pycc2.presentation.rendering.autotile_system import (
         DIR_EAST,
@@ -240,9 +236,7 @@ def _texture_hedge(
     del pixels
 
 
-def _texture_rough(
-    surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0
-) -> None:
+def _texture_rough(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:
     """ROUGH (9): Brown dirt/rubble with scattered rocks."""
     from .texture_basic import _fill_with_variation
 

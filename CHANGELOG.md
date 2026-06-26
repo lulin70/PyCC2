@@ -2,6 +2,22 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [Unreleased] - 2026-06-26
+
+### Phase 3: God Class Split
+- Split `cc2_bottom_panel.py` (2007→480 lines) into 8 focused submodules (roster/unit_detail/soldier_monitor/command_bar/minimap_section/urgency/icons/input_handler)
+- Split `cc2_authentic_units.py` (1960→51 lines facade) into `unit_templates.py` + `deployment.py` + `unit_database.py` + `unit_factories/` (5 faction files)
+- Split `enhanced_renderer.py` (1450→477 lines) into 10 specialized submodules (renderer_state_manager/combat_effects_coordinator/atmosphere_controller/world_renderer/environment_renderer/screen_effects_renderer/etc.)
+- All public APIs preserved; 117 regression tests pass; mypy 0 errors
+
+### Phase 4: Security Hardening
+- **B314 Fixed**: Replaced `xml.etree.ElementTree.parse` with `defusedxml.ElementTree.parse` in `svg_sprite_loader.py` (XXE prevention)
+- **B310 Suppressed**: Added `# nosec B310` to `resource_cache.py` (URL scheme already restricted to http/https)
+- **HMAC Hardening**: `save_system.py` dev fallback switched from project-path-derived key to `secrets.token_bytes(32)` ephemeral key (saves unreadable after restart, making danger explicit)
+- **subprocess Hardening**: `pixvoxel_loader.py` added `timeout=120` + `TimeoutExpired` handling; command whitelist confirmed
+- **Dependency**: Added `defusedxml>=0.7` to `pyproject.toml`
+- **Verification**: bandit Medium 0 issues (from 2); mypy 0 errors; ruff clean; 69 security tests pass
+
 ## [0.3.42] - 2026-06-19
 
 ### P0-A: Terrain Rendering Overhaul

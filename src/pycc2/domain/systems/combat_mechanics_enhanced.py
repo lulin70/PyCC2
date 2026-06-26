@@ -544,6 +544,9 @@ class CombatState:
     is_pinned: bool = False
     is_spotted: bool = False
     last_fired_tick: int = -1
+    captured_weapon: bool = False
+    captured_accuracy_penalty: float = 0.0
+    captured_reload_penalty: float = 0.0
 
     def process_attack_received(
         self, weapon_suppress_ability: float, hit: bool, damage: float, is_explosive: bool = False

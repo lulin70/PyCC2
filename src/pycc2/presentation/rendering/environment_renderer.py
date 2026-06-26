@@ -132,6 +132,10 @@ class EnvironmentRenderer:
         except (ValueError, pygame.error) as e:
             logging.debug(f"Vignette effect failed: {e}")
 
+    def apply_environment_lighting(self, game_map, camera, units=None) -> None:
+        """Public entry point for environment lighting pass (used by WorldRenderer)."""
+        self._apply_environment_lighting(game_map, camera, units)
+
     def _get_health_tinted_color(self, base_color: tuple, unit) -> tuple:
         """Delegate to LightingEffectsSystem for health-based color tinting."""
         if self._lighting_effects_sys:
@@ -178,6 +182,42 @@ class EnvironmentRenderer:
         """Delegate to LightingEffectsSystem for dynamic light rendering (legacy API)."""
         if self._lighting_effects_sys and self._offscreen:
             self._lighting_effects_sys.render_dynamic_lights(self._offscreen)
+
+    def render_weather_and_lighting(
+        self,
+        offscreen: pygame.Surface | None,
+        camera,
+        particle_system,
+        projectile_trail_sys,
+        shell_sys,
+        dirty_tracker,
+    ) -> None:
+        """Render weather effects and lighting (particles, trails, shell casings, time-of-day)."""
+        if offscreen is None:
+            return
+
+        # STEP 5.7: Render particle effects (explosions, smoke, muzzle flash, etc.)
+        if particle_system is not None:
+            particle_system.render(offscreen)
+
+            # PERF: Mark particle screen regions as dirty (skip if already full-dirty)
+            if dirty_tracker is not None and not dirty_tracker._full_redraw:
+                if particle_system.active_count > 0:
+                    for prect in particle_system.get_dirty_rects():
+                        dirty_tracker.mark_dirty(prect)
+
+        # STEP 5.7-TRAIL: Render projectile trails
+        if projectile_trail_sys is not None:
+            projectile_trail_sys.render(offscreen)
+
+        # P3-02: Render shell casings
+        if shell_sys is not None:
+            shell_sys.render(offscreen, camera)
+
+        # STEP 5.8: Top-down lighting system pass
+        if self._lighting_effects_sys is not None:
+            self._lighting_effects_sys.apply_time_of_day_tint(offscreen)
+            self._lighting_effects_sys.render_dynamic_lights(offscreen)
 
     def set_time_of_day(self, tod: str) -> None:
         """

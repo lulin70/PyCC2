@@ -317,6 +317,14 @@ class SoundSystem(SoundEffectsMixin):
             self._available = False
             self._cache.clear()
 
+    def process_event_queue(self) -> None:
+        """Process pending audio events.
+
+        Currently a no-op: SoundSystem plays sounds synchronously via :meth:`play`.
+        This method exists for API compatibility with event-driven audio bridges.
+        """
+        return
+
     def _make_sound(self, raw: np.ndarray) -> mixer.Sound:
         """Create a pygame Sound from a mono int16 array, converting to stereo if needed."""
         if self._mixer_channels == 2 and raw.ndim == 1:
@@ -611,7 +619,7 @@ class SoundSystem(SoundEffectsMixin):
         if result:
             ch = mixer.find_channel(False)
             if ch:
-                self._active_sounds[ch.get_id()] = (sound_type, priority)
+                self._active_sounds[ch.get_id()] = (sound_type, priority)  # type: ignore[attr-defined]
                 current_count = len(self._active_sounds)
                 if current_count > self._peak_active_count:
                     self._peak_active_count = current_count

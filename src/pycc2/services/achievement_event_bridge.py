@@ -109,3 +109,7 @@ class AchievementEventBridge:
         self._battle_casualties = 0
         self._battle_kills = 0
         self._battle_damage_taken = 0
+
+    def save(self) -> bool:
+        """Persist achievement state via the underlying manager."""
+        return self._manager.save()

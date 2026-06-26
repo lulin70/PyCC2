@@ -21,7 +21,7 @@ class CursorManager:
 
     def __init__(self, tile_size: int = 48):
         self._current = CursorType.DEFAULT
-        self._cursors: dict[CursorType, pygame.Surface] = {}
+        self._cursors: dict[CursorType, pygame.Surface | None] = {}
         self._tile_size = tile_size
         self._build_cursors()
 

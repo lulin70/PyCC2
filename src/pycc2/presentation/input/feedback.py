@@ -12,7 +12,7 @@ from enum import Enum, auto
 
 import pygame
 from pygame import Surface
-from pygame import font as Font
+from pygame.font import Font
 
 
 class FeedbackType(Enum):

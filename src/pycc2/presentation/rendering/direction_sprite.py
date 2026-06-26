@@ -163,6 +163,8 @@ class DirectionSpriteSet:
         frames = self.directions.get(direction)
         if not frames:
             closest = self._find_closest_direction(direction)
+            if closest is None:
+                return None
             frames = self.directions.get(closest)
             if not frames:
                 return None

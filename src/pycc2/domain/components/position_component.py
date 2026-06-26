@@ -21,6 +21,16 @@ class PositionComponent:
     facing_rad: float = 0.0
 
     @property
+    def x(self) -> int:
+        """Legacy alias for tile x coordinate."""
+        return self.tile_coord.x
+
+    @property
+    def y(self) -> int:
+        """Legacy alias for tile y coordinate."""
+        return self.tile_coord.y
+
+    @property
     def pixel_position(self) -> Vec2:
         tile_vec = Vec2(
             self.tile_coord.x * Vec2.TILE_SIZE,

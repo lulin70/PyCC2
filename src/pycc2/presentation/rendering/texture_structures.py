@@ -160,9 +160,7 @@ def _texture_building_solid(
     del pixels
 
 
-def _texture_wall(
-    surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0
-) -> None:
+def _texture_wall(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:
     """WALL (8): Gray brick wall with mortar lines."""
     rng = random.Random(var * 173)
     wall_color = (130, 128, 125)
@@ -201,9 +199,7 @@ def _texture_wall(
     del pixels
 
 
-def _texture_crater(
-    surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0
-) -> None:
+def _texture_crater(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:
     """CRATER (12): CC2 authentic shell crater with elliptical depression and bright rim."""
     rng = random.Random(var * 331)
     tile_sz = TILE_SIZE
@@ -257,9 +253,7 @@ def _texture_crater(
                                 0,
                                 min(
                                     255,
-                                    int(
-                                        rim_color[0] * brightness_factor + rng.randint(-10, 10)
-                                    ),
+                                    int(rim_color[0] * brightness_factor + rng.randint(-10, 10)),
                                 ),
                             ),
                             max(
@@ -273,9 +267,7 @@ def _texture_crater(
                                 0,
                                 min(
                                     255,
-                                    int(
-                                        rim_color[2] * brightness_factor + rng.randint(-12, 12)
-                                    ),
+                                    int(rim_color[2] * brightness_factor + rng.randint(-12, 12)),
                                 ),
                             ),
                         )
@@ -303,9 +295,7 @@ def _texture_crater(
         logging.debug(f"Texture generation failed: {e}")
 
 
-def _texture_trench(
-    surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0
-) -> None:
+def _texture_trench(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:
     """TRENCH (13): Defensive earthwork line."""
     from pycc2.presentation.rendering.autotile_system import (
         DIR_EAST,

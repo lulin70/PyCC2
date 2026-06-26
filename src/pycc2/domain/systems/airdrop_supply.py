@@ -119,8 +119,8 @@ class AirdropSupplySystem:
             SupplyCrate if one is available, None otherwise
         """
         unit_pos = (
-            getattr(unit.position_component, "x", 0.0),
-            getattr(unit.position_component, "y", 0.0),
+            float(getattr(unit.position_component, "x", 0.0)),
+            float(getattr(unit.position_component, "y", 0.0)),
         )
 
         for supply in self.supplies:

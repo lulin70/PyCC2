@@ -15,6 +15,11 @@ from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.presentation.rendering.fade_transition import FadeTransition
 from pycc2.presentation.rendering.visual_spec import VisualSpec
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pycc2.presentation.rendering.camera import Camera
+
 
 class Minimap:
     """Tactical minimap component with enhanced terrain and unit visualization."""
@@ -366,7 +371,7 @@ class Minimap:
             and self._render_y <= screen_pos[1] < self._render_y + self.size
         )
 
-    def handle_click(self, screen_pos: tuple[int, int], camera: object) -> bool:
+    def handle_click(self, screen_pos: tuple[int, int], camera: "Camera") -> bool:
         """Handle a click on the minimap.
 
         Converts screen position to minimap position, then to world position,

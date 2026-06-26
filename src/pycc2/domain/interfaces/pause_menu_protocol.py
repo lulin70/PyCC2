@@ -23,6 +23,22 @@ class IPauseMenu(Protocol):
         """Whether the pause menu is currently active."""
         ...
 
+    def toggle(self) -> None:
+        """Toggle pause menu active state."""
+        ...
+
+    def deactivate(self) -> None:
+        """Deactivate the pause menu."""
+        ...
+
+    def update_mouse(self, mouse_pos: tuple[int, int]) -> None:
+        """Update mouse hover state."""
+        ...
+
+    def handle_click(self, mouse_pos: tuple[int, int]) -> str | None:
+        """Handle a mouse click. Return selected action or None."""
+        ...
+
     def render(self, screen: Any) -> None:
         """Render the pause menu overlay."""
         ...

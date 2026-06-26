@@ -3,8 +3,9 @@ from __future__ import annotations
 import contextlib
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pygame
 
@@ -19,13 +20,19 @@ from pycc2.domain.interfaces import (
     IEffectStack,
     IEnvironmentalAudio,
     IHUDManager,
+    IHintManager,
     IInputRouter,
+    ILightingRenderer,
     IPauseMenu,
     IPopupManager,
     IProjectileTrailSystem,
     IRenderPipeline,
     ISaveController,
+    ISettingsMenu,
+    ITutorialOverlay,
     IVictoryManager,
+    IWeatherRenderer,
+    IWeatherState,
     IWeatherSystem,
 )
 
@@ -34,6 +41,7 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.interfaces.camera_protocol import ICamera as Camera
     from pycc2.domain.interfaces.campaign_ui_protocol import ICampaignUI
+    from pycc2.domain.interfaces.deployment_ui_protocol import IDeploymentUI
     from pycc2.domain.interfaces.display_config import DisplayConfig
     from pycc2.domain.interfaces.input_handler_protocol import IInputHandler as PygameInputHandler
     from pycc2.domain.interfaces.interaction_controller_protocol import (
@@ -42,7 +50,6 @@ if TYPE_CHECKING:
     from pycc2.domain.interfaces.renderer_protocol import IRenderer as EnhancedRenderer
     from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
     from pycc2.presentation.audio.sound_system import SoundSystem
-    from pycc2.presentation.ui.deployment_ui import DeploymentUI
     from pycc2.presentation.ui.time_control import TimeControlUI
     from pycc2.services.ai_service import AIService
     from pycc2.services.event_bus import EventBus
@@ -83,9 +90,9 @@ class GameLoop:
     sound_system: SoundSystem | None = None
     use_full_hud: bool = True
     display_config: DisplayConfig | None = None
-    settings_menu: object | None = None
-    tutorial_overlay: object | None = None
-    hint_manager: object | None = None
+    settings_menu: ISettingsMenu | None = None
+    tutorial_overlay: ITutorialOverlay | None = None
+    hint_manager: IHintManager | None = None
 
     _accumulator: float = 0.0
     _current_time: float = field(default_factory=time.perf_counter)
@@ -101,9 +108,9 @@ class GameLoop:
     _ai_update_interval: int = field(init=False, default=3)
     _ai_tick_counter: int = field(init=False, default=0)
     _pause_menu: IPauseMenu | None = field(init=False, default=None)
-    _deployment_manager: IDeploymentManager = field(init=False, default=None)
-    _deployment_ui_factory: object | None = None  # Callable[[int, int], IDeploymentUI]
-    _event_dispatcher: EventDispatcher = field(init=False, default=None)
+    _deployment_manager: IDeploymentManager | None = field(init=False, default=None)
+    _deployment_ui_factory: Callable[[int, int], Any] | None = None
+    _event_dispatcher: EventDispatcher | None = field(init=False, default=None)
     _campaign_ui: ICampaignUI | None = field(init=False, default=None)
     time_control: TimeControlUI | None = field(init=False, default=None)
     _popup_manager: IPopupManager | None = field(init=False, default=None)
@@ -113,10 +120,10 @@ class GameLoop:
     _projectile_trail_sys: IProjectileTrailSystem | None = field(init=False, default=None)
     _environmental_audio: IEnvironmentalAudio | None = field(init=False, default=None)
     _victory_delay: float = field(init=False, default=0.0)
-    _weather_renderer: object | None = field(init=False, default=None)
-    _weather_state: object | None = field(init=False, default=None)
+    _weather_renderer: IWeatherRenderer | None = field(init=False, default=None)
+    _weather_state: IWeatherState | None = field(init=False, default=None)
     _day_night_time: float | None = field(init=False, default=None)
-    _lighting_renderer: object | None = field(init=False, default=None)
+    _lighting_renderer: ILightingRenderer | None = field(init=False, default=None)
     _weather_system: IWeatherSystem | None = field(init=False, default=None)
     _weather_effects: object | None = field(init=False, default=None)
     _day_night_cycle: IDayNightCycle | None = field(init=False, default=None)
@@ -130,8 +137,10 @@ class GameLoop:
     # -- Backward-compatible properties delegating to DeploymentManager --
 
     @property
-    def deployment_ui(self) -> DeploymentUI | None:
-        return self._deployment_manager.deployment_ui if self._deployment_manager else None
+    def deployment_ui(self) -> IDeploymentUI | None:
+        if self._deployment_manager is None:
+            return None
+        return self._deployment_manager.deployment_ui
 
     @property
     def deployment_phase_active(self) -> bool:
@@ -153,7 +162,7 @@ class GameLoop:
                 logger.debug("Long pause detected (%.2fs), resetting time base", frame_time)
                 continue
 
-            if not self._event_dispatcher.process_events():
+            if self._event_dispatcher is None or not self._event_dispatcher.process_events():
                 break
 
             self._accumulator += frame_time
@@ -191,14 +200,15 @@ class GameLoop:
             # Apply cinematic camera effects (shake, zoom, push-pull)
             camera_offset = self._apply_camera_effects(time_speed)
 
-            self._render_pipeline.update_fps(self._fps)
+            if self._render_pipeline is not None:
+                self._render_pipeline.update_fps(self._fps)
 
             if self.tutorial_overlay:
                 self.tutorial_overlay.update()
             if self.hint_manager:
                 self.hint_manager.update()
 
-            screen = self.window_manager._screen
+            screen = self.window_manager.get_screen()
 
             # Campaign UI overlay — if visible, render it on top and skip normal rendering
             if self._campaign_ui is not None and self._campaign_ui.is_visible and screen:
@@ -214,7 +224,7 @@ class GameLoop:
             if self.settings_menu and self.settings_menu.visible:
                 if screen:
                     self.settings_menu.render(screen)
-            elif screen:
+            elif screen and self._render_pipeline is not None:
                 # Common render pipeline for both deployment and battle phases
                 self._render_scene(screen, alpha)
 
@@ -288,7 +298,10 @@ class GameLoop:
         rendering by extracting the common render pipeline + weather/lighting steps,
         then branching only for the phase-specific UI overlay.
         """
+        if self._render_pipeline is None:
+            return
         # Step 1: Render map and units (common to both phases)
+        victory = self._victory_manager
         self._render_pipeline.render(
             game_map=self.state.game_map,
             units=self.state.units,
@@ -298,9 +311,9 @@ class GameLoop:
             debug_mode=self.state.debug_mode,
             paused=self.state.paused,
             tick=self.state.tick,
-            show_post_battle=self._victory_manager.show_post_battle,
-            game_result=self._victory_manager.game_result,
-            battle_stats=self._victory_manager.battle_stats,
+            show_post_battle=victory.show_post_battle if victory else False,
+            game_result=victory.game_result if victory else None,
+            battle_stats=victory.battle_stats if victory else None,
         )
 
         # Step 2: Render weather/lighting effects (common to both phases)
@@ -310,12 +323,10 @@ class GameLoop:
             self._lighting_renderer.render(screen, self._day_night_time)
 
         # Step 3: Phase-specific UI overlay
-        if (
-            self._deployment_manager.is_active
-            and self._deployment_manager.deployment_ui is not None
-        ):
+        dm = self._deployment_manager
+        if dm is not None and dm.is_active and dm.deployment_ui is not None:
             # Deployment phase: render deployment UI
-            deployment_ui = self._deployment_manager.deployment_ui
+            deployment_ui = dm.deployment_ui
             dc = self.display_config
             tile_size = dc.base_tile_size if dc else 16
             deployment_ui.render(
@@ -338,6 +349,8 @@ class GameLoop:
 
     def _update_logic(self, dt: float) -> None:
         if self.state.paused:
+            return
+        if self._combat_director is None:
             return
 
         self._update_weather(dt)
@@ -370,10 +383,7 @@ class GameLoop:
     def _update_audio_sync(self, dt: float) -> None:
         # Process audio event queue
         if self.sound_system:
-            try:
-                self.sound_system.process_event_queue()
-            except AttributeError:
-                pass  # SoundSystem may not have process_event_queue method
+            self.sound_system.process_event_queue()
 
         # Update environmental ambient audio system
         if self._environmental_audio is not None:
@@ -445,11 +455,14 @@ class GameLoop:
             self.interaction_controller.attack_line.update_tracking(self.state.units)
 
     def _update_combat(self, dt: float) -> None:
+        if self._combat_director is None:
+            return
+        battle_stats = self._victory_manager.battle_stats if self._victory_manager else None
         self._combat_director.update(
             units=self.state.units,
             game_map=self.state.game_map,
             dt=dt,
-            battle_stats=self._victory_manager.battle_stats,
+            battle_stats=battle_stats,
         )
         self._combat_director.process_effects(renderer=self.renderer, camera=self.state.camera)
 
@@ -569,6 +582,8 @@ class GameLoop:
                 self._ai_tick_counter = 0
 
     def _update_victory(self) -> None:
+        if self._victory_manager is None:
+            return
         victory_outcome = self._victory_manager.evaluate(self.state.units, self.state.tick)
         if victory_outcome is not None:
             result, reason = victory_outcome
@@ -593,22 +608,30 @@ class GameLoop:
                     self.sound_system.play(SoundType.UI_CANCEL)
 
     def _handle_player_command(self, data: dict) -> None:
+        if self._combat_director is None:
+            return
         self._combat_director.handle_player_command(data, self.state.units, self.state.game_map)
 
     def _execute_attack(self, attacker, target) -> None:
+        if self._combat_director is None:
+            return
         self._combat_director.execute_attack(attacker, target)
 
     def _on_unit_attacked(self, data: dict) -> None:
+        if self._combat_director is None:
+            return
         self._combat_director.on_unit_attacked(data)
         # Trigger "Taking fire!" popup on the target unit
         target_id = data.get("target_id")
-        if target_id and self._popup_manager:
+        if target_id and self._popup_manager is not None:
             target = next((u for u in self.state.units if u.id == target_id), None)
             if target and target.position is not None:
                 pp = target.position.pixel_position
                 self._popup_manager.add_taking_fire(pp.x, pp.y)
 
     def _on_unit_attacked_for_stats(self, data: dict) -> None:
+        if self._combat_director is None or self._victory_manager is None:
+            return
         self._combat_director.record_stats(
             data, self.state.units, self._victory_manager.battle_stats
         )
@@ -634,6 +657,8 @@ class GameLoop:
 
     def _process_combat_popups(self) -> None:
         """Scan units for combat events and trigger floating popups."""
+        if self._popup_manager is None:
+            return
         from pycc2.domain.systems.morale_system import MoraleState, MoraleSystem
 
         for unit in self.state.units:
@@ -680,7 +705,9 @@ class GameLoop:
                 unit._kia_popup_shown = True
 
     def _handle_input(self, event) -> None:
-        if self._input_router and self._input_router.input_handler != self.input_handler:
+        if self._input_router is None:
+            return
+        if self._input_router.input_handler != self.input_handler:
             self._input_router.input_handler = self.input_handler
         self._input_router.route_input(event)
 
@@ -694,6 +721,9 @@ class GameLoop:
 
         Delegates to DeploymentManager.start().
         """
+        if self._deployment_manager is None:
+            raise RuntimeError("DeploymentManager not initialized")
+
         dc = self.display_config
         width = dc.window_width if dc else 800
         height = dc.window_height if dc else 600
@@ -719,6 +749,8 @@ class GameLoop:
 
         Delegates to DeploymentManager.complete().
         """
+        if self._deployment_manager is None:
+            return None
         return self._deployment_manager.complete(
             ai_service=self.ai_service,
             state=self.state,
@@ -726,6 +758,8 @@ class GameLoop:
 
     def get_deployment_state(self) -> object | None:
         """Return the current deployment state, or None if not in deployment."""
+        if self._deployment_manager is None:
+            return None
         return self._deployment_manager.get_state()
 
     def set_campaign_ui(self, campaign_ui: ICampaignUI) -> None:
@@ -748,7 +782,7 @@ class GameLoop:
     def shutdown(self) -> None:
         self.state.running = False
         if self._achievement_bridge is not None:
-            self._achievement_bridge._manager.save()
+            self._achievement_bridge.save()
         if self._environmental_audio is not None:
             with contextlib.suppress(Exception):
                 self._environmental_audio.stop_all()
@@ -759,13 +793,19 @@ class GameLoop:
         self.window_manager.shutdown()
 
     def quick_save(self, slot: int = 0) -> bool:
+        if self._save_controller is None:
+            return False
         return self._save_controller.quick_save(slot, self)
 
     def quick_load(self, slot: int = 0) -> bool:
+        if self._save_controller is None:
+            return False
         result = self._save_controller.quick_load(slot, self)
-        if result:
+        if result and self._victory_manager is not None:
             self._victory_manager.reset()
         return result
 
     def list_saves(self) -> list:
+        if self._save_controller is None:
+            return []
         return self._save_controller.list_saves()

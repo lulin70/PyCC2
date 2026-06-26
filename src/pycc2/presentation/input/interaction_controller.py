@@ -3,10 +3,11 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import pygame
 
+from pycc2.domain.entities.unit import Faction
 from pycc2.domain.interfaces import IEventPublisher
 from pycc2.domain.interfaces.event_types import PlayerCommand
 from pycc2.presentation.ui.cursor_manager import CursorManager, CursorType
@@ -51,7 +52,7 @@ class InteractionController:
         self._selected_ids: set[str] = set()
         self._selection_start: tuple[float, float] | None = None
         self._on_unit_selected: Callable[[set[str]], None] | None = None
-        self._on_move_command: Callable[[set[str], Vec2], None] | None = None
+        self._on_move_command: Callable[[set[str], Vec2 | TileCoord], None] | None = None
         self._on_attack_command: Callable[[set[str], str], None] | None = None
         self._on_deselect: Callable[[], None] | None = None
 
@@ -405,7 +406,7 @@ class InteractionController:
         world_vec = self._camera.screen_to_world(screen_pos)
 
         # Get attacker faction
-        attacker_faction = "allied"  # Default
+        attacker_faction: str | Faction = "allied"  # Default
         selected_id = next(iter(self._selected_ids), None)
         if selected_id:
             for u in units:
@@ -505,7 +506,7 @@ class InteractionController:
         # PS-11: Use KeybindManager if available, otherwise fall back to hardcoded keys
         action = None
         if self._keybind_manager:
-            action = self._keybind_manager.get_action(key)
+            action = cast(Any, self._keybind_manager).get_action(key)
 
         if action == "move" or (not action and key == pygame.K_z):
             # Move: Z (CC2 standard) or custom key
@@ -575,7 +576,7 @@ class InteractionController:
     def register_on_selected(self, callback: Callable[[set[str]], None]) -> None:
         self._on_unit_selected = callback
 
-    def register_on_move(self, callback: Callable[[set[str], TileCoord], None]) -> None:
+    def register_on_move(self, callback: Callable[[set[str], Vec2 | TileCoord], None]) -> None:
         self._on_move_command = callback
 
     def register_on_attack(self, callback: Callable[[set[str], str], None]) -> None:
@@ -690,15 +691,13 @@ class InteractionController:
             result = self.hit_test(screen_pos, units)
             if result.is_unit_click and result.hit_unit and self._on_attack_command:
                 self._on_attack_command(self._selected_ids, result.hit_unit.id)
-            self._event_bus.publish(
-                PlayerCommand(
-                    command="attack",
-                    unit_ids=list(self._selected_ids),
-                    target_id=result.hit_unit.id
-                    if result.is_unit_click and result.hit_unit
-                    else None,
-                )
-            )
+            attack_event: PlayerCommand = {
+                "command": "attack",
+                "unit_ids": list(self._selected_ids),
+            }
+            if result.is_unit_click and result.hit_unit:
+                attack_event["target_id"] = result.hit_unit.id
+            self._event_bus.publish(attack_event)
         else:
             # Instant commands (smoke, defend, hide) - no target needed
             self._event_bus.publish(

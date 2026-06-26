@@ -92,7 +92,7 @@ class EventBus(IEventPublisher):
 
     def publish(self, event: dict | object) -> None:
         event_type = type(event)
-        if event_type is dict and self._registered_types:
+        if isinstance(event, dict) and self._registered_types:
             matched = self._match_typed_dict(event, self._registered_types)
             if matched is not None:
                 event_type = matched

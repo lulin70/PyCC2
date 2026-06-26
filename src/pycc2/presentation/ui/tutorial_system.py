@@ -217,6 +217,9 @@ class TutorialOverlay:
         if self._cached_size != (sw, sh):
             self._rebuild_surfaces(sw, sh)
 
+        if self._overlay is None or self._panel_surf is None or self._font_lg is None:
+            return
+
         if self._alpha < 0.99:
             self._overlay.fill((0, 0, 0, int(self._alpha * 180)))
             screen.blit(self._overlay, (0, 0))

@@ -100,6 +100,24 @@ class TurnEnded(TypedDict, total=False):
     timestamp: float
 
 
+class TurnStartedEvent(TypedDict, total=False):
+    turn_number: Required[int]
+    faction: Required[str]
+    timestamp: float
+
+
+class TurnEndedEvent(TypedDict, total=False):
+    turn_number: Required[int]
+    timestamp: float
+
+
+class GamePhaseChangedEvent(TypedDict, total=False):
+    old_phase: Required[str]
+    new_phase: Required[str]
+    turn_number: Required[int]
+    timestamp: float
+
+
 class GamePaused(TypedDict, total=False):
     reason: NotRequired[str]
     timestamp: float
@@ -171,6 +189,9 @@ __all__ = [
     "FogOfWarUpdated",
     "TurnStarted",
     "TurnEnded",
+    "TurnStartedEvent",
+    "TurnEndedEvent",
+    "GamePhaseChangedEvent",
     "GamePaused",
     "GameResumed",
     "SaveRequested",

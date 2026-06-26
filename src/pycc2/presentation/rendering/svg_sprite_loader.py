@@ -1,7 +1,7 @@
 """SVG Sprite Loader — converts unit-sprite SVGs to pygame Surfaces.
 
 Parses the CC2-style SVG sprites (docs/assets/unit-sprites/) and renders them
-as pygame Surfaces using only stdlib (xml.etree.ElementTree) + pygame.draw.
+as pygame Surfaces using defusedxml (XXE-safe) + pygame.draw.
 
 Supported SVG elements:
     - ellipse → pygame.draw.ellipse (body, helmet, shadow)
@@ -298,12 +298,19 @@ class SVGSpriteLoader:
             3. Draw each element in document order (painters algorithm)
             4. Scale to target_size if specified
         """
-        import xml.etree.ElementTree as ET
+        from xml.etree.ElementTree import ParseError
+
+        from defusedxml.ElementTree import (  # type: ignore[import-untyped]
+            parse as defused_parse,
+        )
 
         try:
-            tree = ET.parse(str(svg_path))
-        except ET.ParseError as e:
+            tree = defused_parse(str(svg_path))
+        except ParseError as e:
             logger.error("[SVGSpriteLoader] Parse error in %s: %s", svg_path, e)
+            return None
+        except Exception as e:  # defusedxml raises DefusedXmlException for XXE attempts
+            logger.error("[SVGSpriteLoader] Security check failed for %s: %s", svg_path, e)
             return None
 
         root = tree.getroot()

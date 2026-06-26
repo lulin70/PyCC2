@@ -3,14 +3,18 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import pygame
 from pygame import Rect, Surface, draw
 from pygame.font import Font
 
+if TYPE_CHECKING:
+    from pycc2.presentation.ui.campaign_ui import CampaignUI
+
 
 def draw_button(
-    ui: object,
+    ui: "CampaignUI",
     surface: Surface,
     rect: Rect,
     text: str,
@@ -18,6 +22,7 @@ def draw_button(
     text_color: tuple | None = None,
 ) -> None:
     """Draw a styled button."""
+    assert ui._font_normal is not None
     bg = ui.BUTTON_HOVER if hovered else ui.BUTTON_COLOR
     draw.rect(surface, bg, rect, border_radius=4)
     draw.rect(surface, ui.BUTTON_BORDER, rect, 1, border_radius=4)
@@ -48,7 +53,7 @@ def wrap_text(text: str, font: Font, max_width: int) -> list[str]:
 
 
 def draw_strategic_map(
-    ui: object,
+    ui: "CampaignUI",
     surface: Surface,
     x: int,
     y: int,
@@ -57,6 +62,7 @@ def draw_strategic_map(
     current_day: int,
 ) -> None:
     """Draw a strategic map showing the three Market Garden sectors with current position."""
+    assert ui._font_small is not None
     # Map background
     draw.rect(surface, ui.MINIMAP_BG, Rect(x, y, size, size))
     draw.rect(surface, ui.BORDER_COLOR, Rect(x, y, size, size), 1)
@@ -82,9 +88,7 @@ def draw_strategic_map(
 
         # Highlight current sector
         if sec_id == sector:
-            draw.rect(
-                surface, ui.HIGHLIGHT_COLOR, Rect(x + 1, sy + 1, size - 2, sector_h - 2), 2
-            )
+            draw.rect(surface, ui.HIGHLIGHT_COLOR, Rect(x + 1, sy + 1, size - 2, sector_h - 2), 2)
 
         # Sector label
         label = ui._font_small.render(
@@ -95,9 +99,7 @@ def draw_strategic_map(
     # Draw "Hell's Highway" road line connecting sectors
     road_x = x + size // 2
     draw.line(surface, (128, 128, 128), (road_x, y + sector_h), (road_x, y + 2 * sector_h), 2)
-    draw.line(
-        surface, (128, 128, 128), (road_x, y + 2 * sector_h), (road_x, y + 3 * sector_h), 2
-    )
+    draw.line(surface, (128, 128, 128), (road_x, y + 2 * sector_h), (road_x, y + 3 * sector_h), 2)
 
     # Day progress indicator
     day_pct = min(current_day / 9.0, 1.0)
@@ -109,7 +111,7 @@ def draw_strategic_map(
     surface.blit(day_label, (x + size - 25, y + size - 22))
 
 
-def draw_mini_map(ui: object, surface: Surface, x: int, y: int, size: int, map_file: str) -> None:
+def draw_mini_map(ui: "CampaignUI", surface: Surface, x: int, y: int, size: int, map_file: str) -> None:
     """Draw a simple terrain preview for the given map file."""
     # Try to load the map and render a mini preview
     try:

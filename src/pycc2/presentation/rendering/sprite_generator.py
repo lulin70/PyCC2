@@ -605,7 +605,11 @@ class SpriteGenerator:
                             or x == max(p[0] for p in wall) - 1
                         )
                         if is_edge:
-                            color = tuple(min(255, c + 20) for c in color)
+                            color = (
+                                min(255, color[0] + 20),
+                                min(255, color[1] + 20),
+                                min(255, color[2] + 20),
+                            )
 
                         surface.set_at((x, y), color)
 

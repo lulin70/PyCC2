@@ -7,7 +7,7 @@ Handles turn order, phase transitions, and time-based events.
 
 import logging
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
 
 from pycc2.services.event_bus import EventBus
@@ -33,13 +33,13 @@ class TurnState:
 
     current_turn: int = 1
     current_phase: GamePhase = GamePhase.PLANNING
-    turn_order: list[str] = None
+    turn_order: list[str] = field(default_factory=list)
     current_faction_index: int = 0
     max_turns: int | None = None
     time_elapsed_seconds: float = 0.0
 
     def __post_init__(self):
-        if self.turn_order is None:
+        if not self.turn_order:
             self.turn_order = ["allied", "axis"]
 
 

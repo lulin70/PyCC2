@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    pass
+    import pygame
 
 
 class CombatEventType(Enum):
@@ -115,7 +115,7 @@ class CombatLog:
     scroll_offset: int = 0
     expanded: bool = False
     # Surface cache – lazy init
-    _panel_cache: object = field(default=None, init=False, repr=False)
+    _panel_cache: pygame.Surface | None = field(default=None, init=False, repr=False)
     _panel_cache_size: tuple[int, int] | None = field(default=None, init=False, repr=False)
 
     def add_event(self, event: CombatEvent) -> None:

@@ -145,6 +145,9 @@ class SquadCoordinator:
         for sid in expired:
             self._cooldowns[sid] -= 1
 
+    def get_squad_units(self, squad_id: str, all_units: list[Unit]) -> list[Unit]:
+        return self._get_squad_units(squad_id, all_units)
+
     def _get_squad_units(self, squad_id: str, all_units: list[Unit]) -> list[Unit]:
         return [u for u in all_units if u.squad_id == squad_id]
 

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import math
 from enum import Enum, auto
+from typing import Any
 
 import pygame
 
@@ -23,7 +24,7 @@ class RadialCommand(Enum):
 
 
 # Command display properties
-COMMAND_PROPS = {
+COMMAND_PROPS: dict[RadialCommand, dict[str, Any]] = {
     RadialCommand.MOVE: {"label": "MOVE", "hotkey": "Z", "color": (100, 200, 100)},
     RadialCommand.MOVE_FAST: {"label": "FAST", "hotkey": "X", "color": (200, 200, 100)},
     RadialCommand.SNEAK: {"label": "SNEAK", "hotkey": "S", "color": (100, 150, 200)},

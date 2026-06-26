@@ -82,7 +82,7 @@ class GameCommand:
 
     @classmethod
     def create_attack_command(
-        cls, x: int, y: int, target_id: str = None, **kwargs
+        cls, x: int, y: int, target_id: str | None = None, **kwargs
     ) -> "GameCommand":
         """Factory method to create attack command."""
         return cls(
@@ -112,6 +112,6 @@ class CommandResult:
         return cls(success=True, message=message)
 
     @classmethod
-    def fail(cls, message: str, error_code: str = None) -> "CommandResult":
+    def fail(cls, message: str, error_code: str | None = None) -> "CommandResult":
         """Create failed result."""
         return cls(success=False, message=message, error_code=error_code)

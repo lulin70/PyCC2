@@ -27,6 +27,18 @@ from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.value_objects.vec2 import Vec2
 from pycc2.presentation.rendering.camera import Camera
 from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
+from pycc2.presentation.rendering.bottom_panel_command_bar import CommandBarRenderer
+from pycc2.presentation.rendering.bottom_panel_icons import (
+    create_command_icons,
+    create_commander_portrait,
+    create_roster_icons,
+)
+from pycc2.presentation.rendering.bottom_panel_input_handler import BottomPanelInputHandler
+from pycc2.presentation.rendering.bottom_panel_minimap_section import MinimapSectionRenderer
+from pycc2.presentation.rendering.bottom_panel_roster import RosterRenderer
+from pycc2.presentation.rendering.bottom_panel_soldier_monitor import SoldierMonitorRenderer
+from pycc2.presentation.rendering.bottom_panel_urgency import UrgencyIndicatorRenderer
+from pycc2.presentation.rendering.bottom_panel_unit_detail import UnitDetailRenderer
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -443,7 +455,52 @@ class TestMouseHover:
 
 
 # ===========================================================================
-# 7. Rendering Tests
+# 7. Extracted Helper Renderer Tests
+# ===========================================================================
+
+
+@pytest.mark.unit
+class TestExtractedRenderers:
+    def test_roster_renderer_can_render_directly(self, panel, surface, units_5):
+        panel.set_friendly_units(units_5)
+        renderer = RosterRenderer(panel)
+        renderer.render(surface, 0, 0, CC2BottomPanel.ROSTER_WIDTH, 130)
+        assert len(panel._roster_item_rects) == len(units_5)
+
+    def test_unit_detail_renderer_can_render_directly(self, panel, surface, units_5):
+        panel.set_friendly_units(units_5)
+        panel.set_selected_unit("u0")
+        renderer = UnitDetailRenderer(panel)
+        renderer.render(surface, 0, 0, CC2BottomPanel.DETAIL_WIDTH, 130)
+
+    def test_command_bar_renderer_can_render_directly(self, panel, surface):
+        renderer = CommandBarRenderer(panel)
+        renderer.render(surface, 0, 0, CC2BottomPanel.COMMAND_WIDTH, 200, time_remaining=None)
+        assert len(panel._button_rects) == len(panel._commands)
+
+    def test_minimap_section_renderer_can_render_directly(
+        self, panel, surface, camera, game_map
+    ):
+        renderer = MinimapSectionRenderer(panel)
+        renderer.render(
+            surface,
+            0,
+            0,
+            CC2BottomPanel.MINIMAP_SIZE,
+            None,
+            camera,
+            game_map,
+        )
+        assert panel._zoom_in_rect is not None
+        assert panel._zoom_out_rect is not None
+
+    def test_urgency_renderer_can_render_directly(self, panel, surface):
+        renderer = UrgencyIndicatorRenderer(panel)
+        renderer.render(surface, 0, 0, CC2BottomPanel.URGENCY_WIDTH, 130)
+
+
+# ===========================================================================
+# 8. Rendering Tests
 # ===========================================================================
 
 
@@ -468,3 +525,81 @@ class TestRendering:
         panel.set_friendly_units(units_5)
         panel.set_selected_unit("u0")
         panel.render(surface, camera, game_map)
+
+
+# ===========================================================================
+# 9. New Sub-module Tests
+# ===========================================================================
+
+
+@pytest.mark.unit
+class TestNewSubmodules:
+    def test_icons_functions_create_surfaces(self):
+        bg = (58, 64, 48)
+        border = (90, 96, 80)
+        command_icons = create_command_icons(bg)
+        roster_icons = create_roster_icons(bg)
+        portrait = create_commander_portrait(bg, border)
+
+        assert len(command_icons) > 0
+        assert "move" in command_icons
+        assert len(roster_icons) > 0
+        assert "infantry" in roster_icons
+        assert portrait.get_size() == (24, 24)
+
+    def test_soldier_monitor_renderer_renders(self, panel, surface):
+        from pycc2.domain.entities.squad import MemberState, Squad, SquadMember, SquadType
+
+        squad = Squad(
+            squad_id="squad_1",
+            squad_type=SquadType.RIFLE_SQUAD,
+            faction="allies",
+        )
+        squad.members = [
+            SquadMember(
+                member_id="m1", role="rifleman", hp=100, state=MemberState.HEALTHY, experience=20
+            ),
+            SquadMember(
+                member_id="m2", role="mg_gunner", hp=80, state=MemberState.HEALTHY, experience=35
+            ),
+        ]
+        renderer = SoldierMonitorRenderer(panel)
+        renderer.render(surface, 0, 0, CC2BottomPanel.DETAIL_WIDTH, 130, squad)
+
+        assert len(panel._soldier_member_rects) == len(squad.members)
+
+    def test_input_handler_command_click(self, panel, surface, camera, game_map, units_5):
+        panel.set_friendly_units(units_5)
+        panel.set_selected_unit("u0")
+        panel.render(surface, camera, game_map)
+
+        handler = BottomPanelInputHandler(panel)
+        for cmd_id, rect in panel._button_rects.items():
+            result = handler.handle_click((rect.centerx, rect.centery))
+            assert result == f"command:{cmd_id}"
+            break
+
+    def test_input_handler_soldier_right_click(self, panel, surface):
+        from pycc2.domain.entities.squad import MemberState, Squad, SquadMember, SquadType
+
+        squad = Squad(
+            squad_id="squad_1",
+            squad_type=SquadType.RIFLE_SQUAD,
+            faction="allies",
+        )
+        squad.members = [
+            SquadMember(
+                member_id="m1", role="rifleman", hp=100, state=MemberState.HEALTHY, experience=20
+            ),
+        ]
+        panel._soldier_member_rects = []
+        # Simulate soldier monitor rendering to populate rects
+        SoldierMonitorRenderer(panel).render(
+            surface, 0, 0, CC2BottomPanel.DETAIL_WIDTH, 130, squad
+        )
+
+        handler = BottomPanelInputHandler(panel)
+        rect, _member = panel._soldier_member_rects[0]
+        result = handler.handle_right_click((rect.centerx, rect.centery))
+        assert result is not None
+        assert "soldier_detail" in result

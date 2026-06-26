@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
+    import pygame
+
     from pycc2.domain.systems.campaign_state import CampaignState
 
 
@@ -63,7 +65,7 @@ class StrategicMapView:
     sectors: dict[str, Sector] = field(init=False)
     _background_image = None
     _campaign_state: CampaignState | None = None
-    _bg_surface: object | None = field(default=None, init=False, repr=False)
+    _bg_surface: pygame.Surface | None = field(default=None, init=False, repr=False)
     _bg_size: tuple[int, int] = field(default=(0, 0), init=False, repr=False)
 
     def __init__(self):

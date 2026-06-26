@@ -6,8 +6,13 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pycc2.domain.interfaces.combat_director_protocol import ICombatDirector
     from pycc2.domain.entities.unit import Unit
-    from pycc2.domain.systems.victory_conditions import BattleStats, GameResult
+    from pycc2.domain.systems.victory_conditions import (
+        BattleStats,
+        GameResult,
+        VictoryConditionEvaluator,
+    )
     from pycc2.services.event_bus import EventBus
 
 logger = logging.getLogger(__name__)
@@ -17,7 +22,7 @@ logger = logging.getLogger(__name__)
 class VictoryManager:
     """Manages victory condition evaluation, battle stats, and game-over state."""
 
-    _victory_evaluator: object | None = field(init=False, default=None)
+    _victory_evaluator: VictoryConditionEvaluator | None = field(init=False, default=None)
     _battle_stats: BattleStats | None = field(init=False, default=None)
     _game_result: GameResult | None = field(init=False, default=None)
     _game_over_tick: int = field(init=False, default=0)
@@ -26,9 +31,9 @@ class VictoryManager:
     _victory_time: float = field(init=False, default=0.0)
     _post_battle_delay: float = field(init=False, default=2.0)
     _event_bus: EventBus | None = field(init=False, default=None)
-    _combat_director: object | None = field(init=False, default=None)
+    _combat_director: ICombatDirector | None = field(init=False, default=None)
 
-    def initialize(self, event_bus: EventBus, combat_director: object | None = None) -> None:
+    def initialize(self, event_bus: EventBus, combat_director: ICombatDirector | None = None) -> None:
         from pycc2.domain.systems.victory_conditions import (
             BattleStats,
             VictoryConditionEvaluator,
@@ -74,7 +79,7 @@ class VictoryManager:
                             Objective(
                                 id=getattr(obj, "id", f"vl_{x}_{y}"),
                                 name=getattr(obj, "name", "Victory Location"),
-                                position=(x, y),
+                                position=(int(x), int(y)),
                                 radius=getattr(obj, "radius", 3),
                                 points=getattr(obj, "points", 100),
                             )
@@ -93,7 +98,7 @@ class VictoryManager:
         return objectives
 
     def _on_unit_attacked_for_stats(self, data: dict) -> None:
-        if self._combat_director is not None:
+        if self._combat_director is not None and self._battle_stats is not None:
             units: list[Unit] = getattr(self._combat_director, "_units", [])
             self._combat_director.record_stats(data, units, self._battle_stats)
 

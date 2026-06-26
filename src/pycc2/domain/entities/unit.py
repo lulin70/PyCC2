@@ -113,7 +113,13 @@ class Unit:
     # P1-7 Fix: Smoke grenade capability
     has_smoke_grenades: bool = False  # Set True for units with smoke capability
     smoke_grenade_count: int = 0  # Remaining smoke grenades (0=unlimited in CC2)
+    _grenade_count: int = 0  # Internal grenade counter for legacy melee/grenade AI
     _ammo_popup_shown: bool = field(init=False, default=False)
+
+    # Action flags used by casualty system
+    _can_move: bool = True
+    _can_attack: bool = True
+    move_speed: float = 1.0  # Base movement speed multiplier
 
     # STEP A-2: Damage visualization system (CC2-style vehicle/infantry damage states)
     _damage_state: str = field(
@@ -122,6 +128,61 @@ class Unit:
     _smoke_particles: list = field(init=False, default_factory=list)  # Smoke effect positions
     _fire_particles: list = field(init=False, default_factory=list)  # Fire effect positions
     _damage_vfx_timer: int = field(init=False, default=0)  # Animation timer
+
+    @property
+    def unit_id(self) -> str:
+        """Alias for id used by several subsystems."""
+        return self.id
+
+    @property
+    def position_component(self) -> PositionComponent:
+        """Legacy alias for position."""
+        return self.position
+
+    @property
+    def weapon_component(self) -> WeaponComponent:
+        """Legacy alias for weapon."""
+        return self.weapon
+
+    @property
+    def health_component(self) -> HealthComponent:
+        """Legacy alias for health."""
+        return self.health
+
+    @property
+    def morale_component(self) -> MoraleComponent:
+        """Legacy alias for morale."""
+        return self.morale
+
+    @property
+    def vision_component(self) -> VisionComponent:
+        """Legacy alias for vision."""
+        return self.vision
+
+    @property
+    def fatigue_component(self) -> FatigueComponent | None:
+        """Legacy alias for fatigue."""
+        return self.fatigue
+
+    @property
+    def veterancy_component(self) -> VeterancyComponent | None:
+        """Legacy alias for veterancy."""
+        return self.veterancy
+
+    @property
+    def vision_range(self) -> int:
+        """Convenience alias for vision range in tiles."""
+        return self.vision.range_tiles
+
+    @property
+    def ammo(self) -> int:
+        """Convenience alias for remaining primary weapon ammo."""
+        return self.weapon.ammo_remaining
+
+    @property
+    def display_name(self) -> str:
+        """Human-readable name for UI and logs."""
+        return self.name or self.id
 
     @property
     def movement_mode(self) -> str:
@@ -396,6 +457,11 @@ class Unit:
         return ""
 
     @property
+    def squad(self) -> Squad | None:
+        """Legacy alias for squad_ref."""
+        return self.squad_ref
+
+    @property
     def is_alive(self) -> bool:
         return self.health.is_alive
 
@@ -458,7 +524,7 @@ class Unit:
         # Generate new particles based on damage state
         import random as _rng
 
-        rng = _rng.Random(self.id + self._damage_vfx_timer)
+        rng = _rng.Random(self.id + str(self._damage_vfx_timer))
 
         if state in ("light", "moderate", "heavy", "destroyed"):
             # Smoke particles (more for heavier damage)

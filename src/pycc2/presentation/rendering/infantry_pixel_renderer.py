@@ -86,7 +86,7 @@ class InfantryPixelRenderer:
         surface.fill((0, 0, 0, 0))
 
         faction_key = faction.name.lower()
-        palette = CC2_PALETTE.get(faction_key, CC2_PALETTE.get("allies"))
+        palette = CC2_PALETTE.get(faction_key) or CC2_PALETTE.get("allies") or {}
         body_color = palette["uniform"]
         body_dark = palette["uniform_dark"]
         helmet_color = palette["helmet"]

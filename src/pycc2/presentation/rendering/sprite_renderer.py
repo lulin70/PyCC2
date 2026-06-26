@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import math
 import time
+from collections import deque
 from typing import TYPE_CHECKING
 
 import pygame
@@ -14,9 +15,8 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.interfaces.display_config import DisplayConfig
-    from pycc2.presentation.rendering.camera import Camera
-
     from pycc2.domain.value_objects.vec2 import Vec2
+    from pycc2.presentation.rendering.camera import Camera
 
 from pycc2.presentation.rendering.animation_system import (
     ParticleEmitter,
@@ -85,7 +85,7 @@ class SpriteRenderer:
         return self._effect_renderer.effect_particles
 
     @property
-    def _damage_numbers(self) -> list[dict]:
+    def _damage_numbers(self) -> deque[dict]:
         return self._effect_renderer.damage_numbers
 
     @property
@@ -160,6 +160,11 @@ class SpriteRenderer:
         self._effect_renderer.render_damage_numbers(self.draw_surface, camera)
         self._effect_renderer.update_effects()
 
+    def _draw_debug_grid(self, game_map: GameMap, camera: Camera) -> None:
+        """Debug grid placeholder (release builds never call this)."""
+        if self.draw_surface is None:
+            return
+
     # ====== 程序化精灵生成 (delegated) ======
 
     def _generate_all_sprites(self) -> None:
@@ -191,6 +196,9 @@ class SpriteRenderer:
 
     def _draw_terrain(self, game_map: GameMap, camera: Camera) -> None:
         """使用缓存的地形tile绘制地图（TileCache避免每帧transform.scale）"""
+        surface = self.draw_surface
+        if surface is None:
+            return
         from pycc2.domain.value_objects.vec2 import Vec2
 
         bounds = camera.view_bounds
@@ -211,7 +219,7 @@ class SpriteRenderer:
                     wx = tx * self.TILE_SIZE
                     wy = ty * self.TILE_SIZE
                     sp = camera.world_to_screen(Vec2(wx, wy))
-                    self.draw_surface.blit(cached_surface, (int(sp[0]), int(sp[1])))
+                    surface.blit(cached_surface, (int(sp[0]), int(sp[1])))
 
     def _draw_vl_flags(self, game_map: GameMap, camera: Camera) -> None:
         """Draw Victory Location flags on the map."""
@@ -349,6 +357,9 @@ class SpriteRenderer:
         position_overrides: dict[str, tuple[float, float]] | None = None,
     ) -> None:
         """使用精灵绘制单位"""
+        surface = self.draw_surface
+        if surface is None:
+            return
         from pycc2.presentation.rendering.camera import ProjectionMode
 
         if camera.projection == ProjectionMode.ISOMETRIC:
@@ -374,7 +385,7 @@ class SpriteRenderer:
                         death,
                         self._cache_manager.sprite_cache,
                         self.SPRITE_SIZE,
-                        self.draw_surface,
+                        surface,
                         self._facing_to_direction_index,
                     )
                 continue
@@ -389,6 +400,10 @@ class SpriteRenderer:
         is_selected: bool,
         position_overrides: dict[str, tuple[float, float]] | None = None,
     ) -> None:
+        surface = self.draw_surface
+        if surface is None:
+            return
+
         pos = unit.position.pixel_position
         if position_overrides and hasattr(unit, "id") and unit.id in position_overrides:
             ox, oy = position_overrides[unit.id]
@@ -410,6 +425,7 @@ class SpriteRenderer:
         prone_states = {"sneak", "hide", "defend"}
         is_prone = sprite_state in prone_states and "TANK" not in utype
 
+        sprite: Surface | None
         if is_prone:
             sprite = self._cache_manager.create_unit_sprite(
                 faction, utype, dir_idx, state=sprite_state
@@ -425,10 +441,10 @@ class SpriteRenderer:
                 if in_building:
                     s = self._get_pooled_surface(r * 2, r * 2)
                     s.fill((*color, 160))
-                    self.draw_surface.blit(s, (int(sp[0]) - r, int(sp[1]) - r))
+                    surface.blit(s, (int(sp[0]) - r, int(sp[1]) - r))
                 else:
                     draw.rect(
-                        self.draw_surface, color, (int(sp[0]) - r, int(sp[1]) - r, r * 2, r * 2)
+                        surface, color, (int(sp[0]) - r, int(sp[1]) - r, r * 2, r * 2)
                     )
             elif "SNIPER" in utype:
                 color = (100, 200, 100)
@@ -443,28 +459,28 @@ class SpriteRenderer:
                         (p[0] - int(sp[0]) + r + 1, p[1] - int(sp[1]) + r + 1) for p in points
                     ]
                     draw.polygon(s, (*color, 160), local_pts)
-                    self.draw_surface.blit(s, (int(sp[0]) - r - 1, int(sp[1]) - r - 1))
+                    surface.blit(s, (int(sp[0]) - r - 1, int(sp[1]) - r - 1))
                 else:
-                    draw.polygon(self.draw_surface, color, points)
+                    draw.polygon(surface, color, points)
             else:
                 color = (74, 144, 217) if faction == "allies" else (217, 74, 74)
                 if in_building:
                     s = self._get_pooled_surface(r * 2 + 2, r * 2 + 2)
                     draw.circle(s, (*color, 160), (r + 1, r + 1), r)
-                    self.draw_surface.blit(s, (int(sp[0]) - r - 1, int(sp[1]) - r - 1))
+                    surface.blit(s, (int(sp[0]) - r - 1, int(sp[1]) - r - 1))
                 else:
-                    draw.circle(self.draw_surface, color, (int(sp[0]), int(sp[1])), r)
+                    draw.circle(surface, color, (int(sp[0]), int(sp[1])), r)
             if in_building:
                 icon_size = max(6, int(8 * camera.zoom))
                 ix = int(sp[0]) - icon_size // 2
                 iy = int(sp[1]) - r - icon_size - 2
                 draw.rect(
-                    self.draw_surface,
+                    surface,
                     (160, 140, 120),
                     (ix, iy + icon_size // 2, icon_size, icon_size // 2),
                 )
                 draw.polygon(
-                    self.draw_surface,
+                    surface,
                     (120, 90, 60),
                     [
                         (ix - 1, iy + icon_size // 2),
@@ -516,7 +532,7 @@ class SpriteRenderer:
                 except (pygame.error, ValueError, TypeError) as e:
                     logging.debug("Wounded overlay failed: %s", e)
 
-            self.draw_surface.blit(scaled, draw_pos)
+            surface.blit(scaled, draw_pos)
 
             if "TANK" in utype:
                 self._draw_turret_overlay(unit, sp, zoom, faction)
@@ -533,7 +549,7 @@ class SpriteRenderer:
         self._draw_enhanced_morale_indicator(unit, sp, zoom)
         self._draw_movement_mode_indicator(unit, sp, zoom)
 
-        self._effect_renderer.render_hit_flash(unit.id, sp, sz, self.draw_surface)
+        self._effect_renderer.render_hit_flash(unit.id, sp, sz, surface)
 
     def _facing_to_direction_index(self, rad: float) -> int:
         """将弧度转为8方向索引 (N=0, 顺时针: NE=1, E=2, SE=3, S=4, SW=5, W=6, NW=7)"""
@@ -545,6 +561,9 @@ class SpriteRenderer:
 
     def _draw_turret_overlay(self, unit, sp, zoom, faction):
         """绘制独立旋转的坦克炮塔覆盖层"""
+        surface = self.draw_surface
+        if surface is None:
+            return
         try:
             from pycc2.domain.entities.unit import Faction
             from pycc2.domain.value_objects.direction import Direction
@@ -573,7 +592,7 @@ class SpriteRenderer:
             turret_rotated = pygame.transform.rotate(turret_scaled, rotate_angle)
 
             rot_rect = turret_rotated.get_rect(center=(int(sp[0]), int(sp[1])))
-            self.draw_surface.blit(turret_rotated, rot_rect)
+            surface.blit(turret_rotated, rot_rect)
         except (pygame.error, ValueError, TypeError, ImportError) as e:
             logging.debug("Turret overlay failed: %s", e)
 
@@ -649,6 +668,8 @@ class SpriteRenderer:
             return
         label = unit.unit_type.name.replace("_", " ")
         font_obj = self._effect_renderer.get_font(11)
+        if font_obj is None:
+            return
         text_surf = font_obj.render(label, True, (255, 215, 0))
         tx = int(sp[0]) - text_surf.get_width() // 2
         ty = int(sp[1]) - int(22 * zoom)
@@ -761,6 +782,9 @@ class SpriteRenderer:
 
     def _draw_pinned_indicator(self, x: int, y: int, zoom: float) -> None:
         """Draw yellow "!" icon with pulsing ring for pinned units."""
+        surface = self.draw_surface
+        if surface is None:
+            return
         icon_size = max(8, int(10 * zoom))
 
         pulse = abs((self._effect_renderer.animation_tick % 30) - 15) / 15.0
@@ -775,18 +799,23 @@ class SpriteRenderer:
             ring_radius,
             2,
         )
-        self.draw_surface.blit(ring_surf, (x - ring_radius - 2, y - ring_radius - 2))
+        surface.blit(ring_surf, (x - ring_radius - 2, y - ring_radius - 2))
 
-        draw.circle(self.draw_surface, (255, 220, 0), (x, y), icon_size // 2)
+        draw.circle(surface, (255, 220, 0), (x, y), icon_size // 2)
 
         font_obj = self._effect_renderer.get_font(max(8, int(icon_size * 0.8)))
+        if font_obj is None:
+            return
         text_surf = font_obj.render("!", True, (0, 0, 0))
         text_x = x - text_surf.get_width() // 2
         text_y = y - text_surf.get_height() // 2
-        self.draw_surface.blit(text_surf, (text_x, text_y))
+        surface.blit(text_surf, (text_x, text_y))
 
     def _draw_broken_indicator(self, x: int, y: int, zoom: float) -> None:
         """Draw red warning triangle for broken units."""
+        surface = self.draw_surface
+        if surface is None:
+            return
         icon_size = max(10, int(12 * zoom))
 
         pulse = abs((self._effect_renderer.animation_tick % 25) - 12) / 12.0
@@ -805,13 +834,16 @@ class SpriteRenderer:
             (glow_center[0] + p[0] - x, glow_center[1] + p[1] - y) for p in triangle_points
         ]
         draw.polygon(glow_surf, (255, 50, 50, glow_alpha), adjusted_points)
-        self.draw_surface.blit(glow_surf, (x - icon_size - 4, y - icon_size - 4))
+        surface.blit(glow_surf, (x - icon_size - 4, y - icon_size - 4))
 
-        draw.polygon(self.draw_surface, (220, 30, 30), triangle_points)
-        draw.polygon(self.draw_surface, (255, 80, 80), triangle_points, 2)
+        draw.polygon(surface, (220, 30, 30), triangle_points)
+        draw.polygon(surface, (255, 80, 80), triangle_points, 2)
 
     def _draw_routing_indicator(self, unit: Unit, sp: tuple[float, float], zoom: float) -> None:
         """Draw fleeing indicator (red arrow) for routing units."""
+        surface = self.draw_surface
+        if surface is None:
+            return
         arrow_x = int(sp[0])
         arrow_y = int(sp[1]) - int(24 * zoom)
         arrow_length = max(12, int(18 * zoom))
@@ -850,10 +882,13 @@ class SpriteRenderer:
         )
         draw.polygon(arrow_surf, (255, 50, 50, alpha), [local_end, local_head1, local_head2])
 
-        self.draw_surface.blit(arrow_surf, (arrow_x - arrow_length - 5, arrow_y - arrow_length - 5))
+        surface.blit(arrow_surf, (arrow_x - arrow_length - 5, arrow_y - arrow_length - 5))
 
     def _draw_wavering_indicator(self, x: int, y: int, zoom: float) -> None:
         """Draw subtle yellow pulse for wavering units."""
+        surface = self.draw_surface
+        if surface is None:
+            return
         icon_size = max(6, int(7 * zoom))
 
         pulse = abs((self._effect_renderer.animation_tick % 45) - 22) / 22.0
@@ -865,7 +900,7 @@ class SpriteRenderer:
         draw.circle(surf, (255, 220, 50, alpha // 2), center, icon_size)
         draw.circle(surf, (255, 220, 0, alpha), center, icon_size // 2)
 
-        self.draw_surface.blit(surf, (x - icon_size * 1.5, y - icon_size * 1.5))
+        surface.blit(surf, (x - icon_size * 1.5, y - icon_size * 1.5))
 
     def _draw_movement_mode_indicator(
         self,
@@ -897,6 +932,9 @@ class SpriteRenderer:
 
     def _draw_defend_posture(self, x: int, y: int, size: int) -> None:
         """Draw shield icon for defending units."""
+        surface = self.draw_surface
+        if surface is None:
+            return
         shield_points = [
             (x, y - size),
             (x + size // 2, y - size // 2),
@@ -906,8 +944,8 @@ class SpriteRenderer:
             (x - size // 2, y - size // 2),
         ]
 
-        draw.polygon(self.draw_surface, (70, 130, 200), shield_points)
-        draw.polygon(self.draw_surface, (150, 200, 255), shield_points, 2)
+        draw.polygon(surface, (70, 130, 200), shield_points)
+        draw.polygon(surface, (150, 200, 255), shield_points, 2)
 
     def _draw_fast_move_indicator(
         self,
@@ -915,6 +953,9 @@ class SpriteRenderer:
         zoom: float,
     ) -> None:
         """Draw motion lines/speed effect for fast-moving units."""
+        surface = self.draw_surface
+        if surface is None:
+            return
         pulse = abs((self._effect_renderer.animation_tick % 15) - 7) / 7.0
         alpha = int(100 + 100 * pulse)
 
@@ -938,10 +979,13 @@ class SpriteRenderer:
                 2,
             )
 
-        self.draw_surface.blit(surf, (base_x - line_length - 5, base_y - 15))
+        surface.blit(surf, (base_x - line_length - 5, base_y - 15))
 
     def _draw_sneak_indicator(self, x: int, y: int, size: int) -> None:
         """Draw stealth/ghost icon for sneaking units."""
+        surface = self.draw_surface
+        if surface is None:
+            return
         pulse = abs((self._effect_renderer.animation_tick % 40) - 20) / 20.0
         alpha = int(120 + 80 * pulse)
 
@@ -959,7 +1003,7 @@ class SpriteRenderer:
             2,
         )
 
-        self.draw_surface.blit(surf, (x - size, y - size))
+        surface.blit(surf, (x - size, y - size))
 
     # ====== 战斗视觉反馈系统 (delegated) ======
 
@@ -988,23 +1032,32 @@ class SpriteRenderer:
         death: dict,
     ) -> None:
         """Delegated to EffectRenderer."""
+        surface = self.draw_surface
+        if surface is None:
+            return
         self._effect_renderer.render_death_animation(
             unit,
             camera,
             death,
             self._cache_manager.sprite_cache,
             self.SPRITE_SIZE,
-            self.draw_surface,
+            surface,
             self._facing_to_direction_index,
         )
 
     def _draw_effects(self, camera: Camera) -> None:
         """Delegated to EffectRenderer."""
-        self._effect_renderer.render_effects(self.draw_surface, camera)
+        surface = self.draw_surface
+        if surface is None:
+            return
+        self._effect_renderer.render_effects(surface, camera)
 
     def _draw_damage_numbers(self, camera: Camera) -> None:
         """Delegated to EffectRenderer."""
-        self._effect_renderer.render_damage_numbers(self.draw_surface, camera)
+        surface = self.draw_surface
+        if surface is None:
+            return
+        self._effect_renderer.render_damage_numbers(surface, camera)
 
     def _update_effects(self) -> None:
         """Delegated to EffectRenderer."""
@@ -1013,7 +1066,7 @@ class SpriteRenderer:
     def ensure_animator(self, unit_id: str) -> UnitAnimator:
         return self._effect_renderer.ensure_animator(unit_id)
 
-    def _get_font(self, size: int) -> font.Font:
+    def _get_font(self, size: int) -> font.Font | None:
         return self._effect_renderer.get_font(size)
 
     def update_animations(self) -> None:

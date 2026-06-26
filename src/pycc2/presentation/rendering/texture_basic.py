@@ -33,9 +33,7 @@ def _fill_with_variation(
         pass  # Fallback: just use base color
 
 
-def _texture_open(
-    surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0
-) -> None:
+def _texture_open(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:
     """OPEN (0): CC2 authentic grass with visible grass blades and dirt spots."""
     from .texture_basic import _fill_with_variation
 
@@ -102,15 +100,9 @@ def _texture_open(
                                 )
 
                             pixels[px, py] = (
-                                int(
-                                    grass_light[0] * (1 - blend_factor) + r_base * blend_factor
-                                ),
-                                int(
-                                    grass_light[1] * (1 - blend_factor) + g_base * blend_factor
-                                ),
-                                int(
-                                    grass_light[2] * (1 - blend_factor) + b_base * blend_factor
-                                ),
+                                int(grass_light[0] * (1 - blend_factor) + r_base * blend_factor),
+                                int(grass_light[1] * (1 - blend_factor) + g_base * blend_factor),
+                                int(grass_light[2] * (1 - blend_factor) + b_base * blend_factor),
                             )
                         else:
                             pixels[px, py] = grass_light
@@ -134,9 +126,7 @@ def _texture_open(
     del pixels
 
 
-def _texture_road(
-    surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0
-) -> None:
+def _texture_road(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:
     """ROAD (1): CC2 authentic gravel road with texture and autotile continuity."""
     from pycc2.presentation.rendering.autotile_system import (
         get_edge_transition_width,
@@ -183,9 +173,7 @@ def _texture_road(
     if edge_widths["west"] > 0:
         for x in range(edge_widths["west"]):
             dist_from_west = x
-            gradient_factor = (
-                dist_from_west / edge_widths["west"] if edge_widths["west"] > 0 else 0
-            )
+            gradient_factor = dist_from_west / edge_widths["west"] if edge_widths["west"] > 0 else 0
             darkness = int((1.0 - gradient_factor) * 40)
             if rng.random() > 0.3:
                 for y in range(tile_sz):
@@ -199,9 +187,7 @@ def _texture_road(
     if edge_widths["east"] > 0:
         for x in range(tile_sz - edge_widths["east"], tile_sz):
             dist_from_east = tile_sz - 1 - x
-            gradient_factor = (
-                dist_from_east / edge_widths["east"] if edge_widths["east"] > 0 else 0
-            )
+            gradient_factor = dist_from_east / edge_widths["east"] if edge_widths["east"] > 0 else 0
             darkness = int((1.0 - gradient_factor) * 40)
             if rng.random() > 0.3:
                 for y in range(tile_sz):
@@ -265,9 +251,7 @@ def _texture_road(
     del pixels
 
 
-def _texture_grass(
-    surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0
-) -> None:
+def _texture_grass(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:
     """GRASS (2): Medium green with visible grass blades and dirt spots."""
     from .texture_basic import _fill_with_variation
 
@@ -324,9 +308,7 @@ def _texture_grass(
     del pixels
 
 
-def _texture_default(
-    surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0
-) -> None:
+def _texture_default(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:
     """Fallback simple noise texture."""
     from .texture_basic import _fill_with_variation
 

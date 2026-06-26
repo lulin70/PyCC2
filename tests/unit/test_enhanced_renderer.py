@@ -223,5 +223,60 @@ class TestCC2TerrainPalette:
         )
 
 
+class TestSuppressionOverlayRenderer:
+    """Test the extracted SuppressionOverlayRenderer helper."""
+
+    @staticmethod
+    def _make_unit(morale_value: int, side: str = "allies", alive: bool = True):
+        from types import SimpleNamespace
+
+        return SimpleNamespace(
+            is_alive=alive,
+            side=side,
+            morale=SimpleNamespace(value=morale_value),
+        )
+
+    def test_suppression_overlay_defaults_to_zero(self):
+        from pycc2.presentation.rendering.suppression_overlay_renderer import (
+            SuppressionOverlayRenderer,
+        )
+
+        overlay = SuppressionOverlayRenderer()
+        assert overlay.get_alpha() == 0.0
+
+    def test_suppression_overlay_rises_with_pinned_units(self):
+        from pycc2.presentation.rendering.suppression_overlay_renderer import (
+            SuppressionOverlayRenderer,
+        )
+
+        overlay = SuppressionOverlayRenderer()
+        pinned = self._make_unit(30)  # PINNED
+        overlay.update(0.1, [pinned])
+        assert overlay.get_alpha() > 0.0
+
+    def test_suppression_overlay_decays_without_units(self):
+        from pycc2.presentation.rendering.suppression_overlay_renderer import (
+            SuppressionOverlayRenderer,
+        )
+
+        overlay = SuppressionOverlayRenderer()
+        overlay.update(0.1, [self._make_unit(30)])
+        assert overlay.get_alpha() > 0.0
+        overlay.update(1.0, [])
+        assert overlay.get_alpha() == 0.0
+
+    def test_suppression_overlay_render_does_not_crash(self, pygame_display):
+        import pygame
+        from pycc2.presentation.rendering.suppression_overlay_renderer import (
+            SuppressionOverlayRenderer,
+        )
+
+        overlay = SuppressionOverlayRenderer()
+        overlay.update(0.1, [self._make_unit(10)])  # BROKEN
+        surface = pygame.Surface((400, 300), pygame.SRCALPHA)
+        overlay.render(surface, None)
+        assert surface is not None
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

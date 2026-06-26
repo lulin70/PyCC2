@@ -17,11 +17,13 @@ from typing import TYPE_CHECKING
 
 import pygame
 
+from pycc2.domain.value_objects.vec2 import Vec2
+
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.presentation.rendering.camera import Camera
-    from pycc2.presentation.rendering.lighting_system import ShadowRenderer
+    from pycc2.presentation.rendering.shadow_system import ShadowRenderer
 
 logger = logging.getLogger(__name__)
 
@@ -231,14 +233,18 @@ class ShadowRenderingSystem:
             TREE_DEBUG_COLOR = (0, 255, 0)  # Green for trees
 
             # 绘制建筑阴影边界
+            get_tile = getattr(game_map, "get_tile", None)
+            if get_tile is None:
+                return
+
             for y in range(game_map.height):
                 for x in range(game_map.width):
-                    tile = game_map.get_tile(x, y)
+                    tile = get_tile(x, y)
                     if tile is None:
                         continue
 
                     if self._is_building_tile(tile):
-                        world_pos = (x * self.TILE_SIZE, y * self.TILE_SIZE)
+                        world_pos = Vec2(x * self.TILE_SIZE, y * self.TILE_SIZE)
                         screen_pos = camera.world_to_screen(world_pos)
                         sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
@@ -253,12 +259,12 @@ class ShadowRenderingSystem:
             # 绘制树木阴影边界
             for y in range(game_map.height):
                 for x in range(game_map.width):
-                    tile = game_map.get_tile(x, y)
+                    tile = get_tile(x, y)
                     if tile is None:
                         continue
 
                     if self._is_tree_tile(tile):
-                        world_pos = (x * self.TILE_SIZE, y * self.TILE_SIZE)
+                        world_pos = Vec2(x * self.TILE_SIZE, y * self.TILE_SIZE)
                         screen_pos = camera.world_to_screen(world_pos)
                         sx, sy = int(screen_pos[0]), int(screen_pos[1])
 

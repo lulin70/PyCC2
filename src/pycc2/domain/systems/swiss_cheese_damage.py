@@ -213,7 +213,7 @@ class SwissCheeseEngine:
     def calculate_squad_effectiveness(self, result: SwissCheeseResult) -> float:
         if not result.member_outcomes:
             return 1.0
-        effective = 0
+        effective = 0.0
         for status in result.member_outcomes:
             if status == CasualtyStatus.OK:
                 effective += 1.0

@@ -390,7 +390,7 @@ class PixVoxelLoader:
 
         # Method 1: py7zr Python library
         try:
-            import py7zr  # type: ignore[import-not-found]
+            import py7zr
 
             logger.info("Extracting with py7zr: %s", archive_path)
             with py7zr.SevenZipFile(str(archive_path), mode="r") as z:
@@ -401,11 +401,15 @@ class PixVoxelLoader:
         except (OSError, RuntimeError, ValueError) as exc:
             logger.warning("py7zr extraction failed: %s", exc)
 
-        # Method 2: 7z command
+        # Method 2: 7z command (whitelisted tools only)
         for tool in ("7z", "7za", "/usr/local/bin/7z"):
             if shutil.which(tool):
                 cmd = [tool, "x", str(archive_path), f"-o{output_dir}", "-y"]
-                result = subprocess.run(cmd, capture_output=True, text=True)
+                try:
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+                except subprocess.TimeoutExpired:
+                    logger.warning("%s extraction timed out: %s", tool, archive_path)
+                    continue
                 if result.returncode == 0:
                     logger.info("Extracted with %s: %s", tool, archive_path)
                     return True

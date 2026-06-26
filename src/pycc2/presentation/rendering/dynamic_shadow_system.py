@@ -170,3 +170,32 @@ class DynamicShadowSystem:
         shadow_surf = self._get_pooled_surface(shadow_w, shadow_h)
         pygame.draw.ellipse(shadow_surf, (0, 0, 0, alpha), (0, 0, shadow_w, shadow_h))
         surface.blit(shadow_surf, (screen_x + offset_x, screen_y + offset_y))
+
+    def render_dynamic_shadows(
+        self,
+        surface: pygame.Surface,
+        game_map,
+        camera,
+        map_width: int,
+        map_height: int,
+    ) -> None:
+        """Render dynamic time-of-day shadows for buildings and trees."""
+        ts = self.TILE_SIZE
+        view_tl, view_br = camera.view_bounds
+        start_col = max(0, int(view_tl.x / ts) - 1)
+        end_col = min(map_width, int(view_br.x / ts) + 2)
+        start_row = max(0, int(view_tl.y / ts) - 1)
+        end_row = min(map_height, int(view_br.y / ts) + 2)
+
+        for row in range(start_row, end_row):
+            for col in range(start_col, end_col):
+                tile_val = game_map.tile_grid[row, col]
+                wx = col * ts + ts // 2
+                wy = row * ts + ts // 2
+                sx, sy = camera.world_to_screen(type("V", (), {"x": wx, "y": wy})())
+                sx, sy = int(sx), int(sy)
+
+                if tile_val == 3:
+                    self.render_building_shadow(surface, sx, sy, ts, ts)
+                elif tile_val == 5:
+                    self.render_tree_shadow(surface, sx, sy, tree_radius=12)

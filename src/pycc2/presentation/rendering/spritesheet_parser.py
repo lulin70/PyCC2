@@ -232,6 +232,8 @@ class SpritesheetParser:
 
     def _extract_row_major(self, sprite_w: int, sprite_h: int, pad_x: int, pad_y: int) -> None:
         """Extract frames in row-major order (rows=directions, cols=frames)."""
+        if self._image is None:
+            return
         sheet_w, sheet_h = self._image.get_size()
 
         max_dirs = min(self.config.directions_count, sheet_h // (sprite_h + pad_y))
@@ -256,6 +258,8 @@ class SpritesheetParser:
 
     def _extract_column_major(self, sprite_w: int, sprite_h: int, pad_x: int, pad_y: int) -> None:
         """Extract frames in column-major order (cols=directions, rows=frames)."""
+        if self._image is None:
+            return
         sheet_w, sheet_h = self._image.get_size()
 
         max_dirs = min(self.config.directions_count, sheet_w // (sprite_w + pad_x))
@@ -280,6 +284,8 @@ class SpritesheetParser:
 
     def _extract_single_row(self, sprite_w: int, sprite_h: int, pad_x: int, pad_y: int) -> None:
         """Extract frames from a single row layout."""
+        if self._image is None:
+            return
         sheet_w, sheet_h = self._image.get_size()
 
         max_frames = min(
@@ -433,7 +439,7 @@ class SpritesheetParser:
 
     def get_analysis_report(self) -> str:
         """Generate human-readable analysis report."""
-        if not self._is_loaded:
+        if not self._is_loaded or self._image is None:
             return "No spritesheet loaded"
 
         lines = [

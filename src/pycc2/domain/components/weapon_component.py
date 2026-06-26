@@ -32,6 +32,8 @@ class WeaponComponent:
     max_ammo: int
     reload_ticks_left: int = 0
     is_captured: bool = False
+    captured_accuracy_penalty: float = 0.0
+    captured_reload_penalty: float = 0.0
     state: WeaponState = field(init=False)
 
     def __post_init__(self) -> None:

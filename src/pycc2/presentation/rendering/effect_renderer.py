@@ -30,9 +30,8 @@ from pycc2.presentation.rendering.surface_pool import SurfacePool
 
 if TYPE_CHECKING:
     from pycc2.domain.interfaces.display_config import DisplayConfig
-    from pycc2.presentation.rendering.camera import Camera
-
     from pycc2.domain.value_objects.vec2 import Vec2
+    from pycc2.presentation.rendering.camera import Camera
 
 logger = logging.getLogger(__name__)
 
@@ -222,8 +221,8 @@ class EffectRenderer:
                     try:
                         gfxdraw.circle(
                             surface,
-                            (*color[:3],),
-                            (int(sp[0]), int(sp[1])),
+                            (*color[:3],),  # type: ignore[arg-type]
+                            (int(sp[0]), int(sp[1])),  # type: ignore[arg-type]
                             ring_sz,
                             1,
                         )
@@ -265,15 +264,15 @@ class EffectRenderer:
             else:
                 draw.circle(surface, color, (int(sp[0]), int(sp[1])), sz)
 
-        for p in self._effect_particles:
-            px, py = p["pos"]
+        for ep in self._effect_particles:
+            px, py = ep["pos"]
             wpos = Vec2(px, py)
             sp = camera.world_to_screen(wpos)
-            sz = p["size"] * (p["life"] / 10)
-            if p["type"] == "muzzle":
-                color = (*p["color"], min(255, p["life"] * 30))
+            sz = ep["size"] * (ep["life"] / 10)
+            if ep["type"] == "muzzle":
+                color = (*ep["color"], min(255, ep["life"] * 30))
             else:
-                color = (*p["color"], min(255, p["life"] * 12))
+                color = (*ep["color"], min(255, ep["life"] * 12))
             draw.circle(surface, color, (int(sp[0]), int(sp[1])), max(1, int(sz)))
 
     def render_damage_numbers(self, surface: Surface, camera: Camera) -> None:
@@ -303,7 +302,9 @@ class EffectRenderer:
                 color = (255, 255, 200)
                 shadow_color = (100, 100, 50)
 
-            font_obj = self._get_font(font_size)
+            font_obj = self.get_font(font_size)
+            if font_obj is None:
+                continue
             text_surf = font_obj.render(text, True, color)
             shadow_surf = font_obj.render(text, True, shadow_color)
 

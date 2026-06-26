@@ -6,10 +6,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 if TYPE_CHECKING:
     import pygame
+
+
+class _SpeedConfig(TypedDict):
+    label: str
+    ups_mult: float
+    color: tuple[int, int, int]
 
 
 class TimeSpeed(Enum):
@@ -20,7 +26,7 @@ class TimeSpeed(Enum):
     VERY_FAST = auto()
 
 
-TIME_SPEED_CONFIG = {
+TIME_SPEED_CONFIG: dict[TimeSpeed, _SpeedConfig] = {
     TimeSpeed.PAUSED: {"label": "⏸ PAUSED", "ups_mult": 0.0, "color": (200, 180, 50)},
     TimeSpeed.SLOW: {"label": "▶ SLOW 0.5x", "ups_mult": 0.5, "color": (100, 160, 220)},
     TimeSpeed.NORMAL: {"label": "▶▶ NORMAL 1x", "ups_mult": 1.0, "color": (100, 200, 100)},

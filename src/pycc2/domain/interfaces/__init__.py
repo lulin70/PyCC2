@@ -19,6 +19,12 @@ from .effect_stack_protocol import IEffectStack as IEffectStack
 from .environmental_audio_protocol import IEnvironmentalAudio as IEnvironmentalAudio
 from .hud_manager_protocol import IHUDManager as IHUDManager
 from .input_handler_protocol import IInputHandler as IInputHandler
+from .ui_overlay_protocol import IHintManager as IHintManager
+from .ui_overlay_protocol import ILightingRenderer as ILightingRenderer
+from .ui_overlay_protocol import ISettingsMenu as ISettingsMenu
+from .ui_overlay_protocol import ITutorialOverlay as ITutorialOverlay
+from .ui_overlay_protocol import IWeatherRenderer as IWeatherRenderer
+from .ui_overlay_protocol import IWeatherState as IWeatherState
 from .input_router_protocol import IInputRouter as IInputRouter
 from .interaction_controller_protocol import IInteractionController as IInteractionController
 from .minimap_protocol import IMinimap as IMinimap
@@ -76,3 +82,6 @@ class IRandomNumberGenerator(ABC):
 
     @abstractmethod
     def choice(self, seq: list) -> Any: ...
+
+    @abstractmethod
+    def gaussian(self, mu: float = 0.0, sigma: float = 1.0) -> float: ...

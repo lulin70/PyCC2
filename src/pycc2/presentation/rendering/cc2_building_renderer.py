@@ -79,7 +79,7 @@ def _draw_pixel_digit(
     scale = max(1, size)
     thickness = max(1, scale // 3)
 
-    pixel_patterns = {
+    pixel_patterns: dict[int, list[tuple[float, float, float, float]]] = {
         0: [
             (0, 0, 1, 0),
             (1, 0, 1, 2),
@@ -271,7 +271,7 @@ def render_cc2_building(
         return _render_barn(surface, w, h, tile_size, damage, show_number, number)
 
     # 标准CC2建筑渲染（OBLIQUE PROJECTION!）
-    roof_color = CC2_ROOF_COLORS[building_type]
+    roof_color: tuple[int, ...] = CC2_ROOF_COLORS[building_type]
 
     # A2 Fix: 为标准建筑应用颜色变体（基于位置hash实现多样性）
     if building_type in [
@@ -369,7 +369,7 @@ def render_cc2_building(
         for i, char in enumerate(str(number)):
             try:
                 digit = int(char)
-                offset_x = (i - len(str(number)) / 2 + 0.5) * (digit_size + 2)
+                offset_x = int((i - len(str(number)) / 2 + 0.5) * (digit_size + 2))
                 _draw_pixel_digit(surface, digit, cx + offset_x, cy, digit_size, ROOF_NUMBER_COLOR)
             except ValueError:
                 pass
@@ -461,9 +461,9 @@ def _render_normandy_farmhouse(
     """
     import math
 
-    red_tile_roof = (160, 42, 28)
+    red_tile_roof: tuple[int, ...] = (160, 42, 28)
     red_tile_light = (185, 60, 45)
-    red_tile_dark = (130, 32, 20)
+    red_tile_dark: tuple[int, ...] = (130, 32, 20)
     chimney_stone = (100, 95, 88)
     chimney_dark = (80, 75, 68)
     skylight_color = (50, 55, 65)
@@ -618,9 +618,9 @@ def _render_normandy_barn(
     import math
 
     # 诺曼底谷仓调色板 - 屋顶为主色调
-    barn_wood_roof = (120, 75, 45)  # 棕色木质屋顶 (主色!)
+    barn_wood_roof: tuple[int, ...] = (120, 75, 45)  # 棕色木质屋顶 (主色!)
     barn_wood_light = (145, 95, 60)  # 屋顶高光
-    barn_wood_dark = (95, 58, 33)  # 屋顶暗部（木板间隙）
+    barn_wood_dark: tuple[int, ...] = (95, 58, 33)  # 屋顶暗部（木板间隙）
     door_color = (90, 62, 38)  # 双开门棕色
     door_dark = (68, 46, 28)  # 门暗部/缝隙
     vent_color = (50, 52, 48)  # 通风口暗色
@@ -935,8 +935,8 @@ def _render_church(
     """
     import math
 
-    church_roof = (200, 200, 200)
-    church_roof_dark = (160, 160, 160)
+    church_roof: tuple[int, ...] = (200, 200, 200)
+    church_roof_dark: tuple[int, ...] = (160, 160, 160)
     cross_color = (220, 200, 180)
 
     if damage == DamageLevel.LIGHT_DAMAGE:
@@ -1048,7 +1048,7 @@ def _render_wall(
     - 无侧面可见 — 只有墙顶面
     - 损坏: 墙线中的缺口
     """
-    wall_stone = (112, 112, 112)
+    wall_stone: tuple[int, ...] = (112, 112, 112)
     wall_stone_light = (128, 128, 128)
     wall_stone_dark = (85, 85, 85)
 
@@ -1135,7 +1135,7 @@ def _render_barn(
     - 干草门 (一端较大的矩形)
     - 同标准建筑的阴影条
     """
-    barn_roof = CC2_ROOF_COLORS[CC2BuildingType.BARN]
+    barn_roof: tuple[int, ...] = CC2_ROOF_COLORS[CC2BuildingType.BARN]
 
     if damage == DamageLevel.LIGHT_DAMAGE:
         barn_roof = tuple(max(0, c - 20) for c in barn_roof)

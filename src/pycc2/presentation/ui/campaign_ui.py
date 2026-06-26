@@ -308,7 +308,7 @@ class CampaignUI:
 
         # Start Battle button
         if self._start_button_rect and self._start_button_rect.collidepoint(x, y):
-            if self._selected_battle_id:
+            if self._selected_battle_id and self._current_operation:
                 battle = next(
                     (
                         b

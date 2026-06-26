@@ -150,7 +150,7 @@ class FourLayerCampaignManager:
             units: List of Unit objects from the completed battle
         """
         for unit in units:
-            unit_id = getattr(unit, "id", None) or getattr(unit, "unit_id", str(id(unit)))
+            unit_id: str = str(getattr(unit, "id", None) or getattr(unit, "unit_id", str(id(unit))))
 
             # Determine faction
             faction = "allies"
@@ -270,7 +270,7 @@ class FourLayerCampaignManager:
         inherited_count = 0
 
         for unit in units:
-            unit_id = getattr(unit, "id", None) or getattr(unit, "unit_id", str(id(unit)))
+            unit_id: str = str(getattr(unit, "id", None) or getattr(unit, "unit_id", str(id(unit))))
             saved = self._saved_unit_states.get(unit_id)
 
             if saved is None:
@@ -438,10 +438,10 @@ class FourLayerCampaignManager:
                     for vl in battle.victory_locations:
                         if vl.vl_type == "bridge":
                             # Check VL control from battle state
-                            sector_state = state.sectors.get(sector.sector_id)
+                            bridge_sector_state: SectorState | None = state.sectors.get(sector.sector_id)
                             controlled_by = None
-                            if sector_state:
-                                for op_state in sector_state.operations:
+                            if bridge_sector_state:
+                                for op_state in bridge_sector_state.operations:
                                     for bs in op_state.battle_results:
                                         ctrl = bs.vl_control.get(vl.vl_id)
                                         if ctrl is not None:

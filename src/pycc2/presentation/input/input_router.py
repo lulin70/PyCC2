@@ -2,25 +2,25 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pygame
 
 if TYPE_CHECKING:
+    from pycc2.domain.interfaces.camera_protocol import ICamera
     from pycc2.domain.interfaces.game_state_view import GameStateView
-    from pycc2.presentation.input.handler import PygameInputHandler
-    from pycc2.presentation.input.interaction_controller import InteractionController
-    from pycc2.presentation.rendering.camera import Camera
+    from pycc2.domain.interfaces.input_handler_protocol import IInputHandler
+    from pycc2.domain.interfaces.interaction_controller_protocol import IInteractionController
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class InputRouter:
-    input_handler: PygameInputHandler | None = None
-    interaction_controller: InteractionController | None = None
-    command_bar: object | None = None
-    camera: Camera | None = None
+    input_handler: IInputHandler | None = None
+    interaction_controller: IInteractionController | None = None
+    command_bar: Any | None = None
+    camera: ICamera | None = None
     game_state: GameStateView | None = None
     show_post_battle: bool = False
 

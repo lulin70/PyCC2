@@ -39,8 +39,57 @@ class DecorationRenderer:
         self._sprite_gen = SpriteGenerator
 
     def draw_decorations(self, game_map: GameMap, camera: Camera) -> None:
-        if self._ctx.draw_decorations:
-            self._ctx.draw_decorations(game_map, camera)
+        """Draw decoration sprites on map."""
+        if self._ctx.offscreen is None:
+            return
+
+        bounds = camera.view_bounds
+        tile_size = self._ctx.tile_size
+        start_x = max(0, int(bounds[0].x // tile_size))
+        end_x = min(game_map.width, int((bounds[1].x // tile_size) + 2))
+        start_y = max(0, int(bounds[0].y // tile_size))
+        end_y = min(game_map.height, int((bounds[1].y // tile_size) + 2))
+
+        get_enhanced_tile = self._ctx.get_enhanced_tile
+        if get_enhanced_tile is None:
+            return
+
+        for ty in range(start_y, end_y):
+            for tx in range(start_x, end_x):
+                enhanced_tile = get_enhanced_tile(game_map, tx, ty)
+
+                if not enhanced_tile or not enhanced_tile.decorations:
+                    continue
+
+                for deco in enhanced_tile.decorations:
+                    sprite = self.cache_sprite(deco.decoration_type.name, deco.variant)
+
+                    # Calculate position with sub-tile offset
+                    base_x = tx * tile_size
+                    base_y = ty * tile_size
+
+                    offset_x = int(deco.offset_x * tile_size)
+                    offset_y = int(deco.offset_y * tile_size)
+
+                    world_x = base_x + offset_x
+                    world_y = base_y + offset_y
+
+                    from pycc2.domain.value_objects.vec2 import Vec2
+
+                    screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
+
+                    # Scale sprite
+                    sprite_size = int(tile_size * camera.zoom * deco.scale)
+                    if sprite_size != 32:
+                        sprite = pygame.transform.scale(sprite, (sprite_size, sprite_size))
+
+                    # Rotate if needed
+                    if deco.rotation != 0:
+                        sprite = pygame.transform.rotate(sprite, -deco.rotation)
+
+                    rect = sprite.get_rect()
+                    rect.center = (int(screen_pos[0]), int(screen_pos[1]))
+                    self._ctx.offscreen.blit(sprite, rect)
 
     def get_sprite(self, deco_type_name: str, variant: int = 0) -> pygame.Surface:
         return self._sprite_gen.generate_sprite(deco_type_name, variant)

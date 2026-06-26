@@ -30,6 +30,7 @@ from typing import TYPE_CHECKING
 
 from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
 from pycc2.domain.ai.tactical_ai import TacticalAIBase, TacticalContext
+from pycc2.domain.components.weapon_component import WeaponState
 from pycc2.domain.entities.unit import Faction
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
@@ -400,8 +401,8 @@ class AmmoPickupSystem:
             unit.weapon.ammo_remaining += transfer
             self.fallen_cache.claim_ammo(source.unit_id, transfer)
             # Update weapon state if it was out of ammo
-            if unit.weapon.state.value == "OUT_OF_AMMO" and unit.weapon.ammo_remaining > 0:
-                unit.weapon.state = unit.weapon.state.__class__.READY
+            if unit.weapon.state == WeaponState.OUT_OF_AMMO and unit.weapon.ammo_remaining > 0:
+                unit.weapon.state = WeaponState.READY
                 unit.weapon._update_state()
             logger.debug(
                 f"Unit {unit.id} picked up {transfer} ammo from fallen comrade {source.unit_id}"
@@ -428,8 +429,8 @@ class AmmoPickupSystem:
             self.fallen_cache.claim_ammo(source.unit_id, transfer)
             self.fallen_cache.claim_weapon(source.unit_id)
             # Update weapon state
-            if unit.weapon.state.value == "OUT_OF_AMMO" and unit.weapon.ammo_remaining > 0:
-                unit.weapon.state = unit.weapon.state.__class__.READY
+            if unit.weapon.state == WeaponState.OUT_OF_AMMO and unit.weapon.ammo_remaining > 0:
+                unit.weapon.state = WeaponState.READY
                 unit.weapon._update_state()
             logger.debug(
                 f"Unit {unit.id} picked up {transfer} ammo from enemy corpse {source.unit_id}"
@@ -451,7 +452,7 @@ class AmmoPickupSystem:
             unit.combat_state.captured_reload_penalty = self.CAPTURED_RELOAD_PENALTY
         else:
             # Fallback: set attribute directly on weapon component
-            unit.weapon.captured = True
+            unit.weapon.is_captured = True
             unit.weapon.captured_accuracy_penalty = self.CAPTURED_ACCURACY_PENALTY
             unit.weapon.captured_reload_penalty = self.CAPTURED_RELOAD_PENALTY
 

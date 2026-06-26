@@ -9,21 +9,24 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import pygame
 
 if TYPE_CHECKING:
+    from pycc2.domain.interfaces.deployment_manager_protocol import IDeploymentManager
     from pycc2.domain.interfaces.display_config import DisplayConfig
-    from pycc2.domain.interfaces.input_handler_protocol import IInputHandler as InputRouter
-    from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
+    from pycc2.domain.interfaces.hud_manager_protocol import IHUDManager
+    from pycc2.domain.interfaces.input_router_protocol import IInputRouter
+    from pycc2.domain.interfaces.pause_menu_protocol import IPauseMenu
+    from pycc2.domain.interfaces.ui_overlay_protocol import ISettingsMenu
+    from pycc2.domain.interfaces.ui_overlay_protocol import ITutorialOverlay
+    from pycc2.domain.interfaces.victory_manager_protocol import IVictoryManager
+    from pycc2.domain.interfaces.window_manager_protocol import IWindowManager
     from pycc2.presentation.audio.sound_system import SoundSystem
     from pycc2.presentation.ui.time_control import TimeControlUI
-    from pycc2.services.deployment_manager import DeploymentManager
     from pycc2.services.event_bus import EventBus
-    from pycc2.services.hud_manager import HUDManager
-    from pycc2.services.pause_menu_controller import PauseMenuController
 
     from .game_loop import GameState
 
@@ -42,18 +45,19 @@ class EventDispatcher:
     """
 
     state: GameState
-    pause_menu: PauseMenuController
-    deployment_manager: DeploymentManager
-    input_router: InputRouter
+    pause_menu: IPauseMenu
+    deployment_manager: IDeploymentManager
+    input_router: IInputRouter
     time_control: TimeControlUI | None
-    window_manager: WindowManager
-    settings_menu: object | None
-    tutorial_overlay: object | None
-    hud_manager: HUDManager | None
+    window_manager: IWindowManager
+    settings_menu: ISettingsMenu | None
+    tutorial_overlay: ITutorialOverlay | None
+    hud_manager: IHUDManager | None
     sound_system: SoundSystem | None
     event_bus: EventBus
     display_config: DisplayConfig | None
-    victory_manager: object | None
+    victory_manager: IVictoryManager | None = None
+    _campaign_ui_ref: object | None = field(default=None, repr=False)
     quick_save_fn: Callable[[int], bool] | None = None
     quick_load_fn: Callable[[int], bool] | None = None
     complete_deployment_fn: Callable[[], object | None] | None = None

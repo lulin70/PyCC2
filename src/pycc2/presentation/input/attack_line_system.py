@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
 
+from pycc2.domain.entities.unit import Faction
+
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.value_objects.vec2 import Vec2
@@ -102,7 +104,7 @@ class AttackLineSystem:
         screen_pos: tuple[float, float],
         world_pos: Vec2,
         units: list[Unit],
-        attacker_faction: str,
+        attacker_faction: str | Faction,
     ) -> AttackTarget:
         """Update attack line endpoint based on mouse position."""
         if not self.state.active or not self.state.source_position:
@@ -113,8 +115,9 @@ class AttackLineSystem:
 
         # Check if hovering over enemy unit
         target_unit = None
+        attacker_name = attacker_faction.name if isinstance(attacker_faction, Faction) else attacker_faction
         for unit in units:
-            if unit.faction != attacker_faction and unit.is_alive:
+            if unit.faction.name != attacker_name and unit.is_alive:
                 upos = unit.position.pixel_position
                 dx = world_pos.x - upos.x
                 dy = world_pos.y - upos.y

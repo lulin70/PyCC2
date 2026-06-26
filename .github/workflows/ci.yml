@@ -32,7 +32,7 @@ jobs:
         run: ruff format --check .
 
       - name: Run mypy type checking
-        run: MYPYPATH=src mypy -p pycc2 --no-error-summary || echo "mypy warnings (non-blocking)"
+        run: MYPYPATH=src mypy -p pycc2 --no-error-summary
 
       - name: Security scan
         run: |
@@ -78,7 +78,7 @@ jobs:
           files: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
-          fail_ci_if_error: false
+          fail_ci_if_error: true
 
       - name: Run performance benchmarks
         run: SDL_VIDEODRIVER=dummy python -m pytest tests/benchmark/test_perf_benchmark.py -v
@@ -92,8 +92,33 @@ jobs:
             junit.xml
             htmlcov/
 
-  docker-build:
+  slow-tests:
+    name: Slow Tests (Python 3.12)
     needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') || github.event_name == 'pull_request' && github.base_ref == 'main'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run slow tests
+        env:
+          SDL_VIDEODRIVER: dummy
+        run: |
+          pytest tests/ -m slow -v --tb=short
+
+  docker-build:
+    needs: [test, slow-tests]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'pull_request' && github.base_ref == 'main'
     steps:

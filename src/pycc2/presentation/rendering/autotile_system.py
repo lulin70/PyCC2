@@ -15,7 +15,9 @@ Example: Road with neighbors N,E,S = bitmask 0b0111 = 7 → draw road connection
 from __future__ import annotations
 
 from collections import deque
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
+import pygame
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
@@ -321,16 +323,16 @@ class AutotileCache:
     """Cache manager for autotile variants to avoid redundant generation."""
 
     def __init__(self):
-        self._cache: dict[str, any] = {}
+        self._cache: dict[str, pygame.Surface] = {}
         self._building_clusters_cache: dict[str, list[list[tuple[int, int]]]] = {}
 
-    def get_variant(self, terrain_id: int, bitmask: int, variation: int = 0) -> str | None:
-        """Get cached variant key if exists."""
+    def get_variant(self, terrain_id: int, bitmask: int, variation: int = 0) -> pygame.Surface | None:
+        """Get cached variant surface if exists."""
         key = self._make_cache_key(terrain_id, bitmask, variation)
         return self._cache.get(key)
 
-    def set_variant(self, terrain_id: int, bitmask: int, variation: int, surface: any) -> None:
-        """Cache a generated variant."""
+    def set_variant(self, terrain_id: int, bitmask: int, variation: int, surface: pygame.Surface) -> None:
+        """Cache a generated variant surface."""
         key = self._make_cache_key(terrain_id, bitmask, variation)
         self._cache[key] = surface
 

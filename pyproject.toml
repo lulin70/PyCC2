@@ -27,6 +27,7 @@ dependencies = [
     "pygame>=2.2",
     "numpy>=1.26",
     "pydantic>=2.0",
+    "defusedxml>=0.7",
 ]
 
 [project.optional-dependencies]

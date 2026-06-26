@@ -216,7 +216,7 @@ class PathPreview:
 
         Also shows estimated time at waypoints.
         """
-        if not path or not path.is_visible if hasattr(path, "is_visible") else True:
+        if not path or (hasattr(path, "is_visible") and not path.is_visible):
             return
 
         render_path = path or self._current_path
@@ -235,8 +235,8 @@ class PathPreview:
             for i, segment in enumerate(render_path.segments):
                 color = color_map.get(segment.danger, (0, 255, 0, 180))
 
-                start_screen = camera.world_to_screen(__vec2(segment.start))
-                end_screen = camera.world_to_screen(__vec2(segment.end))
+                start_screen = camera.world_to_screen(_vec2(segment.start))
+                end_screen = camera.world_to_screen(_vec2(segment.end))
 
                 self._draw_dashed_line(
                     surface,
@@ -301,7 +301,7 @@ class PathPreview:
         return p.total_time
 
 
-def __vec2(pos: tuple[int, int]):
+def _vec2(pos: tuple[int, int]):
     """Helper to create Vec2 from tuple."""
     from pycc2.domain.value_objects.vec2 import Vec2
 

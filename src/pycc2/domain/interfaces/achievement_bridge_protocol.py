@@ -18,11 +18,10 @@ class IAchievementBridge(Protocol):
     on AchievementBridge.
     """
 
-    @property
-    def _manager(self) -> object:
-        """The underlying achievement manager instance."""
-        ...
-
     def subscribe(self, event_bus: Any) -> None:
         """Subscribe to events on the given event bus."""
+        ...
+
+    def save(self) -> bool:
+        """Persist achievement state."""
         ...

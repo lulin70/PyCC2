@@ -22,6 +22,7 @@ import json
 import logging
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from collections.abc import Callable
 from pathlib import Path
@@ -226,12 +227,18 @@ class ResourceCacheManager:
 
         logger.info("Downloading: %s → %s", url, local_path.name)
 
+        parsed = urllib.parse.urlparse(url)
+        if parsed.scheme not in {"http", "https"}:
+            logger.error("Unsupported URL scheme for %s: only http/https allowed", url)
+            return None
+
         try:
             req = urllib.request.Request(
                 url,
                 headers={"User-Agent": "PyCC2/0.3.37"},
             )
-            with urllib.request.urlopen(req, timeout=self._timeout) as response:
+            with urllib.request.urlopen(req, timeout=self._timeout) as response:  # nosec B310
+                # B310 suppressed: URL scheme is restricted to http/https above
                 content_length = response.headers.get("Content-Length")
                 total_size = int(content_length) if content_length else None
                 # Capture headers before response is closed

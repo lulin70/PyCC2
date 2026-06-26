@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from pycc2.domain.ai.squad_degradation import SquadDegradationManager
     from pycc2.domain.components.morale_component import MoraleComponent
     from pycc2.domain.entities.game_map import GameMap
-    from pycc2.domain.entities.unit import Unit
+    from pycc2.domain.entities.unit import Faction, Unit
     from pycc2.domain.value_objects.vec2 import Vec2
 
 
@@ -223,7 +223,7 @@ class MoraleSystem:
     def _play_morale_collapse_voice(
         unit: Unit,
         new_state: MoraleState,
-        voice_callback: Callable[[str, str], None] | None = None,
+        voice_callback: Callable[[str, Faction], None] | None = None,
     ) -> None:
         """Play a morale collapse voice cry for the unit's faction.
 
@@ -380,7 +380,7 @@ class MoraleSystem:
         }
 
     @staticmethod
-    def check_routing_behavior(unit: Unit, game_map: GameMap = None) -> tuple[bool, object]:
+    def check_routing_behavior(unit: Unit, game_map: GameMap | None = None) -> tuple[bool, object]:
         """
         Check if unit should attempt to flee.
 
@@ -445,7 +445,7 @@ class MoraleSystem:
         return (should_flee, target_pos)
 
     @staticmethod
-    def _calculate_flee_target(unit: Unit, game_map: GameMap = None) -> tuple[int, int] | None:
+    def _calculate_flee_target(unit: Unit, game_map: GameMap | None = None) -> tuple[int, int] | None:
         """
         Calculate target position for fleeing unit.
 

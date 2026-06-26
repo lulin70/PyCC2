@@ -67,7 +67,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # Terrain ID to tile generator mapping
-_TERRAIN_GENERATORS: dict[int, Callable[..., None]] = {
+_TERRAIN_GENERATORS: dict[int, Callable[[], pygame.Surface]] = {
     0: generate_grass_tile,  # OPEN
     1: generate_road_tile,  # ROAD
     2: generate_grass_tile,  # GRASS

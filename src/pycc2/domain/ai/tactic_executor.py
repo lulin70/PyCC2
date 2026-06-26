@@ -255,11 +255,12 @@ class TacticExecutor:
         # attack pipeline (ballistics, damage, ammo, visual effects).
         from pycc2.domain.interfaces.event_types import PlayerCommand
 
-        event = PlayerCommand(
-            command="attack",
-            unit_ids=[intent.unit_id],
-            target_id=intent.target_unit_id,
-        )
+        event: PlayerCommand = {
+            "command": "attack",
+            "unit_ids": [intent.unit_id],
+        }
+        if intent.target_unit_id is not None:
+            event["target_id"] = intent.target_unit_id
         self.event_bus.publish(event)
         self._logger.debug(
             f"Unit {intent.unit_id} attack command issued -> {intent.target_unit_id}"

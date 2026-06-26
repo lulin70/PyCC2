@@ -36,7 +36,7 @@ from pycc2.domain.systems.game_settings import (
 from pycc2.domain.systems.skirmish_generator import SkirmishType
 
 if TYPE_CHECKING:
-    pass
+    from pycc2.infrastructure.save_system import SaveMetaData, SaveSlotStatus
 
 
 # ========================================================================
@@ -152,7 +152,9 @@ class NewGameMenu:
     battle_type: SkirmishType = SkirmishType.MEETING_ENGAGEMENT
 
     # Load game state
-    _save_slots: list[tuple[int, object | None, object]] = field(default_factory=list, repr=False)
+    _save_slots: list[tuple[int, SaveMetaData | None, SaveSlotStatus]] = field(
+        default_factory=list, repr=False
+    )
     _selected_save_slot: int = -1
 
     # Internal — button rectangles rebuilt each render

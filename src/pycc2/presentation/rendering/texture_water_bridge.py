@@ -12,9 +12,7 @@ from .terrain_tile_cache import CC2_TERRAIN_PALETTE
 TILE_SIZE = 48
 
 
-def _texture_water(
-    surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0
-) -> None:
+def _texture_water(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:
     """WATER (6): CC2 authentic water with wave animation hints and autotile continuity."""
     from pycc2.presentation.rendering.autotile_system import (
         DIR_EAST,
@@ -136,9 +134,7 @@ def _texture_water(
     del pixels
 
 
-def _texture_shallow(
-    surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0
-) -> None:
+def _texture_shallow(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:
     """SHALLOW (10): Light blue shallow water with sandy bottom visible."""
     rng = random.Random(var * 211)
     base = (120, 185, 225)
@@ -167,9 +163,7 @@ def _texture_shallow(
     del pixels
 
 
-def _texture_bridge(
-    surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0
-) -> None:
+def _texture_bridge(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:
     """BRIDGE (11): Enhanced wooden/concrete bridge with texture and railings."""
     rng = random.Random(var * 241)
     tile_sz = TILE_SIZE
@@ -196,8 +190,7 @@ def _texture_bridge(
                         alpha_factor = 1.0 - dist_ratio * 0.5
                         pixels[sx, sy] = tuple(
                             int(
-                                water_color[i] * (1 - alpha_factor)
-                                + shadow_color[i] * alpha_factor
+                                water_color[i] * (1 - alpha_factor) + shadow_color[i] * alpha_factor
                             )
                             for i in range(3)
                         )

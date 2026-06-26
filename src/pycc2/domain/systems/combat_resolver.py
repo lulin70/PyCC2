@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from pycc2.domain.systems.morale_system import MoraleEvent
+from pycc2.domain.systems.morale_system import MoraleCalculationResult, MoraleEvent
 from pycc2.domain.systems.spatial_hash import SpatialHash
 
 if TYPE_CHECKING:
@@ -56,8 +56,8 @@ class CombatResolver:
         target: Unit,
         shot_result: ShotResult,
         events_fired: list[str],
-    ) -> None | dict:
-        morale_result = None
+    ) -> MoraleCalculationResult | None:
+        morale_result: MoraleCalculationResult | None = None
         if not shot_result.hit:
             return morale_result
 

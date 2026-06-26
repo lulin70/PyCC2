@@ -23,6 +23,7 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 from pycc2.domain.ai.ammo_pickup import FallenUnitCache
+from pycc2.domain.components.weapon_component import WeaponState
 from pycc2.domain.entities.unit import UnitType
 
 if TYPE_CHECKING:
@@ -259,7 +260,7 @@ class MGTakeoverSystem:
             replacement.combat_state.captured_weapon = True
             replacement.combat_state.captured_accuracy_penalty = MG_ACCURACY_PENALTY
         else:
-            replacement.weapon.captured = True
+            replacement.weapon.is_captured = True
             replacement.weapon.captured_accuracy_penalty = MG_ACCURACY_PENALTY
 
         # Change unit type to MG

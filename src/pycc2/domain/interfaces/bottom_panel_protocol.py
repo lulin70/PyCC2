@@ -49,6 +49,9 @@ class IBottomPanel(Protocol):
         """Register a callback for a command button."""
         ...
 
+    _on_unit_select: Callable[[str | None], None] | None
+    _on_zoom_change: Callable[[float], None] | None
+
     # Mouse interaction ----------------------------------------------------
 
     def set_mouse_pos(self, pos: tuple[int, int] | None) -> None:

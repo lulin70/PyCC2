@@ -271,9 +271,9 @@ class AIService:
             squad_intents = []
             for squad_id in self._squad_coordinator.active_squads:
                 squad_blackboards = {
-                    uid: self._blackboards[uid]
-                    for uid in self._squad_coordinator.get_squad_units(squad_id)
-                    if uid in self._blackboards
+                    u.id: self._blackboards[u.id]
+                    for u in self._squad_coordinator.get_squad_units(squad_id, all_units or [])
+                    if u.id in self._blackboards
                 }
                 if squad_blackboards:
                     order = self._squad_coordinator.evaluate_squad_tactics(

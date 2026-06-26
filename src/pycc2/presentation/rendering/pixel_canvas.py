@@ -119,7 +119,7 @@ class PixelCanvas:
     使用numpy数组作为后端以获得最佳性能。
     """
 
-    def __init__(self, width: int, height: int, bg: tuple[int, int, int] | None = None):
+    def __init__(self, width: int, height: int, bg: tuple[int, ...] | None = None):
         import numpy as np
 
         self.width = width

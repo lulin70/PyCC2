@@ -7,13 +7,13 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import pygame
 
 
-BRIDGE_POSITIONS = {
+BRIDGE_POSITIONS: dict[str, dict[str, Any]] = {
     "arnhem": {"x": 0.50, "y": 0.08, "name": "Arnhem"},
     "nijmegen": {"x": 0.48, "y": 0.28, "name": "Nijmegen"},
     "grave": {"x": 0.45, "y": 0.48, "name": "Grave"},
@@ -133,7 +133,7 @@ class StrategicMapRenderer:
         }
 
     @property
-    def all_bridges(self) -> list[dict]:
+    def all_bridges(self) -> list[dict[str, Any] | None]:
         return [self.get_bridge_info(k) for k in BRIDGE_POSITIONS]
 
     @property

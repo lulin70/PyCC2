@@ -582,7 +582,8 @@ class DeploymentRenderer:
         y_offset = 30  # Start early, no RP header taking space
         for entry_type, entry_data in ui._roster_layout:
             if entry_type == "category":
-                cat: UnitCategory = entry_data
+                assert isinstance(entry_data, UnitCategory)
+                cat = entry_data
                 label_text, icon = _CATEGORY_INFO[cat]
                 cat_rect = pygame.Rect(
                     ui._roster_padding,
@@ -599,7 +600,8 @@ class DeploymentRenderer:
                 y_offset += ui._roster_category_height + 2
 
             elif entry_type == "unit":
-                idx: int = entry_data
+                assert isinstance(entry_data, int)
+                idx = entry_data
                 unit = ui._state.available_units[idx]
                 item_rect = pygame.Rect(
                     ui._roster_padding,
@@ -833,7 +835,7 @@ class DeploymentRenderer:
             1 for u in ui._state.placed_units if u.unit_type in ("support", "vehicle")
         )
 
-        if not ui._font_normal:
+        if not ui._font_small:
             return
 
         inf_color = _ROSTER_TEXT if infantry_count < ui._state.max_infantry else _RP_SPENT_COLOR

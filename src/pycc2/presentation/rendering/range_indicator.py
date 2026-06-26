@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
+import pygame
+
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -43,7 +45,7 @@ class RangeIndicator:
     _max_range: float = 0.0
     _visible: bool = False
     _alpha: int = 128  # Semi-transparent
-    _range_surf: object | None = None
+    _range_surf: pygame.Surface | None = None
     _range_surf_size: int = 0
 
     def set_unit(self, unit: Unit | None) -> None:
@@ -65,9 +67,9 @@ class RangeIndicator:
         max_range = 0.0
 
         weapon_comp = unit.weapon_component
-        if weapon_comp:
-            min_range = weapon_comp.min_range if weapon_comp is not None else 0.0
-            max_range = weapon_comp.max_range if weapon_comp is not None else 0.0
+        if weapon_comp is not None:
+            min_range = getattr(weapon_comp, "min_range", 0.0)
+            max_range = getattr(weapon_comp, "max_range", 0.0)
 
         if max_range == 0.0:
             max_range = unit.vision_range if unit.vision_range is not None else 10.0

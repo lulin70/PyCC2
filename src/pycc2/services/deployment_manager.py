@@ -12,9 +12,10 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar
 
 if TYPE_CHECKING:
-    from pycc2.domain.entities.unit import Unit
+    from pycc2.domain.entities.unit import Faction, Unit, UnitType
     from pycc2.domain.interfaces.deployment_ui_protocol import IDeploymentUI
     from pycc2.domain.interfaces.display_config import DisplayConfig
+    from pycc2.domain.systems.game_settings import GameSettings
     from pycc2.services.ai_service import AIService
 
     from .game_loop import GameState
@@ -128,9 +129,9 @@ class DeploymentManager:
         self,
         map_data: dict,
         faction: str = "ally",
-        game_settings: object | None = None,
+        game_settings: GameSettings | None = None,
         display_config: DisplayConfig | None = None,
-        deployment_ui: object | None = None,
+        deployment_ui: IDeploymentUI | None = None,
     ) -> None:
         """Activate the deployment phase.
 
@@ -199,6 +200,9 @@ class DeploymentManager:
                     requisition_points=requisition_points,
                 )
 
+            if self.deployment_ui is None:
+                self.deployment_phase_active = False
+                return
             self.deployment_ui.start_deployment_with_settings(
                 map_data=map_data,
                 faction=faction,
@@ -433,11 +437,11 @@ class DeploymentManager:
     def _create_unit_from_placement(
         self,
         placement: dict,
-        faction: object,
+        faction: Faction,
         id_prefix: str,
         counter: int,
-        type_map: dict[str, object],
-        template_type_map: dict[str, object],
+        type_map: dict[str, UnitType],
+        template_type_map: dict[str, UnitType],
     ) -> Unit | None:
         """Create a single Unit entity from a placement dict.
 
@@ -513,10 +517,10 @@ class DeploymentManager:
 
     def _create_ai_units(
         self,
-        ai_faction: object,
+        ai_faction: Faction,
         unit_counter_start: int,
-        type_map: dict[str, object],
-        template_type_map: dict[str, object],
+        type_map: dict[str, UnitType],
+        template_type_map: dict[str, UnitType],
     ) -> tuple[list[Unit], int]:
         """Create all AI units from generated deployments.
 
@@ -548,7 +552,7 @@ class DeploymentManager:
         self,
         ai_service: AIService | None,
         units: list[Unit],
-        ai_faction: object,
+        ai_faction: Faction,
     ) -> None:
         """Register AI units with the AI service and attach behaviour trees."""
         if ai_service is None:

@@ -585,9 +585,9 @@ class EnhancedSoundSystem:
             samples = int(44100 * duration_ms / 1000)
             t = np.linspace(0, duration_ms / 1000, samples)
 
-            base_rpm = np.linspace(550, 650, samples)
-            engine = np.sin(2 * np.pi * np.cumsum(base_rpm) / 44100) * 0.5
-            engine += np.sin(2 * np.pi * np.cumsum(base_rpm * 2.5) / 44100) * 0.25
+            base_rpm_array = np.linspace(550, 650, samples)
+            engine = np.sin(2 * np.pi * np.cumsum(base_rpm_array) / 44100) * 0.5
+            engine += np.sin(2 * np.pi * np.cumsum(base_rpm_array * 2.5) / 44100) * 0.25
 
             track_clatter = np.zeros(samples)
             clatter_interval = int(44100 / 30)
@@ -788,7 +788,7 @@ class EnhancedSoundSystem:
                     ProceduralSoundGenerator.generate_hit_confirm(duration_ms=120)
                 ),
                 CombatSoundEvent.UNIT_DEATH: lambda: ProceduralSoundGenerator.generate_death_cry(),
-                CombatSoundEvent.WEAPON_RELOAD: lambda: ProceduralSoundGenerator.click(
+                CombatSoundEvent.WEAPON_RELOAD: lambda: ProceduralSoundGenerator.generate_click(
                     duration_ms=50, frequency=400
                 ),
             }

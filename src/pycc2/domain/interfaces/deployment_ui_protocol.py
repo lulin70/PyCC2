@@ -49,12 +49,64 @@ class IDeploymentUI(Protocol):
 
     # Rendering / event handling -------------------------------------------
 
-    def render(self, screen: Any, camera: Any) -> None:
+    def render(
+        self,
+        screen: Any,
+        font: Any = None,
+        map_offset_x: int = 0,
+        map_offset_y: int = 0,
+        tile_size: int = 16,
+    ) -> None:
         """Render the deployment UI overlay."""
         ...
 
     def handle_event(self, event: Any) -> bool:
         """Handle a pygame event. Return True if consumed."""
+        ...
+
+    def handle_mouse_down(
+        self,
+        screen_x: int,
+        screen_y: int,
+        map_offset_x: int = 0,
+        map_offset_y: int = 0,
+        tile_size: int = 16,
+    ) -> str | None:
+        """Handle mouse button DOWN - start drag from roster unit."""
+        ...
+
+    def handle_mouse_move(
+        self,
+        screen_x: int,
+        screen_y: int,
+        map_offset_x: int = 0,
+        map_offset_y: int = 0,
+        tile_size: int = 16,
+    ) -> None:
+        """Handle mouse movement while dragging - update ghost position."""
+        ...
+
+    def handle_mouse_up(
+        self,
+        screen_x: int,
+        screen_y: int,
+        map_offset_x: int = 0,
+        map_offset_y: int = 0,
+        tile_size: int = 16,
+    ) -> str | None:
+        """Handle mouse button UP - complete drag (place or cancel)."""
+        ...
+
+    def handle_click_full(
+        self,
+        screen_x: int,
+        screen_y: int,
+        map_offset_x: int = 0,
+        map_offset_y: int = 0,
+        tile_size: int = 16,
+        right_click: bool = False,
+    ) -> str | None:
+        """Full click handler converting screen coords to map coords automatically."""
         ...
 
     # Static helpers (delegated to deployment_factory) ---------------------

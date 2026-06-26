@@ -4,7 +4,7 @@ import math
 import random
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .particle_pool import ParticlePool as ExternalParticlePool
@@ -174,7 +174,7 @@ class ParticleEmitter:
         EXPLOSION_CORE = auto()
         SMOKE_SCREEN = auto()
 
-    PRESETS = {
+    PRESETS: dict[str, dict[str, Any]] = {
         "rifle_fire": {
             "count": 3,
             "speed": (3, 6),

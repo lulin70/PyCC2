@@ -52,6 +52,7 @@ class TopDownParticleSystem:
         self.max_particles = max_particles
         self._pool: ParticlePool | None = pool
         self._render_surface_pool = SurfacePool(max_size=self._MAX_RENDER_SURFACE_POOL)
+        self._enable_cc2_color_grading: bool = False
         if self._pool is None:
             try:
                 from .particle_pool import ParticlePool as _PP
@@ -286,8 +287,12 @@ class TopDownParticleSystem:
                 self._render_blood_pool(surface, p)
 
         # 应用CC2色调分级（仅当配置启用时）
-        if hasattr(self, "_enable_cc2_color_grading") and self._enable_cc2_color_grading:
+        if self._enable_cc2_color_grading:
             self._apply_cc2_color_grading(surface)
+
+    def _apply_cc2_color_grading(self, surface: pygame.Surface) -> None:
+        """Color grading placeholder — subclasses may override."""
+        pass
 
     def _render_explosion_ring(self, surface: pygame.Surface, p: dict) -> None:
         """🔥 不规则爆炸火焰团（CC2战斗5.jpeg风格）

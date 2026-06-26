@@ -28,6 +28,11 @@ class HealthComponent:
         self._update_state()
 
     @property
+    def current_hp(self) -> int:
+        """Legacy alias for hp."""
+        return self.hp
+
+    @property
     def hp_ratio(self) -> float:
         if self.max_hp <= 0:
             return 0.0
