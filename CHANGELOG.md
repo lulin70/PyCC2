@@ -24,6 +24,20 @@ All notable changes to PyCC2 will be documented in this file.
 - **README test counts corrected**: badge 4298→4369, text 3985→4329 passed (4369 total), table updated in 3 README files (en/zh/ja)
 - **Verification**: ruff 0 errors / mypy 0 errors / 100 targeted tests pass
 
+### D7-P2: Engineering Hardening (D7 Assessment Remediation)
+- **P2-1 deployment_ui.py God Class split** (commit 88fe1b9): 1183→687 lines (-41.9%); extracted 3 SRP submodules (deployment_zone_builder.py 211L + deployment_placement.py 155L + deployment_input_router.py 174L); preserved IDeploymentUI protocol via thin delegation shims; all 117 regression tests pass
+- **P2-3 pip-audit + dependabot** (commit 40c9f02): CI lint job enhanced with `pip-audit --desc` dependency vulnerability scan; `.github/dependabot.yml` expanded from minimal to full config (labels, groups for minor+patch, commit-message prefixes `deps:`/`ci:`, open-pull-requests-limit 10/5)
+- **P2-2 vulture dead code cleanup** (commits c147eb6 + 5c3e2be + 9d730b8):
+  - 11 of 12 vulture findings cleaned: 7 unused parameters removed (engagement/inf_pos/observer_height/target_height/panic_thr/rout_thr/spread_radius), minimap.py dead `getattr` statement + `if True` redundant condition removed + `import math` hoisted to module level, render_pipeline.py + cc2_hud.py unused `_ENHANCED_*_AVAILABLE` feature-flag try blocks deleted (flags never read, imported symbols never called)
+  - 1 vulture finding preserved as false positive: `renderer.py:75 fog_grid` is `IRenderer` Protocol method parameter (contract cannot be removed)
+  - 2 obsolete integration tests removed (verified `_ENHANCED_POST_PROCESSING_AVAILABLE` / `_ENHANCED_UI_AVAILABLE` flags which no longer exist)
+  - ruff format规范化: 37 files reformatted (dict indent alignment, trailing comma, line width) — no logic change
+  - **Verification**: ruff 0 errors / mypy 0 errors / vulture 12→1 (only Protocol false positive) / 4327 tests pass
+- **P2-2 docstring coverage assessment** (recorded as TD-063 in TECH_DEBT.md):
+  - `interrogate src/` measured 62.8% coverage (1717/4611 definitions have docstring, 2894 missing)
+  - Target 80% requires ~1972 new docstrings — too large for single session, documented as technical debt with 4-phase remediation plan (Phase A: auto-fix 808 format issues; Phase B: public API docstrings; Phase C: boy-scout rule; Phase D: CI gate with 65% baseline)
+  - ruff D-rule breakdown: 1388 missing docstring (D102×911 + D101×216 + D107×167 + D100×46 + D105×36 + others×12) + 1163 format issues (D212/D400/D415/D413 etc.)
+
 ### Phase 3: God Class Split
 - Split `cc2_bottom_panel.py` (2007→480 lines) into 8 focused submodules (roster/unit_detail/soldier_monitor/command_bar/minimap_section/urgency/icons/input_handler)
 - Split `cc2_authentic_units.py` (1960→51 lines facade) into `unit_templates.py` + `deployment.py` + `unit_database.py` + `unit_factories/` (5 faction files)

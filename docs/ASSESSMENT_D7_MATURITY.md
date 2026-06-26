@@ -487,12 +487,24 @@ Phase 1-7 质量冲刺的宣称存在**系统性虚报**：
 
 #### 阶段3：P2 工程化（5-7 天）
 1. 拆分 11 个可拆分的 God Class 文件（优先 deployment_ui.py 1183L/70 方法和 tactic_executor.py 1175L/31 方法）
+   - ✅ deployment_ui.py 拆分完成（1183→687L, -41.9%, commit 88fe1b9）
+   - ⏸️ tactic_executor.py 拆分待评估（1175L/31 methods，见 TD-063 后续）
 2. 清理 13 项 vulture 死代码
+   - ✅ 完成于 commit c147eb6 + 5c3e2be + 9d730b8
+   - 11 项已清理 + 1 项误报保留（renderer.py Protocol 参数）+ 1 项因清理导致测试失效已修
+   - vulture 复跑结果：12→1 项（仅 Protocol 误报）
 3. 提升 docstring 覆盖率至 80%（补 1058 个定义）
+   - ⏸️ 评估完成，记录为 TD-063
+   - `interrogate src/` 实测覆盖率 62.8%（4611 定义中 1717 有 docstring，2894 缺失）
+   - 需补 ~1972 个 docstring 才达 80% 目标，工作量过大，不在本阶段补全
+   - 给出分阶段改进方案（Phase A-D），见 TECH_DEBT.md TD-063
 4. 接入 pip-audit 到 CI
+   - ✅ 完成于 commit 40c9f02
 5. 配置 dependabot reviewers/labels
+   - ✅ 完成于 commit 40c9f02
 
 **预期成果**：完成阶段1-3 后，综合成熟度预计可达 **80/100 (B)**，达到发布标准。
+**实际成果**（2026-06-26）：阶段1-3 主要项目完成，仅 docstring 覆盖率（TD-063）和 tactic_executor.py 拆分待后续处理。综合成熟度预计 **78/100 (B-)**，接近发布标准。
 
 ---
 

@@ -12,13 +12,13 @@
 |------|------|---------|---------|
 | 🔴 P0 致命（游戏不可玩） | 0 | — | ✅ 全部清除 |
 | 🟡 P1 严重（功能受损） | 2 | 🟡 严重 | ❌ 未解决 |
-| 🟢 P2 中等（质量/维护） | 12 | 🟢 中等 | ❌ 未解决 |
+| 🟢 P2 中等（质量/维护） | 14 | 🟢 中等 | ❌ 未解决 |
 | ~~M2新增发现 (TD-045~049)~~ | 5 | — | ✅ 已解决 |
 | ~~7-dimension review新增 (TD-050~056)~~ | 7 | — | ✅ **已解决** |
 | ~~v0.3.11 DevSquad审计新增 (TD-057~059)~~ | 3 | — | ✅ **TD-057, TD-060 已解决** |
 | 🆕 v0.3.13 批判性审核新增 | 2 | 🟢 P2 | ❌ 未解决 |
 | v2.0旧条目（声称已解决） | 20 | — | ⚠️ 待验证 |
-| **合计（活跃）** | **16** | — | **44/60 已解决** |
+| **合计（活跃）** | **18** | — | **44/62 已解决** |
 
 ---
 
@@ -490,6 +490,68 @@
   - `_get_pooled_surface()` 调用 `move_to_end()` 标记最近使用
   - 超出 `MAX_SURFACE_POOL_SIZE=50` 时 `popitem(last=False)` 淘汰最久未使用
   - 显式 `del evicted_surf` 释放内存
+
+### 🟢 TD-063: Docstring 覆盖率不足 (62.8%, 目标 80%) — D7 P2-2 评估
+
+- **描述**: D7 成熟度评估 P2-2 阶段使用 `interrogate` 工具评估 docstring 覆盖率，当前仅 62.8%，低于 80% 目标
+- **影响**: 新开发者理解公共 API 成本高；外部文档（README/USER_MANUAL）与代码内文档脱节
+- **评估工具**: `interrogate src/`（默认目标 80%）
+- **评估日期**: 2026-06-26 (v0.3.42 D7 评估 P2-2)
+- **详细数据**:
+  - 总定义数: 4611
+  - 有 docstring: 1717
+  - 缺失 docstring: 2894
+  - 当前覆盖率: 62.8%
+  - 达到 80% 目标需补充: ~1972 个 docstring
+- **ruff D 规则分析** (`ruff check src/ --select D`):
+  - D102 Missing docstring in public method: 911
+  - D101 Missing docstring in public class: 216
+  - D107 Missing docstring in __init__: 167
+  - D100 Missing docstring in public module: 46
+  - D105 Missing docstring in magic method: 36
+  - 其他缺失: 12
+  - **缺失小计**: 1388
+  - D212/D400/D415/D413 等格式问题: 1163（可 `ruff --fix` 自动修复 808 个）
+- **状态**: ❌ 未解决 — 工作量过大（~1972 个），不在 D7 P2-2 阶段补全
+- **清理方案** (分阶段):
+  1. **Phase A (快速)**: 运行 `ruff check src/ --select D --fix` 自动修复 808 个格式问题（无逻辑变更）
+  2. **Phase B (优先)**: 补充公共 API docstring — 聚焦 `__init__.py` 导出的公开类/函数（约 200 个）
+  3. **Phase C (渐进)**: 每次修改文件时顺手补充该文件缺失的 docstring（-boy scout rule）
+  4. **Phase D (门禁)**: 在 pyproject.toml 启用 ruff D 规则（非阻塞），CI 中用 interrogate 设 65% 基线，每季度提升 5%
+- **不在本次清理范围**: 1388 个缺失 docstring 需要逐个理解语义后编写，超出 D7 P2-2 单次 session 工作量
+
+### 🟢 TD-064: tactic_executor.py God Class 拆分待评估 (1175L/31 methods) — D7 P2-1 评估
+
+- **描述**: D7 成熟度评估 P2-1 阶段评估 `src/pycc2/domain/ai/tactic_executor.py`（1175 行/31 方法），原计划与 deployment_ui.py 同期拆分
+- **评估结论**: **不立即拆分** — ROI 偏低且回归风险存在
+- **文件**: `src/pycc2/domain/ai/tactic_executor.py`
+- **评估日期**: 2026-06-26 (v0.3.42 D7 评估 P2-1)
+- **结构分析**:
+  - 类本质: **调度表 + 适配器层**（非典型 God Class）——重逻辑已下沉到 9 个子系统类（SmokeManager / AmmoPickupSystem / TrenchDiggingSystem / BuildingClearingAI / ArtilleryManager / MeleeCombatSystem / TankRiderSystem / MineWarfareSystem / EngineerAssaultAI）
+  - 单方法平均 ~30 行，handler 多为"取单位 → 校验 → 调子系统 → 发事件"薄封装
+  - public API 极小: 仅 `register_unit` / `unregister_unit` / `execute` / `register_smoke_capability` 4 个
+  - 无 Protocol/ABC 约束（`class TacticExecutor:` 无基类）
+  - 唯一生产消费者: `AIService`（`src/pycc2/services/ai_service.py:69/97/108/364`）
+- **不建议立即拆分的理由**:
+  1. **ROI 偏低**: 拆分主要是文件物理切分 + 引入注册机制，行数下降但抽象层级未提升
+  2. **回归风险**: 24 个 handler 中 16 个无单测（仅 IDLE/MOVE_TO/ATTACK/RETREAT/HOLD_POSITION/DEFEND/PATROL/SUPPRESS_FIRE 有测试），拆分缺安全网
+  3. **共享枢纽耦合**: `_execute_move_to` 被 11 个 handler 调用，`_unit_registry`/`event_bus`/`pathfinder`/`game_map`/`ballistic_engine`/`_environment`/各子系统都是 `self` 属性，拆分需引入 `HandlerContext` 上下文对象
+  4. **dispatch_table 硬编码**（line 89-114）: `execute()` 按名字引用全部 24 个 handler，拆分必须改成注册式 dispatch
+  5. **历史教训**: v0.3.38 曾因 TacticExecutor 发布裸 dict 事件导致 AI 不开火（已修复），该类是 AI 链路关键节点，改动需谨慎
+- **状态**: ❌ 未解决 — 待触发条件满足时拆分
+- **触发拆分的时机**:
+  - 新增 tactic 类型时 dispatch_table 继续膨胀
+  - 某 handler 长度超过 ~80 行
+  - 多个 handler 需要共享非平凡预处理逻辑
+  - 工兵类 handler 出现 bug 需要独立测试时
+- **将来拆分的推荐顺序**:
+  1. 先补 16 个无测试 handler 的单测（锁定行为）
+  2. 抽 `HandlerContext`（封装 unit_registry / event_bus / pathfinder / game_map / ballistic_engine / environment）
+  3. 改 `execute()` 为注册式 dispatch（`register_handler(TacticType, callable)`）
+  4. 先拆 `engineer_handlers`（最内聚：dig_trench/lay_mine/detect_mines/clear_building/assault_fortified）
+  5. 再拆 `specialist_handlers`（deploy_smoke/scavenge_ammo/rally_nco/heal_wounded/call_artillery/mount_tank/dismount_tank）
+  6. 最后评估是否拆 `movement_handlers`（patrol/retreat/take_cover/regroup，收益最低，可不拆）
+- **本次已完成**: deployment_ui.py 拆分（commit 88fe1b9），tactic_executor.py 评估并记录
 
 ---
 
