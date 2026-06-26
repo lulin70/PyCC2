@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from pycc2.presentation.rendering.pixel_artist import (
     CCPalette,
@@ -230,6 +231,7 @@ class TestInfantrySprite:
 # ============================================================
 
 
+@pytest.mark.slow
 class TestMGSquadSprite:
     """MG机枪组精灵测试"""
 
@@ -312,6 +314,7 @@ class TestCommanderSprite:
 # ============================================================
 
 
+@pytest.mark.slow
 class TestEightDirections:
     """8方向朝向测试"""
 
@@ -380,6 +383,7 @@ class TestTerrainTiles:
 # ============================================================
 
 
+@pytest.mark.slow
 class TestCreateUnitSpriteFactory:
     """create_unit_sprite 工厂函数测试"""
 

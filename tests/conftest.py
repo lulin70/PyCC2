@@ -390,6 +390,35 @@ def pytest_configure(config):
     logger.info("SDL_AUDIODRIVER: %s", os.environ.get("SDL_AUDIODRIVER", "not set"))
 
 
+# Phase 5: Auto-marker by directory path.
+# Maps test directory to marker. Tests with explicit markers are respected.
+_PATH_MARKER_MAP = {
+    "tests/unit/": "unit",
+    "tests/integration/": "integration",
+    "tests/e2e/": "e2e",
+    "tests/benchmark/": "benchmark",
+    "tests/acceptance/": "e2e",
+}
+_EXPLICIT_MARKERS = {"unit", "slow", "integration", "e2e", "benchmark"}
+
+
+def pytest_collection_modifyitems(config, items):
+    """Auto-apply markers based on test file path.
+
+    Tests in tests/unit/ get @pytest.mark.unit, etc.
+    The path-based marker is always added; orthogonal markers like `slow`
+    are preserved (a test can be both `unit` AND `slow`).
+    """
+    for item in items:
+        path = str(item.fspath).replace("\\", "/")
+        for prefix, marker in _PATH_MARKER_MAP.items():
+            if prefix in path:
+                # Only add if not already present (avoid duplicates)
+                if not any(m.name == marker for m in item.iter_markers()):
+                    item.add_marker(getattr(pytest.mark, marker))
+                break
+
+
 # P1 Fix: Autouse fixture to recover pygame state before each test.
 # Many E2E/integration tests call pygame.quit() in teardown, breaking subsequent tests.
 @pytest.fixture(autouse=True)

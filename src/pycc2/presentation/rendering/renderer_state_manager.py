@@ -12,6 +12,7 @@ delegation and subsystem wiring. Manages:
 from __future__ import annotations
 
 import logging
+import time
 from typing import TYPE_CHECKING
 
 import pygame
@@ -30,6 +31,11 @@ class RendererStateManager:
 
     TRANSPARENT_BLACK = (0, 0, 0, 0)
 
+    # Phase 6: FPS adaptive post-processing thresholds (hysteresis)
+    FPS_SAMPLE_SIZE = 60
+    FPS_DISABLE_THRESHOLD = 45.0  # disable post-processing below this FPS
+    FPS_ENABLE_THRESHOLD = 55.0  # re-enable above this FPS
+
     def __init__(self, tile_size: int):
         self._tile_size = tile_size
         self._screen: pygame.Surface | None = None
@@ -37,6 +43,10 @@ class RendererStateManager:
         self._surface_pool = SurfacePool(max_size=50)
         self._post_processing: PostProcessingEffects | None = None
         self._dirty_tracker: _DirtyRectTracker | None = None
+        # Phase 6: FPS adaptive post-processing state
+        self._fps_samples: list[float] = []
+        self._last_render_time: float | None = None
+        self._post_processing_disabled_by_fps: bool = False
 
     @property
     def screen(self) -> pygame.Surface | None:
@@ -53,6 +63,43 @@ class RendererStateManager:
     @property
     def dirty_tracker(self) -> _DirtyRectTracker | None:
         return self._dirty_tracker
+
+    @property
+    def is_post_processing_active(self) -> bool:
+        """Return True if post-processing should be applied (not disabled by FPS)."""
+        return not self._post_processing_disabled_by_fps
+
+    def update_fps(self) -> None:
+        """Record frame timing and auto-toggle post-processing based on FPS.
+
+        Called once per render frame. Uses a rolling window of frame times
+        to compute average FPS. When FPS drops below FPS_DISABLE_THRESHOLD,
+        post-processing is disabled to restore frame rate. When FPS recovers
+        above FPS_ENABLE_THRESHOLD, post-processing is re-enabled (hysteresis
+        prevents rapid toggling).
+        """
+        now = time.monotonic()
+        if self._last_render_time is not None:
+            dt = now - self._last_render_time
+            if dt > 0:
+                self._fps_samples.append(dt)
+                if len(self._fps_samples) > self.FPS_SAMPLE_SIZE:
+                    self._fps_samples.pop(0)
+                self._check_fps_adaptive()
+        self._last_render_time = now
+
+    def _check_fps_adaptive(self) -> None:
+        """Auto-disable/re-enable post-processing based on rolling FPS average."""
+        if len(self._fps_samples) < self.FPS_SAMPLE_SIZE:
+            return
+        avg_dt = sum(self._fps_samples) / len(self._fps_samples)
+        avg_fps = 1.0 / avg_dt if avg_dt > 0 else 0.0
+        if avg_fps < self.FPS_DISABLE_THRESHOLD and not self._post_processing_disabled_by_fps:
+            self._post_processing_disabled_by_fps = True
+            logger.info("FPS adaptive: post-processing disabled (avg FPS=%.1f)", avg_fps)
+        elif avg_fps > self.FPS_ENABLE_THRESHOLD and self._post_processing_disabled_by_fps:
+            self._post_processing_disabled_by_fps = False
+            logger.info("FPS adaptive: post-processing re-enabled (avg FPS=%.1f)", avg_fps)
 
     def initialize(self, screen: pygame.Surface) -> pygame.Surface:
         """Create offscreen buffer, post-processing, and dirty tracker."""

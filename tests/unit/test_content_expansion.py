@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from pycc2.domain.entities.unit import UNIT_TEMPLATES, UnitType
 from pycc2.domain.systems.campaign import (
     CampaignManager,
@@ -226,6 +228,7 @@ class TestCampaignSystem:
         assert MissionObjective.ELIMINATE_ENEMY_FORCE in obj_types
 
 
+@pytest.mark.slow
 class TestNewUnitSprites:
     def test_tank_sprite_generates_without_error(self):
         from pycc2.presentation.rendering.pixel_artist import UnitSpriteGenerator, UnitSpriteSpec

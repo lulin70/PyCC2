@@ -380,6 +380,9 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
         if self._state_manager.screen is None:
             return
 
+        # Phase 6: record frame timing for FPS adaptive post-processing.
+        self._state_manager.update_fps()
+
         if camera.projection == ProjectionMode.ISOMETRIC:
             self._render_isometric(game_map, units, camera, selected_unit_ids, debug_mode)
             return
@@ -430,7 +433,11 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
         screen.blit(offscreen, (0, 0))
 
         post_processing = self._state_manager.post_processing
-        if post_processing is not None and self._enable_cc2_color_grading:
+        if (
+            post_processing is not None
+            and self._enable_cc2_color_grading
+            and self._state_manager.is_post_processing_active
+        ):
             try:
                 processed = post_processing.apply_all(screen, color_style="war")
                 if processed is not None:

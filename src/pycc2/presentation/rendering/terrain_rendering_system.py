@@ -102,10 +102,15 @@ class TerrainRenderingSystem:
         self._strip_cache: dict[tuple[int, int], pygame.Surface] = {}
 
         # P1-2: 地形静态层缓存 — 将所有可见地形tile合成一张大图
-        # 当相机不动且地形未修改时，直接blit缓存的大图，避免每帧逐tile绘制
+        # Phase 6: grid-snapped cache with margin — camera movement within
+        # CACHE_GRID tiles does NOT invalidate the cache; only the blit
+        # offset changes. Rebuild happens when viewport crosses grid boundary.
         self._terrain_bg: pygame.Surface | None = None
         self._terrain_dirty: bool = True
-        self._terrain_cache_key: tuple | None = None  # (viewport_tl, viewport_size, map_version)
+        self._terrain_cache_key: tuple | None = None  # (cache_origin, cache_size, tile_px, map_version)
+        self._cache_blit_offset: tuple[int, int] = (0, 0)  # screen offset to blit cache at
+        self.CACHE_GRID = 8  # snap cache origin to 8-tile grid
+        self.CACHE_MARGIN = 2  # extra tiles around viewport in cache
 
     def _get_overlay_surface(self, w: int, h: int) -> pygame.Surface:
         """Get or create an overlay surface from the shared SurfacePool."""
@@ -131,13 +136,24 @@ class TerrainRenderingSystem:
             return None
 
         bounds = camera.view_bounds
-        start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
-        end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
-        start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
-        end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
+        vp_start_x = max(0, int(bounds[0].x // self.TILE_SIZE))
+        vp_end_x = min(game_map.width, int((bounds[1].x // self.TILE_SIZE) + 2))
+        vp_start_y = max(0, int(bounds[0].y // self.TILE_SIZE))
+        vp_end_y = min(game_map.height, int((bounds[1].y // self.TILE_SIZE) + 2))
         tile_screen_size = int(self.TILE_SIZE * camera.zoom)
 
-        # 计算当前缓存的 key
+        # Phase 6: grid-snapped cache origin — snap to CACHE_GRID boundary
+        # so camera movement within the grid does NOT invalidate the cache.
+        # Add CACHE_MARGIN tiles on each side so the cache covers viewport
+        # even as the camera moves within the grid cell.
+        g = self.CACHE_GRID
+        m = self.CACHE_MARGIN
+        start_x = max(0, (vp_start_x // g) * g - m)
+        end_x = min(game_map.width, ((vp_end_x // g) + 1) * g + m)
+        start_y = max(0, (vp_start_y // g) * g - m)
+        end_y = min(game_map.height, ((vp_end_y // g) + 1) * g + m)
+
+        # 计算当前缓存的 key（基于 grid 对齐的 cache region）
         map_version = getattr(game_map, "version", id(game_map))
         current_key = (
             (start_x, start_y),
@@ -146,25 +162,33 @@ class TerrainRenderingSystem:
             map_version,
         )
 
-        # 检查缓存是否有效：dirty==False 且 key 匹配且尺寸正确
+        # 计算缓存的 blit offset：cache 原点在屏幕上的位置
+        cache_world_x = start_x * self.TILE_SIZE
+        cache_world_y = start_y * self.TILE_SIZE
+        cache_screen_pos = camera.world_to_screen(Vec2(cache_world_x, cache_world_y))
+        self._cache_blit_offset = (int(cache_screen_pos[0]), int(cache_screen_pos[1]))
+
+        # 检查缓存是否有效：dirty==False 且 key 匹配
         if (
             not self._terrain_dirty
             and self._terrain_bg is not None
             and self._terrain_cache_key == current_key
-            and self._terrain_bg.get_size() == target_surface.get_size()
         ):
             return self._terrain_bg
 
-        # 重建缓存
-        screen_w, screen_h = target_surface.get_size()
+        # 重建缓存：surface 尺寸 = cache region × tile_screen_size
+        cache_w = (end_x - start_x) * tile_screen_size
+        cache_h = (end_y - start_y) * tile_screen_size
+        if cache_w <= 0 or cache_h <= 0:
+            return None
         try:
-            self._terrain_bg = pygame.Surface((screen_w, screen_h), pygame.SRCALPHA)
+            self._terrain_bg = pygame.Surface((cache_w, cache_h), pygame.SRCALPHA)
             self._terrain_bg.fill((0, 0, 0, 0))  # 透明背景
         except (pygame.error, ValueError):
             logger.debug("Failed to create terrain background cache surface")
             return None
 
-        # 将所有可见地形tile绘制到缓存surface上
+        # 将所有 cache region 内的 tile 绘制到缓存 surface（相对坐标）
         for ty in range(start_y, end_y):
             for tx in range(start_x, end_x):
                 try:
@@ -267,12 +291,10 @@ class TerrainRenderingSystem:
                         if texture is None:
                             texture = self.get_cached_texture(terrain_val, variation)
 
-                    # Blit到缓存surface
+                    # Blit到缓存surface（Phase 6: 相对坐标，不依赖 camera）
                     if texture is not None:
-                        world_x = tx * self.TILE_SIZE
-                        world_y = ty * self.TILE_SIZE
-                        screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
-                        sx, sy = int(screen_pos[0]), int(screen_pos[1])
+                        sx = (tx - start_x) * tile_screen_size
+                        sy = (ty - start_y) * tile_screen_size
                         self._terrain_bg.blit(texture, (sx, sy))
 
                 except (pygame.error, ValueError, TypeError) as e:
@@ -405,7 +427,7 @@ class TerrainRenderingSystem:
         # 当缓存命中时，直接blit整张大图，避免每帧逐tile绘制（STEP 2 热点优化）
         terrain_bg = self._ensure_terrain_cache(game_map, camera)
         if terrain_bg is not None:
-            target_surface.blit(terrain_bg, (0, 0))
+            target_surface.blit(terrain_bg, self._cache_blit_offset)
         else:
             # 缓存不可用时的回退：直接绘制到目标surface
             self._draw_terrain_tiles_direct(game_map, camera, target_surface)

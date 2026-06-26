@@ -18,6 +18,24 @@ All notable changes to PyCC2 will be documented in this file.
 - **Dependency**: Added `defusedxml>=0.7` to `pyproject.toml`
 - **Verification**: bandit Medium 0 issues (from 2); mypy 0 errors; ruff clean; 69 security tests pass
 
+### Phase 5: Test Governance
+- **Auto-marker**: Added `pytest_collection_modifyitems` hook in `tests/conftest.py` to auto-apply markers by directory path (`tests/unit/`→`unit`, `tests/integration/`→`integration`, `tests/e2e/`→`e2e`, `tests/benchmark/`→`benchmark`). Marker coverage 4%→100% (4369/4369).
+- **Slow test marking**: Identified 7 timeout tests (>30s) via `pytest --durations=30`; marked `TestMGSquadSprite`, `TestEightDirections`, `TestCreateUnitSpriteFactory` in `test_pixel_artist.py` and `TestNewUnitSprites` in `test_content_expansion.py` with `@pytest.mark.slow`. `pytest -m "not slow"` now skips 14 slow tests.
+- **TEST_PLAN.md sync**: Updated from v0.1.1 (claimed 2767) to v0.3.42 (actual 4369). Corrected pyramid: unit 3680 (84.2%), integration 138 (3.2%), e2e 530 (12.1%), benchmark 20 (0.5%), slow 14 (orthogonal).
+- **E2E coverage audit**: Verified 530 existing E2E tests cover click (27 files), drag (13), select (25), move/attack (10), save/load (22). No redundant E2E added.
+
+### Phase 6: Performance Optimization
+- **Dirty rect refinement**: `suppression_overlay_renderer.py` replaced `mark_full_dirty()` with 4 targeted edge `mark_dirty(rect)` calls (top/bottom/left/right edge bands only).
+- **Terrain cache optimization**: `terrain_rendering_system.py` switched from viewport-exact cache key to 8-tile grid-snapped + 2-tile margin. Camera movement within 8-tile grid no longer invalidates cache; only blit offset adjusts. Tile drawing uses relative coordinates (camera-independent).
+- **FPS adaptive post-processing**: `renderer_state_manager.py` added `update_fps()` (60-frame rolling window via `time.monotonic()`) and `is_post_processing_active` property. Auto-disables color grading when avg FPS < 45, re-enables when > 55 (hysteresis). Wired into `enhanced_renderer.py` render() entry + post-processing guard.
+- **Cleanup**: Deleted stale `enhanced_renderer.py.backup`.
+- **Verification**: mypy 0 errors; ruff clean; bandit Medium 0; 138 rendering/security tests pass.
+
+### Phase 7: Documentation Sync
+- **Version consistency**: All docs aligned to v0.3.42 (pyproject.toml, README, TEST_PLAN, TECH_DEBT, CHANGELOG, PYCC2_QUALITY_SPRINT).
+- **TECH_DEBT.md**: Updated to v0.3.42; corrected file line counts (12 files >1000 lines, 53 files >500 lines documented as remaining debt).
+- **PYCC2_QUALITY_SPRINT.md**: Phase 1-7 all marked complete; acceptance checklist updated with honest status.
+
 ## [0.3.42] - 2026-06-19
 
 ### P0-A: Terrain Rendering Overhaul

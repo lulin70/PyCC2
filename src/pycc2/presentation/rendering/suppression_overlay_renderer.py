@@ -78,9 +78,6 @@ class SuppressionOverlayRenderer:
         if alpha < 2:
             return
 
-        if dirty_tracker is not None:
-            dirty_tracker.mark_full_dirty()
-
         sw, sh = offscreen.get_size()
         if (
             self._overlay_cache is None
@@ -94,6 +91,14 @@ class SuppressionOverlayRenderer:
         edge_width = min(60, sw // 6)
         edge_height = min(60, sh // 6)
         red = (200, 30, 30)
+
+        # Phase 6: mark only the 4 edge regions as dirty instead of full screen.
+        # The overlay only paints the screen edges; the center stays transparent.
+        if dirty_tracker is not None:
+            dirty_tracker.mark_dirty(pygame.Rect(0, 0, sw, edge_height))
+            dirty_tracker.mark_dirty(pygame.Rect(0, sh - edge_height, sw, edge_height))
+            dirty_tracker.mark_dirty(pygame.Rect(0, 0, edge_width, sh))
+            dirty_tracker.mark_dirty(pygame.Rect(sw - edge_width, 0, edge_width, sh))
 
         # Top edge
         for i in range(edge_height):

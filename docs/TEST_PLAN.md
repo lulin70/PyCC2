@@ -1,4 +1,4 @@
-# PyCC2 测试计划 v0.1.1 — M1紧急修复 (2767 tests)
+# PyCC2 测试计划 v0.3.42 — 质量冲刺后全量 (4369 tests)
 
 ## 1. 测试金字塔
 
@@ -8,30 +8,42 @@ PyCC2 采用经典的测试金字塔策略，强调**底层单元测试为主，
 
 ```
         ╱╲
-       ╱E2E╲         5%  (~116 tests)
+       ╱E2E╲         12.1%  (530 tests)
       ╱──────╲
-     ╱ 集成测试 ╱       4%  (~86 tests)
+     ╱ 集成测试 ╱        3.2%  (138 tests)
     ╱──────────╲
    ╱            ╲
-  ╱   单元测试   ╱      91%  (~2031 tests)
+  ╱   单元测试   ╱      84.2%  (3680 tests)
  ╱──────────────╲
 ```
 
 ### 1.2 测试分布详情
 
-| 层级 | 数量 | 占比 | 执行时间 | 负责人 | 频率 |
-|------|------|------|----------|--------|------|
-| **单元测试 (Unit)** | ~2031 | 91% | < 2min | 核心开发 | 每次commit |
-| **集成测试 (Integration)** | ~86 | 4% | < 3min | 核心开发 | 每次PR |
-| **端到端测试 (E2E)** | ~116 | 5% | < 10min | QA团队 | 每日构建 |
+> 数据来源：`pytest --collect-only` 实测（2026-06-26，Phase 5 测试治理后）。
+> Marker 通过 `conftest.py` 的 `pytest_collection_modifyitems` 钩子按目录自动推断，
+> 显式 `@pytest.mark.slow` 等正交标记保留不覆盖。
 
-**总计: 2767 个测试用例 (P0-M1 全量)**
+| 层级 | 数量 | 占比 | 执行时间 | 负责人 | 频率 | Marker |
+|------|------|------|----------|--------|------|--------|
+| **单元测试 (Unit)** | 3680 | 84.2% | ~3.5min | 核心开发 | 每次commit | `@pytest.mark.unit`（路径自动） |
+| **集成测试 (Integration)** | 138 | 3.2% | < 3min | 核心开发 | 每次PR | `@pytest.mark.integration`（路径自动） |
+| **端到端测试 (E2E)** | 530 | 12.1% | < 10min | QA团队 | 每日构建 | `@pytest.mark.e2e`（路径自动） |
+| **性能基准 (Benchmark)** | 20 | 0.5% | < 2min | 核心开发 | 每日构建 | `@pytest.mark.benchmark`（路径自动） |
+| **慢测试 (Slow，正交)** | 14 | 0.3% | ~3.5min | 核心开发 | CI slow job | `@pytest.mark.slow`（显式） |
+
+**总计: 4369 个测试用例（v0.3.42 质量冲刺后全量）**
+
+**Marker 策略**（Phase 5 新增）：
+- 路径自动标记：`tests/unit/` → `unit`，`tests/integration/` → `integration`，`tests/e2e/` → `e2e`，`tests/benchmark/` → `benchmark`
+- 慢测试显式标记：sprite 生成类测试（`test_pixel_artist.py` / `test_content_expansion.py` 中超时>30s 的类）标记 `@pytest.mark.slow`，默认 `pytest -m "not slow"` 跳过
+- CI 门禁：`pytest -m "not slow"` 阻塞式全绿；`pytest -m slow` 在 slow job 中全绿
+- `--strict-markers` 已启用，未注册 marker 会报错
 
 ---
 
 ### 1.3 各层职责定义
 
-#### 单元测试 (Unit Tests) - 75%
+#### 单元测试 (Unit Tests) - 84.2%
 
 **目标：** 验证单个函数/类的正确性
 
