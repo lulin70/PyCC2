@@ -4,6 +4,26 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [Unreleased] - 2026-06-26
 
+### D7-P0: Critical Fixes (D7 Assessment Remediation)
+- **ruff lint**: Auto-fixed 26 errors (I001/UP037/B010/F401/UP035) + manual F841 fix; ruff check src/ tests/ → 0 errors
+- **23 test failures fixed**: 2 benchmark (`_surface_pool`→`_state_manager._surface_pool`), 18 e2e (`_screen` setter→`initialize(screen)`), 1 acceptance assertion, 1 headless vsync=0, 1 Bresenham algorithm bug (`y0 += sy` misplaced causing infinite loop in `pixel_canvas.py:218`)
+- **CI timeout protection**: `pytest-timeout>=2.3` + `--timeout=300` in pyproject.toml; `timeout-minutes: 30` in ci.yml (test + slow-tests jobs)
+- **Version sync**: `__version__` 0.3.41→0.3.42; 11+ docs synced (README/INSTALL/USER_MANUAL 中英日 + DESIGN/PRD/ROADMAP/GAP_ANALYSIS/USER_GUIDE)
+- **Dependency lock**: `requirements.lock` (308 packages) for reproducible builds
+- **CI coverage gate**: `--cov-fail-under=70` added to pytest command
+- **README fix**: Replaced non-existent `scripts/strict_e2e_journey.py` with `pytest tests/e2e/ -m e2e -v`
+- **.gitignore**: Added `.ruff_cache/`
+- **Verification**: ruff 0 errors / mypy 0 errors / 4329 passed / 72s
+
+### D7-P1: Codebase Cleanup (D7 Assessment Remediation)
+- **4 pure ghost modules deleted** (-1679 lines): `ceasefire_retreat.py` (581L), `enhanced_aar.py` (425L), `battle_replay.py` (311L), `reinforcement_evasion_bgm.py` (362L) — all had zero production references
+- **2 naming conflicts resolved**:
+  - `TrenchDiggingAI` dual definition: `domain/systems/` version renamed to `TrenchDiggingTracker` (progress tracker, not AI); `domain/ai/` version (TacticalAIBase subclass) is canonical
+  - `weather_effects.py` dual module: `presentation/rendering/weather_effects.py` renamed to `weather_visual_effects.py` (particle rendering system); `domain/systems/weather_effects.py` is canonical business logic
+- **Process files cleaned**: Deleted root `IMAGE_OPTIMIZATION_COMPLETION_SUMMARY.md`, 4 docs/ execution reports (INTEGRATION_EXECUTION_PLAN/PRONE_ENHANCEMENT/STEP1_PORTRAIT/STEP2-5), 2 overlapping test strategy docs (TEST_STRATEGY_COMPREHENSIVE/TEST_USER_CENTRIC), 21 test artifact PNGs (enhancement_test_results/ + prone_test_results/)
+- **README test counts corrected**: badge 4298→4369, text 3985→4329 passed (4369 total), table updated in 3 README files (en/zh/ja)
+- **Verification**: ruff 0 errors / mypy 0 errors / 100 targeted tests pass
+
 ### Phase 3: God Class Split
 - Split `cc2_bottom_panel.py` (2007→480 lines) into 8 focused submodules (roster/unit_detail/soldier_monitor/command_bar/minimap_section/urgency/icons/input_handler)
 - Split `cc2_authentic_units.py` (1960→51 lines facade) into `unit_templates.py` + `deployment.py` + `unit_database.py` + `unit_factories/` (5 faction files)

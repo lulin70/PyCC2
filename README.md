@@ -186,7 +186,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Total Tests** | **~3985** (all passing, 100%) ✅ |
+| **Total Tests** | **4369** (4329 passed, 25 skipped, 15 slow) ✅ |
 | **Test Quality** | A+ (121 weak assertions eliminated) 🎯 |
 | **E2E Tests** | 22 test files (38-phase real SDL mode, 100% pass rate) |
 | **Maps** | 63 historical maps (Operation Market Garden) |
