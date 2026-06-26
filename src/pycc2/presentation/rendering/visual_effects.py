@@ -26,7 +26,7 @@ from pycc2.presentation.rendering.post_processing import (
 )
 
 # Re-export all public classes for backward compatibility
-from pycc2.presentation.rendering.weather_effects import (
+from pycc2.presentation.rendering.weather_visual_effects import (
     EnhancedWeatherSystem,
     WeatherParticle,
     WeatherType,

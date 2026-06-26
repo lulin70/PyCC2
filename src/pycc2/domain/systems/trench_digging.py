@@ -1,4 +1,8 @@
-"""Trench digging AI domain system (D10)."""
+"""Trench digging progress tracker (D10).
+
+Note: This is the simple progress tracker for digging state.
+For the tactical AI evaluator, see pycc2.domain.ai.trench_digging.TrenchDiggingAI.
+"""
 
 from __future__ import annotations
 
@@ -6,7 +10,7 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class TrenchDiggingAI:
+class TrenchDiggingTracker:
     """
     Extended trench digging AI behavior.
 

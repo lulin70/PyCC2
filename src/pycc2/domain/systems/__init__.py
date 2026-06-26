@@ -16,7 +16,7 @@ from pycc2.domain.systems.terrain_systems import (
     RiverCrossingSystem,
     RoadSystem,
 )
-from pycc2.domain.systems.trench_digging import TrenchDiggingAI
+from pycc2.domain.systems.trench_digging import TrenchDiggingTracker
 from pycc2.domain.systems.vision_system import ConeVisionSystem
 
 __all__ = [
@@ -34,5 +34,5 @@ __all__ = [
     "Civilian",
     "CivilianState",
     "ConeVisionSystem",
-    "TrenchDiggingAI",
+    "TrenchDiggingTracker",
 ]

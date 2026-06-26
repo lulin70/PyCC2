@@ -19,7 +19,7 @@ from pycc2.domain.systems.terrain_systems import (
     RiverCrossingSystem,
     RoadSystem,
 )
-from pycc2.domain.systems.trench_digging import TrenchDiggingAI
+from pycc2.domain.systems.trench_digging import TrenchDiggingTracker
 from pycc2.domain.systems.vision_system import ConeVisionSystem
 from pycc2.infrastructure.audio.environmental_audio import (
     EnvironmentalAudioSystem,
@@ -645,54 +645,54 @@ class TestTrenchDiggingAI:
     """D10: Trench Digging AI Extension (8 tests)."""
 
     def test_initial_state(self):
-        ai = TrenchDiggingAI()
-        assert ai.get_dig_progress(1) == 0.0
+        tracker = TrenchDiggingTracker()
+        assert tracker.get_dig_progress(1) == 0.0
 
     def test_not_stationary_resets(self):
-        ai = TrenchDiggingAI()
-        result = ai.update_unit(1, is_stationary=False, is_detected=False, dt=1.0)
+        tracker = TrenchDiggingTracker()
+        result = tracker.update_unit(1, is_stationary=False, is_detected=False, dt=1.0)
         assert result is None
-        assert ai.get_dig_progress(1) == 0.0
+        assert tracker.get_dig_progress(1) == 0.0
 
     def test_detected_resets_progress(self):
-        ai = TrenchDiggingAI()
-        ai.update_unit(1, is_stationary=True, is_detected=False, dt=3.0)
-        ai.update_unit(1, is_stationary=True, is_detected=True, dt=0.1)
-        assert ai.get_dig_progress(1) == 0.0
+        tracker = TrenchDiggingTracker()
+        tracker.update_unit(1, is_stationary=True, is_detected=False, dt=3.0)
+        tracker.update_unit(1, is_stationary=True, is_detected=True, dt=0.1)
+        assert tracker.get_dig_progress(1) == 0.0
 
     def test_digging_after_delay(self):
-        ai = TrenchDiggingAI()
-        ai.update_unit(1, is_stationary=True, is_detected=False, dt=2.5)
-        result = ai.update_unit(1, is_stationary=True, is_detected=False, dt=0.1)
+        tracker = TrenchDiggingTracker()
+        tracker.update_unit(1, is_stationary=True, is_detected=False, dt=2.5)
+        result = tracker.update_unit(1, is_stationary=True, is_detected=False, dt=0.1)
         assert result == "digging"
 
     def test_completion(self):
-        ai = TrenchDiggingAI()
+        tracker = TrenchDiggingTracker()
         # Need ~15 seconds of stationary time after initial delay
         for _ in range(20):
-            result = ai.update_unit(1, is_stationary=True, is_detected=False, dt=1.0)
+            result = tracker.update_unit(1, is_stationary=True, is_detected=False, dt=1.0)
             if result == "completed":
                 break
-        assert ai.get_dig_progress(1) >= 1.0 or result == "completed"
+        assert tracker.get_dig_progress(1) >= 1.0 or result == "completed"
 
     def test_multiple_units_independent(self):
-        ai = TrenchDiggingAI()
-        ai.update_unit(1, is_stationary=True, is_detected=False, dt=5.0)
-        progress1 = ai.get_dig_progress(1)
-        progress2 = ai.get_dig_progress(2)
+        tracker = TrenchDiggingTracker()
+        tracker.update_unit(1, is_stationary=True, is_detected=False, dt=5.0)
+        progress1 = tracker.get_dig_progress(1)
+        progress2 = tracker.get_dig_progress(2)
         assert progress1 > 0
         assert progress2 == 0.0
 
     def test_dig_duration_constant(self):
-        ai = TrenchDiggingAI()
-        assert ai.DIG_DURATION_TURNS == 3
+        tracker = TrenchDiggingTracker()
+        assert tracker.DIG_DURATION_TURNS == 3
 
     def test_reset_on_movement(self):
-        ai = TrenchDiggingAI()
-        ai.update_unit(1, is_stationary=True, is_detected=False, dt=10.0)
-        ai.get_dig_progress(1)
-        ai.update_unit(1, is_stationary=False, is_detected=False, dt=0.1)
-        progress_after = ai.get_dig_progress(1)
+        tracker = TrenchDiggingTracker()
+        tracker.update_unit(1, is_stationary=True, is_detected=False, dt=10.0)
+        tracker.get_dig_progress(1)
+        tracker.update_unit(1, is_stationary=False, is_detected=False, dt=0.1)
+        progress_after = tracker.get_dig_progress(1)
         assert progress_after == 0.0
 
 

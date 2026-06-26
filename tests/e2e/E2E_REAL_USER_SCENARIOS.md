@@ -593,21 +593,9 @@ assert blocked_supply < allied_supply
 
 **测试目标**: 验证战斗间停火和战略性撤退选项
 
-```python
-from pycc2.domain.systems.ceasefire_retreat import CeasefireRetreatSystem
+> **注**: 此场景原依赖 `ceasefire_retreat` 模块，该模块在 D7 评估中被识别为纯幽灵功能（零生产引用），已于 v0.3.42 P1 阶段删除。停火/撤退机制待后续版本重新设计实现后再补充对应 E2E 场景。
 
-cr_system = CeasefireRetreatSystem()
-
-ceasefire_result = cr_system.request_ceaseforce(hours=1)
-assert ceasefire_result['allowed'] == True
-assert ceasefire_result['morale_recovery'] > 0
-
-retreat_result = cr_system.request_retreat(units=post_battle_units, retreat_route='south')
-assert 'risk_level' in retreat_result
-assert 0 <= retreat_result['risk_level'] <= 1
-```
-
-**预计执行时间**: 2分钟
+**预计执行时间**: 待实现后补充
 
 ---
 
