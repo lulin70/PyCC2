@@ -443,9 +443,7 @@ class SpriteRenderer:
                     s.fill((*color, 160))
                     surface.blit(s, (int(sp[0]) - r, int(sp[1]) - r))
                 else:
-                    draw.rect(
-                        surface, color, (int(sp[0]) - r, int(sp[1]) - r, r * 2, r * 2)
-                    )
+                    draw.rect(surface, color, (int(sp[0]) - r, int(sp[1]) - r, r * 2, r * 2))
             elif "SNIPER" in utype:
                 color = (100, 200, 100)
                 points = [

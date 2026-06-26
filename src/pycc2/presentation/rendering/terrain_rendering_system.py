@@ -107,7 +107,9 @@ class TerrainRenderingSystem:
         # offset changes. Rebuild happens when viewport crosses grid boundary.
         self._terrain_bg: pygame.Surface | None = None
         self._terrain_dirty: bool = True
-        self._terrain_cache_key: tuple | None = None  # (cache_origin, cache_size, tile_px, map_version)
+        self._terrain_cache_key: tuple | None = (
+            None  # (cache_origin, cache_size, tile_px, map_version)
+        )
         self._cache_blit_offset: tuple[int, int] = (0, 0)  # screen offset to blit cache at
         self.CACHE_GRID = 8  # snap cache origin to 8-tile grid
         self.CACHE_MARGIN = 2  # extra tiles around viewport in cache
@@ -597,9 +599,7 @@ class TerrainRenderingSystem:
 
             from pycc2.domain.systems.enhanced_tile import EnhancedTile
 
-            return EnhancedTile(
-                base_terrain=terrain_id, height=height, variation=0
-            )
+            return EnhancedTile(base_terrain=terrain_id, height=height, variation=0)
         except (IndexError, AttributeError) as e:
             logger.debug(f"Failed to get enhanced tile at ({x},{y}): {e}")
             return None

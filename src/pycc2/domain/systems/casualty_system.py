@@ -305,9 +305,7 @@ class Casualty:
             from pycc2.domain.entities.unit import UnitState
 
             try:
-                getattr(self._unit.state_machine, "force_state", lambda s: None)(
-                    UnitState.DEAD
-                )
+                getattr(self._unit.state_machine, "force_state", lambda s: None)(UnitState.DEAD)
             except (ValueError, RuntimeError) as e:
                 logging.warning("Casualty state transition to DEAD failed: %s", e)
 

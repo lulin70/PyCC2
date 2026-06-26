@@ -81,9 +81,7 @@ class DeploymentInputRouter:
 
         # Handle right-click for removal
         if right_click:
-            return ui.handle_right_click(
-                screen_x, screen_y, map_offset_x, map_offset_y, tile_size
-            )
+            return ui.handle_right_click(screen_x, screen_y, map_offset_x, map_offset_y, tile_size)
 
         # Check Start Battle button
         if ui._button_rect and self._is_in_button(screen_x, screen_y):

@@ -115,7 +115,9 @@ class AttackLineSystem:
 
         # Check if hovering over enemy unit
         target_unit = None
-        attacker_name = attacker_faction.name if isinstance(attacker_faction, Faction) else attacker_faction
+        attacker_name = (
+            attacker_faction.name if isinstance(attacker_faction, Faction) else attacker_faction
+        )
         for unit in units:
             if unit.faction.name != attacker_name and unit.is_alive:
                 upos = unit.position.pixel_position

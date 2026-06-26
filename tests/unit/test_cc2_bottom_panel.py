@@ -478,9 +478,7 @@ class TestExtractedRenderers:
         renderer.render(surface, 0, 0, CC2BottomPanel.COMMAND_WIDTH, 200, time_remaining=None)
         assert len(panel._button_rects) == len(panel._commands)
 
-    def test_minimap_section_renderer_can_render_directly(
-        self, panel, surface, camera, game_map
-    ):
+    def test_minimap_section_renderer_can_render_directly(self, panel, surface, camera, game_map):
         renderer = MinimapSectionRenderer(panel)
         renderer.render(
             surface,
@@ -594,9 +592,7 @@ class TestNewSubmodules:
         ]
         panel._soldier_member_rects = []
         # Simulate soldier monitor rendering to populate rects
-        SoldierMonitorRenderer(panel).render(
-            surface, 0, 0, CC2BottomPanel.DETAIL_WIDTH, 130, squad
-        )
+        SoldierMonitorRenderer(panel).render(surface, 0, 0, CC2BottomPanel.DETAIL_WIDTH, 130, squad)
 
         handler = BottomPanelInputHandler(panel)
         rect, _member = panel._soldier_member_rects[0]

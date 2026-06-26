@@ -1,4 +1,5 @@
 """CC2 authentic unit factory — faction-specific entries."""
+
 from __future__ import annotations
 
 from pycc2.domain.systems.cc2_authentic_weapons import (

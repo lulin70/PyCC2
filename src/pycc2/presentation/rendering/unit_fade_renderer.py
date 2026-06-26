@@ -25,9 +25,7 @@ class UnitFadeRenderer:
         # {unit_id: {"x": float, "y": float, "start_time": float, "duration": float}}
         self._fading_units: dict[str, dict] = {}
 
-    def start_death_fade(
-        self, unit_id: str, position, duration_ms: int = 500
-    ) -> None:
+    def start_death_fade(self, unit_id: str, position, duration_ms: int = 500) -> None:
         """Register a unit for death fade-out animation (alpha 255→0)."""
         px = (
             position.x

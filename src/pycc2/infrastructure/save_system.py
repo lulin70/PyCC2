@@ -97,7 +97,9 @@ class SaveUnitData(BaseModel):
     unit_type: str = Field(default="INFANTRY_SQUAD")
     health: SaveHealthData = Field(default_factory=lambda: SaveHealthData(hp=1, max_hp=1))
     morale: SaveMoraleData = Field(
-        default_factory=lambda: SaveMoraleData(value=50, panic_threshold=30, suppression=0, state="RALLIED")
+        default_factory=lambda: SaveMoraleData(
+            value=50, panic_threshold=30, suppression=0, state="RALLIED"
+        )
     )
     weapon: SaveWeaponData = Field(
         default_factory=lambda: SaveWeaponData(

@@ -113,7 +113,10 @@ class RosterRenderer:
                 y
                 + 22
                 + (h - 22)
-                * (self._panel._roster_scroll_offset / (total_items - self._panel._visible_roster_items))
+                * (
+                    self._panel._roster_scroll_offset
+                    / (total_items - self._panel._visible_roster_items)
+                )
             )
             draw.rect(surface, (80, 80, 80), Rect(x + w - 4, scroll_bar_y, 3, scroll_bar_h))
 

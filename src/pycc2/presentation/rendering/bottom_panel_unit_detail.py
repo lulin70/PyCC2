@@ -29,9 +29,7 @@ class UnitDetailRenderer:
         draw.rect(surface, self._panel.BORDER_COLOR, Rect(x, y, w, h), 1)
 
         if not self._panel._selected_unit_id:
-            no_sel = self._panel._font_normal.render(
-                "No unit selected", True, (128, 128, 128)
-            )
+            no_sel = self._panel._font_normal.render("No unit selected", True, (128, 128, 128))
             surface.blit(no_sel, (x + 10, y + h // 2 - 10))
             return
 
@@ -118,15 +116,14 @@ class UnitDetailRenderer:
         ammo_max = unit.weapon.max_ammo if unit.weapon is not None else 30
         ammo_text = f"Ammo: {ammo_current}/{ammo_max}"
         surface.blit(
-            self._panel._font_normal.render(ammo_text, True, self._panel.TEXT_COLOR), (x + 8, line_y)
+            self._panel._font_normal.render(ammo_text, True, self._panel.TEXT_COLOR),
+            (x + 8, line_y),
         )
         # Ammo bar with 1px dark border
         draw.rect(surface, (40, 42, 48), Rect(x + 109, line_y + 1, bar_w + 2, 14))
         draw.rect(surface, (60, 60, 60), Rect(x + 110, line_y + 2, bar_w, 12))
         ammo_ratio = ammo_current / max(ammo_max, 1)
-        draw.rect(
-            surface, (100, 150, 255), Rect(x + 110, line_y + 2, int(bar_w * ammo_ratio), 12)
-        )
+        draw.rect(surface, (100, 150, 255), Rect(x + 110, line_y + 2, int(bar_w * ammo_ratio), 12))
         line_y += line_height + 3
 
         # Smoke grenades (if applicable)
@@ -185,9 +182,7 @@ class UnitDetailRenderer:
         alive = squad_size - casualties
         cas_text = f"Squad: {alive}/{squad_size} ({casualties} KIA)"
         cas_color = (255, 100, 100) if casualties > 0 else self._panel.TEXT_COLOR
-        surface.blit(
-            self._panel._font_small.render(cas_text, True, cas_color), (x + 8, line_y)
-        )
+        surface.blit(self._panel._font_small.render(cas_text, True, cas_color), (x + 8, line_y))
         line_y += line_height + 3
 
         # Status

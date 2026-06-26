@@ -438,7 +438,9 @@ class FourLayerCampaignManager:
                     for vl in battle.victory_locations:
                         if vl.vl_type == "bridge":
                             # Check VL control from battle state
-                            bridge_sector_state: SectorState | None = state.sectors.get(sector.sector_id)
+                            bridge_sector_state: SectorState | None = state.sectors.get(
+                                sector.sector_id
+                            )
                             controlled_by = None
                             if bridge_sector_state:
                                 for op_state in bridge_sector_state.operations:

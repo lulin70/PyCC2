@@ -35,72 +35,72 @@ class BallisticEngine:
 
     def __post_init__(self) -> None:
         self._weapon_stats = {
-                "rifle": {
-                    "base_accuracy": 0.85,
-                    "effective_range": 12.0,
-                    "base_damage": 25.0,
-                    "penetration": 1.0,
-                    "spread": 2.0,
-                },
-                "smg": {
-                    "base_accuracy": 0.70,
-                    "effective_range": 6.0,
-                    "base_damage": 15.0,
-                    "penetration": 0.8,
-                    "spread": 4.0,
-                },
-                "sniper": {
-                    "base_accuracy": 0.95,
-                    "effective_range": 20.0,
-                    "base_damage": 50.0,
-                    "penetration": 1.5,
-                    "spread": 0.5,
-                },
-                "mg": {
-                    "base_accuracy": 0.75,
-                    "effective_range": 15.0,
-                    "base_damage": 30.0,
-                    "penetration": 1.2,
-                    "spread": 3.0,
-                },
-                "pistol": {
-                    "base_accuracy": 0.65,
-                    "effective_range": 4.0,
-                    "base_damage": 12.0,
-                    "penetration": 0.6,
-                    "spread": 3.5,
-                },
-                "tank_cannon": {
-                    "base_accuracy": 0.65,
-                    "effective_range": 12.0,
-                    "base_damage": 52.5,
-                    "penetration": 2.5,
-                    "spread": 3.0,
-                    "anti_tank_bonus": 1.5,
-                },
-                "sniper_rifle": {
-                    "base_accuracy": 0.85,
-                    "effective_range": 15.0,
-                    "base_damage": 37.5,
-                    "penetration": 1.2,
-                    "spread": 1.0,
-                },
-                "mortar": {
-                    "base_accuracy": 0.40,
-                    "effective_range": 10.0,
-                    "base_damage": 32.5,
-                    "penetration": 1.0,
-                    "spread": 5.0,
-                },
-                "bazooka": {
-                    "base_accuracy": 0.55,
-                    "effective_range": 8.0,
-                    "base_damage": 45.0,
-                    "penetration": 3.0,
-                    "spread": 4.0,
-                    "anti_tank_bonus": 2.0,
-                },
-            }
+            "rifle": {
+                "base_accuracy": 0.85,
+                "effective_range": 12.0,
+                "base_damage": 25.0,
+                "penetration": 1.0,
+                "spread": 2.0,
+            },
+            "smg": {
+                "base_accuracy": 0.70,
+                "effective_range": 6.0,
+                "base_damage": 15.0,
+                "penetration": 0.8,
+                "spread": 4.0,
+            },
+            "sniper": {
+                "base_accuracy": 0.95,
+                "effective_range": 20.0,
+                "base_damage": 50.0,
+                "penetration": 1.5,
+                "spread": 0.5,
+            },
+            "mg": {
+                "base_accuracy": 0.75,
+                "effective_range": 15.0,
+                "base_damage": 30.0,
+                "penetration": 1.2,
+                "spread": 3.0,
+            },
+            "pistol": {
+                "base_accuracy": 0.65,
+                "effective_range": 4.0,
+                "base_damage": 12.0,
+                "penetration": 0.6,
+                "spread": 3.5,
+            },
+            "tank_cannon": {
+                "base_accuracy": 0.65,
+                "effective_range": 12.0,
+                "base_damage": 52.5,
+                "penetration": 2.5,
+                "spread": 3.0,
+                "anti_tank_bonus": 1.5,
+            },
+            "sniper_rifle": {
+                "base_accuracy": 0.85,
+                "effective_range": 15.0,
+                "base_damage": 37.5,
+                "penetration": 1.2,
+                "spread": 1.0,
+            },
+            "mortar": {
+                "base_accuracy": 0.40,
+                "effective_range": 10.0,
+                "base_damage": 32.5,
+                "penetration": 1.0,
+                "spread": 5.0,
+            },
+            "bazooka": {
+                "base_accuracy": 0.55,
+                "effective_range": 8.0,
+                "base_damage": 45.0,
+                "penetration": 3.0,
+                "spread": 4.0,
+                "anti_tank_bonus": 2.0,
+            },
+        }
 
     @property
     def swiss_cheese(self) -> SwissCheeseEngine:

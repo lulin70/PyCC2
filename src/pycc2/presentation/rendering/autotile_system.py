@@ -326,12 +326,16 @@ class AutotileCache:
         self._cache: dict[str, pygame.Surface] = {}
         self._building_clusters_cache: dict[str, list[list[tuple[int, int]]]] = {}
 
-    def get_variant(self, terrain_id: int, bitmask: int, variation: int = 0) -> pygame.Surface | None:
+    def get_variant(
+        self, terrain_id: int, bitmask: int, variation: int = 0
+    ) -> pygame.Surface | None:
         """Get cached variant surface if exists."""
         key = self._make_cache_key(terrain_id, bitmask, variation)
         return self._cache.get(key)
 
-    def set_variant(self, terrain_id: int, bitmask: int, variation: int, surface: pygame.Surface) -> None:
+    def set_variant(
+        self, terrain_id: int, bitmask: int, variation: int, surface: pygame.Surface
+    ) -> None:
         """Cache a generated variant surface."""
         key = self._make_cache_key(terrain_id, bitmask, variation)
         self._cache[key] = surface

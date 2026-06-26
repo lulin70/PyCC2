@@ -215,7 +215,9 @@ class GameLoopAssembler:
         deployment_manager = self._loop._deployment_manager
         input_router = self._loop._input_router
         assert pause_menu is not None, "pause_menu must be initialized before event dispatcher"
-        assert deployment_manager is not None, "deployment_manager must be initialized before event dispatcher"
+        assert deployment_manager is not None, (
+            "deployment_manager must be initialized before event dispatcher"
+        )
         assert input_router is not None, "input_router must be initialized before event dispatcher"
 
         self._loop._event_dispatcher = ED(

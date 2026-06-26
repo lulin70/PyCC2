@@ -498,7 +498,9 @@ class CC2HUDRenderer:
         a_text = "AMMO:"
         a_surf = hud._font_small.render(a_text, True, hud.TEXT_COLOR)
         surface.blit(a_surf, (x + bar_w + 52, line_y))
-        self._draw_mini_bar(surface, x + bar_w + 90, line_y, bar_w, 10, int(ammo_pct), (100, 150, 255))
+        self._draw_mini_bar(
+            surface, x + bar_w + 90, line_y, bar_w, 10, int(ammo_pct), (100, 150, 255)
+        )
 
         # AT
         at_text = "AT:"

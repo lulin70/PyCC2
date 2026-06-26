@@ -476,9 +476,7 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
         self._state_manager.resize(width, height)
         self._atmosphere.update_screen_size(width, height)
         self._screen_effects.invalidate_cache()
-        self._render_ctx.update_surfaces(
-            self._state_manager.screen, self._state_manager.offscreen
-        )
+        self._render_ctx.update_surfaces(self._state_manager.screen, self._state_manager.offscreen)
 
 
 # Backward-compatible re-exports for consumers that historically imported from

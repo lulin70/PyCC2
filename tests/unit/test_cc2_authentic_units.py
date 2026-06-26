@@ -1,4 +1,5 @@
 """Unit tests for the split cc2_authentic_units subsystem."""
+
 from __future__ import annotations
 
 import pytest

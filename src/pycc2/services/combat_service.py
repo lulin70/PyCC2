@@ -94,13 +94,15 @@ class CombatService:
 
         self.event_bus.publish_named(
             "weapon_fired",
-            dict(WeaponFired(
-                unit_id=attacker.unit_id,
-                weapon_id=weapon_slot,
-                target_id=target.unit_id,
-                hit=shot_result.hit,
-                ammo_remaining=getattr(attacker.weapon, "ammo_remaining", 0),
-            )),
+            dict(
+                WeaponFired(
+                    unit_id=attacker.unit_id,
+                    weapon_id=weapon_slot,
+                    target_id=target.unit_id,
+                    hit=shot_result.hit,
+                    ammo_remaining=getattr(attacker.weapon, "ammo_remaining", 0),
+                )
+            ),
         )
 
         if not shot_result.hit:
@@ -116,12 +118,14 @@ class CombatService:
         damage_applied = target.take_damage(int(shot_result.damage_dealt))
         self.event_bus.publish_named(
             "unit_attacked",
-            dict(UnitAttacked(
-                attacker_id=attacker.unit_id,
-                target_id=target.unit_id,
-                is_hit=True,
-                damage=float(damage_applied),
-            )),
+            dict(
+                UnitAttacked(
+                    attacker_id=attacker.unit_id,
+                    target_id=target.unit_id,
+                    is_hit=True,
+                    damage=float(damage_applied),
+                )
+            ),
         )
 
         morale_impact = -max(1, damage_applied // 5)

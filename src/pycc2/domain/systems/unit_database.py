@@ -1,4 +1,5 @@
 """CC2 authentic unit database aggregator."""
+
 from __future__ import annotations
 
 import logging

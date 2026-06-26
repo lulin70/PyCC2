@@ -59,7 +59,11 @@ class CampaignUIRenderer:
     def _render_operation_select(self, surface: Surface) -> None:
         """Render operation selection screen."""
         ui = self._ui
-        assert ui._font_title is not None and ui._font_normal is not None and ui._font_small is not None
+        assert (
+            ui._font_title is not None
+            and ui._font_normal is not None
+            and ui._font_small is not None
+        )
         sw, sh = surface.get_size()
         surface.fill(ui.BG_COLOR)
         ui._op_rects = {}
@@ -155,7 +159,11 @@ class CampaignUIRenderer:
     def _render_briefing(self, surface: Surface) -> None:
         """Render operation briefing screen with day header, strategic map, and battle selection."""
         ui = self._ui
-        assert ui._font_title is not None and ui._font_normal is not None and ui._font_small is not None
+        assert (
+            ui._font_title is not None
+            and ui._font_normal is not None
+            and ui._font_small is not None
+        )
         sw, sh = surface.get_size()
         surface.fill(ui.BG_COLOR)
         ui._battle_rects = {}
@@ -349,7 +357,11 @@ class CampaignUIRenderer:
     def _render_battle_select(self, surface: Surface) -> None:
         """Render battle selection screen (original layout)."""
         ui = self._ui
-        assert ui._font_title is not None and ui._font_normal is not None and ui._font_small is not None
+        assert (
+            ui._font_title is not None
+            and ui._font_normal is not None
+            and ui._font_small is not None
+        )
         sw, sh = surface.get_size()
         surface.fill(ui.BG_COLOR)
         ui._battle_rects = {}
@@ -498,7 +510,11 @@ class CampaignUIRenderer:
     def _render_preview(self, surface: Surface) -> None:
         """Render pre-battle preview with mini map, objectives, and forces."""
         ui = self._ui
-        assert ui._font_title is not None and ui._font_normal is not None and ui._font_small is not None
+        assert (
+            ui._font_title is not None
+            and ui._font_normal is not None
+            and ui._font_small is not None
+        )
         sw, sh = surface.get_size()
         surface.fill(ui.BG_COLOR)
 
@@ -633,7 +649,11 @@ class CampaignUIRenderer:
     def _render_report(self, surface: Surface) -> None:
         """Render post-battle report with narrative elements."""
         ui = self._ui
-        assert ui._font_title is not None and ui._font_normal is not None and ui._font_small is not None
+        assert (
+            ui._font_title is not None
+            and ui._font_normal is not None
+            and ui._font_small is not None
+        )
         sw, sh = surface.get_size()
         surface.fill(ui.BG_COLOR)
 
@@ -849,7 +869,11 @@ class CampaignUIRenderer:
     def _render_campaign_end(self, surface: Surface) -> None:
         """Render the campaign end screen with historical outcome, casualties, and bridge status."""
         ui = self._ui
-        assert ui._font_title is not None and ui._font_normal is not None and ui._font_small is not None
+        assert (
+            ui._font_title is not None
+            and ui._font_normal is not None
+            and ui._font_small is not None
+        )
         sw, sh = surface.get_size()
         surface.fill(ui.BG_COLOR)
 

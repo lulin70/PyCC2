@@ -1,4 +1,5 @@
 """CC2 deployment phase system."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

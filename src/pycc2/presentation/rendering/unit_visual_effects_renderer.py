@@ -145,9 +145,7 @@ class UnitVisualEffectsRenderer:
 
             trail_color = (*base_color[:3], 100)
             trail_radius = max(3, radius - 2)
-            pygame.draw.circle(
-                trail_surf, trail_color, (trail_center, trail_center), trail_radius
-            )
+            pygame.draw.circle(trail_surf, trail_color, (trail_center, trail_center), trail_radius)
 
             offscreen.blit(trail_surf, (trail_cx - trail_center, trail_cy - trail_center))
 

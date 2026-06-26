@@ -33,7 +33,9 @@ class VictoryManager:
     _event_bus: EventBus | None = field(init=False, default=None)
     _combat_director: ICombatDirector | None = field(init=False, default=None)
 
-    def initialize(self, event_bus: EventBus, combat_director: ICombatDirector | None = None) -> None:
+    def initialize(
+        self, event_bus: EventBus, combat_director: ICombatDirector | None = None
+    ) -> None:
         from pycc2.domain.systems.victory_conditions import (
             BattleStats,
             VictoryConditionEvaluator,

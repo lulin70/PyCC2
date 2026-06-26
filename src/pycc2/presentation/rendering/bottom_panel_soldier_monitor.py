@@ -16,9 +16,7 @@ class SoldierMonitorRenderer:
     def __init__(self, panel: CC2BottomPanel) -> None:
         self._panel = panel
 
-    def render(
-        self, surface: Surface, x: int, y: int, w: int, h: int, squad: object
-    ) -> None:
+    def render(self, surface: Surface, x: int, y: int, w: int, h: int, squad: object) -> None:
         """Render soldier monitor showing individual squad member details.
 
         Displays:
@@ -67,9 +65,7 @@ class SoldierMonitorRenderer:
         y += 3
 
         # Title
-        title = self._panel._font_small.render(
-            "SQUAD MEMBERS", True, self._panel.HIGHLIGHT_COLOR
-        )
+        title = self._panel._font_small.render("SQUAD MEMBERS", True, self._panel.HIGHLIGHT_COLOR)
         surface.blit(title, (x + 5, y))
         y += 16
 
@@ -107,9 +103,7 @@ class SoldierMonitorRenderer:
             if y + member_line_h > start_y + h:
                 break
 
-            state_name = (
-                member.state.value if hasattr(member.state, "value") else str(member.state)
-            )
+            state_name = member.state.value if hasattr(member.state, "value") else str(member.state)
             icon = state_icons.get(state_name, "?")
             icon_color = state_colors.get(state_name, (180, 180, 180))
 
@@ -130,17 +124,13 @@ class SoldierMonitorRenderer:
             if not personal_name:
                 personal_name = getattr(member, "role", "?")
             display_name = personal_name[:12]
-            name_surf = self._panel._font_small.render(
-                display_name, True, self._panel.TEXT_COLOR
-            )
+            name_surf = self._panel._font_small.render(display_name, True, self._panel.TEXT_COLOR)
             surface.blit(name_surf, (x + 18, y))
 
             # Weapon type name
             role = getattr(member, "role", "rifleman")
             weapon_name = WEAPON_NAMES.get(role, "M1 Garand")
-            weapon_surf = self._panel._font_small.render(
-                weapon_name[:10], True, (150, 180, 210)
-            )
+            weapon_surf = self._panel._font_small.render(weapon_name[:10], True, (150, 180, 210))
             surface.blit(weapon_surf, (x + 95, y))
 
             # HP bar
@@ -166,13 +156,7 @@ class SoldierMonitorRenderer:
             ammo_bar_x = hp_bar_x + hp_bar_w + 3
             ammo_bar_w = 20
             # Estimate ammo based on role and state
-            ammo_ratio = (
-                1.0
-                if state_name == "healthy"
-                else 0.6
-                if state_name == "wounded"
-                else 0.0
-            )
+            ammo_ratio = 1.0 if state_name == "healthy" else 0.6 if state_name == "wounded" else 0.0
             draw.rect(surface, (40, 42, 48), Rect(ammo_bar_x, y + 2, ammo_bar_w, 9))
             ammo_color = (
                 (100, 150, 255)
@@ -190,9 +174,7 @@ class SoldierMonitorRenderer:
             # Morale status text
             morale_text = MORALE_STATUS.get(state_name, "?")
             morale_color = state_colors.get(state_name, (180, 180, 180))
-            morale_surf = self._panel._font_small.render(
-                morale_text[:5], True, morale_color
-            )
+            morale_surf = self._panel._font_small.render(morale_text[:5], True, morale_color)
             surface.blit(morale_surf, (x + w - 38, y))
 
             # Experience level indicator
@@ -265,9 +247,7 @@ class SoldierMonitorRenderer:
 
         # Role
         role = getattr(member, "role", "rifleman")
-        role_surf = self._panel._font_small.render(
-            f"Role: {role}", True, (180, 180, 180)
-        )
+        role_surf = self._panel._font_small.render(f"Role: {role}", True, (180, 180, 180))
         surface.blit(role_surf, (px + 8, line_y))
         line_y += line_h
 
@@ -302,13 +282,7 @@ class SoldierMonitorRenderer:
 
         # Health
         hp = getattr(member, "hp", 0)
-        hp_color = (
-            (80, 200, 80)
-            if hp > 50
-            else (255, 200, 50)
-            if hp > 25
-            else (220, 60, 60)
-        )
+        hp_color = (80, 200, 80) if hp > 50 else (255, 200, 50) if hp > 25 else (220, 60, 60)
         hp_surf = self._panel._font_small.render(f"HP: {hp}/100", True, hp_color)
         surface.blit(hp_surf, (px + 8, line_y))
         line_y += line_h
@@ -337,9 +311,7 @@ class SoldierMonitorRenderer:
             "surrendered": (150, 150, 150),
         }
         morale_color = state_colors.get(state_name, (180, 180, 180))
-        morale_surf = self._panel._font_small.render(
-            f"Morale: {morale_text}", True, morale_color
-        )
+        morale_surf = self._panel._font_small.render(f"Morale: {morale_text}", True, morale_color)
         surface.blit(morale_surf, (px + 8, line_y))
         line_y += line_h
 
@@ -356,7 +328,5 @@ class SoldierMonitorRenderer:
             if xp >= threshold:
                 xp_label = label
                 break
-        xp_surf = self._panel._font_small.render(
-            f"XP: {xp} ({xp_label})", True, (200, 200, 200)
-        )
+        xp_surf = self._panel._font_small.render(f"XP: {xp} ({xp_label})", True, (200, 200, 200))
         surface.blit(xp_surf, (px + 8, line_y))

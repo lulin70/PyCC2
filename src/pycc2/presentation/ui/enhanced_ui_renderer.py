@@ -335,7 +335,10 @@ def draw_button(
 
 
 def draw_panel(
-    surface: pygame.Surface, rect: pygame.Rect, title: str = "", font: pygame.font.Font | None = None
+    surface: pygame.Surface,
+    rect: pygame.Rect,
+    title: str = "",
+    font: pygame.font.Font | None = None,
 ) -> None:
     """快速绘制增强面板"""
     EnhancedUIRenderer.draw_enhanced_panel(surface, rect, title, font)

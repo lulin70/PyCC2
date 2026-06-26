@@ -79,10 +79,7 @@ class SuppressionOverlayRenderer:
             return
 
         sw, sh = offscreen.get_size()
-        if (
-            self._overlay_cache is None
-            or self._overlay_cache.get_size() != (sw, sh)
-        ):
+        if self._overlay_cache is None or self._overlay_cache.get_size() != (sw, sh):
             self._overlay_cache = pygame.Surface((sw, sh), pygame.SRCALPHA)
 
         overlay = self._overlay_cache

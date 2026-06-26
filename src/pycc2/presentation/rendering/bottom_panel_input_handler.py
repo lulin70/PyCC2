@@ -35,9 +35,7 @@ class BottomPanelInputHandler:
             if rect.collidepoint(x, y):
                 # End Battle button: publish event to EventBus
                 if cmd_id == "end_battle" and self._panel._event_bus is not None:
-                    self._panel._event_bus.publish_named(
-                        "EndBattle", {"event_type": "end_battle"}
-                    )
+                    self._panel._event_bus.publish_named("EndBattle", {"event_type": "end_battle"})
                 callback = self._panel._command_callbacks.get(cmd_id)
                 if callback:
                     callback()
