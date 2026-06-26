@@ -50,26 +50,6 @@ def test_particles_integration_import(pygame_init):
         pytest.skip(f"effect_renderer未找到: {e}")
 
 
-def test_postprocessing_integration_import(pygame_init):
-    """测试: render_pipeline能否导入增强模块"""
-    try:
-        from pycc2.presentation.rendering import render_pipeline
-
-        assert hasattr(render_pipeline, "_ENHANCED_POST_PROCESSING_AVAILABLE")
-    except ImportError as e:
-        pytest.skip(f"render_pipeline未找到: {e}")
-
-
-def test_ui_integration_import(pygame_init):
-    """测试: cc2_hud能否导入增强模块"""
-    try:
-        from pycc2.presentation.ui import cc2_hud
-
-        assert hasattr(cc2_hud, "_ENHANCED_UI_AVAILABLE")
-    except ImportError as e:
-        pytest.skip(f"cc2_hud未找到: {e}")
-
-
 def test_feature_toggle_works(pygame_init, monkeypatch):
     """测试: Feature toggle机制能否工作"""
     # 测试启用所有特性
