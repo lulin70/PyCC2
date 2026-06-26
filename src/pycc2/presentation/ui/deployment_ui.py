@@ -36,14 +36,12 @@ from pycc2.presentation.ui.deployment_factory import (
     build_force_pool_from_settings,
     generate_ai_deployment,
 )
+from pycc2.presentation.ui.deployment_input_router import DeploymentInputRouter
 from pycc2.presentation.ui.deployment_los import DeploymentLOSSystem
 
 # Import extracted models and constants
 from pycc2.presentation.ui.deployment_models import (
-    TERRAIN_BUILDING_SOLID,
-    # Constants (backward compatible aliases)
     TERRAIN_OPEN,
-    TERRAIN_WATER,
     DeploymentPhase,
     DeploymentState,
     DeploymentUnit,
@@ -51,7 +49,9 @@ from pycc2.presentation.ui.deployment_models import (
     ZoneType,
 )
 from pycc2.presentation.ui.deployment_orders import DeploymentOrders
+from pycc2.presentation.ui.deployment_placement import DeploymentPlacementService
 from pycc2.presentation.ui.deployment_renderer import DeploymentRenderer
+from pycc2.presentation.ui.deployment_zone_builder import DeploymentZoneBuilder
 
 # ---------------------------------------------------------------------------
 # Pygame – imported lazily so the module can be imported in headless tests
@@ -141,6 +141,15 @@ class DeploymentUI:
         # Extracted renderer (SRP v0.3.30)
         self._renderer = DeploymentRenderer(self)
 
+        # Extracted zone builder (SRP v0.3.32)
+        self._zone_builder = DeploymentZoneBuilder(self)
+
+        # Extracted placement service (SRP v0.3.32)
+        self._placement = DeploymentPlacementService(self)
+
+        # Extracted input router (SRP v0.3.32)
+        self._input_router = DeploymentInputRouter(self)
+
         # Renderer-managed UI state (retained for backward compatibility)
         self._detail_panel_btn_rect: tuple[int, int, int, int] | None = None
         self._detail_panel_btn_action: str | None = None
@@ -227,89 +236,9 @@ class DeploymentUI:
     def start_deployment(self, map_data: dict, faction: str = "ally") -> None:
         """Initialize deployment phase with map zones and unit roster.
 
-        Parameters
-        ----------
-        map_data : dict
-            Must contain keys:
-              - ``width`` (int): map tile width
-              - ``height`` (int): map tile height
-              - ``tiles`` (list[list[int]]): 2-D terrain grid
-            May contain:
-              - ``friendly_zone`` / ``enemy_zone`` / ``no_mans_land``:
-                lists of (x, y) tuples
-              - ``spawn_points``: list of spawn point dicts with
-                ``side`` and ``position`` keys
-        faction : str
-            ``"ally"`` or ``"axis"`` – determines which side's zones are
-            used as FRIENDLY.
+        Delegates to DeploymentZoneBuilder.
         """
-        self._map_width = map_data.get("width", 50)
-        self._map_height = map_data.get("height", 42)
-        self._tile_grid = map_data.get("tiles")
-        self._faction = faction
-
-        # Build zone map from explicit zones or spawn_points -----------
-        friendly = set(map_data.get("friendly_zone", []))
-        enemy = set(map_data.get("enemy_zone", []))
-        nml = set(map_data.get("no_mans_land", []))
-
-        # If no explicit zones, try building from spawn_points
-        if not friendly and not enemy and not nml:
-            spawn_points = map_data.get("spawn_points", [])
-            if spawn_points:
-                friendly, enemy, nml = self._zones_from_spawn_points(spawn_points)
-
-        # Default: left third = friendly, right third = enemy, middle = NML
-        if not friendly and not enemy and not nml:
-            third = self._map_width // 3
-            for y in range(self._map_height):
-                for x in range(self._map_width):
-                    if x < third:
-                        friendly.add((x, y))
-                    elif x >= self._map_width - third:
-                        enemy.add((x, y))
-                    else:
-                        nml.add((x, y))
-
-        # Swap for axis faction
-        if faction == "axis":
-            friendly, enemy = enemy, friendly
-
-        self._state.friendly_zone = sorted(friendly)
-        self._state.enemy_zone = sorted(enemy)
-        self._state.no_mans_land = sorted(nml)
-
-        self._zone_map = []
-        for y in range(self._map_height):
-            row: list[ZoneType] = []
-            for x in range(self._map_width):
-                if (x, y) in friendly:
-                    row.append(ZoneType.FRIENDLY)
-                elif (x, y) in enemy:
-                    row.append(ZoneType.ENEMY_CONTROLLED)
-                else:
-                    row.append(ZoneType.NO_MANS_LAND)
-            self._zone_map.append(row)
-
-        # Build default unit roster --------------------------------------
-        self._state.available_units = self._build_default_roster()
-        self._state.placed_units = []
-        self._state.phase = DeploymentPhase.DEPLOYING
-        self._selected_unit_index = None
-
-        # Default requisition points
-        if self._state.requisition_points <= 0:
-            self._state.requisition_points = 2000
-        self._state.requisition_points_spent = 0
-
-        # Store victory locations for LOS preview (G5)
-        self._victory_locations = map_data.get("victory_locations", [])
-
-        # Rebuild roster layout
-        self._rebuild_roster_layout()
-
-        # Invalidate overlay cache
-        self._overlay_cache = None
+        self._zone_builder.start_deployment(map_data, faction)
 
     def start_deployment_with_settings(
         self,
@@ -322,113 +251,18 @@ class DeploymentUI:
     ) -> None:
         """Initialize deployment with game settings controlling the force pool.
 
-        Parameters
-        ----------
-        map_data : dict
-            Map data (same as ``start_deployment``).
-        faction : str
-            Player faction.
-        requisition_points : int
-            Total requisition points available.
-        max_infantry, max_support : int
-            Maximum units per category.
-        force_pool : list[DeploymentUnit] | None
-            Custom force pool; if None, default roster is built.
+        Delegates to DeploymentZoneBuilder.
         """
-        self._state.requisition_points = requisition_points
-        self._state.max_infantry = max_infantry
-        self._state.max_support = max_support
-        self._state.requisition_points_spent = 0
-
-        # Initialize zones via the base method
-        self.start_deployment(map_data, faction)
-
-        # Override roster if custom force pool provided
-        if force_pool is not None:
-            self._state.available_units = force_pool
-            self._rebuild_roster_layout()
-
-    def _zones_from_spawn_points(
-        self, spawn_points: list[dict]
-    ) -> tuple[set[tuple[int, int]], set[tuple[int, int]], set[tuple[int, int]]]:
-        """Build deployment zones from map spawn_points data.
-
-        Uses spawn point positions as centers and expands outward to
-        create deployment zones covering roughly 1/3 of the map each.
-        """
-        friendly: set[tuple[int, int]] = set()
-        enemy: set[tuple[int, int]] = set()
-        nml: set[tuple[int, int]] = set()
-
-        ally_spawns = [sp for sp in spawn_points if sp.get("side") == "allies"]
-        axis_spawns = [sp for sp in spawn_points if sp.get("side") == "axis"]
-
-        # Determine zone boundaries based on spawn positions
-        if ally_spawns and axis_spawns:
-            ally_center_x = sum(sp["position"][0] for sp in ally_spawns) // len(ally_spawns)
-            axis_center_x = sum(sp["position"][0] for sp in axis_spawns) // len(axis_spawns)
-
-            # Ensure ally is left, axis is right
-            if ally_center_x > axis_center_x:
-                ally_center_x, axis_center_x = axis_center_x, ally_center_x
-
-            # Create zones: ally left portion, axis right portion, NML middle
-            ally_boundary = (ally_center_x + axis_center_x) // 3
-            axis_boundary = 2 * (ally_center_x + axis_center_x) // 3
-
-            for y in range(self._map_height):
-                for x in range(self._map_width):
-                    if x <= ally_boundary:
-                        friendly.add((x, y))
-                    elif x >= axis_boundary:
-                        enemy.add((x, y))
-                    else:
-                        nml.add((x, y))
-        else:
-            # Fallback to default thirds
-            third = self._map_width // 3
-            for y in range(self._map_height):
-                for x in range(self._map_width):
-                    if x < third:
-                        friendly.add((x, y))
-                    elif x >= self._map_width - third:
-                        enemy.add((x, y))
-                    else:
-                        nml.add((x, y))
-
-        return friendly, enemy, nml
+        self._zone_builder.start_deployment_with_settings(
+            map_data, faction, requisition_points, max_infantry, max_support, force_pool
+        )
 
     def handle_click(self, x: int, y: int) -> str | None:
         """Handle a mouse click at screen coordinates (x, y).
 
-        Returns an action string or None:
-          - ``"select_unit:<index>"`` – roster unit selected
-          - ``"place_unit:<index>"`` – unit placed on map
-          - ``"remove_unit:<x>,<y>"`` – placed unit removed
-          - ``"begin_battle"`` – player confirmed deployment
-          - ``None`` – click did nothing
+        Delegates to DeploymentInputRouter.
         """
-        if self._state.phase not in (DeploymentPhase.DEPLOYING, DeploymentPhase.READY):
-            return None
-
-        # Check Begin Battle button first
-        if self._button_rect and self._is_in_button(x, y):
-            if self.is_deployment_complete():
-                return "begin_battle"
-            return None
-
-        # Check roster panel click (LEFT side)
-        if x < self._roster_width:
-            idx = self._roster_index_at(x, y)
-            if idx is not None and 0 <= idx < len(self._state.available_units):
-                unit = self._state.available_units[idx]
-                if not unit.is_placed:
-                    self._selected_unit_index = idx
-                    return f"select_unit:{idx}"
-            return None
-
-        # Map click – either place or remove
-        return self._handle_map_click(x, y)
+        return self._input_router.handle_click(x, y)
 
     def handle_right_click(
         self,
@@ -460,98 +294,25 @@ class DeploymentUI:
     def place_unit(self, unit_index: int, map_x: int, map_y: int) -> bool:
         """Place a unit at the given map tile position.
 
+        Delegates to DeploymentPlacementService.
         Returns True if placement succeeded.
         """
-        if self._state.phase not in (DeploymentPhase.DEPLOYING, DeploymentPhase.READY):
-            return False
-
-        if unit_index < 0 or unit_index >= len(self._state.available_units):
-            return False
-
-        unit = self._state.available_units[unit_index]
-
-        # Already placed somewhere else?
-        if unit.is_placed:
-            return False
-
-        # Check requisition points
-        if unit.deployment_cost > self.requisition_remaining:
-            return False
-
-        # Check zone
-        if not self._is_in_friendly_zone(map_x, map_y):
-            return False
-
-        # Check terrain
-        terrain = self._get_terrain_at(map_x, map_y)
-        if not self.can_place_at(unit, map_x, map_y, terrain):
-            return False
-
-        # Check unit count limits
-        if not self._check_unit_limits(unit):
-            return False
-
-        # Check tile not already occupied
-        for pu in self._state.placed_units:
-            if pu.position == (map_x, map_y):
-                return False
-
-        # Place the unit (with defensive checks)
-        try:
-            unit.position = (map_x, map_y)
-            unit.is_placed = True
-            self._state.placed_units.append(unit)
-            self._state.requisition_points_spent += unit.deployment_cost
-        except (AttributeError, ValueError, TypeError):
-            # If placement fails, rollback
-            unit.position = None
-            unit.is_placed = False
-            return False
-
-        # Clear selection after placing
-        self._selected_unit_index = None
-
-        # Auto-transition to READY when at least one unit placed
-        if self._state.phase == DeploymentPhase.DEPLOYING and self._state.placed_units:
-            self._state.phase = DeploymentPhase.READY
-
-        return True
+        return self._placement.place_unit(unit_index, map_x, map_y)
 
     def remove_unit(self, map_x: int, map_y: int) -> bool:
         """Remove a placed unit at the given map position, returning it to roster.
 
+        Delegates to DeploymentPlacementService.
         Returns True if a unit was removed.
         """
-        for i, pu in enumerate(self._state.placed_units):
-            if pu.position == (map_x, map_y):
-                # Refund requisition points
-                self._state.requisition_points_spent -= pu.deployment_cost
-                pu.position = None
-                pu.is_placed = False
-                self._state.placed_units.pop(i)
-
-                # Revert phase if no units left
-                if not self._state.placed_units:
-                    self._state.phase = DeploymentPhase.DEPLOYING
-
-                return True
-        return False
+        return self._placement.remove_unit(map_x, map_y)
 
     def can_place_at(self, unit: DeploymentUnit, map_x: int, map_y: int, terrain: int) -> bool:
         """Check if *unit* can be placed at (map_x, map_y) with the given terrain value.
 
-        ULTRA-RELAXED RULES for maximum gameplay flexibility:
-        - ONLY block deep water and solid buildings (truly impassable)
-        - ALL other terrains are allowed (roads, bridges, rough, hedges, etc.)
+        Delegates to DeploymentPlacementService.
         """
-        # Check 1: Must be in friendly zone
-        if not self._is_in_friendly_zone(map_x, map_y):
-            return False
-
-        # Check 2: Only truly impassable terrains are blocked
-        # Check 3: Everything else is ALLOWED!
-        # No more restrictions on roads, rough terrain, buildings, hedges, etc.
-        return terrain not in (TERRAIN_WATER, TERRAIN_BUILDING_SOLID)
+        return self._placement.can_place_at(unit, map_x, map_y, terrain)
 
     def is_deployment_complete(self) -> bool:
         """Check if at least one unit is placed (minimum to begin battle)."""
@@ -746,73 +507,8 @@ class DeploymentUI:
         return self._renderer.handle_deployment_drag(event, camera, game_map, tile_size)
 
     # ------------------------------------------------------------------
-    # Internal – zone overlays
+    # Internal – LOS hit probability estimation (G5)
     # ------------------------------------------------------------------
-
-    def _render_zone_overlays(
-        self,
-        screen: pygame.Surface,
-        ox: int,
-        oy: int,
-        ts: int,
-    ) -> None:
-        return self._renderer._render_zone_overlays(screen, ox, oy, ts)
-
-    # ------------------------------------------------------------------
-    # Internal – placement highlights
-    # ------------------------------------------------------------------
-
-    def _render_placement_highlights(
-        self,
-        screen: pygame.Surface,
-        ox: int,
-        oy: int,
-        ts: int,
-    ) -> None:
-        return self._renderer._render_placement_highlights(screen, ox, oy, ts)
-
-    # ------------------------------------------------------------------
-    # Internal – placed unit markers
-    # ------------------------------------------------------------------
-
-    def _render_placed_units(
-        self,
-        screen: pygame.Surface,
-        ox: int,
-        oy: int,
-        ts: int,
-    ) -> None:
-        """Render placed units with DISTINCT SHAPES for each type (CC2 style)."""
-        return self._renderer._render_placed_units(screen, ox, oy, ts)
-
-    # ------------------------------------------------------------------
-    # Internal – pending order arrows (GAP-8)
-    # ------------------------------------------------------------------
-
-    def _render_pending_orders(
-        self,
-        screen: pygame.Surface,
-        ox: int,
-        oy: int,
-        ts: int,
-    ) -> None:
-        """Render arrows from placed units to their pending move targets."""
-        return self._renderer._render_pending_orders(screen, ox, oy, ts)
-
-    # ------------------------------------------------------------------
-    # Internal – LOS preview lines (G5)
-    # ------------------------------------------------------------------
-
-    # LOS preview color constants (matching AttackLineSystem 4-color scheme)
-    _LOS_COLOR_HIGH: tuple[int, int, int, int] = (0, 255, 0, 160)  # Green (60-100% hit)
-    _LOS_COLOR_MODERATE: tuple[int, int, int, int] = (255, 255, 0, 160)  # Yellow (30-59% hit)
-    _LOS_COLOR_LOW: tuple[int, int, int, int] = (255, 50, 50, 160)  # Red (10-29% hit)
-    _LOS_COLOR_IMPOSSIBLE: tuple[int, int, int, int] = (0, 0, 0, 160)  # Black (0-9% hit)
-    _LOS_DEFAULT_RANGE: int = 15  # Default visual range in tiles
-
-    def _render_los_preview(self, screen, ox: int, oy: int, ts: int) -> None:
-        """Delegate to DeploymentLOSSystem for LOS preview rendering."""
-        return self._renderer._render_los_preview(screen, ox, oy, ts)
 
     def _estimate_deployment_hit_probability(
         self,
@@ -833,87 +529,9 @@ class DeploymentUI:
             unit,
         )
 
-    def _hit_probability_to_los_color(self, hit_prob: float) -> tuple[int, int, int, int]:
-        """Delegate to DeploymentLOSSystem for probability→color mapping."""
-        return self._renderer._hit_probability_to_los_color(hit_prob)
-
-    @staticmethod
-    def _draw_dashed_line(
-        surface,
-        color: tuple[int, int, int, int],
-        start: tuple[int, int],
-        end: tuple[int, int],
-        dash_length: int = 6,
-        gap_length: int = 4,
-    ) -> None:
-        """Delegate to DeploymentLOSSystem.draw_dashed_line (via rendering_utils)."""
-        return DeploymentRenderer._draw_dashed_line(
-            surface, color, start, end, dash_length=dash_length, gap_length=gap_length
-        )
-
-    @staticmethod
-    def _draw_arrowhead(
-        surface,
-        color: tuple[int, int, int],
-        start: tuple[int, int],
-        end: tuple[int, int],
-        size: int = 8,
-    ) -> None:
-        """Delegate to DeploymentLOSSystem.draw_arrowhead."""
-        return DeploymentRenderer._draw_arrowhead(surface, color, start, end, size)
-
-    # ------------------------------------------------------------------
-    # Internal – force pool panel (LEFT side)
-    # ------------------------------------------------------------------
-
-    def _rebuild_roster_layout(self) -> None:
-        """Rebuild the roster layout with category headers."""
-        return self._renderer._rebuild_roster_layout()
-
-    def _render_roster(self, screen: pygame.Surface) -> None:
-        return self._renderer._render_roster(screen)
-
-    # ------------------------------------------------------------------
-    # Internal – requisition points HEADER with progress bar (Issue 2)
-    # ------------------------------------------------------------------
-
-    def _render_rp_header(self, panel_surf: pygame.Surface) -> None:
-        """Render prominent requisition points display with visual progress bar."""
-        return self._renderer._render_rp_header(panel_surf)
-
-    # ------------------------------------------------------------------
-    # Internal – requisition points (original simple version, now supplemental)
-    # ------------------------------------------------------------------
-
-    def _render_requisition_points(self, screen: pygame.Surface) -> None:
-        """Render a prominent RP counter at the top of the screen (above roster panel)."""
-        return self._renderer._render_requisition_points(screen)
-
-    # ------------------------------------------------------------------
-    # Internal – unit counts
-    # ------------------------------------------------------------------
-
-    def _render_unit_counts(self, screen: pygame.Surface) -> None:
-        return self._renderer._render_unit_counts(screen)
-
-    # ------------------------------------------------------------------
-    # Internal – Start Battle button
-    # ------------------------------------------------------------------
-
-    def _render_start_battle_button(self, screen: pygame.Surface) -> None:
-        """Render prominent START BATTLE button - make it VERY visible and accessible."""
-        return self._renderer._render_start_battle_button(screen)
-
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
-
-    def _is_in_friendly_zone(self, x: int, y: int) -> bool:
-        if self._zone_map is None:
-            return False
-        if not (0 <= x < self._map_width and 0 <= y < self._map_height):
-            return False
-        return self._zone_map[y][x] == ZoneType.FRIENDLY
 
     def _get_zone_at(self, x: int, y: int) -> ZoneType:
         """Return the ZoneType at the given tile coordinates."""
@@ -930,51 +548,13 @@ class DeploymentUI:
             return TERRAIN_OPEN
         return int(self._tile_grid[y][x])
 
-    def _check_unit_limits(self, unit: DeploymentUnit) -> bool:
-        infantry_count = sum(1 for u in self._state.placed_units if u.unit_type == "infantry")
-        support_count = sum(
-            1 for u in self._state.placed_units if u.unit_type in ("support", "vehicle")
-        )
-
-        if unit.unit_type == "infantry":
-            return infantry_count < self._state.max_infantry
-        elif unit.unit_type in ("support", "vehicle"):
-            return support_count < self._state.max_support
-        elif unit.unit_type == "recon":
-            return infantry_count < self._state.max_infantry
-        return False
-
     def _is_in_button(self, x: int, y: int) -> bool:
-        if self._button_rect is None:
-            return False
-        bx, by, bw, bh = self._button_rect
-        return bx <= x <= bx + bw and by <= y <= by + bh
+        """Delegate to DeploymentInputRouter."""
+        return self._input_router._is_in_button(x, y)
 
     def _roster_index_at(self, click_x: int, click_y: int) -> int | None:
-        """Return the roster unit index at screen coords, or None."""
-        if click_x < self._roster_padding or click_x > self._roster_width - self._roster_padding:
-            return None
-
-        # Walk the layout to find which unit was clicked
-        y_offset = 36
-        for entry_type, entry_data in self._roster_layout:
-            if entry_type == "category":
-                h = self._roster_category_height + 2
-                if y_offset <= click_y < y_offset + h:
-                    return None  # Clicked on category header
-                y_offset += h
-            elif entry_type == "unit":
-                h = self._roster_item_height + 2
-                if y_offset <= click_y < y_offset + h:
-                    assert isinstance(entry_data, int)
-                    return entry_data  # Return the unit index
-                y_offset += h
-
-        return None
-
-    def _handle_map_click(self, screen_x: int, screen_y: int) -> str | None:
-        """Handle a click on the map area. Requires map_offset/tile_size context."""
-        return None
+        """Delegate to DeploymentInputRouter."""
+        return self._input_router._roster_index_at(click_x, click_y)
 
     def screen_to_map(
         self,
@@ -1057,20 +637,6 @@ class DeploymentUI:
         """Clear all drag-and-drop state. Delegates to DeploymentDragDrop."""
         self._drag_drop.clear_drag_state()
 
-    def _render_unit_details_panel(self, screen: pygame.Surface) -> None:
-        """Render detailed unit information panel on the RIGHT side of screen."""
-        return self._renderer._render_unit_details_panel(screen)
-
-    def _render_drag_feedback(
-        self,
-        screen: pygame.Surface,
-        map_offset_x: int = 0,
-        map_offset_y: int = 0,
-        tile_size: int = 16,
-    ) -> None:
-        """Render drag visual feedback: ghost unit + tile highlights."""
-        return self._renderer._render_drag_feedback(screen, map_offset_x, map_offset_y, tile_size)
-
     def handle_click_full(
         self,
         screen_x: int,
@@ -1082,75 +648,13 @@ class DeploymentUI:
     ) -> str | None:
         """Full click handler that converts screen coords to map coords automatically.
 
+        Delegates to DeploymentInputRouter.
         This is the preferred entry point for integration with the game loop.
         Supports both left-click (place/select) and right-click (remove).
         """
-        if self._state.phase not in (DeploymentPhase.DEPLOYING, DeploymentPhase.READY):
-            return None
-
-        # Handle right-click for removal
-        if right_click:
-            return self.handle_right_click(
-                screen_x, screen_y, map_offset_x, map_offset_y, tile_size
-            )
-
-        # Check Start Battle button
-        if self._button_rect and self._is_in_button(screen_x, screen_y):
-            if self.is_deployment_complete():
-                return "begin_battle"
-            return None
-
-        # Check detail panel button (PLACE ON MAP / REMOVE FROM MAP)
-        if hasattr(self, "_detail_panel_btn_rect") and self._detail_panel_btn_rect:
-            btn_x, btn_y, btn_w, btn_h = self._detail_panel_btn_rect
-            if btn_x <= screen_x <= btn_x + btn_w and btn_y <= screen_y <= btn_y + btn_h:
-                # Button was clicked!
-                action = getattr(self, "_detail_panel_btn_action", None)
-                if action == "remove" and self._selected_unit_index is not None:
-                    # Execute remove
-                    unit = self._state.available_units[self._selected_unit_index]
-                    if unit.is_placed and unit.position is not None:
-                        pos_x, pos_y = unit.position[0], unit.position[1]
-                        self.remove_unit(pos_x, pos_y)
-                        return f"detail_panel_remove:{pos_x},{pos_y}"
-                elif action == "place" and self._selected_unit_index is not None:
-                    # For place, just return - the user should drag to map
-                    return "detail_panel_place_requested"
-
-        # Check roster panel (LEFT side)
-        if screen_x < self._roster_width:
-            idx = self._roster_index_at(screen_x, screen_y)
-            if idx is not None and 0 <= idx < len(self._state.available_units):
-                unit = self._state.available_units[idx]
-                if not unit.is_placed:
-                    # Select unplaced unit for deployment
-                    self._selected_unit_index = idx
-                    return f"select_unit:{idx}"
-                else:
-                    # Click placed unit in roster → just select it (DO NOT auto-remove)
-                    # This prevents accidental removal. User must right-click to remove.
-                    self._selected_unit_index = idx
-                    return f"view_placed_unit:{idx}"
-            return None
-
-        # Map click
-        map_pos = self.screen_to_map(screen_x, screen_y, map_offset_x, map_offset_y, tile_size)
-        if map_pos is None:
-            return None
-
-        map_x, map_y = map_pos
-
-        # If a unit is selected, try to place
-        if self._selected_unit_index is not None:
-            if self.place_unit(self._selected_unit_index, map_x, map_y):
-                return f"place_unit:{self._selected_unit_index}"
-            return None
-
-        # Otherwise, try to remove a placed unit at this position
-        if self.remove_unit(map_x, map_y):
-            return f"remove_unit:{map_x},{map_y}"
-
-        return None
+        return self._input_router.handle_click_full(
+            screen_x, screen_y, map_offset_x, map_offset_y, tile_size, right_click
+        )
 
     def _ensure_fonts(self, font: pygame.font.Font) -> None:
         """Initialise font objects if not already done."""
