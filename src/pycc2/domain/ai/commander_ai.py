@@ -612,7 +612,6 @@ class TacticalAdvisor:
     def optimize_fire_allocation(
         allies: list[Unit],
         enemies: list[Unit],
-        engagement: CombatEngagement | None = None,
     ) -> dict[str, str]:
         allocation: dict[str, str] = {}
         if not allies or not enemies:
@@ -643,6 +642,5 @@ class TacticalAdvisor:
 
 
 if TYPE_CHECKING:
-    from pycc2.domain.ai.combat_engagement import CombatEngagement
     from pycc2.domain.ai.difficulty_system import DifficultyConfig
     from pycc2.domain.ai.squad_coordinator import SquadCoordinator

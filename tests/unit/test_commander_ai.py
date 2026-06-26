@@ -405,7 +405,7 @@ class TestTacticalAdvisor:
             _make_unit("e2", faction=Faction.AXIS, x=13, y=9, hp=40, max_hp=100),
         ]
 
-        allocation = TacticalAdvisor.optimize_fire_allocation(allies, enemies, engagement=None)
+        allocation = TacticalAdvisor.optimize_fire_allocation(allies, enemies)
 
         assert len(allocation) <= len(allies)
         for aid, eid in allocation.items():

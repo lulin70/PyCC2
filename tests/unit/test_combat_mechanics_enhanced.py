@@ -409,9 +409,7 @@ class TestVisionSystem:
         terrain = [[0] * 10 for _ in range(10)]
         result = vs.has_line_of_sight(
             observer_pos=(0, 0),
-            observer_height=0,
             target_pos=(5, 0),
-            target_height=0,
             terrain_grid=terrain,
             map_width=10,
             map_height=10,
@@ -424,9 +422,7 @@ class TestVisionSystem:
         terrain[0][3] = 5  # Building at (3,0)
         result = vs.has_line_of_sight(
             observer_pos=(0, 0),
-            observer_height=0,
             target_pos=(6, 0),
-            target_height=0,
             terrain_grid=terrain,
             map_width=10,
             map_height=10,

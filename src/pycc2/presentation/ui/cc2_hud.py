@@ -57,22 +57,6 @@ if TYPE_CHECKING:
     from pycc2.presentation.rendering.camera import Camera
 
 
-# Enhanced UI rendering feature flag
-try:
-    from config.rendering_features import is_enhanced_ui_enabled
-
-    _ENHANCED_UI_AVAILABLE = True
-    if is_enhanced_ui_enabled():
-        from pycc2.presentation.ui.enhanced_ui_renderer import (
-            EnhancedUIRenderer,  # noqa: F401
-            draw_button,  # noqa: F401
-            draw_icon,  # noqa: F401
-            draw_panel,  # noqa: F401
-        )
-except ImportError:
-    _ENHANCED_UI_AVAILABLE = False
-
-
 class CC2HUD:
     """Close Combat 2 style three-panel HUD.
 

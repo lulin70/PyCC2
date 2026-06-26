@@ -152,9 +152,7 @@ class InfantryTankCoordAI(TacticalAIBase):
                 )
                 at_pos = nearest_at.position.tile_coord
                 # Position between tank and AT threat, accounting for AT range
-                screen_pos = self._screening_position(
-                    inf.position.tile_coord, at_pos, tanks[0].position.tile_coord
-                )
+                screen_pos = self._screening_position(at_pos, tanks[0].position.tile_coord)
                 intents.append(
                     TacticIntent(
                         unit_id=inf.id,
@@ -202,7 +200,6 @@ class InfantryTankCoordAI(TacticalAIBase):
 
     @staticmethod
     def _screening_position(
-        inf_pos: TileCoord,
         at_pos: TileCoord,
         tank_pos: TileCoord,
     ) -> TileCoord:

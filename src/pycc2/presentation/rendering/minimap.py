@@ -4,6 +4,7 @@ Minimap Component
 Renders a tactical minimap showing unit positions and terrain overview.
 """
 
+import math
 from typing import TYPE_CHECKING
 
 import pygame
@@ -314,15 +315,11 @@ class Minimap:
             draw.circle(self._surface, color, (dot_x, dot_y), dot_radius)
 
             # R9: Draw unit facing direction indicator
-            getattr(unit, "facing", 0.0)
-            if True:  # Always draw direction
-                import math
-
-                facing_rad = math.radians(getattr(unit, "facing", 0.0))
-                dir_len = dot_radius + 3
-                end_x = int(dot_x + math.cos(facing_rad) * dir_len)
-                end_y = int(dot_y + math.sin(facing_rad) * dir_len)
-                draw.line(self._surface, color, (dot_x, dot_y), (end_x, end_y), 1)
+            facing_rad = math.radians(getattr(unit, "facing", 0.0))
+            dir_len = dot_radius + 3
+            end_x = int(dot_x + math.cos(facing_rad) * dir_len)
+            end_y = int(dot_y + math.sin(facing_rad) * dir_len)
+            draw.line(self._surface, color, (dot_x, dot_y), (end_x, end_y), 1)
 
             # Draw selection highlight ring for selected unit
             if (

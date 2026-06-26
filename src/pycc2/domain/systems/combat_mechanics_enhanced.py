@@ -436,9 +436,7 @@ class VisionSystem:
     def has_line_of_sight(
         self,
         observer_pos: tuple[int, int],
-        observer_height: int,
         target_pos: tuple[int, int],
-        target_height: int,
         terrain_grid: list[list[int]],  # Need terrain for blocking checks
         map_width: int,
         map_height: int,
@@ -446,8 +444,8 @@ class VisionSystem:
         """
         Check if observer has clear LOS to target.
 
-        Uses Bresenham's line algorithm with height checking.
-        A tile blocks LOS if it's a building/forest AND taller than both endpoints.
+        Uses Bresenham's line algorithm.
+        A tile blocks LOS if it's a building (terrain code 5 or 8).
         """
         x0, y0 = observer_pos
         x1, y1 = target_pos

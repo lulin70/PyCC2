@@ -555,10 +555,9 @@ class TestInfantryTankCoordAI:
         assert ai.execute(ctx) == []
 
     def test_screening_position_between_tank_and_at(self):
-        inf_pos = TileCoord(10, 10)
         at_pos = TileCoord(20, 10)
         tank_pos = TileCoord(5, 10)
-        result = InfantryTankCoordAI._screening_position(inf_pos, at_pos, tank_pos)
+        result = InfantryTankCoordAI._screening_position(at_pos, tank_pos)
         assert isinstance(result, TileCoord)
         # Should be between tank and AT, closer to AT
         assert result.x > tank_pos.x

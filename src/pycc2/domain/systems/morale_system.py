@@ -154,8 +154,6 @@ class MoraleCalculator:
     def predict_state(
         current_value: int,
         delta: int,
-        panic_thr: int = 30,
-        rout_thr: int = 10,
     ) -> str:
         new_val = max(0, min(100, current_value + delta))
         if new_val > 70:
@@ -445,7 +443,9 @@ class MoraleSystem:
         return (should_flee, target_pos)
 
     @staticmethod
-    def _calculate_flee_target(unit: Unit, game_map: GameMap | None = None) -> tuple[int, int] | None:
+    def _calculate_flee_target(
+        unit: Unit, game_map: GameMap | None = None
+    ) -> tuple[int, int] | None:
         """
         Calculate target position for fleeing unit.
 

@@ -170,7 +170,7 @@ class TopDownParticleSystem:
             }
         )
 
-    def spawn_dirt_splash(self, x, y, count=12, spread_radius=20):
+    def spawn_dirt_splash(self, x, y, count=12):
         """泥土飞溅 - 着点周围小颗粒向外散射（俯视圆形分布）
 
         俯视特征：颗粒呈圆形放射状向外散射，无重力影响
