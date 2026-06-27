@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pycc2"
 version = "0.3.42"
-description = "PyCC2 - Python Company Command 2: Tactical Infantry Combat Simulator"
+description = "PyCC2 - Python Close Combat 2: Tactical Infantry Combat Simulator"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.11"

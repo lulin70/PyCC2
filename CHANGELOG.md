@@ -2,7 +2,19 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
-## [Unreleased] - 2026-06-26
+## [Unreleased] - 2026-06-27
+
+### D8: Project Organization Assessment Remediation (7维度项目整理评估)
+- **P0-1 Hotkey mapping fix**: README×3 (en/zh/ja) hotkey mapping corrected to match code — Z=Move / X=Move Fast / S=Sneak / C=Fire / V=Smoke (was completely wrong: Z=Move Fast / X=Sneak / S=Fire / C=Smoke / V=Move)
+- **P0-2 Test count unification**: README×3 test counts unified to 4367 collected / 4327 passed (was 3 different values: badge 4298 / text 3985 / table 4369)
+- **P0-3 strict_e2e_journey.py refs removed**: README_zh/ja replaced non-existent script reference with `pytest tests/e2e/ -m e2e -v`
+- **P0-4 pyproject.toml description fix**: "Company Command 2" → "Close Combat 2"
+- **P0-5 requirements.lock regenerated**: 308-line global pip freeze (containing torch/transformers/jupyter/etc.) → 21-line project-specific lock file via `uv pip compile` (8 packages only)
+- **P0-6 scripts/archive/ deleted**: 18 files removed (15 duplicates of scripts/ + 3 obsolete scripts)
+- **P0-7 CI workflow hardened**: Added `permissions: contents: read` + `concurrency: cancel-in-progress: true`
+- **P0-8 Release workflow hardened**: Added ruff+mypy+bandit quality gate step; removed hardcoded version default
+- **D8 Assessment Report**: docs/ASSESSMENT_D8_MATURITY.md — comprehensive 7-dimension maturity assessment (62→78→80→82/100)
+- **Verification**: ruff 0 errors / 3678 unit tests passed / 136 integration tests passed
 
 ### D7-P0: Critical Fixes (D7 Assessment Remediation)
 - **ruff lint**: Auto-fixed 26 errors (I001/UP037/B010/F401/UP035) + manual F841 fix; ruff check src/ tests/ → 0 errors

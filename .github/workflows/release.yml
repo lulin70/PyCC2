@@ -7,9 +7,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g. 0.3.38)'
+        description: 'Version to release (e.g. 0.3.42)'
         required: true
-        default: '0.3.42'
 
 permissions:
   contents: write
@@ -35,9 +34,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install build twine
 
-      - name: Quality Gate — Run Tests
+      - name: Quality Gate — Lint & Type Check
         run: |
           pip install -e ".[dev]"
+          ruff check .
+          MYPYPATH=src mypy -p pycc2 --no-error-summary
+          bandit -r src/ -ll --skip B101,B311,B601
+
+      - name: Quality Gate — Run Tests
+        run: |
           pytest tests/ -q --tb=line --maxfail=10
 
       - name: Verify version consistency
