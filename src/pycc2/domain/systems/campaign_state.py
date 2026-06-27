@@ -12,6 +12,8 @@ from pycc2.domain.systems.battle_result import BattleResult
 
 
 class OperationPhase(Enum):
+    """Phases of Operation Market Garden mapped to calendar days."""
+
     PLANNING = auto()
     DAY_1_SEPT17 = auto()
     DAY_2_SEPT18 = auto()
@@ -35,6 +37,8 @@ MAX_AXIS_UNITS = 30
 
 @dataclass
 class PersistentUnit:
+    """Runtime state of a unit that carries over between campaign battles."""
+
     unit_id: str
     name: str
     unit_type: str
@@ -109,6 +113,8 @@ class PersistentUnit:
 
 @dataclass
 class CampaignState:
+    """Aggregate campaign state tracking units, VP, and bridge captures across battles."""
+
     campaign_id: str = "market_garden"
     name: str = "Operation Market Garden"
 

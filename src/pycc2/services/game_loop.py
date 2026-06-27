@@ -1,3 +1,10 @@
+"""Main game loop driving update, rendering, and event handling each frame.
+
+Hosts the GameState dataclass and the GameLoop dataclass that wires together
+all subsystems (input, AI, rendering, audio, combat) into a fixed-timestep
+simulation with variable-rate rendering.
+"""
+
 from __future__ import annotations
 
 import contextlib
@@ -65,6 +72,8 @@ MAX_FRAME_TIME: float = 0.25
 
 @dataclass(slots=True)
 class GameState:
+    """Mutable snapshot of the current game world each frame operates on."""
+
     game_map: GameMap
     units: list[Unit]
     camera: Camera
@@ -80,6 +89,8 @@ class GameState:
 
 @dataclass
 class GameLoop:
+    """Top-level game loop wiring subsystems into a fixed-timestep simulation."""
+
     renderer: EnhancedRenderer
     window_manager: WindowManager
     event_bus: EventBus

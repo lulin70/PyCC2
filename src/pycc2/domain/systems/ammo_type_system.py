@@ -93,6 +93,7 @@ class AmmoInventory:
     """
 
     def __init__(self, unit: Unit):
+        """Initialize ammo inventory for the given unit with default loadout."""
         self._unit = unit
         self._current_type: AmmoType = AmmoType.STANDARD
         self._inventory: dict[AmmoType, int] = {

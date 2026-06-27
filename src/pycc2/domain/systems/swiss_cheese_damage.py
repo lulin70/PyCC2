@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 
 
 class CasualtyStatus(Enum):
+    """Per-member casualty states within a squad."""
+
     OK = auto()
     WIA = auto()
     PINNED = auto()
@@ -24,6 +26,8 @@ class CasualtyStatus(Enum):
 
 
 class SquadSize(Enum):
+    """Member-count buckets for squad-sized units."""
+
     TINY = 2
     SMALL = 4
     MEDIUM = 8
@@ -45,6 +49,8 @@ UNIT_SQUAD_SIZES = {
 
 @dataclass(slots=True)
 class SquadMember:
+    """Tracks the casualty status of a single soldier within a squad."""
+
     index: int
     status: CasualtyStatus = CasualtyStatus.OK
     wia_effectiveness: float = 1.0
@@ -60,6 +66,8 @@ class SquadMember:
 
 @dataclass
 class SwissCheeseResult:
+    """Aggregated outcome of resolving damage against a squad."""
+
     total_hp_loss: int
     kia_count: int
     wia_count: int
@@ -85,6 +93,8 @@ class SwissCheeseResult:
 
 @dataclass
 class SwissCheeseEngine:
+    """Resolves incoming damage into per-member casualty outcomes."""
+
     _KIA_BASE_PROB: float = 0.08
     _WIA_BASE_PROB: float = 0.15
     _PINNED_BASE_PROB: float = 0.20

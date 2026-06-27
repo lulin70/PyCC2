@@ -11,6 +11,8 @@ from enum import Enum, auto
 
 
 class HealthState(Enum):
+    """Vitality tiers tracked by the health component for damage progression."""
+
     HEALTHY = auto()
     WOUNDED = auto()
     CRITICAL = auto()
@@ -19,6 +21,8 @@ class HealthState(Enum):
 
 @dataclass(slots=True)
 class HealthComponent:
+    """Tracks unit hit points and derives alive, wounded, and dead states."""
+
     hp: int
     max_hp: int
     state: HealthState = field(init=False)

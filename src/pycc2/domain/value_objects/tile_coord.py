@@ -10,6 +10,8 @@ from typing import ClassVar
 
 @dataclass(frozen=True, slots=True)
 class TileCoord:
+    """Immutable integer grid coordinate with distance and neighbor helpers."""
+
     x: int
     y: int
 

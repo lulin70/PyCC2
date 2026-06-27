@@ -104,6 +104,7 @@ class TrenchDiggingSystem:
     """
 
     def __init__(self) -> None:
+        """Initialize the trench digging system with an empty progress tracker."""
         self._progress: dict[str, DigProgress] = {}
 
     @property

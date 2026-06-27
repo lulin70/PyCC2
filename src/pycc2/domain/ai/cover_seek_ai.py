@@ -126,6 +126,7 @@ class CoverScoringSystem:
         los_system: LOSSystem | None = None,
         game_map: GameMap | None = None,
     ) -> None:
+        """Initialize the cover seeker with optional LOS system and game map."""
         self._los = los_system
         self._map = game_map
 
@@ -376,6 +377,7 @@ class CoverSeekAI(TacticalAIBase):
     MAX_MOVE_DISTANCE: float = SEARCH_RADIUS * 0.7  # Don't seek too far
 
     def __init__(self, scoring_system: CoverScoringSystem | None = None) -> None:
+        """Initialize the cover-seeking AI with an optional cover scoring system."""
         super().__init__()
         self._scorer = scoring_system or CoverScoringSystem()
 

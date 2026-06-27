@@ -31,6 +31,7 @@ class SpatialHash:
     """
 
     def __init__(self, cell_size: int = 10) -> None:
+        """Initialize the spatial hash with the given cell size in tiles."""
         if cell_size <= 0:
             raise ValueError(f"cell_size must be positive, got {cell_size}")
         self._cell_size = cell_size

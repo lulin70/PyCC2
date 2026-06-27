@@ -72,6 +72,8 @@ _SUICIDAL_ATTACK_TYPES: set[UnitType] = {
 
 
 class ObedienceResult(Enum):
+    """Outcomes of evaluating whether a unit will follow an order."""
+
     OBEY = auto()  # Unit will execute the order
     DELAYED = auto()  # Unit will execute after a delay
     REFUSED = auto()  # Unit refuses the order
@@ -120,6 +122,7 @@ class CommandObedienceSystem:
     """
 
     def __init__(self, event_bus: IEventPublisher) -> None:
+        """Initialize the obedience system with an event bus for refusals."""
         self.event_bus = event_bus
         self._delayed_orders: dict[str, DelayedOrder] = {}
         self._logger = logging.getLogger("pycc2.ai.command_obedience")

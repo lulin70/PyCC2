@@ -1,3 +1,9 @@
+"""Save controller coordinating game state serialization and persistence.
+
+Delegates to SecureSaveManager for file I/O, exporting and importing game
+state snapshots for quick-save, quick-load, and auto-save operations.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -14,6 +20,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SaveController:
+    """Coordinates save/load operations delegating to SecureSaveManager."""
+
     save_manager: SecureSaveManager | None = None
 
     def initialize(self) -> None:

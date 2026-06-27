@@ -1,3 +1,5 @@
+"""输入路由模块，将原始输入事件分发到对应控制器与命令栏。"""
+
 from __future__ import annotations
 
 import logging
@@ -17,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class InputRouter:
+    """输入事件路由器，将输入分派到交互控制器、命令栏与相机。"""
+
     input_handler: IInputHandler | None = None
     interaction_controller: IInteractionController | None = None
     command_bar: Any | None = None

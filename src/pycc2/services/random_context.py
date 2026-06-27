@@ -1,3 +1,9 @@
+"""Random number generator context implementing IRandomNumberGenerator.
+
+Wraps Python's random.Random with seed management for deterministic replays
+and testability, exposing the domain RNG interface to game systems.
+"""
+
 from __future__ import annotations
 
 import random
@@ -9,6 +15,8 @@ from pycc2.domain.interfaces import IRandomNumberGenerator
 
 @dataclass(slots=True)
 class RandomContext(IRandomNumberGenerator):
+    """Seedable RNG adapter exposing the domain IRandomNumberGenerator interface."""
+
     _rng: random.Random = field(default_factory=random.Random)
     _seed: int | None = None
 

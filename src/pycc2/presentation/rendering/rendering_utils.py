@@ -1,3 +1,5 @@
+"""渲染工具函数集合，提供虚线、几何绘制等通用辅助。"""
+
 from __future__ import annotations
 
 from typing import Any

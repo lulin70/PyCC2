@@ -158,6 +158,7 @@ class CampaignPersistenceManager:
     VERSION = "1.0"
 
     def __init__(self, base_dir: Path | str | None = None):
+        """Initialize the campaign persistence manager with a base save directory."""
         if isinstance(base_dir, str):
             base_dir = Path(base_dir)
         self._base_dir = (

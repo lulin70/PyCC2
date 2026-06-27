@@ -84,6 +84,8 @@ _PLACEABLE_TERRAIN: set[TerrainType] = {
 
 
 class MineType(Enum):
+    """Classification of mines as anti-tank or anti-personnel."""
+
     AT_MINE = auto()  # Anti-tank mine
     AP_MINE = auto()  # Anti-personnel mine
 
@@ -199,6 +201,7 @@ class MineWarfareSystem:
     """
 
     def __init__(self) -> None:
+        """Initialize the mine warfare system with empty mine and progress trackers."""
         self._mines: list[Mine] = []
         self._lay_progress: dict[str, LayProgress] = {}
         self._defuse_progress: dict[str, DefuseProgress] = {}
@@ -472,6 +475,7 @@ class MineWarfareAI(TacticalAIBase):
     """
 
     def __init__(self, mine_system: MineWarfareSystem | None = None) -> None:
+        """Initialize the mine warfare AI evaluator with an optional shared mine system."""
         self._system = mine_system or MineWarfareSystem()
         self._logger = logging.getLogger("pycc2.ai.mine_warfare_ai")
 

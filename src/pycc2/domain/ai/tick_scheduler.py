@@ -30,6 +30,7 @@ class AITickScheduler:
     GAME_TICKS_PER_SECOND: int = 30
 
     def __init__(self, difficulty_modifier: float = 1.0) -> None:
+        """Initialize the scheduler with a difficulty-based tick frequency modifier."""
         self.difficulty_modifier = difficulty_modifier
 
     def _get_tick_hz(self, unit: Unit) -> int:

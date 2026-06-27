@@ -98,6 +98,7 @@ class SurrenderSystem:
     """
 
     def __init__(self, rng: random.Random | None = None) -> None:
+        """Initialize the surrender system with an optional RNG and empty caches."""
         self._rng = rng or random.Random()
         self._fallen_caches: list[FallenUnitCache] = []
 
@@ -344,6 +345,7 @@ class SurrenderAI(TacticalAIBase):
     """
 
     def __init__(self, surrender_system: SurrenderSystem | None = None) -> None:
+        """Initialize the surrender AI with an optional backing surrender system."""
         self._system = surrender_system or SurrenderSystem()
 
     def evaluate(self, context: TacticalContext) -> float:

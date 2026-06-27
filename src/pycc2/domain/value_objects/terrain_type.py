@@ -22,6 +22,8 @@ class CoverType(IntEnum):
 
 
 class TerrainType(IntEnum):
+    """Enumeration of 22 terrain types with movement, cover, and LOS properties."""
+
     OPEN = 0
     ROAD = 1
     GRASS = 2

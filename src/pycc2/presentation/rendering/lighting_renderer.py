@@ -17,7 +17,10 @@ from pycc2.domain.systems.day_night_cycle import (
 
 
 class LightingRenderer:
+    """光照渲染器，应用昼夜循环的颜色分级与照明叠加。"""
+
     def __init__(self, screen_width: int, screen_height: int):
+        """初始化光照渲染器并创建覆盖与探照灯表面。"""
         self.screen_width = screen_width
         self.screen_height = screen_height
         self._overlay_surface: pygame.Surface | None = None

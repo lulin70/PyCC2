@@ -127,6 +127,7 @@ class SmokeManager:
     """
 
     def __init__(self) -> None:
+        """Initialize the smoke manager with an empty deployment list."""
         self._deployments: list[SmokeDeployment] = []
 
     @property

@@ -15,6 +15,8 @@ from pycc2.domain.value_objects.vec2 import Vec2
 
 @dataclass(slots=True)
 class PositionComponent:
+    """Stores entity tile coordinate, pixel offset, and facing direction."""
+
     tile_coord: TileCoord
     pixel_offset: Vec2 = field(default_factory=Vec2.zero)
     facing_rad: float = 0.0

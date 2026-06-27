@@ -1,3 +1,9 @@
+"""Victory manager tracking battle stats and evaluating win conditions each tick.
+
+Wraps VictoryConditionEvaluator and BattleStats, publishing game-over state
+when a victory condition is met.
+"""
+
 from __future__ import annotations
 
 import logging

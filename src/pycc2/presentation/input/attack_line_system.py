@@ -81,6 +81,7 @@ class AttackLineSystem:
     DASH_LENGTH: int = 8  # For dashed effect
 
     def __init__(self) -> None:
+        """初始化攻击线状态、已确认攻击与淡出动画参数。"""
         self.state = AttackLineState()
         self._confirmed_attacks: dict[str, AttackTarget] = {}  # unit_id -> locked target
         # R8: Attack line fade-out animation

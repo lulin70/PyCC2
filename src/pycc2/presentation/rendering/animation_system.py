@@ -1,3 +1,5 @@
+"""动画系统模块，提供单位动画、屏幕震动与粒子发射能力。"""
+
 from __future__ import annotations
 
 import math
@@ -11,6 +13,8 @@ if TYPE_CHECKING:
 
 
 class AnimationType(Enum):
+    """单位动画类型枚举，描述待机、行走、射击等动作。"""
+
     IDLE = auto()
     WALK = auto()
     SHOOT = auto()
@@ -21,6 +25,8 @@ class AnimationType(Enum):
 
 @dataclass(slots=True)
 class AnimationState:
+    """单个动画实例的运行时状态，包括帧、偏移与缩放等。"""
+
     anim_type: AnimationType = AnimationType.IDLE
     frame: int = 0
     duration_ticks: int = 30
@@ -47,6 +53,8 @@ class AnimationState:
 
 
 class UnitAnimator:
+    """单位动画驱动器，按动画类型切换并更新动画状态。"""
+
     CONFIGS = {
         AnimationType.IDLE: {"duration": 60, "loop": True},
         AnimationType.WALK: {"duration": 20, "loop": True},
@@ -57,6 +65,7 @@ class UnitAnimator:
     }
 
     def __init__(self):
+        """初始化动画器，默认处于待机状态。"""
         self.state = AnimationState()
         self._prev_type = AnimationType.IDLE
 
@@ -128,7 +137,10 @@ class UnitAnimator:
 
 
 class ScreenShake:
+    """屏幕震动效果，按强度衰减生成偏移量。"""
+
     def __init__(self):
+        """初始化震动偏移、强度与剩余持续时间。"""
         self._offset_x: float = 0.0
         self._offset_y: float = 0.0
         self._intensity: float = 0.0
@@ -157,6 +169,8 @@ class ScreenShake:
 
 
 class ParticleEmitter:
+    """粒子发射器，按粒子类型生成并管理粒子生命周期。"""
+
     class ParticleType(Enum):
         MUZZLE_FLASH = auto()
         BLOOD = auto()
@@ -258,6 +272,7 @@ class ParticleEmitter:
             return int(self.alpha_start * (1.0 - self.progress))
 
     def __init__(self, pool: ExternalParticlePool | None = None):
+        """初始化粒子列表与可选的粒子池。"""
         self.particles: list[ParticleEmitter.Particle] = []
         self._rng_seed: int = 42
         self._pool: ExternalParticlePool | None = pool

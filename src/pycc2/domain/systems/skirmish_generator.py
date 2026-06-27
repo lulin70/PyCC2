@@ -34,6 +34,8 @@ if TYPE_CHECKING:
 
 
 class SkirmishType(Enum):
+    """Battle archetypes controlling force composition and objectives."""
+
     MEETING_ENGAGEMENT = auto()  # Both sides start from edges, symmetric
     ATTACK_DEFEND = auto()  # One side defends, other attacks
     BREAKTHROUGH = auto()  # Attacker must cross map, defender blocks
@@ -47,6 +49,8 @@ class SkirmishType(Enum):
 
 @dataclass(frozen=True, slots=True)
 class SkirmishConfig:
+    """User-facing configuration for generating a skirmish battle."""
+
     map_id: str = "random"
     allied_points: int = 200
     axis_points: int = 200
@@ -64,6 +68,8 @@ class SkirmishConfig:
 
 @dataclass
 class VictoryLocation:
+    """A contestable location that awards victory points."""
+
     position: tuple[int, int]
     name: str
     strategic_value: int = 1  # 1 = minor, 2 = major
@@ -71,6 +77,8 @@ class VictoryLocation:
 
 @dataclass
 class DeploymentZone:
+    """Rectangular region where a faction may place its units."""
+
     min_x: int
     min_y: int
     max_x: int
@@ -79,6 +87,8 @@ class DeploymentZone:
 
 @dataclass
 class UnitPurchase:
+    """A unit selected for purchase and its assigned deployment position."""
+
     template_id: str
     template: CC2UnitTemplate
     deployment_position: tuple[int, int]
@@ -86,6 +96,8 @@ class UnitPurchase:
 
 @dataclass
 class SkirmishSetup:
+    """Fully resolved skirmish battle setup ready for play."""
+
     map_id: str
     battle_type: SkirmishType
     time_of_day: TimeOfDay
@@ -165,6 +177,7 @@ class SkirmishGenerator:
     """Generate a complete skirmish battle setup from a configuration."""
 
     def __init__(self, available_maps: dict[str, GameMap] | None = None) -> None:
+        """Initialize the generator with an optional map registry."""
         self._maps = available_maps or {}
 
     def register_map(self, map_id: str, game_map: GameMap) -> None:

@@ -43,6 +43,7 @@ class GameLoopAssembler:
     """
 
     def __init__(self, loop: GameLoop) -> None:
+        """Initialize the assembler with the GameLoop instance to wire."""
         self._loop = loop
 
     def assemble(self) -> None:

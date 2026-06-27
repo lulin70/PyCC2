@@ -1,3 +1,5 @@
+"""Behavior tree primitives for tactical AI decision making."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -11,18 +13,24 @@ if TYPE_CHECKING:
 
 
 class NodeStatus(Enum):
+    """Return states for behavior tree node execution."""
+
     SUCCESS = auto()
     FAILURE = auto()
     RUNNING = auto()
 
 
 class BTNode(ABC):
+    """Abstract base class for all behavior tree nodes."""
+
     @abstractmethod
     def tick(self, blackboard: Blackboard) -> NodeStatus: ...
 
 
 @dataclass(slots=True)
 class Sequence(BTNode):
+    """Composite that ticks children in order, failing on the first non-success."""
+
     children: list[BTNode] = field(default_factory=list)
 
     def tick(self, blackboard: Blackboard) -> NodeStatus:
@@ -35,6 +43,8 @@ class Sequence(BTNode):
 
 @dataclass(slots=True)
 class Selector(BTNode):
+    """Composite that ticks children in order, succeeding on the first non-failure."""
+
     children: list[BTNode] = field(default_factory=list)
 
     def tick(self, blackboard: Blackboard) -> NodeStatus:
@@ -47,6 +57,8 @@ class Selector(BTNode):
 
 @dataclass(slots=True)
 class Parallel(BTNode):
+    """Composite that ticks all children each step under ALL or ANY success policy."""
+
     children: list[BTNode] = field(default_factory=list)
     policy: str = "ALL"
 
@@ -70,6 +82,8 @@ class Parallel(BTNode):
 
 @dataclass(slots=True)
 class Condition(BTNode):
+    """Leaf node that succeeds or fails based on a predicate over the blackboard."""
+
     predicate: Callable[[Blackboard], bool]
 
     def tick(self, blackboard: Blackboard) -> NodeStatus:
@@ -78,6 +92,8 @@ class Condition(BTNode):
 
 @dataclass(slots=True)
 class Action(BTNode):
+    """Leaf node that delegates execution to a caller-supplied action function."""
+
     action_fn: Callable[[Blackboard], NodeStatus]
 
     def tick(self, blackboard: Blackboard) -> NodeStatus:
@@ -86,6 +102,8 @@ class Action(BTNode):
 
 @dataclass(slots=True)
 class Inverter(BTNode):
+    """Decorator that swaps success and failure status of its single child."""
+
     child: BTNode
 
     def tick(self, blackboard: Blackboard) -> NodeStatus:
@@ -99,6 +117,8 @@ class Inverter(BTNode):
 
 @dataclass(slots=True)
 class Repeater(BTNode):
+    """Decorator that re-ticks its child up to a configured repeat limit."""
+
     child: BTNode
     max_repeats: int = -1
     _count: int = field(default=0, init=False)
@@ -122,6 +142,8 @@ class Repeater(BTNode):
 
 @dataclass(slots=True)
 class WaitUntil(BTNode):
+    """Decorator that runs until a condition holds or an optional timeout expires."""
+
     condition: Callable[[Blackboard], bool]
     timeout_ticks: int = -1
     _start_tick: int = field(default=0, init=False)

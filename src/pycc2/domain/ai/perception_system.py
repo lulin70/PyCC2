@@ -1,3 +1,5 @@
+"""Perception system that populates the AI blackboard with sensed combat data."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -9,6 +11,8 @@ if TYPE_CHECKING:
 
 
 class PerceptionSystem:
+    """Populates AI blackboards with sensed combat data like health and enemies."""
+
     def update_blackboard(
         self,
         blackboard: Blackboard,

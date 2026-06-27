@@ -77,6 +77,7 @@ class DeploymentPhase:
     """
 
     def __init__(self, config: DeploymentConfig):
+        """Initialize the deployment phase with the given configuration."""
         self.config = config
         self.deployed_units: dict[Faction, list[tuple[int, int, str]]] = {
             faction: [] for faction in Faction

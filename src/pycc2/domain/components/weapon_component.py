@@ -11,6 +11,8 @@ from enum import Enum, auto
 
 
 class WeaponState(Enum):
+    """Operational states for a weapon component."""
+
     READY = auto()
     RELOADING = auto()
     JAMMED = auto()
@@ -18,6 +20,8 @@ class WeaponState(Enum):
 
 
 class WeaponType(Enum):
+    """Classification of weapon damage and delivery types."""
+
     KINETIC = auto()
     EXPLOSIVE = auto()
     AP = auto()
@@ -26,6 +30,8 @@ class WeaponType(Enum):
 
 @dataclass(slots=True)
 class WeaponComponent:
+    """Tracks ammo, reload progress, and captured-weapon penalties for a unit."""
+
     primary_weapon_id: str
     ammo_remaining: int
     max_ammo: int

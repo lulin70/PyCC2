@@ -7,6 +7,8 @@ from enum import Enum, auto
 
 
 class CivilianState(Enum):
+    """Behavioral states a civilian NPC can occupy on the battlefield."""
+
     IDLE = auto()
     FLEEING = auto()
     HIDING = auto()

@@ -1,3 +1,9 @@
+"""Fog-of-war system computing per-tile visibility via ray casting.
+
+Maintains a visibility grid (hidden/explored/visible) updated from observer
+positions using angular ray casting against terrain line-of-sight blocking.
+"""
+
 from __future__ import annotations
 
 import math
@@ -12,6 +18,8 @@ if TYPE_CHECKING:
 
 
 class TileVisibility(IntEnum):
+    """Visibility levels a tile can have for a given faction."""
+
     HIDDEN = 0
     EXPLORED = 1
     VISIBLE = 2
@@ -19,10 +27,13 @@ class TileVisibility(IntEnum):
 
 @dataclass
 class FogOfWar:
+    """Maintains and updates per-tile visibility for factions via ray casting."""
+
     RAY_COUNT: int = 36
     UPDATE_INTERVAL_TICKS: int = 5
 
     def __init__(self, map_width: int, map_height: int) -> None:
+        """Initialize fog-of-war with a fully hidden visibility grid."""
         self.width = map_width
         self.height = map_height
         self.visibility_grid: list[list[int]] = [

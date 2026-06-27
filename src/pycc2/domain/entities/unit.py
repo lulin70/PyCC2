@@ -32,6 +32,8 @@ if TYPE_CHECKING:
 
 
 class Faction(Enum):
+    """Playable factions grouped by alliance (Allies vs Axis)."""
+
     ALLIES = auto()
     AMERICAN = auto()
     BRITISH = auto()
@@ -41,6 +43,8 @@ class Faction(Enum):
 
 
 class UnitType(Enum):
+    """Classification of unit roles such as infantry, armor, and support teams."""
+
     INFANTRY_SQUAD = auto()
     MACHINE_GUN_SQUAD = auto()
     AT_GUN_TEAM = auto()
@@ -52,6 +56,8 @@ class UnitType(Enum):
 
 
 class UnitState(Enum):
+    """Operational state of a unit in the state machine."""
+
     IDLE = auto()
     MOVING = auto()
     ATTACKING = auto()
@@ -62,6 +68,8 @@ class UnitState(Enum):
 
 @dataclass(slots=True)
 class Unit:
+    """Core combat unit aggregating health, morale, weapon, and position components."""
+
     id: str
     name: str
     faction: Faction
@@ -783,6 +791,8 @@ class Unit:
 
 @dataclass(slots=True)
 class UnitTemplate:
+    """Static factory parameters used to instantiate a unit of a given type."""
+
     unit_type: UnitType
     display_name: str
     max_hp: int

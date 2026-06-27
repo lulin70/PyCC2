@@ -1,3 +1,5 @@
+"""Commander AI that builds a battlefield picture and issues tactical orders."""
+
 from __future__ import annotations
 
 import uuid
@@ -14,11 +16,15 @@ if TYPE_CHECKING:
 
 
 class CommanderRole(Enum):
+    """Scope of command authority for a commander unit."""
+
     OVERALL = auto()
     SQUAD_LEADER = auto()
 
 
 class ThreatLevel(Enum):
+    """Graduated threat assessment tiers."""
+
     NONE = auto()
     LOW = auto()
     MEDIUM = auto()
@@ -28,6 +34,8 @@ class ThreatLevel(Enum):
 
 @dataclass(slots=True)
 class BattlefieldPicture:
+    """Aggregated snapshot of allied and enemy dispositions for decision making."""
+
     ally_count: int = 0
     ally_average_health: float = 1.0
     ally_positions: list[TileCoord] = field(default_factory=list)
@@ -49,6 +57,8 @@ class BattlefieldPicture:
 
 @dataclass(slots=True)
 class CommanderOrder:
+    """Issued order targeting units with a tactic, priority, and expiry."""
+
     order_id: str
     commander_id: str
     target_unit_ids: list[str]
@@ -97,11 +107,14 @@ def _get_fire_power(unit_type_int: int) -> float:
 
 
 class CommanderAI:
+    """Builds a battlefield picture from reports and issues tactical orders to subordinates."""
+
     def __init__(
         self,
         commander_unit: Unit,
         role: CommanderRole = CommanderRole.OVERALL,
     ) -> None:
+        """Initialize the commander with its unit, command role, and empty battlefield picture."""
         self._commander = commander_unit
         self._role = role
         self._picture = BattlefieldPicture()
@@ -526,6 +539,8 @@ class CommanderAI:
 
 
 class TacticalAdvisor:
+    """Stateless helper proposing attack vectors and positions from the battlefield map."""
+
     @staticmethod
     def suggest_attack_vector(
         commander_pos: TileCoord,

@@ -1,3 +1,9 @@
+"""Event bus implementing publish/subscribe messaging for game events.
+
+Provides typed and named event subscription, queued dispatch, and error
+isolation so a single handler failure does not disrupt the event pipeline.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -15,9 +21,12 @@ from pycc2.domain.interfaces import IEventPublisher
 
 
 class EventBus(IEventPublisher):
+    """Publish/subscribe event hub with typed and named handler dispatch."""
+
     _MAX_QUEUE_SIZE = 1000
 
     def __init__(self) -> None:
+        """Initialize the event bus with empty handler registries and queue."""
         self._handlers: dict[type, list[Callable]] = defaultdict(list)
         self._named_handlers: dict[str, list[Callable[[dict], None]]] = defaultdict(list)
         self._queue: deque[tuple[float, dict | object]] = deque()

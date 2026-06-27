@@ -50,6 +50,7 @@ class TurnService:
     """
 
     def __init__(self, event_bus: EventBus, max_turns: int | None = None):
+        """Initialize the turn service with event bus and optional turn limit."""
         self.event_bus = event_bus
         self.state = TurnState(max_turns=max_turns)
         self._logger = logging.getLogger("pycc2.turn_service")

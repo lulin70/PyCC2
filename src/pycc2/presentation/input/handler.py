@@ -1,3 +1,5 @@
+"""Pygame 输入事件处理，将原始事件转换为游戏统一的输入事件。"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -12,6 +14,8 @@ if TYPE_CHECKING:
 
 @dataclass(slots=True)
 class InputEvent:
+    """统一的输入事件数据结构，描述鼠标或键盘交互。"""
+
     event_type: str
     position: tuple[float, float] | None = None
     key: int | None = None
@@ -21,6 +25,8 @@ class InputEvent:
 
 @dataclass
 class PygameInputHandler:
+    """基于 Pygame 的输入处理器，负责事件转换与相机移动。"""
+
     camera: Camera
     window_manager: WindowManager
     move_speed: float = 8.0

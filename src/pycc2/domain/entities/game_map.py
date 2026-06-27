@@ -1,3 +1,5 @@
+"""Game map entity with terrain grid, objectives, and spawn points."""
+
 from __future__ import annotations
 
 import json
@@ -64,6 +66,8 @@ def _resolve_vp_points(obj: dict) -> int:
 
 @dataclass(slots=True)
 class MapObjective:
+    """Victory-location objective with position, owner, and VP point value."""
+
     id: str
     name: str
     position: TileCoord
@@ -77,6 +81,8 @@ class MapObjective:
 
 @dataclass(slots=True)
 class SpawnPoint:
+    """Spawn location for a faction's units at scenario start."""
+
     id: str
     side: str
     position: TileCoord
@@ -85,6 +91,8 @@ class SpawnPoint:
 
 @dataclass
 class GameMap:
+    """Tactical battle map with terrain, height, and elevation grids plus objectives."""
+
     id: str
     name: str
     width: int

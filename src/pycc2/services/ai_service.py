@@ -54,6 +54,7 @@ class AIService:
         squad_coordinator: SquadCoordinator | None = None,
         combat_engagement: CombatEngagement | None = None,
     ) -> None:
+        """Initialize the AI service with event bus and optional subsystems."""
         self.event_bus = event_bus
         self._pathfinder = pathfinder
         self._ballistic_engine = ballistic_engine

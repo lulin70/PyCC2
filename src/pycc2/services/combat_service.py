@@ -56,6 +56,7 @@ class CombatService:
         morale_calculator: MoraleCalculator,
         event_bus: EventBus,
     ):
+        """Initialize the combat service with ballistic, morale, and event dependencies."""
         self.ballistic_engine = ballistic_engine
         self.combat_resolver = combat_resolver
         self.morale_calculator = morale_calculator

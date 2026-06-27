@@ -46,6 +46,8 @@ MG_ACCURACY_PENALTY: float = 0.15  # -15% accuracy for unfamiliar MG
 
 
 class TakeoverState(Enum):
+    """Lifecycle states of an MG crew replacement takeover."""
+
     PENDING = auto()  # Waiting to start (unit moving to MG)
     IN_PROGRESS = auto()  # Unit is taking over the MG
     COMPLETED = auto()  # Takeover finished
@@ -86,6 +88,7 @@ class MGTakeoverSystem:
         event_bus: IEventPublisher,
         fallen_cache: FallenUnitCache | None = None,
     ) -> None:
+        """Initialize the takeover system with an event bus and fallen unit cache."""
         self.event_bus = event_bus
         self._fallen_cache = fallen_cache or FallenUnitCache()
         self._active_takeovers: dict[str, TakeoverRecord] = {}

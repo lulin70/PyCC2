@@ -1,3 +1,5 @@
+"""精灵渲染器模块，协调精灵缓存、特效与地形/单位渲染。"""
+
 from __future__ import annotations
 
 import logging
@@ -49,6 +51,7 @@ class SpriteRenderer:
     MAX_DAMAGE_NUMBERS: int = 50  # Upper limit for floating damage numbers
 
     def __init__(self, display_config: DisplayConfig | None = None):
+        """初始化精灵渲染器及其缓存、表面池与特效渲染器。"""
         from pycc2.domain.interfaces.display_config import DisplayConfig as DC
 
         self._display_config: DisplayConfig = display_config or DC()

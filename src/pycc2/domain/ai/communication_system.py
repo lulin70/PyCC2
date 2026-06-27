@@ -84,6 +84,8 @@ _SQUAD_TYPES: set[UnitType] = {
 
 
 class RadioType(Enum):
+    """Radio equipment tiers controlling communication range."""
+
     HQ = auto()  # Commander/HQ — unlimited range
     OFFICER = auto()  # Officer with radio — 15 tile range
     SQUAD = auto()  # Infantry squad radio — 8 tile range
@@ -96,6 +98,8 @@ class RadioType(Enum):
 
 
 class CommStatus(Enum):
+    """Delivery states for a message traversing the comm system."""
+
     DIRECT = auto()  # Direct radio contact with HQ
     RELAYED = auto()  # Contact via relay through officer
     RUNNER = auto()  # No radio — runner being sent
@@ -164,6 +168,7 @@ class CommunicationRelay:
     """
 
     def __init__(self) -> None:
+        """Initialize the relay with no persistent state."""
         self._logger = logging.getLogger("pycc2.ai.comm_relay")
 
     def find_relay_path(
@@ -243,6 +248,7 @@ class CommunicationSystem:
     """
 
     def __init__(self) -> None:
+        """Initialize the communication system with empty unit states and message queue."""
         self._unit_states: dict[str, UnitCommState] = {}
         self._message_queue: list[CommMessage] = []
         self._relay = CommunicationRelay()

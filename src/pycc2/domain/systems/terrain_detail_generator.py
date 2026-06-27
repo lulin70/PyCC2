@@ -87,6 +87,7 @@ class TerrainDetailGenerator:
     """
 
     def __init__(self, seed: int | None = None, config: GenerationConfig | None = None):
+        """Initialize the generator with an RNG seed and optional configuration."""
         self.rng = random.Random(seed)
         self.seed = seed or 42
         self.config = config or GenerationConfig()

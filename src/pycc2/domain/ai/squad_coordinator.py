@@ -1,3 +1,5 @@
+"""Squad coordinator that assigns tactics and dispatches orders to squads."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -14,6 +16,8 @@ if TYPE_CHECKING:
 
 
 class SquadTactic(Enum):
+    """Named squad-level tactics that can be assigned to a SquadOrder."""
+
     FIRE_CONCENTRATION = auto()
     BOUNDING_OVERWATCH = auto()
     CROSSFIRE = auto()
@@ -23,6 +27,8 @@ class SquadTactic(Enum):
 
 @dataclass(slots=True)
 class SquadOrder:
+    """Pending order carrying a tactic, target, and assigned unit ids for a squad."""
+
     squad_id: str
     tactic: SquadTactic
     target_unit_id: str | None = None
@@ -32,7 +38,10 @@ class SquadOrder:
 
 
 class SquadCoordinator:
+    """Evaluates and dispatches squad-level tactics based on the tactical situation."""
+
     def __init__(self, degradation_manager: SquadDegradationManager | None = None) -> None:
+        """Initialize the coordinator with optional squad degradation tracking."""
         self._squad_tactics: dict[str, SquadTactic] = {}
         self._pending_orders: list[SquadOrder] = []
         self._unit_squad_map: dict[str, str] = {}

@@ -57,6 +57,7 @@ class LOSSystem:
     ELEVATION_BONUS_PER_LEVEL: float = 2.0  # extra range per elevation level
 
     def __init__(self, game_map: GameMap) -> None:
+        """Initialize the LOS system bound to the given game map."""
         self._map = game_map
         self._cache: dict[tuple[int, int, int, int], LosResult] = {}
         self._cache_max_size: int = 1000

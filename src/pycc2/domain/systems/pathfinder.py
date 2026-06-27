@@ -1,3 +1,9 @@
+"""A* pathfinding over tile-based game maps.
+
+Provides PathFinder, which computes optimal tile paths accounting for
+octile movement cost and map passability constraints.
+"""
+
 from __future__ import annotations
 
 import heapq
@@ -23,6 +29,8 @@ class _Node:
 
 @dataclass
 class PathFinder:
+    """Computes optimal paths between tiles using the A* algorithm."""
+
     OCTILE_COST: float = math.sqrt(2) - 1.0
 
     def find_path(

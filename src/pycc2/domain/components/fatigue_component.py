@@ -9,6 +9,8 @@ from enum import Enum, auto
 
 
 class FatigueLevel(Enum):
+    """Progressive exhaustion tiers from fresh to spent."""
+
     FRESH = auto()
     TIRED = auto()
     WEARY = auto()
@@ -64,6 +66,8 @@ FATIGUE_RATES = {
 
 @dataclass(slots=True)
 class FatigueComponent:
+    """Tracks unit exhaustion and exposes accuracy, movement, and panic modifiers."""
+
     value: float = 0.0
     ticks_at_current_level: int = 0
     max_fatigue: float = 120.0

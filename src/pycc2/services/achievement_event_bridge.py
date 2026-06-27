@@ -23,6 +23,7 @@ class AchievementEventBridge:
     """Bridges game events to achievement progress tracking."""
 
     def __init__(self, manager: AchievementManager):
+        """Initialize the bridge with an achievement manager and reset battle counters."""
         self._manager = manager
         self._battle_casualties: int = 0
         self._battle_kills: int = 0

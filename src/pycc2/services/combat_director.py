@@ -1,3 +1,9 @@
+"""Combat director orchestrating unit movement, attacks, and visual effects.
+
+Coordinates game-map state, unit orders, and pending combat effects, bridging
+domain combat systems with presentation-layer rendering and audio cues.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -23,6 +29,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CombatDirector:
+    """Orchestrates real-time combat presentation, unit orders, and effects."""
+
     event_bus: EventBus
     display_config: DisplayConfig
     sound_system: ISoundSystem | None = None

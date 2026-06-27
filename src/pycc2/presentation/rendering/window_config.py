@@ -1,3 +1,5 @@
+"""窗口配置模块，管理窗口模式、显示信息与 DPI 检测。"""
+
 from __future__ import annotations
 
 import ctypes
@@ -12,6 +14,8 @@ import pygame
 
 
 class WindowMode(Enum):
+    """窗口显示模式枚举。"""
+
     WINDOWED = auto()
     FULLSCREEN = auto()
     BORDERLESS = auto()
@@ -19,6 +23,8 @@ class WindowMode(Enum):
 
 @dataclass(slots=True)
 class DisplayInfo:
+    """显示信息，记录基础分辨率、DPI 缩放与屏幕尺寸。"""
+
     base_width: int = 1280
     base_height: int = 720
     dpi_scale: float = 1.0
@@ -29,6 +35,8 @@ class DisplayInfo:
 
 @dataclass
 class WindowManager:
+    """窗口管理器，负责创建、调整与切换游戏窗口。"""
+
     display_info: DisplayInfo = field(default_factory=DisplayInfo)
     mode: WindowMode = WindowMode.WINDOWED
     _screen: pygame.Surface | None = None

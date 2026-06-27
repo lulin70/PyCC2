@@ -11,6 +11,8 @@ from typing import ClassVar
 
 @dataclass(frozen=True, slots=True)
 class Vec2:
+    """Immutable 2D vector with arithmetic, length, and tile conversion helpers."""
+
     x: float = 0.0
     y: float = 0.0
 

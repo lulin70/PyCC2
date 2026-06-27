@@ -141,6 +141,7 @@ class WeaponJamSystem:
         jam_configs: dict[str, JamConfig] | None = None,
         rng: random.Random | None = None,
     ) -> None:
+        """Initialize the weapon jam system with per-weapon configs and an RNG."""
         self._configs = jam_configs or WEAPON_JAM_CONFIGS
         self._rng = rng or random.Random()
         self._jam_clear_remaining: dict[str, int] = {}

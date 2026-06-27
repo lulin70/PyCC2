@@ -1,3 +1,5 @@
+"""Combat engagement rules and decision evaluation for unit targeting."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -13,6 +15,8 @@ if TYPE_CHECKING:
 
 @dataclass(slots=True)
 class EngagementRule:
+    """Tunable thresholds governing when to engage, hold, or break contact."""
+
     min_engagement_distance: float = 1.0
     optimal_engagement_distance: float = 6.0
     max_engagement_distance: float = 12.0
@@ -24,6 +28,8 @@ class EngagementRule:
 
 
 class EngagementDecision(Enum):
+    """Possible engagement outcomes returned by the combat evaluator."""
+
     ENGAGE = auto()
     HOLD_POSITION = auto()
     CLOSE_DISTANCE = auto()
@@ -34,6 +40,8 @@ class EngagementDecision(Enum):
 
 @dataclass(slots=True)
 class EngagementResult:
+    """Outcome of an engagement evaluation with decision, reason, and confidence."""
+
     decision: EngagementDecision
     reason: str
     target_position: TileCoord | None = None
@@ -41,7 +49,10 @@ class EngagementResult:
 
 
 class CombatEngagement:
+    """Evaluates targeting decisions against a configured engagement rule set."""
+
     def __init__(self, rule: EngagementRule | None = None) -> None:
+        """Initialize the evaluator with optional custom engagement rules."""
         self._rule = rule or EngagementRule()
 
     @property

@@ -12,6 +12,8 @@ from enum import Enum, auto
 
 
 class TimeOfDay(Enum):
+    """Discrete time-of-day phases affecting vision and stealth."""
+
     DAWN = auto()
     DAY = auto()
     DUSK = auto()
@@ -20,6 +22,8 @@ class TimeOfDay(Enum):
 
 @dataclass
 class GameTime:
+    """Tracks elapsed game time with a configurable time scale."""
+
     total_seconds: float = 0.0
     time_scale: float = 600.0
 
@@ -63,6 +67,8 @@ class GameTime:
 
 
 class DayNightEffects:
+    """Applies vision, stealth, accuracy, and lighting modifiers by time of day."""
+
     VISION_MODIFIERS: dict[TimeOfDay, float] = {
         TimeOfDay.DAWN: 0.9,
         TimeOfDay.DAY: 1.0,
@@ -127,6 +133,8 @@ class DayNightEffects:
 
 @dataclass
 class Searchlight:
+    """Sweeping light source that reveals units within an arc during night."""
+
     position_x: int
     position_y: int
     direction_deg: float = 0.0

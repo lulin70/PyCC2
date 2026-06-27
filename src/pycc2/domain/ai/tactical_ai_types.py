@@ -35,6 +35,8 @@ if TYPE_CHECKING:
 
 
 class FlankSide(Enum):
+    """Selector for left or right flanking direction."""
+
     LEFT = auto()
     RIGHT = auto()
 

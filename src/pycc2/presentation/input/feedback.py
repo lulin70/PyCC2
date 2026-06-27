@@ -49,6 +49,7 @@ class FeedbackManager:
     """Manages operation feedback messages."""
 
     def __init__(self):
+        """初始化反馈消息列表、字体与各类回调。"""
         self._messages: list[FeedbackMessage] = []
         self._font: Font | None = None
         self._callbacks: dict[FeedbackType, Callable] = {}

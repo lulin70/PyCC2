@@ -515,6 +515,7 @@ class WeaponScavengeAI(TacticalAIBase):
     AMMO_CRITICAL_THRESHOLD: float = 0.1  # Below 10% → highest priority
 
     def __init__(self, fallen_cache: FallenUnitCache) -> None:
+        """Initialize the ammo pickup AI with a fallen unit ammo cache."""
         self._fallen_cache = fallen_cache
 
     def evaluate(self, context: TacticalContext) -> float:

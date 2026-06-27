@@ -15,6 +15,8 @@ from pycc2.domain.systems.weather_effects import WeatherState, WeatherType
 
 
 class WeatherRenderer:
+    """天气渲染器，以粒子系统呈现雨、雪、雾等天气效果。"""
+
     RAIN_DROP_COUNT = 80
     SNOW_FLAKE_COUNT = 60
     FOG_ALPHA_BASE = 100
@@ -22,6 +24,7 @@ class WeatherRenderer:
     MAX_PARTICLES = 1000
 
     def __init__(self, screen_width: int, screen_height: int):
+        """初始化天气渲染器，按屏幕尺寸创建雨滴与雪花粒子。"""
         self.screen_width = screen_width
         self.screen_height = screen_height
         self._rain_drops: list[dict] = []

@@ -1,3 +1,5 @@
+"""Executor that translates tactic intents into concrete unit actions and orders."""
+
 from __future__ import annotations
 
 import logging
@@ -31,6 +33,8 @@ logger = logging.getLogger(__name__)
 
 
 class TacticExecutor:
+    """Executes tactic intents by dispatching to AI subsystems and the event bus."""
+
     def __init__(
         self,
         event_bus: IEventPublisher,
@@ -40,6 +44,7 @@ class TacticExecutor:
         nco_rally: NCORallyBehavior | None = None,
         fallen_cache: FallenUnitCache | None = None,
     ) -> None:
+        """Initialize the executor with its event bus and optional subsystem dependencies."""
         self.event_bus = event_bus
         self.pathfinder = pathfinder
         self.ballistic_engine = ballistic_engine

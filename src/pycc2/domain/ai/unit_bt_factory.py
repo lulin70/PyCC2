@@ -1,3 +1,5 @@
+"""Factory that assembles behavior trees for individual unit types and roles."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -17,6 +19,8 @@ if TYPE_CHECKING:
 
 
 class UnitBTFactory:
+    """Static factory assembling behavior trees tailored to each unit type."""
+
     @staticmethod
     def create_infantry_bt(unit_id: str) -> BTNode:
         def _check_low_health(bb: Blackboard) -> bool:

@@ -9,6 +9,8 @@ from enum import Enum, auto
 
 
 class VeteranRank(Enum):
+    """Experience-based rank tiers from recruit to elite."""
+
     RECRUIT = auto()
     REGULAR = auto()
     VETERAN = auto()
@@ -32,6 +34,8 @@ RANK_BONUSES = {
 
 @dataclass(slots=True)
 class VeterancyComponent:
+    """Tracks unit experience, kills, and derived rank-based combat bonuses."""
+
     xp: int = 0
     kills: int = 0
     battles_survived: int = 0

@@ -28,6 +28,8 @@ HP_LOSS_PINNED = 0.25
 
 
 class BattleOutcome(Enum):
+    """Possible outcomes of a completed battle."""
+
     VICTORY = auto()
     DEFEAT = auto()
     DRAW = auto()
@@ -37,6 +39,8 @@ class BattleOutcome(Enum):
 
 @dataclass
 class UnitBattleRecord:
+    """Per-unit combat statistics recorded during a single battle."""
+
     unit_id: str
     unit_type: str
     faction: str
@@ -59,6 +63,8 @@ class UnitBattleRecord:
 
 @dataclass
 class BattleResult:
+    """Aggregated statistics and outcome of a completed battle."""
+
     mission_id: str
     mission_name: str
     outcome: BattleOutcome
@@ -170,6 +176,7 @@ class BattleEventTracker:
     """
 
     def __init__(self) -> None:
+        """Initialize the battle event tracker with empty event buffers."""
         self._key_events: list[str] = []
         self._allied_kia: list[str] = []
         self._heroic_actions: list[str] = []

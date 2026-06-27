@@ -26,6 +26,8 @@ if TYPE_CHECKING:
 
 
 class MissionDifficulty(Enum):
+    """Difficulty tiers available for campaign missions."""
+
     RECRUIT = auto()
     REGULAR = auto()
     VETERAN = auto()
@@ -33,6 +35,8 @@ class MissionDifficulty(Enum):
 
 
 class MissionObjective(Enum):
+    """Objective types a mission may require the player to accomplish."""
+
     ELIMINATE_ENEMY_FORCE = auto()
     CAPTURE_LOCATION = auto()
     SURVIVE_FOR_TIME = auto()
@@ -42,6 +46,8 @@ class MissionObjective(Enum):
 
 @dataclass
 class MissionObjectiveDef:
+    """Definition of a single mission objective with target and parameters."""
+
     objective_type: MissionObjective
     description: str
     target_id: str | None = None
@@ -52,6 +58,8 @@ class MissionObjectiveDef:
 
 @dataclass
 class MissionDefinition:
+    """Static definition of a campaign mission including map and objectives."""
+
     id: str
     name: str
     description: str
@@ -76,7 +84,10 @@ class MissionDefinition:
 
 
 class CampaignManager:
+    """Manages campaign progression, mission registration, and completion state."""
+
     def __init__(self, use_campaign_state: bool = False):
+        """Initialize the campaign manager, optionally with persistent campaign state."""
         self._missions: dict[str, MissionDefinition] = {}
         self._completed_missions: set[str] = set()
         self._current_mission: MissionDefinition | None = None

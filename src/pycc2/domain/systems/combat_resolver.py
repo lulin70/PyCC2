@@ -1,3 +1,9 @@
+"""Combat resolution orchestrator coordinating ballistic, morale, and event systems.
+
+Resolves attacks between units by delegating to BallisticEngine for hit/damage
+calculation and MoraleCalculator for suppression, then publishing combat events.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -16,6 +22,8 @@ if TYPE_CHECKING:
 
 @dataclass(slots=True)
 class CombatResolver:
+    """Coordinates ballistic and morale engines to resolve a single attack."""
+
     ballistic_engine: BallisticEngine
     morale_calc: MoraleCalculator
     rng: IRandomNumberGenerator

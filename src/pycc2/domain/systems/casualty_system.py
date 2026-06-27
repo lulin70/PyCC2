@@ -58,6 +58,7 @@ class Casualty:
         unit: Unit,
         config: CasualtyConfig | None = None,
     ):
+        """Initialize a casualty tracker for a unit with optional config."""
         self._unit = unit
         self._config = config or CasualtyConfig()
         self._state = CasualtyState.HEALTHY
@@ -347,6 +348,7 @@ class CasualtyManager:
     """
 
     def __init__(self):
+        """Initialize the casualty manager with an empty casualty registry."""
         self._casualties: dict[str, Casualty] = {}
         self._config = CasualtyConfig()
 

@@ -68,6 +68,7 @@ class VehicleCrew:
     """
 
     def __init__(self, vehicle_id: str = "", crew_config: list[CrewRole] | None = None):
+        """Initialize the vehicle crew with an optional explicit crew composition."""
         self._vehicle_id = vehicle_id
         self._vehicle: Unit | None = None
         self._members: list[CrewMember] = []

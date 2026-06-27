@@ -30,6 +30,8 @@ if TYPE_CHECKING:
 
 
 class ExperienceLevel(Enum):
+    """Experience tiers that tune unit accuracy, morale, and reaction speed."""
+
     CONSCRIPT = auto()
     REGULAR = auto()
     VETERAN = auto()
@@ -37,6 +39,8 @@ class ExperienceLevel(Enum):
 
 
 class SupplyLevelSetting(Enum):
+    """Supply tiers that govern ammo, reinforcements, and morale recovery."""
+
     ABUNDANT = auto()
     ADEQUATE = auto()
     SCARCE = auto()
@@ -44,6 +48,8 @@ class SupplyLevelSetting(Enum):
 
 
 class GamePreset(Enum):
+    """Named difficulty presets bundling per-side experience and supply levels."""
+
     RECRUIT = auto()
     EASY = auto()
     NORMAL = auto()
@@ -58,12 +64,16 @@ class GamePreset(Enum):
 
 @dataclass(frozen=True, slots=True)
 class SideSettings:
+    """Per-side experience and supply level selections."""
+
     experience_level: ExperienceLevel
     supply_level: SupplyLevelSetting
 
 
 @dataclass(frozen=True, slots=True)
 class GameSettings:
+    """Top-level game settings combining both sides' experience and supply."""
+
     allied_settings: SideSettings
     axis_settings: SideSettings
     campaign_id: str = "market_garden"
@@ -77,6 +87,8 @@ class GameSettings:
 
 @dataclass(frozen=True, slots=True)
 class ExperienceLevelEffects:
+    """Numeric modifiers derived from an experience level."""
+
     accuracy_modifier: float
     morale_resistance: float
     panic_threshold_modifier: float
@@ -87,6 +99,8 @@ class ExperienceLevelEffects:
 
 @dataclass(frozen=True, slots=True)
 class SupplyLevelEffects:
+    """Numeric modifiers derived from a supply level."""
+
     ammo_replenishment_rate: float
     reinforcement_rate: float
     morale_recovery_rate: float
@@ -257,6 +271,7 @@ class GameSettingsApplier:
     """
 
     def __init__(self, settings: GameSettings) -> None:
+        """Initialize the applier with the game settings to apply."""
         self._settings = settings
 
     @property

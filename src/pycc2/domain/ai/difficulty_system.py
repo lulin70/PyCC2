@@ -1,3 +1,5 @@
+"""Difficulty system with presets tuning AI perception, accuracy, and tactics."""
+
 from __future__ import annotations
 
 import dataclasses
@@ -13,6 +15,8 @@ if TYPE_CHECKING:
 
 
 class DifficultyLevel(Enum):
+    """Selectable difficulty tiers from EASY up to VETERAN."""
+
     EASY = auto()
     MEDIUM = auto()
     HARD = auto()
@@ -21,6 +25,8 @@ class DifficultyLevel(Enum):
 
 @dataclass(slots=True)
 class DifficultyConfig:
+    """Tunable AI parameters for a single difficulty level."""
+
     level: DifficultyLevel
 
     vision_range_multiplier: float = 1.0
@@ -47,6 +53,8 @@ class DifficultyConfig:
 
 
 class DifficultySystem:
+    """Applies difficulty-based modifiers to AI perception, accuracy, and tactical decisions."""
+
     PRESETS: ClassVar[dict[DifficultyLevel, DifficultyConfig]] = {
         DifficultyLevel.EASY: DifficultyConfig(
             level=DifficultyLevel.EASY,
@@ -131,6 +139,7 @@ class DifficultySystem:
     }
 
     def __init__(self, level: DifficultyLevel = DifficultyLevel.MEDIUM) -> None:
+        """Initialize the system by loading a deep copy of the preset for the given level."""
         preset = self.PRESETS[level]
         self._config = preset.__class__(**dataclasses.asdict(preset))
         self._level = level

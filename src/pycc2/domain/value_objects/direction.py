@@ -8,6 +8,8 @@ from typing import Optional
 
 
 class Direction(Enum):
+    """Eight-direction compass enum for grid movement and unit facing."""
+
     N = 0
     NE = 1
     E = 2

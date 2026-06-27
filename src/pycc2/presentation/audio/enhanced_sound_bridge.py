@@ -171,6 +171,7 @@ class EnhancedSoundSystem:
     """
 
     def __init__(self):
+        """初始化增强声音系统的缓存、音量与默认事件映射。"""
         self._sound_cache: dict[str, mixer.Sound] = {}
         self._event_mappings: dict[CombatSoundEvent, SoundFileMapping] = {}
         self._initialized = False

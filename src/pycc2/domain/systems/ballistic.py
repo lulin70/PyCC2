@@ -1,3 +1,9 @@
+"""Ballistic computation engine for ranged weapon combat resolution.
+
+Computes shot accuracy, damage, and suppression effects based on weapon stats,
+range, terrain cover, and the Swiss Cheese damage model.
+"""
+
 from __future__ import annotations
 
 import math
@@ -15,6 +21,8 @@ from pycc2.domain.value_objects.terrain_type import TerrainType
 
 @dataclass(slots=True, frozen=True)
 class ShotResult:
+    """Outcome data of a single ballistic shot against a target."""
+
     hit: bool
     damage_dealt: float = 0.0
     is_killing_blow: bool = False
@@ -28,6 +36,8 @@ class ShotResult:
 
 @dataclass
 class BallisticEngine:
+    """Computes ballistic shot resolution using weapon stats, terrain, and RNG."""
+
     rng: IRandomNumberGenerator
 
     _weapon_stats: dict[str, dict] = field(init=False, default_factory=dict)

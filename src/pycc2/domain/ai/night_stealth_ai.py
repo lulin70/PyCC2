@@ -80,6 +80,7 @@ class NightStealthAI(TacticalAIBase):
     """
 
     def __init__(self) -> None:
+        """Initialize the night stealth AI with a dedicated logger."""
         self._logger = logging.getLogger("pycc2.ai.night_stealth")
 
     # ------------------------------------------------------------------

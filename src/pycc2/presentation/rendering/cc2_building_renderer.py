@@ -18,6 +18,8 @@ from pycc2.domain.value_objects.building_data import CC2BuildingType
 
 
 class DamageLevel(Enum):
+    """建筑损坏等级枚举，从完好到摧毁共四级。"""
+
     INTACT = 0
     LIGHT_DAMAGE = 1
     HEAVY_DAMAGE = 2

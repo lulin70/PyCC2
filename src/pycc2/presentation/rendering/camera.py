@@ -1,3 +1,5 @@
+"""相机模块，提供正交/等距投影、缩放与屏幕震动。"""
+
 from __future__ import annotations
 
 import enum
@@ -26,6 +28,8 @@ class ProjectionMode(enum.Enum):
 
 @dataclass(slots=True)
 class Camera:
+    """游戏相机，管理位置、缩放、投影模式与屏幕震动。"""
+
     position: Vec2
     zoom: float = 1.0
     viewport_width: int = 1280

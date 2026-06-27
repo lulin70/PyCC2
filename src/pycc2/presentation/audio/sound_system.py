@@ -1,3 +1,5 @@
+"""声音系统模块，负责音效播放、音乐播放与程序化声音生成。"""
+
 from __future__ import annotations
 
 import contextlib
@@ -25,6 +27,8 @@ from pycc2.domain.value_objects.audio_enums import (
 
 @dataclass(slots=True)
 class SoundConfig:
+    """声音系统的全局配置参数。"""
+
     master_volume: float = 0.7
     sfx_volume: float = 1.0
     music_volume: float = 0.5
@@ -34,6 +38,8 @@ class SoundConfig:
 
 @dataclass(slots=True)
 class AudioMixerConfig:
+    """音频混音器的衰减与多声道参数配置。"""
+
     max_simultaneous_sounds: int = 16
     distance_model: str = "inverse"
     reference_distance: float = 100.0
@@ -45,6 +51,8 @@ class AudioMixerConfig:
 
 
 class SoundPriority(Enum):
+    """音效优先级枚举，用于混音器抢占式调度。"""
+
     CRITICAL = 0
     HIGH = 1
     MEDIUM = 2
@@ -53,6 +61,8 @@ class SoundPriority(Enum):
 
 
 class ProceduralSoundGenerator:
+    """通过数值合成生成各类战斗与 UI 音效波形。"""
+
     SAMPLE_RATE = 22050
 
     @classmethod
@@ -244,9 +254,12 @@ class ProceduralSoundGenerator:
 
 
 class SoundSystem(SoundEffectsMixin):
+    """游戏声音系统，负责音效缓存、混音调度与音量管理。"""
+
     def __init__(
         self, config: SoundConfig | None = None, mixer_config: AudioMixerConfig | None = None
     ):
+        """初始化声音系统及其缓存、混音器配置。"""
         self._config = config or SoundConfig()
         self._mixer_config = mixer_config or AudioMixerConfig()
         self._cache: dict[str, mixer.Sound] = {}
@@ -680,7 +693,10 @@ class SoundSystem(SoundEffectsMixin):
 
 
 class MusicPlayer:
+    """背景音乐播放控制器，封装混音器的音乐播放与停止。"""
+
     def __init__(self, sound_system: SoundSystem):
+        """绑定底层声音系统并初始化播放状态。"""
         self._sys = sound_system
         self._playing = False
 

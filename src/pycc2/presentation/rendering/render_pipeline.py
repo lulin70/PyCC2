@@ -1,3 +1,5 @@
+"""渲染管线模块，协调渲染器、窗口管理与各 UI 组件的渲染流程。"""
+
 from __future__ import annotations
 
 import logging
@@ -22,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class RenderPipeline:
+    """渲染管线协调器，组装渲染器与 HUD、命令栏等组件。"""
+
     renderer: IRenderer
     window_manager: IWindowManager
     display_config: DisplayConfig

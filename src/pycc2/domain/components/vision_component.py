@@ -12,6 +12,8 @@ from dataclasses import dataclass, field
 
 @dataclass(slots=True)
 class VisionComponent:
+    """Tracks visible tiles and computes effective sight range under conditions."""
+
     range_tiles: int = 6
     angle_rad: float = math.pi
     last_update_tick: int = 0

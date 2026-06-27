@@ -1,3 +1,9 @@
+"""Victory condition evaluation for battles.
+
+Defines victory condition types, objectives (Victory Locations), battle stats,
+and an evaluator that decides the battle result per CC2 rules.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,6 +15,8 @@ if TYPE_CHECKING:
 
 
 class VictoryConditionType(Enum):
+    """Types of victory conditions a battle may evaluate."""
+
     ELIMINATE_ALL_ENEMIES = auto()
     OCCUPY_OBJECTIVE = auto()
     TIME_LIMIT = auto()
@@ -16,6 +24,8 @@ class VictoryConditionType(Enum):
 
 
 class GameResult(Enum):
+    """Possible overall results of a battle."""
+
     ONGOING = auto()
     ALLIES_VICTORY = auto()
     AXIS_VICTORY = auto()
@@ -42,6 +52,8 @@ class Objective:
 
 @dataclass
 class BattleStats:
+    """Running aggregate statistics tracked during a battle."""
+
     allies_kills: int = 0
     axis_kills: int = 0
     allies_damage_dealt: float = 0.0
@@ -139,6 +151,7 @@ class VictoryConditionEvaluator:
         time_limit_ticks: int = 0,
         force_morale_threshold: int = 0,
     ):
+        """Initialize the evaluator with conditions, objectives, and time/morale limits."""
         self.conditions = conditions or [
             VictoryConditionType.ELIMINATE_ALL_ENEMIES,
         ]

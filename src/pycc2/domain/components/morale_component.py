@@ -11,6 +11,8 @@ from enum import Enum, auto
 
 
 class MoraleState(Enum):
+    """Morale tiers from RALLIED down to ROUTING."""
+
     RALLIED = auto()  # >70 morale
     WAVERING = auto()  # 40-70 morale
     PINNED = auto()  # 20-40 morale
@@ -20,6 +22,8 @@ class MoraleState(Enum):
 
 @dataclass(slots=True)
 class MoraleComponent:
+    """Tracks morale value, suppression, and routing state for a unit."""
+
     value: int
     panic_threshold: int = 30
     rout_threshold: int = 10

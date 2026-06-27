@@ -103,6 +103,7 @@ class UnitDiversityGenerator:
     """
 
     def __init__(self) -> None:
+        """Initialize the diversity generator with an empty generated registry."""
         self._generated: dict[str, CC2UnitTemplate] = {}
 
     # ------------------------------------------------------------------

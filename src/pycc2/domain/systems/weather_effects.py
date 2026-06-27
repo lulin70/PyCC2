@@ -12,6 +12,8 @@ from enum import Enum, auto
 
 
 class WeatherType(Enum):
+    """Discrete weather states affecting vision, movement, and accuracy."""
+
     CLEAR = auto()
     RAIN = auto()
     FOG = auto()
@@ -21,6 +23,8 @@ class WeatherType(Enum):
 
 @dataclass
 class WeatherState:
+    """Runtime state of the current weather including intensity and duration."""
+
     weather_type: WeatherType = WeatherType.CLEAR
     intensity: float = 1.0
     duration_turns: int = 0
@@ -55,6 +59,8 @@ class WeatherState:
 
 
 class WeatherEffects:
+    """Lookup-based modifiers for weather impacts on combat parameters."""
+
     VISION_MODIFIERS: dict[WeatherType, float] = {
         WeatherType.CLEAR: 1.0,
         WeatherType.RAIN: 0.7,
@@ -110,6 +116,8 @@ class WeatherEffects:
 
 
 class WeatherTransitionTable:
+    """Probabilistic transition matrix between weather states per turn."""
+
     TRANSITIONS: dict[WeatherType, list[tuple[WeatherType, float]]] = {
         WeatherType.CLEAR: [
             (WeatherType.CLEAR, 0.70),

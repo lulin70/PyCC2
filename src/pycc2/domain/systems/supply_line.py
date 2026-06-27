@@ -16,12 +16,16 @@ from enum import Enum, auto
 
 
 class SupplyType(Enum):
+    """Mechanisms by which a sector can receive supplies."""
+
     LAND = auto()  # Via road/rail (XXX Corps or German)
     AIRDROP = auto()  # Via parachute/glider (requires LZ control)
     BLOCKED = auto()  # No supply possible
 
 
 class SupplyLevel(Enum):
+    """Throughput tiers governing ammo, reinforcements, and morale recovery."""
+
     FULL = auto()  # 100% - normal operations
     REDUCED = auto()  # 50% - limited ammo/reinforcements
     MINIMAL = auto()  # 25% - critical shortage

@@ -1,3 +1,9 @@
+"""Environment system modeling time-of-day and weather effects on combat.
+
+Encapsulates environmental modifiers for vision, stealth, and accuracy driven
+by the current time of day and weather condition.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -5,6 +11,8 @@ from enum import Enum, auto
 
 
 class TimeOfDay(Enum):
+    """Discrete phases of the day influencing environmental modifiers."""
+
     DAY = auto()
     NIGHT = auto()
     DAWN = auto()
@@ -12,6 +20,8 @@ class TimeOfDay(Enum):
 
 
 class WeatherCondition(Enum):
+    """Weather states that alter vision and stealth on the battlefield."""
+
     CLEAR = auto()
     RAIN = auto()
     FOG = auto()
@@ -20,6 +30,8 @@ class WeatherCondition(Enum):
 
 @dataclass
 class EnvironmentState:
+    """Runtime environmental state with associated vision and stealth modifiers."""
+
     time_of_day: TimeOfDay = TimeOfDay.DAY
     weather: WeatherCondition = WeatherCondition.CLEAR
 

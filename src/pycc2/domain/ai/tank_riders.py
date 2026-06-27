@@ -71,6 +71,8 @@ _INFANTRY_TYPES: set[UnitType] = {
 
 
 class RiderStatus(Enum):
+    """Lifecycle states of an infantry unit riding on a tank."""
+
     APPROACHING = auto()  # Moving toward tank
     MOUNTING = auto()  # Mounting in progress
     RIDING = auto()  # Actively riding
@@ -121,6 +123,7 @@ class TankRiderSystem:
     """
 
     def __init__(self) -> None:
+        """Initialize the tank rider system with empty manifests and rider mappings."""
         self._manifests: dict[str, TankRiderManifest] = {}
         self._rider_to_tank: dict[str, str] = {}  # rider_id -> tank_id
 
@@ -389,6 +392,7 @@ class TankRiderAI(TacticalAIBase):
     """
 
     def __init__(self, rider_system: TankRiderSystem | None = None) -> None:
+        """Initialize the tank rider AI evaluator with an optional shared rider system."""
         self._system = rider_system or TankRiderSystem()
         self._logger = logging.getLogger("pycc2.ai.tank_rider")
 

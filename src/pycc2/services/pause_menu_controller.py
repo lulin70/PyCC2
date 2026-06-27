@@ -1,3 +1,5 @@
+"""Pause menu controller managing the in-game pause overlay state and input."""
+
 from __future__ import annotations
 
 import logging

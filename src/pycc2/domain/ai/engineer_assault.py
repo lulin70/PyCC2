@@ -91,6 +91,8 @@ _ENGINEER_TYPES: set[UnitType] = {
 
 
 class AssaultPhase(Enum):
+    """Stages of an engineer assault from approach through detonation."""
+
     APPROACH = auto()  # Moving toward target under covering fire
     PLACE_CHARGE = auto()  # Placing demo charge at target
     RETREAT = auto()  # Retreating to safe distance
@@ -155,6 +157,7 @@ class EngineerAssaultAI(TacticalAIBase):
     """
 
     def __init__(self) -> None:
+        """Initialize the assault AI with empty assault and fire zone trackers."""
         self._assaults: dict[str, AssaultState] = {}
         self._fire_zones: list[FireZone] = []
         self._logger = logging.getLogger("pycc2.ai.engineer_assault")

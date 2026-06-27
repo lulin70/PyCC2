@@ -58,6 +58,7 @@ class FourLayerCampaignManager:
     """
 
     def __init__(self, campaign_def: GrandCampaignDefinition | None = None) -> None:
+        """Initialize the four-layer campaign manager with optional custom definition."""
         self._campaign_def = campaign_def or DEFAULT_MARKET_GARDEN_CAMPAIGN
         self._campaign_state = GrandCampaignState()
         self._saved_unit_states: dict[str, UnitCarryoverState] = {}

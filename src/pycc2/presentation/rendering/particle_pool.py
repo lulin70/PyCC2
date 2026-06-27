@@ -1,3 +1,5 @@
+"""粒子对象池模块，复用粒子与字典以降低 GC 压力。"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -12,6 +14,7 @@ class ParticlePool:
     MAX_POOL_SIZE: int = 200
 
     def __init__(self, preallocate: int = 100):
+        """预分配指定数量的粒子与字典池。"""
         self._pool: list[object] = []
         self._active_count: int = 0
         for _ in range(preallocate):

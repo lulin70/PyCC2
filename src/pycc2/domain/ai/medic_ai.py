@@ -53,6 +53,8 @@ HEAL_ADJACENT_RANGE: int = 1  # Must be adjacent to heal
 
 
 class TreatmentPriority(Enum):
+    """Triage ranking used by medics to pick which wounded unit to treat first."""
+
     OFFICER = auto()  # Commander units
     MG_GUNNER = auto()  # Machine gun squads
     REGULAR = auto()  # Regular infantry
@@ -110,6 +112,7 @@ class MedicAI(TacticalAIBase):
     """
 
     def __init__(self) -> None:
+        """Initialize the medic AI with an empty active treatment registry."""
         self._active_treatments: dict[str, TreatmentRecord] = {}
         self._logger = logging.getLogger("pycc2.ai.medic")
 

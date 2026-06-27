@@ -131,6 +131,7 @@ class ArtilleryManager:
     """
 
     def __init__(self, max_missions: int = MAX_FIRE_MISSIONS) -> None:
+        """Initialize the artillery manager with a remaining fire mission budget."""
         self._missions_remaining: int = max_missions
         self._active_missions: dict[str, ArtilleryMission] = {}  # observer_id -> mission
 
@@ -296,6 +297,7 @@ class ArtilleryCallinAI(TacticalAIBase):
     """
 
     def __init__(self, artillery_manager: ArtilleryManager | None = None) -> None:
+        """Initialize the artillery AI with an optional backing artillery manager."""
         self._manager = artillery_manager or ArtilleryManager()
 
     @property

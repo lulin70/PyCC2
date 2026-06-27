@@ -1,3 +1,5 @@
+"""Shared blackboard store for behavior tree node communication."""
+
 from __future__ import annotations
 
 import copy
@@ -7,6 +9,8 @@ from typing import Any
 
 @dataclass(slots=True)
 class Blackboard:
+    """Key-value store shared between behavior tree nodes and AI systems."""
+
     _data: dict[str, Any] = field(default_factory=dict)
 
     def get(self, key: str, default: Any = None) -> Any:

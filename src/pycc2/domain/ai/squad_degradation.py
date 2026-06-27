@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 class SquadState(Enum):
+    """Degradation tiers tracking how a squad's effectiveness has eroded."""
+
     COMBAT_READY = auto()
     DEGRADED_MILD = auto()
     DEGRADED_MODERATE = auto()
@@ -28,12 +30,16 @@ class SquadState(Enum):
 
 
 class LeaderRank(Enum):
+    """Ranks used to scale degradation severity when a leader is killed."""
+
     PLATOON_COMMANDER = auto()
     SQUAD_LEADER = auto()
 
 
 @dataclass(slots=True)
 class DegradationModifiers:
+    """Per-state penalty values applied to accuracy, reaction, and morale."""
+
     accuracy_penalty: float = 0.0
     reaction_delay_pct: float = 0.0
     coordination_penalty: float = 0.0
@@ -87,6 +93,8 @@ RALLY_RESTORE_MORALE = 40
 
 @dataclass(slots=True)
 class SquadDegradationRecord:
+    """Per-squad degradation state and recovery tracking."""
+
     squad_id: str
     state: SquadState = SquadState.COMBAT_READY
     recovery_ticks_remaining: int = 0
@@ -94,7 +102,10 @@ class SquadDegradationRecord:
 
 
 class SquadDegradationManager:
+    """Tracks squad degradation states and coordinates NCO-led recovery."""
+
     def __init__(self) -> None:
+        """Initialize the manager with empty squad records and unit-to-squad mapping."""
         self._squad_records: dict[str, SquadDegradationRecord] = {}
         self._unit_squad_map: dict[str, str] = {}
         self._logger = logging.getLogger("pycc2.ai.squad_degradation")
@@ -245,12 +256,17 @@ class SquadDegradationManager:
 
 @dataclass(slots=True)
 class RallyRecord:
+    """Tracks per-NCO rally cooldown state."""
+
     nco_id: str
     cooldown_remaining: int = 0
 
 
 class NCORallyBehavior:
+    """Allows NCO units to rally nearby panicked or routing units back to effectiveness."""
+
     def __init__(self) -> None:
+        """Initialize the rally behavior with empty per-NCO cooldown records."""
         self._rally_cooldowns: dict[str, RallyRecord] = {}
         self._logger = logging.getLogger("pycc2.ai.nco_rally")
 

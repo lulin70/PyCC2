@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 class AchievementCategory(Enum):
+    """Categories for classifying achievements by gameplay aspect."""
+
     COMBAT = "combat"
     CAMPAIGN = "campaign"
     SURVIVAL = "survival"
@@ -33,6 +35,8 @@ class AchievementCategory(Enum):
 
 
 class AchievementRarity(Enum):
+    """Rarity tiers controlling achievement perceived value and reward scaling."""
+
     COMMON = "common"
     UNCOMMON = "uncommon"
     RARE = "rare"
@@ -83,6 +87,7 @@ class AchievementManager:
     ACHIEVEMENTS_FILE = "achievements.json"
 
     def __init__(self, save_dir: str | None = None):
+        """Initialize the achievement manager with optional custom save directory."""
         self._definitions: dict[str, Achievement] = {}
         self._states: dict[str, AchievementState] = {}
         self._listeners: list[Callable[[Achievement], None]] = []

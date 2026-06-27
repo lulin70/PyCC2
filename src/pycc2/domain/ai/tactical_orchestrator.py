@@ -60,6 +60,7 @@ class TacticalOrchestrator:
     """
 
     def __init__(self) -> None:
+        """Initialize the orchestrator with no registered AIs and empty order history."""
         self._ais: list[TacticalAIBase] = []
         self._last_scores: dict[str, float] = {}
         self._last_orders: list[TacticIntent] = []

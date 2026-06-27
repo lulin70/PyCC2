@@ -1,3 +1,5 @@
+"""交互控制器模块，处理选择、移动、攻击等玩家命令交互。"""
+
 from __future__ import annotations
 
 import logging
@@ -29,6 +31,8 @@ from pycc2.domain.value_objects.audio_enums import (
 
 @dataclass(slots=True)
 class ClickResult:
+    """点击拾取结果，记录命中的单位或地形坐标。"""
+
     hit_unit: Unit | None = None
     world_position: TileCoord | None = None
     screen_position: tuple[float, float] = (0.0, 0.0)
@@ -37,12 +41,15 @@ class ClickResult:
 
 
 class InteractionController:
+    """玩家交互控制器，管理选择、移动与攻击命令的输入处理。"""
+
     def __init__(
         self,
         camera: Camera,
         game_map: GameMap,
         event_bus: IEventPublisher,
     ) -> None:
+        """初始化控制器并绑定相机、地图与事件总线。"""
         self._camera = camera
         self._game_map = game_map
         self._event_bus = event_bus

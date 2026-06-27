@@ -1,3 +1,5 @@
+"""Tactic intent types and data carried between AI decision layers."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -9,6 +11,8 @@ if TYPE_CHECKING:
 
 
 class TacticType(Enum):
+    """Discrete tactical intents dispatched to units for execution."""
+
     IDLE = auto()
     PATROL = auto()
     MOVE_TO = auto()
@@ -42,6 +46,8 @@ class TacticType(Enum):
 
 @dataclass(slots=True)
 class TacticIntent:
+    """Concrete order carrying a tactic type, priority, and optional target for a unit."""
+
     unit_id: str
     tactic_type: TacticType
     priority: int = 0
