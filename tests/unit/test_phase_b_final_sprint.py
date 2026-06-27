@@ -2,7 +2,6 @@
 
 Tests for:
 - SpritesheetParser (8-direction sprite loading)
-- WeaponSwitchSystem (B6: Multi-slot weapons)
 - AmmoTypeSystem (B7: AP/HE/SMOKE differentiation)
 - VehicleCrewSystem (B10: Tank crew management)
 - CasualtySystem (B11: Wounded soldier mechanics)
@@ -31,13 +30,6 @@ from pycc2.domain.systems.vehicle_crew_system import (
     CrewRole,
     CrewStatus,
     VehicleCrew,
-)
-
-# Import systems under test
-from pycc2.domain.systems.weapon_switch_system import (
-    WeaponSlot,
-    WeaponSlotConfig,
-    WeaponSwitchSystem,
 )
 
 # =============================================================================
@@ -218,166 +210,7 @@ class TestSpritesheetParser:
 
 
 # =============================================================================
-# TEST CLASS 2: WeaponSwitchSystem Tests (B6) - Target: 20 tests
-# =============================================================================
-
-
-class TestWeaponSwitchSystem:
-    """Test suite for B6: Weapon Switch System."""
-
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        """Set up test fixtures."""
-        self.unit = MockUnit()
-        self.ws_system = WeaponSwitchSystem(self.unit)
-
-    def test_initialization(self):
-        """Test system initializes with default state."""
-        assert self.ws_system.active_slot == WeaponSlot.PRIMARY
-        assert self.ws_system.active_weapon is not None
-        assert not self.ws_system.is_switching
-        assert len(self.ws_system.available_slots) >= 1
-
-    def test_default_active_slot_is_primary(self):
-        """Test primary weapon is active by default."""
-        assert self.ws_system.active_slot == WeaponSlot.PRIMARY
-
-    def test_can_switch_to_secondary(self):
-        """Test switching to secondary weapon slot."""
-        if WeaponSlot.SECONDARY in self.ws_system.available_slots:
-            can_switch = self.ws_system.can_switch(WeaponSlot.SECONDARY)
-            assert can_switch is True
-
-    def test_cannot_switch_to_same_slot(self):
-        """Test cannot switch to already active slot."""
-        can_switch = self.ws_system.can_switch(WeaponSlot.PRIMARY)
-        assert can_switch is False
-
-    def test_successful_switch_to_secondary(self):
-        """Test successful weapon switch to secondary."""
-        if WeaponSlot.SECONDARY in self.ws_system.available_slots:
-            result = self.ws_system.switch_to(WeaponSlot.SECONDARY)
-            assert result is True
-            assert self.ws_system.active_slot == WeaponSlot.SECONDARY
-
-    def test_switch_by_hotkey_1(self):
-        """Test hotkey 1 switches to primary."""
-        # First switch away from primary (if possible)
-        if (
-            len(self.ws_system.available_slots) > 1
-            and WeaponSlot.SECONDARY in self.ws_system.available_slots
-        ):
-            self.ws_system.switch_to(WeaponSlot.SECONDARY)
-
-            result = self.ws_system.switch_by_hotkey(1)
-            # Hotkey 1 should work to return to primary
-            assert isinstance(result, bool)
-
-    def test_switch_by_hotkey_2(self):
-        """Test hotkey 2 switches to secondary."""
-        if WeaponSlot.SECONDARY in self.ws_system.available_slots:
-            result = self.ws_system.switch_by_hotkey(2)
-            assert result is True
-            assert self.ws_system.active_slot == WeaponSlot.SECONDARY
-
-    def test_switch_by_hotkey_3_for_melee(self):
-        """Test hotkey 3 switches to melee."""
-        if WeaponSlot.MELEE in self.ws_system.available_slots:
-            result = self.ws_system.switch_by_hotkey(3)
-            assert result is True
-            assert self.ws_system.active_slot == WeaponSlot.MELEE
-
-    def test_invalid_hotkey_returns_false(self):
-        """Test invalid hotkey number returns False."""
-        result = self.ws_system.switch_by_hotkey(99)
-        assert result is False
-
-    def test_update_reduces_switching_flag(self):
-        """Test update() clears switching flag after animation time."""
-        if WeaponSlot.SECONDARY in self.ws_system.available_slots:
-            switched = self.ws_system.switch_to(WeaponSlot.SECONDARY)
-
-            if switched and self.ws_system.is_switching:
-                # Simulate enough time passing
-                self.ws_system.update(delta_ms=10000)
-
-                assert self.ws_system.is_switching is False
-            else:
-                # Switch may have failed due to cooldown or other reasons
-                pass  # Test is informational in this case
-
-    def test_switch_progress_starts_at_zero(self):
-        """Test switch progress is 0.0 when not switching."""
-        progress = self.ws_system.get_switch_progress()
-        assert progress == 0.0
-
-    def test_set_custom_weapon_to_slot(self):
-        """Test setting custom weapon to a slot."""
-        mock_weapon = {"name": "Custom Rifle", "damage": 50}
-        self.ws_system.set_weapon(WeaponSlot.PRIMARY, mock_weapon)
-
-        # Switch back to primary to verify
-        self.ws_system.switch_to(WeaponSlot.PRIMARY)
-        assert self.ws_system.active_weapon == mock_weapon
-
-    def test_remove_weapon_from_slot(self):
-        """Test removing weapon from a slot."""
-        self.ws_system.remove_weapon(WeaponSlot.MELEE)
-        # May return None if melee wasn't initialized
-        assert WeaponSlot.MELEE not in self.ws_system.get_all_weapons()
-
-    def test_get_all_weapons_returns_dict(self):
-        """Test get_all_weapons returns dictionary."""
-        all_weapons = self.ws_system.get_all_weapons()
-        assert isinstance(all_weapons, dict)
-        assert len(all_weapons) >= 1
-
-    def test_status_dict_structure(self):
-        """Test status dict has correct structure."""
-        status = self.ws_system.get_status_dict()
-
-        assert "active_slot" in status
-        assert "available_slots" in status
-        assert "is_switching" in status
-        assert "switch_progress" in status
-
-    def test_cooldown_prevents_rapid_switching(self):
-        """Test cooldown prevents rapid weapon switching."""
-        # First switch
-        self.ws_system.switch_to(WeaponSlot.SECONDARY)
-
-        # Try to switch back immediately (should fail due to cooldown)
-        self.ws_system.can_switch(WeaponSlot.PRIMARY)
-        # Note: cooldown may have passed in fast tests, so this is informational
-
-    def test_weapon_slot_enum_values(self):
-        """Test WeaponSlot enum has correct values."""
-        assert WeaponSlot.PRIMARY.value == "primary"
-        assert WeaponSlot.SECONDARY.value == "secondary"
-        assert WeaponSlot.MELEE.value == "melee"
-
-    def test_weapon_slot_config_attributes(self):
-        """Test WeaponSlotConfig has expected attributes."""
-        config = WeaponSlotConfig(slot=WeaponSlot.PRIMARY)
-
-        assert config.slot == WeaponSlot.PRIMARY
-        assert config.switch_cooldown_ms > 0
-        assert config.draw_time_ms > 0
-        assert config.holster_time_ms > 0
-
-    def test_multiple_rapid_switches_handled_gracefully(self):
-        """Test multiple rapid switch attempts don't crash."""
-        for _ in range(10):
-            self.ws_system.switch_by_hotkey(1)
-            self.ws_system.switch_by_hotkey(2)
-            self.ws_system.switch_by_hotkey(3)
-
-        # System should still be functional
-        assert self.ws_system.active_slot in WeaponSlot
-
-
-# =============================================================================
-# TEST CLASS 3: AmmoTypeSystem Tests (B7) - Target: 20 tests
+# TEST CLASS 2: AmmoTypeSystem Tests (B7) - Target: 20 tests
 # =============================================================================
 
 
@@ -1095,24 +928,6 @@ class TestEnhancedSoundBridge:
 class TestSystemIntegration:
     """Tests verifying multiple systems work together coherently."""
 
-    def test_weapon_and_ammo_integration(self):
-        """Test weapon switch system works with ammo system."""
-        unit = MockUnit()
-
-        ws = WeaponSwitchSystem(unit)
-        ammo = AmmoInventory(unit)
-
-        # Try to switch to secondary (may not succeed in all cases)
-        if WeaponSlot.SECONDARY in ws.available_slots:
-            ws.switch_to(WeaponSlot.SECONDARY)
-
-        # Switch to AP ammo
-        ammo.set_ammo_type(AmmoType.AP)
-
-        # Verify both systems maintain state
-        assert ammo.current_type == AmmoType.AP
-        assert ws.active_slot in WeaponSlot  # Just verify it's valid
-
     def test_crew_and_casualty_interaction(self):
         """Test vehicle crew and casualty systems can interact."""
         vehicle = MockUnit()
@@ -1138,32 +953,6 @@ class TestSystemIntegration:
             casualty.become_wounded()
 
         assert manager.active_casualty_count == 5
-
-    def test_full_combat_scenario_simulation(self):
-        """Simulate a mini combat scenario using multiple systems."""
-        # Create infantry unit
-        unit = MockUnit(name="Rifleman Alpha")
-
-        # Equip with weapon switch system
-        ws = WeaponSwitchSystem(unit)
-
-        # Load with differentiated ammo
-        ammo = AmmoInventory(unit)
-        ammo.set_ammo_type(AmmoType.HE)  # Switch to HE vs infantry
-
-        # Fire weapon (consume ammo)
-        if ammo.can_fire():
-            ammo.consume_round()
-
-        # Take damage and become casualty
-        casualty = Casualty(unit, CasualtyConfig(rescue_timeout_seconds=60.0))
-        casualty.become_wounded()
-
-        # Verify scenario state
-        assert ws.active_slot == WeaponSlot.PRIMARY
-        assert ammo.current_type == AmmoType.HE
-        assert casualty.state == CasualtyState.WOUNDED
-        assert unit.can_move is False
 
 
 # Run tests if executed directly

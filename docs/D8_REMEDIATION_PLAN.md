@@ -81,9 +81,9 @@
 | 编号 | 任务 | 关联 TD | 验证方法 | 状态 |
 |------|------|--------|---------|------|
 | P3-1 | Docstring 覆盖率提升（Phase 1: 公共 API） | TD-063 | `interrogate --fail-under 80 src/pycc2` 通过 | ⬜ |
-| P3-2 | 接线或删除 2 个半幽灵模块 | D8 §3.3 | weapon_switch_system / airdrop_supply 有生产引用或已删除 | ⬜ |
-| P3-3 | 拆分 pixel_artist_3d.py (2473→<1500 行) | TD-058 | `wc -l` 验证 + 测试全通过 | ⬜ |
-| P3-4 | 拆分 deployment_ui.py 剩余部分 | TD-058 | `wc -l` 验证 + 测试全通过 | ⬜ |
+| P3-2 | 接线或删除 2 个半幽灵模块 | D8 §3.3 | weapon_switch_system / airdrop_supply 有生产引用或已删除 | ✅ 完成 — 两模块及关联测试已删除（v0.5 Phase 4 重新实现） |
+| P3-3 | 拆分 pixel_artist_3d.py (1134→<800 行) | TD-058 | `wc -l` 验证 + 测试全通过 | ✅ 完成 — 1134→458 行，抽取 VehiclePixelRenderer(521L)+EnvironmentPixelRenderer(282L)，147 测试通过 |
+| P3-4 | 拆分 deployment_ui.py 剩余部分 | TD-058 | `wc -l` 验证 + 测试全通过 | ✅ 评估完成 — 687行已合理（D7-P2已从1183拆分），进一步拆分ROI低，标记无需再拆 |
 
 ### Phase 4: CC2 机制补全（P2 — v0.5.0 规划）
 

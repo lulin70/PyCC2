@@ -1,14 +1,10 @@
-"""Tests for Phase C P1+Phase D Core: SquadGroups, CombatLog, StrategicMap, Airdrop."""
+"""Tests for Phase C P1+Phase D Core: SquadGroups, CombatLog, StrategicMap."""
 
 import time
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from pycc2.domain.systems.airdrop_supply import (
-    AirdropSupplySystem,
-    SupplyType,
-)
 from pycc2.presentation.ui.combat_log import (
     CombatEvent,
     CombatEventType,
@@ -372,133 +368,6 @@ class TestStrategicMapView:
         sector.operations.extend(["Op1", "Op2"])
 
         assert len(sector.operations) == 2
-
-
-class TestAirdropSupplySystem:
-    """Test suite for D2 Airdrop Supply System (10 tests)."""
-
-    def test_initialization(self):
-        """Test system initializes empty."""
-        system = AirdropSupplySystem()
-
-        assert system.active_supply_count == 0
-        assert system.total_drops == 0
-
-    def test_spawn_supply_drop(self):
-        """Test spawning supply crate."""
-        system = AirdropSupplySystem()
-
-        crate = system.spawn_supply_drop(
-            lz_position=(10.0, 20.0),
-            supply_type=SupplyType.AMMO,
-            quantity=10,
-        )
-
-        assert crate.supply_type == SupplyType.AMMO
-        assert crate.quantity == 10
-        assert crate.position == (10.0, 20.0)
-        assert not crate.picked_up
-        assert system.active_supply_count == 1
-
-    def test_spawn_random_supply(self):
-        """Test spawning without specifying type."""
-        system = AirdropSupplySystem()
-
-        crate = system.spawn_supply_drop((5.0, 5.0))
-
-        assert isinstance(crate.supply_type, SupplyType)
-        assert 5 <= crate.quantity <= 15
-
-    def test_check_pickup_in_range(self, make_unit):
-        """Test pickup detection when in range."""
-        system = AirdropSupplySystem()
-        system.spawn_supply_drop((10.0, 10.0), SupplyType.AMMO)
-
-        unit = make_unit("Picker", 10.0, 10.0)
-
-        crate = system.check_pickup(unit, pickup_range=1.5)
-
-        assert crate is not None
-        assert crate.supply_type == SupplyType.AMMO
-
-    def test_check_pickup_out_of_range(self, make_unit):
-        """Test pickup detection when out of range."""
-        system = AirdropSupplySystem()
-        system.spawn_supply_drop((10.0, 10.0), SupplyType.MEDIKIT)
-
-        unit = make_unit("FarAway", 50.0, 50.0)
-
-        assert system.check_pickup(unit) is None
-
-    def test_apply_ammo_supply(self, make_unit):
-        """Test applying ammo supply to unit."""
-        system = AirdropSupplySystem()
-        crate = system.spawn_supply_drop((0, 0), SupplyType.AMMO, quantity=8)
-
-        unit = make_unit("Soldier")
-        unit.weapon_component = MagicMock()
-        unit.weapon_component.current_ammo = 2
-        unit.weapon_component.max_ammo = 10
-
-        result = system.apply_supply(unit, crate)
-
-        assert result is True
-        assert unit.weapon_component.current_ammo == 10  # min(10, 2+8)
-        assert crate.picked_up is True
-
-    def test_apply_medkit_supply(self, make_unit):
-        """Test applying medkit supply."""
-        system = AirdropSupplySystem()
-        crate = system.spawn_supply_drop((0, 0), SupplyType.MEDIKIT)
-
-        unit = make_unit("Wounded")
-        unit.health_component = MagicMock()
-        unit.health_component.current_hp = 40
-        unit.health_component.max_hp = 100
-
-        system.apply_supply(unit, crate)
-
-        assert unit.health_component.current_hp == 60  # 40 + 20
-
-    def test_apply_rations_supply(self, make_unit):
-        """Test applying rations for morale."""
-        system = AirdropSupplySystem()
-        crate = system.spawn_supply_drop((0, 0), SupplyType.RATIONS)
-
-        unit = make_unit("Hungry")
-        unit.morale_component = MagicMock()
-        unit.morale_component.current_morale = 70.0
-
-        system.apply_supply(unit, crate)
-
-        assert unit.morale_component.current_morale == 85.0  # 70 + 15
-
-    def test_double_pickup_prevented(self, make_unit):
-        """Test same crate can't be picked twice."""
-        system = AirdropSupplySystem()
-        system.spawn_supply_drop((0, 0), SupplyType.AMMO)
-
-        unit = make_unit("Greedy")
-        unit.weapon_component = MagicMock()
-        unit.weapon_component.current_ammo = 5
-        unit.weapon_component.max_ammo = 10
-
-        first = system.check_pickup(unit)
-        system.apply_supply(unit, first)
-
-        second = system.check_pickup(unit)
-
-        assert second is None
-
-    def test_scenario_supplies_spawning(self):
-        """Test spawning multiple supplies for scenario."""
-        system = AirdropSupplySystem()
-
-        lzs = [(10.0, 10.0), (20.0, 20.0), (30.0, 30.0)]
-        crates = system.spawn_scenario_supplies(lzs, supplies_per_lz=3)
-
-        assert len(crates) == 9
-        assert system.active_supply_count == 9
 
 
 if __name__ == "__main__":
