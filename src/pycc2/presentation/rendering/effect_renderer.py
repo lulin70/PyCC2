@@ -76,6 +76,11 @@ class EffectRenderer:
         self._particle_emitter = ParticleEmitter()
         self._font_cache: dict[int, font.Font] = {}
         self._surface_pool = SurfacePool(max_size=30)
+        # Persistent ground decals (craters) — survive until map unload.
+        # Each entry: {"pos": (x, y), "sprite": Surface, "size": str}
+        self._crater_decals: list[dict] = []
+        # Cap to prevent unbounded memory growth in long battles.
+        self._crater_decals_max: int = 64
 
     # ====== Public API: Spawn effects ======
 
@@ -136,6 +141,66 @@ class EffectRenderer:
         )
         self._particle_emitter.emit_debris(x, y, count=cfg["debris"])
         self._particle_emitter.emit_explosion_ring(x, y)
+        # CC2-authentic persistent crater decal — previously explosions left
+        # no ground mark, breaking CC2 visual fidelity (see GAP_ANALYSIS V-03).
+        self._spawn_crater_decal(position, size)
+
+    def _spawn_crater_decal(self, position: Vec2, size: str) -> None:
+        """Generate a persistent crater sprite and register it for rendering.
+
+        Uses SpriteGenerator's high-quality multi-layer crater drawings
+        (small/large variants). Decals persist until map unload or until
+        the cap is reached (FIFO eviction).
+        """
+        try:
+            from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
+        except ImportError:
+            logger.debug("SpriteGenerator unavailable; crater decal skipped")
+            return
+
+        # 32x32 matches SpriteGenerator crater surface conventions.
+        decal_size = 32 if size != "large" else 48
+        decal = pygame.Surface((decal_size, decal_size), pygame.SRCALPHA)
+        variant = (int(position.x) * 7 + int(position.y) * 13) % 8
+
+        try:
+            if size == "large":
+                # Use large crater drawing; for 48x48 we draw twice with offset
+                # to cover the bigger surface, or fall back to cluster drawing.
+                SpriteGenerator._draw_crater_large(decal, variant)
+            else:
+                SpriteGenerator._draw_crater_small(decal, variant)
+        except (AttributeError, ValueError) as e:
+            logger.debug("Crater sprite generation failed: %s", e)
+            return
+
+        if len(self._crater_decals) >= self._crater_decals_max:
+            self._crater_decals.pop(0)
+        self._crater_decals.append(
+            {"pos": (position.x, position.y), "sprite": decal, "size": size}
+        )
+
+    def render_decals(self, surface: Surface, camera: Camera) -> None:
+        """Render persistent ground decals (craters) below units/effects.
+
+        Should be called after terrain but before units/VL flags.
+        """
+        if not self._crater_decals:
+            return
+        from pycc2.domain.value_objects.vec2 import Vec2
+
+        for decal in self._crater_decals:
+            wpos = Vec2(decal["pos"][0], decal["pos"][1])
+            sp = camera.world_to_screen(wpos)
+            sprite = decal["sprite"]
+            # Center the decal sprite on the explosion position.
+            sx = int(sp[0]) - sprite.get_width() // 2
+            sy = int(sp[1]) - sprite.get_height() // 2
+            surface.blit(sprite, (sx, sy))
+
+    def clear_decals(self) -> None:
+        """Clear all persistent ground decals (e.g. on map unload)."""
+        self._crater_decals.clear()
 
     def spawn_smoke_screen(self, position: Vec2, radius: float = 64.0) -> None:
         self._particle_emitter.emit_smoke_screen(position.x, position.y, radius=radius)

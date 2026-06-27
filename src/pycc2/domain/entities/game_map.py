@@ -37,6 +37,31 @@ def _angle_diff(a: float, b: float) -> float:
     return diff
 
 
+def _resolve_vp_points(obj: dict) -> int:
+    """Resolve Victory Location point value from JSON objective data.
+
+    CC2 authenticity (per GAP_ANALYSIS.md):
+      - Bridge = 40 pts
+      - Road = 30 pts
+      - Landing Zone (LZ) = 20 pts
+      - Regular = 10 pts
+
+    Priority: explicit "points" field > id/name keyword inference > default 10.
+    """
+    explicit = obj.get("points")
+    if isinstance(explicit, (int, float)) and explicit > 0:
+        return int(explicit)
+
+    text = f"{obj.get('id', '')} {obj.get('name', '')} {obj.get('type', '')}".lower()
+    if "bridge" in text:
+        return 40
+    if "road" in text:
+        return 30
+    if "lz" in text or "landing" in text:
+        return 20
+    return 10
+
+
 @dataclass(slots=True)
 class MapObjective:
     id: str
@@ -45,6 +70,9 @@ class MapObjective:
     radius: int = 1
     required: bool = True
     owner: str | None = None
+    # CC2-authentic VP point value (Bridge=40, Road=30, LZ=20, Regular=10-19).
+    # 0 hides the numeral on the map (backwards-compatible default).
+    points: int = 0
 
 
 @dataclass(slots=True)
@@ -113,6 +141,7 @@ class GameMap:
                 radius=obj.get("radius", 1),
                 required=obj.get("required", True),
                 owner=obj.get("owner"),
+                points=_resolve_vp_points(obj),
             )
             for obj in data.get("objectives", [])
         ]

@@ -1,7 +1,7 @@
 # PyCC2 技术债清单
 
-> **版本**: v0.4.0 | **日期**: 2026-06-26 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-06-26 (v0.4.0 质量冲刺 Phase 1-7 完成后更新) | **P0未解决**: 0 | **P1未解决**: 1 | **P2未解决**: 7
+> **版本**: v0.4.0 | **日期**: 2026-06-27 | **原则**: 不留技术债，发现即记录，按计划清理
+> **上次核查**: 2026-06-27 (v0.4.0 D8 Phase 2 完成后更新) | **P0未解决**: 0 | **P1未解决**: 1 | **P2未解决**: 9
 > **状态**: ✅ P0全部清除 | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (Phase 2) | ✅ Marker 覆盖率 100% (Phase 5) | ⚠️ 12 文件 >1000 行待拆分 | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
 
 ---
@@ -12,13 +12,14 @@
 |------|------|---------|---------|
 | 🔴 P0 致命（游戏不可玩） | 0 | — | ✅ 全部清除 |
 | 🟡 P1 严重（功能受损） | 2 | 🟡 严重 | ❌ 未解决 |
-| 🟢 P2 中等（质量/维护） | 14 | 🟢 中等 | ❌ 未解决 |
+| 🟢 P2 中等（质量/维护） | 16 | 🟢 中等 | ❌ 未解决 |
 | ~~M2新增发现 (TD-045~049)~~ | 5 | — | ✅ 已解决 |
 | ~~7-dimension review新增 (TD-050~056)~~ | 7 | — | ✅ **已解决** |
 | ~~v0.3.11 DevSquad审计新增 (TD-057~059)~~ | 3 | — | ✅ **TD-057, TD-060 已解决** |
 | 🆕 v0.3.13 批判性审核新增 | 2 | 🟢 P2 | ❌ 未解决 |
+| 🆕 v0.4.0 D8 Phase 2 新增 (TD-065~066) | 2 | 🟢 P2 | ❌ 未解决 |
 | v2.0旧条目（声称已解决） | 20 | — | ⚠️ 待验证 |
-| **合计（活跃）** | **18** | — | **44/62 已解决** |
+| **合计（活跃）** | **20** | — | **44/64 已解决** |
 
 ---
 
@@ -552,6 +553,43 @@
   5. 再拆 `specialist_handlers`（deploy_smoke/scavenge_ammo/rally_nco/heal_wounded/call_artillery/mount_tank/dismount_tank）
   6. 最后评估是否拆 `movement_handlers`（patrol/retreat/take_cover/regroup，收益最低，可不拆）
 - **本次已完成**: deployment_ui.py 拆分（commit 88fe1b9），tactic_executor.py 评估并记录
+
+### 🟢 TD-065: 车辆损伤视觉反馈不区分类型 (P2-2 延期) — D8 Phase 2 评估
+
+- **描述**: D8 Phase 2 (CC2 视觉打磨) 评估 P2-2 时发现，当前 `Unit._damage_state` / `update_damage_vfx` 是通用实现（按 HP 比例生成 smoke + fire 粒子），未区分载具部件损伤（履带/炮塔/发动机）
+- **影响**: CC2 原版载具损伤有差异化视觉（履带断裂→无法移动；炮塔卡死→无法开火；发动机起火→持续掉血），PyCC2 当前仅显示通用烟/火，玩家无法从视觉判断载具具体受损部位
+- **文件**: `src/pycc2/domain/entities/unit.py` (line 124-130 `_damage_state`/`_smoke_particles`/`_fire_particles`/`_damage_vfx_timer`), `src/pycc2/domain/systems/vehicle_crew_system.py`
+- **评估日期**: 2026-06-27 (v0.4.0 D8 Phase 2)
+- **不立即修复的理由**:
+  1. **核心逻辑改动**: 需在 `unit.py` 中新增 `damage_components: dict[str, DamageState]` 字段（tracks/turret/engine），并修改 `update_damage_vfx` 根据 `damage_components` 渲染不同视觉
+  2. **战斗结算链路改动**: `combat_mechanics_enhanced.py` 需根据击穿位置判定具体部件损伤，当前只有总 HP 扣减
+  3. **回归风险高**: 载具损伤状态影响移动/开火/视野多个子系统，改动需全面回归测试
+- **状态**: ❌ 未解决 — 延期至 v0.5
+- **v0.5 实施计划**:
+  1. 在 `Unit` 新增 `damage_components` 字段（仅载具生效）
+  2. 扩展 `CombatState` 增加 `hit_location` 枚举（hull/turret/track/engine）
+  3. 修改 `ballistic_engine` 在击穿判定时记录 hit_location
+  4. 扩展 `update_damage_vfx` 根据受损部件渲染差异化视觉（履带→黑色烟雾+火花；炮塔→卡死图标；发动机→浓烟+火）
+  5. 新增 8+ 单测覆盖各部件损伤场景
+
+### 🟢 TD-066: 烟雾粒子效果未统一 (P2-3 延期) — D8 Phase 2 评估
+
+- **描述**: D8 Phase 2 (CC2 视觉打磨) 评估 P2-3 时发现，`CC2SmokeEffect`（10-16 个不规则多边形烟团，模拟大面积烟幕）存在于 `cc2_combat_effects.py` 但未接入生产环境的 `spawn_smoke_screen` 调用链
+- **影响**: 当前生产环境烟雾使用通用圆形粒子，缺乏 CC2 原版的不规则边缘扩散效果；两套烟雾实现并存（`EffectRenderer.spawn_smoke_screen` vs `CC2SmokeEffect`）造成维护混乱
+- **文件**: `src/pycc2/presentation/rendering/cc2_combat_effects.py` (line 326-410 `CC2SmokeEffect`), `src/pycc2/presentation/rendering/effect_renderer.py` (`spawn_smoke_screen`)
+- **评估日期**: 2026-06-27 (v0.4.0 D8 Phase 2)
+- **不立即修复的理由**:
+  1. **组件集成复杂**: `CC2SmokeEffect` 是独立类，需在 `EffectRenderer` 中新增 `_cc2_smoke_effects: list[CC2SmokeEffect]` 字段，并在 `update`/`render` 方法中协调两套粒子生命周期
+  2. **API 不兼容**: `CC2SmokeEffect.render(surface, camera_offset)` 使用 tuple 偏移，而 `EffectRenderer` 使用 `Camera` 对象，需适配层转换
+  3. **性能验证缺失**: `CC2SmokeEffect` 每个烟团 12 顶点多边形，多个烟幕叠加时 FPS 影响未验证
+- **状态**: ❌ 未解决 — 延期至 v0.5
+- **v0.5 实施计划**:
+  1. 在 `EffectRenderer` 新增 `_cc2_smoke_effects` 字段
+  2. 修改 `spawn_smoke_screen` 在创建通用粒子的同时实例化 `CC2SmokeEffect`
+  3. 在 `EffectRenderer.update` 中调用 `CC2SmokeEffect.update` 并清理 `alive=False` 实例
+  4. 在 `EffectRenderer.render_smoke` 中先渲染 `CC2SmokeEffect`（底层），再渲染通用粒子（上层）
+  5. 新增性能基准测试（10 个烟幕同屏 FPS ≥ 50）
+  6. 新增 5+ 单测覆盖 `CC2SmokeEffect` 集成
 
 ---
 

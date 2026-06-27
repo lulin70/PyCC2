@@ -28,6 +28,12 @@ from pycc2.presentation.rendering.sprite_cache_manager import SpriteCacheManager
 from pycc2.presentation.rendering.surface_pool import SurfacePool
 from pycc2.presentation.rendering.tile_cache import TileCache
 
+# VP numeral pulse animation constants (mirrors ui_overlay_renderer.PULSE_*).
+# Module-level to avoid per-instance allocation on the hot render path.
+_VP_PULSE_BASE_ALPHA = 200
+_VP_PULSE_AMPLITUDE = 55
+_VP_PULSE_FREQUENCY = 2.0
+
 
 class SpriteRenderer:
     """Main rendering coordinator — composes SpriteCacheManager and EffectRenderer.
@@ -152,6 +158,7 @@ class SpriteRenderer:
             self.draw_surface.fill(bg_color)
 
         self._draw_terrain(game_map, camera)
+        self._effect_renderer.render_decals(self.draw_surface, camera)
         if debug_mode:
             self._draw_debug_grid(game_map, camera)
         self._draw_vl_flags(game_map, camera)
@@ -250,7 +257,16 @@ class SpriteRenderer:
             on_screen = -margin < sx < screen_w + margin and -margin < sy < screen_h + margin
 
             if on_screen:
-                self._draw_vl_flag(self.draw_surface, sx, sy, owner, is_contested, capture_progress)
+                vp_points = getattr(obj, "points", None)
+                self._draw_vl_flag(
+                    self.draw_surface,
+                    sx,
+                    sy,
+                    owner,
+                    is_contested,
+                    capture_progress,
+                    vp_points,
+                )
             else:
                 off_screen_vls.append((tile_x, tile_y, owner))
 
@@ -265,8 +281,16 @@ class SpriteRenderer:
         owner: str,
         is_contested: bool,
         capture_progress: float,
+        points: int | None = None,
     ) -> None:
-        """Draw a single Victory Location flag on the map."""
+        """Draw a single Victory Location flag with optional VP number overlay.
+
+        CC2 original style: building-roof large yellow numeral with black
+        outline and subtle pulse animation. Previously the production path
+        only drew the flag polygon; the VP value was rendered solely in the
+        ui_overlay_renderer fallback. This fix restores CC2-authentic VP
+        display on the main render path.
+        """
         pygame.draw.line(surface, (80, 80, 80), (x, y), (x, y - 20), 2)
 
         if owner == "allies":
@@ -302,6 +326,41 @@ class SpriteRenderer:
             glow_surf = self._get_pooled_surface(24, 24)
             pygame.draw.circle(glow_surf, (255, 255, 100, alpha // 3), (12, 12), 12)
             surface.blit(glow_surf, (x - 12, y - 22))
+
+        # VP value numeral (CC2-authentic: large gold number with black outline)
+        # Restored from ui_overlay_renderer fallback path; font enlarged from
+        # 38 -> 52 to match CC2 building-roof numeral proportions.
+        if points is not None and isinstance(points, (int, float)) and points > 0:
+            try:
+                vp_font = pygame.font.Font(None, 52)
+                vp_text = str(int(points))
+                pulse_scale = math.sin(time.time() * 3.0) * 0.05 + 1.0
+                pulse_alpha = int(
+                    _VP_PULSE_BASE_ALPHA
+                    + _VP_PULSE_AMPLITUDE * abs(math.sin(time.time() * _VP_PULSE_FREQUENCY))
+                )
+                text_color = (255, 220, 100)
+                base_x = x - vp_font.size(vp_text)[0] // 2
+                base_y = y - 48
+
+                # 4-direction 1px black outline for legibility over any terrain
+                for dx, dy in ((-1, -1), (1, -1), (-1, 1), (1, 1)):
+                    outline_surf = vp_font.render(vp_text, True, (0, 0, 0))
+                    outline_surf.set_alpha(pulse_alpha)
+                    surface.blit(outline_surf, (int(base_x + dx * pulse_scale), int(base_y + dy * pulse_scale)))
+
+                # Main gold numeral with subtle pulse scale
+                text_surf = vp_font.render(vp_text, True, text_color)
+                text_surf.set_alpha(pulse_alpha)
+                if pulse_scale != 1.0:
+                    new_w = max(1, int(text_surf.get_width() * pulse_scale))
+                    new_h = max(1, int(text_surf.get_height() * pulse_scale))
+                    text_surf = pygame.transform.scale(text_surf, (new_w, new_h))
+                final_x = int(base_x - (text_surf.get_width() - vp_font.size(vp_text)[0]) // 2)
+                final_y = int(base_y - (text_surf.get_height() - vp_font.size(vp_text)[1]) // 2)
+                surface.blit(text_surf, (final_x, final_y))
+            except (AttributeError, ValueError):
+                pass
 
     def _draw_vl_edge_arrows(
         self,
@@ -1019,6 +1078,10 @@ class SpriteRenderer:
 
     def spawn_explosion(self, position: Vec2, size: str = "medium") -> None:
         self._effect_renderer.spawn_explosion(position, size)
+
+    def clear_decals(self) -> None:
+        """Clear persistent ground decals (call on map unload / battle end)."""
+        self._effect_renderer.clear_decals()
 
     def spawn_smoke_screen(self, position: Vec2, radius: float = 64.0) -> None:
         self._effect_renderer.spawn_smoke_screen(position, radius)

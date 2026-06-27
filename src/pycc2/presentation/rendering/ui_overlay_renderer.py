@@ -315,6 +315,8 @@ class UIOverlayRenderer:
 
         Cyan dashed lines show queued move waypoints.
         Orange dashed lines show queued attack targets.
+        Each waypoint is numbered (1, 2, 3...) to indicate execution order,
+        matching CC2 original command-queue visualization.
         """
         if self._ctx.offscreen is None:
             return
@@ -333,7 +335,7 @@ class UIOverlayRenderer:
 
             prev_screen = camera.world_to_screen(upos)
 
-            for cmd in unit._command_queue:
+            for idx, cmd in enumerate(unit._command_queue, start=1):
                 tx = cmd.get("target_x", 0)
                 ty = cmd.get("target_y", 0)
                 target_world = Vec2(tx * 32, ty * 32)
@@ -345,11 +347,29 @@ class UIOverlayRenderer:
                 cmd_type = cmd.get("type", "move")
                 if cmd_type == "attack":
                     self._draw_dashed_line(start_pos, end_pos, (255, 165, 0), dash_len=6)
+                    # Attack marker: orange crosshair
+                    pygame.draw.circle(offscreen, (255, 165, 0), end_pos, 5, 1)
+                    pygame.draw.line(offscreen, (255, 165, 0), (end_pos[0] - 7, end_pos[1]), (end_pos[0] + 7, end_pos[1]), 1)
+                    pygame.draw.line(offscreen, (255, 165, 0), (end_pos[0], end_pos[1] - 7), (end_pos[0], end_pos[1] + 7), 1)
                 else:
                     self._draw_dashed_line(start_pos, end_pos, (0, 220, 220), dash_len=6)
+                    # Move marker: cyan circle
+                    pygame.draw.circle(offscreen, (0, 220, 220), end_pos, 4, 1)
 
-                # Waypoint circle
-                pygame.draw.circle(offscreen, (0, 220, 220), end_pos, 4, 1)
+                # Waypoint number (CC2-authentic: execution order badge)
+                try:
+                    font = pygame.font.Font(None, 18)
+                    num_text = str(idx)
+                    num_surf = font.render(num_text, True, (255, 255, 255))
+                    # Black outline for legibility
+                    outline_surf = font.render(num_text, True, (0, 0, 0))
+                    badge_x = end_pos[0] + 6
+                    badge_y = end_pos[1] - 8
+                    for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                        offscreen.blit(outline_surf, (badge_x + dx, badge_y + dy))
+                    offscreen.blit(num_surf, (badge_x, badge_y))
+                except (AttributeError, ValueError):
+                    pass
 
                 prev_screen = target_screen
 

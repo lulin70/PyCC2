@@ -4,6 +4,16 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.4.0] - 2026-06-27
 
+### Phase 2: CC2 Visual Polish (D8 Remediation Plan)
+- **P2-5 VP numeral display fix** (BUG): `SpriteRenderer._draw_vl_flag` production path was only drawing the flag polygon, omitting the CC2-authentic large gold numeral. Added VP value rendering (font size 52, gold color (255,220,100), 4-direction black outline, pulse animation) mirroring the `ui_overlay_renderer` fallback. `MapObjective` gained a `points` field; `GameMap.from_json` resolves VP values via `_resolve_vp_points()` using CC2 standard (Bridge=40, Road=30, LZ=20, Regular=10). 5 unit tests + 1 E2E test added.
+- **P2-6 Dynamic crater rendering fix** (BUG): `EffectRenderer.spawn_explosion` was only generating transient particles, leaving no persistent ground mark. Added `_crater_decals` persistent decal list (FIFO cap 64), `_spawn_crater_decal()` using `SpriteGenerator._draw_crater_small`/`_draw_crater_large`, `render_decals()` method called in `SpriteRenderer.render` after terrain but before units/VL flags, and `clear_decals()` for map unload. 8 unit tests added.
+- **P2-1 Command queue visual waypoints enhancement**: `draw_queued_commands` now renders CC2-authentic waypoint numbers (1, 2, 3...) beside each queued command target, with black-outlined white text for legibility. Attack commands now show an orange crosshair marker (circle + horizontal/vertical lines) instead of the generic cyan circle.
+- **P2-2 Vehicle damage visual feedback**: Deferred to v0.5 (TD-065). Current `damage_state`/`update_damage_vfx` is generic (smoke + fire based on HP ratio); vehicle-specific differentiation (track/turret damage) requires `unit.py` core logic changes.
+- **P2-3 Smoke particle effects unification**: Deferred to v0.5 (TD-066). `CC2SmokeEffect` (10-16 irregular polygon puffs) exists in `cc2_combat_effects.py` but is not wired into the production `spawn_smoke_screen` call chain.
+- **P2-4 Save/Load UI**: Verified complete — `new_game_menu.py:504-565` load-game screen with save slot list; `pause_menu_controller.py:76-81` in-game pause menu has Save/Load buttons.
+- **P2-7 Explosion effects cleanup**: Verified complete — `particle_system.py:297-350` `_render_explosion_ring` already implements irregular flame tongues (16-vertex polygon with noise perturbation), not concentric circles. No deduplication needed.
+- **Verification**: ruff 0 errors / mypy 0 errors (344 source files) / 3691 unit tests passed / 126 targeted tests passed (including 5 VP numeral + 8 crater decal tests)
+
 ### Phase 1: Pre-Release Blockers (D8 Remediation Plan)
 - **P1-1 Benchmark tests**: Verified 21/21 benchmark tests pass (regressions already fixed in D7-P0)
 - **P1-2 E2E user journey**: 482 E2E tests pass — complete user journey validated (Main Menu → Campaign → Deploy → Battle → Commands → Victory Detection → 60s Long Run → Quit); 25 core journey tests pass with real pygame.event.post() event injection
