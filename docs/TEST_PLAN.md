@@ -1,4 +1,4 @@
-# PyCC2 测试计划 v0.3.42 — 质量冲刺后全量 (4369 tests)
+# PyCC2 测试计划 v0.4.0 — 质量冲刺后全量 (4369 tests)
 
 ## 1. 测试金字塔
 
@@ -31,7 +31,7 @@ PyCC2 采用经典的测试金字塔策略，强调**底层单元测试为主，
 | **性能基准 (Benchmark)** | 20 | 0.5% | < 2min | 核心开发 | 每日构建 | `@pytest.mark.benchmark`（路径自动） |
 | **慢测试 (Slow，正交)** | 14 | 0.3% | ~3.5min | 核心开发 | CI slow job | `@pytest.mark.slow`（显式） |
 
-**总计: 4369 个测试用例（v0.3.42 质量冲刺后全量）**
+**总计: 4369 个测试用例（v0.4.0 质量冲刺后全量）**
 
 **Marker 策略**（Phase 5 新增）：
 - 路径自动标记：`tests/unit/` → `unit`，`tests/integration/` → `integration`，`tests/e2e/` → `e2e`，`tests/benchmark/` → `benchmark`

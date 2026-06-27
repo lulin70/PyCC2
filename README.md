@@ -1,6 +1,6 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.3.42 | Beta Candidate | June 19, 2026**
+**v0.4.0 | Beta Candidate | June 19, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
@@ -19,7 +19,7 @@
 
 ---
 
-## What's New in v0.3.42
+## What's New in v0.4.0
 
 ### v0.3.35 — Quick Wins (2026-06-11)
 - Deleted AnimationController dead code (430 lines, 90% overlap with existing systems)
@@ -609,4 +609,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Generated on 2026-06-16 | v0.3.42 (Beta Candidate) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>
+<p align="center"><sub>Generated on 2026-06-16 | v0.4.0 (Beta Candidate) | <a href="docs/GAP_ANALYSIS.md">GAP Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a></sub></p>

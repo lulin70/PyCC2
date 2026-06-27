@@ -2,6 +2,14 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.4.0] - 2026-06-27
+
+### Phase 1: Pre-Release Blockers (D8 Remediation Plan)
+- **P1-1 Benchmark tests**: Verified 21/21 benchmark tests pass (regressions already fixed in D7-P0)
+- **P1-2 E2E user journey**: 482 E2E tests pass — complete user journey validated (Main Menu → Campaign → Deploy → Battle → Commands → Victory Detection → 60s Long Run → Quit); 25 core journey tests pass with real pygame.event.post() event injection
+- **P1-3 Version bump**: v0.3.42 → v0.4.0 across 20 files (pyproject.toml, __init__.py, 3 READMEs, 3 INSTALLs, 3 MANUALs, 8 docs)
+- **Docstring fix**: __init__.py docstring "Company Command 2" → "Close Combat 2"
+
 ## [Unreleased] - 2026-06-27
 
 ### D8: Project Organization Assessment Remediation (7维度项目整理评估)

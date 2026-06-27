@@ -1,8 +1,8 @@
 # PyCC2 Development Roadmap
 
-**v0.3.42 | June 14, 2026 | Based on DevSquad 7-Role Analysis**
+**v0.4.0 | June 14, 2026 | Based on DevSquad 7-Role Analysis**
 
-> **Current Version**: v0.3.42 | **Tests**: ~3985 (all passing) | **CC2 Fidelity**: ~88%
+> **Current Version**: v0.4.0 | **Tests**: ~3985 (all passing) | **CC2 Fidelity**: ~88%
 > **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish in Progress**
 
 ---
@@ -21,7 +21,7 @@ The project now has **~3985 passing tests**, **63 historical maps**, **277 unit 
 
 ## Current Status Dashboard
 
-| Metric | v0.1.1 (May 23) | v0.3.42 (June 13) | Change |
+| Metric | v0.1.1 (May 23) | v0.4.0 (June 13) | Change |
 |--------|------------------|---------------------|--------|
 | **Test Count** | 2767 (1 failed) | **~3985** (all pass) | ✅ +1218, 100% pass |
 | **Test Pass Rate** | 99.96% | **100%** | ✅ Perfect |
@@ -41,7 +41,7 @@ The project now has **~3985 passing tests**, **63 historical maps**, **277 unit 
 | **E2E Tests** | None | **38-phase real SDL** | ✅ New feature |
 | **Visual Polish** | None | **Death fade, flash, weather, shells** | ✅ v0.3.31-v0.3.34 |
 | **Architecture** | God classes | **SRP splits, -39% violations** | ✅ v0.3.23-v0.3.29 |
-| **SpriteRenderer** | 1529-line God class | **Coordinator + 2 sub-classes** | ✅ v0.3.42 |
+| **SpriteRenderer** | 1529-line God class | **Coordinator + 2 sub-classes** | ✅ v0.4.0 |
 
 ---
 
@@ -57,7 +57,7 @@ The project now has **~3985 passing tests**, **63 historical maps**, **277 unit 
 | **Security** | ✅ EXCELLENT | — | HMAC integrity protection (permissions 0o600, key validation), input validation complete, no injection vectors |
 | **Performance** | ✅ GOOD | ↑ from ADEQUATE | Surface pool LRU unified (6/6 consumers), dirty rectangle optimization, terrain cache, tank rotation cache, viewport culling |
 | **Error Handling** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Bare except replaced with specific exceptions; key paths have error recovery; some modules need enhancement |
-| **Documentation** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Version numbers unified to v0.3.42; doc-code sync mechanism pending |
+| **Documentation** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Version numbers unified to v0.4.0; doc-code sync mechanism pending |
 
 **Scoring Scale**: EXCELLENT > GOOD > ADEQUATE > NEEDS_IMPROVEMENT > POOR
 
@@ -147,7 +147,7 @@ The project now has **~3985 passing tests**, **63 historical maps**, **277 unit 
 | UI panel transition animations | P2 | ✅ Complete | v0.3.32 |
 | Combat particle enrichment (5 types per hit) | P2 | ✅ Complete | v0.3.32 |
 
-#### v0.3.35-v0.3.42 — Infrastructure & Cleanup (June 11-13)
+#### v0.3.35-v0.4.0 — Infrastructure & Cleanup (June 11-13)
 
 | Task | Priority | Status | Notes |
 |------|----------|--------|-------|
@@ -272,7 +272,7 @@ The project now has **~3985 passing tests**, **63 historical maps**, **277 unit 
 | v0.3.17-v0.3.23 | Cinematic+Opt | M3-mid | ~88% | 3700 | Camera effects, achievements, shadows, trails, optimization | ✅ Completed |
 | v0.3.25-v0.3.30 | Arch Cleanup | M3-late | ~88% | 3850 | Circular deps, GameLoopAssembler, E2E upgrade, doc sync | ✅ Completed |
 | v0.3.31-v0.3.34 | Visual Polish | M3-polish | ~88% | 3920 | Desaturation, weather, death fade, screen flash, ghost fixes | ✅ Completed |
-| **v0.3.42** | **Beta Candidate** | **M3** | **~88%** | **~3985** | **ThemeManager, env audio, dirty rect, SRP splits, security** | ✅ **Current** |
+| **v0.4.0** | **Beta Candidate** | **M3** | **~88%** | **~3985** | **ThemeManager, env audio, dirty rect, SRP splits, security** | ✅ **Current** |
 | v0.4-alpha | Polish Complete | M3-final | ~90% | 4000 | Command queue UI + Damage visuals + Save/Load UI | ⬜ Next |
 | v0.5-alpha | Maintainable | M4 | ~92% | 4100 | Architecture refactor + Tech debt cleanup | ⬜ Planned |
 | v0.6-alpha | Sustainable | M5 | ~95% | 4200 | CI enhancement + Docs + E2E expansion | ⬜ Planned |

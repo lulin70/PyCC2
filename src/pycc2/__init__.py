@@ -1,9 +1,9 @@
 """
-PyCC2 - Python Company Command 2
+PyCC2 - Python Close Combat 2
 Tactical Infantry Combat Simulator
 """
 
-__version__ = "0.3.42"
+__version__ = "0.4.0"
 __author__ = "PyCC2 Team"
 __license__ = "MIT"
 

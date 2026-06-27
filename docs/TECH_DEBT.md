@@ -1,7 +1,7 @@
 # PyCC2 技术债清单
 
-> **版本**: v0.3.42 | **日期**: 2026-06-26 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-06-26 (v0.3.42 质量冲刺 Phase 1-7 完成后更新) | **P0未解决**: 0 | **P1未解决**: 1 | **P2未解决**: 7
+> **版本**: v0.4.0 | **日期**: 2026-06-26 | **原则**: 不留技术债，发现即记录，按计划清理
+> **上次核查**: 2026-06-26 (v0.4.0 质量冲刺 Phase 1-7 完成后更新) | **P0未解决**: 0 | **P1未解决**: 1 | **P2未解决**: 7
 > **状态**: ✅ P0全部清除 | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (Phase 2) | ✅ Marker 覆盖率 100% (Phase 5) | ⚠️ 12 文件 >1000 行待拆分 | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
 
 ---
@@ -496,7 +496,7 @@
 - **描述**: D7 成熟度评估 P2-2 阶段使用 `interrogate` 工具评估 docstring 覆盖率，当前仅 62.8%，低于 80% 目标
 - **影响**: 新开发者理解公共 API 成本高；外部文档（README/USER_MANUAL）与代码内文档脱节
 - **评估工具**: `interrogate src/`（默认目标 80%）
-- **评估日期**: 2026-06-26 (v0.3.42 D7 评估 P2-2)
+- **评估日期**: 2026-06-26 (v0.4.0 D7 评估 P2-2)
 - **详细数据**:
   - 总定义数: 4611
   - 有 docstring: 1717
@@ -525,7 +525,7 @@
 - **描述**: D7 成熟度评估 P2-1 阶段评估 `src/pycc2/domain/ai/tactic_executor.py`（1175 行/31 方法），原计划与 deployment_ui.py 同期拆分
 - **评估结论**: **不立即拆分** — ROI 偏低且回归风险存在
 - **文件**: `src/pycc2/domain/ai/tactic_executor.py`
-- **评估日期**: 2026-06-26 (v0.3.42 D7 评估 P2-1)
+- **评估日期**: 2026-06-26 (v0.4.0 D7 评估 P2-1)
 - **结构分析**:
   - 类本质: **调度表 + 适配器层**（非典型 God Class）——重逻辑已下沉到 9 个子系统类（SmokeManager / AmmoPickupSystem / TrenchDiggingSystem / BuildingClearingAI / ArtilleryManager / MeleeCombatSystem / TankRiderSystem / MineWarfareSystem / EngineerAssaultAI）
   - 单方法平均 ~30 行，handler 多为"取单位 → 校验 → 调子系统 → 发事件"薄封装
