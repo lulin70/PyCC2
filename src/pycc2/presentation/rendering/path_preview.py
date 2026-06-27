@@ -47,8 +47,7 @@ class PreviewPath:
 
 @dataclass
 class PathPreview:
-    """
-    Move command path preview system.
+    """Move command path preview system.
 
     Features:
     - A* path calculation with visualization
@@ -85,8 +84,7 @@ class PathPreview:
         game_map: GameMap,
         enemy_units: list[Unit] | None = None,
     ) -> PreviewPath:
-        """
-        Calculate path from unit position to target.
+        """Calculate path from unit position to target.
 
         Args:
             unit: The moving unit
@@ -96,6 +94,7 @@ class PathPreview:
 
         Returns:
             PreviewPath with segments and danger levels
+
         """
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
@@ -206,8 +205,7 @@ class PathPreview:
         camera: Camera,
         path: PreviewPath | None = None,
     ) -> None:
-        """
-        Render path preview on surface.
+        """Render path preview on surface.
 
         Draws dashed lines with color coding:
         - Green (#00FF00): Safe segments

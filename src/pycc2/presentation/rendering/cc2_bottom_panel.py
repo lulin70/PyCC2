@@ -1,5 +1,4 @@
-"""
-CC2-Style Bottom Panel
+"""CC2-Style Bottom Panel
 
 Complete bottom UI bar mimicking original Close Combat 2 layout:
 - Left: Unit roster (all friendly units)
@@ -47,8 +46,7 @@ if TYPE_CHECKING:
 
 
 class CC2BottomPanel:
-    """
-    CC2-style bottom panel with complete unit management UI.
+    """CC2-style bottom panel with complete unit management UI.
 
     Layout (left to right):
     1. Unit Roster - scrollable list of all friendly units
@@ -263,6 +261,7 @@ class CC2BottomPanel:
 
         Args:
             dt: Delta time in seconds since last frame.
+
         """
         self._fade.update(dt)
         if not self._fade.is_visible:
@@ -275,6 +274,7 @@ class CC2BottomPanel:
 
         Args:
             pos: Screen-space (x, y) coordinates, or None if unavailable.
+
         """
         self._mouse_pos = pos
         # Also update internal hover tracking for backward compat
@@ -286,6 +286,7 @@ class CC2BottomPanel:
 
         Args:
             pressed: True when mouse button is depressed.
+
         """
         self._mouse_pressed = pressed
 
@@ -351,6 +352,7 @@ class CC2BottomPanel:
 
         Returns:
             One of "ALL", "STYLE", or "OUTLINE"
+
         """
         return self._info_mode
 
@@ -362,6 +364,7 @@ class CC2BottomPanel:
 
         Raises:
             ValueError: If mode is not valid
+
         """
         valid_modes = {"ALL", "STYLE", "OUTLINE"}
         if mode.upper() not in valid_modes:
@@ -399,6 +402,7 @@ class CC2BottomPanel:
             game_map: Game map data
             minimap: Optional minimap renderer
             time_remaining: Optional battle timer in seconds (None = hide timer)
+
         """
         if not self._visible or not self._font_small:
             return

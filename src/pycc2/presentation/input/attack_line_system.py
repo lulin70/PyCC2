@@ -58,8 +58,7 @@ class AttackLineState:
 
 
 class AttackLineSystem:
-    """
-    CC2-style attack line system.
+    """CC2-style attack line system.
 
     Features:
     - Green line: Target in range with clear line-of-sight
@@ -190,8 +189,7 @@ class AttackLineSystem:
         game_map=None,
         los_system=None,
     ) -> AttackLineStatus:
-        """
-        Evaluate if attack is possible and return CC2 4-color hit probability status.
+        """Evaluate if attack is possible and return CC2 4-color hit probability status.
 
         Factors in: distance, cover/concealment, attacker accuracy (fatigue, veterancy, mode), weather.
         """
@@ -235,8 +233,7 @@ class AttackLineSystem:
         target: AttackTarget,
         game_map=None,
     ) -> float:
-        """
-        Calculate hit probability (0.0 - 1.0) factoring in:
+        """Calculate hit probability (0.0 - 1.0) factoring in:
         - Distance ratio (closer = higher)
         - Cover/concealment of target
         - Attacker's accuracy modifier (fatigue, veterancy, mode)

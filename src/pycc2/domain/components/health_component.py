@@ -1,5 +1,4 @@
-"""
-Health Component
+"""Health Component
 
 Manages unit health points, damage application, and death state.
 Part of the Entity-Component pattern for unit composition.

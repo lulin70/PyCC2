@@ -1,5 +1,4 @@
-"""
-Weather effects: EnhancedWeatherSystem with rain, snow, and fog.
+"""Weather effects: EnhancedWeatherSystem with rain, snow, and fog.
 """
 
 from __future__ import annotations

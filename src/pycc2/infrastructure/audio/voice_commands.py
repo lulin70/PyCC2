@@ -104,6 +104,7 @@ class VoiceCommandGenerator:
         -------
         np.ndarray
             int16 mono waveform at 44100 Hz.
+
         """
         text = cls._get_command_text(command, faction)
         duration = cls._compute_duration(text)
@@ -268,6 +269,7 @@ def play_morale_collapse(morale_state: str, faction: Faction, volume: float = 0.
         The faction of the unit (determines language).
     volume:
         Output volume (slightly louder than normal commands).
+
     """
     command = _MORALE_VOICE_MAP.get(morale_state.lower())
     if command is None:

@@ -1,5 +1,4 @@
-"""
-Position Component
+"""Position Component
 
 Manages entity position on the game grid.
 Handles grid coordinates, pixel offset, and facing direction.

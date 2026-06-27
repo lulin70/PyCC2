@@ -1,5 +1,4 @@
-"""
-Ammo Pickup & Weapon Scavenging System — CC2-Authentic AI Behavior
+"""Ammo Pickup & Weapon Scavenging System — CC2-Authentic AI Behavior
 
 Implements the P0-priority AI behavior for ammunition resupply through
 battlefield scavenging.  In CC2, units that run low on ammo will seek

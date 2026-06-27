@@ -1,5 +1,4 @@
-"""
-Melee Combat & Grenade System — CC2-Authentic Close-Quarters Combat
+"""Melee Combat & Grenade System — CC2-Authentic Close-Quarters Combat
 
 When ammunition is depleted or units are ordered to charge, infantry
 engage in desperate close-quarters combat. This mirrors the brutal
@@ -71,8 +70,7 @@ logger = logging.getLogger(__name__)
 
 
 class GrenadeSystem:
-    """
-    Manages grenade AOE attacks for infantry units.
+    """Manages grenade AOE attacks for infantry units.
 
     CC2-Authentic Behavior:
     - Grenades are thrown at 2-3 tile range
@@ -156,8 +154,7 @@ class GrenadeSystem:
         target_coord: TileCoord,
         nearby_units: list[Unit],
     ) -> GrenadeResult:
-        """
-        Throw a grenade at target coordinate.
+        """Throw a grenade at target coordinate.
 
         Applies AOE damage to all units within blast radius.
         Center of explosion (target_coord) takes full damage.
@@ -170,6 +167,7 @@ class GrenadeSystem:
 
         Returns:
             GrenadeResult with damage details for each target
+
         """
         import math
         import random

@@ -1,5 +1,4 @@
-"""
-Artillery Call-in — CC2-Authentic Indirect Fire Support
+"""Artillery Call-in — CC2-Authentic Indirect Fire Support
 
 Forward observers can call indirect fire support, mirroring the critical
 role of artillery observers in WWII. Artillery was the dominant killer

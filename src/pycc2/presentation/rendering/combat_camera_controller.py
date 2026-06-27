@@ -1,5 +1,4 @@
-"""
-Combat Camera Controller - Bridges combat events to camera effects.
+"""Combat Camera Controller - Bridges combat events to camera effects.
 
 Subscribes to EventBus combat events and triggers appropriate
 camera effects via EffectStack on the Camera.

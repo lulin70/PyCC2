@@ -1,5 +1,4 @@
-"""
-SmokeTacticalAI — Active Smoke Screen Usage for CC2 Fidelity
+"""SmokeTacticalAI — Active Smoke Screen Usage for CC2 Fidelity
 
 Implements CC2-authentic smoke screen tactics:
 

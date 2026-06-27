@@ -1,5 +1,4 @@
-"""
-Unit Entity - Core Game Unit
+"""Unit Entity - Core Game Unit
 """
 
 from __future__ import annotations
@@ -235,12 +234,12 @@ class Unit:
         return not getattr(self, "is_vehicle", False)
 
     def set_movement_mode(self, mode: str, duration_ticks: int = -1) -> None:
-        """
-        Set movement mode for the unit.
+        """Set movement mode for the unit.
 
         Args:
             mode: One of "normal", "fast_move", "sneak", "defend"
             duration_ticks: Duration in game ticks (-1 = indefinite until cancelled)
+
         """
         valid_modes = {"normal", "fast_move", "sneak", "defend"}
         if mode not in valid_modes:
@@ -260,11 +259,11 @@ class Unit:
             logger.info(f"[COMMAND] {self.name or self.id} mode change: {old_mode} -> {mode}")
 
     def get_speed_multiplier(self) -> float:
-        """
-        Get current speed multiplier based on movement mode.
+        """Get current speed multiplier based on movement mode.
 
         Returns:
             Speed multiplier (1.0 = normal, <1.0 = slower, >1.0 = faster)
+
         """
         if self._movement_mode == "fast_move":
             base = self._fast_speed_multiplier
@@ -283,11 +282,11 @@ class Unit:
         return base
 
     def get_accuracy_modifier(self) -> float:
-        """
-        Get accuracy modifier based on movement mode.
+        """Get accuracy modifier based on movement mode.
 
         Returns:
             Accuracy multiplier (1.0 = normal, >1.0 = bonus)
+
         """
         base = 1.0
         if self._movement_mode == "defend":
@@ -308,11 +307,11 @@ class Unit:
         return base
 
     def get_detection_modifier(self) -> float:
-        """
-        Get detection chance modifier based on movement mode.
+        """Get detection chance modifier based on movement mode.
 
         Returns:
             Detection multiplier (>1.0 = easier to detect, <1.0 = harder to detect)
+
         """
         if self._movement_mode == "fast_move":
             base = 1.5  # Much easier to detect when sprinting
@@ -675,8 +674,7 @@ class Unit:
                 logging.warning("Unit state transition to MOVING failed: %s", e)
 
     def update_movement(self, dt: float = 1.0) -> bool:
-        """
-        Move unit toward target. Call once per game tick.
+        """Move unit toward target. Call once per game tick.
         Returns True if unit reached target, False if still moving.
         """
         if self.move_target is None:

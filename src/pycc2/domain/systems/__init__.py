@@ -1,5 +1,4 @@
-"""
-Domain Systems Subsystem
+"""Domain Systems Subsystem
 
 Core game systems implementing business rules and calculations.
 """

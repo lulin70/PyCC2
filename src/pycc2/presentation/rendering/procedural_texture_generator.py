@@ -47,8 +47,7 @@ from .texture_water_bridge import (
 
 
 class ProceduralTextureGenerator:
-    """
-    Generates CC2-authentic pixel art textures procedurally.
+    """Generates CC2-authentic pixel art textures procedurally.
 
     Creates 48×48 tile appearances matching original Close Combat 2 visuals.
     Each terrain type generates a visually distinct and recognizable tile
@@ -72,6 +71,7 @@ class ProceduralTextureGenerator:
             variation: Variation seed for procedural generation
             palette: Color palette generator
             bitmask: Autotile neighbor bitmap for cross-tile continuity (0-15)
+
         """
         if palette is None:
             palette = PaletteGenerator()

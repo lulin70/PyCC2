@@ -169,6 +169,7 @@ class SquadMember:
         hp: Hit points (0-100)
         role: Specialization (rifleman/mg/AT/officer/etc.)
         name: Personal name (e.g., "Pvt. Johnson", "Cpl. Müller")
+
     """
 
     member_id: str
@@ -238,6 +239,7 @@ class Squad:
         faction: ALLIES or AXIS
         members: List of individual soldiers
         name: Display name (e.g., "Ness", "Robbers", "Golf")
+
     """
 
     squad_id: str

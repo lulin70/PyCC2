@@ -45,7 +45,6 @@ class EnhancedParticleSystem:
 
     def create_enhanced_explosion(self, x: float, y: float, intensity: float = 1.0) -> None:
         """创建增强爆炸效果 - 多层粒子"""
-
         # Layer 1: 火焰核心 (80-120个高速粒子)
         particle_count = int(100 * intensity)
         for _ in range(particle_count):
@@ -161,7 +160,6 @@ class EnhancedParticleSystem:
 
     def create_muzzle_flash(self, x: float, y: float, direction_angle: float) -> None:
         """创建枪口焰 - 方向性"""
-
         # 30个粒子，集中在射击方向
         for _ in range(30):
             angle = direction_angle + self.rng.uniform(-0.3, 0.3)
@@ -189,7 +187,6 @@ class EnhancedParticleSystem:
 
     def create_smoke_trail(self, x: float, y: float, vx: float, vy: float) -> None:
         """创建烟雾轨迹 - 持续效果"""
-
         # 每帧5个烟雾粒子
         for _ in range(5):
             # 继承部分速度
@@ -215,7 +212,6 @@ class EnhancedParticleSystem:
 
     def create_dirt_spray(self, x: float, y: float, direction_angle: float) -> None:
         """创建泥土飞溅 - 地面命中"""
-
         for _ in range(25):
             angle = direction_angle + self.rng.uniform(-0.5, 0.5)
             speed = self.rng.uniform(50, 120)
@@ -244,7 +240,6 @@ class EnhancedParticleSystem:
 
     def create_blood_splatter(self, x: float, y: float, direction_angle: float) -> None:
         """创建血液飞溅"""
-
         for _ in range(20):
             angle = direction_angle + self.rng.uniform(-0.8, 0.8)
             speed = self.rng.uniform(40, 100)
@@ -296,7 +291,6 @@ class EnhancedParticleSystem:
 
     def render(self, surface: pygame.Surface, camera_offset: tuple[int, int] = (0, 0)) -> None:
         """渲染所有粒子 - 支持多种渲染模式"""
-
         for particle in self.particles:
             # 计算屏幕位置
             screen_x = int(particle.x - camera_offset[0])

@@ -1,5 +1,4 @@
-"""
-Tank Pixel Renderer - Extracted from PixelArtist3D God Class.
+"""Tank Pixel Renderer - Extracted from PixelArtist3D God Class.
 
 Contains all tank-related sprite generation logic:
 - Rotation pre-cache system (P0-4)
@@ -40,8 +39,7 @@ from pycc2.presentation.rendering.pixel_artist_enums import (
 
 
 class TankPixelRenderer:
-    """
-    Tank sprite renderer with rotation pre-cache system.
+    """Tank sprite renderer with rotation pre-cache system.
 
     Supports three WWII Normandy campaign tank types:
     - Sherman M4 (US medium): 36x36px, rounded hull, small turret, VVSS suspension
@@ -77,6 +75,7 @@ class TankPixelRenderer:
 
         Returns:
             Rotated surface (from cache or newly computed).
+
         """
         cache_key = (base.get_width(), base.get_height(), round(angle, 1))
         if cache_key in cls._rotation_cache:
@@ -148,6 +147,7 @@ class TankPixelRenderer:
 
         Returns:
             pygame.Surface with alpha channel (size varies by tank_type).
+
         """
         import pygame
 
@@ -198,6 +198,7 @@ class TankPixelRenderer:
 
         Returns:
             pygame.Surface with alpha channel (size varies by tank_type).
+
         """
         import pygame
 

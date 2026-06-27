@@ -37,8 +37,7 @@ class TileZone:
 
 @dataclass
 class DeploymentConfig:
-    """
-    Configuration for a battle's deployment phase.
+    """Configuration for a battle's deployment phase.
 
     Defines where each side can place their units.
     """
@@ -72,8 +71,7 @@ class DeploymentConfig:
 
 
 class DeploymentPhase:
-    """
-    Manages the pre-battle deployment phase.
+    """Manages the pre-battle deployment phase.
 
     Implements CC2's drag-and-drop unit placement system.
     """
@@ -93,8 +91,7 @@ class DeploymentPhase:
         self.is_complete = False
 
     def place_unit(self, unit_template_id: str, x: int, y: int) -> bool:
-        """
-        Attempt to place a unit at specified position.
+        """Attempt to place a unit at specified position.
 
         Returns True if placement succeeded.
         """
@@ -161,8 +158,7 @@ class DeploymentPhase:
         return self.deployed_units.get(faction, [])
 
     def generate_zone_map_for_display(self, faction: Faction) -> list[list[int]]:
-        """
-        Generate numeric zone map for rendering.
+        """Generate numeric zone map for rendering.
 
         Returns 2D array: 0=friendly, 1=no mans land, 2=enemy
         """
@@ -188,8 +184,7 @@ class DeploymentPhase:
 
 
 def create_default_deployment_config(map_width: int, map_height: int) -> DeploymentConfig:
-    """
-    Create a standard split-map deployment configuration.
+    """Create a standard split-map deployment configuration.
 
     Default: Allies get left third, Axis gets right third, middle is no-man's-land.
     """

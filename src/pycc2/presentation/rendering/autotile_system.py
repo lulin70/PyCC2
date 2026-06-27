@@ -55,6 +55,7 @@ def get_neighbor_bitmap(game_map: GameMap, x: int, y: int, terrain_type: int | N
 
     Returns:
         int: 4-bit bitmask (N-E-S-W)
+
     """
     if terrain_type is None:
         terrain_type = _get_terrain_at(game_map, x, y)
@@ -85,6 +86,7 @@ def get_continuity_variant(terrain_id: int, bitmask: int) -> str:
 
     Returns:
         str: Variant key string
+
     """
     terrain_names = {
         0: "grass",
@@ -140,6 +142,7 @@ def detect_building_clusters(game_map: GameMap) -> list[list[tuple[int, int]]]:
 
     Returns:
         list: List of building clusters, each containing (x, y) coordinate tuples
+
     """
     BUILDING_IDS = {4, 5}
     visited = set()
@@ -206,6 +209,7 @@ def get_building_cluster_info(
             - 'has_east_neighbor': bool
             - 'has_south_neighbor': bool
             - 'has_west_neighbor': bool
+
     """
     default_result = {
         "is_building": False,
@@ -264,6 +268,7 @@ def is_autotile_terrain(terrain_id: int) -> bool:
 
     Returns:
         bool: True if terrain supports autotiling
+
     """
     return terrain_id in AUTOTILE_TERRAIN_IDS
 
@@ -276,6 +281,7 @@ def get_connected_directions(bitmask: int) -> list[tuple[int, int]]:
 
     Returns:
         list: List of (dx, dy) tuples for each connected direction
+
     """
     directions = []
 
@@ -307,6 +313,7 @@ def get_edge_transition_width(
     Returns:
         dict: Direction -> transition width mapping
             {'north': int, 'east': int, 'south': int, 'west': int}
+
     """
     # Base transition width scales with tile size
     base_width = max(4, base_tile_size // 10)

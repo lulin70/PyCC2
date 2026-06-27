@@ -1,5 +1,4 @@
-"""
-Achievement System - Track and reward player accomplishments.
+"""Achievement System - Track and reward player accomplishments.
 
 Provides:
 - Achievement definitions (hidden/revealed/progress-based)

@@ -1,5 +1,4 @@
-"""
-InfantryTankCoordAI + VictoryPointAI — Coordination and VP tactics.
+"""InfantryTankCoordAI + VictoryPointAI — Coordination and VP tactics.
 
 InfantryTankCoordAI:
   CC2 behaviour:

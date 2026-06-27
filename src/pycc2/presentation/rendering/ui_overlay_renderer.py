@@ -1,5 +1,4 @@
-"""
-UI Overlay Renderer Sub-Module for CC2-Style Games
+"""UI Overlay Renderer Sub-Module for CC2-Style Games
 
 Handles all UI overlay rendering on top of the game world:
 - Victory Location flags and edge arrows (with VP pulse animation)

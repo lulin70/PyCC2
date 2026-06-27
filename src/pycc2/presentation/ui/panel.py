@@ -1,5 +1,4 @@
-"""
-Panel UI Component
+"""Panel UI Component
 
 Container panel for grouping related UI elements.
 """

@@ -1,5 +1,4 @@
-"""
-CC2 Original Sprite Loader
+"""CC2 Original Sprite Loader
 
 加载CC2原版精灵PNG文件，提供与现有系统兼容的接口。
 确保功能被实际调用，避免幽灵功能。
@@ -19,8 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class CC2SpriteLoader:
-    """
-    加载CC2原版精灵素材
+    """加载CC2原版精灵素材
 
     当CC2原版精灵素材可用时，优先加载高质量的原版图像。
     如果素材不可用，返回None，系统会回退到程序化生成。
@@ -33,8 +31,7 @@ class CC2SpriteLoader:
     """
 
     def __init__(self, assets_root: Path):
-        """
-        初始化CC2精灵加载器
+        """初始化CC2精灵加载器
 
         参数:
             assets_root: 资源根目录（通常是 PyCC2/assets/）
@@ -55,8 +52,7 @@ class CC2SpriteLoader:
         )
 
     def is_available(self) -> bool:
-        """
-        检查CC2原版素材是否可用
+        """检查CC2原版素材是否可用
 
         返回:
             True 如果 cc2_original 目录存在且不为空
@@ -77,8 +73,7 @@ class CC2SpriteLoader:
     def load_sprite(
         self, unit_type: str, direction: str, animation: str = "idle", frame: int = 0
     ) -> pygame.Surface | None:
-        """
-        加载特定精灵
+        """加载特定精灵
 
         参数:
             unit_type: 单位类型 (如 "rifle_squad", "sherman_tank")
@@ -140,8 +135,7 @@ class CC2SpriteLoader:
     def _build_sprite_path(
         self, unit_type: str, direction: str, animation: str, frame: int
     ) -> Path:
-        """
-        构建精灵文件路径
+        """构建精灵文件路径
 
         路径结构:
         cc2_original/
@@ -171,8 +165,7 @@ class CC2SpriteLoader:
         return self.cc2_sprite_path / category / unit_type / filename
 
     def _get_unit_category(self, unit_type: str) -> str:
-        """
-        根据单位类型判断所属类别
+        """根据单位类型判断所属类别
 
         参数:
             unit_type: 单位类型字符串
@@ -224,8 +217,7 @@ class CC2SpriteLoader:
         return "infantry"
 
     def get_load_stats(self) -> dict[str, int]:
-        """
-        获取加载统计信息
+        """获取加载统计信息
 
         用于监控和测试，确保功能被实际调用。
 
@@ -243,8 +235,7 @@ class CC2SpriteLoader:
         return self._load_stats.copy()
 
     def preload_unit(self, unit_type: str) -> int:
-        """
-        预加载某个单位的所有精灵
+        """预加载某个单位的所有精灵
 
         预加载可以减少游戏运行时的加载延迟。
 
@@ -277,8 +268,7 @@ class CC2SpriteLoader:
         return loaded_count
 
     def clear_cache(self) -> int:
-        """
-        清空精灵缓存
+        """清空精灵缓存
 
         释放内存，适合在切换场景时调用。
 
@@ -291,8 +281,7 @@ class CC2SpriteLoader:
         return cache_size
 
     def get_cache_size_mb(self) -> float:
-        """
-        获取缓存占用的内存大小（MB）
+        """获取缓存占用的内存大小（MB）
 
         返回:
             缓存大小（兆字节）

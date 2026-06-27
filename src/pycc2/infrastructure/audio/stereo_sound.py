@@ -7,8 +7,7 @@ from dataclasses import dataclass
 
 @dataclass
 class StereoSoundSystem:
-    """
-    3D positional stereo sound system.
+    """3D positional stereo sound system.
 
     Pan audio left/right based on source position.
     Volume attenuation with distance.
@@ -22,8 +21,7 @@ class StereoSoundSystem:
         listener_pos: tuple[float, float],
         source_pos: tuple[float, float],
     ) -> float:
-        """
-        Calculate stereo pan value (-1.0 left to 1.0 right).
+        """Calculate stereo pan value (-1.0 left to 1.0 right).
         """
         dx = source_pos[0] - listener_pos[0]
         distance = (dx * dx + (source_pos[1] - listener_pos[1]) ** 2) ** 0.5
@@ -42,8 +40,7 @@ class StereoSoundSystem:
         source_pos: tuple[float, float],
         base_volume: float = 1.0,
     ) -> float:
-        """
-        Calculate volume with distance attenuation.
+        """Calculate volume with distance attenuation.
         """
         dx = source_pos[0] - listener_pos[0]
         dy = source_pos[1] - listener_pos[1]

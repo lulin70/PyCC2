@@ -1,5 +1,4 @@
-"""
-Direction Enum
+"""Direction Enum
 
 8-direction compass representation for grid-based movement and facing.
 """

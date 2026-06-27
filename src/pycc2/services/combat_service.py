@@ -1,5 +1,4 @@
-"""
-Combat Service
+"""Combat Service
 
 Orchestrates combat operations by coordinating domain combat systems.
 This service does NOT contain business rules - it delegates to domain layer.
@@ -44,8 +43,7 @@ class AttackOrder:
 
 
 class CombatService:
-    """
-    Combat orchestration service.
+    """Combat orchestration service.
 
     Coordinates between ballistic calculations, damage resolution,
     morale effects, and event publishing.
@@ -67,8 +65,7 @@ class CombatService:
     def execute_attack(
         self, attacker: Unit, target: Unit, weapon_slot: str = "primary"
     ) -> CombatResult:
-        """
-        Execute a full attack sequence from attacker to target.
+        """Execute a full attack sequence from attacker to target.
 
         Args:
             attacker: The attacking unit
@@ -77,6 +74,7 @@ class CombatService:
 
         Returns:
             CombatResult with full details of the engagement
+
         """
         self._logger.info(f"Attack: {attacker.name} -> {target.name} [{weapon_slot}]")
 
@@ -161,8 +159,7 @@ class CombatService:
         target_position: tuple,
         burst_size: int = 3,
     ) -> list[ShotResult]:
-        """
-        Execute suppression fire at a position (area denial).
+        """Execute suppression fire at a position (area denial).
 
         Args:
             attacker: Firing unit
@@ -171,6 +168,7 @@ class CombatService:
 
         Returns:
             List of shot results for each round
+
         """
         results = []
         ballistic_any = cast(Any, self.ballistic_engine)
@@ -184,8 +182,7 @@ class CombatService:
         return results
 
     def resolve_melee_combat(self, attacker: Unit, defender: Unit) -> CombatResult:
-        """
-        Resolve close-quarters melee/tactical combat.
+        """Resolve close-quarters melee/tactical combat.
 
         Args:
             attacker: Attacking unit
@@ -193,6 +190,7 @@ class CombatService:
 
         Returns:
             CombatResult of the melee engagement
+
         """
         self._logger.warning(f"Melee: {attacker.name} vs {defender.name}")
         base_damage = 15.0
@@ -205,11 +203,11 @@ class CombatService:
         )
 
     def can_engage(self, attacker: Unit, target: Unit) -> tuple[bool, str]:
-        """
-        Check if attacker can engage target.
+        """Check if attacker can engage target.
 
         Returns:
             Tuple of (can_engage, reason_if_not)
+
         """
         if not attacker.is_alive:
             return False, "Attacker is eliminated"
@@ -235,8 +233,7 @@ class CombatService:
         return (dx**2 + dy**2) ** 0.5
 
     def calculate_attack_angle(self, attacker: Unit, target: Unit) -> AttackAngle:
-        """
-        Calculate attack angle relative to target's facing direction.
+        """Calculate attack angle relative to target's facing direction.
 
         Uses positional difference to determine if attack is from
         front, flank (left/right), or rear.
@@ -247,6 +244,7 @@ class CombatService:
 
         Returns:
             AttackAngle enum value
+
         """
         dx = attacker.position_component.x - target.position_component.x
         dy = attacker.position_component.y - target.position_component.y
@@ -264,8 +262,7 @@ class CombatService:
             return AttackAngle.FLANK_RIGHT
 
     def get_angle_damage_multiplier(self, angle: AttackAngle) -> float:
-        """
-        Get damage multiplier based on attack angle.
+        """Get damage multiplier based on attack angle.
 
         CC2-style armor penetration model:
         - Front: 1.0x (full frontal armor)
@@ -277,6 +274,7 @@ class CombatService:
 
         Returns:
             Damage multiplier (1.0 to 2.0)
+
         """
         multipliers = {
             AttackAngle.FRONT: 1.0,

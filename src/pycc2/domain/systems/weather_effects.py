@@ -1,5 +1,4 @@
-"""
-Weather Effects System — business logic engine for environmental weather impacts.
+"""Weather Effects System — business logic engine for environmental weather impacts.
 
 Provides vision modifiers, movement penalties, concealment bonuses,
 and state management for dynamic weather transitions.

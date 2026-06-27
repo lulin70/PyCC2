@@ -1,5 +1,4 @@
-"""
-Trench/Foxhole Digging — CC2-Authentic Defensive Behavior
+"""Trench/Foxhole Digging — CC2-Authentic Defensive Behavior
 
 Infantry can dig temporary defensive positions when holding ground.
 This mirrors the real WWII practice where soldiers would entrench

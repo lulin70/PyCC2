@@ -93,8 +93,7 @@ class CombatEvent:
 
 @dataclass
 class CombatLog:
-    """
-    Real-time combat event logging and display system.
+    """Real-time combat event logging and display system.
 
     Features:
     - Scrollable event list in corner of screen
@@ -168,12 +167,12 @@ class CombatLog:
             return self.get_recent_events(self.MAX_VISIBLE)
 
     def render_minimal(self, surface, position: tuple[int, int]) -> None:
-        """
-        Render compact scrolling log overlay.
+        """Render compact scrolling log overlay.
 
         Args:
             surface: Pygame surface to draw on
             position: Screen position (x, y) for top-left corner
+
         """
         try:
             import pygame
@@ -197,8 +196,7 @@ class CombatLog:
             logging.debug("Combat log rendering failed: %s", e)
 
     def render_fullscreen(self, surface, screen_size: tuple[int, int]) -> None:
-        """
-        Render expanded full log panel.
+        """Render expanded full log panel.
 
         Semi-transparent panel covering right half of screen.
         """

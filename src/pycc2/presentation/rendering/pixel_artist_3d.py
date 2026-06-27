@@ -1,5 +1,4 @@
-"""
-CC2-style Orthographic Top-Down Pixel Art Generator (Facade)
+"""CC2-style Orthographic Top-Down Pixel Art Generator (Facade)
 
 This module serves as the public API facade for pixel art generation.
 Heavy subsystems have been extracted to dedicated modules:
@@ -48,8 +47,7 @@ if TYPE_CHECKING:
 
 
 class PixelArtist3D:
-    """
-    CC2-style orthographic top-down pixel art generator facade.
+    """CC2-style orthographic top-down pixel art generator facade.
 
     This class delegates to specialized renderers while maintaining
     the original public API for backward compatibility.
@@ -360,8 +358,7 @@ def create_cc2_infantry_sprite(
     frame: int = 0,
     infantry_type: str = "rifleman",
 ):
-    """
-    Convenience function: create a CC2-style infantry sprite.
+    """Convenience function: create a CC2-style infantry sprite.
 
     Args:
         direction: 0-7 (N, NE, E, SE, S, SW, W, NW)
@@ -372,6 +369,7 @@ def create_cc2_infantry_sprite(
 
     Returns:
         pygame.Surface (24x24)
+
     """
     dir_enum = list(Direction)[direction % 8]
     faction_enum = Faction.ALLIES if faction == "allies" else Faction.AXIS
@@ -389,8 +387,7 @@ def create_cc2_tank_sprite(
     state: str = "idle",
     frame: int = 0,
 ):
-    """
-    Convenience function: create a CC2-style tank sprite.
+    """Convenience function: create a CC2-style tank sprite.
 
     Args:
         direction: Hull facing 0-7
@@ -401,6 +398,7 @@ def create_cc2_tank_sprite(
 
     Returns:
         pygame.Surface (36x36)
+
     """
     dir_enum = list(Direction)[direction % 8]
     faction_enum = Faction.ALLIES if faction == "allies" else Faction.AXIS

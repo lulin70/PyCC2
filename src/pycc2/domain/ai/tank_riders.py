@@ -1,5 +1,4 @@
-"""
-Tank Riders — CC2-Authentic Tank Riding Behavior
+"""Tank Riders — CC2-Authentic Tank Riding Behavior
 
 Infantry can ride on friendly tanks for rapid transport, mirroring
 the real WWII practice where infantry hitched rides on armor to

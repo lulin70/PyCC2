@@ -1,5 +1,4 @@
-"""
-Enhanced Tile System for PyCC2 - Phase A2
+"""Enhanced Tile System for PyCC2 - Phase A2
 
 Implements multi-layer terrain data structure that transforms flat tile grids
 into rich, detailed battlefields with height, decorations, and visual variation.
@@ -22,8 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class DecorationType(Enum):
-    """
-    Comprehensive decoration catalog for tactical maps.
+    """Comprehensive decoration catalog for tactical maps.
 
     Organized into thematic layers that stack to create visual richness.
     Total: 35+ decoration types covering vegetation, geology, man-made,
@@ -161,8 +159,7 @@ class DecorationInstance:
 
 @dataclass
 class EnhancedTile:
-    """
-    Multi-layer terrain tile - the heart of the enhanced map system.
+    """Multi-layer terrain tile - the heart of the enhanced map system.
 
     Replaces simple integer terrain ID with rich data structure supporting:
     - Height variation (elevation affects LOS, movement, combat)
@@ -382,8 +379,7 @@ class EnhancedTile:
 
 @dataclass
 class DecorationLibrary:
-    """
-    Metadata and rendering hints for all decoration types.
+    """Metadata and rendering hints for all decoration types.
 
     Provides sprite information, placement rules, and tactical defaults.
     """
@@ -521,8 +517,7 @@ class DecorationLibrary:
 
 
 class TileConverter:
-    """
-    Converts between legacy and enhanced tile formats.
+    """Converts between legacy and enhanced tile formats.
 
     Ensures backward compatibility while enabling new features.
     """
@@ -543,8 +538,7 @@ class TileConverter:
 
     @staticmethod
     def convert_map_data(map_data: dict[str, Any]) -> dict[str, Any]:
-        """
-        Convert full map data dictionary to enhanced format.
+        """Convert full map data dictionary to enhanced format.
 
         Preserves all original keys and adds enhanced tiles structure.
         """
@@ -565,8 +559,7 @@ class TileConverter:
 
 # Convenience function for quick conversion
 def enhance_map(map_path: str, output_path: str | None = None) -> dict[str, Any]:
-    """
-    Quick utility to convert a legacy map file to enhanced format.
+    """Quick utility to convert a legacy map file to enhanced format.
 
     Args:
         map_path: Path to legacy map JSON file
@@ -574,6 +567,7 @@ def enhance_map(map_path: str, output_path: str | None = None) -> dict[str, Any]
 
     Returns:
         Enhanced map data dictionary
+
     """
     import json
     from pathlib import Path

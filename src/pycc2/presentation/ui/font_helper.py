@@ -24,6 +24,7 @@ def safe_init_font(
 
     Returns:
         Font对象或None(如果所有方法都失败)
+
     """
     # 尝试1: SysFont (系统字体，最佳质量)
     try:
@@ -67,6 +68,7 @@ def safe_render_text(
 
     Returns:
         文本Surface或None
+
     """
     if font is None:
         return None

@@ -1,5 +1,4 @@
-"""
-Global SE-Direction Shadow System for PyCC2
+"""Global SE-Direction Shadow System for PyCC2
 
 Renders consistent Southeast-pointing shadows for all game objects,
 matching the authentic Close Combat 2 visual style where shadows
@@ -23,8 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class ShadowRenderer:
-    """
-    Renders consistent SE-direction shadows for all game objects.
+    """Renders consistent SE-direction shadows for all game objects.
 
     Light source direction: Northwest → shadows point Southeast.
     Uses semi-transparent ellipses with caching for performance.
@@ -66,8 +64,7 @@ class ShadowRenderer:
                 self._get_or_create_shadow(width, height, alpha)
 
     def _get_or_create_shadow(self, width: int, height: int, alpha: int) -> pygame.Surface:
-        """
-        Get cached shadow surface or create new one.
+        """Get cached shadow surface or create new one.
 
         Args:
             width: Shadow ellipse width
@@ -76,6 +73,7 @@ class ShadowRenderer:
 
         Returns:
             Cached pygame.Surface with shadow ellipse
+
         """
         cache_key = (width, height, alpha)
 
@@ -99,8 +97,7 @@ class ShadowRenderer:
         shadow_color: tuple[int, int, int] | None = None,
         is_hidden: bool = False,
     ) -> None:
-        """
-        Render a SE-pointing shadow ellipse beneath an object.
+        """Render a SE-pointing shadow ellipse beneath an object.
 
         Args:
             surface: Target surface to draw on
@@ -108,6 +105,7 @@ class ShadowRenderer:
             obj_height: Height tier (1=infantry, 2=vehicle/tree, 3=building)
             shadow_color: Optional override color (RGB tuple)
             is_hidden: If True, reduce shadow alpha by 50% (sneaking units)
+
         """
         x, y, w, h = obj_rect
 
@@ -149,8 +147,7 @@ class ShadowRenderer:
         unit_type: str = "infantry",
         is_hidden: bool = False,
     ) -> None:
-        """
-        Render shadow for infantry/unit.
+        """Render shadow for infantry/unit.
 
         Args:
             surface: Target surface
@@ -158,6 +155,7 @@ class ShadowRenderer:
             y: Unit Y position
             unit_type: Type of unit ("infantry", "officer", etc.)
             is_hidden: If unit is sneaking/hidden
+
         """
         # Infantry-sized shadow: 6×3 px ellipse, offset (+2, +1)
         shadow_w, shadow_h = 6, 3
@@ -181,8 +179,7 @@ class ShadowRenderer:
     def render_vehicle_shadow(
         self, surface: pygame.Surface, x: int, y: int, w: int, h: int, is_hidden: bool = False
     ) -> None:
-        """
-        Render shadow for tank/vehicle.
+        """Render shadow for tank/vehicle.
 
         Args:
             surface: Target surface
@@ -191,6 +188,7 @@ class ShadowRenderer:
             w: Vehicle width
             h: Vehicle height
             is_hidden: If vehicle is hidden
+
         """
         # Vehicle shadow: hull_w × 4 px ellipse, offset (+4, +2)
         shadow_w = max(12, int(w * 0.9))
@@ -220,8 +218,7 @@ class ShadowRenderer:
         tree_size: str = "medium",
         is_hidden: bool = False,
     ) -> None:
-        """
-        Render shadow for tree.
+        """Render shadow for tree.
 
         Args:
             surface: Target surface
@@ -229,6 +226,7 @@ class ShadowRenderer:
             y: Tree Y position (base)
             tree_size: Size category ("small", "medium", "large")
             is_hidden: If tree is somehow hidden (rare)
+
         """
         # FIXED: Larger shadows with higher visibility
         # Tree shadow dimensions based on canopy size
@@ -253,8 +251,7 @@ class ShadowRenderer:
     def render_building_shadow(
         self, surface: pygame.Surface, x: int, y: int, w: int, h: int, is_hidden: bool = False
     ) -> None:
-        """
-        Render shadow for building.
+        """Render shadow for building.
 
         Args:
             surface: Target surface
@@ -263,6 +260,7 @@ class ShadowRenderer:
             w: Building width
             h: Building height
             is_hidden: If building is hidden (very rare)
+
         """
         # FIXED: Larger offset to make shadows visible beyond building edges
         # Building shadow: roof_w × 0.9 × 8 px, offset (+8, +5)

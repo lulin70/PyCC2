@@ -1,5 +1,4 @@
-"""
-CC2 Authentic Unit & Weapon Database - Complete Rebuild
+"""CC2 Authentic Unit & Weapon Database - Complete Rebuild
 
 Based on authoritative CC2 wiki and user feedback, this module provides the
 FULL unit/weapon roster that matches or exceeds original Close Combat 2.
@@ -91,8 +90,7 @@ class VehicleType(Enum):
 
 @dataclass
 class WeaponProfile:
-    """
-    Complete weapon specification matching CC2 parameters.
+    """Complete weapon specification matching CC2 parameters.
 
     Every field based on historical CC2 game data where available.
     """
@@ -143,8 +141,7 @@ class WeaponProfile:
 
 
 def build_cc2_weapon_database() -> dict[str, WeaponProfile]:
-    """
-    Build complete CC2 weapon database.
+    """Build complete CC2 weapon database.
 
     Based on:
     - CC2 game files (qtab/weap data)

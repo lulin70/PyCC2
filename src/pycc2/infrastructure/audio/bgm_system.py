@@ -115,6 +115,7 @@ class BGMGenerator:
         -------
         np.ndarray
             int16 mono waveform at 44100 Hz.
+
         """
         if mood == MusicMood.AMBIENT:
             return AmbientSoundGenerator.generate_wind(intensity=0.3, duration=duration)
@@ -345,6 +346,7 @@ class AmbientSoundGenerator:
         -------
         np.ndarray
             int16 mono waveform at 44100 Hz.
+
         """
         intensity = max(0.0, min(1.0, intensity))
         n_samples = int(cls.SAMPLE_RATE * duration)
@@ -388,6 +390,7 @@ class AmbientSoundGenerator:
         -------
         np.ndarray
             int16 mono waveform at 44100 Hz.
+
         """
         intensity = max(0.0, min(1.0, intensity))
         n_samples = int(cls.SAMPLE_RATE * duration)
@@ -440,6 +443,7 @@ class AmbientSoundGenerator:
         -------
         np.ndarray
             int16 mono waveform at 44100 Hz.
+
         """
         n_samples = int(cls.SAMPLE_RATE * duration)
         wave = np.zeros(n_samples, dtype=np.float64)

@@ -1,5 +1,4 @@
-"""
-Turn/Time Management Service
+"""Turn/Time Management Service
 
 Manages game time progression, turn phases, and timing-related game rules.
 Handles turn order, phase transitions, and time-based events.
@@ -44,8 +43,7 @@ class TurnState:
 
 
 class TurnService:
-    """
-    Manages turn-based gameplay flow.
+    """Manages turn-based gameplay flow.
 
     Handles turn progression, phase management, and time tracking.
     Publishes events for turn/phase changes.
@@ -87,11 +85,11 @@ class TurnService:
         self._logger.info(f"Game started | Turn {self.state.current_turn}")
 
     def advance_phase(self) -> GamePhase:
-        """
-        Advance to next phase in current turn.
+        """Advance to next phase in current turn.
 
         Returns:
             The new current phase
+
         """
         phases = list(GamePhase)
         current_idx = phases.index(self.state.current_phase)

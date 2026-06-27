@@ -112,8 +112,7 @@ class PaletteSet:
 
 
 class PixelCanvas:
-    """
-    像素画布 — 提供像素级绘图操作。
+    """像素画布 — 提供像素级绘图操作。
 
     这是核心引擎：所有精灵都在这个画布上逐像素绘制。
     使用numpy数组作为后端以获得最佳性能。
@@ -253,8 +252,7 @@ class PixelCanvas:
 
 
 def add_noise(canvas: PixelCanvas, intensity: float = 15, area: tuple | None = None) -> None:
-    """
-    为画布添加噪点 — 增加像素艺术颗粒感。
+    """为画布添加噪点 — 增加像素艺术颗粒感。
 
     intensity: 噪点强度(0-50)，值越大越粗糙
     area: (x,y,w,h) 限制区域，None=全图
@@ -287,8 +285,7 @@ def dither_pattern(
     w: int,
     h: int,
 ) -> None:
-    """
-    Bayer有序抖动 — 在区域内用两种颜色产生过渡效果。
+    """Bayer有序抖动 — 在区域内用两种颜色产生过渡效果。
     用于地形渐变、阴影等。
     """
     bayer = [

@@ -1,5 +1,4 @@
-"""
-Deployment Zone Builder — Map zone construction and deployment initialization.
+"""Deployment Zone Builder — Map zone construction and deployment initialization.
 
 Extracted from deployment_ui.py God Class (SRP refactoring).
 Handles zone map construction from map data, spawn-point zone inference,
@@ -51,6 +50,7 @@ class DeploymentZoneBuilder:
         faction : str
             ``"ally"`` or ``"axis"`` – determines which side's zones are
             used as FRIENDLY.
+
         """
         ui = self._ui
         ui._map_width = map_data.get("width", 50)
@@ -144,6 +144,7 @@ class DeploymentZoneBuilder:
             Maximum units per category.
         force_pool : list[DeploymentUnit] | None
             Custom force pool; if None, default roster is built.
+
         """
         ui = self._ui
         ui._state.requisition_points = requisition_points

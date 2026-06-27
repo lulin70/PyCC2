@@ -1,5 +1,4 @@
-"""
-Button UI Component
+"""Button UI Component
 
 Reusable button with multiple states and callback support.
 """
@@ -104,11 +103,11 @@ class Button:
         self.callback = callback
 
     def update(self, mouse_pos: tuple, mouse_pressed: bool) -> bool:
-        """
-        Update button state based on mouse input.
+        """Update button state based on mouse input.
 
         Returns:
             True if button was clicked this frame
+
         """
         if not self._enabled or not self._visible:
             return False

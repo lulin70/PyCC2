@@ -1,5 +1,4 @@
-"""
-Building Renderer Sub-Module for CC2-Style Maps
+"""Building Renderer Sub-Module for CC2-Style Maps
 
 Handles building-specific rendering operations:
 - Building roofs (CC2 top-down view)

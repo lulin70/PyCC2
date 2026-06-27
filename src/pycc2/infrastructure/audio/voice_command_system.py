@@ -22,8 +22,7 @@ class VoiceCommandType(Enum):
 
 @dataclass
 class VoiceCommandSystem:
-    """
-    Voice command audio feedback system.
+    """Voice command audio feedback system.
 
     Reuses EnhancedSoundBridge for playing voice clips.
     Triggers on unit actions with appropriate delays.

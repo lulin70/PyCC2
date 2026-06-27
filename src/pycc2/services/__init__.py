@@ -1,5 +1,4 @@
-"""
-Application Services Layer - Layer 2
+"""Application Services Layer - Layer 2
 Orchestrates domain logic and coordinates between layers.
 Contains use case implementations but no business rules.
 """

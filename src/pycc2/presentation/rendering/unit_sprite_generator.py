@@ -30,8 +30,7 @@ class UnitSpriteSpec:
 
 
 class UnitSpriteGenerator:
-    """
-    单位精灵生成器 — 生成CC2风格的像素士兵。
+    """单位精灵生成器 — 生成CC2风格的像素士兵。
 
     关键设计原则：
     - 每个像素都经过精心设计位置

@@ -217,6 +217,7 @@ class SVGSpriteLoader:
 
         Returns:
             pygame.Surface with per-pixel alpha, or None if not found
+
         """
         key = (faction.lower(), posture.lower(), frame)
         if key not in SPRITE_CATALOG:
@@ -257,6 +258,7 @@ class SVGSpriteLoader:
 
         Returns:
             Dict mapping cache_key → Surface
+
         """
         results = {}
         for (faction, posture, frame), _ in SPRITE_CATALOG.items():

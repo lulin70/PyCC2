@@ -1,5 +1,4 @@
-"""
-Retreat Decision AI — CC2-Authentic Retreat & Bridge Demolition
+"""Retreat Decision AI — CC2-Authentic Retreat & Bridge Demolition
 
 Handles the decision to retreat units and demolish bridges when the
 battlefield situation is unfavorable.  Inspired by CC2's behaviour where

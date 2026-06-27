@@ -20,8 +20,7 @@ class UnitIconType(Enum):
 
 @dataclass
 class MinimapIconSystem:
-    """
-    Minimap icon differentiation system.
+    """Minimap icon differentiation system.
 
     Different icons for different unit types:
     - Infantry: circle

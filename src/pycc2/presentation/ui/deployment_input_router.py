@@ -1,5 +1,4 @@
-"""
-Deployment Input Router — Click handling and input routing for deployment phase.
+"""Deployment Input Router — Click handling and input routing for deployment phase.
 
 Extracted from deployment_ui.py God Class (SRP refactoring).
 Handles mouse click routing: roster selection, button hits, map placement,

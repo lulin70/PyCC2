@@ -149,6 +149,7 @@ class DeploymentManager:
             Pre-created DeploymentUI instance (injected by caller to avoid
             service→presentation coupling). Required — the service layer
             no longer creates presentation objects directly.
+
         """
         try:
             from pycc2.domain.systems.game_settings import SUPPLY_EFFECTS
@@ -387,6 +388,7 @@ class DeploymentManager:
             The ``unit_template_id`` of the placed deployment unit.
         target_x, target_y : int
             Tile coordinates of the movement target.
+
         """
         self._pending_orders[unit_id] = (target_x, target_y)
 
@@ -593,6 +595,7 @@ class DeploymentManager:
         -------
         list[Unit]
             Pre-created AI Unit entities ready to be added to the game state.
+
         """
         if not self._ai_deployments:
             return []
@@ -653,6 +656,7 @@ class DeploymentManager:
         -------
         str
             ``"allied"`` or ``"axis"``.
+
         """
         # Strategy 0: Explicit attacker_faction in scenario data
         explicit_attacker = map_data.get("attacker_faction")

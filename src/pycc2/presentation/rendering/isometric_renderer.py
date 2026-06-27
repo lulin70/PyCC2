@@ -207,6 +207,7 @@ class IsometricRenderer:
             - frame_count: Total frames rendered
             - base_cache_size: Number of base (unscaled) cached tiles
             - scaled_cache_size: Number of scaled cached surfaces
+
         """
         total = self._cache_hits + self._cache_misses
         hit_rate = self._cache_hits / total if total > 0 else 0.0
@@ -235,6 +236,7 @@ class IsometricRenderer:
             camera: Camera with ISOMETRIC projection.
             selected_unit_ids: Set of selected unit IDs for highlighting.
             debug_mode: If True, draw debug overlays.
+
         """
         if self._screen is None:
             return
@@ -342,7 +344,6 @@ class IsometricRenderer:
 
         Returns (start_x, start_y, end_x, end_y) tile coordinates.
         """
-
         # Convert screen corners to world coords to find visible range
         # Add generous padding since isometric projection is diamond-shaped
         margin = max(TILE_W, TILE_H) * 2 / camera.zoom

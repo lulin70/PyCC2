@@ -75,6 +75,7 @@ def _draw_pixel_digit(
         cx, cy: Center position of the digit.
         size: Base size of the digit (height=1 → small, height=3 → larger).
         color: RGB color tuple for the digit.
+
     """
     scale = max(1, size)
     thickness = max(1, scale // 3)
@@ -176,6 +177,7 @@ def floors_to_building_type(floors: int) -> CC2BuildingType:
 
     Returns:
         Appropriate CC2BuildingType based on floor count
+
     """
     if floors <= 1:
         return CC2BuildingType.SMALL_HOUSE
@@ -201,6 +203,7 @@ def should_show_interior(building_pos: tuple[int, int], units: list, tile_size: 
 
     Returns:
         True if any unit is inside the building tile.
+
     """
     for unit in units:
         if hasattr(unit, "position") and hasattr(unit.position, "tile_coord"):
@@ -245,6 +248,7 @@ def render_cc2_building(
 
     Returns:
         A pygame.Surface with the building rendered in CC2 style.
+
     """
     tw, th = get_building_size(building_type)
     w = tw * tile_size

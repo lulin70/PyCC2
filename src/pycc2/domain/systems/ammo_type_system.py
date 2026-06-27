@@ -83,8 +83,7 @@ AMMO_EFFECTS_CONFIG: dict[AmmoType, AmmoEffects] = {
 
 @dataclass
 class AmmoInventory:
-    """
-    Manages ammunition inventory and type selection for a unit.
+    """Manages ammunition inventory and type selection for a unit.
 
     Features:
     - Multiple ammo types with limited quantities
@@ -132,11 +131,11 @@ class AmmoInventory:
         return self._inventory.get(self._current_type, 0) > 0
 
     def cycle_ammo_type(self) -> AmmoType:
-        """
-        Cycle to next available ammo type.
+        """Cycle to next available ammo type.
 
         Returns:
             New active ammo type
+
         """
         import time
 
@@ -165,14 +164,14 @@ class AmmoInventory:
         return self._current_type
 
     def set_ammo_type(self, ammo_type: AmmoType) -> bool:
-        """
-        Manually set ammo type.
+        """Manually set ammo type.
 
         Args:
             ammo_type: Target ammo type
 
         Returns:
             True if change successful
+
         """
         if ammo_type not in self.available_types:
             return False
@@ -184,11 +183,11 @@ class AmmoInventory:
         return True
 
     def consume_round(self) -> bool:
-        """
-        Consume one round of current ammo.
+        """Consume one round of current ammo.
 
         Returns:
             True if round was consumed (had ammo)
+
         """
         if self._current_type == AmmoType.STANDARD:
             return True
@@ -205,8 +204,7 @@ class AmmoInventory:
         base_damage: float,
         target_unit: Unit,
     ) -> float:
-        """
-        Apply ammo-type-specific damage modifiers.
+        """Apply ammo-type-specific damage modifiers.
 
         Args:
             base_damage: Base weapon damage
@@ -214,6 +212,7 @@ class AmmoInventory:
 
         Returns:
             Modified damage value
+
         """
         effects = self.current_effects
 
@@ -235,27 +234,27 @@ class AmmoInventory:
         self,
         base_armor: float,
     ) -> float:
-        """
-        Modify armor value based on ammo penetration.
+        """Modify armor value based on ammo penetration.
 
         Args:
             base_armor: Target's base armor value
 
         Returns:
             Modified armor (lower = more penetration)
+
         """
         effects = self.current_effects
         return base_armor / effects.armor_penetration
 
     def deploy_smoke(self, position: tuple[int, int]) -> dict | None:
-        """
-        Deploy smoke at position if using SMOKE ammo.
+        """Deploy smoke at position if using SMOKE ammo.
 
         Args:
             position: Grid coordinates (x, y)
 
         Returns:
             Smoke cloud info dict or None if not possible
+
         """
         if self._current_type != AmmoType.SMOKE:
             return None

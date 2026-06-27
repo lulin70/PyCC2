@@ -1,5 +1,4 @@
-"""
-Top-Down Particle System for CC2-Style Visual Effects
+"""Top-Down Particle System for CC2-Style Visual Effects
 
 All particles are top-down circular/ring effects (not 3D spherical particles).
 CC2 Authentic Features:

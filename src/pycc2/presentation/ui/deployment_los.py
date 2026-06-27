@@ -1,5 +1,4 @@
-"""
-Deployment LOS Preview System — Line-of-sight visualization for deployment phase.
+"""Deployment LOS Preview System — Line-of-sight visualization for deployment phase.
 
 Extracted from deployment_ui.py God Class (v0.3.29 SRP refactoring).
 Handles hit probability estimation and LOS line rendering.

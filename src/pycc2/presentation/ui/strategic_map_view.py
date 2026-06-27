@@ -47,8 +47,7 @@ class Sector:
 
 @dataclass
 class StrategicMapView:
-    """
-    Strategic-level map showing entire Market Garden corridor.
+    """Strategic-level map showing entire Market Garden corridor.
 
     Features:
     - Overview of all sectors (Arnhem/Nijmegen/Eindhoven)
@@ -113,14 +112,14 @@ class StrategicMapView:
         self,
         click_pos: tuple[int, int],
     ) -> str | None:
-        """
-        Handle click on strategic map.
+        """Handle click on strategic map.
 
         Args:
             click_pos: Screen coordinates of click
 
         Returns:
             Sector ID if clicked on sector, None otherwise
+
         """
         for sector_id, sector in self.sectors.items():
             sx, sy = sector.position
@@ -133,12 +132,12 @@ class StrategicMapView:
         return None
 
     def render(self, surface, screen_size: tuple[int, int]) -> None:
-        """
-        Render strategic map view.
+        """Render strategic map view.
 
         Args:
             surface: Pygame surface to draw on
             screen_size: Current screen dimensions
+
         """
         try:
             import pygame

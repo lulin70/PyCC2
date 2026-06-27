@@ -1,5 +1,4 @@
-"""
-Rendering Subsystem [REFACTORED 2026-05]
+"""Rendering Subsystem [REFACTORED 2026-05]
 
 Provides rendering abstraction and implementations for the game display.
 

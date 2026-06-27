@@ -1,5 +1,4 @@
-"""
-Operation Timeline UI — displays campaign progress and day selection.
+"""Operation Timeline UI — displays campaign progress and day selection.
 """
 
 from __future__ import annotations

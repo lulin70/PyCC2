@@ -7,8 +7,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class DestructibleTerrain:
-    """
-    Destructible terrain system.
+    """Destructible terrain system.
 
     Buildings/structures have HP.
     When HP depleted -> becomes rubble tile.
@@ -43,11 +42,11 @@ class DestructibleTerrain:
         position: tuple[int, int],
         damage: int,
     ) -> bool:
-        """
-        Apply damage to terrain.
+        """Apply damage to terrain.
 
         Returns:
             True if terrain destroyed
+
         """
         if position not in self._terrain_hp:
             return False
@@ -72,8 +71,7 @@ class DestructibleTerrain:
 
 @dataclass
 class RiverCrossingSystem:
-    """
-    River crossing mechanics.
+    """River crossing mechanics.
 
     Water tiles: movement_cost = 2.5x
     Crossing increases exposure (+30%).
@@ -118,8 +116,7 @@ class RiverCrossingSystem:
 
 @dataclass
 class RoadSystem:
-    """
-    Road movement bonus system.
+    """Road movement bonus system.
 
     Road tiles: speed x1.3, visibility x1.2
     Muddy roads (after rain): bonuses cancelled/reversed

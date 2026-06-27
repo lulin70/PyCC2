@@ -37,8 +37,7 @@ class LosResult:
 
 
 class LOSSystem:
-    """
-    Line of Sight detection system using Bresenham's algorithm.
+    """Line of Sight detection system using Bresenham's algorithm.
 
     Features:
     - Bresenham ray casting for precise line checking
@@ -68,8 +67,7 @@ class LOSSystem:
         unit_b: Unit,
         max_range: int | None = None,
     ) -> tuple[bool, LosResult]:
-        """
-        Check if unit_a can see unit_b.
+        """Check if unit_a can see unit_b.
 
         Args:
             unit_a: Observer unit
@@ -78,6 +76,7 @@ class LOSSystem:
 
         Returns:
             Tuple of (can_see_bool, LosResult with details)
+
         """
         pos_a = TileCoord(
             int(unit_a.position.tile_coord.x),
@@ -96,8 +95,7 @@ class LOSSystem:
         to_coord: TileCoord,
         max_range: int | None = None,
     ) -> tuple[bool, LosResult]:
-        """
-        Check line of sight between two tile coordinates.
+        """Check line of sight between two tile coordinates.
 
         Args:
             from_coord: Starting position
@@ -106,6 +104,7 @@ class LOSSystem:
 
         Returns:
             Tuple of (can_see, LosResult)
+
         """
         cache_key = (
             from_coord.x,
@@ -244,8 +243,7 @@ class LOSSystem:
         from_coord: TileCoord,
         to_coord: TileCoord,
     ) -> list[TileCoord]:
-        """
-        Enhanced Supercover Bresenham's line algorithm.
+        """Enhanced Supercover Bresenham's line algorithm.
 
         Returns all tile coordinates along the line from
         from_coord to to_coord, inclusive.
@@ -318,8 +316,7 @@ class LOSSystem:
         from_coord: TileCoord,
         to_coord: TileCoord,
     ) -> list[TileCoord]:
-        """
-        Get list of coordinates that block LOS.
+        """Get list of coordinates that block LOS.
 
         Useful for visualization (showing why attack is red).
         """
@@ -336,8 +333,7 @@ class LOSSystem:
         self,
         los_result: LosResult,
     ) -> str:
-        """
-        Convert LosResult to AttackLineStatus string.
+        """Convert LosResult to AttackLineStatus string.
 
         For integration with AttackLineSystem.
         """
@@ -368,6 +364,7 @@ class LOSSystem:
             - 3 floors = 1.5x
             - 4 floors = 1.7x
             - 5+ floors = 2.0x
+
         """
         enhanced = game_map.get_enhanced_tile(tile_x, tile_y)
         if not enhanced or "building_floors" not in enhanced:
@@ -410,6 +407,7 @@ class LOSSystem:
 
         Returns:
             True if the firing angle passes through a window.
+
         """
         from pycc2.domain.value_objects.building_data import (
             BUILDING_WINDOWS,

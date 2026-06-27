@@ -1,5 +1,4 @@
-"""
-Deployment Phase UI — CC2 Pre-Battle Deployment System
+"""Deployment Phase UI — CC2 Pre-Battle Deployment System
 
 Implements the pre-battle deployment interface where players select units
 from a force pool and place them on the map within friendly zones before
@@ -71,8 +70,7 @@ except ImportError:
 
 
 class DeploymentUI:
-    """
-    Pre-battle deployment interface.
+    """Pre-battle deployment interface.
 
     Renders zone overlays, a force pool panel on the left, and a
     "Start Battle" button.  Interaction model: click a unit in the
@@ -404,6 +402,7 @@ class DeploymentUI:
             Pixel offset of the map's top-left corner on *screen*.
         tile_size : int
             Pixel size of one map tile.
+
         """
         if not _pygame_available or screen is None:
             return
@@ -478,6 +477,7 @@ class DeploymentUI:
             Map with ``width``, ``height`` attributes.
         tile_size : int
             Pixel size per tile (default 48).
+
         """
         return self._renderer.render_deployment_zones(surface, camera, game_map, tile_size)
 
@@ -503,6 +503,7 @@ class DeploymentUI:
             Map with ``width``, ``height`` attributes.
         tile_size : int
             Pixel size per tile (default 48).
+
         """
         return self._renderer.handle_deployment_drag(event, camera, game_map, tile_size)
 

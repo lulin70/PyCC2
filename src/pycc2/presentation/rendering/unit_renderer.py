@@ -1,5 +1,4 @@
-"""
-Unit Renderer Sub-Module for CC2-Style Games
+"""Unit Renderer Sub-Module for CC2-Style Games
 
 Handles unit-specific rendering operations:
 - Unit drawing with SpriteRenderer (PNG) and fallback shapes

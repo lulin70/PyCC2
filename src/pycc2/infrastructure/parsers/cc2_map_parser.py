@@ -1,5 +1,4 @@
-"""
-CC2 Native Map Format Parser.
+"""CC2 Native Map Format Parser.
 
 Reads Close Combat 2 binary map files (Map### format) and converts
 CC2 terrain codes to PyCC2 TerrainType enum values.
@@ -170,6 +169,7 @@ class CC2MapData:
 
         Returns:
             Dictionary matching the PyCC2 map JSON schema (see data/maps/_schema.json).
+
         """
         return {
             "id": Path(self.source_path).stem
@@ -205,6 +205,7 @@ class CC2MapParser:
         Args:
             default_byte_order: Default byte order for headerless files.
                 "little" for PC, "big" for Mac. Defaults to "little".
+
         """
         if default_byte_order not in ("little", "big"):
             raise ValueError(f"byte_order must be 'little' or 'big', got {default_byte_order!r}")
@@ -222,6 +223,7 @@ class CC2MapParser:
         Raises:
             FileNotFoundError: If the map file does not exist.
             ValueError: If the file cannot be parsed as a valid CC2 map.
+
         """
         filepath = Path(filepath)
         if not filepath.exists():
@@ -276,6 +278,7 @@ class CC2MapParser:
 
         Returns:
             CC2MapData with terrain grid converted to PyCC2 TerrainType values.
+
         """
         filepath = Path(filepath)
         if not filepath.exists():
@@ -317,6 +320,7 @@ class CC2MapParser:
 
         Returns:
             CC2MapHeader with parsed or inferred header information.
+
         """
         if len(raw_bytes) < 4:
             # Very small file — treat as headerless
@@ -448,6 +452,7 @@ class CC2MapParser:
 
         Returns:
             Tuple of (width, height).
+
         """
         if header.has_header and 4 <= header.width <= 128 and 4 <= header.height <= 128:
             return header.width, header.height
@@ -466,6 +471,7 @@ class CC2MapParser:
 
         Returns:
             Tuple of (width, height).
+
         """
         # Check against known CC2 standard sizes
         for w, h in _CC2_STANDARD_SIZES:
@@ -506,6 +512,7 @@ class CC2MapParser:
 
         Returns:
             Tuple of (2D list of PyCC2 TerrainType integer values, unmapped codes dict).
+
         """
         grid: list[list[int]] = []
         unmapped: dict[int, int] = {}
@@ -542,6 +549,7 @@ def parse_cc2_map(
 
     Returns:
         CC2MapData with terrain grid converted to PyCC2 TerrainType values.
+
     """
     parser = CC2MapParser(default_byte_order=byte_order)
     if width is not None and height is not None:

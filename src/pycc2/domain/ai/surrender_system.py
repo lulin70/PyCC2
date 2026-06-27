@@ -1,5 +1,4 @@
-"""
-Surrender/Capture System — CC2-Authentic Unit Surrender Behavior
+"""Surrender/Capture System — CC2-Authentic Unit Surrender Behavior
 
 Implements the P0-priority AI behavior for unit surrender, a critical
 element of CC2 fidelity.  At Arnhem, British paras surrendered en masse
@@ -349,7 +348,8 @@ class SurrenderAI(TacticalAIBase):
 
     def evaluate(self, context: TacticalContext) -> float:
         """Return priority score based on how many units are close to
-        surrender threshold."""
+        surrender threshold.
+        """
         candidates = self._surrender_candidates(context)
         if not candidates:
             return 0.0
@@ -388,7 +388,8 @@ class SurrenderAI(TacticalAIBase):
     @staticmethod
     def _surrender_candidates(context: TacticalContext) -> list[Unit]:
         """Return friendly units that are approaching surrender conditions
-        (not yet meeting all conditions, but close)."""
+        (not yet meeting all conditions, but close).
+        """
         return [
             u
             for u in context.friendly_units

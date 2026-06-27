@@ -1,5 +1,4 @@
-"""
-Shell Casing Ejection System for PyCC2 renderer.
+"""Shell Casing Ejection System for PyCC2 renderer.
 
 Extracted from EnhancedRenderer (God Class refactoring).
 Responsible for physics-driven shell casing ejection, simulation, and rendering.
@@ -53,6 +52,7 @@ class ShellCasingSystem:
             x: World X coordinate of ejection point.
             y: World Y coordinate of ejection point.
             direction_rad: Firing direction in radians (ejection is perpendicular).
+
         """
         eject_speed = random.uniform(60, 120)
         eject_angle = direction_rad + math.pi / 2 + random.uniform(-0.3, 0.3)
@@ -78,6 +78,7 @@ class ShellCasingSystem:
 
         Args:
             dt: Delta time in seconds since last frame.
+
         """
         dead_indices: list[int] = []
         for i, c in enumerate(self._shell_casings):
@@ -103,6 +104,7 @@ class ShellCasingSystem:
             offscreen: The off-screen rendering surface to draw onto.
             camera: Camera object with x/y position and screen dimensions
                     for world-to-screen coordinate conversion.
+
         """
         if offscreen is None:
             return

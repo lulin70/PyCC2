@@ -1,5 +1,4 @@
-"""
-Weapon Jam System — CC2-Authentic Weapon Reliability
+"""Weapon Jam System — CC2-Authentic Weapon Reliability
 
 Implements the P0-priority AI behavior for weapon jamming, a critical
 element of CC2 fidelity.  The Sten gun was notoriously unreliable —

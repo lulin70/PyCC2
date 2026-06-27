@@ -1,5 +1,4 @@
-"""
-Veterancy Component — tracks unit experience across campaign battles.
+"""Veterancy Component — tracks unit experience across campaign battles.
 Veteran units gain accuracy, morale stability, and panic resistance.
 """
 

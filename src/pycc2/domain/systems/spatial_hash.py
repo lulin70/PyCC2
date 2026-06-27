@@ -1,5 +1,4 @@
-"""
-SpatialHash - Optimized spatial indexing for combat target selection.
+"""SpatialHash - Optimized spatial indexing for combat target selection.
 
 Replaces O(n^2) target selection in combat_resolver.py by partitioning
 the game world into a uniform grid. Query operations only check cells

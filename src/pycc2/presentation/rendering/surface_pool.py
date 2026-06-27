@@ -1,6 +1,7 @@
 """Unified Surface object pool with LRU eviction.
 Eliminates duplicate pool implementations across sprite_renderer,
-particle_system, and dynamic_shadow_system."""
+particle_system, and dynamic_shadow_system.
+"""
 
 from collections import OrderedDict
 

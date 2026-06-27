@@ -1,5 +1,4 @@
-"""
-Enhanced Weather Renderer — particle systems for rain, fog, snow, and overlays.
+"""Enhanced Weather Renderer — particle systems for rain, fog, snow, and overlays.
 """
 
 from __future__ import annotations

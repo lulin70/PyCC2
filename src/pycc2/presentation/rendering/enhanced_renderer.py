@@ -1,5 +1,4 @@
-"""
-Enhanced Pixel Art Renderer for PyCC2 - Phase A5 (CC2 Authentic) [REFACTORED]
+"""Enhanced Pixel Art Renderer for PyCC2 - Phase A5 (CC2 Authentic) [REFACTORED]
 
 Renders maps with authentic Close Combat 2 visual style.
 Features:
@@ -90,8 +89,7 @@ from pycc2.presentation.ui.theme import ThemeManager
 
 
 class EnhancedRenderer(EnhancedRendererDelegateMixin):
-    """
-    CC2-Authentic terrain renderer for PyCC2 maps.
+    """CC2-Authentic terrain renderer for PyCC2 maps.
 
     Renders tiles with authentic Close Combat 2 visual style:
     - 48×48 pixel tiles (orthographic top-down)
@@ -366,8 +364,7 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
         selected_unit_ids: set[str] | None = None,
         debug_mode: bool = False,
     ) -> None:
-        """
-        Main render entry point.
+        """Main render entry point.
 
         Pipeline:
         1. Clear off-screen buffer

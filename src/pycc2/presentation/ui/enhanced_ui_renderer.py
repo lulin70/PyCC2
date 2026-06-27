@@ -41,7 +41,6 @@ class EnhancedUIRenderer:
         state: str = "normal",  # normal, hover, pressed, disabled
     ) -> None:
         """绘制增强按钮 - 3层阴影+高光"""
-
         # 选择颜色
         if state == "hover":
             bg_color = cls.CC2_UI_COLORS["button_hover"]
@@ -101,7 +100,6 @@ class EnhancedUIRenderer:
         font: pygame.font.Font | None = None,
     ) -> None:
         """绘制增强面板 - 多层边框+标题栏"""
-
         # Layer 1: 外阴影
         shadow_rect = rect.copy()
         shadow_rect.x += 3
@@ -157,7 +155,6 @@ class EnhancedUIRenderer:
         state: str = "normal",
     ) -> None:
         """绘制增强图标 - 高质量像素艺术"""
-
         # 选择颜色
         if state == "disabled":
             primary_color = cls.CC2_UI_COLORS["button_disabled"]
@@ -239,7 +236,6 @@ class EnhancedUIRenderer:
     @classmethod
     def draw_minimap_frame(cls, surface: pygame.Surface, rect: pygame.Rect) -> None:
         """绘制小地图边框 - 多层装饰"""
-
         # 外阴影
         shadow_rect = rect.copy()
         shadow_rect.x += 2
@@ -285,7 +281,6 @@ class EnhancedUIRenderer:
         font: pygame.font.Font | None = None,
     ) -> None:
         """绘制增强进度条"""
-
         # 背景
         pygame.draw.rect(surface, cls.CC2_UI_COLORS["panel_bg"], rect, border_radius=3)
         pygame.draw.rect(surface, cls.CC2_UI_COLORS["panel_border"], rect, 1, border_radius=3)

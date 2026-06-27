@@ -1,5 +1,4 @@
-"""
-IRenderer Protocol
+"""IRenderer Protocol
 
 Abstract interface defining the contract for all renderers.
 Follows dependency inversion principle - domain layer knows this protocol,

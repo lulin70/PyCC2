@@ -1,5 +1,4 @@
-"""
-Deployment Factory — Force pool builders and AI deployment generator.
+"""Deployment Factory — Force pool builders and AI deployment generator.
 
 Pure functions with zero dependency on DeploymentUI instance state.
 Extracted from deployment_ui.py God Class (v0.3.29 SRP refactoring).

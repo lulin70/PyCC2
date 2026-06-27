@@ -346,8 +346,7 @@ class GameMap:
     # ========================================================================
 
     def get_building_height(self, coord: TileCoord) -> int:
-        """
-        Get building height at coordinate (0-3 floors).
+        """Get building height at coordinate (0-3 floors).
 
         0 = Ground level (no building)
         1 = 1st floor
@@ -361,20 +360,19 @@ class GameMap:
         return int(self.height_grid[coord.y, coord.x])
 
     def set_building_height(self, coord: TileCoord, height: int) -> None:
-        """
-        Set building height at coordinate.
+        """Set building height at coordinate.
 
         Args:
             coord: Tile coordinate
             height: Building height (0-3)
+
         """
         if self.height_grid is None or not self.is_within_bounds(coord):
             return
         self.height_grid[coord.y, coord.x] = max(0, min(3, height))
 
     def get_total_height(self, coord: TileCoord) -> float:
-        """
-        Get total effective height = elevation + building_height.
+        """Get total effective height = elevation + building_height.
 
         Used for LOS calculations.
         """
@@ -385,8 +383,7 @@ class GameMap:
     # ========================================================================
 
     def get_elevation(self, coord: TileCoord) -> float:
-        """
-        Get terrain elevation at coordinate (0-5 levels).
+        """Get terrain elevation at coordinate (0-5 levels).
 
         0 = Flat ground
         1 = Gentle slope
@@ -402,25 +399,25 @@ class GameMap:
         return float(self.elevation_grid[coord.y, coord.x])
 
     def set_elevation(self, coord: TileCoord, elevation: float) -> None:
-        """
-        Set terrain elevation at coordinate.
+        """Set terrain elevation at coordinate.
 
         Args:
             coord: Tile coordinate
             elevation: Elevation value (0.0-5.0)
+
         """
         if self.elevation_grid is None or not self.is_within_bounds(coord):
             return
         self.elevation_grid[coord.y, coord.x] = max(0.0, min(5.0, elevation))
 
     def get_slope_cost(self, from_coord: TileCoord, to_coord: TileCoord) -> float:
-        """
-        Calculate movement cost modifier based on slope.
+        """Calculate movement cost modifier based on slope.
 
         Returns:
             Multiplier for movement cost:
             - 1.0: Flat or downhill
             - 1.0-2.0: Uphill (steeper = slower)
+
         """
         from_elev = self.get_elevation(from_coord)
         to_elev = self.get_elevation(to_coord)
@@ -437,13 +434,13 @@ class GameMap:
         from_coord: TileCoord,
         to_coord: TileCoord,
     ) -> float:
-        """
-        Calculate LOS range advantage from elevation difference.
+        """Calculate LOS range advantage from elevation difference.
 
         Higher ground can see further over obstacles.
 
         Returns:
             Bonus to LOS range in tiles (can be negative if lower)
+
         """
         from_height = self.get_total_height(from_coord)
         to_height = self.get_total_height(to_coord)

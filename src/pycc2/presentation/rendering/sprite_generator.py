@@ -1,5 +1,4 @@
-"""
-Sprite Generator for PyCC2 - Programmatic Pixel Art Sprites
+"""Sprite Generator for PyCC2 - Programmatic Pixel Art Sprites
 
 Generates CC2-authentic pixel art sprites for decorations programmatically.
 Each decoration type has a drawing function that creates recognizable
@@ -18,8 +17,7 @@ import pygame
 
 
 class SpriteGenerator:
-    """
-    Generates pixel art sprites for decorations programmatically.
+    """Generates pixel art sprites for decorations programmatically.
 
     Each decoration type has a drawing function that creates
     recognizable icons at small sizes (up to 32x32 pixels).

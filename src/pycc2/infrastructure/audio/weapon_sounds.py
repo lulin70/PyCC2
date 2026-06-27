@@ -261,6 +261,7 @@ class WeaponSoundGenerator:
         """Get weapon profile with fuzzy matching support.
 
         Supports case-insensitive matching and partial name matching.
+
         Examples:
             - "mg42" matches "MG42"
             - "rifle" matches default rifle profile (unknown)
@@ -271,6 +272,7 @@ class WeaponSoundGenerator:
 
         Returns:
             Best matching WeaponSoundProfile or default profile
+
         """
         # Exact match (case-insensitive)
         weapon_lower = weapon_id.lower().strip()

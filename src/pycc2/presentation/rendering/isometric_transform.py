@@ -58,6 +58,7 @@ def world_to_isometric(wx: float, wy: float, wz: float = 0.0) -> tuple[float, fl
 
     Returns:
         (sx, sy) isometric screen coordinates in pixels.
+
     """
     sx = (wx - wy) * TILE_W / 2
     sy = (wx + wy) * TILE_H / 2 - wz * HEIGHT_SCALE
@@ -75,6 +76,7 @@ def isometric_to_world(sx: float, sy: float, wz: float = 0.0) -> tuple[float, fl
 
     Returns:
         (wx, wy) world coordinates in tile units.
+
     """
     half_w = TILE_W / 2
     half_h = TILE_H / 2
@@ -102,6 +104,7 @@ def depth_sort_key(wx: float, wy: float, wz: float = 0.0) -> float:
 
     Returns:
         Sort key: lower values are drawn first (farther from viewer).
+
     """
     return wx + wy + wz * 0.01
 
@@ -126,6 +129,7 @@ def tile_diamond_corners(cx: float, cy: float) -> list[tuple[float, float]]:
 
     Returns:
         List of 4 (x, y) tuples: [top, right, bottom, left].
+
     """
     half_w = TILE_W / 2
     half_h = TILE_H / 2
@@ -151,6 +155,7 @@ def is_point_in_diamond(px: float, py: float, cx: float, cy: float) -> bool:
 
     Returns:
         True if the point is inside (or on the edge of) the diamond.
+
     """
     half_w = TILE_W / 2
     half_h = TILE_H / 2

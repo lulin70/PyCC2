@@ -1,5 +1,4 @@
-"""
-Campaign UI Component
+"""Campaign UI Component
 
 Full campaign screen flow:
 - Operation Selection: Show available operations with historical briefings
@@ -192,6 +191,7 @@ class CampaignUI:
               - allied_casualties: {'kia': int, 'wia': int}
               - axis_casualties: {'kia': int, 'wia': int}
               - bridge_status: {bridge_name: 'captured_allied'|'captured_axis'|'contested'}
+
         """
         self._campaign_summary = summary
         self._state = "campaign_end"

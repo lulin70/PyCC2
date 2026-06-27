@@ -1,5 +1,4 @@
-"""
-CC2-Style New Game Settings System
+"""CC2-Style New Game Settings System
 
 Implements the classic Close Combat 2 feature where at the start of a new
 campaign, the player can independently adjust experience level and supply

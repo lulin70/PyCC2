@@ -1,5 +1,4 @@
-"""
-AI Service
+"""AI Service
 
 Orchestrates AI decision-making for all AI-controlled units.
 Manages behavior tree execution and tactical intent generation.
@@ -40,8 +39,7 @@ if TYPE_CHECKING:
 
 
 class AIService:
-    """
-    AI decision-making service.
+    """AI decision-making service.
 
     Manages AI-controlled units' behavior trees, generates tactical
     intents, and executes decided actions through the tactic executor.
@@ -84,12 +82,12 @@ class AIService:
         self._logger = logging.getLogger("pycc2.ai.service")
 
     def register_ai_unit(self, unit: Unit, behavior_tree: BTNode) -> None:
-        """
-        Register an AI-controlled unit with its behavior tree.
+        """Register an AI-controlled unit with its behavior tree.
 
         Args:
             unit: The AI-controlled unit
             behavior_tree: Behavior tree defining unit's decision logic
+
         """
         self._unit_trees[unit.id] = behavior_tree
         self._blackboards[unit.id] = Blackboard()
@@ -114,11 +112,11 @@ class AIService:
         return self._commander
 
     def set_commander(self, commander: CommanderAI) -> None:
-        """
-        Set the commander AI for this service.
+        """Set the commander AI for this service.
 
         Args:
             commander: The commander AI instance
+
         """
         self._commander = commander
         self._logger.debug(f"Set commander: {commander.commander.name} [{commander.commander.id}]")
@@ -128,11 +126,11 @@ class AIService:
         return self._commander is not None
 
     def set_difficulty(self, level: DifficultyLevel) -> None:
-        """
-        Set the AI difficulty level.
+        """Set the AI difficulty level.
 
         Args:
             level: The difficulty level to set
+
         """
         from pycc2.domain.ai.difficulty_system import DifficultySystem
 
@@ -140,11 +138,11 @@ class AIService:
         self._logger.info(f"AI difficulty set to {level.name}")
 
     def get_battlefield_picture(self):
-        """
-        Get the commander's battlefield picture.
+        """Get the commander's battlefield picture.
 
         Returns:
             BattlefieldPicture if commander is set, None otherwise
+
         """
         if self._commander:
             return self._commander.picture
@@ -157,8 +155,7 @@ class AIService:
         all_units: list[Unit] | None = None,
         fog_of_war: dict[tuple[int, int], bool] | None = None,
     ) -> list[TacticIntent]:
-        """
-        Update all registered AI units and collect their decisions.
+        """Update all registered AI units and collect their decisions.
 
         Integrates difficulty system, combat engagement rules, commander AI,
         and squad coordination into the decision-making pipeline.
@@ -171,6 +168,7 @@ class AIService:
 
         Returns:
             List of tactic intents from all AI units
+
         """
         intents: list[TacticIntent] = []
 
@@ -320,8 +318,7 @@ class AIService:
         return intents
 
     def update_single(self, unit_id: str, dt: float, context: dict) -> TacticIntent | None:
-        """
-        Update a single AI unit.
+        """Update a single AI unit.
 
         Args:
             unit_id: ID of unit to update
@@ -330,6 +327,7 @@ class AIService:
 
         Returns:
             Tactic intent if decision made, None otherwise
+
         """
         tree = self._unit_trees.get(unit_id)
         blackboard = self._blackboards.get(unit_id)
@@ -350,14 +348,14 @@ class AIService:
         return None
 
     def execute_intents(self, intents: list[TacticIntent]) -> dict[str, bool]:
-        """
-        Execute a list of tactic intents.
+        """Execute a list of tactic intents.
 
         Args:
             intents: List of intents to execute
 
         Returns:
             Dictionary mapping unit IDs to execution success
+
         """
         results = {}
         for intent in intents:
@@ -409,6 +407,7 @@ class AIService:
 
         Returns:
             List of TacticIntent from the tactical orchestrator
+
         """
         managed_ids = set(self._unit_trees.keys())
         friendly_units = [u for u in all_units if u.id in managed_ids and u.is_alive]
@@ -430,6 +429,7 @@ class AIService:
 
         Returns:
             Dict with registered AIs, last evaluation scores, and last orders
+
         """
         return {
             "registered_ais": self._tactical_orchestrator.registered_ais,
@@ -447,8 +447,7 @@ class AIService:
         )
 
     def _find_unit(self, unit_id: str | None, all_units: list[Unit]) -> Unit | None:
-        """
-        Find a unit by ID from a list of units.
+        """Find a unit by ID from a list of units.
 
         Args:
             unit_id: The unit ID to find
@@ -456,6 +455,7 @@ class AIService:
 
         Returns:
             Unit if found, None otherwise
+
         """
         if unit_id is None:
             return None

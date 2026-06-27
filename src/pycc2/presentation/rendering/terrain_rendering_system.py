@@ -1,5 +1,4 @@
-"""
-地形渲染系统 (Terrain Rendering System)
+"""地形渲染系统 (Terrain Rendering System)
 
 从 EnhancedRenderer 中提取的地形渲染逻辑。
 负责统一管理简单地形、增强地形、地形过渡、边缘平滑等。
@@ -29,8 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class TerrainRenderingSystem:
-    """
-    统一地形渲染系统。
+    """统一地形渲染系统。
 
     封装所有地形相关的渲染逻辑，包括：
     - 简单纯色地形（稳定性优先）
@@ -82,12 +80,12 @@ class TerrainRenderingSystem:
     _MAX_TRANSITION_CACHE = 500
 
     def __init__(self, renderer, tile_size: int = 32):
-        """
-        初始化地形渲染系统。
+        """初始化地形渲染系统。
 
         Args:
             renderer: EnhancedRenderer 实例（用于访问缓存和生成器）
             tile_size: 地图瓦片大小（像素）
+
         """
         self._renderer = renderer
         self.TILE_SIZE = tile_size
@@ -132,6 +130,7 @@ class TerrainRenderingSystem:
 
         Returns:
             缓存的地形背景 Surface，或 None（无法创建时）
+
         """
         target_surface = self._renderer._offscreen
         if target_surface is None:
@@ -323,8 +322,7 @@ class TerrainRenderingSystem:
     def draw_simple_terrain(
         self, game_map: "GameMap", camera: "Camera", surface: pygame.Surface | None = None
     ) -> None:
-        """
-        使用简单纯色绘制地形 - 最大稳定性模式。
+        """使用简单纯色绘制地形 - 最大稳定性模式。
 
         使用预定义的 CC2 精确颜色，无任何程序化生成。
         这是经典的"256色时代"外观，非常稳定可靠。
@@ -333,6 +331,7 @@ class TerrainRenderingSystem:
             game_map: 游戏地图
             camera: 相机对象
             surface: 目标渲染表面（可选，默认使用 offscreen）
+
         """
         target_surface = surface or self._renderer._offscreen
         if target_surface is None:
@@ -405,8 +404,7 @@ class TerrainRenderingSystem:
         debug_mode: bool = False,
         surface: pygame.Surface | None = None,
     ) -> None:
-        """
-        使用增强的纹理化地形绘制（带高度光照和 autotile 支持）。
+        """使用增强的纹理化地形绘制（带高度光照和 autotile 支持）。
 
         这是主要的游戏画面地形渲染方法，支持：
         - 程序化纹理生成（12种地形类型 × 多种变体）
@@ -420,6 +418,7 @@ class TerrainRenderingSystem:
             camera: 相机对象
             debug_mode: 是否显示调试信息
             surface: 目标渲染表面（可选）
+
         """
         target_surface = surface or self._renderer._offscreen
         if target_surface is None:
@@ -621,8 +620,7 @@ class TerrainRenderingSystem:
     def _generate_cc2_style_tile(
         self, terrain_id: int, tile_x: int, tile_y: int, bitmask: int = 0
     ) -> pygame.Surface:
-        """
-        生成 CC2 风格的 48×48 地形瓦片（支持 autotile）。
+        """生成 CC2 风格的 48×48 地形瓦片（支持 autotile）。
 
         Args:
             terrain_id: 地形类型 ID (0-12)
@@ -632,6 +630,7 @@ class TerrainRenderingSystem:
 
         Returns:
             48×48 像素的 Pygame Surface
+
         """
         variation = tile_x * 7919 + tile_y * 104729 + terrain_id * 17
 
@@ -658,8 +657,7 @@ class TerrainRenderingSystem:
         end_y: int,
         tile_screen_size: int,
     ) -> None:
-        """
-        渲染不同地形类型间的梯度过渡条带。
+        """渲染不同地形类型间的梯度过渡条带。
 
         在相邻的不同地形类型之间绘制 4-6px 的渐变条，
         使地形边界看起来更自然，而不是生硬的直线。
@@ -671,6 +669,7 @@ class TerrainRenderingSystem:
             camera: 相机对象
             start_x/end_x/start_y/end_y: 可见区域范围
             tile_screen_size: 屏幕上瓦片的大小
+
         """
         target_surface = self._renderer._offscreen
         if target_surface is None:
@@ -761,8 +760,7 @@ class TerrainRenderingSystem:
         end_y: int,
         tile_screen_size: int,
     ) -> None:
-        """
-        在不同地形类型之间应用微妙的边缘平滑处理。
+        """在不同地形类型之间应用微妙的边缘平滑处理。
 
         创建 2-3 像素宽的半透明叠加层在地形边界处，
         使地形过渡更自然（类似 CC2 的视觉效果）。
@@ -775,6 +773,7 @@ class TerrainRenderingSystem:
             camera: 相机对象
             start_x/end_x/start_y/end_y: 可见范围
             tile_screen_size: 瓦片屏幕尺寸
+
         """
         target_surface = self._renderer._offscreen
         if target_surface is None:
@@ -846,8 +845,7 @@ class TerrainRenderingSystem:
         start_y: int,
         end_y: int,
     ) -> None:
-        """
-        在调试模式下绘制地形类型边界线。
+        """在调试模式下绘制地形类型边界线。
 
         用于可视化验证地形分配是否正确。
         仅在 debug_mode=True 时调用。
@@ -856,6 +854,7 @@ class TerrainRenderingSystem:
             game_map: 游戏地图
             camera: 相机对象
             start_x/end_x/start_y/end_y: 可见范围
+
         """
         target_surface = self._renderer._offscreen
         if target_surface is None:

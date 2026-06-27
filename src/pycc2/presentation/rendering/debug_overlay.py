@@ -1,5 +1,4 @@
-"""
-Debug Overlay System
+"""Debug Overlay System
 
 Multi-level debug visualization overlay for development and testing.
 Levels: OFF, BASIC, VERBOSE

@@ -16,8 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class AssetLoader:
-    """
-    资产加载器 - 优先从assets目录加载PNG，不存在时fallback到程序化生成
+    """资产加载器 - 优先从assets目录加载PNG，不存在时fallback到程序化生成
 
     目录结构:
     assets/
@@ -104,8 +103,7 @@ class AssetLoader:
         direction: int,
         size: int = 128,
     ) -> Surface | None:
-        """
-        加载单位精灵
+        """加载单位精灵
 
         Args:
             faction: "allies" 或 "axis"
@@ -115,6 +113,7 @@ class AssetLoader:
 
         Returns:
             Surface 或 None（需要fallback到程序化生成）
+
         """
         cache_key = f"{faction}_{unit_type}_d{direction}_{size}"
 
@@ -170,8 +169,7 @@ class AssetLoader:
         direction: int = 0,
         faction: str = "allies",
     ) -> pygame.Surface | None:
-        """
-        加载单位精灵 - 优先使用CC2写实像素艺术生成器
+        """加载单位精灵 - 优先使用CC2写实像素艺术生成器
 
         Args:
             unit_type: 单位类型名称（如 "INFANTRY_SQUAD"）
@@ -180,6 +178,7 @@ class AssetLoader:
 
         Returns:
             pygame.Surface 或 None
+
         """
         cache_key = f"cc2_{faction}_{unit_type}_d{direction}"
 
@@ -221,8 +220,7 @@ class AssetLoader:
         return surface
 
     def load_terrain_tile(self, tile_id: int, size: int = 32) -> Surface | None:
-        """
-        加载地形tile
+        """加载地形tile
 
         Args:
             tile_id: 地形ID (0-13)
@@ -230,6 +228,7 @@ class AssetLoader:
 
         Returns:
             Surface 或 None
+
         """
         cache_key = f"terrain_{tile_id}_{size}"
 
@@ -267,8 +266,7 @@ class AssetLoader:
         return None
 
     def load_effect_sprite(self, effect_name: str, frame: int = 0) -> Surface | None:
-        """
-        加载特效精灵（爆炸、烟雾等）
+        """加载特效精灵（爆炸、烟雾等）
 
         Args:
             effect_name: 特效名称（如 "explosion", "smoke"）
@@ -276,6 +274,7 @@ class AssetLoader:
 
         Returns:
             Surface 或 None
+
         """
         cache_key = f"effect_{effect_name}_f{frame}"
 

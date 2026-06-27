@@ -1,5 +1,4 @@
-"""
-Terrain Detail Generator for PyCC2 - Phase A3
+"""Terrain Detail Generator for PyCC2 - Phase A3
 
 Procedurally generates terrain details (decorations, variations, height)
 for enhanced maps. Transforms bare expanded maps into visually rich
@@ -81,8 +80,7 @@ class GenerationConfig:
 
 
 class TerrainDetailGenerator:
-    """
-    Procedural terrain detail generator.
+    """Procedural terrain detail generator.
 
     Uses multiple noise layers and rule-based placement to create natural-looking,
     tactically interesting terrain details that make maps feel alive.
@@ -98,14 +96,14 @@ class TerrainDetailGenerator:
         self._noise_cache: dict[str, list[list[float]]] = {}
 
     def enhance_map(self, map_data: dict[str, Any]) -> dict[str, Any]:
-        """
-        Enhance a map with procedural details.
+        """Enhance a map with procedural details.
 
         Args:
             map_data: Map data dictionary (legacy or already expanded)
 
         Returns:
             Enhanced map data with decorations, height, and variation
+
         """
         width = map_data["width"]
         height = map_data["height"]
@@ -159,8 +157,7 @@ class TerrainDetailGenerator:
     def _generate_biome_map(
         self, tiles: list[list[EnhancedTile]], w: int, h: int
     ) -> list[list[BiomeType]]:
-        """
-        Classify each tile into a biome category based on terrain type
+        """Classify each tile into a biome category based on terrain type
         and neighborhood analysis.
         """
         biome_grid = [[BiomeType.MIXED for _ in range(w)] for _ in range(h)]
@@ -222,7 +219,6 @@ class TerrainDetailGenerator:
         self, tiles: list[list[EnhancedTile]], w: int, h: int, biome_map: list[list[BiomeType]]
     ) -> None:
         """Generate natural-looking height variation across the map."""
-
         # Base height from terrain type
         base_heights = {
             0: 0,
@@ -271,8 +267,7 @@ class TerrainDetailGenerator:
     def _place_decorations(
         self, tiles: list[list[EnhancedTile]], w: int, h: int, biome_map: list[list[BiomeType]]
     ) -> int:
-        """
-        Place decorations based on biome rules and noise distribution.
+        """Place decorations based on biome rules and noise distribution.
 
         Returns total number of decorations placed.
         """
@@ -323,8 +318,7 @@ class TerrainDetailGenerator:
     def _get_eligible_decorations(
         self, biome: BiomeType, terrain: int
     ) -> list[tuple[DecorationType, float]]:
-        """
-        Get list of (decoration_type, base_density) tuples eligible for this location.
+        """Get list of (decoration_type, base_density) tuples eligible for this location.
         """
         rules = {
             BiomeType.GRASSLAND: [
@@ -412,8 +406,7 @@ class TerrainDetailGenerator:
         )
 
     def _generate_tactical_covers(self, tiles: list[list[EnhancedTile]], w: int, h: int) -> int:
-        """
-                Generate tactical cover positions (sandbags, trenches, etc.)
+        """Generate tactical cover positions (sandbags, trenches, etc.)
         in strategic locations.
 
                 Places near objectives, between open areas, and along likely approach routes.
@@ -457,8 +450,7 @@ class TerrainDetailGenerator:
         return placed
 
     def _generate_concealment_zones(self, tiles: list[list[EnhancedTile]], w: int, h: int) -> int:
-        """
-        Generate concealment zones (bushes, camo nets) for ambush positions.
+        """Generate concealment zones (bushes, camo nets) for ambush positions.
 
         Focuses on edges of forests, near roads, and in transition areas.
         """
@@ -492,8 +484,7 @@ class TerrainDetailGenerator:
         return placed
 
     def _value_noise(self, x: float, y: float, scale: float = 0.1) -> float:
-        """
-        Simple value noise function for deterministic randomness.
+        """Simple value noise function for deterministic randomness.
 
         Returns value in [0, 1] range.
         """
@@ -529,8 +520,7 @@ def batch_enhance_maps(
     seed: int = 42,
     config: GenerationConfig | None = None,
 ) -> dict[str, Any]:
-    """
-    Batch process all maps in a directory.
+    """Batch process all maps in a directory.
 
     Args:
         input_dir: Directory containing map JSON files
@@ -540,6 +530,7 @@ def batch_enhance_maps(
 
     Returns:
         Summary statistics of enhancement process
+
     """
     in_path = Path(input_dir)
     out_path = Path(output_dir) if output_dir else in_path

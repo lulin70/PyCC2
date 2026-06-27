@@ -1,5 +1,4 @@
-"""
-New Game Menu — Full-screen menu shown at game start.
+"""New Game Menu — Full-screen menu shown at game start.
 
 Allows the player to select faction, difficulty, and campaign/skirmish
 settings before entering the battle.  Rendered entirely with pygame

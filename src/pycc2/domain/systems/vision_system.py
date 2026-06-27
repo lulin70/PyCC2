@@ -8,8 +8,7 @@ from dataclasses import dataclass
 
 @dataclass
 class ConeVisionSystem:
-    """
-    Conical (cone) vision system instead of circular.
+    """Conical (cone) vision system instead of circular.
 
     Default vision cone: 120 degree arc
     Different stances affect cone angle:

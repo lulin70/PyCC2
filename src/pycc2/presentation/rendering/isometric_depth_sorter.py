@@ -77,6 +77,7 @@ def sort_for_isometric(
 
     Returns:
         New list sorted in back-to-front order.
+
     """
     return sorted(
         renderables,
@@ -102,6 +103,7 @@ def tile_to_renderable(tile_x: int, tile_y: int, tile_data: Any) -> IsometricRen
 
     Returns:
         An ``IsometricRenderable`` on the TERRAIN layer.
+
     """
     return IsometricRenderable(
         world_x=float(tile_x),
@@ -122,6 +124,7 @@ def unit_to_renderable(unit: Any) -> IsometricRenderable:
 
     Returns:
         An ``IsometricRenderable`` on the UNIT layer.
+
     """
     pos = unit.position
     return IsometricRenderable(
@@ -144,6 +147,7 @@ def effect_to_renderable(x: float, y: float, z: float, effect_data: Any) -> Isom
 
     Returns:
         An ``IsometricRenderable`` on the EFFECT layer.
+
     """
     return IsometricRenderable(
         world_x=x,

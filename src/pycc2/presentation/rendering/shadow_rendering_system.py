@@ -1,5 +1,4 @@
-"""
-阴影渲染系统 (Shadow Rendering System)
+"""阴影渲染系统 (Shadow Rendering System)
 
 从 EnhancedRenderer 中提取的阴影渲染逻辑。
 负责统一管理建筑、树木、单位的阴影渲染，使用 ShadowRenderer 类实现。
@@ -29,8 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class ShadowRenderingSystem:
-    """
-    统一阴影渲染系统。
+    """统一阴影渲染系统。
 
     封装所有阴影相关的渲染逻辑，提供清晰的接口给 EnhancedRenderer 调用。
 
@@ -40,12 +38,12 @@ class ShadowRenderingSystem:
     """
 
     def __init__(self, shadow_renderer: "ShadowRenderer", tile_size: int = 32):
-        """
-        初始化阴影渲染系统。
+        """初始化阴影渲染系统。
 
         Args:
             shadow_renderer: ShadowRenderer 实例（来自 lighting_system.py）
             tile_size: 地图瓦片大小（像素）
+
         """
         self._shadow_renderer = shadow_renderer
         self.TILE_SIZE = tile_size
@@ -53,8 +51,7 @@ class ShadowRenderingSystem:
     def render_building_shadows(
         self, surface: pygame.Surface, game_map: "GameMap", camera: "Camera"
     ) -> int:
-        """
-        渲染所有建筑的东南方向阴影。
+        """渲染所有建筑的东南方向阴影。
 
         统一阴影方向：使用 ShadowRenderer 类，阴影投射向东南（右下）
         与 TopDownLightingConfig.light_angle = -π/4（左上光源）保持一致
@@ -66,6 +63,7 @@ class ShadowRenderingSystem:
 
         Returns:
             渲染的建筑阴影数量
+
         """
         if surface is None or self._shadow_renderer is None:
             return 0
@@ -102,8 +100,7 @@ class ShadowRenderingSystem:
     def render_tree_shadows(
         self, surface: pygame.Surface, game_map: "GameMap", camera: "Camera"
     ) -> int:
-        """
-        渲染所有树木/植被的东南方向阴影。
+        """渲染所有树木/植被的东南方向阴影。
 
         Args:
             surface: 目标渲染表面
@@ -112,6 +109,7 @@ class ShadowRenderingSystem:
 
         Returns:
             渲染的树木阴影数量
+
         """
         if surface is None or self._shadow_renderer is None:
             return 0
@@ -153,8 +151,7 @@ class ShadowRenderingSystem:
     def render_unit_shadows(
         self, surface: pygame.Surface, units: list["Unit"], camera: "Camera"
     ) -> int:
-        """
-        渲染所有单位和载具的阴影。
+        """渲染所有单位和载具的阴影。
 
         支持多种单位类型检测：
         - 载具：tank, vehicle, halftrack, jeep, truck
@@ -169,6 +166,7 @@ class ShadowRenderingSystem:
 
         Returns:
             渲染的单位阴影数量
+
         """
         if surface is None or self._shadow_renderer is None:
             return 0
@@ -213,8 +211,7 @@ class ShadowRenderingSystem:
     def debug_render_shadow_bounds(
         self, surface: pygame.Surface, game_map: "GameMap", camera: "Camera"
     ) -> None:
-        """
-        调试模式：绘制阴影位置的边界框（不依赖透明度）。
+        """调试模式：绘制阴影位置的边界框（不依赖透明度）。
 
         用于验证阴影位置是否正确，在 debug_mode=True 时调用。
 
@@ -222,6 +219,7 @@ class ShadowRenderingSystem:
             surface: 目标渲染表面
             game_map: 游戏地图
             camera: 相机对象
+
         """
         if surface is None:
             return
@@ -279,8 +277,7 @@ class ShadowRenderingSystem:
     def _get_unit_screen_position(
         self, unit: "Unit", camera: "Camera"
     ) -> tuple[int | None, int | None]:
-        """
-        获取单位在屏幕上的坐标（带防御性编程）。
+        """获取单位在屏幕上的坐标（带防御性编程）。
 
         支持多种位置获取策略：
         1. pixel_position（优先）
@@ -292,6 +289,7 @@ class ShadowRenderingSystem:
 
         Returns:
             (cx, cy) 屏幕坐标，如果无法获取则返回 (None, None)
+
         """
         cx, cy = None, None
 

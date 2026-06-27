@@ -1,5 +1,4 @@
-"""
-Command Bar
+"""Command Bar
 
 Bottom command bar showing available actions for selected units.
 Provides quick access to common commands like move, attack, etc.

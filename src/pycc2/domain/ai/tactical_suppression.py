@@ -1,5 +1,4 @@
-"""
-SuppressionAI — Prioritize MG fire on high-threat targets.
+"""SuppressionAI — Prioritize MG fire on high-threat targets.
 
 CC2 behaviour: MG42 teams lay down suppressive fire on the most
 dangerous enemy before infantry assaults.  Suppression is maintained

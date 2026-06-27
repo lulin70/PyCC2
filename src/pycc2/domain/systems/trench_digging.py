@@ -11,8 +11,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class TrenchDiggingTracker:
-    """
-    Extended trench digging AI behavior.
+    """Extended trench digging AI behavior.
 
     Units automatically dig after stationary 3 turns undetected.
     Progress bar over 3 turns.
@@ -36,11 +35,11 @@ class TrenchDiggingTracker:
         is_detected: bool,
         dt: float,
     ) -> str | None:
-        """
-        Update digging progress for unit.
+        """Update digging progress for unit.
 
         Returns:
             'digging', 'completed', or None
+
         """
         if not is_stationary or is_detected:
             self._stationary_time[unit_id] = 0.0

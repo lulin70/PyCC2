@@ -1,5 +1,4 @@
-"""
-Sound effect convenience methods extracted from SoundSystem as a mixin.
+"""Sound effect convenience methods extracted from SoundSystem as a mixin.
 
 Provides play_shot, play_hit, play_explosion, play_death, play_footstep,
 play_morale_change, play_command_confirm, play_unit_select, play_unit_died,

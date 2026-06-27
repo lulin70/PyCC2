@@ -1,5 +1,4 @@
-"""
-Screen Flash Overlay Effect System for PyCC2 renderer.
+"""Screen Flash Overlay Effect System for PyCC2 renderer.
 
 Extracted from EnhancedRenderer (God Class refactoring).
 Manages transient full-screen flash overlays used for visual feedback
@@ -52,6 +51,7 @@ class FlashEffectSystem:
             color: RGB tuple for flash color (white for explosions, red for kills).
             intensity: Peak alpha multiplier (0.0–1.0).
             duration: Flash fade-out duration in seconds.
+
         """
         self._color = color
         self._alpha = intensity * 255
@@ -72,6 +72,7 @@ class FlashEffectSystem:
 
         Args:
             dt: Delta time in seconds since last frame.
+
         """
         if self._color is None:
             return

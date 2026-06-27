@@ -1,5 +1,4 @@
-"""
-Projectile Entity
+"""Projectile Entity
 
 Represents an in-flight projectile (bullet, grenade, etc.)
 with position, velocity, and impact calculation.
@@ -21,8 +20,7 @@ class ProjectileType(Enum):
 
 @dataclass
 class Projectile:
-    """
-    In-flight projectile entity.
+    """In-flight projectile entity.
 
     Attributes:
         projectile_id: Unique identifier
@@ -36,6 +34,7 @@ class Projectile:
         speed: Flight speed (tiles per second)
         is_active: Whether projectile is still in flight
         has_hit: Whether projectile has hit something
+
     """
 
     projectile_id: str
@@ -73,14 +72,14 @@ class Projectile:
         return self.distance_traveled / total
 
     def update(self, dt: float) -> bool:
-        """
-        Update projectile position.
+        """Update projectile position.
 
         Args:
             dt: Delta time in seconds
 
         Returns:
             True if projectile reached target this frame
+
         """
         if not self.is_active or self.has_hit:
             return False

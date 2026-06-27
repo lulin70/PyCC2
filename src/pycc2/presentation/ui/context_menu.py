@@ -40,8 +40,7 @@ class MenuItem:
 
 
 class ContextMenu:
-    """
-    CC2-style right-click context menu.
+    """CC2-style right-click context menu.
 
     Features:
     - Appears on right-click near cursor
@@ -91,13 +90,13 @@ class ContextMenu:
         on_action: Callable[[ContextAction, tuple[int, int]], None],
         enabled_actions: set[ContextAction] | None = None,
     ) -> None:
-        """
-        Show context menu at position.
+        """Show context menu at position.
 
         Args:
             position: Screen position (x, y)
             on_action: Callback when action selected
             enabled_actions: Set of actions to enable (all if None)
+
         """
         self._position = position
         self._on_action = on_action
@@ -187,11 +186,11 @@ class ContextMenu:
         )
 
     def handle_event(self, event: pygame.event.Event) -> bool:
-        """
-        Handle input event for context menu.
+        """Handle input event for context menu.
 
         Returns:
             True if event was consumed
+
         """
         if not self._visible:
             return False
@@ -276,14 +275,14 @@ class ContextMenu:
         screen.blit(self._surface, self._rect.topleft)
 
     def get_enabled_actions(self, unit=None) -> set[ContextAction]:
-        """
-        Get set of actions that should be enabled for current context.
+        """Get set of actions that should be enabled for current context.
 
         Args:
             unit: Currently selected unit (if any)
 
         Returns:
             Set of enabled ContextAction values
+
         """
         always_enabled = {
             ContextAction.STOP,

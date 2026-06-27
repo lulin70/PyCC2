@@ -1,5 +1,4 @@
-"""
-Morale System — CC2-Authentic State Machine
+"""Morale System — CC2-Authentic State Machine
 
 Implements the 5-state morale model from Close Combat 2:
 - RALLYED (>70): Full combat effectiveness, slight accuracy bonus near commander
@@ -167,8 +166,7 @@ class MoraleCalculator:
 
 
 class MoraleSystem:
-    """
-    Static utility class for morale state management.
+    """Static utility class for morale state management.
 
     Provides CC2-authentic morale mechanics including:
     - State mapping from numeric values
@@ -199,14 +197,14 @@ class MoraleSystem:
 
     @staticmethod
     def get_state(morale_value: int) -> MoraleState:
-        """
-        Map numeric morale value to state enum.
+        """Map numeric morale value to state enum.
 
         Args:
             morale_value: Current morale (0-100)
 
         Returns:
             Corresponding MoraleState enum value
+
         """
         if morale_value > MoraleSystem.RALLYED_THRESHOLD:
             return MoraleState.RALLYED
@@ -230,6 +228,7 @@ class MoraleSystem:
             new_state: The new morale state (BROKEN or ROUTING)
             voice_callback: Optional callback(state_value, faction) for voice playback.
                            If None, voice playback is skipped.
+
         """
         if voice_callback is None:
             return
@@ -242,8 +241,7 @@ class MoraleSystem:
 
     @staticmethod
     def apply_suppression(unit: Unit, amount: float, dt: float) -> dict:
-        """
-        Apply enemy fire suppression to unit's morale.
+        """Apply enemy fire suppression to unit's morale.
 
         Suppression from incoming fire reduces morale over time.
         Heavy suppression can push units into pinned/broken states.
@@ -259,6 +257,7 @@ class MoraleSystem:
             - state_changed: Whether state changed
             - new_state: New morale state (if changed)
             - current_morale: Updated morale value
+
         """
         if unit.morale is None:
             return {
@@ -310,8 +309,7 @@ class MoraleSystem:
     def update_morale_recovery(
         unit: Unit, dt: float, near_commander: bool = False, in_cover: bool = True
     ) -> dict:
-        """
-        Passive morale recovery when not under fire.
+        """Passive morale recovery when not under fire.
 
         Units naturally recover morale over time, faster when:
         - Near commander (leadership bonus)
@@ -329,6 +327,7 @@ class MoraleSystem:
             - recovered: Amount recovered
             - current_morale: Updated morale
             - state_changed: Whether state improved
+
         """
         if unit.morale is None:
             return {"recovered": 0, "current_morale": 0, "state_changed": False}
@@ -379,8 +378,7 @@ class MoraleSystem:
 
     @staticmethod
     def check_routing_behavior(unit: Unit, game_map: GameMap | None = None) -> tuple[bool, object]:
-        """
-        Check if unit should attempt to flee.
+        """Check if unit should attempt to flee.
 
         Broken units may refuse orders and try to flee toward map edge.
         Already routing units continue fleeing until they reach safety or rally.
@@ -395,8 +393,8 @@ class MoraleSystem:
         - BROKEN state: 15% chance per check interval to start routing
         - ROUTING state: 40% chance to continue fleeing
         - Returns target position (map edge direction) if fleeing
-        """
 
+        """
         if unit.morale is None:
             return (False, None)
 
@@ -446,8 +444,7 @@ class MoraleSystem:
     def _calculate_flee_target(
         unit: Unit, game_map: GameMap | None = None
     ) -> tuple[int, int] | None:
-        """
-        Calculate target position for fleeing unit.
+        """Calculate target position for fleeing unit.
 
         Units flee toward the nearest map edge, away from known enemies.
 
@@ -457,6 +454,7 @@ class MoraleSystem:
 
         Returns:
             Target tile coordinates as (x, y) tuple, or None if map unavailable
+
         """
         if game_map is None:
             # Fallback: try to get map from unit's position
@@ -491,14 +489,14 @@ class MoraleSystem:
 
     @staticmethod
     def get_accuracy_modifier(morale_state: MoraleState) -> float:
-        """
-        Get accuracy modifier based on morale state.
+        """Get accuracy modifier based on morale state.
 
         Args:
             morale_state: Current morale state
 
         Returns:
             Accuracy multiplier (1.0 = normal, <1.0 = penalty, >1.0 = bonus)
+
         """
         modifiers = {
             MoraleState.RALLYED: 1.05,  # Slight bonus
@@ -511,14 +509,14 @@ class MoraleSystem:
 
     @staticmethod
     def get_movement_modifier(morale_state: MoraleState) -> float:
-        """
-        Get movement speed modifier based on morale state.
+        """Get movement speed modifier based on morale state.
 
         Args:
             morale_state: Current morale state
 
         Returns:
             Speed multiplier (0.0 = cannot move, 1.5 = fleeing speed)
+
         """
         modifiers = {
             MoraleState.RALLYED: 1.0,  # Normal
@@ -531,8 +529,7 @@ class MoraleSystem:
 
     @staticmethod
     def can_move(unit: Unit) -> bool:
-        """
-        Check if unit is capable of moving.
+        """Check if unit is capable of moving.
 
         Pinned units cannot move at all.
         Broken units may refuse movement orders.
@@ -542,6 +539,7 @@ class MoraleSystem:
 
         Returns:
             True if unit can move, False otherwise
+
         """
         if unit.morale is None:
             return True  # No morale system = can always move
@@ -561,8 +559,7 @@ class MoraleSystem:
 
     @staticmethod
     def can_accept_orders(unit: Unit) -> bool:
-        """
-        Check if unit will accept player/AI orders.
+        """Check if unit will accept player/AI orders.
 
         Broken and routing units may ignore commands.
         Routing units are completely uncontrollable regardless of
@@ -573,6 +570,7 @@ class MoraleSystem:
 
         Returns:
             True if unit accepts orders, False if refusing
+
         """
         if unit.morale is None:
             return True

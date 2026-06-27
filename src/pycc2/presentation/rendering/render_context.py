@@ -1,5 +1,4 @@
-"""
-Render Context - Dependency injection container for sub-renderers.
+"""Render Context - Dependency injection container for sub-renderers.
 
 Eliminates self._parent._ penetration coupling by providing
 explicit interfaces for all shared rendering dependencies.

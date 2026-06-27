@@ -1,5 +1,4 @@
-"""
-Building Clearing — CC2-Authentic Urban Combat Behavior
+"""Building Clearing — CC2-Authentic Urban Combat Behavior
 
 Infantry can clear buildings room by room using WWII close-quarters tactics.
 This mirrors the dangerous reality of urban combat where defenders have

@@ -1,5 +1,4 @@
-"""
-ResourceCacheManager — Unified download, cache, and lifecycle management for external game assets.
+"""ResourceCacheManager — Unified download, cache, and lifecycle management for external game assets.
 
 Features:
 - HTTP/HTTPS download with progress callback
@@ -106,6 +105,7 @@ class ResourceCacheManager:
 
         Returns:
             Local path to the cached file, or *None* on failure.
+
         """
         # 1. Check cache first
         cached = self._check_cache(url, expected_sha256)
@@ -139,6 +139,7 @@ class ResourceCacheManager:
 
         Args:
             url: If given, remove only this entry. If *None*, clear everything.
+
         """
         if url:
             if url in self._index:

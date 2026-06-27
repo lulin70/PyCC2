@@ -1,5 +1,4 @@
-"""
-AI configuration parameters for PyCC2.
+"""AI configuration parameters for PyCC2.
 Data-driven AI parameters replacing hardcoded magic numbers in CommanderAI and other AI modules.
 """
 

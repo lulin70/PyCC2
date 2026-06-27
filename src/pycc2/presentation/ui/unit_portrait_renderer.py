@@ -1,5 +1,4 @@
-"""
-Unit Portrait Renderer - Military-style 96x96 unit portraits.
+"""Unit Portrait Renderer - Military-style 96x96 unit portraits.
 
 Renders 6-layer portraits:
 Layer 1: Background (faction color + noise)
@@ -58,6 +57,7 @@ class UnitPortraitRenderer:
         - First render: <5ms
         - Cached render: <1ms
         - Memory: ~3.7MB for 100 cached portraits
+
     """
 
     def __init__(self, max_cache_size: int = 100):
@@ -65,6 +65,7 @@ class UnitPortraitRenderer:
 
         Args:
             max_cache_size: LRU cache capacity (default 100)
+
         """
         if not _PYGAME_AVAILABLE:
             raise ImportError("Pygame not available for portrait rendering")
@@ -101,6 +102,7 @@ class UnitPortraitRenderer:
             >>> portrait = renderer.render_portrait(
             ...     InfantryType.RIFLEMAN, Faction.AXIS, 0.8
             ... )
+
         """
         self._validate_inputs(unit_type, faction, health_percent)
 
@@ -134,6 +136,7 @@ class UnitPortraitRenderer:
 
         Raises:
             ValueError: size not in [16, 256] range
+
         """
         if not 16 <= size <= 256:
             raise ValueError(f"size must be 16-256, got {size}")
@@ -157,6 +160,7 @@ class UnitPortraitRenderer:
 
         Returns:
             {"size": int, "hits": int, "misses": int, "hit_rate": float}
+
         """
         total = self._cache_hits + self._cache_misses
         hit_rate = self._cache_hits / total if total > 0 else 0.0
@@ -175,6 +179,7 @@ class UnitPortraitRenderer:
 
         Raises:
             ValueError: Invalid parameters
+
         """
         if not isinstance(unit_type, InfantryType):
             raise ValueError(f"Invalid unit_type: {unit_type}")

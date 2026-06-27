@@ -25,8 +25,7 @@ class Civilian:
 
 @dataclass
 class CivilianSystem:
-    """
-    Civilian/NPC behavior system.
+    """Civilian/NPC behavior system.
 
     Civilians distributed on map.
     Flee/hide when combat nearby.

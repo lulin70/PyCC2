@@ -53,6 +53,7 @@ class CC2HUDRenderer:
         Args:
             hud: CC2HUD instance providing all state (fonts, units, rects, etc.)
             surface: Target pygame surface (already sized & filled with BG_COLOR)
+
         """
         # Calculate panel positions
         left_x = 0

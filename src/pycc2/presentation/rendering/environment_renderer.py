@@ -1,5 +1,4 @@
-"""
-Environment Renderer for PyCC2 - Extracted from EnhancedRenderer
+"""Environment Renderer for PyCC2 - Extracted from EnhancedRenderer
 
 Handles all environment and lighting-related rendering:
 - Screen overlays (warm tint, vignette)
@@ -30,8 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class EnvironmentRenderer:
-    """
-    Manages environmental visual effects and lighting systems.
+    """Manages environmental visual effects and lighting systems.
 
     Delegated by EnhancedRenderer to maintain clean separation of concerns.
     Handles:
@@ -72,6 +70,7 @@ class EnvironmentRenderer:
 
         Returns:
             Tuple of (warm_overlay, vignette) surfaces, cached across frames.
+
         """
         if self._cached_screen_size != screen_size:
             self._invalidate_surface_cache()
@@ -220,14 +219,14 @@ class EnvironmentRenderer:
             self._lighting_effects_sys.render_dynamic_lights(offscreen)
 
     def set_time_of_day(self, tod: str) -> None:
-        """
-        Set time of day for color grading.
+        """Set time of day for color grading.
 
         Args:
             tod: Time of day string - 'dawn'/'noon'/'dusk'/'night'
 
         Raises:
             ValueError: If tod is not a valid time of day
+
         """
         if self._lighting_config is None:
             raise RuntimeError("Lighting config not initialized")
@@ -240,11 +239,11 @@ class EnvironmentRenderer:
         logger.debug(f"Lighting: Time of day set to '{tod}'")
 
     def set_light_intensity(self, intensity: float) -> None:
-        """
-        Set global light intensity.
+        """Set global light intensity.
 
         Args:
             intensity: Brightness level (0.0 = dark, 1.0 = normal, 2.0 = very bright)
+
         """
         if self._lighting_config is None:
             raise RuntimeError("Lighting config not initialized")
@@ -253,10 +252,10 @@ class EnvironmentRenderer:
         logger.debug(f"Lighting: Intensity set to {self._lighting_config.light_intensity:.2f}")
 
     def get_lighting_config(self):
-        """
-        Get current lighting configuration (read-only access).
+        """Get current lighting configuration (read-only access).
 
         Returns:
             TopDownLightingConfig: Current lighting configuration
+
         """
         return self._lighting_config

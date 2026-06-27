@@ -1,5 +1,4 @@
-"""
-步兵渲染系统 (Infantry Rendering System)
+"""步兵渲染系统 (Infantry Rendering System)
 
 从 pixel_artist_3d.py 中提取的步兵/角色渲染逻辑。
 负责统一管理所有步兵相关的像素艺术生成，包括：
@@ -51,8 +50,7 @@ class InfantryAnimationState(Enum):
 
 
 class InfantryRenderer:
-    """
-    步兵像素艺术渲染器。
+    """步兵像素艺术渲染器。
 
     封装所有步兵相关的精灵生成逻辑，提供清晰的接口给 PixelArtist3D 调用。
 
@@ -81,11 +79,11 @@ class InfantryRenderer:
     WOOD_STOCK = (139, 109, 76)  # 木托
 
     def __init__(self, base_size: int = 24):
-        """
-        初始化步兵渲染器。
+        """初始化步兵渲染器。
 
         Args:
             base_size: 基础精灵尺寸（默认24x24像素，CC2标准）
+
         """
         self.base_size = base_size
         self._body_surf: pygame.Surface | None = None
@@ -99,8 +97,7 @@ class InfantryRenderer:
         is_wounded: bool = False,
         frame_offset: int = 0,
     ) -> pygame.Surface:
-        """
-        创建步兵精灵（主入口方法）。
+        """创建步兵精灵（主入口方法）。
 
         根据步兵类型、阵营、方向和动画状态生成 CC2 风格的像素艺术精灵。
 
@@ -114,6 +111,7 @@ class InfantryRenderer:
 
         Returns:
             24×24 像素的 Pygame Surface
+
         """
         size = self.base_size
         surface = pygame.Surface((size, size), pygame.SRCALPHA)
@@ -170,8 +168,7 @@ class InfantryRenderer:
         return surface
 
     def apply_wounded_overlay(self, surface: pygame.Surface) -> pygame.Surface:
-        """
-        为角色添加受伤效果叠加层。
+        """为角色添加受伤效果叠加层。
 
         效果包括：
         - 绷带纹理（白色/米色像素点）
@@ -183,6 +180,7 @@ class InfantryRenderer:
 
         Returns:
             应用了受伤效果的表面（新实例）
+
         """
         result = surface.copy()
         w, h = result.get_size()
@@ -213,8 +211,7 @@ class InfantryRenderer:
         return result
 
     def _get_direction_params(self, direction: Direction) -> dict:
-        """
-        获取方向的渲染参数。
+        """获取方向的渲染参数。
 
         返回包含以下信息的字典：
         - body_offset: 身体中心偏移
@@ -227,6 +224,7 @@ class InfantryRenderer:
 
         Returns:
             参数字典
+
         """
         params = {
             Direction.NORTH: {
@@ -339,8 +337,7 @@ class InfantryRenderer:
     def _draw_infantry_weapon(
         self, surface: pygame.Surface, params: dict, weapon_type: str, is_firing: bool = False
     ) -> None:
-        """
-        绘制步兵武器。
+        """绘制步兵武器。
 
         支持多种武器类型：
         - rifle: 步枪（M1 Garand / Kar98k）
@@ -354,6 +351,7 @@ class InfantryRenderer:
             params: 方向参数
             weapon_type: 武器类型字符串
             is_firing: 是否正在射击（显示枪口焰）
+
         """
         cx, cy = params["body_offset"]
         fx, fy = params["facing"]
@@ -431,8 +429,7 @@ class InfantryRenderer:
     def _draw_infantry_prone_topdown(
         self, surface: pygame.Surface, params: dict, base_color: tuple, faction: Faction
     ) -> None:
-        """
-        绘制趴伏状态的步兵俯视图。
+        """绘制趴伏状态的步兵俯视图。
 
         趴伏时身体呈水平椭圆状，更贴近地面，
         适合利用掩体的战术动作。
@@ -442,6 +439,7 @@ class InfantryRenderer:
             params: 方向参数
             base_color: 基础颜色
             faction: 阵营
+
         """
         cx, cy = params["body_offset"]
         vis = params["visibility"]
@@ -476,8 +474,7 @@ class InfantryRenderer:
         faction: Faction,
         is_dead: bool = False,
     ) -> None:
-        """
-        绘制死亡状态的步兵俯视图。
+        """绘制死亡状态的步兵俯视图。
 
         分两个阶段：
         - DYING: 正在倒下（倾斜姿态）
@@ -489,6 +486,7 @@ class InfantryRenderer:
             base_color: 基础颜色
             faction: 阵营
             is_dead: 是否完全死亡
+
         """
         cx, cy = params["body_offset"]
 
@@ -542,8 +540,7 @@ class InfantryRenderer:
         faction: Faction = Faction.ALLIES,
         include_all_states: bool = True,
     ) -> dict[InfantryAnimationState, list[pygame.Surface]]:
-        """
-        创建完整的步兵动画帧表。
+        """创建完整的步兵动画帧表。
 
         生成所有方向和动画状态的精灵组合，
         用于高效的动画切换。
@@ -555,6 +552,7 @@ class InfantryRenderer:
 
         Returns:
             字典：{动画状态: [8个方向的精灵列表]}
+
         """
         states = (
             list(InfantryAnimationState)
@@ -589,8 +587,7 @@ class InfantryRenderer:
 
 
 class InfantryAnimator:
-    """
-    步兵动画状态管理器。
+    """步兵动画状态管理器。
 
     控制单位的动画状态切换，支持：
     - 平滑的状态过渡
@@ -599,11 +596,11 @@ class InfantryAnimator:
     """
 
     def __init__(self, fps: int = 8):
-        """
-        初始化动画管理器。
+        """初始化动画管理器。
 
         Args:
             fps: 动画帧率（默认8 FPS，CC2风格低帧率动画）
+
         """
         self.fps = fps
         self.current_state = InfantryAnimationState.IDLE
@@ -612,11 +609,11 @@ class InfantryAnimator:
         self.state_timer = 0  # 状态持续时间计数器
 
     def update(self, dt_ms: int = 16) -> None:
-        """
-        更新动画状态。
+        """更新动画状态。
 
         Args:
             dt_ms: 帧间隔时间（毫秒）
+
         """
         self.frame_counter += 1
         self.state_timer += dt_ms
@@ -631,11 +628,11 @@ class InfantryAnimator:
                 self.transition_to(InfantryAnimationState.DEAD)
 
     def transition_to(self, new_state: InfantryAnimationState) -> None:
-        """
-        过渡到新的动画状态。
+        """过渡到新的动画状态。
 
         Args:
             new_state: 目标状态
+
         """
         if new_state != self.current_state:
             self.current_state = new_state
@@ -647,10 +644,10 @@ class InfantryAnimator:
         self.current_direction = direction
 
     def get_current_frame_index(self) -> int:
-        """
-        获取当前动画帧索引。
+        """获取当前动画帧索引。
 
         Returns:
             帧索引（基于帧计数器和FPS计算）
+
         """
         return (self.frame_counter // (60 // self.fps)) % 8

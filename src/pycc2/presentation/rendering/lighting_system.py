@@ -1,5 +1,4 @@
-"""
-Top-Down Lighting System for CC2-Style Rendering
+"""Top-Down Lighting System for CC2-Style Rendering
 
 Provides lighting configuration and color grading for top-down/isometric views.
 Includes time-of-day effects, dynamic lights, and CC2-authentic color grading.
@@ -58,14 +57,14 @@ class LightingSystem:
         return self._config
 
     def set_time_of_day(self, tod: str) -> None:
-        """
-        Set time of day for color grading.
+        """Set time of day for color grading.
 
         Args:
             tod: Time of day string - 'dawn'/'noon'/'dusk'/'night'
 
         Raises:
             ValueError: If tod is not a valid time of day
+
         """
         valid_times = ["dawn", "noon", "dusk", "night"]
         if tod not in valid_times:
@@ -74,11 +73,11 @@ class LightingSystem:
         self._config.time_of_day = tod
 
     def set_light_intensity(self, intensity: float) -> None:
-        """
-        Set global light intensity.
+        """Set global light intensity.
 
         Args:
             intensity: Brightness level (0.0 = dark, 1.0 = normal, 2.0 = very bright)
+
         """
         self._config.light_intensity = max(0.0, min(2.0, intensity))
 
@@ -217,8 +216,7 @@ class LightingSystem:
         return result
 
     def apply_cc2_color_grading(self, surface: pygame.Surface) -> None:
-        """
-        Apply CC2 authentic color grading in-place.
+        """Apply CC2 authentic color grading in-place.
 
         CC2 visual characteristics:
         - Slightly desaturated (military documentary look)

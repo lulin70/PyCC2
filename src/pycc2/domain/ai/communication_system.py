@@ -1,5 +1,4 @@
-"""
-Communication System — CC2-Authentic Radio Communication Simulation
+"""Communication System — CC2-Authentic Radio Communication Simulation
 
 Simulates radio communication delays and failures between command
 elements and frontline units. In CC2, communication is critical for

@@ -1,5 +1,4 @@
-"""
-TacticalOrchestrator — Runs all tactical AIs each tick, resolves conflicts,
+"""TacticalOrchestrator — Runs all tactical AIs each tick, resolves conflicts,
 and issues final orders.
 
 Conflict resolution rule: when two AIs want the same unit, the one

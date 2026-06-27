@@ -27,6 +27,7 @@ class CommandBarRenderer:
             x, y: Top-left position
             w, h: Width and height
             time_remaining: Optional battle timer in seconds for countdown display
+
         """
         # === TIMER DISPLAY (Top of command bar) ===
         timer_height = 0
@@ -225,6 +226,7 @@ class CommandBarRenderer:
             x, y: Top-left position of timer area
             w, h: Width and height of timer area
             time_remaining: Remaining time in seconds
+
         """
         # Timer background (slightly darker than panel)
         timer_rect = Rect(x + 2, y + 2, w - 4, h - 4)

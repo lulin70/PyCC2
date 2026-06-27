@@ -44,6 +44,7 @@ def get_default_commands() -> list[dict]:
     Returns:
         List of command dicts with id, label, key marker, and color.
         Callers should resolve color references against the constants above.
+
     """
     return [
         {"id": "move", "label": "Move", "key": "\u25cf", "color": STATUS_HEALTHY},

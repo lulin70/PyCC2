@@ -1,5 +1,4 @@
-"""
-Deployment Pre-Battle Orders System — GAP-8
+"""Deployment Pre-Battle Orders System — GAP-8
 
 Extracted from deployment_ui.py (SRP refactoring).
 Manages pre-battle movement orders that players can assign to deployed
@@ -13,8 +12,7 @@ from pycc2.presentation.ui.deployment_models import DeploymentPhase, DeploymentU
 
 
 class DeploymentOrders:
-    """
-    Manages pre-battle movement orders for deployed units.
+    """Manages pre-battle movement orders for deployed units.
 
     Players can select a placed unit and right-click on the map to set
     a pending move target. Orders are stored as unit_template_id -> (target_x, target_y)
@@ -98,6 +96,7 @@ class DeploymentOrders:
           - ``"select_placed_unit:<x>,<y>"`` – placed unit selected for ordering
           - ``"remove_unit:<x>,<y>"`` – placed unit removed (no unit selected)
           - ``None`` – click did nothing
+
         """
         if ui._state.phase not in (DeploymentPhase.DEPLOYING, DeploymentPhase.READY):
             return None

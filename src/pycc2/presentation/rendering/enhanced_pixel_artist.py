@@ -1,5 +1,4 @@
-"""
-Enhanced Pixel Artist - 基于CC2历史和二战常识的高质量精灵生成器
+"""Enhanced Pixel Artist - 基于CC2历史和二战常识的高质量精灵生成器
 
 根据Close Combat 2历史背景和二战真实装备创建精灵：
 - 符合1944-1945年欧洲战场的装备和色调
@@ -354,7 +353,6 @@ def create_historical_sprite(
     size: int = 32,
 ) -> Surface:
     """统一接口：根据单位类型创建历史精灵"""
-
     unit_type_lower = unit_type.lower()
 
     if "infantry" in unit_type_lower or "squad" in unit_type_lower:

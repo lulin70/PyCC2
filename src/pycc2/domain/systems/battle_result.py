@@ -1,5 +1,4 @@
-"""
-Battle Result — records detailed statistics after each battle.
+"""Battle Result — records detailed statistics after each battle.
 Used for AAR (After Action Report) and campaign persistence.
 """
 

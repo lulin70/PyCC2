@@ -107,6 +107,7 @@ class MinimapSectionRenderer:
             surface: Target surface
             x, y: Top-left position for button row
             width: Total width available for buttons
+
         """
         # Button configuration
         modes = ["ALL", "STYLE", "OUTLINE"]

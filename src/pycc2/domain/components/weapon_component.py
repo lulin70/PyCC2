@@ -1,5 +1,4 @@
-"""
-Weapon Component
+"""Weapon Component
 
 Manages unit weapon state, ammunition, and weapon properties.
 Supports primary weapon with ammo tracking and reload mechanics.

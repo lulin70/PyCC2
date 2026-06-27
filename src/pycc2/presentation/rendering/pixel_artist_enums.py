@@ -1,5 +1,4 @@
-"""
-Pixel Artist 3D Enums and Constants.
+"""Pixel Artist 3D Enums and Constants.
 
 Extracted from pixel_artist_3d.py for single responsibility.
 Contains: Direction, Faction, InfantryType, TankType, InfantryAnimState.

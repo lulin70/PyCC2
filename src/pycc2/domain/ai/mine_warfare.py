@@ -1,5 +1,4 @@
-"""
-Mine Warfare — CC2-Authentic Mine Laying and Detection
+"""Mine Warfare — CC2-Authentic Mine Laying and Detection
 
 Engineers can lay and detect mines, creating defensive zones that
 channel enemy movement and inflict casualties on advancing forces.

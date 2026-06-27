@@ -1,5 +1,4 @@
-"""
-Domain Layer - Layer 3 (Core Business Logic)
+"""Domain Layer - Layer 3 (Core Business Logic)
 
 Contains all business rules, entities, value objects, and domain services.
 This layer has ZERO framework dependencies - pure Python only.

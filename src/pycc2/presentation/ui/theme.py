@@ -1,5 +1,4 @@
-"""
-UI Theme System
+"""UI Theme System
 
 Centralized theme management for consistent UI appearance.
 Supports multiple themes and runtime theme switching.
@@ -51,13 +50,13 @@ class ThemeMetrics:
 
 @dataclass
 class Theme:
-    """
-    Complete UI theme definition.
+    """Complete UI theme definition.
 
     Attributes:
         name: Theme identifier
         colors: Color scheme for all UI elements
         metrics: Sizing and spacing constants
+
     """
 
     name: str = "default"
@@ -148,11 +147,11 @@ class ThemeManager:
 
     @classmethod
     def set_theme(cls, theme_name: str) -> bool:
-        """
-        Set active theme by name.
+        """Set active theme by name.
 
         Returns:
             True if theme was found and applied, False otherwise
+
         """
         theme = cls._themes.get(theme_name)
         if theme:

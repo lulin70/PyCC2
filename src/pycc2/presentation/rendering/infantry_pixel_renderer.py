@@ -1,5 +1,4 @@
-"""
-Infantry Pixel Renderer - Extracted from PixelArtist3D God Class.
+"""Infantry Pixel Renderer - Extracted from PixelArtist3D God Class.
 
 Contains all infantry-related sprite generation logic:
 - Infantry sprite creation (24x24 px, pure top-down orthographic)
@@ -35,8 +34,7 @@ from pycc2.presentation.rendering.pixel_artist_enums import (
 
 
 class InfantryPixelRenderer:
-    """
-    Infantry sprite renderer with direction-differentiated top-down view.
+    """Infantry sprite renderer with direction-differentiated top-down view.
 
     CC2 Top-Down Features:
     - Helmet: circle (top-down view of helmet dome)
@@ -245,6 +243,7 @@ class InfantryPixelRenderer:
 
         Returns:
             Surface with wound effects applied.
+
         """
         import pygame
 
@@ -967,8 +966,7 @@ class InfantryPixelRenderer:
         faction: Faction,
         infantry_type: InfantryType | None = None,
     ):
-        """
-        Generate a full animation frame sprite sheet for infantry.
+        """Generate a full animation frame sprite sheet for infantry.
 
         Generates sprites for all 8 directions x all 8 animation states,
         arranged as a sprite sheet.
@@ -984,6 +982,7 @@ class InfantryPixelRenderer:
             sprite_sheet: pygame.Surface (192x192, 8 cols x 8 rows).
             direction_order: list of directions.
             anim_state_order: list of animation states.
+
         """
         import pygame
 
@@ -1039,8 +1038,7 @@ class InfantryPixelRenderer:
 
 
 class InfantryAnimator:
-    """
-    Infantry animation state manager - manages frame cycling and state transitions.
+    """Infantry animation state manager - manages frame cycling and state transitions.
 
     Automatically switches animation states based on unit behavior
     (move/shoot/death) and cycles walk frames at fixed intervals.
@@ -1076,8 +1074,7 @@ class InfantryAnimator:
         is_dead: bool = False,
         is_prone: bool = False,
     ) -> InfantryAnimState:
-        """
-        Update animation state based on unit behavior.
+        """Update animation state based on unit behavior.
 
         Args:
             dt: Time since last update (seconds).
@@ -1088,6 +1085,7 @@ class InfantryAnimator:
 
         Returns:
             Current InfantryAnimState.
+
         """
         if self._state == InfantryAnimState.DEAD:
             return self._state

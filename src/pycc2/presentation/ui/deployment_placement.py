@@ -1,5 +1,4 @@
-"""
-Deployment Placement Service — Unit placement and removal logic.
+"""Deployment Placement Service — Unit placement and removal logic.
 
 Extracted from deployment_ui.py God Class (SRP refactoring).
 Handles unit placement validation, placement execution, and removal.

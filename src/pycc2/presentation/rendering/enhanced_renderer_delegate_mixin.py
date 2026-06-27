@@ -1,5 +1,4 @@
-"""
-Delegate mixin for EnhancedRenderer.
+"""Delegate mixin for EnhancedRenderer.
 
 Holds legacy compatibility shims and high-level combat-effect proxies so that
 EnhancedRenderer can stay focused on coordinator/wiring logic while keeping its
@@ -27,8 +26,7 @@ if TYPE_CHECKING:
 
 
 class EnhancedRendererDelegateMixin:
-    """
-    Mixin providing legacy terrain helpers, isometric rendering delegate,
+    """Mixin providing legacy terrain helpers, isometric rendering delegate,
     dynamic-light delegates, and combat-effect proxy methods for EnhancedRenderer.
 
     These methods were extracted from EnhancedRenderer during the God Class

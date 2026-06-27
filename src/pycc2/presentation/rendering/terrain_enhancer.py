@@ -1,5 +1,4 @@
-"""
-Phase 2: 地形改进 - Perlin噪声生成器和边缘混合
+"""Phase 2: 地形改进 - Perlin噪声生成器和边缘混合
 """
 
 from __future__ import annotations
@@ -40,8 +39,7 @@ class PerlinNoise:
         return (u if (h & 1) == 0 else -u) + (v if (h & 2) == 0 else -v)
 
     def noise(self, x: float, y: float) -> float:
-        """
-        生成2D Perlin噪声
+        """生成2D Perlin噪声
         返回值范围: [-1, 1]
         """
         # 找到单位网格的坐标
@@ -79,8 +77,7 @@ class PerlinNoise:
         persistence: float = 0.5,
         lacunarity: float = 2.0,
     ) -> float:
-        """
-        多层Perlin噪声（分形噪声）
+        """多层Perlin噪声（分形噪声）
 
         Args:
             x, y: 坐标
@@ -90,6 +87,7 @@ class PerlinNoise:
 
         Returns:
             噪声值 [-1, 1]
+
         """
         total = 0.0
         frequency = 1.0
@@ -189,8 +187,7 @@ class TerrainEnhancer:
     def blend_terrain_edges(
         self, tile_surface: Surface, neighbors: dict[str, int], current_terrain: int
     ) -> Surface:
-        """
-        地形边缘混合 - 平滑不同地形类型的过渡
+        """地形边缘混合 - 平滑不同地形类型的过渡
 
         Args:
             tile_surface: 当前tile的surface
@@ -199,6 +196,7 @@ class TerrainEnhancer:
 
         Returns:
             混合后的surface
+
         """
         size = tile_surface.get_width()
         result = tile_surface.copy()

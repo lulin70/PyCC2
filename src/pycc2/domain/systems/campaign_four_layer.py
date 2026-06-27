@@ -148,6 +148,7 @@ class FourLayerCampaignManager:
         Args:
             battle_id: The battle that just ended
             units: List of Unit objects from the completed battle
+
         """
         for unit in units:
             unit_id: str = str(getattr(unit, "id", None) or getattr(unit, "unit_id", str(id(unit))))
@@ -259,6 +260,7 @@ class FourLayerCampaignManager:
 
         Returns:
             Updated units with inherited stats
+
         """
         if not self._saved_unit_states:
             return units

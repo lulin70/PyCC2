@@ -1,5 +1,4 @@
-"""
-Vision Component
+"""Vision Component
 
 Manages unit vision, line of sight, and detection capabilities.
 Integrates with fog of war system for visibility calculations.
@@ -43,6 +42,7 @@ class VisionComponent:
         Args:
             time_of_day: One of 'dawn', 'day', 'dusk', 'night'. None = no modifier.
             weather_modifier: Multiplier from weather (1.0 = clear).
+
         """
         base = self.range_tiles
         # R5: Night battle visibility reduction

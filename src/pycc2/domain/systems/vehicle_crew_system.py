@@ -57,8 +57,7 @@ class CrewMember:
 
 @dataclass
 class VehicleCrew:
-    """
-    Manages crew for a vehicle unit.
+    """Manages crew for a vehicle unit.
 
     Features:
     - Individual crew members with roles and HP
@@ -165,8 +164,7 @@ class VehicleCrew:
         hit_location: str = "random",
         role_target: CrewRole | None = None,
     ) -> dict:
-        """
-        Apply damage to crew member(s).
+        """Apply damage to crew member(s).
 
         Args:
             damage: Damage points to apply
@@ -175,6 +173,7 @@ class VehicleCrew:
 
         Returns:
             Dict with damage result details
+
         """
         result: dict[str, Any] = {
             "damage_dealt": 0,
@@ -318,8 +317,7 @@ class VehicleCrew:
         role: CrewRole,
         heal_amount: int,
     ) -> bool:
-        """
-        Heal a crew member.
+        """Heal a crew member.
 
         Args:
             role: Role of member to heal
@@ -327,6 +325,7 @@ class VehicleCrew:
 
         Returns:
             True if healing applied
+
         """
         member = self.get_member_by_role(role)
         if not member or member.status == CrewStatus.DEAD:
@@ -346,8 +345,7 @@ class VehicleCrew:
         role: CrewRole,
         replacement: CrewMember | None = None,
     ) -> bool:
-        """
-        Replace a dead crew member.
+        """Replace a dead crew member.
 
         Args:
             role: Role to replace
@@ -355,6 +353,7 @@ class VehicleCrew:
 
         Returns:
             True if replacement successful
+
         """
         existing = self.get_member_by_role(role)
         if not existing or existing.status != CrewStatus.DEAD:
@@ -381,11 +380,11 @@ class VehicleCrew:
         return True
 
     def evacuate_crew(self) -> list[CrewMember]:
-        """
-        Evacuate all surviving crew members.
+        """Evacuate all surviving crew members.
 
         Returns:
             List of evacuated members
+
         """
         surviving = [m for m in self._members if m.status != CrewStatus.DEAD]
 

@@ -1,5 +1,4 @@
-"""
-Vehicle Pixel Renderer - Extracted from PixelArtist3D God Class (P3-3).
+"""Vehicle Pixel Renderer - Extracted from PixelArtist3D God Class (P3-3).
 
 Contains non-tank vehicle sprite generation logic:
 - Halftrack (M3 Half-track, Allied/Axis variants)
@@ -31,8 +30,7 @@ from pycc2.presentation.rendering.tank_pixel_renderer import TankPixelRenderer
 
 
 class VehiclePixelRenderer:
-    """
-    Vehicle sprite renderer for non-tank units.
+    """Vehicle sprite renderer for non-tank units.
 
     Generates top-down sprites for support vehicles and towed weapons:
     - Halftrack: 40x44px, tracked cargo vehicle with MG mount

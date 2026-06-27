@@ -1,5 +1,4 @@
-"""
-CC2 Native Map Format Parsers.
+"""CC2 Native Map Format Parsers.
 
 Provides parsers for Close Combat 2 native binary map files,
 converting CC2 terrain codes to PyCC2 TerrainType values.

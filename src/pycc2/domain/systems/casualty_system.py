@@ -43,8 +43,7 @@ class CasualtyConfig:
 
 @dataclass
 class Casualty:
-    """
-    Represents a wounded unit that requires medical attention.
+    """Represents a wounded unit that requires medical attention.
 
     Features:
     - State machine: healthy → wounded → dragging → evacuated/dead
@@ -103,11 +102,11 @@ class Casualty:
         return self._medic_unit
 
     def become_wounded(self) -> dict:
-        """
-        Transition unit to wounded state.
+        """Transition unit to wounded state.
 
         Returns:
             Event dict with wound details
+
         """
         if self._state == CasualtyState.WOUNDED:
             return {"success": False, "reason": "Already wounded"}
@@ -143,14 +142,14 @@ class Casualty:
         return {**event, "success": True}
 
     def update(self, dt: float) -> dict | None:
-        """
-        Update casualty state each frame.
+        """Update casualty state each frame.
 
         Args:
             dt: Delta time in seconds since last update
 
         Returns:
             Event dict if state changed, None otherwise
+
         """
         if self._state == CasualtyState.WOUNDED:
             self._rescue_timer += dt
@@ -175,14 +174,14 @@ class Casualty:
         return None
 
     def start_dragging(self, medic_unit: Unit) -> dict:
-        """
-        Begin dragging this casualty.
+        """Begin dragging this casualty.
 
         Args:
             medic_unit: The medic unit performing the drag
 
         Returns:
             Event dict with drag start details
+
         """
         if self._state not in (CasualtyState.WOUNDED,):
             return {"success": False, "reason": f"Cannot drag in state {self._state}"}
@@ -342,8 +341,7 @@ class Casualty:
 
 
 class CasualtyManager:
-    """
-    Manages all casualties on the battlefield.
+    """Manages all casualties on the battlefield.
 
     Provides centralized tracking, updates, and queries for casualties.
     """
@@ -385,14 +383,14 @@ class CasualtyManager:
         return self._casualties.get(unit_id)
 
     def update_all(self, dt: float) -> list[dict]:
-        """
-        Update all casualties and collect events.
+        """Update all casualties and collect events.
 
         Args:
             dt: Delta time in seconds
 
         Returns:
             List of events from state changes
+
         """
         events = []
 

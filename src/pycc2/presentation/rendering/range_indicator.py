@@ -25,8 +25,7 @@ class RangeType(Enum):
 
 @dataclass(slots=True)
 class RangeIndicator:
-    """
-    Weapon range indicator display system.
+    """Weapon range indicator display system.
 
     Features:
     - Show minimum and maximum weapon range circles
@@ -97,8 +96,7 @@ class RangeIndicator:
         camera: Camera,
         unit_pos: tuple[float, float] | None = None,
     ) -> None:
-        """
-        Render range circles on surface.
+        """Render range circles on surface.
 
         Draws two concentric circles:
         - Inner circle (yellow, semi-transparent): minimum range
@@ -108,6 +106,7 @@ class RangeIndicator:
             surface: Pygame surface to draw on
             camera: Camera for coordinate transformation
             unit_pos: Override position (default: use active_unit.position)
+
         """
         if not self.is_visible:
             return
@@ -161,14 +160,14 @@ class RangeIndicator:
         point: tuple[float, float],
         unit_pos: tuple[float, float],
     ) -> str:
-        """
-        Check if a point is within range zones.
+        """Check if a point is within range zones.
 
         Returns:
             'inside_min': Inside minimum range (too close)
             'between': Between min and max (optimal)
             'outside_max': Beyond maximum range
             'no_unit': No unit selected
+
         """
         if not self.active_unit:
             return "no_unit"

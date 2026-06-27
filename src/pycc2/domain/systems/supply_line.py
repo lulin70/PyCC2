@@ -1,5 +1,4 @@
-"""
-Supply Line System for PyCC2 Grand Campaign.
+"""Supply Line System for PyCC2 Grand Campaign.
 Models the critical supply mechanics from CC2's Market Garden campaign.
 
 Key rules (from CC2 strategy guide):

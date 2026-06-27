@@ -61,8 +61,7 @@ class SpritesheetConfig:
 
 
 class SpritesheetParser:
-    """
-    Advanced spritesheet parser with auto-detection capabilities.
+    """Advanced spritesheet parser with auto-detection capabilities.
 
     Features:
     - Automatic layout detection via transparency analysis
@@ -333,8 +332,7 @@ class SpritesheetParser:
         direction: Direction,
         frame_index: int = 0,
     ) -> pygame.Surface | None:
-        """
-        Get sprite surface for specific direction and frame.
+        """Get sprite surface for specific direction and frame.
 
         Args:
             direction: Facing direction (Direction enum)
@@ -342,6 +340,7 @@ class SpritesheetParser:
 
         Returns:
             Pygame Surface or None if not found
+
         """
         if not self._is_loaded or self._image is None:
             return None
@@ -400,14 +399,14 @@ class SpritesheetParser:
         self,
         frame_index: int = 0,
     ) -> dict[int, pygame.Surface]:
-        """
-        Get all direction frames at specified frame index.
+        """Get all direction frames at specified frame index.
 
         Args:
             frame_index: Animation frame index
 
         Returns:
             Dict mapping direction index to Surface
+
         """
         result = {}
 
@@ -465,8 +464,7 @@ def create_direction_sprite_set_from_spritesheet(
     sprite_size: tuple[int, int] | None = None,
     layout: SpritesheetLayout = SpritesheetLayout.AUTO_DETECT,
 ) -> DirectionSpriteSet:
-    """
-    Convenience function to create a DirectionSpriteSet from a spritesheet.
+    """Convenience function to create a DirectionSpriteSet from a spritesheet.
 
     Args:
         image_path: Path to spritesheet PNG
@@ -475,6 +473,7 @@ def create_direction_sprite_set_from_spritesheet(
 
     Returns:
         Populated DirectionSpriteSet ready for use
+
     """
     from pycc2.domain.value_objects.direction import Direction
     from pycc2.presentation.rendering.direction_sprite import DirectionSpriteSet

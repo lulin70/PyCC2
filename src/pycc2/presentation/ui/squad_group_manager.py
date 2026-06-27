@@ -42,8 +42,7 @@ class SquadGroup:
 
 @dataclass
 class SquadGroupManager:
-    """
-    Unit squad grouping and quick selection system.
+    """Unit squad grouping and quick selection system.
 
     Features:
     - Ctrl+1~9: Create/update squad group
@@ -68,8 +67,7 @@ class SquadGroupManager:
         group_num: int,
         units: list[Unit],
     ) -> bool:
-        """
-        Create or update a squad group.
+        """Create or update a squad group.
 
         Args:
             group_num: Group number (1-9)
@@ -77,6 +75,7 @@ class SquadGroupManager:
 
         Returns:
             True if successful, False if invalid group number
+
         """
         if not 1 <= group_num <= self.MAX_GROUPS:
             return False
@@ -85,14 +84,14 @@ class SquadGroupManager:
         return True
 
     def select_group(self, group_num: int) -> list[Unit]:
-        """
-        Select all units in a group.
+        """Select all units in a group.
 
         Args:
             group_num: Group number (1-9)
 
         Returns:
             List of units in the group (empty if invalid/empty)
+
         """
         if not 1 <= group_num <= self.MAX_GROUPS:
             return []

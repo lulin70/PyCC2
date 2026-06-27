@@ -1,5 +1,4 @@
-"""
-Combat configuration parameters for PyCC2.
+"""Combat configuration parameters for PyCC2.
 Based on OpenCombat (buxx/OpenCombat) battle-tested values and CC2 original mechanics.
 Reference: https://github.com/buxx/OpenCombat
 """

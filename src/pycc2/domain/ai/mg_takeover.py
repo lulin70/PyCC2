@@ -1,5 +1,4 @@
-"""
-MG Takeover System — CC2-Authentic MG Gunner Death Behavior
+"""MG Takeover System — CC2-Authentic MG Gunner Death Behavior
 
 When the MG gunner in a squad is killed, another squad member
 automatically takes over the weapon.  This mirrors CC2's behaviour

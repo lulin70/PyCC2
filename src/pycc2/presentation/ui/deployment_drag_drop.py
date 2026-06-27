@@ -1,5 +1,4 @@
-"""
-Deployment Drag-and-Drop System — Unit Dragging from Roster to Map
+"""Deployment Drag-and-Drop System — Unit Dragging from Roster to Map
 
 Extracted from deployment_ui.py (SRP refactoring).
 Manages all drag-and-drop state and interaction logic for deploying units
@@ -29,8 +28,7 @@ except ImportError:
 
 
 class DeploymentDragDrop:
-    """
-    Manages drag-and-drop deployment interaction.
+    """Manages drag-and-drop deployment interaction.
 
     Holds all dragging state variables and provides methods for starting,
     updating, ending, and cancelling drags. Also handles ghost sprite
@@ -93,6 +91,7 @@ class DeploymentDragDrop:
         Returns an action string or None:
           - ``"drag_start:<index>"`` – drag started for roster unit at index
           - ``None`` – click did not start a drag
+
         """
         if ui._state.phase not in (DeploymentPhase.DEPLOYING, DeploymentPhase.READY):
             return None
@@ -141,6 +140,7 @@ class DeploymentDragDrop:
         ----------
         screen_x, screen_y : int
             Current screen coordinates of the mouse.
+
         """
         if not self._is_dragging or self._dragging_unit is None:
             return
@@ -168,6 +168,7 @@ class DeploymentDragDrop:
           - ``"invalid_placement"`` – dropped on invalid tile
           - ``"drag_cancelled"`` – dropped outside map area
           - ``None`` – no drag was active
+
         """
         if not self._is_dragging or self._dragging_unit is None:
             return None
@@ -230,6 +231,7 @@ class DeploymentDragDrop:
             The unit being dragged.
         ui : DeploymentUI
             The parent UI instance (for font access).
+
         """
         if not _pygame_available:
             return None

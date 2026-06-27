@@ -1,5 +1,4 @@
-"""
-Deployment phase data models and constants.
+"""Deployment phase data models and constants.
 
 Extracted from deployment_ui.py for single responsibility.
 Contains: Enums, dataclasses, terrain constants, color definitions.

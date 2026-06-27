@@ -1,5 +1,4 @@
-"""
-FlankingAI — Move units around the side of enemy positions.
+"""FlankingAI — Move units around the side of enemy positions.
 
 CC2 behaviour: AI infiltrates from the flank rather than charging
 frontally.  When multiple units are available, a pincer movement

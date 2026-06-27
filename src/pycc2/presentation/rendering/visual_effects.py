@@ -1,5 +1,4 @@
-"""
-Phase 4: 视觉效果升级 - 增强粒子系统、天气效果、屏幕后处理
+"""Phase 4: 视觉效果升级 - 增强粒子系统、天气效果、屏幕后处理
 
 REFACTORED: Classes have been split into dedicated modules for maintainability.
 All public APIs remain backward-compatible — import from this module still works.

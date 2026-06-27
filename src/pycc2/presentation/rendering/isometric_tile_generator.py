@@ -77,6 +77,7 @@ def _create_diamond_mask(width: int = TILE_W, height: int = TILE_H) -> pygame.Ma
 
     Returns:
         A pygame.Mask with the diamond shape filled.
+
     """
     mask_surface = pygame.Surface((width, height), pygame.SRCALPHA)
     corners = [
@@ -102,6 +103,7 @@ def _draw_on_diamond(
         draw_func: Callable accepting a pygame.Surface to draw on.
         width: Diamond width in pixels.
         height: Diamond height in pixels.
+
     """
     # Create a temporary surface for drawing
     temp = pygame.Surface((width, height), pygame.SRCALPHA)
@@ -125,6 +127,7 @@ def _fill_diamond(surface: pygame.Surface, color: tuple[int, int, int]) -> None:
     Args:
         surface: Target surface (expected width=TILE_W, height=TILE_H).
         color: RGB fill color.
+
     """
     corners = tile_diamond_corners(TILE_W / 2, TILE_H / 2)
     int_corners = [(int(x), int(y)) for x, y in corners]
@@ -142,6 +145,7 @@ def _draw_diamond_outline(
         surface: Target surface.
         color: RGB outline color.
         width: Line width in pixels.
+
     """
     corners = tile_diamond_corners(TILE_W / 2, TILE_H / 2)
     int_corners = [(int(x), int(y)) for x, y in corners]
@@ -158,6 +162,7 @@ def generate_grass_tile() -> pygame.Surface:
 
     Returns:
         A 64x32 pygame.Surface with a green diamond tile with grass detail.
+
     """
     surface = pygame.Surface((TILE_W, TILE_H), pygame.SRCALPHA)
 
@@ -187,6 +192,7 @@ def generate_dirt_tile() -> pygame.Surface:
 
     Returns:
         A 64x32 pygame.Surface with a brown diamond tile with track marks.
+
     """
     surface = pygame.Surface((TILE_W, TILE_H), pygame.SRCALPHA)
 
@@ -224,6 +230,7 @@ def generate_road_tile() -> pygame.Surface:
 
     Returns:
         A 64x32 pygame.Surface with a gray cobblestone diamond tile.
+
     """
     surface = pygame.Surface((TILE_W, TILE_H), pygame.SRCALPHA)
 
@@ -250,6 +257,7 @@ def generate_water_tile() -> pygame.Surface:
 
     Returns:
         A 64x32 pygame.Surface with a blue diamond tile with wave lines.
+
     """
     surface = pygame.Surface((TILE_W, TILE_H), pygame.SRCALPHA)
 
@@ -300,6 +308,7 @@ def generate_building_tile(height_levels: int = 2) -> pygame.Surface:
 
     Returns:
         A pygame.Surface with the building (top face + wall sides).
+
     """
     extra_height = height_levels * HEIGHT_SCALE
     total_height = TILE_H + extra_height
@@ -350,6 +359,7 @@ def generate_crater_tile() -> pygame.Surface:
 
     Returns:
         A 64x32 pygame.Surface with a crater diamond tile.
+
     """
     surface = pygame.Surface((TILE_W, TILE_H), pygame.SRCALPHA)
 
@@ -380,6 +390,7 @@ def generate_hedgerow_tile() -> pygame.Surface:
 
     Returns:
         A 64x32 pygame.Surface with a hedgerow diamond tile.
+
     """
     surface = pygame.Surface((TILE_W, TILE_H), pygame.SRCALPHA)
 

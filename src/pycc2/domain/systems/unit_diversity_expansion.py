@@ -1,5 +1,4 @@
-"""
-Unit Diversity Expansion — CC2-Authentic Unit Roster Expansion
+"""Unit Diversity Expansion — CC2-Authentic Unit Roster Expansion
 
 Expands unit templates from 53+ to 100+ to close the gap with CC2's 130+.
 

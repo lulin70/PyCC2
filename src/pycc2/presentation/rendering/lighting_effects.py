@@ -1,5 +1,4 @@
-"""
-光照效果系统 (Lighting Effects System)
+"""光照效果系统 (Lighting Effects System)
 
 从 EnhancedRenderer 中提取的光照/色调/动态光源逻辑。
 负责统一管理时间色调、CC2风格分级、健康着色、动态点光源等。
@@ -28,8 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class LightingEffectsSystem:
-    """
-    统一光照效果系统。
+    """统一光照效果系统。
 
     封装所有非阴影相关的光照效果，包括：
     - 时间段色调 (dawn/noon/dusk/night)
@@ -52,13 +50,13 @@ class LightingEffectsSystem:
         tile_size: int = 32,
         max_dynamic_lights: int = 8,
     ):
-        """
-        初始化光照效果系统。
+        """初始化光照效果系统。
 
         Args:
             lighting_config: TopDownLightingConfig 实例（包含时间、动态光开关等配置）
             tile_size: 地图瓦片大小（像素）
             max_dynamic_lights: 最大并发动态光源数量（性能保护）
+
         """
         self._lighting_config = lighting_config
         self.TILE_SIZE = tile_size
@@ -79,8 +77,7 @@ class LightingEffectsSystem:
 
     @staticmethod
     def get_health_tinted_color(base_color: tuple, unit) -> tuple:
-        """
-        根据单位健康值应用颜色着色。
+        """根据单位健康值应用颜色着色。
 
         颜色梯度: 健康 (100%) → 受伤 (50%) → 危急 (10%)
         - >75% HP: 正常亮度
@@ -94,6 +91,7 @@ class LightingEffectsSystem:
 
         Returns:
             着色后的颜色 RGB 元组
+
         """
         color = base_color
 
@@ -130,8 +128,7 @@ class LightingEffectsSystem:
 
     @staticmethod
     def apply_height_lighting(surface: pygame.Surface, height: int) -> pygame.Surface:
-        """
-        根据瓦片高度应用光照调整（快速 numpy 版本）。
+        """根据瓦片高度应用光照调整（快速 numpy 版本）。
 
         高度越高，亮度越强（模拟阳光直射角度）。
 
@@ -141,6 +138,7 @@ class LightingEffectsSystem:
 
         Returns:
             调整后的表面（新实例）
+
         """
         if height == 0:
             return surface
@@ -162,8 +160,7 @@ class LightingEffectsSystem:
         return result
 
     def apply_time_of_day_tint(self, surface: pygame.Surface) -> pygame.Surface:
-        """
-        应用时间段颜色分级到渲染场景。
+        """应用时间段颜色分级到渲染场景。
 
         顶部视角专用 - 根据时间段调整整体色调：
         - dawn: 暖橙色，略暗
@@ -178,6 +175,7 @@ class LightingEffectsSystem:
 
         Returns:
             应用了色调的表面（可能是原实例或修改后）
+
         """
         config = self._lighting_config
         surf_size = surface.get_size()
@@ -233,8 +231,7 @@ class LightingEffectsSystem:
 
     @staticmethod
     def apply_cc2_color_grading(surface: pygame.Surface) -> None:
-        """
-        应用 CC2 风格的颜色分级（降低饱和度 + 轻微去亮）。
+        """应用 CC2 风格的颜色分级（降低饱和度 + 轻微去亮）。
 
         CC2 1997 年游戏特征：
         - 整体偏暗（CRT 显示器时代的设计习惯）
@@ -246,6 +243,7 @@ class LightingEffectsSystem:
 
         Args:
             surface: 要修改的表面（就地修改）
+
         """
         import numpy as np
 
@@ -272,13 +270,13 @@ class LightingEffectsSystem:
         pygame.surfarray.blit_array(surface, arr.swapaxes(0, 1))
 
     def apply_cc2_color_grading_cached(self, surface: pygame.Surface) -> None:
-        """
-        带缓存的CC2颜色分级版本（推荐用于实时渲染）。
+        """带缓存的CC2颜色分级版本（推荐用于实时渲染）。
 
         当表面尺寸不变时，复用上次的计算结果，显著减少numpy操作开销。
 
         Args:
             surface: 要修改的表面（就地修改）
+
         """
         size = surface.get_size()
 
@@ -298,8 +296,7 @@ class LightingEffectsSystem:
         color: tuple[int, int, int] = (255, 255, 200),
         duration_ms: int = 200,
     ) -> None:
-        """
-        注册一个动态点光源。
+        """注册一个动态点光源。
 
         用于临时动态光源（爆炸闪光、枪口焰、技能特效等）
 
@@ -309,6 +306,7 @@ class LightingEffectsSystem:
             intensity: 亮度因子 (0.0-1.0)
             color: RGB 颜色元组（默认：暖白色）
             duration_ms: 生命周期（毫秒，默认 200ms 用于枪口焰）
+
         """
         if not self._lighting_config.enable_dynamic_lights:
             return
@@ -333,13 +331,13 @@ class LightingEffectsSystem:
         )
 
     def update_dynamic_lights(self, dt_ms: int) -> None:
-        """
-        更新动态光源生命周期。
+        """更新动态光源生命周期。
 
         应该在游戏循环的 update() 方法中调用。
 
         Args:
             dt_ms: 自上一帧以来的增量时间（毫秒）
+
         """
         if not self._lighting_config.enable_dynamic_lights:
             return
@@ -360,8 +358,7 @@ class LightingEffectsSystem:
         return surf
 
     def render_dynamic_lights(self, surface: pygame.Surface) -> None:
-        """
-        渲染所有活跃的动态光源到目标表面。
+        """渲染所有活跃的动态光源到目标表面。
 
         使用径向渐变和多层同心圆实现平滑衰减。
         应用加法混合 (BLEND_RGBA_ADD) 实现发光效果。
@@ -373,6 +370,7 @@ class LightingEffectsSystem:
 
         Args:
             surface: 目标渲染表面（通常是 offscreen buffer）
+
         """
         if not self._lighting_config.enable_dynamic_lights or surface is None:
             return

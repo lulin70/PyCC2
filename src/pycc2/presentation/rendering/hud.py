@@ -1,5 +1,4 @@
-"""
-HUD Manager
+"""HUD Manager
 
 Heads-Up Display overlay system for game information display.
 Shows unit info, commands, game state, etc.
@@ -67,6 +66,7 @@ class HUDManager:
 
         Args:
             dt: Delta time in seconds since last frame.
+
         """
         self._unit_panel_fade.update(dt)
         # Also propagate update to minimap's own fade

@@ -1,5 +1,4 @@
-"""
-Time Control — pause, slow-mo, normal, fast-forward game speed.
+"""Time Control — pause, slow-mo, normal, fast-forward game speed.
 """
 
 from __future__ import annotations

@@ -1,5 +1,4 @@
-"""
-P9 AI Tactical System — CC2-Authentic Combat Behaviors
+"""P9 AI Tactical System — CC2-Authentic Combat Behaviors
 
 Backward-compatible re-export shell.
 

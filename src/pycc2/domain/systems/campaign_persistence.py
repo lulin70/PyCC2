@@ -70,8 +70,7 @@ class BattleResult:
 
 @dataclass
 class CampaignProgress:
-    """
-    Overall campaign progress across multiple battles.
+    """Overall campaign progress across multiple battles.
 
     This is what gets saved/loaded between battles.
     """
@@ -115,8 +114,7 @@ class CampaignProgress:
         return None
 
     def calculate_reinforcement_bonus(self) -> dict[str, int]:
-        """
-        Calculate reinforcement points based on performance.
+        """Calculate reinforcement points based on performance.
 
         Better performance = more requisition points for next battle.
         """
@@ -151,8 +149,7 @@ class CampaignProgress:
 
 
 class CampaignPersistenceManager:
-    """
-    Manages saving/loading campaign progress between battles.
+    """Manages saving/loading campaign progress between battles.
 
     Integration with existing SecureSaveManager for actual file I/O.
     """
@@ -174,8 +171,7 @@ class CampaignPersistenceManager:
         campaign_id: str,
         progress: CampaignProgress,
     ) -> bool:
-        """
-        Save campaign progress to JSON file.
+        """Save campaign progress to JSON file.
 
         Args:
             campaign_id: Unique campaign identifier
@@ -183,6 +179,7 @@ class CampaignPersistenceManager:
 
         Returns:
             True if save successful
+
         """
         try:
             filepath = self._campaign_dir / f"campaign_{campaign_id}.json"
@@ -207,14 +204,14 @@ class CampaignPersistenceManager:
         self,
         campaign_id: str,
     ) -> CampaignProgress | None:
-        """
-        Load campaign progress from JSON file.
+        """Load campaign progress from JSON file.
 
         Args:
             campaign_id: Unique campaign identifier
 
         Returns:
             CampaignProgress object or None if not found
+
         """
         filepath = self._campaign_dir / f"campaign_{campaign_id}.json"
 
@@ -268,8 +265,7 @@ class CampaignPersistenceManager:
         progress: CampaignProgress,
         current_units: list,
     ) -> list:
-        """
-        Apply inherited states from previous battle to current units.
+        """Apply inherited states from previous battle to current units.
 
         Units with matching template_ids get their HP, morale, ammo, etc.
         from the previous battle's end state.
@@ -280,6 +276,7 @@ class CampaignPersistenceManager:
 
         Returns:
             Updated units with inherited stats
+
         """
         inherited_count = 0
 

@@ -45,6 +45,7 @@ class EnvironmentalSoundGenerator:
 
         Args:
             variant: 0=麻雀(高频短促), 1=乌鸦(低频粗哑), 2=啄木鸟(规律敲击)
+
         """
         duration = 2.0
         n_samples = int(cls.SAMPLE_RATE * duration)
@@ -119,6 +120,7 @@ class EnvironmentalSoundGenerator:
 
         Args:
             intensity: 0.0-1.0 控制风力和频率成分
+
         """
         duration = 3.0
         n_samples = int(cls.SAMPLE_RATE * duration)
@@ -145,6 +147,7 @@ class EnvironmentalSoundGenerator:
 
         Args:
             distance_factor: >1.0更远(更安静，更长延迟)
+
         """
         duration = 2.0 * distance_factor
         n_samples = int(cls.SAMPLE_RATE * duration)
@@ -185,6 +188,7 @@ class EnvironmentalSoundGenerator:
 
         Args:
             intensity: 0.0-1.0 雨量强度
+
         """
         duration = 3.0
         n_samples = int(cls.SAMPLE_RATE * duration)
@@ -250,6 +254,7 @@ class EnvironmentalSoundGenerator:
 
         Args:
             insect_type: "cricket"(蟋蟀) 或 "cicada"(蝉)
+
         """
         duration = 3.0
         n_samples = int(cls.SAMPLE_RATE * duration)
@@ -288,6 +293,7 @@ class EnvironmentalSoundGenerator:
 
         Args:
             surface: "mixed"/"gravel"/"mud"/"concrete"
+
         """
         duration = 4.0
         n_samples = int(cls.SAMPLE_RATE * duration)
@@ -505,6 +511,7 @@ class EnvironmentalAudioSystem:
 
         Args:
             mixer: pygame.mixer module or compatible interface
+
         """
         self._mixer = mixer
         if not mixer.get_init():
@@ -519,6 +526,7 @@ class EnvironmentalAudioSystem:
 
         Args:
             sound_type: Type of environmental sound to generate
+
         """
         if sound_type in self._sound_cache:
             return self._sound_cache[sound_type]
@@ -580,6 +588,7 @@ class EnvironmentalAudioSystem:
 
         Returns:
             True if successfully started, False otherwise
+
         """
         if not self._initialized:
             logger.warning("AudioSystem not initialized")
@@ -605,6 +614,7 @@ class EnvironmentalAudioSystem:
 
         Args:
             sound_type: Type of sound to stop
+
         """
         if sound_type in self._loop_channels:
             channel = self._loop_channels[sound_type]
@@ -619,6 +629,7 @@ class EnvironmentalAudioSystem:
 
         Args:
             dt: Delta time since last update in seconds
+
         """
         if not self._initialized:
             return
@@ -630,6 +641,7 @@ class EnvironmentalAudioSystem:
 
         Args:
             hour: 0-23 hour of day
+
         """
         self._time_of_day = max(0, min(23, hour))
         self._adjust_activity_by_time()
@@ -639,6 +651,7 @@ class EnvironmentalAudioSystem:
 
         Args:
             location: "village"/"city"/"forest"/"open_field"
+
         """
         valid_locations = ["village", "city", "forest", "open_field"]
         if location in valid_locations:
@@ -650,6 +663,7 @@ class EnvironmentalAudioSystem:
 
         Args:
             raining: Whether it is currently raining
+
         """
         self._is_raining = raining
         self._active_sounds[EnvironmentSoundType.RAIN] = raining
@@ -668,6 +682,7 @@ class EnvironmentalAudioSystem:
 
         Args:
             intensity: 0.0-1.0 combat intensity level
+
         """
         self._combat_intensity = max(0.0, min(1.0, intensity))
 
@@ -693,6 +708,7 @@ class EnvironmentalAudioSystem:
 
         Returns:
             True if sound is playing
+
         """
         return self._active_sounds.get(sound_type, False)
 
@@ -701,6 +717,7 @@ class EnvironmentalAudioSystem:
 
         Args:
             volume: 0.0-1.0 volume level
+
         """
         self._volume = max(0.0, min(1.0, volume))
         for sound in self._sound_cache.values():

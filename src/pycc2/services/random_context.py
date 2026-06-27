@@ -40,7 +40,7 @@ class RandomContext(IRandomNumberGenerator):
         return self._rng.gauss(mu, sigma)
 
     def gaussian(self, mu: float = 0.0, sigma: float = 1.0) -> float:
-        """alias for BallisticEngine兼容"""
+        """Alias for BallisticEngine兼容"""
         return self.gauss(mu, sigma)
 
     def randint(self, low: int, high: int) -> int:

@@ -8,8 +8,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class FriendlyFireSystem:
-    """
-    Friendly fire detection and penalty system.
+    """Friendly fire detection and penalty system.
 
     Checks if attack line passes through friendly units.
     Applies damage and morale penalties for friendly fire.
@@ -26,11 +25,11 @@ class FriendlyFireSystem:
         target_pos: tuple[float, float],
         friendly_units: list,
     ) -> list:
-        """
-        Check if attack line intersects friendly units.
+        """Check if attack line intersects friendly units.
 
         Returns:
             List of hit friendly units
+
         """
         hit_friendlies = []
 
@@ -86,11 +85,11 @@ class FriendlyFireSystem:
         victim,
         damage: int,
     ) -> dict:
-        """
-        Apply penalties for friendly fire.
+        """Apply penalties for friendly fire.
 
         Returns:
             Dict with damage applied and morale effects
+
         """
         event = {
             "attacker": getattr(attacker, "name", "Unknown"),
@@ -130,8 +129,7 @@ class FriendlyFireSystem:
 
 @dataclass
 class RicochetSystem:
-    """
-    Ricochet/bounce mechanics.
+    """Ricochet/bounce mechanics.
 
     High incidence angle (>60 degrees) may cause ricochet.
     Ricochet deals no damage but causes suppression.
@@ -146,8 +144,7 @@ class RicochetSystem:
         incidence_angle: float,
         armor_slope: float = 0.0,
     ) -> tuple[bool, float]:
-        """
-        Check if shot ricochets.
+        """Check if shot ricochets.
 
         Args:
             incidence_angle: Angle of impact (degrees)
@@ -155,6 +152,7 @@ class RicochetSystem:
 
         Returns:
             (is_ricochet, suppression_amount)
+
         """
         effective_angle = incidence_angle - armor_slope
 

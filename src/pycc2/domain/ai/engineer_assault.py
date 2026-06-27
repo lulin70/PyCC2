@@ -1,5 +1,4 @@
-"""
-Engineer Assault Team — CC2-Authentic Fortified Position Assault
+"""Engineer Assault Team — CC2-Authentic Fortified Position Assault
 
 Specialized engineer assault teams with demo charges and flamethrowers
 for attacking fortified enemy positions (buildings, bunkers).

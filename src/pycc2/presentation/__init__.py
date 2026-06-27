@@ -1,5 +1,4 @@
-"""
-Presentation Layer - Layer 1
+"""Presentation Layer - Layer 1
 
 Handles all rendering, input handling, and UI components.
 This layer depends on domain layer but domain layer has zero dependency on this.

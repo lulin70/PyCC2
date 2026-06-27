@@ -138,7 +138,6 @@ class SaveController:
 
     def restore_state(self, data: dict, game_loop: GameLoop) -> bool:
         """Reconstruct game state from a saved state dictionary."""
-
         from pycc2.domain.components.health_component import HealthComponent, HealthState
         from pycc2.domain.components.morale_component import MoraleComponent, MoraleState
         from pycc2.domain.components.position_component import PositionComponent

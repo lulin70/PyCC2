@@ -1,5 +1,4 @@
-"""
-Combat Mechanics Enhancement for PyCC2 - Phase C1+C2
+"""Combat Mechanics Enhancement for PyCC2 - Phase C1+C2
 
 Implements two critical combat systems that transform the tactical experience:
 
@@ -47,8 +46,7 @@ class SuppressionEffect(Enum):
 
 @dataclass
 class SuppressionState:
-    """
-    Tracks a unit's current suppression level and effects.
+    """Tracks a unit's current suppression level and effects.
 
     Suppression models the psychological and physical impact of being
     under fire. It accumulates from incoming attacks and slowly recovers.
@@ -81,14 +79,14 @@ class SuppressionState:
     is_panicked: bool = False  # Cached state
 
     def apply_suppression(self, amount: float) -> tuple[SuppressionEffect, bool]:
-        """
-        Apply suppression from incoming attack.
+        """Apply suppression from incoming attack.
 
         Args:
             amount: Suppression points to add (based on weapon's suppress_ability)
 
         Returns:
             Tuple of (current_effect, state_changed)
+
         """
         old_effect = self.get_current_effect()
 
@@ -105,8 +103,7 @@ class SuppressionState:
         return new_effect, state_changed
 
     def recover(self, in_cover: bool = True, out_of_los: bool = False) -> SuppressionEffect:
-        """
-        Apply recovery for turn phase end.
+        """Apply recovery for turn phase end.
 
         Args:
             in_cover: Unit is in good cover position
@@ -114,6 +111,7 @@ class SuppressionState:
 
         Returns:
             New suppression effect after recovery
+
         """
         self.turns_since_last_hit += 1
 
@@ -210,8 +208,7 @@ def calculate_suppression_from_attack(
     is_near_miss: bool = False,
     is_explosive: bool = False,
 ) -> float:
-    """
-    Calculate suppression inflicted by an attack.
+    """Calculate suppression inflicted by an attack.
 
     Factors:
     - Weapon's inherent suppress ability (MG42 > Rifle)
@@ -222,6 +219,7 @@ def calculate_suppression_from_attack(
 
     Returns:
         Suppression points to apply to target
+
     """
     base = weapon_suppress_ability * 15.0  # Scale to 0-15 range per shot
 
@@ -263,8 +261,7 @@ class VisibilityLevel(Enum):
 
 @dataclass
 class ConcealmentProfile:
-    """
-    Calculates and tracks unit concealment factors.
+    """Calculates and tracks unit concealment factors.
 
     Concealment determines how hard a unit is to detect and hit.
     It stacks multiple sources additively (with diminishing returns).
@@ -305,8 +302,7 @@ class ConcealmentProfile:
     in_smoke: bool = False  # Smoke provides +0.5
 
     def calculate_total_concealment(self) -> float:
-        """
-        Calculate total concealment factor (0.0 to ~0.95).
+        """Calculate total concealment factor (0.0 to ~0.95).
 
         Uses diminishing returns formula to prevent stacking abuse.
         """
@@ -339,8 +335,7 @@ class ConcealmentProfile:
         return max(0.0, min(0.95, final))
 
     def get_visibility_level(self, enemy_distance: int, enemy_has_los: bool) -> VisibilityLevel:
-        """
-        Determine how visible this unit is to a specific enemy.
+        """Determine how visible this unit is to a specific enemy.
 
         Args:
             enemy_distance: Distance in tiles to enemy
@@ -348,6 +343,7 @@ class ConcealmentProfile:
 
         Returns:
             Visibility level enum
+
         """
         concealment = self.calculate_total_concealment()
 
@@ -383,8 +379,7 @@ class ConcealmentProfile:
 
 @dataclass
 class VisionSystem:
-    """
-    Handles line-of-sight (LOS) calculations and detection.
+    """Handles line-of-sight (LOS) calculations and detection.
 
     Key Features:
     - Height-based LOS (high ground sees further)
@@ -441,8 +436,7 @@ class VisionSystem:
         map_width: int,
         map_height: int,
     ) -> bool:
-        """
-        Check if observer has clear LOS to target.
+        """Check if observer has clear LOS to target.
 
         Uses Bresenham's line algorithm.
         A tile blocks LOS if it's a building (terrain code 5 or 8).
@@ -490,11 +484,11 @@ class VisionSystem:
         observer_is_scout: bool = False,
         in_smoke: bool = False,
     ) -> tuple[bool, VisibilityLevel]:
-        """
-        Attempt to detect a concealed unit.
+        """Attempt to detect a concealed unit.
 
         Returns:
             Tuple of (detected, visibility_level_if_detected)
+
         """
         if in_smoke and distance > 1:
             return False, VisibilityLevel.HIDDEN
@@ -530,8 +524,7 @@ class VisionSystem:
 
 @dataclass
 class CombatState:
-    """
-    Combines suppression and concealment into unified combat state.
+    """Combines suppression and concealment into unified combat state.
 
     This is what gets attached to each Unit entity.
     """
@@ -549,11 +542,11 @@ class CombatState:
     def process_attack_received(
         self, weapon_suppress_ability: float, hit: bool, damage: float, is_explosive: bool = False
     ) -> dict[str, Any]:
-        """
-        Process incoming attack - update both systems.
+        """Process incoming attack - update both systems.
 
         Returns:
             Dict with effects applied
+
         """
         # Apply suppression
         suppr_effect, suppr_changed = self.suppression.apply_suppression(

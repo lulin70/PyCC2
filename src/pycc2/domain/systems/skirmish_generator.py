@@ -1,5 +1,4 @@
-"""
-Skirmish Mode — Generate random battles outside the campaign.
+"""Skirmish Mode — Generate random battles outside the campaign.
 
 A "beyond CC2" feature: the original Close Combat 2 only had campaign
 battles.  Skirmish mode lets players set up quick one-off fights with

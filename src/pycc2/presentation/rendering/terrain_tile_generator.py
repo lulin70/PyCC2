@@ -17,8 +17,7 @@ from pycc2.presentation.rendering.pixel_canvas import (
 
 
 class TerrainTileGenerator:
-    """
-    地形瓦片生成器 — 生成CC2风格的地形tile。
+    """地形瓦片生成器 — 生成CC2风格的地形tile。
 
     特点：
     - 多层细节（基础色+纹理+高光+阴影）
@@ -119,6 +118,7 @@ class TerrainTileGenerator:
             orientation: "horizontal" 或 "vertical"
             neighbors: 邻居信息字典, 键为 "north"/"east"/"south"/"west",
                        值为 True(道路邻居) 或 False(非道路邻居)
+
         """
         if neighbors is None:
             neighbors = {}
@@ -717,6 +717,7 @@ class TerrainTileGenerator:
             tile_y: 瓦片在世界中的Y坐标(用于波纹相位对齐)
             neighbors: 邻居信息字典, 键为 "north"/"east"/"south"/"west",
                        值为 True(水域邻居) 或 False(非水域邻居)
+
         """
         if neighbors is None:
             neighbors = {}

@@ -1,5 +1,4 @@
-"""
-Command Obedience System — CC2-Authentic Morale-Based Order Compliance
+"""Command Obedience System — CC2-Authentic Morale-Based Order Compliance
 
 CC2 core feature: units with low morale may refuse or delay orders.
 This mirrors the real-world phenomenon where terrified soldiers

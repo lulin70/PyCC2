@@ -1,5 +1,4 @@
-"""
-Swiss Cheese Damage Model — probabilistic squad-level casualty system.
+"""Swiss Cheese Damage Model — probabilistic squad-level casualty system.
 Instead of simple HP subtraction, each hit resolves into individual
 casualty outcomes per squad member.
 

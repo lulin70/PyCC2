@@ -1,5 +1,4 @@
-"""
-Campaign State — persistent state across multiple battles.
+"""Campaign State — persistent state across multiple battles.
 This is the heart of the CC2 campaign system: units carry over between battles.
 """
 

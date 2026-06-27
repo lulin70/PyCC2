@@ -27,6 +27,7 @@ class CC2HUDInputHandler:
 
         Returns:
             Action string like 'select_unit:xxx', 'command:xxx', or None
+
         """
         if not hud._visible:
             return None
@@ -74,6 +75,7 @@ class CC2HUDInputHandler:
         Args:
             hud: CC2HUD instance
             pos: Current mouse position
+
         """
         x, y = pos
         panel_y = hud._screen_height - hud.PANEL_HEIGHT
@@ -101,6 +103,7 @@ class CC2HUDInputHandler:
         Args:
             hud: CC2HUD instance
             direction: Scroll direction (+1 or -1)
+
         """
         max_offset = max(0, len(hud._units) - hud._max_visible_units)
         new_offset = hud._scroll_offset - direction

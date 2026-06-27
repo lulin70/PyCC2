@@ -1,5 +1,4 @@
-"""
-Fade Transition Utility
+"""Fade Transition Utility
 
 Lightweight alpha-based fade-in/fade-out manager for UI panels.
 Provides smooth show/hide transitions instead of instant pop-in/pop-out.

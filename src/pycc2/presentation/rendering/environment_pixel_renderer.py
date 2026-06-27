@@ -1,5 +1,4 @@
-"""
-Environment Pixel Renderer - Extracted from PixelArtist3D God Class (P3-3).
+"""Environment Pixel Renderer - Extracted from PixelArtist3D God Class (P3-3).
 
 Contains environment sprite generation logic:
 - Tree (multi-tone canopy with irregular edges, size variants)
@@ -18,8 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class EnvironmentPixelRenderer:
-    """
-    Environment sprite renderer for map decorations and structures.
+    """Environment sprite renderer for map decorations and structures.
 
     Generates top-down sprites for terrain and building features:
     - Tree: 20x20 / 28x28 / 36x36 px (small/medium/large), multi-tone canopy

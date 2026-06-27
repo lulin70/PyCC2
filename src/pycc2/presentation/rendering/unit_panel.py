@@ -1,5 +1,4 @@
-"""
-Unit Information Panel
+"""Unit Information Panel
 
 Displays detailed information about selected units including stats,
 equipment, status effects, etc.

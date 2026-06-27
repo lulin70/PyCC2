@@ -1,5 +1,4 @@
-"""
-Particle Effects Renderer for PyCC2 - Extracted from EnhancedRenderer
+"""Particle Effects Renderer for PyCC2 - Extracted from EnhancedRenderer
 
 Handles all combat visual effects and particle systems:
 - Damage VFX (smoke, fire for damaged units)
@@ -30,8 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class ParticleEffectsRenderer:
-    """
-    Manages all particle-based visual effects and combat feedback.
+    """Manages all particle-based visual effects and combat feedback.
 
     Delegated by EnhancedRenderer to maintain clean separation of concerns.
     Requires references to:
@@ -157,6 +155,7 @@ class ParticleEffectsRenderer:
 
         Args:
             dt_ms: Delta time in milliseconds since last frame
+
         """
         if self._particle_system:
             self._particle_system.update(dt_ms)
@@ -174,6 +173,7 @@ class ParticleEffectsRenderer:
             max_radius: Maximum ring radius in pixels (default 40)
             duration_ms: Animation duration (default 500ms)
             color: Base color tuple (default yellow-orange)
+
         """
         if self._particle_system:
             x = position[0] if hasattr(position, "__getitem__") else position.x
@@ -213,6 +213,7 @@ class ParticleEffectsRenderer:
 
         Args:
             damage_type: 'normal', 'critical', 'armor_penetrate', or 'ricochet'
+
         """
         if self._particle_system:
             self._particle_system.spawn_hit_marker(x, y, damage_type)

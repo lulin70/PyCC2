@@ -1,5 +1,4 @@
-"""
-Camera Effects System - Cinematic visual feedback for combat events.
+"""Camera Effects System - Cinematic visual feedback for combat events.
 
 Provides 5 camera effect types for immersive gameplay:
 1. SHAKE - Screen vibration (existing, enhanced)

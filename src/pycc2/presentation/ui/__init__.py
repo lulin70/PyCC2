@@ -1,5 +1,4 @@
-"""
-UI Components Subsystem
+"""UI Components Subsystem
 
 Provides reusable UI components for menus, panels, buttons, etc.
 """

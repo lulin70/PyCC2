@@ -1,5 +1,4 @@
-"""
-Weather Atmosphere Overlay System for PyCC2 renderer.
+"""Weather Atmosphere Overlay System for PyCC2 renderer.
 
 Extracted from EnhancedRenderer (God Class refactoring).
 Manages atmospheric weather overlays (clear, light fog, dust, smoke).
@@ -58,6 +57,7 @@ class WeatherSystem:
 
         Args:
             mode: One of 'clear', 'light_fog', 'dust', or 'smoke'.
+
         """
         if mode not in self.VALID_MODES:
             logger.warning("Invalid weather mode '%s'. Valid modes: %s", mode, self.VALID_MODES)
@@ -82,6 +82,7 @@ class WeatherSystem:
         Args:
             width: Screen width in pixels.
             height: Screen height in pixels.
+
         """
         self._screen_size = (width, height)
 
@@ -90,6 +91,7 @@ class WeatherSystem:
 
         Args:
             dt: Delta time in seconds since last frame.
+
         """
         if self._mode == "dust" and self._particles:
             w = self._screen_size[0]
@@ -117,6 +119,7 @@ class WeatherSystem:
 
         Args:
             offscreen: The off-screen rendering surface to draw onto.
+
         """
         if self._mode == "clear" or self._alpha <= 0:
             return

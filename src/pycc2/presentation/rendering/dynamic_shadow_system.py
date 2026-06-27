@@ -1,5 +1,4 @@
-"""
-Dynamic Shadow System - Enhanced shadow rendering with time-of-day awareness.
+"""Dynamic Shadow System - Enhanced shadow rendering with time-of-day awareness.
 
 Extends the existing ShadowRenderingSystem with:
 - Dynamic shadow direction based on sun position (time-of-day)

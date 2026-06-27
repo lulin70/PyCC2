@@ -1,5 +1,4 @@
-"""
-Domain Entities Subsystem
+"""Domain Entities Subsystem
 
 Core game entities with identity, behavior, and state management.
 """

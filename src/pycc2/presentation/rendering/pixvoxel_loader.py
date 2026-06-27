@@ -230,8 +230,7 @@ PIXVOXEL_ORTHO_URL = "https://opengameart.org/sites/default/files/PixVoxel_Ortho
 
 
 class PixVoxelLoader:
-    """
-    PixVoxel 精灵加载器
+    """PixVoxel 精灵加载器
 
     加载 PixVoxel 等距/正交精灵，支持调色板替换和缓存。
     当 PixVoxel 资源不可用时，自动 fallback 到程序化生成。
@@ -360,6 +359,7 @@ class PixVoxelLoader:
 
         Returns:
             True on success.
+
         """
         import tempfile
 
@@ -613,8 +613,7 @@ class PixVoxelLoader:
         size: int | None = None,
         use_ortho: bool = False,
     ) -> Surface | None:
-        """
-        加载 PixVoxel 精灵
+        """加载 PixVoxel 精灵
 
         Args:
             unit_type: PyCC2 单位类型 (如 "RIFLE_SQUAD", "MEDIUM_TANK")
@@ -627,6 +626,7 @@ class PixVoxelLoader:
 
         Returns:
             pygame.Surface 或 None (需要 fallback)
+
         """
         cache_key = f"pv_{faction}_{unit_type}_d{direction}_{animation}_f{frame}"
         if size is not None:
@@ -786,8 +786,7 @@ class PixVoxelLoader:
         return None
 
     def _apply_faction_palette(self, surface: Surface, faction: str) -> Surface:
-        """
-        应用阵营调色板替换
+        """应用阵营调色板替换
 
         PixVoxel 精灵使用可替换的调色板系统。
         此方法将精灵中的阵营颜色替换为目标阵营颜色。
@@ -810,8 +809,7 @@ class PixVoxelLoader:
         target_color: tuple[int, int, int],
         tolerance: int = 30,
     ) -> Surface:
-        """
-        对 Surface 执行调色板替换
+        """对 Surface 执行调色板替换
 
         将 source_color (±tolerance) 的像素替换为 target_color，
         保持原始亮度/饱和度比例。
@@ -824,6 +822,7 @@ class PixVoxelLoader:
 
         Returns:
             替换后的新 Surface
+
         """
         result = surface.copy()
         w, h = result.get_size()
@@ -915,8 +914,7 @@ class PixVoxelLoader:
         frame: int = 0,
         size: int = 24,
     ) -> Surface:
-        """
-        加载 PixVoxel 精灵，不可用时 fallback 到程序化生成
+        """加载 PixVoxel 精灵，不可用时 fallback 到程序化生成
 
         Args:
             unit_type: PyCC2 单位类型
@@ -928,6 +926,7 @@ class PixVoxelLoader:
 
         Returns:
             pygame.Surface (始终返回有效 Surface)
+
         """
         # 尝试加载 PixVoxel 精灵
         sprite = self.load_sprite(
@@ -1029,8 +1028,7 @@ class PixVoxelLoader:
         animation: str = "idle",
         size: int | None = None,
     ) -> list[Surface]:
-        """
-        加载完整的动画帧序列
+        """加载完整的动画帧序列
 
         Args:
             unit_type: PyCC2 单位类型
@@ -1041,6 +1039,7 @@ class PixVoxelLoader:
 
         Returns:
             Surface 列表 (可能为空)
+
         """
         frames: list[Surface] = []
         for frame_idx in range(20):  # 最多尝试 20 帧
@@ -1059,11 +1058,11 @@ class PixVoxelLoader:
         return frames
 
     def get_available_units(self) -> dict[str, list[str]]:
-        """
-        获取可用的单位类型及其动画
+        """获取可用的单位类型及其动画
 
         Returns:
             {unit_type: [animation_names]}
+
         """
         manifest = self.load_manifest()
         if manifest is None:

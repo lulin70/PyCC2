@@ -1,5 +1,4 @@
-"""
-Fatigue Component — tracks unit exhaustion over extended operations.
+"""Fatigue Component — tracks unit exhaustion over extended operations.
 Fatigued units have reduced accuracy, slower movement, and higher panic risk.
 """
 

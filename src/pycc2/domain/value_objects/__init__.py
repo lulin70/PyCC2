@@ -1,5 +1,4 @@
-"""
-Domain Value Objects Subsystem
+"""Domain Value Objects Subsystem
 
 Immutable value objects for type-safe domain modeling.
 """

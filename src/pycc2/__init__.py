@@ -1,5 +1,4 @@
-"""
-PyCC2 - Python Close Combat 2
+"""PyCC2 - Python Close Combat 2
 Tactical Infantry Combat Simulator
 """
 

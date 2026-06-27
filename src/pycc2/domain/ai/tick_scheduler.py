@@ -1,5 +1,4 @@
-"""
-AI Tick Scheduler - Hierarchical tick frequencies for AI decision-making.
+"""AI Tick Scheduler - Hierarchical tick frequencies for AI decision-making.
 
 Inspired by OpenCombat's soldier.rs design, different AI roles operate at
 different decision frequencies to simulate command hierarchy:

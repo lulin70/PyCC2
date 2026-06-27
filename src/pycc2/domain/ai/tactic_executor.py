@@ -132,8 +132,7 @@ class TacticExecutor:
         return self._unit_registry.get(unit_id)
 
     def _check_morale_preconditions(self, unit: Unit, intent: TacticIntent) -> dict:
-        """
-        Check if unit's morale state allows executing the given command.
+        """Check if unit's morale state allows executing the given command.
 
         Implements CC2-authentic morale behavior:
         - PINNED: Cannot move, can only fire if enemy in range
@@ -142,6 +141,7 @@ class TacticExecutor:
 
         Returns:
             Dict with 'can_execute' (bool) and 'reason' (str)
+
         """
         # Import here to avoid circular imports
         from pycc2.domain.systems.morale_system import MoraleState, MoraleSystem

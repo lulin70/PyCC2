@@ -28,8 +28,7 @@ class TooltipData:
 
 
 class Tooltip:
-    """
-    Mouse hover tooltip display system.
+    """Mouse hover tooltip display system.
 
     Features:
     - Show unit info after 0.5s hover delay
@@ -64,12 +63,12 @@ class Tooltip:
         self._tooltip_surface_cache_size: tuple[int, int] | None = None
 
     def on_hover(self, unit: Unit | None, dt: float) -> None:
-        """
-        Process hover event.
+        """Process hover event.
 
         Args:
             unit: Unit under cursor (None if no unit)
             dt: Delta time since last frame
+
         """
         if unit != self.target_unit:
             self.target_unit = unit
@@ -124,13 +123,13 @@ class Tooltip:
         mouse_pos: tuple[int, int],
         screen_size: tuple[int, int] = (1280, 720),
     ) -> None:
-        """
-        Render tooltip at mouse position.
+        """Render tooltip at mouse position.
 
         Args:
             surface: Pygame surface to draw on
             mouse_pos: Current mouse cursor position
             screen_size: Screen dimensions for edge detection
+
         """
         if not self._visible or not self.target_unit:
             return

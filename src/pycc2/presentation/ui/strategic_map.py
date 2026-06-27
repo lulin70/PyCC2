@@ -1,5 +1,4 @@
-"""
-Strategic Map Renderer — displays the Operation Market Garden corridor.
+"""Strategic Map Renderer — displays the Operation Market Garden corridor.
 Shows bridge status, unit positions, and campaign progress at a strategic level.
 """
 

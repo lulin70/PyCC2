@@ -1,5 +1,4 @@
-"""
-CC2 combat visual effects: explosions, smoke, hit sparks, muzzle flashes,
+"""CC2 combat visual effects: explosions, smoke, hit sparks, muzzle flashes,
 surrender flags, and the enhanced particle system.
 """
 

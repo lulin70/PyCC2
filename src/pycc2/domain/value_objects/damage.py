@@ -1,5 +1,4 @@
-"""
-Damage Value Object
+"""Damage Value Object
 
 Represents damage with type classification and source tracking.
 Immutable value object for combat resolution.
@@ -21,8 +20,7 @@ class DamageType(Enum):
 
 @dataclass(frozen=True)
 class Damage:
-    """
-    Immutable damage value object.
+    """Immutable damage value object.
 
     Attributes:
         amount: Base damage value
@@ -30,6 +28,7 @@ class Damage:
         armor_penetration: Ability to bypass armor (0.0-1.0)
         source_unit_id: ID of unit that caused the damage (if applicable)
         source_weapon_name: Name of weapon that caused damage (if known)
+
     """
 
     amount: float
@@ -55,14 +54,14 @@ class Damage:
         return self.amount >= 75.0
 
     def apply_armor_reduction(self, armor_value: float) -> "Damage":
-        """
-        Calculate damage after armor reduction.
+        """Calculate damage after armor reduction.
 
         Args:
             armor_value: Target's armor value (0.0-1.0)
 
         Returns:
             New Damage object with reduced amount
+
         """
         effective_armor = armor_value * (1.0 - self.armor_penetration)
         reduction_factor = 1.0 - effective_armor
@@ -77,14 +76,14 @@ class Damage:
         )
 
     def apply_cover_bonus(self, cover_bonus: float) -> "Damage":
-        """
-        Apply cover-based damage reduction.
+        """Apply cover-based damage reduction.
 
         Args:
             cover_bonus: Cover bonus as damage reduction (0.0-1.0)
 
         Returns:
             New Damage object with reduced amount
+
         """
         if not 0.0 <= cover_bonus <= 1.0:
             raise ValueError("Cover bonus must be between 0.0 and 1.0")
@@ -100,14 +99,14 @@ class Damage:
         )
 
     def multiply(self, multiplier: float) -> "Damage":
-        """
-        Multiply damage by a factor (for crits, weak points, etc.).
+        """Multiply damage by a factor (for crits, weak points, etc.).
 
         Args:
             multiplier: Multiplication factor
 
         Returns:
             New Damage object with modified amount
+
         """
         if multiplier < 0:
             raise ValueError("Multiplier cannot be negative")
@@ -121,14 +120,14 @@ class Damage:
         )
 
     def add(self, other: "Damage") -> "Damage":
-        """
-        Add two damage values together.
+        """Add two damage values together.
 
         Args:
             other: Another Damage object to add
 
         Returns:
             New Damage object with summed amounts
+
         """
         return Damage(
             amount=self.amount + other.amount,

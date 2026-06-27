@@ -99,6 +99,7 @@ def render_building(
 
     Returns:
         A pygame.Surface with the building (top face + walls).
+
     """
     if height_levels is None:
         height_levels = BUILDING_HEIGHTS.get(building_type, 2)

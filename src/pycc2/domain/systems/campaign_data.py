@@ -46,7 +46,6 @@ def create_market_garden_campaign() -> GrandCampaignDefinition:
         linkup at Eindhoven, corridor defense
       - Op "Corridor Defense" (Days 4-9): German counterattacks on the corridor
     """
-
     # ------------------------------------------------------------------
     # Operation 1: Landing (Day 1)
     # ------------------------------------------------------------------

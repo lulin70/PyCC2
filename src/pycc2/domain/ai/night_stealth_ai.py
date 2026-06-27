@@ -1,5 +1,4 @@
-"""
-Night Stealth AI — CC2-Authentic Night Operations Behavior
+"""Night Stealth AI — CC2-Authentic Night Operations Behavior
 
 AI actively uses darkness for stealth operations.  In CC2,
 night missions dramatically change unit behavior — troops move

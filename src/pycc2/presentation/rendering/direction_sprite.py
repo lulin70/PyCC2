@@ -28,8 +28,7 @@ class SpriteFrame:
 
 @dataclass
 class DirectionSpriteSet:
-    """
-    Complete set of sprites for all 8 directions.
+    """Complete set of sprites for all 8 directions.
 
     Structure:
     {
@@ -51,8 +50,7 @@ class DirectionSpriteSet:
         directions_count: int = 8,
         frames_per_direction: int = 1,
     ) -> bool:
-        """
-        Load directional sprites from a spritesheet image.
+        """Load directional sprites from a spritesheet image.
 
         Expected layout:
         - Rows: Directions (N, NE, E, SE, S, SW, W, NW)
@@ -66,6 +64,7 @@ class DirectionSpriteSet:
 
         Returns:
             True if loaded successfully
+
         """
         try:
             sheet = pygame.image.load(filepath).convert_alpha()
@@ -108,8 +107,7 @@ class DirectionSpriteSet:
         flip_horizontal: bool = True,
         rotate_90: bool = True,
     ) -> None:
-        """
-        Generate 8-direction variants from a single base sprite.
+        """Generate 8-direction variants from a single base sprite.
 
         Uses flipping and rotation when full spritesheet unavailable.
         Quality lower than true multi-direction art but functional.
@@ -118,6 +116,7 @@ class DirectionSpriteSet:
             base_surface: Base sprite facing EAST
             flip_horizontal: Generate W variants by flipping E
             rotate_90: Generate N/S by rotating (may look odd for asymmetric sprites)
+
         """
         self.sprite_size = base_surface.get_size()
 
@@ -150,8 +149,7 @@ class DirectionSpriteSet:
         direction: Direction,
         frame_index: int = 0,
     ) -> pygame.Surface | None:
-        """
-        Get sprite surface for specific direction and frame.
+        """Get sprite surface for specific direction and frame.
 
         Args:
             direction: Facing direction
@@ -159,6 +157,7 @@ class DirectionSpriteSet:
 
         Returns:
             Pygame Surface or None if not loaded
+
         """
         frames = self.directions.get(direction)
         if not frames:
@@ -192,8 +191,7 @@ class DirectionSpriteSet:
 
 
 class DirectionSpriteManager:
-    """
-    Manages loading and caching of directional sprites for all unit types.
+    """Manages loading and caching of directional sprites for all unit types.
 
     Singleton-style manager accessible throughout the rendering pipeline.
     """
@@ -219,8 +217,7 @@ class DirectionSpriteManager:
         faction: str,
         sprite_path: str | None = None,
     ) -> DirectionSpriteSet:
-        """
-        Load or retrieve cached sprites for a unit type.
+        """Load or retrieve cached sprites for a unit type.
 
         Args:
             unit_type: Type identifier (e.g., 'rifleman', 'tank')
@@ -229,6 +226,7 @@ class DirectionSpriteManager:
 
         Returns:
             DirectionSpriteSet with loaded sprites
+
         """
         cache_key = f"{faction}_{unit_type}"
 
@@ -333,8 +331,7 @@ class DirectionSpriteManager:
         direction: Direction | None = None,
         frame_index: int = 0,
     ) -> pygame.Surface | None:
-        """
-        Get the appropriate sprite for a unit's current state.
+        """Get the appropriate sprite for a unit's current state.
 
         Args:
             unit: The game unit
@@ -343,6 +340,7 @@ class DirectionSpriteManager:
 
         Returns:
             Pygame Surface or None
+
         """
         if direction is None:
             direction = Direction.from_angle(getattr(unit, "facing", 0))

@@ -1,5 +1,4 @@
-"""
-CC2-Style Three-Panel HUD
+"""CC2-Style Three-Panel HUD
 
 Close Combat 2 authentic bottom HUD with three-column layout:
 - Left (25%): Unit roster with status indicators and hide buttons
@@ -113,6 +112,7 @@ class CC2HUD:
         Args:
             screen_width: Total screen width in pixels
             screen_height: Total screen height in pixels
+
         """
         self._screen_width = screen_width
         self._screen_height = screen_height
@@ -206,6 +206,7 @@ class CC2HUD:
 
         Args:
             units: List of all friendly units to display
+
         """
         self._units = sorted(units, key=lambda u: u.name)
 
@@ -214,6 +215,7 @@ class CC2HUD:
 
         Args:
             unit_id: Unit ID or None to clear selection
+
         """
         self._selected_unit_id = unit_id
         if unit_id:
@@ -252,6 +254,7 @@ class CC2HUD:
         Args:
             event_type: One of 'unit_select', 'command', 'hide_toggle'
             callback: Callable to invoke on event
+
         """
         if event_type == "unit_select":
             self._on_unit_select = callback
@@ -267,6 +270,7 @@ class CC2HUD:
             surface: Target pygame surface to render onto
             game_state: Optional dict with units, selected_unit, ap_remaining,
                        at_remaining, timer keys
+
         """
         if not self._visible or not self._font_normal:
             return
@@ -305,6 +309,7 @@ class CC2HUD:
 
         Returns:
             Action string like 'select_unit:xxx', 'command:xxx', or None
+
         """
         if game_state:
             self._apply_game_state(game_state)
@@ -316,6 +321,7 @@ class CC2HUD:
 
         Args:
             pos: Current mouse position
+
         """
         self._input_handler.handle_mouse_move(self, pos)
 
@@ -324,6 +330,7 @@ class CC2HUD:
 
         Args:
             direction: Scroll direction (+1 or -1)
+
         """
         self._input_handler.handle_scroll(self, direction)
 
@@ -332,6 +339,7 @@ class CC2HUD:
 
         Args:
             dt: Delta time since last update in seconds
+
         """
         pass
 
@@ -349,6 +357,7 @@ class CC2HUD:
         Args:
             width: New screen width
             height: New screen height
+
         """
         self._screen_width = width
         self._screen_height = height
@@ -405,6 +414,7 @@ class CC2HUD:
         Args:
             game_state: Dict with optional keys: units, selected_unit,
                        ap_remaining, at_remaining, timer, game_map, camera
+
         """
         if "units" in game_state:
             self.set_units(game_state["units"])

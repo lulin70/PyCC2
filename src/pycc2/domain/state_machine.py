@@ -1,5 +1,4 @@
-"""
-Generic Finite State Machine
+"""Generic Finite State Machine
 """
 
 from __future__ import annotations

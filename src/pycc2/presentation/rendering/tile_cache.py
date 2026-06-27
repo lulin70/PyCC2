@@ -1,5 +1,4 @@
-"""
-Tile Cache System
+"""Tile Cache System
 
 Pre-renders and caches scaled terrain tile surfaces to avoid per-frame transform.scale() calls.
 Improves rendering performance by storing generated tiles in a two-level dictionary keyed by terrain_id and size.

@@ -1,5 +1,4 @@
-"""
-ATAmbushAI — Anti-Tank Ambush Tactics
+"""ATAmbushAI — Anti-Tank Ambush Tactics
 
 Implements CC2-authentic anti-tank ambush behavior:
 

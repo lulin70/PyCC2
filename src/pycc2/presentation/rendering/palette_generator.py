@@ -21,6 +21,7 @@ class PaletteGenerator:
     Attributes:
         _rng: Random number generator (deterministic if seed provided)
         palettes: Dict mapping terrain ID to 8-shade palette list
+
     """
 
     def __init__(self, seed: int | None = 42):
@@ -80,6 +81,7 @@ class PaletteGenerator:
 
         Returns:
             RGB tuple for the requested shade
+
         """
         if terrain_id not in self.palettes:
             return (128, 128, 128)

@@ -1,5 +1,4 @@
-"""
-Domain Components Subsystem
+"""Domain Components Subsystem
 
 Entity-Component pattern components for unit composition.
 """

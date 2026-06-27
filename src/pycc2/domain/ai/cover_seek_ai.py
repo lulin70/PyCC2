@@ -1,5 +1,4 @@
-"""
-Cover Seeking AI — CC2-Authentic Suppressed Unit Behavior
+"""Cover Seeking AI — CC2-Authentic Suppressed Unit Behavior
 
 When units are under heavy fire (suppression > threshold), they
 automatically scan surrounding tiles to find the best available cover.
@@ -104,8 +103,7 @@ class CoverCandidate:
 
 
 class CoverScoringSystem:
-    """
-    Evaluates and scores potential cover positions.
+    """Evaluates and scores potential cover positions.
 
     The scoring formula balances multiple tactical factors:
     1. Cover bonus (hard cover from terrain/decorations)
@@ -138,8 +136,7 @@ class CoverScoringSystem:
         friendly_units: list[Unit] | None = None,
         search_radius: int = SEARCH_RADIUS,
     ) -> CoverCandidate | None:
-        """
-        Find the best cover position for a suppressed unit.
+        """Find the best cover position for a suppressed unit.
 
         Args:
             unit: The suppressed unit seeking cover
@@ -149,6 +146,7 @@ class CoverScoringSystem:
 
         Returns:
             Best CoverCandidate, or None if no valid cover found
+
         """
         if not self._map:
             logger.warning("CoverScoringSystem: No game_map configured")
@@ -306,8 +304,7 @@ class CoverScoringSystem:
         has_enemy_adjacent: bool,
         movement_cost: float,
     ) -> float:
-        """
-        Calculate score for a candidate tile.
+        """Calculate score for a candidate tile.
 
         Formula:
             score = (cover * COVER_W) + (conc * CONC_W)
@@ -353,8 +350,7 @@ class CoverScoringSystem:
 
 
 class CoverSeekAI(TacticalAIBase):
-    """
-    Evaluates when units should seek cover and generates move orders.
+    """Evaluates when units should seek cover and generates move orders.
 
     Works in batch mode: evaluates all friendly units and generates
     MOVE_TO_COVER intents for suppressed units that would benefit
@@ -388,8 +384,7 @@ class CoverSeekAI(TacticalAIBase):
         return self._scorer
 
     def evaluate(self, context: TacticalContext) -> float:
-        """
-        Evaluate if ANY unit in the force should seek cover.
+        """Evaluate if ANY unit in the force should seek cover.
 
         Returns priority 0.0-1.0 based on most urgent unit's need.
         """

@@ -1,5 +1,4 @@
-"""
-Legacy Campaign System for PyCC2.
+"""Legacy Campaign System for PyCC2.
 
 .. deprecated::
     This module is superseded by ``campaign_four_layer.py`` which provides

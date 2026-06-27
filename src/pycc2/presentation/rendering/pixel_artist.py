@@ -74,6 +74,7 @@ def create_terrain_tile(
         tile_y: 瓦片世界Y坐标(用于跨瓦片连续性)
         neighbors: 邻居信息字典, 键为 "north"/"east"/"south"/"west",
                    值为 True(同类型邻居) 或 False(非同类型邻居)
+
     """
     if terrain_id == 1:
         return TerrainTileGenerator.generate_road(size, neighbors=neighbors)

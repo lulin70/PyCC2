@@ -1,5 +1,4 @@
-"""
-Operation Feedback Manager
+"""Operation Feedback Manager
 
 Provides visual and audio feedback for user operations.
 Shows confirmation messages, warnings, errors, etc.

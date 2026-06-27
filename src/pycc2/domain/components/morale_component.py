@@ -1,5 +1,4 @@
-"""
-Morale Component
+"""Morale Component
 
 Manages unit morale state, panic status, and morale-based effects.
 Morale affects accuracy, movement willingness, and combat effectiveness.

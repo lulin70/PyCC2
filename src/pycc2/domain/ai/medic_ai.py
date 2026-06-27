@@ -1,5 +1,4 @@
-"""
-Medic AI — CC2-Authentic Active Medic Treatment Behavior
+"""Medic AI — CC2-Authentic Active Medic Treatment Behavior
 
 Medic units actively seek and treat wounded soldiers.  In CC2,
 medics are a critical support unit that moves between wounded

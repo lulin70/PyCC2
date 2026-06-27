@@ -1,5 +1,4 @@
-"""
-Shared types and base class for the P9 Tactical AI system.
+"""Shared types and base class for the P9 Tactical AI system.
 
 This module contains:
   - FlankSide enum
@@ -118,7 +117,8 @@ def _threat_score(unit: Unit, reference_pos: TileCoord) -> float:
 
 def _infer_facing(unit: Unit, allies: list[Unit]) -> TileCoord:
     """Infer the direction a unit is facing based on the centroid of
-    opposing forces.  Returns the tile the unit is 'looking at'."""
+    opposing forces.  Returns the tile the unit is 'looking at'.
+    """
     if not allies:
         return unit.position.tile_coord
     cx = sum(u.position.tile_coord.x for u in allies) / len(allies)
@@ -133,7 +133,8 @@ def _flank_position(
     offset: int = 4,
 ) -> TileCoord:
     """Calculate a flanking position offset perpendicular to the enemy's
-    facing direction.  *facing_target* is the tile the enemy faces toward."""
+    facing direction.  *facing_target* is the tile the enemy faces toward.
+    """
     dx = facing_target.x - enemy_pos.x
     dy = facing_target.y - enemy_pos.y
     length = math.sqrt(dx * dx + dy * dy) or 1.0

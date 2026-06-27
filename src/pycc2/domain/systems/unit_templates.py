@@ -16,8 +16,7 @@ from pycc2.domain.systems.cc2_authentic_weapons import (
 
 @dataclass
 class CC2UnitTemplate:
-    """
-    Complete unit specification matching CC2's internal data structure.
+    """Complete unit specification matching CC2's internal data structure.
 
     Each template represents a deployable team/squad/vehicle.
     """
@@ -74,8 +73,7 @@ class CC2UnitTemplate:
         return db.get(self.weapon_secondary_id)
 
     def calculate_effective_stats(self) -> dict[str, Any]:
-        """
-        Calculate effective combat stats based on equipment + experience.
+        """Calculate effective combat stats based on equipment + experience.
 
         Returns dict with all relevant combat parameters.
         """

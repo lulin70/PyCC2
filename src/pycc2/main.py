@@ -1,5 +1,4 @@
-"""
-PyCC2 Application Entry Point
+"""PyCC2 Application Entry Point
 
 Main entry point for the PyCC2 tactical combat simulator.
 Shows the New Game menu first, then enters the deployment phase
@@ -18,6 +17,7 @@ def _show_main_menu(screen, clock):
     Returns:
         Tuple of (menu_action, menu_object). menu_action is one of:
         'start_campaign', 'start_skirmish', 'load_game:N', or 'quit'.
+
     """
     import pygame
 
@@ -52,6 +52,7 @@ def _resolve_map_path(map_stem):
 
     Returns:
         Path to map file, or None if no maps found.
+
     """
     from pathlib import Path
 
@@ -84,6 +85,7 @@ def _create_game_objects(game_map, camera, screen, wm, event_bus, ai_service=Non
 
     Returns:
         Dict containing all created game objects including 'game_loop'.
+
     """
     from pycc2.domain.interfaces.display_config import DisplayConfig as DC
     from pycc2.presentation.input.handler import PygameInputHandler
@@ -164,6 +166,7 @@ def _load_saved_game(slot, screen, wm):
 
     Returns:
         GameLoop instance on success, None on failure.
+
     """
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.value_objects.vec2 import Vec2
@@ -220,6 +223,7 @@ def _start_new_game(menu, menu_action, screen, wm):
 
     Returns:
         GameLoop instance on success, None on failure.
+
     """
     import json
     from pathlib import Path
@@ -362,6 +366,7 @@ def _run_game_loop(game_loop):
 
     Returns:
         Exit code from game loop.
+
     """
     try:
         return game_loop.run()
@@ -375,6 +380,7 @@ def main() -> int:
 
     Returns:
         Exit code (0 for success, non-zero for error)
+
     """
     logging.basicConfig(level=logging.INFO, format="%(name)s %(levelname)s: %(message)s")
 

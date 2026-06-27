@@ -1,5 +1,4 @@
-"""
-Minimap Component
+"""Minimap Component
 
 Renders a tactical minimap showing unit positions and terrain overview.
 """
@@ -89,6 +88,7 @@ class Minimap:
 
         Args:
             dt: Delta time in seconds since last frame.
+
         """
         self._fade.update(dt)
 

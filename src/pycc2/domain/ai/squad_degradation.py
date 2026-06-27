@@ -1,5 +1,4 @@
-"""
-Squad Degradation and NCO Rally System
+"""Squad Degradation and NCO Rally System
 
 Implements CC2-fidelity AI behavior for squad leadership loss effects
 and NCO rally mechanics for panicked/routing units.

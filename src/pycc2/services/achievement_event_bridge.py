@@ -1,5 +1,4 @@
-"""
-Achievement Event Bridge - Connects game events to achievement tracking.
+"""Achievement Event Bridge - Connects game events to achievement tracking.
 
 Subscribes to EventBus combat/campaign events and triggers
 achievement progress updates via AchievementManager.

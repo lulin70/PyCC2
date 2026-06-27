@@ -1,5 +1,4 @@
-"""
-Post-processing effects: vignette, color grading.
+"""Post-processing effects: vignette, color grading.
 """
 
 from __future__ import annotations
@@ -62,12 +61,12 @@ class PostProcessingEffects:
         self.color_grading_enabled = False
 
     def apply_color_grading(self, surface: Surface, style: str = "war") -> Surface:
-        """
-        应用色彩分级
+        """应用色彩分级
 
         Args:
             surface: 原始surface
             style: 风格 ("war", "cold", "warm")
+
         """
         if not self.color_grading_enabled:
             return surface
@@ -92,6 +91,7 @@ class PostProcessingEffects:
         Args:
             surface: 目标Surface
             amount: 去饱和度程度 0.0(原色) ~ 1.0(完全灰度)，推荐值 0.3-0.5
+
         """
         pixels = pygame.surfarray.pixels3d(surface)
         # 使用人眼感知加权灰度公式

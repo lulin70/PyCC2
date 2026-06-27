@@ -1,5 +1,4 @@
-"""
-Projectile Trail System - Visualizes bullet and shell trajectories.
+"""Projectile Trail System - Visualizes bullet and shell trajectories.
 
 Renders animated projectile trails for:
 - Small arms fire (thin, fast, short trail)

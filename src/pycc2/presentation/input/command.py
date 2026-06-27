@@ -1,5 +1,4 @@
-"""
-Game Command Data Classes
+"""Game Command Data Classes
 
 Immutable data structures representing user commands.
 """
@@ -31,8 +30,7 @@ class CommandType(Enum):
 
 @dataclass(frozen=True)
 class GameCommand:
-    """
-    Immutable game command with full context.
+    """Immutable game command with full context.
 
     Attributes:
         type: Command classification
@@ -40,6 +38,7 @@ class GameCommand:
         target_unit_id: Unit ID for targeted commands (optional)
         modifier_keys: Set of currently held modifier keys
         timestamp: When command was issued (for replay/debugging)
+
     """
 
     type: CommandType

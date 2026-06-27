@@ -1,5 +1,4 @@
-"""
-TerrainType IntEnum - 22 Terrain Types with Properties
+"""TerrainType IntEnum - 22 Terrain Types with Properties
 """
 
 from __future__ import annotations

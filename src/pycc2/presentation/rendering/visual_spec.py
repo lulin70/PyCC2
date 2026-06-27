@@ -1,5 +1,4 @@
-"""
-Visual Specification Constants
+"""Visual Specification Constants
 
 Centralized visual design constants for consistent rendering across all components.
 Defines colors, sizes, and other visual properties used by the rendering system.

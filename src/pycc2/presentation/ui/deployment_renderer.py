@@ -1,5 +1,4 @@
-"""
-Deployment Renderer — All rendering logic for DeploymentUI.
+"""Deployment Renderer — All rendering logic for DeploymentUI.
 
 Extracted from deployment_ui.py God Class (v0.3.30 SRP refactoring).
 Follows SRP: DeploymentRenderer handles ONLY rendering concerns.

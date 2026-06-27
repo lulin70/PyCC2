@@ -160,8 +160,7 @@ DEFAULT_SOUND_MAPPINGS: list[SoundFileMapping] = [
 
 @dataclass
 class EnhancedSoundSystem:
-    """
-    Enhanced sound system that combines file-based and procedural sounds.
+    """Enhanced sound system that combines file-based and procedural sounds.
 
     Features:
     - Priority: Real WAV files > Procedural generation > Silence
@@ -187,11 +186,11 @@ class EnhancedSoundSystem:
             self._event_mappings[mapping.event] = mapping
 
     def initialize(self) -> bool:
-        """
-        Initialize the audio system.
+        """Initialize the audio system.
 
         Returns:
             True if initialization successful
+
         """
         if self._initialized:
             return True
@@ -258,8 +257,7 @@ class EnhancedSoundSystem:
         volume: float | None = None,
         position: tuple[float, float, float] | None = None,
     ) -> bool:
-        """
-        Play sound for a combat event.
+        """Play sound for a combat event.
 
         Args:
             event: Combat sound event to play
@@ -268,6 +266,7 @@ class EnhancedSoundSystem:
 
         Returns:
             True if sound was played successfully
+
         """
         if not self._initialized:
             return False
@@ -850,11 +849,11 @@ class EnhancedSoundSystem:
         return self.play_combat_event(CombatSoundEvent.AIRSTRIKE_BOMB)
 
     def play_vehicle_engine(self, state: str = "idle") -> bool:
-        """
-        Play vehicle engine sound.
+        """Play vehicle engine sound.
 
         Args:
             state: Engine state - "start", "idle", or "move"
+
         """
         state_map = {
             "start": CombatSoundEvent.VEHICLE_ENGINE_START,
@@ -877,11 +876,11 @@ class EnhancedSoundSystem:
         return self.play_combat_event(CombatSoundEvent.NEAR_MISS_WHIZZ)
 
     def play_suppression_fire(self, duration_ms: int = 1500) -> bool:
-        """
-        Play sustained suppression fire.
+        """Play sustained suppression fire.
 
         Args:
             duration_ms: Duration of suppression fire in milliseconds
+
         """
         if not self._initialized:
             return False

@@ -1,5 +1,4 @@
-"""
-Decoration Renderer Module for CC2-Style Maps
+"""Decoration Renderer Module for CC2-Style Maps
 
 Handles rendering of map decorations including:
 - Bushes, Trees, Rocks, Rubble, Craters, Trenches
