@@ -26,8 +26,20 @@ class StubTerrain:
         self.blocks_los = blocks_los
 
 
-def _make_game_map(terrain_map=None, enhanced_tiles=None, width=30, height=30):
-    """Create a mock game map with configurable terrain."""
+def _make_game_map(
+    terrain_map=None,
+    enhanced_tiles=None,
+    width=30,
+    height=30,
+    elevation_grid=None,
+    height_grid=None,
+):
+    """Create a mock game map with configurable terrain.
+
+    elevation_grid / height_grid are {(x, y): value} dicts mirroring
+    ``GameMap.elevation_grid`` / ``GameMap.height_grid`` consumed by
+    ``LOSSystem._get_elevation`` / ``LOSSystem._get_building_height``.
+    """
     game_map = Mock()
     game_map.width = width
     game_map.height = height
@@ -38,6 +50,12 @@ def _make_game_map(terrain_map=None, enhanced_tiles=None, width=30, height=30):
     if enhanced_tiles is None:
         enhanced_tiles = {}
 
+    if elevation_grid is None:
+        elevation_grid = {}
+
+    if height_grid is None:
+        height_grid = {}
+
     def get_terrain(coord):
         return terrain_map.get((coord.x, coord.y), StubTerrain("grass", False))
 
@@ -47,9 +65,17 @@ def _make_game_map(terrain_map=None, enhanced_tiles=None, width=30, height=30):
     def is_within_bounds(coord):
         return 0 <= coord.x < width and 0 <= coord.y < height
 
+    def get_elevation(coord):
+        return float(elevation_grid.get((coord.x, coord.y), 0.0))
+
+    def get_building_height(coord):
+        return float(height_grid.get((coord.x, coord.y), 0.0))
+
     game_map.get_terrain = get_terrain
     game_map.get_enhanced_tile = get_enhanced_tile
     game_map.is_within_bounds = is_within_bounds
+    game_map.get_elevation = get_elevation
+    game_map.get_building_height = get_building_height
 
     return game_map
 
@@ -150,12 +176,12 @@ class TestHeightBlocking:
 
     def test_elevation_blocks_los(self):
         # Place a tall hill at (3, 3)
-        enhanced_tiles = {
-            (3, 3): {"elevation": 5.0, "building_height": 0.0},
-            (1, 1): {"elevation": 0.0, "building_height": 0.0},
-            (5, 5): {"elevation": 0.0, "building_height": 0.0},
+        elevation_grid = {
+            (3, 3): 5.0,
+            (1, 1): 0.0,
+            (5, 5): 0.0,
         }
-        game_map = _make_game_map(enhanced_tiles=enhanced_tiles)
+        game_map = _make_game_map(elevation_grid=elevation_grid)
         los = LOSSystem(game_map)
         can_see, result = los.check_los(TileCoord(1, 1), TileCoord(5, 5))
         # The tall hill should block LOS
@@ -164,11 +190,11 @@ class TestHeightBlocking:
 
     def test_high_observer_sees_further(self):
         # Observer on high ground should have range bonus
-        enhanced_tiles = {
-            (0, 0): {"elevation": 3.0, "building_height": 0.0},
-            (14, 0): {"elevation": 0.0, "building_height": 0.0},
+        elevation_grid = {
+            (0, 0): 3.0,
+            (14, 0): 0.0,
         }
-        game_map = _make_game_map(enhanced_tiles=enhanced_tiles)
+        game_map = _make_game_map(elevation_grid=elevation_grid)
         los = LOSSystem(game_map)
         can_see, result = los.check_los(TileCoord(0, 0), TileCoord(14, 0))
         # With elevation bonus, should be within range

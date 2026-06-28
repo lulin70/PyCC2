@@ -292,21 +292,25 @@ class LOSSystem:
         return points
 
     def _get_elevation(self, coord: TileCoord) -> float:
-        """Get terrain elevation for coordinate."""
-        enhanced = self._map.get_enhanced_tile(coord.x, coord.y)
-        if enhanced and "elevation" in enhanced:
-            return float(enhanced["elevation"])
-        return 0.0
+        """Get terrain elevation for coordinate from the map's elevation grid.
+
+        Reads ``GameMap.elevation_grid`` (terrain altitude, 0-5 levels) rather
+        than the legacy per-tile ``enhanced["elevation"]`` dict field, which is
+        absent from real CC2-style maps.
+        """
+        if not self._map.is_within_bounds(coord):
+            return 0.0
+        return float(self._map.get_elevation(coord))
 
     def _get_building_height(self, coord: TileCoord) -> float:
-        """Get building height for coordinate."""
-        enhanced = self._map.get_enhanced_tile(coord.x, coord.y)
-        if enhanced and "building_height" in enhanced:
-            return float(enhanced["building_height"])
-        terrain = self._map.get_terrain(coord)
-        if terrain.name in ("building_enterable", "building_solid"):
-            return 2.0
-        return 0.0
+        """Get building height for coordinate from the map's height grid.
+
+        Reads ``GameMap.height_grid`` (building floors, 0-3) rather than the
+        legacy per-tile ``enhanced["building_height"]`` dict field.
+        """
+        if not self._map.is_within_bounds(coord):
+            return 0.0
+        return float(self._map.get_building_height(coord))
 
     def _get_total_height(self, coord: TileCoord) -> float:
         """Total height = elevation + building height."""

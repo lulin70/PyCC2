@@ -119,6 +119,11 @@ class TacticExecutor:
             TacticType.LAY_MINE: self._execute_lay_mine,
             TacticType.DETECT_MINES: self._execute_detect_mines,
             TacticType.ASSAULT_FORTIFIED: self._execute_assault_fortified,
+            TacticType.FLANKING: self._execute_flanking,
+            TacticType.COORDINATED_ADVANCE: self._execute_coordinated_advance,
+            TacticType.CAPTURE_VL: self._execute_capture_vl,
+            TacticType.DEFEND_VL: self._execute_defend_vl,
+            TacticType.DEMOLISH_BRIDGE: self._execute_demolish_bridge,
         }
         handler = dispatch_table.get(intent.tactic_type)
         if handler is None:
@@ -1179,5 +1184,108 @@ class TacticExecutor:
         self._logger.info(
             f"Unit {intent.unit_id} assaulting fortified position at "
             f"({intent.target_position.x}, {intent.target_position.y})"
+        )
+        return True
+
+    def _execute_flanking(self, intent: TacticIntent) -> bool:
+        """Execute flanking maneuver by moving unit along a lateral path."""
+        unit = self._get_unit(intent.unit_id)
+        if unit is None:
+            return False
+        if intent.target_position is not None:
+            move_intent = TacticIntent(
+                unit_id=intent.unit_id,
+                tactic_type=TacticType.MOVE_TO,
+                target_position=intent.target_position,
+                priority=intent.priority,
+                path=intent.path,
+            )
+            return self._execute_move_to(move_intent)
+        self._logger.debug(f"Unit {intent.unit_id} flanking without destination")
+        return True
+
+    def _execute_coordinated_advance(self, intent: TacticIntent) -> bool:
+        """Execute coordinated advance — move to target while maintaining formation."""
+        unit = self._get_unit(intent.unit_id)
+        if unit is None:
+            return False
+        if intent.target_position is None:
+            self._logger.debug(f"Unit {intent.unit_id} advancing without destination")
+            return True
+        move_intent = TacticIntent(
+            unit_id=intent.unit_id,
+            tactic_type=TacticType.MOVE_TO,
+            target_position=intent.target_position,
+            priority=intent.priority,
+            path=intent.path,
+        )
+        return self._execute_move_to(move_intent)
+
+    def _execute_capture_vl(self, intent: TacticIntent) -> bool:
+        """Execute VL capture — move unit to victory point location."""
+        unit = self._get_unit(intent.unit_id)
+        if unit is None:
+            return False
+        if intent.target_position is None:
+            self._logger.warning(f"Unit {intent.unit_id} capture_vl without target_position")
+            return False
+        move_intent = TacticIntent(
+            unit_id=intent.unit_id,
+            tactic_type=TacticType.MOVE_TO,
+            target_position=intent.target_position,
+            priority=intent.priority,
+            path=intent.path,
+        )
+        return self._execute_move_to(move_intent)
+
+    def _execute_defend_vl(self, intent: TacticIntent) -> bool:
+        """Execute VL defense — hold position at victory point."""
+        unit = self._get_unit(intent.unit_id)
+        if unit is None:
+            return False
+        if intent.target_position is not None:
+            current = unit.position.tile_coord
+            target = intent.target_position
+            if current.x != target.x or current.y != target.y:
+                move_intent = TacticIntent(
+                    unit_id=intent.unit_id,
+                    tactic_type=TacticType.MOVE_TO,
+                    target_position=intent.target_position,
+                    priority=intent.priority,
+                )
+                return self._execute_move_to(move_intent)
+        unit.set_movement_mode("defend")
+        self._logger.debug(f"Unit {intent.unit_id} defending VL at {intent.target_position}")
+        return True
+
+    def _execute_demolish_bridge(self, intent: TacticIntent) -> bool:
+        """Demolish bridge near the unit — set terrain to BRIDGE_DESTROYED."""
+        unit = self._get_unit(intent.unit_id)
+        if unit is None or self.game_map is None:
+            return False
+        from pycc2.domain.value_objects.terrain_type import TerrainType
+
+        current = unit.position.tile_coord
+        bridge_tiles = []
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                check_coord = TileCoord(current.x + dx, current.y + dy)
+                terrain = self.game_map.get_terrain(check_coord)
+                if terrain == TerrainType.BRIDGE:
+                    bridge_tiles.append(check_coord)
+        if not bridge_tiles:
+            self._logger.debug(f"Unit {intent.unit_id} no bridge found to demolish")
+            return False
+        for bridge_coord in bridge_tiles:
+            self.game_map.set_terrain(bridge_coord, TerrainType.BRIDGE_DESTROYED)
+        event = {
+            "unit_id": intent.unit_id,
+            "action": "demolish_bridge",
+            "bridge_tiles": [(c.x, c.y) for c in bridge_tiles],
+            "timestamp": time.time(),
+        }
+        self.event_bus.publish(event)
+        self._logger.info(
+            f"Unit {intent.unit_id} demolished {len(bridge_tiles)} bridge tile(s)"
         )
         return True

@@ -178,6 +178,29 @@ class GameMap:
                 dtype=np.int8,
             )
 
+        # Also extract from tiles_enhanced (2D array of per-tile dicts) when the
+        # main tiles grid is not already in rich-dict form. Real CC2-style maps
+        # (e.g. night_map.json, tutorial.json) store tile height/elevation here.
+        tiles_enhanced_data = data.get("tiles_enhanced")
+        if (
+            tiles_enhanced_data is not None
+            and isinstance(tiles_enhanced_data, list)
+            and len(tiles_enhanced_data) > 0
+            and isinstance(tiles_enhanced_data[0], list)
+            and len(tiles_enhanced_data[0]) > 0
+            and isinstance(tiles_enhanced_data[0][0], dict)
+        ):
+            if height_grid is None:
+                height_grid = np.array(
+                    [[t.get("height", 0) for t in row] for row in tiles_enhanced_data],
+                    dtype=np.int8,
+                )
+            if elevation_grid is None:
+                elevation_grid = np.array(
+                    [[t.get("elevation", 0) for t in row] for row in tiles_enhanced_data],
+                    dtype=np.int8,
+                )
+
         return cls(
             id=data.get("id", Path(filepath).stem),
             name=data.get("name", "Untitled"),

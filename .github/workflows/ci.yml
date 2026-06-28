@@ -18,6 +18,7 @@ jobs:
   lint:
     name: Lint & Type Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -51,10 +52,11 @@ jobs:
           pip install 'pip-audit>=2.7'
           pip-audit --desc 2>&1 | tee pip-audit-report.txt
 
-  test:
-    name: Test (Python ${{ matrix.python-version }})
+  unit-tests:
+    name: Unit Tests (Python ${{ matrix.python-version }})
+    needs: lint
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -73,16 +75,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
-      - name: Run tests with coverage
-        env:
-          SDL_VIDEODRIVER: dummy
+      - name: Run unit tests with coverage
         run: |
-          pytest tests/ \
+          pytest tests/unit/ \
             -m "not slow" \
             --cov=src/pycc2 \
             --cov-report=xml \
             --cov-report=html \
             --cov-fail-under=70 \
+            --timeout=120 \
             --junitxml=junit.xml
 
       - name: Upload coverage to Codecov
@@ -94,24 +95,90 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: true
 
-      - name: Run performance benchmarks
-        run: SDL_VIDEODRIVER=dummy python -m pytest tests/benchmark/test_perf_benchmark.py -v
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-test-results-${{ matrix.python-version }}
+          path: |
+            junit.xml
+            htmlcov/
+
+  integration-tests:
+    name: Integration Tests (Python 3.12)
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run integration tests
+        run: |
+          pytest tests/integration/ \
+            -m "not slow" \
+            --timeout=120 \
+            --junitxml=junit.xml
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: test-results-${{ matrix.python-version }}
-          path: |
-            junit.xml
-            htmlcov/
+          name: integration-test-results
+          path: junit.xml
 
-  slow-tests:
-    name: Slow Tests (Python 3.12)
-    needs: test
+  e2e-tests:
+    name: E2E Tests (Python 3.12)
+    needs: integration-tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') || github.event_name == 'pull_request' && github.base_ref == 'main'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run e2e tests
+        env:
+          SDL_VIDEODRIVER: dummy
+        run: |
+          pytest tests/e2e/ \
+            -m "not slow" \
+            --timeout=300 \
+            --junitxml=junit.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-test-results
+          path: junit.xml
+
+  slow-tests:
+    name: Slow Tests (Python 3.12)
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     steps:
       - uses: actions/checkout@v7
 
@@ -130,10 +197,51 @@ jobs:
         env:
           SDL_VIDEODRIVER: dummy
         run: |
-          pytest tests/ -m slow -v --tb=short
+          pytest tests/ -m slow -v --junitxml=junit.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: slow-test-results
+          path: junit.xml
+
+  benchmark:
+    name: Benchmark (Python 3.12)
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run performance benchmarks
+        env:
+          SDL_VIDEODRIVER: dummy
+        run: |
+          pytest tests/benchmark/ -v --junitxml=junit.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-test-results
+          path: junit.xml
 
   docker-build:
-    needs: [test, slow-tests]
+    name: Docker Build
+    needs: [unit-tests, integration-tests, e2e-tests]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'pull_request' && github.base_ref == 'main'
     steps:
