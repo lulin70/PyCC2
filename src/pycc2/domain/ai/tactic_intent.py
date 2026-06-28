@@ -42,6 +42,9 @@ class TacticType(Enum):
     LAY_MINE = auto()
     DETECT_MINES = auto()
     ASSAULT_FORTIFIED = auto()
+    COUNTER_ATTACK = auto()  # Strategic counterattack after reinforcement
+    SET_AMBUSH = auto()  # 设置伏击（隐蔽等待）
+    BREAK_AMBUSH = auto()  # 触发伏击（集中开火）
 
 
 @dataclass(slots=True)

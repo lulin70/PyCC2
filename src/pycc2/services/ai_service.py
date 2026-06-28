@@ -10,9 +10,11 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from pycc2.domain.ai.ambush_ai import AmbushAI
 from pycc2.domain.ai.at_ambush_ai import ATAmbushAI
 from pycc2.domain.ai.behavior_tree import BTNode, NodeStatus
 from pycc2.domain.ai.blackboard import Blackboard
+from pycc2.domain.ai.counterattack_ai import CounterattackAI
 from pycc2.domain.ai.perception_system import PerceptionSystem
 from pycc2.domain.ai.retreat_ai import RetreatDecisionAI
 from pycc2.domain.ai.tactic_executor import TacticExecutor
@@ -78,6 +80,8 @@ class AIService:
         self._tactical_orchestrator.register(VictoryPointAI())
         self._tactical_orchestrator.register(RetreatDecisionAI())
         self._tactical_orchestrator.register(ATAmbushAI())
+        self._tactical_orchestrator.register(CounterattackAI())
+        self._tactical_orchestrator.register(AmbushAI())
         self._tick_scheduler = AITickScheduler()
         self._current_tick: int = 0
         self._logger = logging.getLogger("pycc2.ai.service")

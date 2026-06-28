@@ -119,11 +119,14 @@ class TacticExecutor:
             TacticType.LAY_MINE: self._execute_lay_mine,
             TacticType.DETECT_MINES: self._execute_detect_mines,
             TacticType.ASSAULT_FORTIFIED: self._execute_assault_fortified,
+            TacticType.COUNTER_ATTACK: self._execute_counter_attack,
             TacticType.FLANKING: self._execute_flanking,
             TacticType.COORDINATED_ADVANCE: self._execute_coordinated_advance,
             TacticType.CAPTURE_VL: self._execute_capture_vl,
             TacticType.DEFEND_VL: self._execute_defend_vl,
             TacticType.DEMOLISH_BRIDGE: self._execute_demolish_bridge,
+            TacticType.SET_AMBUSH: self._execute_set_ambush,
+            TacticType.BREAK_AMBUSH: self._execute_break_ambush,
         }
         handler = dispatch_table.get(intent.tactic_type)
         if handler is None:
@@ -1187,6 +1190,24 @@ class TacticExecutor:
         )
         return True
 
+    def _execute_counter_attack(self, intent: TacticIntent) -> bool:
+        """Execute a COUNTER_ATTACK intent.
+
+        A strategic counterattack is routed through the standard ATTACK
+        pipeline (ballistics, damage, ammo, visual effects) but at a
+        higher priority to reflect the committed, coordinated nature of
+        the assault.
+        """
+        attack_intent = TacticIntent(
+            unit_id=intent.unit_id,
+            tactic_type=TacticType.ATTACK,
+            priority=intent.priority + 5,
+            target_unit_id=intent.target_unit_id,
+            target_position=intent.target_position,
+            path=intent.path,
+        )
+        return self._execute_attack(attack_intent)
+
     def _execute_flanking(self, intent: TacticIntent) -> bool:
         """Execute flanking maneuver by moving unit along a lateral path."""
         unit = self._get_unit(intent.unit_id)
@@ -1289,3 +1310,37 @@ class TacticExecutor:
             f"Unit {intent.unit_id} demolished {len(bridge_tiles)} bridge tile(s)"
         )
         return True
+
+    def _execute_set_ambush(self, intent: TacticIntent) -> bool:
+        """Execute a SET_AMBUSH intent.
+
+        Switches the unit into sneak movement mode so it stays concealed
+        while waiting for the enemy to enter the kill zone.
+        """
+        unit = self._get_unit(intent.unit_id)
+        if unit is None:
+            return False
+        unit.set_movement_mode("sneak")
+        self._logger.debug(f"Unit {intent.unit_id} set ambush (sneak mode)")
+        return True
+
+    def _execute_break_ambush(self, intent: TacticIntent) -> bool:
+        """Execute a BREAK_AMBUSH intent.
+
+        Triggers the ambush by transitioning to an ATTACK on the target
+        enemy unit (reuses the standard ATTACK pipeline).
+        """
+        unit = self._get_unit(intent.unit_id)
+        if unit is None:
+            return False
+        # Restore normal movement before assaulting
+        unit.set_movement_mode("normal")
+        attack_intent = TacticIntent(
+            unit_id=intent.unit_id,
+            tactic_type=TacticType.ATTACK,
+            priority=intent.priority,
+            target_unit_id=intent.target_unit_id,
+            target_position=intent.target_position,
+            path=intent.path,
+        )
+        return self._execute_attack(attack_intent)

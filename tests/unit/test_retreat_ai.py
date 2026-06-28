@@ -452,3 +452,75 @@ class TestExecute:
         suppress_intents = [i for i in intents if i.tactic_type == TacticType.SUPPRESS_FIRE]
         # No weak units to cover, so no suppress fire
         assert len(suppress_intents) == 0
+
+
+# ---------------------------------------------------------------------------
+# Test: execute — rear guard (断后) logic
+# ---------------------------------------------------------------------------
+
+
+class TestRearGuard:
+    def test_rear_guard_units_hold_position(self):
+        """HP > 70% units should receive HOLD_POSITION (not RETREAT) to cover the retreat."""
+        ai = RetreatDecisionAI()
+        # 3 weak units → retreat (enables 1 rear guard slot: 3 // 3 = 1)
+        weak1 = _make_unit("weak1", hp=30, max_hp=100, x=10, y=10)
+        weak2 = _make_unit("weak2", hp=30, max_hp=100, x=11, y=10)
+        weak3 = _make_unit("weak3", hp=30, max_hp=100, x=12, y=10)
+        # Strong infantry unit → eligible for rear guard (HP ratio 0.9 > 0.7)
+        strong = _make_unit("strong1", hp=90, max_hp=100, x=13, y=10)
+        enemies = [_make_unit("e1", faction=Faction.AXIS, x=30, y=10)]
+        ctx = _make_context(friendly=[weak1, weak2, weak3, strong], enemy=enemies)
+
+        intents = ai.execute(ctx)
+        hold_intents = [i for i in intents if i.tactic_type == TacticType.HOLD_POSITION]
+        retreat_intents = [i for i in intents if i.tactic_type == TacticType.RETREAT]
+
+        # Strong unit holds position to cover the retreat
+        assert len(hold_intents) == 1
+        assert hold_intents[0].unit_id == "strong1"
+        # Strong unit must NOT receive a RETREAT intent
+        assert all(i.unit_id != "strong1" for i in retreat_intents)
+
+    def test_wounded_units_retreat_first(self):
+        """HP < 30% units must receive RETREAT intents (priority over rear guard duty)."""
+        ai = RetreatDecisionAI()
+        # 3 critically wounded units (HP ratio 0.2 < 0.3)
+        wounded1 = _make_unit("w1", hp=20, max_hp=100, x=10, y=10)
+        wounded2 = _make_unit("w2", hp=20, max_hp=100, x=11, y=10)
+        wounded3 = _make_unit("w3", hp=20, max_hp=100, x=12, y=10)
+        # Strong unit stays behind as rear guard
+        strong = _make_unit("s1", hp=90, max_hp=100, x=13, y=10)
+        enemies = [_make_unit("e1", faction=Faction.AXIS, x=30, y=10)]
+        ctx = _make_context(friendly=[wounded1, wounded2, wounded3, strong], enemy=enemies)
+
+        intents = ai.execute(ctx)
+        retreat_intents = [i for i in intents if i.tactic_type == TacticType.RETREAT]
+        retreat_ids = {i.unit_id for i in retreat_intents}
+
+        # All three wounded units must be retreating
+        assert retreat_ids == {"w1", "w2", "w3"}
+        # The strong unit must not be in the retreat set
+        assert "s1" not in retreat_ids
+
+    def test_rear_guard_count_limited(self):
+        """Rear guard count must not exceed 1/3 of retreating unit count."""
+        ai = RetreatDecisionAI()
+        # 3 weak units → max rear guard = 3 // 3 = 1
+        weak1 = _make_unit("weak1", hp=30, max_hp=100, x=10, y=10)
+        weak2 = _make_unit("weak2", hp=30, max_hp=100, x=11, y=10)
+        weak3 = _make_unit("weak3", hp=30, max_hp=100, x=12, y=10)
+        # 5 strong candidates — only 1 should be selected as rear guard
+        strong_units = [
+            _make_unit(f"s{i}", hp=90, max_hp=100, x=13 + i, y=10) for i in range(5)
+        ]
+        enemies = [_make_unit("e1", faction=Faction.AXIS, x=30, y=10)]
+        ctx = _make_context(
+            friendly=[weak1, weak2, weak3, *strong_units], enemy=enemies
+        )
+
+        intents = ai.execute(ctx)
+        hold_intents = [i for i in intents if i.tactic_type == TacticType.HOLD_POSITION]
+
+        # 3 retreat units → at most 1 rear guard (1/3 cap)
+        assert len(hold_intents) == 1

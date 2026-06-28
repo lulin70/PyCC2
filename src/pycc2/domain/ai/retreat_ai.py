@@ -14,7 +14,10 @@ Execution phases:
   1. Identify units to retreat (low HP, low morale, non-essential)
   2. Assign covering fire (MG units suppress while others retreat)
   3. Calculate retreat destination (toward nearest safe VL or map edge)
-  4. If bridge VL is about to fall, issue DEMOLISH_BRIDGE intent
+  4. Rear guard: high-HP units HOLD_POSITION to cover the retreat,
+     with MG/sniper teams adding SUPPRESS_FIRE (count capped at 1/3
+     of retreating units)
+  5. If bridge VL is about to fall, issue DEMOLISH_BRIDGE intent
 """
 
 from __future__ import annotations
@@ -37,6 +40,8 @@ class RetreatDecisionAI(TacticalAIBase):
     LOW_MORALE_THRESHOLD: int = 30
     LOW_HP_RATIO: float = 0.5
     MAP_EDGE_MARGIN: int = 2
+    REAR_GUARD_HP_THRESHOLD: float = 0.7  # HP > 70% eligible to act as rear guard
+    REAR_GUARD_RATIO: int = 3  # rear guard count <= retreat_units / 3
 
     # ------------------------------------------------------------------
     # TacticalAIBase interface
@@ -74,6 +79,10 @@ class RetreatDecisionAI(TacticalAIBase):
         retreat_units = self._select_retreat_units(context)
         # Phase 2: Assign covering fire
         covering_units = self._select_covering_units(context)
+        # Phase 2.5: Identify rear guard (high-HP units that hold position
+        # to cover the retreat). Capped at 1/3 of retreating unit count.
+        rear_guard_units = self._select_rear_guard_units(context, retreat_units)
+        rear_guard_ids = {u.id for u in rear_guard_units}
 
         # Phase 3: Retreat weak units toward safe destinations
         for unit in retreat_units:
@@ -88,7 +97,10 @@ class RetreatDecisionAI(TacticalAIBase):
                     )
                 )
 
-        # Phase 2 (emit): MG covering fire while others retreat
+        # Phase 2 (emit): MG covering fire while others retreat.
+        # Skip MGs already serving as rear guard — they emit their own
+        # SUPPRESS_FIRE in the rear guard phase to avoid duplicate intents.
+        covering_units = [mg for mg in covering_units if mg.id not in rear_guard_ids]
         if retreat_units and covering_units:
             # Find nearest enemy to suppress
             alive_enemies = [e for e in context.enemy_units if e.is_alive]
@@ -116,7 +128,47 @@ class RetreatDecisionAI(TacticalAIBase):
                         )
                     )
 
-        # Phase 4: Bridge demolition
+        # Phase 4: Rear guard — high-HP units hold position to cover the
+        # retreat. MG/sniper teams additionally lay down suppressive fire.
+        if rear_guard_units:
+            alive_enemies = [e for e in context.enemy_units if e.is_alive]
+            rg_nearest_enemy: Unit | None = None
+            if alive_enemies:
+                rg_centroid_x = sum(u.position.tile_coord.x for u in rear_guard_units) / len(
+                    rear_guard_units
+                )
+                rg_centroid_y = sum(u.position.tile_coord.y for u in rear_guard_units) / len(
+                    rear_guard_units
+                )
+                rg_centroid = TileCoord(int(rg_centroid_x), int(rg_centroid_y))
+                rg_nearest_enemy = min(
+                    alive_enemies,
+                    key=lambda e: e.position.tile_coord.chebyshev_distance(rg_centroid),
+                )
+            for rg in rear_guard_units:
+                intents.append(
+                    TacticIntent(
+                        unit_id=rg.id,
+                        tactic_type=TacticType.HOLD_POSITION,
+                        priority=7,
+                        target_position=rg.position.tile_coord,
+                    )
+                )
+                if (
+                    rg.unit_type in (UnitType.MACHINE_GUN_SQUAD, UnitType.SNIPER_TEAM)
+                    and rg_nearest_enemy is not None
+                ):
+                    intents.append(
+                        TacticIntent(
+                            unit_id=rg.id,
+                            tactic_type=TacticType.SUPPRESS_FIRE,
+                            priority=9,
+                            target_unit_id=rg_nearest_enemy.id,
+                            target_position=rg_nearest_enemy.position.tile_coord,
+                        )
+                    )
+
+        # Phase 5: Bridge demolition
         if self._is_bridge_threatened(context):
             bridge_vls = self._find_threatened_bridge_vls(context)
             for vl_pos, _, _ in bridge_vls:
@@ -205,6 +257,30 @@ class RetreatDecisionAI(TacticalAIBase):
             and u.unit_type == UnitType.MACHINE_GUN_SQUAD
             and u.morale.is_combat_effective
         ]
+
+    def _select_rear_guard_units(
+        self, context: TacticalContext, retreat_units: list[Unit]
+    ) -> list[Unit]:
+        """Select high-HP units to act as rear guard during the retreat.
+
+        Rear guard units HOLD_POSITION to cover the retreat of weaker units.
+        The count is capped at 1/3 of the retreating unit count so the bulk
+        of the force still falls back. Candidates must not already be
+        marked for retreat.
+        """
+        if not retreat_units:
+            return []
+        retreat_ids = {u.id for u in retreat_units}
+        candidates = [
+            u
+            for u in context.friendly_units
+            if u.is_alive
+            and u.can_act
+            and u.id not in retreat_ids
+            and u.health.hp_ratio > self.REAR_GUARD_HP_THRESHOLD
+        ]
+        max_rear_guard = len(retreat_units) // self.REAR_GUARD_RATIO
+        return candidates[:max_rear_guard]
 
     def _find_retreat_destination(self, unit: Unit, context: TacticalContext) -> TileCoord | None:
         """Find the nearest safe point: friendly-held VL or map edge."""
