@@ -252,7 +252,7 @@ lint → unit-tests → integration-tests → e2e-tests → docker-build
 
 ---
 
-**文档状态**：Phase 4 进行中 (P4-0/1/2/3/5 ✅ + P5-4 ✅)，P4-4/P5-3 进行中
+**文档状态**：Phase 4 进行中 (P4-0/1/2/3/4/5 ✅ + P5-4 ✅)，P5-3 进行中
 **创建者**：DevSquad V3.8
 
 ---
@@ -269,12 +269,12 @@ lint → unit-tests → integration-tests → e2e-tests → docker-build
 | P4-1 通用伏击 AmbushAI | `2564773` | 15 测试通过 |
 | P4-2 撤退断后增强 | `2564773` | 3 测试 + 33 回归通过 |
 | P4-3 战略反击 CounterattackAI | `2564773` | 5 测试通过 |
+| P4-4 补给线征用点采购UI | (未提交) | 31 测试通过 + 227 回归通过；ruff/mypy 0 |
 
 ### 2026-06-28 进行中
 
 | 任务 | 状态 | 备注 |
 |------|------|------|
-| P4-4 补给线采购UI | 后台agent执行中 | SupplyLineManager接入 + UI新建 |
 | P5-3 slow测试优化 | 后台agent执行中 | sprite @lru_cache 缓存 |
 
 ### 待推进

@@ -18,6 +18,10 @@ logger = logging.getLogger(__name__)
 import pygame
 from pygame.font import Font
 
+# Supply procurement integration (P4-4)
+from pycc2.domain.systems.supply_line import SupplyLineManager
+from pycc2.presentation.ui.supply_procurement_ui import SupplyProcurementUI
+
 from .campaign_ui_rendering import CampaignUIRenderer
 
 # Re-export public types for backward compatibility  # noqa: F401
@@ -45,10 +49,6 @@ from .campaign_ui_types import (  # noqa: F401
     CampaignBattle,
     CampaignOperation,
 )
-
-# Supply procurement integration (P4-4)
-from pycc2.domain.systems.supply_line import SupplyLineManager
-from pycc2.presentation.ui.supply_procurement_ui import SupplyProcurementUI
 
 
 class CampaignUI:
@@ -118,6 +118,12 @@ class CampaignUI:
 
         # Campaign end summary data
         self._campaign_summary: dict | None = None
+
+        # Supply procurement (P4-4)
+        self._supply_procurement_ui: SupplyProcurementUI = SupplyProcurementUI()
+        self._supply_manager: SupplyLineManager | None = None
+        # State to return to after the supply procurement phase.
+        self._supply_return_state: str = "operation_select"
 
         # Callbacks
         self._on_start_battle: Callable[[str], None] | None = None
@@ -201,6 +207,41 @@ class CampaignUI:
         self._campaign_summary = summary
         self._state = "campaign_end"
 
+    def show_supply_procurement(
+        self,
+        manager: SupplyLineManager,
+        day: int,
+        return_state: str = "operation_select",
+    ) -> None:
+        """Enter the supply procurement phase (P4-4).
+
+        Triggered before the campaign daily report so the player can
+        allocate the day's supply points across sectors.  Binds the real
+        :class:`SupplyLineManager` to the embedded
+        :class:`SupplyProcurementUI` and switches the state machine to
+        ``"supply_procurement"``.
+
+        Parameters
+        ----------
+        manager:
+            The live :class:`SupplyLineManager` to allocate against.
+        day:
+            Campaign day this procurement phase is for (1-9).
+        return_state:
+            State to return to after the player confirms or backs out.
+            Defaults to ``"operation_select"``.
+
+        """
+        self._supply_manager = manager
+        self._supply_return_state = return_state
+        self._supply_procurement_ui.start_procurement(manager, day)
+        self._state = "supply_procurement"
+
+    @property
+    def supply_procurement_ui(self) -> SupplyProcurementUI:
+        """Return the embedded supply procurement UI (P4-4)."""
+        return self._supply_procurement_ui
+
     def set_callbacks(
         self,
         on_start_battle: Callable[[str], None] | None = None,
@@ -251,6 +292,8 @@ class CampaignUI:
             return self._handle_click_report(x, y)
         elif self._state == "campaign_end":
             return self._handle_click_campaign_end(x, y)
+        elif self._state == "supply_procurement":
+            return self._handle_click_supply_procurement(x, y)
 
         return None
 
@@ -382,11 +425,41 @@ class CampaignUI:
 
         return None
 
+    def _handle_click_supply_procurement(self, x: int, y: int) -> str | None:
+        """Handle clicks in the supply_procurement state (P4-4).
+
+        Delegates to the embedded :class:`SupplyProcurementUI`.  On
+        ``"confirm"`` or ``"back"`` the state machine returns to the
+        configured return state (default ``"operation_select"``).
+
+        """
+        action = self._supply_procurement_ui.handle_click(x, y)
+        if action is None:
+            return None
+
+        if action == "confirm":
+            allocation = self._supply_procurement_ui.confirm()
+            self._state = self._supply_return_state
+            return f"supply_confirmed:{len(allocation)}"
+
+        if action == "back":
+            self._state = self._supply_return_state
+            return "back"
+
+        # Pass through allocation/select actions for observers.
+        return action
+
     def handle_mouse_move(self, screen_pos: tuple[int, int]) -> None:
         """Track hover state for visual feedback."""
         if not self._visible:
             return
         x, y = screen_pos
+
+        # Supply procurement UI manages its own hover state.
+        if self._state == "supply_procurement":
+            self._supply_procurement_ui.handle_mouse_move(x, y)
+            return
+
         self._hovered_battle_id = None
         self._hovered_button = None
         self._hovered_op_id = None

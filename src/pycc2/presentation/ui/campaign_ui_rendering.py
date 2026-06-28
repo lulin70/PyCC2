@@ -52,6 +52,8 @@ class CampaignUIRenderer:
             self._render_report(surface)
         elif ui._state == "campaign_end":
             self._render_campaign_end(surface)
+        elif ui._state == "supply_procurement":
+            self._render_supply_procurement(surface)
 
     # ------------------------------------------------------------------
     # Operation Select
@@ -1087,3 +1089,32 @@ class CampaignUIRenderer:
             ui._hovered_button == "main_menu",
             ui.TEXT_COLOR,
         )
+
+    # ------------------------------------------------------------------
+    # Supply Procurement (P4-4)
+    # ------------------------------------------------------------------
+
+    def _render_supply_procurement(self, surface: Surface) -> None:
+        """Render the supply procurement phase by delegating to SupplyProcurementUI.
+
+        The :class:`SupplyProcurementUI` owns its full rendering pipeline
+        (header, supply pool bar, per-sector rows, allocate buttons).
+        We seed it with the campaign UI's normal font so the typography
+        stays consistent with the rest of the campaign screens.
+
+        """
+        ui = self._ui
+        supply_ui = ui._supply_procurement_ui
+        # The supply UI is a no-op when its manager is unbound; this guard
+        # keeps the screen from going blank if the state is entered without
+        # a prior show_supply_procurement() call.
+        if supply_ui.manager is None:
+            surface.fill(ui.BG_COLOR)
+            assert ui._font_normal is not None
+            msg = ui._font_normal.render(
+                "Supply procurement unavailable", True, ui.TEXT_COLOR
+            )
+            surface.blit(msg, (ui.MARGIN, ui.MARGIN))
+            return
+
+        supply_ui.render(surface, ui._font_normal)
