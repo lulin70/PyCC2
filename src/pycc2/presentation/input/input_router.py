@@ -29,6 +29,7 @@ class InputRouter:
     show_post_battle: bool = False
 
     def route_input(self, event: pygame.event.EventType) -> bool:
+        """Route input."""
         if self.input_handler is None:
             return False
         input_event = self.input_handler.process_event(event)

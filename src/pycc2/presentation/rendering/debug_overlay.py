@@ -26,6 +26,7 @@ class DebugOverlay:
     """Debug overlay manager with multiple detail levels."""
 
     def __init__(self, settings: Settings):
+        """Initialize the DebugOverlay."""
         self.settings = settings
         self._level: DebugLevel = DebugLevel.OFF
         self._font: pygame.font.Font | None = None

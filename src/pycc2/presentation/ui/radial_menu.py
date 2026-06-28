@@ -50,6 +50,7 @@ class RadialMenu:
     """CC2-style radial command menu that appears around a selected unit."""
 
     def __init__(self, radius: int = 60, item_radius: int = 22):
+        """Initialize the RadialMenu."""
         self._center: tuple[int, int] | None = None
         self._visible: bool = False
         self._hovered_command: RadialCommand | None = None
@@ -79,10 +80,12 @@ class RadialMenu:
 
     @property
     def is_visible(self) -> bool:
+        """Get the is visible."""
         return self._visible
 
     @property
     def hovered_command(self) -> RadialCommand | None:
+        """Get the hovered command."""
         return self._hovered_command
 
     def update_hover(self, mouse_pos: tuple[int, int]) -> RadialCommand | None:

@@ -47,6 +47,7 @@ class SoundEffectsMixin:
     # ---- UI sounds ----
 
     def play_ui_click(self) -> None:
+        """Play the UI click sound."""
         from pycc2.presentation.audio.sound_system import SoundType
 
         if not self._available:
@@ -54,6 +55,7 @@ class SoundEffectsMixin:
         self.play(SoundType.UI_CLICK)
 
     def play_ui_command(self) -> None:
+        """Play the UI command sound."""
         from pycc2.presentation.audio.sound_system import SoundType
 
         if not self._available:
@@ -61,6 +63,7 @@ class SoundEffectsMixin:
         self.play(SoundType.UI_COMMAND if hasattr(SoundType, "UI_COMMAND") else SoundType.UI_CLICK)
 
     def play_ui_hover(self) -> None:
+        """Play the UI hover sound."""
         from pycc2.presentation.audio.sound_system import SoundType
 
         if not self._available:
@@ -70,6 +73,7 @@ class SoundEffectsMixin:
     # ---- Combat sounds ----
 
     def play_shot(self, weapon_type: str = "rifle") -> None:
+        """Play the shot sound."""
         from pycc2.presentation.audio.sound_system import SoundType
 
         if not self._available:
@@ -87,6 +91,7 @@ class SoundEffectsMixin:
         self.play(st)
 
     def play_hit(self, is_critical: bool = False) -> None:
+        """Play the hit sound."""
         from pycc2.presentation.audio.sound_system import SoundType
 
         if not self._available:
@@ -94,6 +99,7 @@ class SoundEffectsMixin:
         self.play(SoundType.HIT_CRITICAL if is_critical else SoundType.HIT_CONFIRM)
 
     def play_explosion(self) -> None:
+        """Play the explosion sound."""
         from pycc2.presentation.audio.sound_system import SoundType
 
         if not self._available:
@@ -101,6 +107,7 @@ class SoundEffectsMixin:
         self.play(SoundType.EXPLOSION)
 
     def play_death(self) -> None:
+        """Play the death sound."""
         from pycc2.presentation.audio.sound_system import SoundType
 
         if not self._available:
@@ -108,6 +115,7 @@ class SoundEffectsMixin:
         self.play(SoundType.UNIT_DEATH)
 
     def play_footstep(self, terrain: str = "grass") -> None:
+        """Play the footstep sound."""
         from pycc2.presentation.audio.sound_system import SoundType
 
         if not self._available:

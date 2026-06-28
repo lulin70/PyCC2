@@ -40,6 +40,7 @@ class WeatherSystem:
     VALID_MODES = {"clear", "light_fog", "dust", "smoke"}
 
     def __init__(self) -> None:
+        """Initialize the WeatherSystem."""
         self._mode: str = "clear"
         self._alpha: float = 0.0
         self._particles: list[tuple[float, float, float, float]] = []  # (x, y, speed, size)

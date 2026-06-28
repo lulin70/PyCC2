@@ -25,6 +25,7 @@ class PaletteGenerator:
     """
 
     def __init__(self, seed: int | None = 42):
+        """Initialize the PaletteGenerator."""
         self._rng = random.Random(seed) if seed is not None else random
         self.palettes = self._generate_all_palettes()
 

@@ -57,4 +57,5 @@ class TacticIntent:
 
     @property
     def has_target(self) -> bool:
+        """Return whether the intent carries a position or unit target."""
         return self.target_position is not None or self.target_unit_id is not None

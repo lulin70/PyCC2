@@ -44,9 +44,11 @@ class BuildingRenderer:
     MIN_FONT_SIZE = 10
 
     def __init__(self, ctx: RenderContext):
+        """Initialize the BuildingRenderer."""
         self._ctx = ctx
 
     def draw_building_roofs(self, game_map: GameMap, camera: Camera) -> None:
+        """Draw building roofs."""
         if self._ctx.offscreen is None:
             return
 
@@ -108,6 +110,7 @@ class BuildingRenderer:
         units: list[Unit],
         camera: Camera,
     ) -> None:
+        """Draw building interiors."""
         if self._ctx.screen is None or self._ctx.offscreen is None:
             return
         if not units:
@@ -174,6 +177,7 @@ class BuildingRenderer:
         game_map: GameMap,
         camera: Camera,
     ) -> None:
+        """Draw building floor numbers."""
         if self._ctx.screen is None or self._ctx.offscreen is None:
             return
 

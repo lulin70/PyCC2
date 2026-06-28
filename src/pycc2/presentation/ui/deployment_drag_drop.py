@@ -36,6 +36,7 @@ class DeploymentDragDrop:
     """
 
     def __init__(self) -> None:
+        """Initialize the DeploymentDragDrop."""
         # === Drag-and-drop state (Issue 3) ===
         self._dragging_unit: DeploymentUnit | None = None
         self._dragging_unit_index: int | None = None

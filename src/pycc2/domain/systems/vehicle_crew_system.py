@@ -120,22 +120,27 @@ class VehicleCrew:
 
     @property
     def members(self) -> list[CrewMember]:
+        """Return a copy of the list of all crew members."""
         return list(self._members)
 
     @property
     def alive_count(self) -> int:
+        """Return the number of currently alive crew members."""
         return self._alive_count
 
     @property
     def total_count(self) -> int:
+        """Return the total number of crew slots, living or dead."""
         return len(self._members)
 
     @property
     def is_crew_alive(self) -> bool:
+        """Return True if at least one crew member is still alive."""
         return self._alive_count > 0
 
     @property
     def efficiency(self) -> float:
+        """Return the current overall vehicle efficiency multiplier."""
         return self._vehicle_efficiency
 
     @property
@@ -145,6 +150,7 @@ class VehicleCrew:
 
     @property
     def crew_ratio(self) -> float:
+        """Return the ratio of alive crew members to total crew slots."""
         if self.total_count == 0:
             return 0.0
         return self._alive_count / self.total_count
@@ -157,6 +163,7 @@ class VehicleCrew:
         return None
 
     def get_active_members(self) -> list[CrewMember]:
+        """Return the list of crew members whose status is still ACTIVE."""
         return [m for m in self._members if m.status == CrewStatus.ACTIVE]
 
     def apply_damage(

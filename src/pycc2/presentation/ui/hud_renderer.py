@@ -34,6 +34,7 @@ class CC2HUDRenderer:
     """Renders all visual elements of the CC2 three-panel HUD."""
 
     def __init__(self) -> None:
+        """Initialize the CC2HUDRenderer."""
         self._portrait_renderer: UnitPortraitRenderer | None = None
         if _PORTRAIT_RENDERER_AVAILABLE:
             try:

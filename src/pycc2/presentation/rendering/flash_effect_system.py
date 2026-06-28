@@ -30,6 +30,7 @@ class FlashEffectSystem:
     """
 
     def __init__(self) -> None:
+        """Initialize the FlashEffectSystem."""
         self._color: tuple[int, int, int] | None = None
         self._alpha: float = 0.0
         self._duration: float = 0.0

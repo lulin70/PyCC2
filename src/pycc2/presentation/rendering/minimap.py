@@ -25,6 +25,7 @@ class Minimap:
     """Tactical minimap component with enhanced terrain and unit visualization."""
 
     def __init__(self, display_config: DisplayConfig | None = None, size: int | None = None):
+        """Initialize the Minimap."""
         self._dc = display_config or DisplayConfig()
         self.size = size or int(160 * self._dc.ui_scale)
         self.spec = VisualSpec()
@@ -94,10 +95,12 @@ class Minimap:
 
     @property
     def is_visible(self) -> bool:
+        """Get the is visible."""
         return self._fade.is_visible
 
     @property
     def is_fading(self) -> bool:
+        """Get the is fading."""
         return self._fade.is_fading
 
     def render(self, surface: Surface, x: int, y: int) -> None:

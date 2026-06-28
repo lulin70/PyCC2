@@ -86,10 +86,12 @@ class DigProgress:
 
     @property
     def is_complete(self) -> bool:
+        """Return whether the digging progress has reached completion."""
         return self.progress >= DIG_DURATION
 
     @property
     def progress_ratio(self) -> float:
+        """Return the digging progress as a ratio between 0.0 and 1.0."""
         return min(1.0, self.progress / DIG_DURATION)
 
 
@@ -109,6 +111,7 @@ class TrenchDiggingSystem:
 
     @property
     def active_digs(self) -> list[DigProgress]:
+        """Return a list of all digging operations currently in progress."""
         return list(self._progress.values())
 
     def can_dig(self, unit: Unit, game_map: GameMap) -> bool:
@@ -266,6 +269,7 @@ class TrenchDiggingAI(TacticalAIBase):
     """
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return trench-digging priority based on defensive candidates and enemy pressure."""
         candidates = self._dig_candidates(context)
         if not candidates:
             return 0.0
@@ -283,6 +287,7 @@ class TrenchDiggingAI(TacticalAIBase):
         return max(0.0, min(score, 1.0))
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate DIG_TRENCH intents for defensive infantry without cover."""
         candidates = self._dig_candidates(context)
         if not candidates:
             return []

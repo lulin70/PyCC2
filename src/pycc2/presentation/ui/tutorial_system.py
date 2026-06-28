@@ -95,6 +95,7 @@ class TutorialOverlay:
     }
 
     def __init__(self, display_config):
+        """Initialize the TutorialOverlay."""
         self.state = TutorialState()
         self._display_config = display_config
         self._visible = False
@@ -134,9 +135,11 @@ class TutorialOverlay:
 
     @property
     def visible(self) -> bool:
+        """Get the visible."""
         return self._visible
 
     def show(self, step: TutorialStep | None = None) -> None:
+        """Show an element."""
         self._visible = True
         if step:
             self.state.step = step
@@ -144,15 +147,18 @@ class TutorialOverlay:
         self._alpha = 0.0
 
     def hide(self) -> None:
+        """Hide an element."""
         self._target_alpha = 0.0
 
     def toggle(self) -> None:
+        """Toggle state."""
         if self._visible:
             self.hide()
         else:
             self.show()
 
     def advance_step(self) -> bool:
+        """Advance step."""
         steps = list(TutorialStep)
         current_idx = steps.index(self.state.step)
         if current_idx < len(steps) - 1:
@@ -165,6 +171,7 @@ class TutorialOverlay:
         return False
 
     def handle_input(self, event) -> str | None:
+        """Handle input."""
         import pygame
 
         if event.type == pygame.KEYDOWN:
@@ -182,6 +189,7 @@ class TutorialOverlay:
         return None
 
     def update(self) -> None:
+        """Update internal state."""
         if abs(self._alpha - self._target_alpha) > 0.01:
             speed = 0.08 if self._target_alpha > self._alpha else 0.12
             self._alpha += (self._target_alpha - self._alpha) * speed
@@ -198,6 +206,7 @@ class TutorialOverlay:
             self.state.hint_cooldown -= 1
 
     def render(self, screen) -> None:
+        """Render to the screen."""
         if self._alpha < 0.01:
             return
 
@@ -283,11 +292,13 @@ class TutorialOverlay:
     def show_contextual_hint(
         self, text: str, position: tuple[float, float], lifetime: int = 120
     ) -> None:
+        """Show contextual hint."""
         self._current_hint = text
         self._hint_position = position
         self.state.hint_cooldown = lifetime
 
     def render_hint(self, screen) -> None:
+        """Render hint."""
         if self.state.hint_cooldown <= 0 or not self._current_hint:
             return
         # Lazy-init fonts on first use

@@ -60,6 +60,7 @@ class RenderPipeline:
         weather=None,  # P0-3 Fix: WeatherCondition or None (default=CLEAR)
         time_of_day=None,  # P0-3 Fix: TimeOfDay or None (default=DAY)
     ) -> None:
+        """Render to the screen."""
         self.renderer.render(
             game_map,
             units,
@@ -83,6 +84,7 @@ class RenderPipeline:
         )
 
     def update_fps(self, fps: float) -> None:
+        """Update FPS."""
         self._fps = fps
 
     def _render_hud(

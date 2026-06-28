@@ -44,6 +44,7 @@ class LightingRenderer:
         time_of_day: TimeOfDay,
         searchlights: list[Searchlight] | None = None,
     ) -> None:
+        """Render to the screen."""
 
         effects = DayNightEffects()
         color = effects.get_lighting_color(time_of_day)
@@ -89,6 +90,7 @@ class LightingRenderer:
         screen.blit(self._searchlight_surface, (0, 0), special_flags=pygame.BLEND_ADD)
 
     def resize(self, width: int, height: int) -> None:
+        """Handle screen resize and rebuild lighting surfaces."""
         self.screen_width = width
         self.screen_height = height
         self._init_surfaces()

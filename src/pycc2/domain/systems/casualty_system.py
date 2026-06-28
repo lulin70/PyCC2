@@ -71,18 +71,22 @@ class Casualty:
 
     @property
     def unit(self) -> Unit:
+        """Return the unit tracked by this casualty record."""
         return self._unit
 
     @property
     def state(self) -> CasualtyState:
+        """Return the current casualty state."""
         return self._state
 
     @property
     def rescue_timer(self) -> float:
+        """Return elapsed time since the casualty was wounded."""
         return self._rescue_timer
 
     @property
     def rescue_timeout(self) -> float:
+        """Return the maximum time the casualty can wait before dying."""
         return self._config.rescue_timeout_seconds
 
     @property
@@ -96,10 +100,12 @@ class Casualty:
 
     @property
     def is_rescuable(self) -> bool:
+        """Return True if the casualty can still be rescued."""
         return self._state in (CasualtyState.WOUNDED, CasualtyState.DRAGGING)
 
     @property
     def medic(self) -> Unit | None:
+        """Return the medic currently dragging this casualty, if any."""
         return self._medic_unit
 
     def become_wounded(self) -> dict:
@@ -354,10 +360,12 @@ class CasualtyManager:
 
     @property
     def casualties(self) -> dict[str, Casualty]:
+        """Return a copy of the registered casualties keyed by unit id."""
         return dict(self._casualties)
 
     @property
     def active_casualty_count(self) -> int:
+        """Return the number of casualties still awaiting rescue or evacuation."""
         return sum(
             1
             for c in self._casualties.values()
@@ -366,10 +374,12 @@ class CasualtyManager:
 
     @property
     def total_dead(self) -> int:
+        """Return the number of casualties that have died."""
         return sum(1 for c in self._casualties.values() if c.state == CasualtyState.DEAD)
 
     @property
     def total_evacuated(self) -> int:
+        """Return the number of casualties successfully evacuated."""
         return sum(1 for c in self._casualties.values() if c.state == CasualtyState.EVACUATED)
 
     def register_casualty(self, unit: Unit) -> Casualty:
@@ -382,6 +392,7 @@ class CasualtyManager:
         return self._casualties[unit_id]
 
     def get_casualty(self, unit_id: str) -> Casualty | None:
+        """Return the casualty tracked for the given unit id, if any."""
         return self._casualties.get(unit_id)
 
     def update_all(self, dt: float) -> list[dict]:
@@ -404,6 +415,7 @@ class CasualtyManager:
         return events
 
     def get_casualties_in_state(self, state: CasualtyState) -> list[Casualty]:
+        """Return all casualties currently in the given state."""
         return [c for c in self._casualties.values() if c.state == state]
 
     def get_nearby_casualties(

@@ -181,9 +181,11 @@ class SkirmishGenerator:
         self._maps = available_maps or {}
 
     def register_map(self, map_id: str, game_map: GameMap) -> None:
+        """Register a battle map under the given identifier."""
         self._maps[map_id] = game_map
 
     def generate(self, config: SkirmishConfig) -> SkirmishSetup:
+        """Generate a complete skirmish setup from the given configuration."""
         game_map = self._resolve_map(config.map_id)
 
         time_of_day = self._resolve_time_of_day(config.time_of_day)

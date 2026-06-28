@@ -35,6 +35,7 @@ class AssetLoader:
     """
 
     def __init__(self, assets_dir: Path | None = None):
+        """Initialize the AssetLoader."""
         if assets_dir is None:
             # 默认路径：PyCC2/assets
             project_root = Path(__file__).resolve().parent.parent.parent.parent.parent

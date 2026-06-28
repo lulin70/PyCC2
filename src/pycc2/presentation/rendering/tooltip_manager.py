@@ -22,6 +22,7 @@ class TooltipManager:
     """
 
     def __init__(self, font_size: int = 11, delay: float = 0.4) -> None:
+        """Initialize the TooltipManager."""
         self._text: str = ""
         self._pos: tuple[int, int] = (0, 0)
         self._visible: bool = False

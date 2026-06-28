@@ -24,6 +24,7 @@ class CombatEffectsCoordinator:
         unit_fade_renderer: UnitFadeRenderer,
         environment_renderer: EnvironmentRenderer,
     ) -> None:
+        """Initialize the CombatEffectsCoordinator."""
         self._particle_effects = particle_effects
         self._unit_fade_renderer = unit_fade_renderer
         self._environment_renderer = environment_renderer

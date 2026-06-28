@@ -26,6 +26,7 @@ class ScreenEffectsRenderer:
     """Renders full-screen visual effects on top of the world."""
 
     def __init__(self) -> None:
+        """Initialize the ScreenEffectsRenderer."""
         self._flash_surf_cache: pygame.Surface | None = None
 
     def render_effects(

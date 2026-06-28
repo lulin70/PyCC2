@@ -358,9 +358,11 @@ class Unit:
 
     @property
     def has_queued_commands(self) -> bool:
+        """Return True if there are pending commands in the queue."""
         return len(self._command_queue) > 0
 
     def clear_command_queue(self) -> None:
+        """Remove all pending commands from the queue."""
         self._command_queue.clear()
 
     def _execute_queued_command(self, cmd: dict) -> None:
@@ -470,6 +472,7 @@ class Unit:
 
     @property
     def is_alive(self) -> bool:
+        """Return True if the unit still has health remaining."""
         return self.health.is_alive
 
     @property
@@ -577,6 +580,7 @@ class Unit:
 
     @property
     def can_act(self) -> bool:
+        """Return True if the unit is alive and not in a blocking state."""
         return (
             self.is_alive
             and self.state_machine.current != UnitState.DEAD
@@ -586,10 +590,12 @@ class Unit:
 
     @property
     def combat_effective(self) -> bool:
+        """Return True if the unit is alive and its morale allows combat."""
         return self.is_alive and self.morale.is_combat_effective
 
     @property
     def is_pinned(self) -> bool:
+        """Return True if the unit is currently pinned down by suppression."""
         return self.combat_state.is_pinned if self.combat_state is not None else False
 
     @property
@@ -638,6 +644,7 @@ class Unit:
 
     @property
     def suppression_level(self) -> SuppressionEffect:
+        """Return the current suppression effect applied to the unit."""
         if self.combat_state is not None:
             return self.combat_state.suppression.get_current_effect()
         from pycc2.domain.systems.combat_mechanics_enhanced import SuppressionEffect
@@ -646,6 +653,7 @@ class Unit:
 
     @property
     def concealment_level(self) -> float:
+        """Return the unit's current total concealment value."""
         if self.combat_state is not None:
             return self.combat_state.concealment.calculate_total_concealment()
         return 0.0
@@ -670,6 +678,7 @@ class Unit:
             self.current_building_pos = None
 
     def move_to_tile(self, tile: TileCoord) -> None:
+        """Move the unit immediately to the specified tile coordinate."""
         self.position.move_to_tile(tile)
 
     def set_move_target(self, tile: TileCoord) -> None:
@@ -780,12 +789,14 @@ class Unit:
             return False  # Still moving
 
     def take_damage(self, amount: int) -> int:
+        """Apply damage to the unit and return the actual amount dealt."""
         actual = self.health.take_damage(amount)
         if not self.is_alive:
             self.die()
         return actual
 
     def die(self) -> None:
+        """Force the unit into the DEAD state."""
         self.state_machine.force_transition(UnitState.DEAD)
 
 

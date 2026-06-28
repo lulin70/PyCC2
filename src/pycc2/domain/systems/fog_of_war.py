@@ -50,6 +50,7 @@ class FogOfWar:
         current_tick: int = 0,
         environment=None,
     ) -> set[TileCoord]:
+        """Recalculate visible tiles from the observer and return newly revealed tiles."""
         effective_range = vision_range
         if environment is not None:
             effective_range = max(1, int(vision_range * environment.get_vision_multiplier()))
@@ -155,6 +156,7 @@ class FogOfWar:
         return tiles
 
     def is_visible(self, coord: TileCoord) -> bool:
+        """Return True if the tile is currently visible."""
         return (
             0 <= coord.x < self.width
             and 0 <= coord.y < self.height
@@ -162,6 +164,7 @@ class FogOfWar:
         )
 
     def is_explored(self, coord: TileCoord) -> bool:
+        """Return True if the tile has ever been explored."""
         return (
             0 <= coord.x < self.width
             and 0 <= coord.y < self.height
@@ -169,6 +172,7 @@ class FogOfWar:
         )
 
     def is_hidden(self, coord: TileCoord) -> bool:
+        """Return True if the tile has never been seen."""
         return (
             0 <= coord.x < self.width
             and 0 <= coord.y < self.height
@@ -176,14 +180,17 @@ class FogOfWar:
         )
 
     def get_visibility(self, coord: TileCoord) -> TileVisibility:
+        """Return the visibility level for the given tile."""
         if 0 <= coord.x < self.width and 0 <= coord.y < self.height:
             return TileVisibility(self.visibility_grid[coord.y][coord.x])
         return TileVisibility.HIDDEN
 
     def reset(self) -> None:
+        """Reset all tiles to the hidden state."""
         self.visibility_grid = [[TileVisibility.HIDDEN] * self.width for _ in range(self.height)]
 
     def clear_current_visibility(self) -> set[TileCoord]:
+        """Demote all visible tiles to explored and return the affected set."""
         cleared: set[TileCoord] = set()
         for y in range(self.height):
             for x in range(self.width):
@@ -193,6 +200,7 @@ class FogOfWar:
         return cleared
 
     def get_visible_tiles(self) -> set[TileCoord]:
+        """Return the set of all currently visible tiles."""
         visible: set[TileCoord] = set()
         for y in range(self.height):
             for x in range(self.width):
@@ -201,6 +209,7 @@ class FogOfWar:
         return visible
 
     def get_explored_count(self) -> int:
+        """Return the total number of explored or visible tiles."""
         count = 0
         for y in range(self.height):
             for x in range(self.width):
@@ -209,6 +218,7 @@ class FogOfWar:
         return count
 
     def get_hidden_count(self) -> int:
+        """Return the total number of never-seen tiles."""
         count = 0
         for y in range(self.height):
             for x in range(self.width):

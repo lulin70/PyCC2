@@ -49,6 +49,7 @@ class TerrainType(IntEnum):
 
     @property
     def movement_cost(self) -> float:
+        """Return the pathfinding movement cost multiplier for this terrain."""
         _costs: dict[TerrainType, float] = {
             TerrainType.OPEN: 1.0,
             TerrainType.ROAD: 0.8,
@@ -77,6 +78,7 @@ class TerrainType(IntEnum):
 
     @property
     def cover_bonus(self) -> float:
+        """Return the cover bonus (0-1) reducing incoming fire accuracy."""
         _covers: dict[TerrainType, float] = {
             TerrainType.OPEN: 0.0,
             TerrainType.ROAD: 0.0,
@@ -105,6 +107,7 @@ class TerrainType(IntEnum):
 
     @property
     def concealment_modifier(self) -> float:
+        """Return the concealment bonus (0-1) reducing enemy detection chance."""
         _concealments: dict[TerrainType, float] = {
             TerrainType.OPEN: 0.0,
             TerrainType.ROAD: 0.0,
@@ -133,6 +136,7 @@ class TerrainType(IntEnum):
 
     @property
     def blocks_los(self) -> bool:
+        """Return whether this terrain blocks line-of-sight."""
         _blocks: dict[TerrainType, bool] = {
             TerrainType.OPEN: False,
             TerrainType.ROAD: False,
@@ -161,6 +165,7 @@ class TerrainType(IntEnum):
 
     @property
     def is_passable(self) -> bool:
+        """Return whether infantry can traverse this terrain."""
         _passable: dict[TerrainType, bool] = {
             TerrainType.OPEN: True,
             TerrainType.ROAD: True,
@@ -189,6 +194,7 @@ class TerrainType(IntEnum):
 
     @property
     def height(self) -> int:
+        """Return the elevation height level used for LOS and rendering."""
         _heights: dict[TerrainType, int] = {
             TerrainType.OPEN: 0,
             TerrainType.ROAD: 0,
@@ -217,6 +223,7 @@ class TerrainType(IntEnum):
 
     @property
     def color(self) -> tuple[int, int, int]:
+        """Return the RGB color used for minimap and debug rendering."""
         _colors: dict[TerrainType, tuple[int, int, int]] = {
             TerrainType.OPEN: (200, 200, 180),
             TerrainType.ROAD: (128, 128, 128),
@@ -245,6 +252,7 @@ class TerrainType(IntEnum):
 
     @property
     def display_name(self) -> str:
+        """Return the human-readable display name for UI."""
         _names: dict[TerrainType, str] = {
             TerrainType.OPEN: "Open",
             TerrainType.ROAD: "Road",

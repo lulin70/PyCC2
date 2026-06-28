@@ -112,6 +112,7 @@ class CC2BottomPanel:
     }
 
     def __init__(self) -> None:
+        """Initialize the CC2BottomPanel."""
         self._font_small: Font = None  # type: ignore[assignment]
         self._font_normal: Font = None  # type: ignore[assignment]
         self._font_title: Font = None  # type: ignore[assignment]
@@ -292,6 +293,7 @@ class CC2BottomPanel:
 
     @property
     def is_fading(self) -> bool:
+        """Get the is fading."""
         return self._fade.is_fading
 
     def set_battle_timer(self, seconds: int) -> None:

@@ -19,6 +19,7 @@ class Panel:
         height: int,
         title: str = "",
     ):
+        """Initialize the Panel."""
         self.rect = Rect(x, y, width, height)
         self.title = title
         self._children: list = []

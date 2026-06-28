@@ -28,6 +28,7 @@ class SuppressionOverlayRenderer:
     PER_UNIT_ALPHA: float = 20.0
 
     def __init__(self) -> None:
+        """Initialize the SuppressionOverlayRenderer."""
         self._overlay_cache: pygame.Surface | None = None
         self._alpha: float = 0.0
 

@@ -111,34 +111,41 @@ class SquadDegradationManager:
         self._logger = logging.getLogger("pycc2.ai.squad_degradation")
 
     def register_squad(self, squad_id: str, unit_ids: list[str]) -> None:
+        """Map each unit id to the squad and create its degradation record."""
         for uid in unit_ids:
             self._unit_squad_map[uid] = squad_id
         if squad_id not in self._squad_records:
             self._squad_records[squad_id] = SquadDegradationRecord(squad_id=squad_id)
 
     def unregister_squad(self, squad_id: str) -> None:
+        """Remove a squad and clear all its unit mappings and degradation state."""
         to_remove = [uid for uid, sid in self._unit_squad_map.items() if sid == squad_id]
         for uid in to_remove:
             del self._unit_squad_map[uid]
         self._squad_records.pop(squad_id, None)
 
     def get_squad_state(self, squad_id: str) -> SquadState:
+        """Return the current degradation state of the squad, defaulting to COMBAT_READY."""
         record = self._squad_records.get(squad_id)
         if record is None:
             return SquadState.COMBAT_READY
         return record.state
 
     def get_modifiers(self, squad_id: str) -> DegradationModifiers:
+        """Return the modifiers (penalties) for the squad's current degradation state."""
         state = self.get_squad_state(squad_id)
         return SQUAD_STATE_MODIFIERS[state]
 
     def get_accuracy_modifier(self, squad_id: str) -> float:
+        """Return the accuracy multiplier (1 minus penalty) for the squad."""
         return 1.0 - self.get_modifiers(squad_id).accuracy_penalty
 
     def get_reaction_delay_multiplier(self, squad_id: str) -> float:
+        """Return the reaction time multiplier (1 plus delay) for the squad."""
         return 1.0 + self.get_modifiers(squad_id).reaction_delay_pct
 
     def is_tactic_available(self, squad_id: str, tactic_name: str) -> bool:
+        """Return whether the named tactic is currently allowed for the squad's state."""
         state = self.get_squad_state(squad_id)
         if state == SquadState.COMBAT_READY:
             return True
@@ -151,6 +158,7 @@ class SquadDegradationManager:
         return False
 
     def get_available_tactics(self, squad_id: str) -> set[str]:
+        """Return the set of tactic names allowed for the squad's degradation state."""
         state = self.get_squad_state(squad_id)
         if state == SquadState.COMBAT_READY or state == SquadState.DEGRADED_MILD:
             return ADVANCED_TACTICS | BASIC_TACTICS
@@ -161,6 +169,7 @@ class SquadDegradationManager:
         killed_unit: Unit,
         squad_units: list[Unit],
     ) -> None:
+        """Apply degradation and start NCO recovery when a squad leader is killed."""
         squad_id = killed_unit.squad_id
         if squad_id is None:
             return
@@ -205,6 +214,7 @@ class SquadDegradationManager:
             )
 
     def tick(self, all_units: list[Unit]) -> None:
+        """Advance recovery timers and reassign NCOs for squads each tick."""
         for record in self._squad_records.values():
             if record.recovery_ticks_remaining > 0:
                 record.recovery_ticks_remaining -= 1
@@ -271,6 +281,7 @@ class NCORallyBehavior:
         self._logger = logging.getLogger("pycc2.ai.nco_rally")
 
     def is_nco(self, unit: Unit) -> bool:
+        """Return whether the unit is an NCO (squad leader or commander)."""
         if not unit.is_alive:
             return False
         if getattr(unit, "is_squad_leader", False):
@@ -278,6 +289,7 @@ class NCORallyBehavior:
         return unit.unit_type == UnitType.COMMANDER
 
     def can_rally(self, nco: Unit) -> bool:
+        """Return whether the NCO can rally (alive, off cooldown, high morale, unsuppressed)."""
         if not self.is_nco(nco):
             return False
         record = self._rally_cooldowns.get(nco.id)
@@ -293,6 +305,7 @@ class NCORallyBehavior:
         all_units: list[Unit],
         sense_range: int = RALLY_SENSE_RANGE,
     ) -> list[Unit]:
+        """Return friendly broken or routing units within sense range of the NCO."""
         panicked: list[Unit] = []
         nco_pos = nco.position.tile_coord
         for unit in all_units:
@@ -308,6 +321,7 @@ class NCORallyBehavior:
         return panicked
 
     def rally_unit(self, nco: Unit, target: Unit) -> bool:
+        """Attempt to rally a single panicked target, restoring its morale and starting cooldown."""
         if not self.can_rally(nco):
             return False
         nco_pos = nco.position.tile_coord
@@ -332,6 +346,7 @@ class NCORallyBehavior:
         return True
 
     def should_move_toward_panicked(self, nco: Unit, all_units: list[Unit]) -> Unit | None:
+        """Return the nearest out-of-range panicked unit to move toward, or None if already in range."""
         if not self.can_rally(nco):
             return None
         panicked = self.find_panicked_units(nco, all_units)
@@ -350,6 +365,7 @@ class NCORallyBehavior:
         return nearest
 
     def tick(self) -> None:
+        """Decrement rally cooldowns and remove expired records each tick."""
         expired: list[str] = []
         for nco_id, record in self._rally_cooldowns.items():
             if record.cooldown_remaining > 0:
@@ -360,6 +376,7 @@ class NCORallyBehavior:
             del self._rally_cooldowns[nco_id]
 
     def get_cooldown(self, nco_id: str) -> int:
+        """Return the remaining rally cooldown ticks for the NCO, or 0 if none."""
         record = self._rally_cooldowns.get(nco_id)
         if record is None:
             return 0

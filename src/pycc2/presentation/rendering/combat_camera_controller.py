@@ -29,18 +29,22 @@ class CombatCameraController:
     """Maps combat events to cinematic camera effects."""
 
     def __init__(self, camera: Optional["ICamera"] = None):
+        """Initialize the CombatCameraController."""
         self._camera = camera
         self._effect_stack: EffectStack | None = None
         self._enabled = True
         self._kill_count = 0
 
     def set_camera(self, camera: "ICamera") -> None:
+        """Set the camera."""
         self._camera = camera
 
     def set_effect_stack(self, stack: EffectStack) -> None:
+        """Set the effect stack."""
         self._effect_stack = stack
 
     def set_enabled(self, enabled: bool) -> None:
+        """Set the enabled."""
         self._enabled = enabled
 
     def subscribe(self, event_bus: IEventPublisher) -> None:
@@ -99,4 +103,5 @@ class CombatCameraController:
             self._push(create_shake(intensity=3.0, duration=0.12))
 
     def reset_kill_count(self) -> None:
+        """Reset kill count."""
         self._kill_count = 0

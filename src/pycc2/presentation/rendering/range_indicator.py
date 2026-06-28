@@ -88,6 +88,7 @@ class RangeIndicator:
 
     @property
     def is_visible(self) -> bool:
+        """Get the is visible."""
         return self._visible and self.active_unit is not None
 
     def render(

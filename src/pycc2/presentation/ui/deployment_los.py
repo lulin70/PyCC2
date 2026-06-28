@@ -41,6 +41,7 @@ class DeploymentLOSSystem:
         get_state=None,
         get_selected_index=None,
     ):
+        """Initialize the DeploymentLOSSystem."""
         self._get_tile_grid = get_tile_grid
         self._get_terrain_at = get_terrain_at
         self._get_victory_locations = get_victory_locations

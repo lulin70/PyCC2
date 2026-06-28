@@ -40,6 +40,7 @@ class AnimationState:
     color_mod: tuple[int, int, int] | None = None
 
     def reset(self, new_type: AnimationType | None = None) -> None:
+        """Reset internal state."""
         if new_type:
             self.anim_type = new_type
         self.frame = 0
@@ -70,6 +71,7 @@ class UnitAnimator:
         self._prev_type = AnimationType.IDLE
 
     def set_animation(self, anim_type: AnimationType) -> None:
+        """Set the animation."""
         if anim_type != self._prev_type:
             config = self.CONFIGS.get(anim_type, self.CONFIGS[AnimationType.IDLE])
             self.state.reset(anim_type)
@@ -78,6 +80,7 @@ class UnitAnimator:
             self._prev_type = anim_type
 
     def update(self) -> bool:
+        """Update internal state."""
         self.state.frame += 1
         progress = self.state.frame / max(self.state.duration_ticks, 1)
 
@@ -130,6 +133,7 @@ class UnitAnimator:
 
     @property
     def is_alive(self) -> bool:
+        """Get the is alive."""
         return (
             self.state.anim_type != AnimationType.DEATH
             or self.state.frame < self.state.duration_ticks
@@ -148,10 +152,12 @@ class ScreenShake:
         self._ticks_remaining: int = 0
 
     def trigger(self, intensity: float = 3.0, duration_ticks: int = 5) -> None:
+        """Trigger an effect."""
         self._intensity = min(intensity, 20.0)
         self._ticks_remaining = duration_ticks
 
     def update(self) -> tuple[float, float]:
+        """Update internal state."""
         if self._ticks_remaining <= 0:
             self._offset_x = 0.0
             self._offset_y = 0.0
@@ -165,6 +171,7 @@ class ScreenShake:
 
     @property
     def is_active(self) -> bool:
+        """Get the is active."""
         return self._ticks_remaining > 0
 
 
@@ -265,10 +272,12 @@ class ParticleEmitter:
 
         @property
         def progress(self) -> float:
+            """Get the progress."""
             return 1.0 - (self.life / max(self.max_life, 1))
 
         @property
         def alpha(self) -> int:
+            """Get the alpha."""
             return int(self.alpha_start * (1.0 - self.progress))
 
     def __init__(self, pool: ExternalParticlePool | None = None):
@@ -288,6 +297,7 @@ class ParticleEmitter:
             self.particles.append(self.Particle(**kwargs))
 
     def emit_muzzle_flash(self, x: float, y: float, direction: float, count: int = 3) -> None:
+        """Emit muzzle flash."""
         for i in range(count):
             spread = random.uniform(-0.15, 0.15)
             angle = direction + spread
@@ -312,6 +322,7 @@ class ParticleEmitter:
             )
 
     def emit_blood(self, x: float, y: float, count: int = 10) -> None:
+        """Emit blood."""
         for _ in range(count):
             angle = random.uniform(0, 2 * math.pi)
             speed = random.uniform(15, 50)
@@ -339,6 +350,7 @@ class ParticleEmitter:
             )
 
     def emit_smoke(self, x: float, y: float, count: int = 5) -> None:
+        """Emit smoke."""
         for _ in range(count):
             self._add_particle(
                 type=self.ParticleType.SMOKE,
@@ -356,6 +368,7 @@ class ParticleEmitter:
             )
 
     def emit_debris(self, x: float, y: float, count: int = 6) -> None:
+        """Emit debris."""
         for _ in range(count):
             angle = random.uniform(0, 2 * math.pi)
             speed = random.uniform(25, 70)
@@ -376,6 +389,7 @@ class ParticleEmitter:
             )
 
     def emit_sparks(self, x: float, y: float, direction: float, count: int = 4) -> None:
+        """Emit sparks."""
         base_angle = direction + math.pi + random.uniform(-0.5, 0.5)
         spark_colors = [(255, 255, 200), (255, 255, 255), (255, 240, 100), (255, 220, 50)]
         for i in range(count):
@@ -397,6 +411,7 @@ class ParticleEmitter:
             )
 
     def emit_explosion_ring(self, x: float, y: float) -> None:
+        """Emit explosion ring."""
         for i in range(16):
             angle = (i / 16) * 2 * math.pi
             self._add_particle(
@@ -415,6 +430,7 @@ class ParticleEmitter:
             )
 
     def emit_explosion_core(self, x: float, y: float, count: int = 12, life: int = 12) -> None:
+        """Emit explosion core."""
         for i in range(count):
             angle = random.uniform(0, 2 * math.pi)
             progress = i / max(count - 1, 1)
@@ -440,6 +456,7 @@ class ParticleEmitter:
     def emit_explosion_smoke_cloud(
         self, x: float, y: float, count: int = 8, life: int = 40
     ) -> None:
+        """Emit explosion smoke cloud."""
         for _ in range(count):
             self._add_particle(
                 type=self.ParticleType.SMOKE,
@@ -457,6 +474,7 @@ class ParticleEmitter:
             )
 
     def emit_smoke_screen(self, x: float, y: float, radius: float = 144.0) -> None:
+        """Emit smoke screen."""
         count = 18
         for i in range(count):
             jagged_factor = random.uniform(0.6, 1.4)
@@ -480,6 +498,7 @@ class ParticleEmitter:
             )
 
     def emit_death_puff(self, x: float, y: float, is_vehicle: bool = False) -> None:
+        """Emit death puff."""
         if is_vehicle:
             puff_count = 16
             max_size = 30
@@ -509,6 +528,7 @@ class ParticleEmitter:
             )
 
     def update(self) -> None:
+        """Update internal state."""
         if self._pool is not None:
             self._pool.update(self)
             return
@@ -526,6 +546,7 @@ class ParticleEmitter:
         self.particles = alive
 
     def clear(self) -> None:
+        """Clear internal state."""
         self.particles.clear()
 
     def emit_preset(self, name: str, x: float, y: float, direction: float = 0.0) -> int:

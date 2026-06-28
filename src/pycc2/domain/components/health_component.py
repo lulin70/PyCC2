@@ -37,19 +37,23 @@ class HealthComponent:
 
     @property
     def hp_ratio(self) -> float:
+        """Return the current HP as a 0-1 ratio of max HP."""
         if self.max_hp <= 0:
             return 0.0
         return self.hp / self.max_hp
 
     @property
     def is_alive(self) -> bool:
+        """Return whether the unit is still alive."""
         return self.state != HealthState.DEAD
 
     @property
     def is_healthy(self) -> bool:
+        """Return whether the unit is in healthy state."""
         return self.state == HealthState.HEALTHY
 
     def take_damage(self, amount: int) -> int:
+        """Apply damage and return the actual HP lost."""
         if amount <= 0 or not self.is_alive:
             return 0
 
@@ -63,6 +67,7 @@ class HealthComponent:
         return actual_damage
 
     def heal(self, amount: int) -> int:
+        """Restore HP and return the actual amount healed."""
         if amount <= 0:
             return 0
 

@@ -31,14 +31,17 @@ class WeatherState:
     remaining_turns: int = 0
 
     def is_active(self) -> bool:
+        """Return True if a non-CLEAR weather effect is currently active."""
         return self.weather_type != WeatherType.CLEAR
 
     def is_expired(self) -> bool:
+        """Return True if the weather effect has run out of remaining turns."""
         if self.duration_turns == 0:
             return False
         return self.remaining_turns <= 0
 
     def advance_turn(self) -> None:
+        """Decrement remaining turns and clear weather when the duration elapses."""
         if self.remaining_turns > 0:
             self.remaining_turns -= 1
             if self.remaining_turns <= 0:
@@ -52,6 +55,7 @@ class WeatherState:
         intensity: float = 1.0,
         duration_turns: int = 0,
     ) -> None:
+        """Configure a new weather effect with clamped intensity and duration."""
         self.weather_type = weather_type
         self.intensity = max(0.0, min(1.0, intensity))
         self.duration_turns = max(0, duration_turns)
@@ -87,6 +91,7 @@ class WeatherEffects:
     }
 
     def apply_to_vision(self, base_range: float, weather: WeatherType) -> float:
+        """Return the effective vision range after applying the weather modifier."""
         modifier = self.VISION_MODIFIERS.get(weather, 1.0)
         return base_range * modifier
 
@@ -96,12 +101,14 @@ class WeatherEffects:
         weather: WeatherType,
         is_muddy_terrain: bool = False,
     ) -> float:
+        """Return the effective movement speed after weather and mud penalties."""
         modifier = self.MOVEMENT_MODIFIERS.get(weather, 1.0)
         if is_muddy_terrain and weather == WeatherType.RAIN:
             modifier *= self.MUD_PENALTY_RAIN
         return base_speed * modifier
 
     def get_concealment_bonus(self, weather: WeatherType) -> float:
+        """Return the additive concealment bonus granted by the current weather."""
         if weather == WeatherType.FOG:
             return 0.2
         if weather == WeatherType.SNOW:
@@ -111,6 +118,7 @@ class WeatherEffects:
         return 0.0
 
     def apply_to_accuracy(self, base_accuracy: float, weather: WeatherType) -> float:
+        """Return the effective accuracy after applying the weather modifier."""
         modifier = self.ACCURACY_MODIFIERS.get(weather, 1.0)
         return base_accuracy * modifier
 
@@ -154,6 +162,7 @@ class WeatherTransitionTable:
     def get_next_weather(
         cls, current: WeatherType, rng: random.Random | None = None
     ) -> WeatherType:
+        """Sample the next weather state from the transition table using the given RNG."""
         if rng is None:
             rng = random.Random()
         transitions = cls.TRANSITIONS.get(current, [(WeatherType.CLEAR, 1.0)])
@@ -169,6 +178,7 @@ class WeatherTransitionTable:
     def generate_weather_duration(
         cls, weather: WeatherType, rng: random.Random | None = None
     ) -> int:
+        """Sample a random duration in turns for the given weather type."""
         if rng is None:
             rng = random.Random()
         base_durations = {

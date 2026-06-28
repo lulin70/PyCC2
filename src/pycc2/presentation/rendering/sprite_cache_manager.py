@@ -39,6 +39,7 @@ class SpriteCacheManager:
     SPRITE_SIZE: int = 48  # Match TILE_SIZE for larger, clearer units
 
     def __init__(self, display_config: DisplayConfig | None = None):
+        """Initialize the SpriteCacheManager."""
         from pycc2.domain.interfaces.display_config import DisplayConfig as DC
         from pycc2.presentation.rendering.asset_loader import AssetLoader
         from pycc2.presentation.rendering.cc2_sprite_loader import CC2SpriteLoader

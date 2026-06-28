@@ -80,6 +80,7 @@ class ATAmbushAI(TacticalAIBase):
     # -- evaluate -----------------------------------------------------------
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return ambush priority based on AT units, enemy armor proximity, and readiness."""
         at_units = self._find_at_units(context)
         enemy_armor = self._find_enemy_armor(context)
 
@@ -117,6 +118,7 @@ class ATAmbushAI(TacticalAIBase):
     # -- execute ------------------------------------------------------------
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate ambush intents for AT units engaging enemy armor."""
         at_units = self._find_at_units(context)
         enemy_armor = self._find_enemy_armor(context)
 

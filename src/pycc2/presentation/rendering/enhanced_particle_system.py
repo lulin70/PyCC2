@@ -40,6 +40,7 @@ class EnhancedParticleSystem:
     """增强粒子系统 - 目标评分 8.5+"""
 
     def __init__(self):
+        """Initialize the EnhancedParticleSystem."""
         self.particles: list[EnhancedParticle] = []
         self.rng = random.Random()
 

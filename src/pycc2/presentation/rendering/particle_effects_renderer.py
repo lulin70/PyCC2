@@ -39,6 +39,7 @@ class ParticleEffectsRenderer:
     """
 
     def __init__(self):
+        """Initialize the ParticleEffectsRenderer."""
         self._sprite_renderer = None  # Set via set_sprite_renderer()
         self._particle_system = None  # Set via set_particle_system()
         self._offscreen = None  # Set via set_offscreen()

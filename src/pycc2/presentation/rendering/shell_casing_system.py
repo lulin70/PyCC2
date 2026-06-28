@@ -38,6 +38,7 @@ class ShellCasingSystem:
     """
 
     def __init__(self) -> None:
+        """Initialize the ShellCasingSystem."""
         self._shell_casings: list[dict] = []
         self._casing_surf_cache: dict[tuple[int, int], pygame.Surface] = {}
 

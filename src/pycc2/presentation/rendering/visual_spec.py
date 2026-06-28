@@ -21,6 +21,7 @@ class VisualSpec:
     TILE_BORDER_DARK: tuple[int, int, int] = (60, 64, 72)
 
     def __init__(self):
+        """Initialize the VisualSpec."""
         self.allied_unit_color = self.ALLIED_BLUE
         self.allied_outline_color = (100, 149, 237)
         self.axis_unit_color = self.AXIS_GREEN

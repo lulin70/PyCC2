@@ -41,6 +41,7 @@ class UnitSpriteGenerator:
 
     @staticmethod
     def generate(spec: UnitSpriteSpec) -> PixelCanvas:
+        """Generate a pixel canvas sprite from the given spec."""
         gen_map = {
             "INFANTRY_SQUAD": UnitSpriteGenerator._draw_infantry,
             "MACHINE_GUN_SQUAD": UnitSpriteGenerator._draw_mg_squad,

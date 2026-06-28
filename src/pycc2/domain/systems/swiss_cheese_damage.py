@@ -57,10 +57,12 @@ class SquadMember:
 
     @property
     def is_combat_effective(self) -> bool:
+        """Return True if the member can still fight (OK or wounded)."""
         return self.status in (CasualtyStatus.OK, CasualtyStatus.WIA)
 
     @property
     def is_alive(self) -> bool:
+        """Return True unless the member has been killed in action."""
         return self.status != CasualtyStatus.KIA
 
 
@@ -78,10 +80,12 @@ class SwissCheeseResult:
 
     @property
     def total_casualties(self) -> int:
+        """Return the total number of killed and wounded members."""
         return self.kia_count + self.wia_count
 
     @property
     def effectiveness_ratio(self) -> float:
+        """Return the fraction of members still combat-effective (OK or WIA)."""
         total = self.kia_count + self.wia_count + self.pinned_count + self.ok_count
         if total == 0:
             return 0.0
@@ -112,6 +116,7 @@ class SwissCheeseEngine:
         cover_bonus: float = 0.0,
         target_morale: float = 100.0,
     ) -> SwissCheeseResult:
+        """Resolve incoming damage into per-member casualty outcomes for the target squad."""
         unit_type_str = (
             target.unit_type.name if hasattr(target.unit_type, "name") else str(target.unit_type)
         )
@@ -220,6 +225,7 @@ class SwissCheeseEngine:
         )
 
     def calculate_squad_effectiveness(self, result: SwissCheeseResult) -> float:
+        """Return a 0..1 effectiveness score weighting each member's casualty status."""
         if not result.member_outcomes:
             return 1.0
         effective = 0.0

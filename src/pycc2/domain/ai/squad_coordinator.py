@@ -50,12 +50,14 @@ class SquadCoordinator:
         self._degradation_manager = degradation_manager
 
     def register_squad(self, squad_id: str, unit_ids: list[str]) -> None:
+        """Map each unit id to the squad and initialize its default tactic."""
         for uid in unit_ids:
             self._unit_squad_map[uid] = squad_id
         if squad_id not in self._squad_tactics:
             self._squad_tactics[squad_id] = SquadTactic.FIRE_CONCENTRATION
 
     def unregister_squad(self, squad_id: str) -> None:
+        """Remove a squad and clear all unit mappings and state for it."""
         to_remove = [uid for uid, sid in self._unit_squad_map.items() if sid == squad_id]
         for uid in to_remove:
             del self._unit_squad_map[uid]
@@ -70,6 +72,7 @@ class SquadCoordinator:
         all_units: list[Unit],
         game_map: GameMap,
     ) -> SquadOrder | None:
+        """Evaluate and return the best squad order for the given squad, or None."""
         if squad_id not in self._squad_tactics:
             return None
         if self._cooldowns.get(squad_id, 0) > 0:
@@ -121,7 +124,7 @@ class SquadCoordinator:
         return None
 
     def distribute_squad_order(self, order: SquadOrder) -> list[TacticIntent]:
-
+        """Translate a squad order into per-unit tactic intents based on its tactic type."""
         intents: list[TacticIntent] = []
         units = order.assigned_units
 
@@ -143,18 +146,22 @@ class SquadCoordinator:
         return intents
 
     def get_squad_for_unit(self, unit_id: str) -> str | None:
+        """Return the squad id for a unit, or None if not registered."""
         return self._unit_squad_map.get(unit_id)
 
     @property
     def active_squads(self) -> list[str]:
+        """Return a list of all currently registered squad ids."""
         return list(self._squad_tactics.keys())
 
     def tick(self) -> None:
+        """Decrement cooldowns for all squads each tick."""
         expired = [sid for sid, cd in self._cooldowns.items() if cd > 0]
         for sid in expired:
             self._cooldowns[sid] -= 1
 
     def get_squad_units(self, squad_id: str, all_units: list[Unit]) -> list[Unit]:
+        """Return all units belonging to the given squad."""
         return self._get_squad_units(squad_id, all_units)
 
     def _get_squad_units(self, squad_id: str, all_units: list[Unit]) -> list[Unit]:

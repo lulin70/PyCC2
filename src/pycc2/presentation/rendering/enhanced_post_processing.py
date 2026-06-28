@@ -20,6 +20,7 @@ class EnhancedPostProcessing:
     """增强后处理系统 - 目标评分 8.5+"""
 
     def __init__(self):
+        """Initialize the EnhancedPostProcessing."""
         self.rng = random.Random(42)
         self._grain_cache = {}
 

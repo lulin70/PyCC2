@@ -566,6 +566,7 @@ class MeleeCombatAI(TacticalAIBase):
     """
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return melee priority based on ammo scarcity and bayonet adjacency."""
         melee_candidates = self._melee_candidates(context)
         if not melee_candidates:
             return 0.0
@@ -589,6 +590,7 @@ class MeleeCombatAI(TacticalAIBase):
         return min(score, 0.5)  # Cap at 0.5 — never high priority
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate melee attack intents for bayonet-capable units adjacent to enemies."""
         melee_candidates = self._melee_candidates(context)
         if not melee_candidates:
             return []

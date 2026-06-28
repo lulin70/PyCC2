@@ -807,25 +807,32 @@ class EnhancedSoundSystem:
 
     # Convenience methods for common combat events
     def play_rifle_fire(self) -> bool:
+        """Play the rifle fire sound."""
         return self.play_combat_event(CombatSoundEvent.RIFLE_FIRE)
 
     def play_mg_fire(self) -> bool:
+        """Play the mg fire sound."""
         return self.play_combat_event(CombatSoundEvent.MG_FIRE)
 
     def play_explosion(self) -> bool:
+        """Play the explosion sound."""
         return self.play_combat_event(CombatSoundEvent.EXPLOSION)
 
     def play_unit_death(self) -> bool:
+        """Play the unit death sound."""
         return self.play_combat_event(CombatSoundEvent.UNIT_DEATH)
 
     def play_hit_confirmation(self, is_critical: bool = False) -> bool:
+        """Play the hit confirmation sound."""
         event = CombatSoundEvent.HIT_CRITICAL if is_critical else CombatSoundEvent.HIT_CONFIRM
         return self.play_combat_event(event)
 
     def play_weapon_reload(self) -> bool:
+        """Play the weapon reload sound."""
         return self.play_combat_event(CombatSoundEvent.WEAPON_RELOAD)
 
     def play_weapon_switch_sound(self) -> bool:
+        """Play the weapon switch sound sound."""
         return self.play_combat_event(CombatSoundEvent.WEAPON_SWITCH)
 
     # CC2-specific combat convenience methods
@@ -904,6 +911,7 @@ class EnhancedSoundSystem:
 
     @property
     def master_volume(self) -> float:
+        """Get the master volume."""
         return self._master_volume
 
     @master_volume.setter
@@ -912,6 +920,7 @@ class EnhancedSoundSystem:
 
     @property
     def sfx_volume(self) -> float:
+        """Get the sfx volume."""
         return self._sfx_volume
 
     @sfx_volume.setter

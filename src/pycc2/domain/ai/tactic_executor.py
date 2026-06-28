@@ -65,6 +65,7 @@ class TacticExecutor:
         self._logger = logging.getLogger("pycc2.ai.executor")
 
     def register_unit(self, unit: Unit) -> None:
+        """Register a unit so its intents can be resolved by the executor."""
         self._unit_registry[unit.id] = unit
 
     def register_smoke_capability(
@@ -76,10 +77,12 @@ class TacticExecutor:
         self._smoke_capabilities[unit_id] = capability
 
     def unregister_unit(self, unit_id: str) -> None:
+        """Remove a unit and its smoke capability from the executor."""
         self._unit_registry.pop(unit_id, None)
         self._smoke_capabilities.pop(unit_id, None)
 
     def execute(self, intent: TacticIntent) -> bool:
+        """Execute a tactic intent, returning True when the command was applied."""
         # Check unit morale state before executing any command
         unit = self._get_unit(intent.unit_id)
         if unit is not None:

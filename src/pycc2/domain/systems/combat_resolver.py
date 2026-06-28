@@ -35,6 +35,7 @@ class CombatResolver:
         target: Unit,
         game_map: GameMap | None = None,
     ) -> dict:
+        """Resolve a single attack between attacker and target units."""
         events_fired: list[str] = []
 
         if not attacker.can_act or not target.is_alive:
@@ -175,6 +176,7 @@ class CombatResolver:
         axis_units: list[Unit],
         game_map: GameMap,
     ) -> list[dict]:
+        """Resolve attacks for all units in a single combat turn."""
         results: list[dict] = []
         all_units = allies_units + axis_units
 

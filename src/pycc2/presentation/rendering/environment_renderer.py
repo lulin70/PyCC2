@@ -45,6 +45,7 @@ class EnvironmentRenderer:
     VIGNETTE_MAX_ALPHA = 40  # Maximum vignette darkness
 
     def __init__(self):
+        """Initialize the EnvironmentRenderer."""
         self._lighting_effects_sys = None  # Set via set_lighting_effects()
         self._lighting_config = None  # Set via set_lighting_config()
         self._offscreen = None  # Set via set_offscreen()

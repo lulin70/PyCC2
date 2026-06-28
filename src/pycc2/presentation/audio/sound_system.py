@@ -67,6 +67,7 @@ class ProceduralSoundGenerator:
 
     @classmethod
     def generate_click(cls, duration_ms: int = 50, frequency: float = 800.0) -> np.ndarray:
+        """Generate click."""
         n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
         t = np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
         envelope = np.exp(-t * 80)
@@ -75,6 +76,7 @@ class ProceduralSoundGenerator:
 
     @classmethod
     def generate_hover(cls, duration_ms: int = 20, frequency: float = 1200.0) -> np.ndarray:
+        """Generate hover."""
         n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
         t = np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
         envelope = np.exp(-t * 120)
@@ -83,6 +85,7 @@ class ProceduralSoundGenerator:
 
     @classmethod
     def generate_rifle_shot(cls, duration_ms: int = 150) -> np.ndarray:
+        """Generate rifle shot."""
         n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
         t = np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
 
@@ -99,6 +102,7 @@ class ProceduralSoundGenerator:
 
     @classmethod
     def generate_mg_burst(cls, duration_ms: int = 300, burst_count: int = 3) -> np.ndarray:
+        """Generate mg burst."""
         single = cls.generate_rifle_shot(duration_ms // burst_count)
         total_len = len(single) * burst_count
         result = np.zeros(total_len, dtype=np.int16)
@@ -111,6 +115,7 @@ class ProceduralSoundGenerator:
 
     @classmethod
     def generate_explosion(cls, duration_ms: int = 500) -> np.ndarray:
+        """Generate explosion."""
         n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
         t = np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
 
@@ -124,6 +129,7 @@ class ProceduralSoundGenerator:
 
     @classmethod
     def generate_hit_confirm(cls, duration_ms: int = 80) -> np.ndarray:
+        """Generate hit confirm."""
         n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
         t = np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
         fundamental = np.sign(np.sin(2 * np.pi * 600 * t)) * np.exp(-t * 30)
@@ -132,6 +138,7 @@ class ProceduralSoundGenerator:
 
     @classmethod
     def generate_death_cry(cls, duration_ms: int = 600) -> np.ndarray:
+        """Generate death cry."""
         n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
         t = np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
         freq_start, freq_end = 400.0, 100.0
@@ -234,6 +241,7 @@ class ProceduralSoundGenerator:
 
     @classmethod
     def generate_footstep(cls, surface: str = "grass") -> np.ndarray:
+        """Generate footstep."""
         duration_ms = 100
         n_samples = int(cls.SAMPLE_RATE * duration_ms / 1000)
         t = np.linspace(0, duration_ms / 1000, n_samples, dtype=np.float32)
@@ -280,6 +288,7 @@ class SoundSystem(SoundEffectsMixin):
         self._original_music_volume = self._config.music_volume
 
     def initialize(self) -> None:
+        """Initialize the sound system."""
         if self._initialized:
             return
         try:
@@ -324,6 +333,7 @@ class SoundSystem(SoundEffectsMixin):
                 logger.info("Individual sounds will be generated on-demand")
 
     def shutdown(self) -> None:
+        """Shut down the sound system."""
         if self._initialized:
             mixer.quit()
             self._initialized = False
@@ -375,6 +385,7 @@ class SoundSystem(SoundEffectsMixin):
             self._cache[sound_type.name] = sound
 
     def play(self, sound_type: SoundType, volume: float | None = None) -> bool:
+        """Play a sound."""
         if not self._available or not self._config.enabled:
             return False
 
@@ -459,23 +470,29 @@ class SoundSystem(SoundEffectsMixin):
 
     @property
     def config(self) -> SoundConfig:
+        """Get the config."""
         return self._config
 
     @property
     def initialized(self) -> bool:
+        """Get the initialized."""
         return self._initialized
 
     @property
     def available(self) -> bool:
+        """Get the available."""
         return self._available
 
     def set_master_volume(self, vol: float) -> None:
+        """Set the master volume."""
         self._config.master_volume = max(0.0, min(1.0, vol))
 
     def set_sfx_volume(self, vol: float) -> None:
+        """Set the sfx volume."""
         self._config.sfx_volume = max(0.0, min(1.0, vol))
 
     def toggle(self) -> bool:
+        """Toggle state."""
         self._config.enabled = not self._config.enabled
         return self._config.enabled
 
@@ -509,6 +526,7 @@ class SoundSystem(SoundEffectsMixin):
         listener_pos: Vec2,
         listener_facing: float = 0.0,
     ) -> tuple[float, float]:
+        """Calculate stereo pan."""
         dx = source_pos.x - listener_pos.x
         dy = source_pos.y - listener_pos.y
         source_angle = np.arctan2(dy, dx)
@@ -547,6 +565,7 @@ class SoundSystem(SoundEffectsMixin):
         listener_facing: float = 0.0,
         volume: float | None = None,
     ) -> bool:
+        """Play the 3d sound sound."""
         if not self._available or not self._config.enabled:
             return False
 
@@ -607,6 +626,7 @@ class SoundSystem(SoundEffectsMixin):
         volume: float | None = None,
         priority: SoundPriority = SoundPriority.MEDIUM,
     ) -> bool:
+        """Play the with priority sound."""
         active_count = len(self._active_sounds)
         max_sounds = self._mixer_config.max_simultaneous_sounds
 
@@ -651,24 +671,30 @@ class SoundSystem(SoundEffectsMixin):
 
     @property
     def active_sound_count(self) -> int:
+        """Get the active sound count."""
         return len(self._active_sounds)
 
     @property
     def peak_active_count(self) -> int:
+        """Get the peak active count."""
         return self._peak_active_count
 
     @property
     def dropped_sound_count(self) -> int:
+        """Get the dropped sound count."""
         return self._dropped_sound_count
 
     def set_category_volume(self, category: str, volume: float) -> None:
+        """Set the category volume."""
         if category in self._category_volumes:
             self._category_volumes[category] = max(0.0, min(1.0, volume))
 
     def get_category_volume(self, category: str) -> float:
+        """Get the category volume."""
         return self._category_volumes.get(category, 1.0)
 
     def duck_music(self, duck_volume: float = 0.2, duration_ms: int = 500) -> None:
+        """Duck music."""
         if self._music_ducked:
             return
         self._original_music_volume = self._config.music_volume
@@ -681,6 +707,7 @@ class SoundSystem(SoundEffectsMixin):
         self._music_ducked = True
 
     def restore_music(self, fade_ms: int = 1000) -> None:
+        """Restore music."""
         if not self._music_ducked:
             return
         target_volume = self._original_music_volume
@@ -701,10 +728,12 @@ class MusicPlayer:
         self._playing = False
 
     def play_ambient(self) -> None:
+        """Play the ambient sound."""
         if not self._sys._available or not self._sys.config.enabled:
             return
 
     def stop(self) -> None:
+        """Stop an action."""
         if not self._sys._available:
             return
         with contextlib.suppress(pygame_error):

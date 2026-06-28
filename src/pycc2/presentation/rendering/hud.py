@@ -20,6 +20,7 @@ class HUDManager:
     """Manages all HUD overlay elements."""
 
     def __init__(self, display_config: DisplayConfig | None = None):
+        """Initialize the HUDManager."""
         self._dc = display_config or DisplayConfig()
         self.spec = VisualSpec()
         self._font_large: Font | None = None

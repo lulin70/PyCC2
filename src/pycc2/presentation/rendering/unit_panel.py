@@ -31,6 +31,7 @@ class UnitPanel:
         width: int | None = None,
         height: int | None = None,
     ):
+        """Initialize the UnitPanel."""
         self._dc = display_config or DisplayConfig()
         self.width = width or int(DEFAULT_PANEL_WIDTH * self._dc.ui_scale)
         self.height = height or int(DEFAULT_PANEL_HEIGHT * self._dc.ui_scale)

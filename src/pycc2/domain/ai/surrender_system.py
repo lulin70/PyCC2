@@ -104,6 +104,7 @@ class SurrenderSystem:
 
     @property
     def fallen_caches(self) -> list[FallenUnitCache]:
+        """Return a copy of the registered fallen-unit caches."""
         return list(self._fallen_caches)
 
     # ------------------------------------------------------------------

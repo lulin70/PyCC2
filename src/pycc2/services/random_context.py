@@ -39,12 +39,15 @@ class RandomContext(IRandomNumberGenerator):
 
     @property
     def seed(self) -> int | None:
+        """Return the current RNG seed (None if unseeded)."""
         return self._seed
 
     def uniform(self, low: float = 0.0, high: float = 1.0) -> float:
+        """Return a uniformly distributed float in [low, high)."""
         return self._rng.uniform(low, high)
 
     def gauss(self, mu: float = 0.0, sigma: float = 1.0) -> float:
+        """Return a Gaussian-distributed float with given mean and stddev."""
         return self._rng.gauss(mu, sigma)
 
     def gaussian(self, mu: float = 0.0, sigma: float = 1.0) -> float:
@@ -52,9 +55,11 @@ class RandomContext(IRandomNumberGenerator):
         return self.gauss(mu, sigma)
 
     def randint(self, low: int, high: int) -> int:
+        """Return a random integer N such that low <= N <= high."""
         return self._rng.randint(low, high)
 
     def choice(self, seq: list) -> Any:
+        """Return a random element from the given sequence."""
         return self._rng.choice(seq)
 
     def probability(self, p: float) -> bool:

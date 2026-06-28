@@ -26,6 +26,7 @@ class SquadGroup:
 
     @property
     def is_empty(self) -> bool:
+        """Get the is empty."""
         return len(self.units) == 0
 
     @property

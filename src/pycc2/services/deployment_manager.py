@@ -119,6 +119,7 @@ class DeploymentManager:
 
     @property
     def is_active(self) -> bool:
+        """Return whether the deployment phase is currently active."""
         return self.deployment_phase_active
 
     # ------------------------------------------------------------------

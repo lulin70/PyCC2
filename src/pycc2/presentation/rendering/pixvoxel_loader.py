@@ -243,6 +243,7 @@ class PixVoxelLoader:
         auto_download: bool = False,
         offline_mode: bool = False,
     ):
+        """Initialize the PixVoxelLoader."""
         if assets_dir is None:
             project_root = Path(__file__).resolve().parent.parent.parent.parent.parent
             assets_dir = project_root / "assets"

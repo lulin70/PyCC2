@@ -32,6 +32,7 @@ class DecorationRenderer:
     """
 
     def __init__(self, ctx: RenderContext):
+        """Initialize the DecorationRenderer."""
         self._ctx = ctx
         from pycc2.presentation.rendering.sprite_generator import SpriteGenerator
 
@@ -91,9 +92,11 @@ class DecorationRenderer:
                     self._ctx.offscreen.blit(sprite, rect)
 
     def get_sprite(self, deco_type_name: str, variant: int = 0) -> pygame.Surface:
+        """Get the sprite."""
         return self._sprite_gen.generate_sprite(deco_type_name, variant)
 
     def cache_sprite(self, deco_type_name: str, variant: int = 0) -> pygame.Surface:
+        """Cache sprite."""
         cache_key = f"{deco_type_name}_{variant}"
 
         if self._ctx.sprite_cache:

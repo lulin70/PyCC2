@@ -55,6 +55,7 @@ class TacticalContext:
 
     @property
     def friendly_faction(self) -> Faction | None:
+        """Return the faction of the first friendly unit, or None when empty."""
         if self.friendly_units:
             return self.friendly_units[0].faction
         return None

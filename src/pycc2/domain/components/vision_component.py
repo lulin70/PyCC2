@@ -20,22 +20,27 @@ class VisionComponent:
     visible_tiles: set[tuple[int, int]] = field(default_factory=set)
 
     def needs_update(self, current_tick: int, interval: int = 5) -> bool:
+        """Return whether vision should be recomputed this tick."""
         if self.last_update_tick == 0 and current_tick == 0:
             return True
         return current_tick - self.last_update_tick >= interval
 
     def mark_updated(self, tick: int) -> None:
+        """Record the tick on which vision was last recomputed."""
         self.last_update_tick = tick
 
     def can_see_tile(self, x: int, y: int) -> bool:
+        """Return whether the given tile is currently visible."""
         return (x, y) in self.visible_tiles
 
     def reveal_tiles(self, tiles: set[tuple[int, int]]) -> set[tuple[int, int]]:
+        """Add tiles to visible set and return the newly revealed ones."""
         new_tiles = tiles - self.visible_tiles
         self.visible_tiles.update(tiles)
         return new_tiles
 
     def clear_vision(self) -> None:
+        """Clear all currently visible tiles."""
         self.visible_tiles.clear()
 
     def effective_range(self, time_of_day: str | None = None, weather_modifier: float = 1.0) -> int:

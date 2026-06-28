@@ -74,6 +74,7 @@ class FatigueComponent:
 
     @property
     def level(self) -> FatigueLevel:
+        """Return the current fatigue level tier based on accumulated value."""
         v = min(self.value, self.max_fatigue)
         for level, threshold in sorted(
             FATIGUE_THRESHOLDS.items(), key=lambda x: x[1], reverse=True
@@ -84,25 +85,31 @@ class FatigueComponent:
 
     @property
     def level_name(self) -> str:
+        """Return the name of the current fatigue level tier."""
         return self.level.name
 
     @property
     def accuracy_modifier(self) -> float:
+        """Return the accuracy multiplier imposed by current fatigue."""
         return FATIGUE_EFFECTS[self.level]["accuracy"]
 
     @property
     def movement_modifier(self) -> float:
+        """Return the movement speed multiplier imposed by current fatigue."""
         return FATIGUE_EFFECTS[self.level]["movement"]
 
     @property
     def panic_probability_mod(self) -> float:
+        """Return the panic probability multiplier imposed by current fatigue."""
         return FATIGUE_EFFECTS[self.level]["panic_mod"]
 
     @property
     def morale_drain_rate(self) -> float:
+        """Return the morale drain per tick imposed by current fatigue."""
         return FATIGUE_EFFECTS[self.level]["morale_drain"]
 
     def accumulate(self, activity: str, ticks: int = 1, is_night: bool = False) -> None:
+        """Accumulate fatigue from the given activity over the given ticks."""
         rate = FATIGUE_RATES.get(activity, 0.0)
         delta = rate * ticks
         if is_night and activity != "resting":
@@ -111,15 +118,18 @@ class FatigueComponent:
         self._check_level_change()
 
     def recover(self, ticks: int = 1, recovery_multiplier: float = 1.0) -> None:
+        """Reduce fatigue through active recovery over the given ticks."""
         base_recovery = 0.008 * recovery_multiplier * ticks
         self.value = max(0.0, self.value - base_recovery)
         self._check_level_change()
 
     def rest_full(self) -> None:
+        """Reset fatigue to zero (full rest)."""
         self.value = 0.0
         self.ticks_at_current_level = 0
 
     def partial_rest(self, pct: float = 0.4) -> None:
+        """Reduce fatigue by a fraction (default 40%) of its current value."""
         self.value = max(0.0, self.value * (1.0 - pct))
         self._check_level_change()
 
@@ -133,6 +143,7 @@ class FatigueComponent:
                 break
 
     def to_dict(self) -> dict:
+        """Serialize the component to a plain dict for saving."""
         return {
             "value": round(self.value, 2),
             "level": self.level.name,
@@ -141,6 +152,7 @@ class FatigueComponent:
 
     @classmethod
     def from_dict(cls, data: dict) -> FatigueComponent:
+        """Reconstruct a FatigueComponent from a saved dict."""
         return cls(
             value=data.get("value", 0.0),
             ticks_at_current_level=data.get("ticks_at_level", 0),

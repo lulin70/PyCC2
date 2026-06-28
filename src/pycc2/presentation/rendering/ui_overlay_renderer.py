@@ -46,6 +46,7 @@ class UIOverlayRenderer:
     PULSE_FREQUENCY = 2.0
 
     def __init__(self, ctx: RenderContext):
+        """Initialize the UIOverlayRenderer."""
         self._ctx = ctx
         self._attack_line_system = None
         self._los_overlay: pygame.Surface | None = None

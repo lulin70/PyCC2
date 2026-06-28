@@ -68,6 +68,7 @@ class StrategicMapView:
     _bg_size: tuple[int, int] = field(default=(0, 0), init=False, repr=False)
 
     def __init__(self):
+        """Initialize the StrategicMapView."""
         self.sectors = {}
         self._load_default_sectors()
 
@@ -193,10 +194,12 @@ class StrategicMapView:
 
     @property
     def sector_count(self) -> int:
+        """Get the sector count."""
         return len(self.sectors)
 
     @property
     def allied_sectors(self) -> list[str]:
+        """Get the allied sectors."""
         return [
             sid
             for sid, sector in self.sectors.items()
@@ -205,6 +208,7 @@ class StrategicMapView:
 
     @property
     def axis_sectors(self) -> list[str]:
+        """Get the axis sectors."""
         return [
             sid
             for sid, sector in self.sectors.items()

@@ -105,17 +105,21 @@ class InteractionController:
 
     @property
     def mode(self) -> InteractionMode:
+        """Get the mode."""
         return self._mode
 
     @property
     def camera(self) -> Camera:
+        """Get the camera."""
         return self._camera
 
     @property
     def selected_unit_ids(self) -> set[str]:
+        """Get the selected unit ids."""
         return self._selected_ids
 
     def set_mode(self, mode: InteractionMode, fast: bool = False, sneak: bool = False) -> None:
+        """Set the mode."""
         self._mode = mode
         self._move_fast = fast
         self._move_sneak = sneak
@@ -128,6 +132,7 @@ class InteractionController:
             self.cursor_manager.set_cursor(CursorType.DEFAULT)
 
     def screen_to_tile(self, screen_pos: tuple[float, float]) -> TileCoord:
+        """Convert screen coordinates to tile coordinates."""
         from pycc2.domain.value_objects.tile_coord import TileCoord
 
         if self._camera is None or self._game_map is None:
@@ -270,6 +275,7 @@ class InteractionController:
         units: list[Unit],
         modifiers: tuple[bool, ...] = (False, False, False, False),
     ) -> set[str]:
+        """Handle left click."""
         result = self.hit_test(screen_pos, units)
 
         # In MOVE or ATTACK mode, execute command on left click
@@ -442,6 +448,7 @@ class InteractionController:
     def handle_right_click(
         self, screen_pos: tuple[float, float], units: list[Unit], shift_held: bool = False
     ) -> None:
+        """Handle right click."""
         if not self._selected_ids:
             return
 
@@ -508,6 +515,7 @@ class InteractionController:
             )
 
     def handle_shortcut_key(self, key: int) -> None:
+        """Handle shortcut key."""
         import pygame
 
         # PS-11: Use KeybindManager if available, otherwise fall back to hardcoded keys
@@ -581,18 +589,23 @@ class InteractionController:
                 self._camera.projection = ProjectionMode.ORTHOGRAPHIC
 
     def register_on_selected(self, callback: Callable[[set[str]], None]) -> None:
+        """Register on selected."""
         self._on_unit_selected = callback
 
     def register_on_move(self, callback: Callable[[set[str], Vec2 | TileCoord], None]) -> None:
+        """Register on move."""
         self._on_move_command = callback
 
     def register_on_attack(self, callback: Callable[[set[str], str], None]) -> None:
+        """Register on attack."""
         self._on_attack_command = callback
 
     def register_on_deselect(self, callback: Callable[[], None]) -> None:
+        """Register on deselect."""
         self._on_deselect = callback
 
     def clear_selection(self) -> None:
+        """Clear selection."""
         self._selected_ids.clear()
         self._mode = InteractionMode.SELECT
         self.cursor_manager.set_cursor(CursorType.DEFAULT)
@@ -722,6 +735,7 @@ class InteractionController:
 
     @property
     def ctrl_held(self) -> bool:
+        """Get the ctrl held."""
         return self._ctrl_held
 
     # ====== Overlay rendering ======

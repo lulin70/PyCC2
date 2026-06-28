@@ -39,12 +39,14 @@ class ParticlePool:
         )
 
     def acquire(self):
+        """Acquire a particle from the pool."""
         p = self._pool.pop() if self._pool else self._new_particle()
         p._pool_active = True
         self._active_count += 1
         return p
 
     def release(self, particle) -> None:
+        """Release a particle back to the pool."""
         if getattr(particle, "_pool_active", False) is False:
             return
         particle._pool_active = False
@@ -54,16 +56,19 @@ class ParticlePool:
             self._pool.append(particle)
 
     def acquire_dict(self) -> dict:
+        """Acquire dict."""
         d = self._dict_pool.pop() if self._dict_pool else {}
         self._dict_active_count += 1
         return d
 
     def release_dict(self, d: dict) -> None:
+        """Release dict."""
         self._dict_active_count -= 1
         d.clear()
         self._dict_pool.append(d)
 
     def update(self, emitter: ParticleEmitter) -> None:
+        """Update internal state."""
         alive = []
         for p in emitter.particles:
             p.vx *= p.friction
@@ -81,16 +86,20 @@ class ParticlePool:
 
     @property
     def active_count(self) -> int:
+        """Get the active count."""
         return self._active_count
 
     @property
     def pool_size(self) -> int:
+        """Get the pool size."""
         return len(self._pool)
 
     @property
     def dict_active_count(self) -> int:
+        """Get the dict active count."""
         return self._dict_active_count
 
     @property
     def dict_pool_size(self) -> int:
+        """Get the dict pool size."""
         return len(self._dict_pool)

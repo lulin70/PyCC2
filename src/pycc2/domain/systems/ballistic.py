@@ -114,6 +114,7 @@ class BallisticEngine:
 
     @property
     def swiss_cheese(self) -> SwissCheeseEngine:
+        """Return the Swiss Cheese damage engine, lazily instantiated."""
         if self._swiss_cheese is None:
             self._swiss_cheese = SwissCheeseEngine()
         return self._swiss_cheese
@@ -126,6 +127,7 @@ class BallisticEngine:
         game_map: GameMap | None = None,
         environment=None,
     ) -> ShotResult:
+        """Resolve a single ballistic shot from attacker against target."""
         if not attacker.health.is_alive:
             return ShotResult(
                 hit=False,
@@ -381,6 +383,7 @@ class BallisticEngine:
         environment=None,
         enable_sc: bool = True,
     ) -> tuple[ShotResult, SwissCheeseResult | None]:
+        """Resolve a shot and apply the Swiss Cheese damage model on a hit."""
         base_result = self.calculate_shot(attacker, target, weapon_slot, game_map, environment)
 
         if not enable_sc or not base_result.hit:

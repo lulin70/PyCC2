@@ -70,6 +70,7 @@ class KeybindManager:
     """Manages customizable keybindings with save/load support."""
 
     def __init__(self) -> None:
+        """Initialize the KeybindManager."""
         self._bindings: dict[str, tuple[int, ...]] = {k: v for k, v in DEFAULT_KEYBINDS.items()}
         self._listening: str | None = None
         self._load_bindings()
@@ -165,10 +166,12 @@ class KeybindManager:
 
     @property
     def is_listening(self) -> bool:
+        """Get the is listening."""
         return self._listening is not None
 
     @property
     def listening_action(self) -> str | None:
+        """Get the listening action."""
         return self._listening
 
     def reset_to_default(self) -> None:

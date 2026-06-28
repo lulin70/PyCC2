@@ -200,6 +200,7 @@ class DirectionSpriteManager:
     _cache: dict[str, DirectionSpriteSet] = {}
 
     def __new__(cls) -> DirectionSpriteManager:
+        """  new  ."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -372,4 +373,5 @@ class DirectionSpriteManager:
 
     @property
     def cache_size(self) -> int:
+        """Get the cache size."""
         return len(self._cache)

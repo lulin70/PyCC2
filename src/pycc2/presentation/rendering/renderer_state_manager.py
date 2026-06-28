@@ -37,6 +37,7 @@ class RendererStateManager:
     FPS_ENABLE_THRESHOLD = 55.0  # re-enable above this FPS
 
     def __init__(self, tile_size: int):
+        """Initialize the RendererStateManager."""
         self._tile_size = tile_size
         self._screen: pygame.Surface | None = None
         self._offscreen: pygame.Surface | None = None
@@ -50,18 +51,22 @@ class RendererStateManager:
 
     @property
     def screen(self) -> pygame.Surface | None:
+        """Get the screen."""
         return self._screen
 
     @property
     def offscreen(self) -> pygame.Surface | None:
+        """Get the offscreen."""
         return self._offscreen
 
     @property
     def post_processing(self) -> PostProcessingEffects | None:
+        """Get the post processing."""
         return self._post_processing
 
     @property
     def dirty_tracker(self) -> _DirtyRectTracker | None:
+        """Get the dirty tracker."""
         return self._dirty_tracker
 
     @property

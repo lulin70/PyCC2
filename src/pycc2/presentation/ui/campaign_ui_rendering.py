@@ -27,6 +27,7 @@ class CampaignUIRenderer:
     """Renders every screen state for CampaignUI."""
 
     def __init__(self, ui: CampaignUI) -> None:
+        """Initialize the CampaignUIRenderer."""
         self._ui = ui
 
     # ------------------------------------------------------------------

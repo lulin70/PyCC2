@@ -83,6 +83,7 @@ class PaletteSet:
 
     @classmethod
     def allies(cls) -> PaletteSet:
+        """Return the allies palette set."""
         return cls(
             is_allies=True,
             helmet=CCPalette.ALLIES_HELMET.value,
@@ -95,6 +96,7 @@ class PaletteSet:
 
     @classmethod
     def axis(cls) -> PaletteSet:
+        """Return the axis palette set."""
         return cls(
             is_allies=False,
             helmet=CCPalette.AXIS_HELMET.value,
@@ -119,6 +121,7 @@ class PixelCanvas:
     """
 
     def __init__(self, width: int, height: int, bg: tuple[int, ...] | None = None):
+        """Initialize the PixelCanvas."""
         import numpy as np
 
         self.width = width
@@ -130,6 +133,7 @@ class PixelCanvas:
 
     @property
     def pixels(self) -> np.ndarray:
+        """Get the pixels."""
         return self._pixels
 
     def set_pixel(self, x: int, y: int, color: tuple[int, ...]) -> None:

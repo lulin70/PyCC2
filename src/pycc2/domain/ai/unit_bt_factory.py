@@ -23,6 +23,7 @@ class UnitBTFactory:
 
     @staticmethod
     def create_infantry_bt(unit_id: str) -> BTNode:
+        """Assemble the behavior tree for standard infantry units."""
         def _check_low_health(bb: Blackboard) -> bool:
             return float(bb.get("health_ratio", 1.0)) < 0.3
 
@@ -148,6 +149,7 @@ class UnitBTFactory:
 
     @staticmethod
     def create_mg_squad_bt(unit_id: str) -> BTNode:
+        """Assemble the behavior tree for machine gun squad units."""
         def _check_low_health(bb: Blackboard) -> bool:
             return float(bb.get("health_ratio", 1.0)) < 0.25
 
@@ -264,6 +266,7 @@ class UnitBTFactory:
 
     @staticmethod
     def create_commander_bt(unit_id: str) -> BTNode:
+        """Assemble the behavior tree for commander units."""
         def _check_critical_health(bb: Blackboard) -> bool:
             return float(bb.get("health_ratio", 1.0)) < 0.2
 

@@ -137,10 +137,12 @@ class ArtilleryManager:
 
     @property
     def missions_remaining(self) -> int:
+        """Return the number of fire missions still available."""
         return self._missions_remaining
 
     @property
     def active_missions(self) -> list[ArtilleryMission]:
+        """Return a list of all currently active artillery missions."""
         return list(self._active_missions.values())
 
     def can_call_mission(self, observer_id: str) -> bool:
@@ -302,9 +304,11 @@ class ArtilleryCallinAI(TacticalAIBase):
 
     @property
     def manager(self) -> ArtilleryManager:
+        """Return the backing artillery manager instance."""
         return self._manager
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return artillery call-in priority based on enemy concentration and observer LOS."""
         observers = self._available_observers(context)
         if not observers:
             return 0.0
@@ -324,6 +328,7 @@ class ArtilleryCallinAI(TacticalAIBase):
         return min(score, 1.0)
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate CALL_ARTILLERY intents for observers with LOS to concentrated enemies."""
         observers = self._available_observers(context)
         if not observers or self._manager.missions_remaining <= 0:
             return []

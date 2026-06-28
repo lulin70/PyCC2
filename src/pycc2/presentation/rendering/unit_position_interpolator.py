@@ -23,6 +23,7 @@ class UnitPositionInterpolator:
     LERP_SPEED = 12.0  # units per second — higher = snappier tracking
 
     def __init__(self) -> None:
+        """Initialize the UnitPositionInterpolator."""
         self._unit_positions: dict[str, tuple[float, float]] = {}
 
     def smooth_positions(self, units: list[Unit], dt: float) -> None:

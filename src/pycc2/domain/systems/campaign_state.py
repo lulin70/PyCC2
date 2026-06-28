@@ -52,17 +52,20 @@ class PersistentUnit:
 
     @property
     def hp_ratio(self) -> float:
+        """Return current HP as a fraction of max HP."""
         if self.max_hp <= 0:
             return 0.0
         return self.current_hp / self.max_hp
 
     @property
     def ammo_ratio(self) -> float:
+        """Return current ammo as a fraction of max ammo."""
         if self.max_ammo <= 0:
             return 1.0
         return self.current_ammo / self.max_ammo
 
     def apply_battle_result(self, record: dict) -> None:
+        """Apply a battle record to update HP, ammo, alive status, and veterancy."""
         self.battles_participated += 1
         self.current_hp = record.get("hp_end", self.current_hp)
         self.current_ammo = max(0, self.current_ammo - record.get("ammo_used", 0))
@@ -74,6 +77,7 @@ class PersistentUnit:
             self.veterancy.kills += record["kills"]
 
     def replenish(self, hp_pct: float = 0.3, ammo_pct: float = 0.5) -> None:
+        """Restore a percentage of HP and ammo for a surviving unit."""
         if self.is_alive:
             hp_gain = int(self.max_hp * hp_pct)
             self.current_hp = min(self.max_hp, self.current_hp + hp_gain)
@@ -81,6 +85,7 @@ class PersistentUnit:
             self.current_ammo = min(self.max_ammo, self.current_ammo + ammo_gain)
 
     def to_dict(self) -> dict:
+        """Serialize the persistent unit state to a dictionary."""
         return {
             "unit_id": self.unit_id,
             "name": self.name,
@@ -96,6 +101,7 @@ class PersistentUnit:
 
     @classmethod
     def from_dict(cls, data: dict) -> PersistentUnit:
+        """Reconstruct a PersistentUnit from a serialized dictionary."""
         vet_data = data.get("veterancy", {})
         return cls(
             unit_id=data["unit_id"],
@@ -139,18 +145,22 @@ class CampaignState:
 
     @property
     def alive_allied_count(self) -> int:
+        """Return the number of allied units still alive."""
         return sum(1 for u in self.allied_units if u.is_alive)
 
     @property
     def alive_axis_count(self) -> int:
+        """Return the number of axis units still alive."""
         return sum(1 for u in self.axis_units if u.is_alive)
 
     @property
     def bridges_held(self) -> int:
+        """Return the number of bridges currently captured."""
         return sum(1 for v in self.bridges_captured.values() if v)
 
     @property
     def campaign_progress_pct(self) -> float:
+        """Return campaign progress as the fraction of bridges held (0-1)."""
         total_bridges = len(self.bridges_captured)
         if total_bridges == 0:
             return 0.0
@@ -158,6 +168,7 @@ class CampaignState:
 
     @property
     def average_allied_veterancy(self) -> float:
+        """Return the average veterancy rank of surviving allied units."""
         alive = [u for u in self.allied_units if u.is_alive]
         if not alive:
             return 0.0
@@ -171,6 +182,7 @@ class CampaignState:
         return avg
 
     def advance_day(self) -> None:
+        """Advance the campaign to the next operation phase."""
         days = list(OperationPhase)
         current_idx = days.index(self.current_day)
         if current_idx < len(days) - 1:
@@ -178,6 +190,7 @@ class CampaignState:
         self.enemy_strength_modifier = 1.0 + (current_idx + 1) * 0.15
 
     def record_battle(self, result: BattleResult) -> None:
+        """Record a completed battle, updating VP, morale, and unit states."""
         self.battle_history.append(result)
         self.total_battles_played += 1
         self.current_battle_number += 1
@@ -208,6 +221,7 @@ class CampaignState:
                 break
 
     def replenish_all_units(self) -> None:
+        """Replenish HP and ammo for all living units on both sides."""
         for unit in self.allied_units:
             if unit.is_alive:
                 unit.replenish(hp_pct=0.25, ammo_pct=0.4)
@@ -216,6 +230,7 @@ class CampaignState:
                 unit.replenish(hp_pct=0.2, ammo_pct=0.3)
 
     def capture_bridge(self, bridge_key: str) -> bool:
+        """Mark the given bridge as captured; return True if the bridge key exists."""
         if bridge_key in self.bridges_captured:
             self.bridges_captured[bridge_key] = True
             return True
@@ -223,6 +238,7 @@ class CampaignState:
 
     @property
     def is_campaign_over(self) -> bool:
+        """Return True if the campaign has reached a terminal state."""
         if all(self.bridges_captured.values()):
             return True
         if self.alive_allied_count == 0:
@@ -231,6 +247,7 @@ class CampaignState:
 
     @property
     def campaign_outcome(self) -> str:
+        """Return the current campaign outcome label based on bridge and unit state."""
         if not self.is_campaign_over:
             return "ongoing"
         if all(self.bridges_captured.values()):
@@ -242,6 +259,7 @@ class CampaignState:
         return "marginal_result"
 
     def to_dict(self) -> dict:
+        """Serialize the campaign state into a plain dictionary for persistence."""
         return {
             "campaign_id": self.campaign_id,
             "current_day": self.current_day.name,
@@ -259,6 +277,7 @@ class CampaignState:
 
     @classmethod
     def from_dict(cls, data: dict) -> CampaignState:
+        """Reconstruct a CampaignState from a previously serialized dictionary."""
         allied = [PersistentUnit.from_dict(u) for u in data.get("allied_units", [])]
         axis = [PersistentUnit.from_dict(u) for u in data.get("axis_units", [])]
         history = [BattleResult.from_dict(b) for b in data.get("battle_history", [])]
@@ -288,6 +307,7 @@ class CampaignState:
 
     @classmethod
     def create_default(cls) -> CampaignState:
+        """Create a default CampaignState with starter allied units."""
         state = cls()
         starting_allies = [
             ("A-101", "Alpha Co", "INFANTRY_SQUAD"),

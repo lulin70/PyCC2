@@ -40,10 +40,12 @@ class MoraleComponent:
 
     @property
     def is_combat_effective(self) -> bool:
+        """Return whether the unit can still fight (rallied or wavering)."""
         return self.state in (MoraleState.RALLIED, MoraleState.WAVERING)
 
     @property
     def accuracy_modifier(self) -> float:
+        """Return the accuracy multiplier imposed by current morale state."""
         modifiers = {
             MoraleState.RALLIED: 1.05,
             MoraleState.WAVERING: 0.95,
@@ -54,16 +56,19 @@ class MoraleComponent:
         return modifiers.get(self.state, 1.0)
 
     def apply_delta(self, delta: int) -> None:
+        """Apply a positive or negative morale delta and refresh state."""
         self.value += delta
         self._clamp_value()
         self._update_state()
 
     def add_suppression(self, amount: int) -> None:
+        """Add suppression and drop rallied units to wavering."""
         self.suppression += amount
         if self.suppression > 0 and self.state == MoraleState.RALLIED:
             self.state = MoraleState.WAVERING
 
     def decay_suppression(self, amount: int) -> None:
+        """Reduce suppression by the given amount and refresh state when cleared."""
         self.suppression = max(0, self.suppression - amount)
         if self.suppression == 0:
             self._update_state()
@@ -94,9 +99,11 @@ class MoraleComponent:
         self.value = max(0, min(100, self.value))
 
     def start_routing(self) -> None:
+        """Force the unit into routing state."""
         self._is_routing = True
         self.state = MoraleState.ROUTING
 
     def stop_routing(self) -> None:
+        """Clear routing state and recompute morale state."""
         self._is_routing = False
         self._update_state()

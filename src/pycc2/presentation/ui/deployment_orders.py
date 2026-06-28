@@ -20,6 +20,7 @@ class DeploymentOrders:
     """
 
     def __init__(self) -> None:
+        """Initialize the DeploymentOrders."""
         # === Pre-battle orders (GAP-8) ===
         self._pending_orders: dict[
             str, tuple[int, int]

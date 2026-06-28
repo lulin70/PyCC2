@@ -75,12 +75,15 @@ class CommanderOrder:
 
     @property
     def created_tick(self) -> int:
+        """Return the tick at which this order was created."""
         return self._created_tick
 
     def set_created_tick(self, tick: int) -> None:
+        """Set the creation tick used for expiry tracking."""
         object.__setattr__(self, "_created_tick", tick)
 
     def is_expired(self, current_tick: int) -> bool:
+        """Return whether the order has expired relative to the current tick."""
         if self.expires_in_ticks == -1:
             return False
         return current_tick - self._created_tick >= self.expires_in_ticks
@@ -127,14 +130,17 @@ class CommanderAI:
 
     @property
     def commander(self) -> Unit:
+        """Return the commander unit driving this AI."""
         return self._commander
 
     @property
     def picture(self) -> BattlefieldPicture:
+        """Return the latest aggregated battlefield picture."""
         return self._picture
 
     @property
     def role(self) -> CommanderRole:
+        """Return the command role scope of this commander."""
         return self._role
 
     def assess_battlefield(
@@ -143,6 +149,7 @@ class CommanderAI:
         game_map: GameMap,
         current_tick: int,
     ) -> BattlefieldPicture:
+        """Aggregate allied and enemy dispositions into a fresh battlefield picture."""
 
         pic = BattlefieldPicture()
         my_faction = self._commander.faction
@@ -292,6 +299,7 @@ class CommanderAI:
         squad_coordinator: SquadCoordinator | None = None,
         difficulty_config: DifficultyConfig | None = None,
     ) -> list[CommanderOrder]:
+        """Generate tactical orders for managed units based on the current battlefield picture."""
         from pycc2.domain.ai.tactic_intent import TacticType
 
         aggressiveness = 0.5
@@ -508,13 +516,16 @@ class CommanderAI:
         )
 
     def get_pending_orders_for_unit(self, unit_id: str) -> list[CommanderOrder]:
+        """Return pending orders whose target unit list includes the given unit id."""
         return [o for o in self._pending_orders if unit_id in o.target_unit_ids]
 
     def expire_old_orders(self, current_tick: int) -> None:
+        """Remove orders from the pending list that have expired at current_tick."""
         surviving = [o for o in self._pending_orders if not o.is_expired(current_tick)]
         self._pending_orders = surviving
 
     def convert_to_unit_intents(self, orders: list[CommanderOrder]) -> list[TacticIntent]:
+        """Convert commander orders into per-unit tactic intents."""
         from pycc2.domain.ai.tactic_intent import TacticIntent
 
         intents: list[TacticIntent] = []
@@ -532,6 +543,7 @@ class CommanderAI:
 
     @staticmethod
     def calculate_threat_score(unit: Unit, distance_to_commander: float) -> float:
+        """Compute a threat score for an enemy based on fire power, distance, and health."""
         dist_factor = 1.0 / max(distance_to_commander, 1)
         fire_power = _get_fire_power(unit.unit_type.value)
         health_factor = unit.health.hp_ratio
@@ -548,6 +560,7 @@ class TacticalAdvisor:
         game_map: GameMap,
         ally_positions: list[TileCoord],
     ) -> list[TileCoord]:
+        """Suggest a step path toward the most attackable enemy position."""
         if not enemy_positions:
             return []
 
@@ -574,6 +587,7 @@ class TacticalAdvisor:
         unit_count: int,
         game_map: GameMap,
     ) -> list[TileCoord]:
+        """Suggest cover terrain positions near the fallback point for the given unit count."""
         from pycc2.domain.value_objects.terrain_type import TerrainType
 
         cover_types = {
@@ -602,6 +616,7 @@ class TacticalAdvisor:
         game_map: GameMap,
         enemy_positions: list[TileCoord],
     ) -> list[TileCoord]:
+        """Suggest a retreat route from unit_pos to safe_zone avoiding enemy line of sight."""
         route = [unit_pos]
         current = unit_pos
         for _ in range(current.manhattan_distance(safe_zone)):
@@ -628,6 +643,7 @@ class TacticalAdvisor:
         allies: list[Unit],
         enemies: list[Unit],
     ) -> dict[str, str]:
+        """Return a mapping of ally unit id to best assigned enemy target id."""
         allocation: dict[str, str] = {}
         if not allies or not enemies:
             return allocation

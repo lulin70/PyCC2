@@ -66,10 +66,12 @@ class SpatialHash:
     # ------------------------------------------------------------------
 
     def clear(self) -> None:
+        """Remove all units and cells from the spatial hash."""
         self._cells.clear()
         self._unit_data.clear()
 
     def insert(self, unit_id: str, position: TileCoord, faction: Faction) -> None:
+        """Insert a unit into the grid, replacing any existing entry with the same id."""
         if unit_id in self._unit_data:
             self.remove(unit_id)
         cell = self._cell_key(position)
@@ -82,6 +84,7 @@ class SpatialHash:
         self._add_to_cell(cell, unit_id)
 
     def remove(self, unit_id: str) -> None:
+        """Remove a unit from the spatial hash by id."""
         entry = self._unit_data.pop(unit_id, None)
         if entry is not None:
             self._remove_from_cell(entry.cell, unit_id)
@@ -92,6 +95,7 @@ class SpatialHash:
         radius: int,
         exclude_faction: Faction | None = None,
     ) -> list[str]:
+        """Return unit ids within the given tile radius of center, optionally excluding a faction."""
         if radius < 0:
             return []
         # Determine the bounding box of cells that could contain results.
@@ -126,6 +130,7 @@ class SpatialHash:
         y_max: int,
         exclude_faction: Faction | None = None,
     ) -> list[str]:
+        """Return unit ids inside the given axis-aligned rectangle, optionally excluding a faction."""
         min_cx = x_min // self._cell_size
         max_cx = x_max // self._cell_size
         min_cy = y_min // self._cell_size
@@ -148,14 +153,17 @@ class SpatialHash:
         return result
 
     def get_position(self, unit_id: str) -> TileCoord | None:
+        """Return the current tile position of the unit, or None if not tracked."""
         entry = self._unit_data.get(unit_id)
         return entry.position if entry is not None else None
 
     def get_faction(self, unit_id: str) -> Faction | None:
+        """Return the faction of the unit, or None if not tracked."""
         entry = self._unit_data.get(unit_id)
         return entry.faction if entry is not None else None
 
     def update(self, unit_id: str, new_position: TileCoord) -> None:
+        """Move a tracked unit to a new tile position, migrating cells when needed."""
         entry = self._unit_data.get(unit_id)
         if entry is None:
             return
@@ -167,9 +175,11 @@ class SpatialHash:
         entry.cell = new_cell
 
     def unit_count(self) -> int:
+        """Return the number of units currently tracked in the spatial hash."""
         return len(self._unit_data)
 
     def build_from_units(self, units: list) -> None:
+        """Reset the hash and populate it from an iterable of unit objects."""
         self.clear()
         for unit in units:
             self.insert(unit.id, unit.position.tile_coord, unit.faction)

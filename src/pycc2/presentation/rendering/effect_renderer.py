@@ -63,6 +63,7 @@ class EffectRenderer:
     MAX_DAMAGE_NUMBERS: int = 50
 
     def __init__(self, display_config: DisplayConfig | None = None):
+        """Initialize the EffectRenderer."""
         from pycc2.domain.interfaces.display_config import DisplayConfig as DC
 
         self._display_config: DisplayConfig = display_config or DC()
@@ -85,12 +86,14 @@ class EffectRenderer:
     # ====== Public API: Spawn effects ======
 
     def spawn_hit_flash(self, unit_id: str) -> None:
+        """Spawn hit flash."""
         self._flash_units[unit_id] = 8
         self._screen_shake.trigger(intensity=2.0, duration_ticks=8)
         if unit_id in self._unit_animators:
             self._unit_animators[unit_id].set_animation(AnimationType.HIT_REACT)
 
     def spawn_damage_number(self, position: Vec2, damage: int, is_kill: bool = False) -> None:
+        """Spawn damage number."""
         if len(self._damage_numbers) >= self.MAX_DAMAGE_NUMBERS:
             self._damage_numbers.popleft()
         self._damage_numbers.append(
@@ -104,10 +107,12 @@ class EffectRenderer:
         )
 
     def spawn_muzzle_flash(self, position: Vec2, direction: float) -> None:
+        """Spawn muzzle flash."""
         self._particle_emitter.emit_muzzle_flash(position.x, position.y, direction, count=10)
         self._screen_shake.trigger(intensity=3.0, duration_ticks=10)
 
     def spawn_death_effect(self, unit_id: str, position: Vec2) -> None:
+        """Spawn death effect."""
         self._particle_emitter.emit_blood(position.x, position.y, count=12)
         self._particle_emitter.emit_debris(position.x, position.y, count=8)
         self._particle_emitter.emit_smoke(position.x, position.y, count=4)
@@ -128,6 +133,7 @@ class EffectRenderer:
         }
 
     def spawn_explosion(self, position: Vec2, size: str = "medium") -> None:
+        """Spawn explosion."""
         configs = {
             "small": {"core": 3, "smoke": 2, "debris": 3, "core_life": 10, "smoke_life": 18},
             "medium": {"core": 6, "smoke": 4, "debris": 6, "core_life": 18, "smoke_life": 30},
@@ -203,11 +209,13 @@ class EffectRenderer:
         self._crater_decals.clear()
 
     def spawn_smoke_screen(self, position: Vec2, radius: float = 64.0) -> None:
+        """Spawn smoke screen."""
         self._particle_emitter.emit_smoke_screen(position.x, position.y, radius=radius)
 
     # ====== Public API: Update ======
 
     def update_animations(self) -> None:
+        """Update animations."""
         dead_anims = []
         for uid, animator in self._unit_animators.items():
             if not animator.update():
@@ -485,38 +493,47 @@ class EffectRenderer:
 
     @property
     def flash_units(self) -> dict[str, int]:
+        """Get the flash units."""
         return self._flash_units
 
     @property
     def death_animations(self) -> dict[str, dict]:
+        """Get the death animations."""
         return self._death_animations
 
     @property
     def unit_animators(self) -> dict[str, UnitAnimator]:
+        """Get the unit animators."""
         return self._unit_animators
 
     @property
     def particle_emitter(self) -> ParticleEmitter:
+        """Get the particle emitter."""
         return self._particle_emitter
 
     @property
     def effect_particles(self) -> list[dict]:
+        """Get the effect particles."""
         return self._effect_particles
 
     @property
     def damage_numbers(self) -> deque[dict]:
+        """Get the damage numbers."""
         return self._damage_numbers
 
     @property
     def animation_tick(self) -> int:
+        """Get the animation tick."""
         return self._animation_tick
 
     def ensure_animator(self, unit_id: str) -> UnitAnimator:
+        """Ensure animator."""
         if unit_id not in self._unit_animators:
             self._unit_animators[unit_id] = UnitAnimator()
         return self._unit_animators[unit_id]
 
     def get_font(self, size: int) -> font.Font | None:
+        """Get the font."""
         cached = self._font_cache.get(size)
         if cached is not None:
             return cached

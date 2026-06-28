@@ -83,6 +83,7 @@ class CampaignUI:
     MINIMAP_BG = MINIMAP_BG
 
     def __init__(self) -> None:
+        """Initialize the CampaignUI."""
         self._font_title: Font | None = None
         self._font_normal: Font | None = None
         self._font_small: Font | None = None
@@ -206,17 +207,21 @@ class CampaignUI:
         self._on_back = on_back
 
     def show(self) -> None:
+        """Show an element."""
         self._visible = True
 
     def hide(self) -> None:
+        """Hide an element."""
         self._visible = False
 
     @property
     def is_visible(self) -> bool:
+        """Get the is visible."""
         return self._visible
 
     @property
     def state(self) -> str:
+        """Get the state."""
         return self._state
 
     # ------------------------------------------------------------------

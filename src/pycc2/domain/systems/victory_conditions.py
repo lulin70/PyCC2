@@ -68,18 +68,21 @@ class BattleStats:
     start_time: float = field(default_factory=float)
 
     def record_kill(self, killer_faction: str) -> None:
+        """Increment the kill counter for the given faction."""
         if killer_faction == "allies":
             self.allies_kills += 1
         else:
             self.axis_kills += 1
 
     def record_damage(self, attacker_faction: str, damage: float) -> None:
+        """Accumulate damage dealt by the given faction."""
         if attacker_faction == "allies":
             self.allies_damage_dealt += damage
         else:
             self.axis_damage_dealt += damage
 
     def record_shot(self, faction: str, hit: bool) -> None:
+        """Record a shot fired by the faction, marking it as a hit if applicable."""
         if faction == "allies":
             self.shots_fired_allies += 1
             if hit:
@@ -90,6 +93,7 @@ class BattleStats:
                 self.shots_hit_axis += 1
 
     def record_unit_lost(self, faction: str) -> None:
+        """Increment the units-lost counter for the given faction."""
         if faction == "allies":
             self.allies_units_lost += 1
         else:
@@ -97,23 +101,27 @@ class BattleStats:
 
     @property
     def allies_accuracy(self) -> float:
+        """Return the allies' hit-to-shot ratio, or 0.0 if no shots were fired."""
         if self.shots_fired_allies == 0:
             return 0.0
         return self.shots_hit_allies / self.shots_fired_allies
 
     @property
     def axis_accuracy(self) -> float:
+        """Return the axis' hit-to-shot ratio, or 0.0 if no shots were fired."""
         if self.shots_fired_axis == 0:
             return 0.0
         return self.shots_hit_axis / self.shots_fired_axis
 
     @property
     def kill_ratio(self) -> float:
+        """Return the allies-to-axis kill ratio, or 0.0 if undefined."""
         if self.axis_kills == 0:
             return float(self.allies_kills) if self.allies_kills > 0 else 0.0
         return self.allies_kills / self.axis_kills
 
     def summary_dict(self) -> dict:
+        """Serialize the battle stats into a plain dictionary for reports."""
         return {
             "allies_kills": self.allies_kills,
             "axis_kills": self.axis_kills,
@@ -167,6 +175,7 @@ class VictoryConditionEvaluator:
         tick: int,
         stats: BattleStats | None = None,
     ) -> tuple[GameResult, str]:
+        """Evaluate active victory conditions and return the game result with a reason string."""
         allies_alive = [u for u in units if u.faction.name == "ALLIES" and u.is_alive]
         axis_alive = [u for u in units if u.faction.name == "AXIS" and u.is_alive]
 
@@ -281,6 +290,7 @@ class VictoryConditionEvaluator:
         return max(dx, dy) <= objective.radius
 
     def reset(self) -> None:
+        """Clear all VL ownership state and reset objective owners to neutral."""
         self._vl_owner.clear()
         for obj in self.objectives:
             obj.owner = None

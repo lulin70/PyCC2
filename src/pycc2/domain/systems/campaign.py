@@ -80,6 +80,7 @@ class MissionDefinition:
 
     @property
     def total_objectives(self) -> int:
+        """Return the number of objectives defined for the mission."""
         return len(self.objectives)
 
 
@@ -99,21 +100,26 @@ class CampaignManager:
 
     @property
     def campaign_state(self) -> CampaignState | None:
+        """Return the active campaign state, or None if campaign mode is off."""
         return self._campaign_state
 
     def enable_campaign_mode(self) -> None:
+        """Initialize a default campaign state if campaign mode is not yet active."""
         from pycc2.domain.systems.campaign_state import CampaignState
 
         if self._campaign_state is None:
             self._campaign_state = CampaignState.create_default()
 
     def register_mission(self, mission: MissionDefinition) -> None:
+        """Register a mission definition under its id."""
         self._missions[mission.id] = mission
 
     def get_mission(self, mission_id: str) -> MissionDefinition | None:
+        """Return the registered mission definition for the given id, if any."""
         return self._missions.get(mission_id)
 
     def start_mission(self, mission_id: str) -> MissionDefinition | None:
+        """Set the mission with the given id as the current mission and return it."""
         mission = self.get_mission(mission_id)
         if mission:
             self._current_mission = mission
@@ -124,6 +130,7 @@ class CampaignManager:
         victory: bool,
         battle_result: BattleResult | None = None,
     ) -> None:
+        """Finalize the current mission, recording the result and replenishing on victory."""
         if self._current_mission:
             if victory:
                 self._completed_missions.add(self._current_mission.id)
@@ -135,14 +142,17 @@ class CampaignManager:
 
     @property
     def available_missions(self) -> list[MissionDefinition]:
+        """Return missions that have not yet been completed."""
         return [m for m in self._missions.values() if m.id not in self._completed_missions]
 
     @property
     def completed_count(self) -> int:
+        """Return the number of completed missions."""
         return len(self._completed_missions)
 
     @property
     def total_missions(self) -> int:
+        """Return the total number of registered missions."""
         return len(self._missions)
 
     def get_missions_for_day(self, day: int) -> list[MissionDefinition]:

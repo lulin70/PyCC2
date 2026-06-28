@@ -42,6 +42,7 @@ class EventBus(IEventPublisher):
     def subscribe(self, event_type: type, handler: Callable[[Any], None]) -> None: ...
 
     def subscribe(self, event_type: type, handler: Callable) -> None:
+        """Register a handler for events of the given type."""
         self._registered_types.add(event_type)
         self._handlers[event_type].append(handler)
 
@@ -52,6 +53,7 @@ class EventBus(IEventPublisher):
     def unsubscribe(self, event_type: type, handler: Callable[[Any], None]) -> bool: ...
 
     def unsubscribe(self, event_type: type, handler: Callable) -> bool:
+        """Remove a previously registered handler; return whether it was removed."""
         try:
             self._handlers[event_type].remove(handler)
             return True
@@ -59,9 +61,11 @@ class EventBus(IEventPublisher):
             return False
 
     def subscribe_to(self, event_name: str, handler: Callable[[dict], None]) -> None:
+        """Register a handler for named (string-keyed) events."""
         self._named_handlers[event_name].append(handler)
 
     def unsubscribe_from(self, event_name: str, handler: Callable[[dict], None]) -> bool:
+        """Remove a named-event handler; return whether it was removed."""
         try:
             self._named_handlers[event_name].remove(handler)
             return True
@@ -100,6 +104,7 @@ class EventBus(IEventPublisher):
     def publish(self, event: object) -> None: ...
 
     def publish(self, event: dict | object) -> None:
+        """Dispatch an event synchronously to all matching typed and named handlers."""
         event_type = type(event)
         if isinstance(event, dict) and self._registered_types:
             matched = self._match_typed_dict(event, self._registered_types)
@@ -177,6 +182,7 @@ class EventBus(IEventPublisher):
             )
 
     def publish_named(self, event_name: str, data: dict) -> None:
+        """Dispatch a named event to all subscribed named handlers."""
         self._total_published += 1
         named = self._named_handlers.get(event_name, [])
         for handler in list(named):
@@ -212,12 +218,14 @@ class EventBus(IEventPublisher):
     def enqueue(self, event: object) -> None: ...
 
     def enqueue(self, event: dict | object) -> None:
+        """Queue an event for later processing without immediate dispatch."""
         if len(self._queue) >= self._MAX_QUEUE_SIZE:
             logger.warning("Event queue overflow (%d), dropping oldest event", len(self._queue))
             self._queue.popleft()
         self._queue.append((time.time(), event))
 
     def process_queue(self) -> int:
+        """Publish all queued events and clear the queue; return count processed."""
         count = len(self._queue)
         for _, event in self._queue:
             self.publish(event)
@@ -225,25 +233,31 @@ class EventBus(IEventPublisher):
         return count
 
     def clear_queue(self) -> None:
+        """Drop all queued events without dispatching them."""
         self._queue.clear()
 
     @property
     def handler_count(self) -> int:
+        """Return the total number of registered typed and named handlers."""
         return sum(len(hs) for hs in self._handlers.values()) + sum(
             len(hs) for hs in self._named_handlers.values()
         )
 
     @property
     def queue_size(self) -> int:
+        """Return the number of events currently queued for dispatch."""
         return len(self._queue)
 
     @property
     def error_rate(self) -> float:
+        """Return the ratio of handler errors to total published events."""
         return self._error_count / max(1, self._total_published)
 
     def get_handlers_for(self, event_type: type) -> list[Callable]:
+        """Return a copy of the handler list registered for the given event type."""
         return list(self._handlers.get(event_type, []))
 
     def reset_stats(self) -> None:
+        """Reset error and publish counters to zero."""
         self._error_count = 0
         self._total_published = 0

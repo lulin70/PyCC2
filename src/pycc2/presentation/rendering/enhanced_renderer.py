@@ -115,6 +115,7 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
     def __init__(
         self, attack_line_system=None, lighting_config: TopDownLightingConfig | None = None
     ):
+        """Initialize the EnhancedRenderer."""
         self._state_manager = RendererStateManager(self.TILE_SIZE)
         self._palette_gen = PaletteGenerator()
         self._texture_cache: dict[tuple[int, int], pygame.Surface] = {}
@@ -284,13 +285,16 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
         return self._environment.get_lighting_config()
 
     def set_cc2_color_grading(self, enable: bool) -> None:
+        """Set the CC2 color grading."""
         self._enable_cc2_color_grading = enable
         logger.debug("CC2 color grading: %s", "enabled" if enable else "disabled")
 
     def set_hud(self, hud) -> None:
+        """Set the HUD."""
         self._hud = hud
 
     def enable_hud(self, enabled: bool = True) -> None:
+        """Enable HUD."""
         self._hud_enabled = enabled
 
     # ====== P2-03: Screen Flash Overlay System ======

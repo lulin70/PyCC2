@@ -15,6 +15,7 @@ class RosterRenderer:
     """Renders the scrollable friendly-unit roster on the left side of the panel."""
 
     def __init__(self, panel: CC2BottomPanel) -> None:
+        """Initialize the RosterRenderer."""
         self._panel = panel
 
     def render(self, surface: Surface, x: int, y: int, w: int, h: int) -> None:

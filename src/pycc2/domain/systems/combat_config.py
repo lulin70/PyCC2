@@ -188,14 +188,17 @@ class WeaponFireConfig:
 
     @property
     def aim_seconds(self) -> float:
+        """Return the aim duration in seconds, converting from 60 fps frames."""
         return self.aim_frames / 60.0
 
     @property
     def fire_seconds(self) -> float:
+        """Return the fire duration in seconds, converting from 60 fps frames."""
         return self.fire_frames / 60.0
 
     @property
     def reload_seconds(self) -> float:
+        """Return the reload duration in seconds, converting from 60 fps frames."""
         return self.reload_frames / 60.0
 
 
@@ -258,6 +261,7 @@ class MGBurstConfig:
     many_enemies: tuple = (1, 16)  # 5+ enemies
 
     def get_burst_range(self, enemy_count: int) -> tuple:
+        """Return the (min, max) burst shot range for a given enemy count."""
         if enemy_count == 0:
             return self.no_enemies
         elif enemy_count <= 2:
@@ -283,6 +287,7 @@ class ExplosionConfig:
     regressive_injure_radius: float = 6.0
 
     def kill_probability(self, distance_meters: float) -> float:
+        """Return the kill probability for a given distance from the explosion."""
         if distance_meters <= self.direct_kill_radius:
             return 1.0
         elif distance_meters <= self.regressive_kill_radius:
@@ -290,6 +295,7 @@ class ExplosionConfig:
         return 0.0
 
     def injure_probability(self, distance_meters: float) -> float:
+        """Return the injury probability for a given distance from the explosion."""
         if distance_meters <= self.direct_kill_radius:
             return 1.0
         elif distance_meters <= self.regressive_injure_radius:

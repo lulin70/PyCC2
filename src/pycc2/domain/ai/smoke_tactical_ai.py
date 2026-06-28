@@ -101,6 +101,7 @@ class SmokeDeployment:
 
     @property
     def is_expired(self) -> bool:
+        """Return whether the smoke deployment has dissipated."""
         return self.remaining_ticks <= 0
 
     def contains(self, pos: tuple[int, int]) -> bool:
@@ -132,6 +133,7 @@ class SmokeManager:
 
     @property
     def active_deployments(self) -> list[SmokeDeployment]:
+        """Return a copy of all active smoke deployments."""
         return list(self._deployments)
 
     def deploy(self, smoke: SmokeDeployment) -> None:
@@ -227,6 +229,7 @@ class SmokeGrenadeCapability:
 
     @property
     def has_smoke(self) -> bool:
+        """Return whether the unit still has smoke charges available."""
         return self.smoke_count > 0
 
     def use_smoke(self) -> bool:
@@ -279,6 +282,7 @@ class SmokeTacticalAI(TacticalAIBase):
     DRIFT_INTERVAL: int = 60
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return smoke deployment priority based on suppressed units and breakaway moves."""
         score = 0.0
 
         friendly_alive = [u for u in context.friendly_units if u.is_alive]
@@ -319,6 +323,7 @@ class SmokeTacticalAI(TacticalAIBase):
         return max(0.0, min(score * diff_mod, 1.0))
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate DEPLOY_SMOKE intents to cover suppressed units and breakaway moves."""
         smoke_units = self._smoke_capable_units(context)
         if not smoke_units:
             return []

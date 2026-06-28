@@ -33,6 +33,7 @@ class PositionComponent:
 
     @property
     def pixel_position(self) -> Vec2:
+        """Return the world-space pixel position (tile origin plus offset)."""
         tile_vec = Vec2(
             self.tile_coord.x * Vec2.TILE_SIZE,
             self.tile_coord.y * Vec2.TILE_SIZE,
@@ -40,6 +41,7 @@ class PositionComponent:
         return tile_vec + self.pixel_offset
 
     def set_facing_toward(self, target: Vec2 | TileCoord) -> None:
+        """Set the facing angle to point toward the given target."""
         if isinstance(target, TileCoord):
             target_vec = Vec2(
                 target.x * Vec2.TILE_SIZE,
@@ -54,8 +56,10 @@ class PositionComponent:
         self.facing_rad = math.atan2(dy, dx)
 
     def move_to_tile(self, tile: TileCoord) -> None:
+        """Snap the entity to a new tile and reset pixel offset."""
         self.tile_coord = tile
         self.pixel_offset = Vec2.zero()
 
     def set_pixel_offset(self, offset: Vec2) -> None:
+        """Set the sub-tile pixel offset for smooth movement."""
         self.pixel_offset = offset

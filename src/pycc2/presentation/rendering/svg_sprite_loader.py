@@ -182,6 +182,7 @@ class SVGSpriteLoader:
     """
 
     def __init__(self, svg_root: Path | None = None):
+        """Initialize the SVGSpriteLoader."""
         self.svg_root = Path(svg_root) if svg_root else _DEFAULT_SVG_ROOT
         self._cache: dict[str, Surface] = {}
         self._loaded_count = 0

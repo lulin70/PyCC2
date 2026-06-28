@@ -47,6 +47,7 @@ class TopDownParticleSystem:
     _MAX_RENDER_SURFACE_POOL = 30
 
     def __init__(self, max_particles: int = 256, pool: ParticlePool | None = None):
+        """Initialize the TopDownParticleSystem."""
         self.particles: deque[dict] = deque()
         self.max_particles = max_particles
         self._pool: ParticlePool | None = pool

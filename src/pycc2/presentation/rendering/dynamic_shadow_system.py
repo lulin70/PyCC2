@@ -32,6 +32,7 @@ class DynamicShadowSystem:
     MIN_SHADOW_LENGTH = 0.8
 
     def __init__(self, tile_size: int = 48):
+        """Initialize the DynamicShadowSystem."""
         self.TILE_SIZE = tile_size
         self._time_of_day: float = 0.5
         self._shadow_surface: pygame.Surface | None = None

@@ -32,6 +32,7 @@ class ProjectileTrail:
         trail_type: str = "bullet",
         duration: float = 0.3,
     ):
+        """Initialize the ProjectileTrail."""
         self.start_x = start_x
         self.start_y = start_y
         self.end_x = end_x
@@ -142,6 +143,7 @@ class ProjectileTrailSystem:
     """Manages all active projectile trails."""
 
     def __init__(self, max_trails: int = 50):
+        """Initialize the ProjectileTrailSystem."""
         self._trails: deque[ProjectileTrail] = deque()
         self._max_trails = max_trails
 
@@ -160,15 +162,19 @@ class ProjectileTrailSystem:
         self._trails.append(ProjectileTrail(start_x, start_y, end_x, end_y, trail_type, duration))
 
     def add_bullet_trail(self, sx: float, sy: float, ex: float, ey: float) -> None:
+        """Add bullet trail."""
         self.add_trail(sx, sy, ex, ey, "bullet", duration=0.15)
 
     def add_shell_trail(self, sx: float, sy: float, ex: float, ey: float) -> None:
+        """Add shell trail."""
         self.add_trail(sx, sy, ex, ey, "shell", duration=0.25)
 
     def add_rocket_trail(self, sx: float, sy: float, ex: float, ey: float) -> None:
+        """Add rocket trail."""
         self.add_trail(sx, sy, ex, ey, "rocket", duration=0.4)
 
     def add_mortar_trail(self, sx: float, sy: float, ex: float, ey: float) -> None:
+        """Add mortar trail."""
         self.add_trail(sx, sy, ex, ey, "mortar", duration=0.5)
 
     def update(self, dt: float) -> None:
@@ -181,7 +187,9 @@ class ProjectileTrailSystem:
             trail.render(surface)
 
     def clear(self) -> None:
+        """Clear internal state."""
         self._trails.clear()
 
     def count(self) -> int:
+        """Return the number of active trails."""
         return len(self._trails)

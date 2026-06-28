@@ -31,6 +31,7 @@ class Button:
         text: str = "",
         callback: Callable | None = None,
     ):
+        """Initialize the Button."""
         self.rect = Rect(x, y, width, height)
         self.text = text
         self.callback = callback

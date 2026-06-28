@@ -87,6 +87,7 @@ class DeploymentUnit:
 
     @property
     def category(self) -> UnitCategory:
+        """Get the category."""
         return UNIT_TYPE_TO_CATEGORY.get(self.unit_type, UnitCategory.INFANTRY)
 
 

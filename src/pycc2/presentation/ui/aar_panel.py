@@ -31,6 +31,7 @@ class AARConfig:
 
 class AARPanel:
     def __init__(self, config: AARConfig | None = None):
+        """Initialize the AARPanel."""
         self.config = config or AARConfig()
         self._visible: bool = False
         self._result: BattleResult | None = None
@@ -40,18 +41,22 @@ class AARPanel:
 
     @property
     def visible(self) -> bool:
+        """Get the visible."""
         return self._visible
 
     def show(self, result: BattleResult) -> None:
+        """Show an element."""
         self._result = result
         self._visible = True
         self._scroll_offset = 0
 
     def hide(self) -> None:
+        """Hide an element."""
         self._visible = False
         self._result = None
 
     def toggle(self, result: BattleResult | None = None) -> None:
+        """Toggle state."""
         if self._visible:
             self.hide()
         elif result is not None:
@@ -59,9 +64,11 @@ class AARPanel:
 
     @property
     def result(self) -> BattleResult | None:
+        """Get the result."""
         return self._result
 
     def render(self, screen: pygame.Surface, font=None, small_font=None) -> None:
+        """Render to the screen."""
         if not self._visible or self._result is None:
             return
 
@@ -154,6 +161,7 @@ class AARPanel:
         screen.blit(self._panel_surface, (cfg.x, cfg.y))
 
     def handle_click(self, x: int, y: int) -> bool:
+        """Handle click."""
         if not self._visible:
             return False
         cfg = self.config

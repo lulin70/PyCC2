@@ -100,10 +100,12 @@ class TankRiderManifest:
 
     @property
     def active_rider_count(self) -> int:
+        """Return the number of riders currently mounting or riding the tank."""
         return sum(1 for r in self.riders if r.status in (RiderStatus.MOUNTING, RiderStatus.RIDING))
 
     @property
     def has_capacity(self) -> bool:
+        """Return whether the tank can accept additional riders."""
         return self.active_rider_count < MAX_RIDERS_PER_TANK
 
 
@@ -129,6 +131,7 @@ class TankRiderSystem:
 
     @property
     def active_manifests(self) -> list[TankRiderManifest]:
+        """Return a list of all rider manifests currently tracked."""
         return list(self._manifests.values())
 
     def can_mount(
@@ -398,9 +401,11 @@ class TankRiderAI(TacticalAIBase):
 
     @property
     def system(self) -> TankRiderSystem:
+        """Return the backing tank rider system instance."""
         return self._system
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return tank-riding priority based on transport need and enemy pressure."""
         tanks = self._find_tanks(context)
         infantry = self._find_available_infantry(context)
 
@@ -420,6 +425,7 @@ class TankRiderAI(TacticalAIBase):
         return max(0.0, min(score, 1.0))
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate MOUNT_TANK intents pairing available infantry with tanks."""
         tanks = self._find_tanks(context)
         infantry = self._find_available_infantry(context)
 

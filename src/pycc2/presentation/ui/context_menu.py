@@ -62,6 +62,7 @@ class ContextMenu:
     ICON_WIDTH: int = 24
 
     def __init__(self) -> None:
+        """Initialize the ContextMenu."""
         self._visible = False
         self._position: tuple[int, int] = (0, 0)
         self._hovered_index: int = -1
@@ -119,6 +120,7 @@ class ContextMenu:
 
     @property
     def visible(self) -> bool:
+        """Get the visible."""
         return self._visible
 
     def _build_surface(self) -> None:

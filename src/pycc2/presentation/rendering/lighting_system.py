@@ -44,6 +44,7 @@ class LightingSystem:
     """
 
     def __init__(self, config: TopDownLightingConfig | None = None):
+        """Initialize the LightingSystem."""
         self._config = config or TopDownLightingConfig()
         self._dynamic_lights: deque[dict] = deque()
         self._max_dynamic_lights = 8

@@ -48,6 +48,7 @@ class Camera:
     _ISO_HEIGHT_SCALE: int = 16
 
     def world_to_screen(self, world_pos: Vec2) -> tuple[float, float]:
+        """Convert world coordinates to screen coordinates."""
         if self.projection == ProjectionMode.ISOMETRIC:
             return self._world_to_screen_isometric(world_pos)
         return self._world_to_screen_orthographic(world_pos)
@@ -79,11 +80,13 @@ class Camera:
         return (screen_x, screen_y)
 
     def shake(self, intensity: float = 3.0, duration: float = 0.15) -> None:
+        """Trigger a screen shake effect."""
         self._shake_intensity = intensity
         self._shake_duration = duration
         self._shake_timer = duration
 
     def update_shake(self, dt: float) -> None:
+        """Update the screen shake timer."""
         if self._shake_timer > 0:
             self._shake_timer -= dt
             if self._shake_timer <= 0:
@@ -91,6 +94,7 @@ class Camera:
                 self._shake_intensity = 0.0
 
     def screen_to_world(self, screen_pos: tuple[float, float]) -> Vec2:
+        """Convert screen coordinates to world coordinates."""
 
         if self.projection == ProjectionMode.ISOMETRIC:
             return self._screen_to_world_isometric(screen_pos)
@@ -118,6 +122,7 @@ class Camera:
 
     @property
     def view_bounds(self) -> tuple[Vec2, Vec2]:
+        """Get the view bounds."""
         from pycc2.domain.value_objects.vec2 import Vec2
 
         half_w = self.viewport_width / (2 * self.zoom)
@@ -127,12 +132,14 @@ class Camera:
         return (top_left, bottom_right)
 
     def move(self, dx: float, dy: float) -> None:
+        """Move the camera by a screen-space delta."""
         from pycc2.domain.value_objects.vec2 import Vec2
 
         delta = Vec2(dx / self.zoom, dy / self.zoom)
         self.position = self.position + delta
 
     def set_position(self, pos: Vec2) -> None:
+        """Set the position."""
         self.position = pos
 
     def adjust_zoom(
@@ -140,6 +147,7 @@ class Camera:
         factor: float,
         anchor: tuple[float, float] | None = None,
     ) -> None:
+        """Adjust zoom."""
         new_zoom = max(
             self.MIN_ZOOM,
             min(self.MAX_ZOOM, self.zoom * factor),
@@ -160,6 +168,7 @@ class Camera:
         map_width_pixels: float,
         map_height_pixels: float,
     ) -> None:
+        """Constrain the camera position within map bounds."""
         from pycc2.domain.value_objects.vec2 import Vec2
 
         # Calculate minimum zoom so the map fills the screen
@@ -198,17 +207,21 @@ class Camera:
 
     @property
     def x(self) -> float:
+        """Get the x."""
         return self.position.x
 
     @property
     def y(self) -> float:
+        """Get the y."""
         return self.position.y
 
     def focus_on(self, target: Vec2, immediate: bool = True) -> None:
+        """Focus the camera on a target position."""
         if immediate:
             self.position = target
 
     def reset(self) -> None:
+        """Reset internal state."""
         from pycc2.domain.value_objects.vec2 import Vec2
 
         self.position = Vec2(0.0, 0.0)

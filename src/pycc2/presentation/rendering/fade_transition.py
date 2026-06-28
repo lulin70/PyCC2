@@ -17,6 +17,7 @@ class FadeTransition:
     """
 
     def __init__(self, fade_duration: float = 0.2):
+        """Initialize the FadeTransition."""
         self._alpha: float = 0.0
         self._target_alpha: float = 0.0
         self._fade_duration = fade_duration
@@ -33,17 +34,21 @@ class FadeTransition:
 
     @property
     def is_visible(self) -> bool:
+        """Get the is visible."""
         return self._visible and self._alpha > 0.01
 
     @property
     def alpha(self) -> float:
+        """Get the alpha."""
         return self._alpha
 
     @property
     def is_fading(self) -> bool:
+        """Get the is fading."""
         return abs(self._alpha - self._target_alpha) > 0.01
 
     def update(self, dt: float) -> None:
+        """Update internal state."""
         speed = 1.0 / max(0.001, self._fade_duration)
         if self._alpha < self._target_alpha:
             self._alpha = min(self._target_alpha, self._alpha + speed * dt)

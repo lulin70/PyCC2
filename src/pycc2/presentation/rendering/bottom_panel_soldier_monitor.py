@@ -14,6 +14,7 @@ class SoldierMonitorRenderer:
     """Renders the squad-member monitor and right-click soldier detail popup."""
 
     def __init__(self, panel: CC2BottomPanel) -> None:
+        """Initialize the SoldierMonitorRenderer."""
         self._panel = panel
 
     def render(self, surface: Surface, x: int, y: int, w: int, h: int, squad: object) -> None:

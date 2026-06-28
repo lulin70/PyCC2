@@ -83,6 +83,7 @@ class DeploymentUI:
     # ------------------------------------------------------------------
 
     def __init__(self, width: int = 800, height: int = 600) -> None:
+        """Initialize the DeploymentUI."""
         self.width = width
         self.height = height
 

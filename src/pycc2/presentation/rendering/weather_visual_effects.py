@@ -41,6 +41,7 @@ class EnhancedWeatherSystem:
     """增强天气系统"""
 
     def __init__(self, screen_width: int, screen_height: int):
+        """Initialize the EnhancedWeatherSystem."""
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.weather_type = WeatherType.CLEAR

@@ -63,6 +63,7 @@ class WeatherRenderer:
         ]
 
     def update(self, dt: float = 1.0 / 60.0) -> None:
+        """Update internal state."""
         for drop in self._rain_drops:
             drop["y"] += drop["speed"]
             drop["x"] += 1
@@ -87,6 +88,7 @@ class WeatherRenderer:
         camera_offset_x: int = 0,
         camera_offset_y: int = 0,
     ) -> None:
+        """Render to the screen."""
         import pygame
 
         weather = weather_state.weather_type
@@ -163,6 +165,7 @@ class WeatherRenderer:
                 pygame.draw.circle(screen, color[:3], (sx, sy), size)
 
     def resize(self, width: int, height: int) -> None:
+        """Handle screen resize and rebuild rain surfaces."""
         self.screen_width = width
         self.screen_height = height
         self._init_rain()
@@ -170,4 +173,5 @@ class WeatherRenderer:
 
     @property
     def particle_count(self) -> int:
+        """Get the particle count."""
         return len(self._rain_drops) + len(self._snow_flakes)

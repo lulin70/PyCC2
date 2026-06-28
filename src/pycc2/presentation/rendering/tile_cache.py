@@ -16,6 +16,7 @@ class TileCache:
     """Pre-renders and caches scaled terrain tile surfaces to avoid per-frame transform.scale()"""
 
     def __init__(self):
+        """Initialize the TileCache."""
         self._cache: dict[int, dict[int, pygame.Surface]] = {}
         self._cache_hits: int = 0
         self._cache_misses: int = 0
@@ -46,13 +47,16 @@ class TileCache:
 
     @property
     def stats(self) -> dict[str, int]:
+        """Get the stats."""
         return {"hits": self._cache_hits, "misses": self._cache_misses}
 
     @property
     def hit_rate(self) -> float:
+        """Get the hit rate."""
         total = self._cache_hits + self._cache_misses
         return self._cache_hits / max(total, 1)
 
     @property
     def cached_tile_count(self) -> int:
+        """Get the cached tile count."""
         return sum(len(sizes) for sizes in self._cache.values())

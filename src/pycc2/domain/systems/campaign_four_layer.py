@@ -66,14 +66,17 @@ class FourLayerCampaignManager:
 
     @property
     def campaign_definition(self) -> GrandCampaignDefinition:
+        """Return the static campaign definition in use."""
         return self._campaign_def
 
     @property
     def campaign_state(self) -> GrandCampaignState:
+        """Return the runtime campaign state."""
         return self._campaign_state
 
     @property
     def saved_unit_states(self) -> dict[str, UnitCarryoverState]:
+        """Return the dict of unit carryover states persisted between battles."""
         return self._saved_unit_states
 
     def get_battles_for_day(self, day: int) -> list[BattleDefinition]:

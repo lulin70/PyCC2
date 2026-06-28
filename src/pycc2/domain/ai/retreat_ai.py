@@ -43,6 +43,7 @@ class RetreatDecisionAI(TacticalAIBase):
     # ------------------------------------------------------------------
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return retreat priority based on force ratio, morale, and VL threats."""
         force_ratio = self._calculate_force_ratio(context)
 
         if force_ratio < 0.5:
@@ -66,6 +67,7 @@ class RetreatDecisionAI(TacticalAIBase):
         return min(max(base, 0.0), 1.0)
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate retreat intents with covering fire for falling-back units."""
         intents: list[TacticIntent] = []
 
         # Phase 1: Identify units to retreat

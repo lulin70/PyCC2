@@ -33,6 +33,7 @@ class PygameInputHandler:
     edge_scroll_zone: int = 12
 
     def process_event(self, event: pygame.event.EventType) -> InputEvent | None:
+        """Process event."""
         if event.type == pygame.MOUSEMOTION:
             return InputEvent(
                 event_type="mouse_move",
@@ -108,6 +109,7 @@ class PygameInputHandler:
         return None
 
     def get_camera_movement(self) -> tuple[float, float]:
+        """Get the camera movement."""
         keys = pygame.key.get_pressed()
         dx, dy = 0.0, 0.0
         if keys[pygame.K_w] or keys[pygame.K_UP]:

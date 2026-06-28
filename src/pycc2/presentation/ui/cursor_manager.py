@@ -20,6 +20,7 @@ class CursorManager:
     """Manages context-sensitive cursor rendering."""
 
     def __init__(self, tile_size: int = 48):
+        """Initialize the CursorManager."""
         self._current = CursorType.DEFAULT
         self._cursors: dict[CursorType, pygame.Surface | None] = {}
         self._tile_size = tile_size
@@ -91,4 +92,5 @@ class CursorManager:
 
     @property
     def current(self) -> CursorType:
+        """Get the current."""
         return self._current

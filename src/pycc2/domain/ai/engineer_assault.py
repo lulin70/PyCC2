@@ -120,6 +120,7 @@ class AssaultState:
 
     @property
     def has_flamethrower_fuel(self) -> bool:
+        """Return whether the flamethrower still has bursts available."""
         return self.flamethrower_bursts_used < FLAMETHROWER_MAX_BURSTS
 
 
@@ -164,13 +165,16 @@ class EngineerAssaultAI(TacticalAIBase):
 
     @property
     def active_assaults(self) -> list[AssaultState]:
+        """Return a list of assault states currently in progress."""
         return list(self._assaults.values())
 
     @property
     def fire_zones(self) -> list[FireZone]:
+        """Return a copy of the active fire zones."""
         return list(self._fire_zones)
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return assault priority based on fortified enemies and available engineers."""
         engineers = self._find_engineers(context)
         if not engineers:
             return 0.0
@@ -190,6 +194,7 @@ class EngineerAssaultAI(TacticalAIBase):
         return min(score, 1.0)
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate ASSAULT_FORTIFIED intents for engineers targeting fortified enemies."""
         engineers = self._find_engineers(context)
         fortified = self._find_fortified_enemies(context)
 

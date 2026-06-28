@@ -330,6 +330,7 @@ class AutotileCache:
     """Cache manager for autotile variants to avoid redundant generation."""
 
     def __init__(self):
+        """Initialize the AutotileCache."""
         self._cache: dict[str, pygame.Surface] = {}
         self._building_clusters_cache: dict[str, list[list[tuple[int, int]]]] = {}
 

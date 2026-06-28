@@ -184,6 +184,7 @@ class MGTakeoverSystem:
 
     @property
     def active_takeover_count(self) -> int:
+        """Return the number of takeover records currently active."""
         return len(self._active_takeovers)
 
     # ------------------------------------------------------------------

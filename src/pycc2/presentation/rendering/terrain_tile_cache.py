@@ -86,6 +86,7 @@ class TerrainTileCache:
     MAX_ENTRIES = 10000
 
     def __init__(self, tile_size: int = 48):
+        """Initialize the TerrainTileCache."""
         self._tile_size = tile_size
         self._cache: OrderedDict[tuple, pygame.Surface] = OrderedDict()
 

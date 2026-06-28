@@ -39,6 +39,7 @@ class UnitRenderer:
     """
 
     def __init__(self, ctx: RenderContext):
+        """Initialize the UnitRenderer."""
         self._ctx = ctx
         self._vfx_renderer = UnitVisualEffectsRenderer(ctx)
         # Glow surface cache – lazy init
@@ -52,6 +53,7 @@ class UnitRenderer:
         selected_unit_ids: set[str] | None = None,
         position_overrides: dict[str, tuple[float, float]] | None = None,
     ) -> None:
+        """Draw units."""
         if self._ctx.screen is None or self._ctx.offscreen is None:
             return
 

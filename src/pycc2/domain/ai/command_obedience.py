@@ -229,10 +229,12 @@ class CommandObedienceSystem:
         return self._delayed_orders.get(unit_id)
 
     def has_delayed_order(self, unit_id: str) -> bool:
+        """Return whether a delayed order is pending for the unit."""
         return unit_id in self._delayed_orders
 
     @property
     def delayed_order_count(self) -> int:
+        """Return the number of delayed orders currently pending."""
         return len(self._delayed_orders)
 
     # ------------------------------------------------------------------

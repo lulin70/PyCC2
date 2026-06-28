@@ -50,27 +50,33 @@ class VeterancyComponent:
 
     @property
     def rank(self) -> VeteranRank:
+        """Return the current veterancy rank tier."""
         return self._rank
 
     @property
     def rank_name(self) -> str:
+        """Return the name of the current veterancy rank tier."""
         return self._rank.name
 
     def add_xp(self, amount: int) -> bool:
+        """Add XP and return whether the rank changed."""
         old_rank = self._rank
         self.xp += amount
         self._update_rank()
         return self._rank != old_rank
 
     def record_kill(self, xp_reward: int = 15) -> bool:
+        """Record a kill, grant XP, and return whether the rank changed."""
         self.kills += 1
         return self.add_xp(xp_reward)
 
     def record_battle_survived(self, xp_bonus: int = 25) -> bool:
+        """Record a survived battle, grant XP, and return whether rank changed."""
         self.battles_survived += 1
         return self.add_xp(xp_bonus)
 
     def record_shot(self, hit: bool, damage: float = 0.0) -> None:
+        """Record a fired shot, optionally marking a hit and damage dealt."""
         self.shots_fired += 1
         if hit:
             self.shots_hit += 1
@@ -78,23 +84,28 @@ class VeterancyComponent:
 
     @property
     def accuracy(self) -> float:
+        """Return the hit accuracy ratio (shots_hit / shots_fired)."""
         if self.shots_fired == 0:
             return 0.0
         return self.shots_hit / self.shots_fired
 
     @property
     def accuracy_bonus(self) -> float:
+        """Return the accuracy bonus multiplier granted by current rank."""
         return RANK_BONUSES[self._rank]["accuracy"]
 
     @property
     def morale_resistance(self) -> float:
+        """Return the morale resistance multiplier granted by current rank."""
         return RANK_BONUSES[self._rank]["morale_resist"]
 
     @property
     def panic_probability_mod(self) -> float:
+        """Return the panic probability multiplier granted by current rank."""
         return RANK_BONUSES[self._rank]["panic_chance"]
 
     def xp_to_next_rank(self) -> int:
+        """Return XP remaining to reach the next rank (0 if maxed)."""
         ranks_ordered = list(VeteranRank)
         current_idx = ranks_ordered.index(self._rank)
         if current_idx >= len(ranks_ordered) - 1:
@@ -103,6 +114,7 @@ class VeterancyComponent:
         return RANK_THRESHOLDS[next_rank] - self.xp
 
     def progress_to_next_rank(self) -> float:
+        """Return 0-1 progress toward the next rank based on XP thresholds."""
         needed = self.xp_to_next_rank()
         if needed <= 0:
             return 1.0
@@ -126,6 +138,7 @@ class VeterancyComponent:
         self._rank = new_rank
 
     def to_dict(self) -> dict:
+        """Serialize the component to a plain dict for saving."""
         return {
             "xp": self.xp,
             "kills": self.kills,
@@ -138,6 +151,7 @@ class VeterancyComponent:
 
     @classmethod
     def from_dict(cls, data: dict) -> VeterancyComponent:
+        """Reconstruct a VeterancyComponent from a saved dict."""
         comp = cls(
             xp=data.get("xp", 0),
             kills=data.get("kills", 0),

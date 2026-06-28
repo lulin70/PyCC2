@@ -66,18 +66,22 @@ class TacticalOrchestrator:
         self._last_orders: list[TacticIntent] = []
 
     def register(self, ai: TacticalAIBase) -> None:
+        """Register a tactical AI subsystem to participate in orchestration."""
         self._ais.append(ai)
 
     @property
     def registered_ais(self) -> list[str]:
+        """Return the class names of all registered AI subsystems."""
         return [type(ai).__name__ for ai in self._ais]
 
     @property
     def last_scores(self) -> dict[str, float]:
+        """Return a copy of the most recent evaluation scores per AI."""
         return dict(self._last_scores)
 
     @property
     def last_orders(self) -> list[TacticIntent]:
+        """Return a copy of the orders produced by the most recent tick."""
         return list(self._last_orders)
 
     def tick(self, context: TacticalContext) -> list[TacticIntent]:

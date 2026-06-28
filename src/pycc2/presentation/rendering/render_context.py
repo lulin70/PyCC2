@@ -78,6 +78,7 @@ class RenderContext:
         draw_terrain_borders: Callable | None = None,
         draw_decorations: Callable | None = None,
     ):
+        """Initialize the RenderContext."""
         self.tile_size = tile_size
         self.screen = screen
         self.offscreen = offscreen
@@ -105,8 +106,10 @@ class RenderContext:
     def update_surfaces(
         self, screen: pygame.Surface | None, offscreen: pygame.Surface | None
     ) -> None:
+        """Update surfaces."""
         self.screen = screen
         self.offscreen = offscreen
 
     def update_building_clusters(self, clusters: list | None) -> None:
+        """Update building clusters."""
         self.building_clusters = clusters

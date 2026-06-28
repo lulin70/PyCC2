@@ -14,6 +14,7 @@ class BottomPanelInputHandler:
     """Translates mouse events into actions on the bottom panel."""
 
     def __init__(self, panel: CC2BottomPanel) -> None:
+        """Initialize the BottomPanelInputHandler."""
         self._panel = panel
 
     def handle_click(self, screen_pos: tuple[int, int]) -> str | None:

@@ -22,10 +22,12 @@ class CombatPopup:
 
     @property
     def age(self) -> float:
+        """Get the age."""
         return time.time() - self.created_at
 
     @property
     def is_expired(self) -> bool:
+        """Get the is expired."""
         return self.age > self.duration
 
     @property
@@ -46,6 +48,7 @@ class CombatPopupManager:
     """Manages floating combat text popups."""
 
     def __init__(self, max_popups: int = 20):
+        """Initialize the CombatPopupManager."""
         self._popups: deque[CombatPopup] = deque()
         self._max_popups = max_popups
         self._font: pygame.font.Font | None = None
@@ -72,21 +75,27 @@ class CombatPopupManager:
             self._popups.popleft()
 
     def add_taking_fire(self, x: float, y: float) -> None:
+        """Add taking fire."""
         self.add_popup("Taking fire!", x, y, (255, 100, 100))
 
     def add_breaking(self, x: float, y: float) -> None:
+        """Add breaking."""
         self.add_popup("They're breaking!", x, y, (255, 200, 100))
 
     def add_pinned(self, x: float, y: float) -> None:
+        """Add pinned."""
         self.add_popup("Pinned!", x, y, (255, 150, 50))
 
     def add_out_of_ammo(self, x: float, y: float) -> None:
+        """Add out of ammo."""
         self.add_popup("Out of ammo!", x, y, (200, 200, 200))
 
     def add_kia(self, x: float, y: float) -> None:
+        """Add kia."""
         self.add_popup("KIA", x, y, (255, 50, 50))
 
     def add_surrender(self, x: float, y: float) -> None:
+        """Add surrender."""
         self.add_popup("Surrender!", x, y, (200, 200, 100))
 
     def render(self, surface: pygame.Surface, camera) -> None:

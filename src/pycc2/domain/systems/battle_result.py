@@ -56,6 +56,7 @@ class UnitBattleRecord:
 
     @property
     def efficiency(self) -> float:
+        """Return the unit's hit efficiency as shots_hit / shots_fired."""
         if self.shots_fired == 0:
             return 0.0
         return self.shots_hit / self.shots_fired
@@ -92,18 +93,21 @@ class BattleResult:
 
     @property
     def allies_accuracy(self) -> float:
+        """Return the allies' hit-to-shot ratio, or 0.0 if no shots were fired."""
         if self.total_shots_fired_allies == 0:
             return 0.0
         return self.total_shots_hit_allies / self.total_shots_fired_allies
 
     @property
     def axis_accuracy(self) -> float:
+        """Return the axis' hit-to-shot ratio, or 0.0 if no shots were fired."""
         if self.total_shots_fired_axis == 0:
             return 0.0
         return self.total_shots_hit_axis / self.total_shots_fired_axis
 
     @property
     def is_victory(self) -> bool:
+        """Return True if the battle outcome is any kind of victory."""
         return self.outcome in (
             BattleOutcome.VICTORY,
             BattleOutcome.TIME_OUT_VICTORY,
@@ -111,6 +115,7 @@ class BattleResult:
 
     @property
     def survival_rate_allies(self) -> float:
+        """Return the fraction of allied units that survived the battle."""
         ally_units = [r for r in self.unit_records if r.faction == "allies"]
         if not ally_units:
             return 0.0
@@ -118,6 +123,7 @@ class BattleResult:
         return survived / len(ally_units)
 
     def calculate_vp(self) -> int:
+        """Compute and store the victory points earned from this battle."""
         vp = 0
         if self.is_victory:
             vp += VP_VICTORY_BASE
@@ -137,6 +143,7 @@ class BattleResult:
         return self.victory_points
 
     def to_dict(self) -> dict:
+        """Serialize the battle result into a plain dictionary for persistence."""
         return {
             "mission_id": self.mission_id,
             "outcome": self.outcome.name,
@@ -152,6 +159,7 @@ class BattleResult:
 
     @classmethod
     def from_dict(cls, data: dict) -> BattleResult:
+        """Reconstruct a BattleResult instance from a serialized dictionary."""
         records = [UnitBattleRecord(**r) for r in data.get("unit_records", [])]
         return cls(
             mission_id=data["mission_id"],

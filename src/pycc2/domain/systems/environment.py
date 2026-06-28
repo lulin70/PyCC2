@@ -49,9 +49,11 @@ class EnvironmentState:
     FLARE_VISION_RADIUS: int = 8
 
     def is_night(self) -> bool:
+        """Return True if the current time of day is night, dawn, or dusk."""
         return self.time_of_day in (TimeOfDay.NIGHT, TimeOfDay.DAWN, TimeOfDay.DUSK)
 
     def get_vision_multiplier(self) -> float:
+        """Return the combined vision multiplier for time of day and weather."""
         mult = 1.0
         if self.is_night():
             mult *= self.night_vision_penalty
@@ -62,6 +64,7 @@ class EnvironmentState:
         return mult
 
     def get_stealth_bonus(self, terrain_id: int | None = None) -> float:
+        """Return the stealth bonus from night and forest terrain."""
         bonus = 0.0
         if self.is_night():
             bonus += self.night_stealth_bonus
@@ -70,12 +73,14 @@ class EnvironmentState:
         return min(bonus, 0.60)
 
     def get_accuracy_modifier(self) -> float:
+        """Return the accuracy modifier for the current time of day."""
         mod = 1.0
         if self.is_night():
             mod *= self.night_accuracy_penalty
         return mod
 
     def add_flare(self, x: int, y: int) -> None:
+        """Deploy an illumination flare at the given tile coordinates."""
         self.active_flares.append(
             {
                 "position": (x, y),
@@ -85,11 +90,13 @@ class EnvironmentState:
         )
 
     def update_flares(self) -> None:
+        """Decrement flare timers and remove expired flares."""
         self.active_flares = [f for f in self.active_flares if f["remaining_ticks"] > 0]
         for f in self.active_flares:
             f["remaining_ticks"] -= 1
 
     def is_tile_illuminated(self, x: int, y: int) -> bool:
+        """Return True if the given tile is within any active flare's radius."""
         for f in self.active_flares:
             fx, fy = f["position"]
             if abs(x - fx) <= f["radius"] and abs(y - fy) <= f["radius"]:
@@ -98,6 +105,7 @@ class EnvironmentState:
 
     @classmethod
     def create_night_mission(cls) -> EnvironmentState:
+        """Create a default night mission environment state."""
         return cls(
             time_of_day=TimeOfDay.NIGHT,
             weather=WeatherCondition.CLEAR,
@@ -105,6 +113,7 @@ class EnvironmentState:
 
     @classmethod
     def create_day_mission(cls) -> EnvironmentState:
+        """Create a default day mission environment state."""
         return cls(
             time_of_day=TimeOfDay.DAY,
             weather=WeatherCondition.CLEAR,

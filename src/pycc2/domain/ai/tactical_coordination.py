@@ -63,6 +63,7 @@ class InfantryTankCoordAI(TacticalAIBase):
     AT_SCREEN_DISTANCE: int = 3  # infantry screen distance from tank
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return coordination priority based on tanks, infantry, and AT threats."""
         tanks = self._tanks(context)
         infantry = self._infantry(context)
         if not tanks or not infantry:
@@ -83,6 +84,7 @@ class InfantryTankCoordAI(TacticalAIBase):
         return min(score * diff_mod, 1.0)
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate coordination intents screening tanks with infantry against AT threats."""
         tanks = self._tanks(context)
         infantry = self._infantry(context)
         enemies = [e for e in context.enemy_units if e.is_alive]
@@ -328,6 +330,7 @@ class VictoryPointAI(TacticalAIBase):
     DEFEND_RADIUS: int = 5
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return VL priority based on capture urgency and defense of held VLs."""
         if not context.vl_positions:
             return 0.0
 
@@ -365,6 +368,7 @@ class VictoryPointAI(TacticalAIBase):
         return min(score * diff_mod, 1.0)
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate move intents to capture uncontrolled VLs and defend threatened ones."""
         if not context.vl_positions:
             return []
 

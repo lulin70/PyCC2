@@ -44,14 +44,17 @@ class CameraEffect:
     recover_duration: float = 0.5
 
     def is_complete(self) -> bool:
+        """Return whether complete."""
         return self.elapsed >= self.duration
 
     def get_progress(self) -> float:
+        """Get the progress."""
         if self.duration <= 0:
             return 1.0
         return min(1.0, self.elapsed / self.duration)
 
     def apply_easing(self, t: float) -> float:
+        """Apply easing."""
         if self.easing == "linear":
             return t
         elif self.easing == "ease_in":
@@ -107,6 +110,7 @@ class EffectStack:
     """Manages multiple simultaneous camera effects with priority queuing."""
 
     def __init__(self, max_effects: int = 8):
+        """Initialize the EffectStack."""
         self._effects: list[CameraEffect] = []
         self._max_effects = max_effects
 
@@ -128,6 +132,7 @@ class EffectStack:
         self._effects.clear()
 
     def is_empty(self) -> bool:
+        """Return whether empty."""
         return len(self._effects) == 0
 
     def get_total_offset(self) -> tuple[float, float]:

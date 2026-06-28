@@ -12,6 +12,7 @@ class SurfacePool:
     """LRU Surface pool to reuse pygame.Surface objects and reduce GC pressure."""
 
     def __init__(self, max_size: int = 30):
+        """Initialize the SurfacePool."""
         self._pool: OrderedDict[tuple[int, int], pygame.Surface] = OrderedDict()
         self._max_size = max_size
         self._hits = 0

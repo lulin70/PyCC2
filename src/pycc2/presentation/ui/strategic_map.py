@@ -45,6 +45,7 @@ class StrategicMapConfig:
 
 class StrategicMapRenderer:
     def __init__(self, config: StrategicMapConfig | None = None):
+        """Initialize the StrategicMapRenderer."""
         self.config = config or StrategicMapConfig()
         self._surface = None
         self._selected_bridge: str | None = None
@@ -57,6 +58,7 @@ class StrategicMapRenderer:
         campaign_state=None,
         font=None,
     ) -> None:
+        """Render to the screen."""
         import pygame
 
         cfg = self.config
@@ -108,6 +110,7 @@ class StrategicMapRenderer:
                 screen.blit(label, (bx - label.get_width() // 2, by))
 
     def handle_click(self, x: int, y: int, map_offset: tuple[int, int]) -> str | None:
+        """Handle click."""
         cfg = self.config
         ox, oy = map_offset
         mx, my = x - ox, y - oy
@@ -122,6 +125,7 @@ class StrategicMapRenderer:
         return None
 
     def get_bridge_info(self, bridge_key: str) -> dict | None:
+        """Get the bridge info."""
         if bridge_key not in BRIDGE_POSITIONS:
             return None
         pos = BRIDGE_POSITIONS[bridge_key]
@@ -133,11 +137,14 @@ class StrategicMapRenderer:
 
     @property
     def all_bridges(self) -> list[dict[str, Any] | None]:
+        """Get the all bridges."""
         return [self.get_bridge_info(k) for k in BRIDGE_POSITIONS]
 
     @property
     def selected_bridge(self) -> str | None:
+        """Get the selected bridge."""
         return self._selected_bridge
 
     def clear_selection(self) -> None:
+        """Clear selection."""
         self._selected_bridge = None

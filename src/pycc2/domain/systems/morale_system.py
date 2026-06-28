@@ -105,6 +105,7 @@ class MoraleCalculator:
         event: MoraleEvent,
         context: dict | None = None,
     ) -> MoraleCalculationResult:
+        """Compute the morale effect of a discrete event on a unit."""
         delta = self.EVENT_WEIGHTS.get(event, 0)
         old_value = unit_morale.value
         new_value = max(0, min(100, old_value + delta))
@@ -124,6 +125,7 @@ class MoraleCalculator:
         )
 
     def calculate_natural_recovery(self, current_value: int, ticks_since_combat: int) -> int:
+        """Return the morale value after passive recovery when out of combat."""
         if ticks_since_combat >= 30:
             return min(100, current_value + 5)
         return current_value
@@ -133,6 +135,7 @@ class MoraleCalculator:
         squad_units: list[tuple[str, MoraleComponent]],
         panicked_unit_id: str,
     ) -> dict[str, int]:
+        """Return per-unit morale deltas for panic contagion within a squad."""
         result: dict[str, int] = {}
         for unit_id, mc in squad_units:
             if unit_id == panicked_unit_id:
@@ -143,9 +146,11 @@ class MoraleCalculator:
         return result
 
     def should_panic_contagion(self, unit: MoraleComponent) -> bool:
+        """Return True if the unit's morale state can trigger panic contagion."""
         return unit.state.name in ("BROKEN", "ROUTING")
 
     def notify_leader_killed(self, killed_unit: Unit, squad_units: list[Unit]) -> None:
+        """Forward a leader-killed event to the squad degradation manager."""
         if self.degradation_manager is not None:
             self.degradation_manager.on_leader_killed(killed_unit, squad_units)
 
@@ -154,6 +159,7 @@ class MoraleCalculator:
         current_value: int,
         delta: int,
     ) -> str:
+        """Predict the morale state name resulting from applying a delta."""
         new_val = max(0, min(100, current_value + delta))
         if new_val > 70:
             return "RALLIED"

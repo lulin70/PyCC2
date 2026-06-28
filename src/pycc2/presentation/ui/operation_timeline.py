@@ -67,6 +67,7 @@ class TimelineConfig:
 
 class OperationTimelineUI:
     def __init__(self, config: TimelineConfig | None = None):
+        """Initialize the OperationTimelineUI."""
         self.config = config or TimelineConfig()
         self._days_order = list(DAY_INFO.keys())
 
@@ -77,6 +78,7 @@ class OperationTimelineUI:
         font=None,
         small_font=None,
     ) -> list[dict]:
+        """Render to the screen."""
         import pygame
 
         cfg = self.config
@@ -129,18 +131,22 @@ class OperationTimelineUI:
         return clickable_areas
 
     def handle_click(self, x: int, y: int, clickable_areas: list[dict]) -> str | None:
+        """Handle click."""
         for area in clickable_areas:
             if area["rect"].collidepoint(x, y) and area["clickable"]:
                 return area["day_key"]
         return None
 
     def get_day_info(self, day_key: str) -> dict | None:
+        """Get the day info."""
         return DAY_INFO.get(day_key)
 
     @property
     def total_days(self) -> int:
+        """Get the total days."""
         return len(self._days_order)
 
     @property
     def days_order(self) -> list[str]:
+        """Get the days order."""
         return list(self._days_order)

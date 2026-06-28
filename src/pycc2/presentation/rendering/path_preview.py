@@ -69,6 +69,7 @@ class PathPreview:
         pathfinder,
         los_system: LOSSystem | None = None,
     ):
+        """Initialize the PathPreview."""
         self.pathfinder = pathfinder
         self.los_system = los_system
         self._current_path: PreviewPath | None = None
@@ -193,10 +194,12 @@ class PathPreview:
 
     @property
     def is_visible(self) -> bool:
+        """Get the is visible."""
         return self._visible and self._current_path is not None
 
     @property
     def current_path(self) -> PreviewPath | None:
+        """Get the current path."""
         return self._current_path
 
     def render(

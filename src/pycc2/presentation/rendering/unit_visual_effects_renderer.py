@@ -29,6 +29,7 @@ class UnitVisualEffectsRenderer:
     """Handles unit-specific visual overlay effects."""
 
     def __init__(self, ctx: RenderContext):
+        """Initialize the UnitVisualEffectsRenderer."""
         self._ctx = ctx
 
     def draw_damage_vfx(self, unit: Unit, cx: int, cy: int) -> None:

@@ -38,6 +38,7 @@ class TerrainRenderer:
     """
 
     def __init__(self, ctx: RenderContext):
+        """Initialize the TerrainRenderer."""
         self._ctx = ctx
         self._transition_cache: dict = {}
         self._edge_smooth_cache: dict = {}

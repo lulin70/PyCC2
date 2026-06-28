@@ -14,6 +14,7 @@ class UrgencyIndicatorRenderer:
     """Renders the color-coded urgency indicator next to the command bar."""
 
     def __init__(self, panel: CC2BottomPanel) -> None:
+        """Initialize the UrgencyIndicatorRenderer."""
         self._panel = panel
 
     def render(self, surface: Surface, x: int, y: int, w: int, h: int) -> None:

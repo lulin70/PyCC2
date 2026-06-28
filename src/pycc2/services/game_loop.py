@@ -149,12 +149,14 @@ class GameLoop:
 
     @property
     def deployment_ui(self) -> IDeploymentUI | None:
+        """Return the active deployment UI, or None if not in deployment."""
         if self._deployment_manager is None:
             return None
         return self._deployment_manager.deployment_ui
 
     @property
     def deployment_phase_active(self) -> bool:
+        """Return whether the deployment phase is currently active."""
         return self._deployment_manager.is_active if self._deployment_manager else False
 
     def _get_time_speed(self) -> float:
@@ -791,6 +793,7 @@ class GameLoop:
         return self._victory_manager
 
     def shutdown(self) -> None:
+        """Tear down all subsystems and stop the game loop."""
         self.state.running = False
         if self._achievement_bridge is not None:
             self._achievement_bridge.save()
@@ -804,11 +807,13 @@ class GameLoop:
         self.window_manager.shutdown()
 
     def quick_save(self, slot: int = 0) -> bool:
+        """Save the current game state to the given slot."""
         if self._save_controller is None:
             return False
         return self._save_controller.quick_save(slot, self)
 
     def quick_load(self, slot: int = 0) -> bool:
+        """Load game state from the given slot and reset victory manager."""
         if self._save_controller is None:
             return False
         result = self._save_controller.quick_load(slot, self)
@@ -817,6 +822,7 @@ class GameLoop:
         return result
 
     def list_saves(self) -> list:
+        """Return a list of available save slot metadata."""
         if self._save_controller is None:
             return []
         return self._save_controller.list_saves()

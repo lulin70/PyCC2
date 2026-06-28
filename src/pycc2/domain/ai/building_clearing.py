@@ -95,10 +95,12 @@ class ClearingState:
 
     @property
     def is_complete(self) -> bool:
+        """Return whether the clearing operation has reached the COMPLETE phase."""
         return self.phase == ClearingPhase.COMPLETE
 
     @property
     def has_surprise_bonus(self) -> bool:
+        """Return whether the surprise bonus timer is still active."""
         return self.surprise_timer > 0
 
 
@@ -122,6 +124,7 @@ class BuildingClearingAI(TacticalAIBase):
     """
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return clearing priority based on enemies in buildings and available infantry."""
         enemies_in_buildings = self._enemies_in_buildings(context)
         if not enemies_in_buildings:
             return 0.0
@@ -138,6 +141,7 @@ class BuildingClearingAI(TacticalAIBase):
         return min(score, 1.0)
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate CLEAR_BUILDING intents for infantry targeting enemies in buildings."""
         enemies_in_buildings = self._enemies_in_buildings(context)
         available = self._available_infantry(context)
         if not enemies_in_buildings or len(available) < MIN_CLEARING_UNITS:

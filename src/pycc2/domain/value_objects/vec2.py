@@ -20,26 +20,32 @@ class Vec2:
 
     @classmethod
     def zero(cls) -> Vec2:
+        """Return the zero vector (0, 0)."""
         return cls(0.0, 0.0)
 
     @classmethod
     def one(cls) -> Vec2:
+        """Return the unit vector (1, 1)."""
         return cls(1.0, 1.0)
 
     @classmethod
     def from_tile(cls, tile_x: float, tile_y: float) -> Vec2:
+        """Convert tile coordinates to a world-space vector."""
         return cls(tile_x * cls.TILE_SIZE, tile_y * cls.TILE_SIZE)
 
     @property
     def length(self) -> float:
+        """Return the magnitude (length) of the vector."""
         return math.sqrt(self.x**2 + self.y**2)
 
     @property
     def length_squared(self) -> float:
+        """Return the squared magnitude of the vector."""
         return self.x**2 + self.y**2
 
     @property
     def normalized(self) -> Vec2:
+        """Return the unit-length version of this vector."""
         mag = self.length
         if mag == 0:
             return Vec2.zero()
@@ -47,18 +53,23 @@ class Vec2:
 
     @property
     def perpendicular(self) -> Vec2:
+        """Return the perpendicular (rotated 90°) vector."""
         return Vec2(-self.y, self.x)
 
     def distance_to(self, other: Vec2) -> float:
+        """Return the Euclidean distance to another vector."""
         return (self - other).length
 
     def dot(self, other: Vec2) -> float:
+        """Return the dot product with another vector."""
         return self.x * other.x + self.y * other.y
 
     def cross(self, other: Vec2) -> float:
+        """Return the 2D cross product (scalar) with another vector."""
         return self.x * other.y - self.y * other.x
 
     def lerp(self, other: Vec2, t: float) -> Vec2:
+        """Linearly interpolate toward another vector by factor t (clamped 0-1)."""
         t = max(0.0, min(1.0, t))
         return Vec2(
             self.x + (other.x - self.x) * t,
@@ -66,19 +77,23 @@ class Vec2:
         )
 
     def angle_to(self, other: Vec2) -> float:
+        """Return the signed angle (radians) from this vector to another."""
         dot_product = self.dot(other)
         det = self.cross(other)
         return math.atan2(det, dot_product)
 
     def to_tile_coord(self) -> tuple[int, int]:
+        """Convert world-space coordinates to integer tile coordinates."""
         return (int(self.x / self.TILE_SIZE), int(self.y / self.TILE_SIZE))
 
     def clamp_length(self, max_length: float) -> Vec2:
+        """Return a copy scaled so its length does not exceed max_length."""
         if self.length_squared <= max_length**2:
             return self
         return self.normalized * max_length
 
     def rotate(self, radians: float) -> Vec2:
+        """Return the vector rotated by the given angle in radians."""
         cos_a = math.cos(radians)
         sin_a = math.sin(radians)
         return Vec2(

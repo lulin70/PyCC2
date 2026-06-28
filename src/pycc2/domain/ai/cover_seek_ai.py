@@ -383,6 +383,7 @@ class CoverSeekAI(TacticalAIBase):
 
     @property
     def scorer(self) -> CoverScoringSystem:
+        """Return the cover scoring system used by this AI."""
         return self._scorer
 
     def evaluate(self, context: TacticalContext) -> float:

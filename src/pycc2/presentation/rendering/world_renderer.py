@@ -44,6 +44,7 @@ class WorldRenderer:
         unit_renderer: UnitRenderer,
         unit_fade_renderer: UnitFadeRenderer,
     ) -> None:
+        """Initialize the WorldRenderer."""
         self._terrain_rendering_sys = terrain_rendering_sys
         self._decoration_renderer = decoration_renderer
         self._shadow_rendering_sys = shadow_rendering_sys

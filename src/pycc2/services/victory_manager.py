@@ -42,6 +42,7 @@ class VictoryManager:
     def initialize(
         self, event_bus: EventBus, combat_director: ICombatDirector | None = None
     ) -> None:
+        """Initialize the evaluator, battle stats, and event subscriptions."""
         from pycc2.domain.systems.victory_conditions import (
             BattleStats,
             VictoryConditionEvaluator,
@@ -136,6 +137,7 @@ class VictoryManager:
                 self._show_post_battle = True
 
     def reset(self) -> None:
+        """Clear game result and post-battle state for a new battle."""
         self._game_result = None
         self._game_over_tick = 0
         self._show_post_battle = False
@@ -144,12 +146,15 @@ class VictoryManager:
 
     @property
     def game_result(self):
+        """Return the current game result, or None if the battle is ongoing."""
         return self._game_result
 
     @property
     def show_post_battle(self) -> bool:
+        """Return whether the post-battle screen should be shown."""
         return self._show_post_battle
 
     @property
     def battle_stats(self):
+        """Return the accumulated battle statistics, or None if not initialized."""
         return self._battle_stats

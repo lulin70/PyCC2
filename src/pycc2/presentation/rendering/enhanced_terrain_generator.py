@@ -25,6 +25,7 @@ class EnhancedTerrainGenerator:
     """高质量地形纹理生成器 - 目标评分 8.5+"""
 
     def __init__(self, seed: int = 42):
+        """Initialize the EnhancedTerrainGenerator."""
         self.seed = seed
         self.rng = random.Random(seed)
 

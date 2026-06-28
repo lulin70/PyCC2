@@ -202,6 +202,7 @@ class FallenUnitCache:
 
     @property
     def entry_count(self) -> int:
+        """Return the number of fallen-unit entries currently cached."""
         return len(self._entries)
 
 
@@ -485,9 +486,11 @@ class AmmoPickupSystem:
 
     @property
     def active_pickup_count(self) -> int:
+        """Return the number of ammo pickups currently in progress."""
         return len(self._active_pickups)
 
     def get_pickup_state(self, unit_id: str) -> PickupState | None:
+        """Return the active pickup state for a unit, or None."""
         return self._active_pickups.get(unit_id)
 
 

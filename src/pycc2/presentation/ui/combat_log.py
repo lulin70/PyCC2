@@ -265,6 +265,7 @@ class CombatLog:
 
     @property
     def event_count(self) -> int:
+        """Get the event count."""
         return len(self.events)
 
     def scroll_up(self, amount: int = 1) -> None:

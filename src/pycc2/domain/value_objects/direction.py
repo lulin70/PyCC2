@@ -129,6 +129,7 @@ class Direction(Enum):
         return best_dir
 
     def to_angle(self) -> float:
+        """Return the angle in degrees (0° = East, 90° = South)."""
         angles = {
             Direction.E: 0.0,
             Direction.SE: 45.0,
@@ -142,6 +143,7 @@ class Direction(Enum):
         return angles[self]
 
     def to_unit_facing(self) -> float:
+        """Return the facing angle for unit sprites (alias of to_angle)."""
         return self.to_angle()
 
     @classmethod

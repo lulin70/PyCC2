@@ -74,6 +74,7 @@ class SettingsState:
 
 class SettingsMenu:
     def __init__(self, display_config, keybind_manager: KeybindManager | None = None):
+        """Initialize the SettingsMenu."""
         self.state = SettingsState()
         self._display_config = display_config
         self._keybind_manager = keybind_manager
@@ -113,20 +114,25 @@ class SettingsMenu:
 
     @property
     def visible(self) -> bool:
+        """Get the visible."""
         return self._visible
 
     def toggle(self) -> None:
+        """Toggle state."""
         self._visible = not self._visible
 
     def show(self) -> None:
+        """Show an element."""
         self.state = SettingsState.load()
         self._visible = True
 
     def hide(self) -> None:
+        """Hide an element."""
         self.state.save()
         self._visible = False
 
     def handle_input(self, event, mouse_pos) -> str | None:
+        """Handle input."""
         import pygame
 
         if event.type == pygame.KEYDOWN:
@@ -178,6 +184,7 @@ class SettingsMenu:
         return None
 
     def render(self, screen) -> None:
+        """Render to the screen."""
         import pygame
 
         sw, sh = screen.get_size()
@@ -409,6 +416,7 @@ class SettingsMenu:
         return None
 
     def apply_to_systems(self, sound_system=None, display_config=None) -> dict:
+        """Apply settings to subsystems and return the changes."""
         changes = {}
         if sound_system and hasattr(sound_system, "set_master_volume"):
             sound_system.set_master_volume(self.state.master_volume)

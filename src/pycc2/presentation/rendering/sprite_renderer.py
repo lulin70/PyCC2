@@ -127,6 +127,7 @@ class SpriteRenderer:
         return surf
 
     def initialize(self, screen: Surface) -> None:
+        """Initialize."""
         self._screen = screen
         self._cache_manager.initialize_png_sprites()
 
@@ -1068,18 +1069,23 @@ class SpriteRenderer:
     # ====== 战斗视觉反馈系统 (delegated) ======
 
     def spawn_hit_flash(self, unit_id: str) -> None:
+        """Spawn hit flash."""
         self._effect_renderer.spawn_hit_flash(unit_id)
 
     def spawn_damage_number(self, position: Vec2, damage: int, is_kill: bool = False) -> None:
+        """Spawn damage number."""
         self._effect_renderer.spawn_damage_number(position, damage, is_kill)
 
     def spawn_muzzle_flash(self, position: Vec2, direction: float) -> None:
+        """Spawn muzzle flash."""
         self._effect_renderer.spawn_muzzle_flash(position, direction)
 
     def spawn_death_effect(self, unit_id: str, position: Vec2) -> None:
+        """Spawn death effect."""
         self._effect_renderer.spawn_death_effect(unit_id, position)
 
     def spawn_explosion(self, position: Vec2, size: str = "medium") -> None:
+        """Spawn explosion."""
         self._effect_renderer.spawn_explosion(position, size)
 
     def clear_decals(self) -> None:
@@ -1087,6 +1093,7 @@ class SpriteRenderer:
         self._effect_renderer.clear_decals()
 
     def spawn_smoke_screen(self, position: Vec2, radius: float = 64.0) -> None:
+        """Spawn smoke screen."""
         self._effect_renderer.spawn_smoke_screen(position, radius)
 
     def _draw_death_animation(
@@ -1128,24 +1135,30 @@ class SpriteRenderer:
         self._effect_renderer.update_effects()
 
     def ensure_animator(self, unit_id: str) -> UnitAnimator:
+        """Ensure animator."""
         return self._effect_renderer.ensure_animator(unit_id)
 
     def _get_font(self, size: int) -> font.Font | None:
         return self._effect_renderer.get_font(size)
 
     def update_animations(self) -> None:
+        """Update animations."""
         self._effect_renderer.update_animations()
 
     def update_flash(self, dt: float) -> None:
+        """Update flash."""
         self._effect_renderer.update_effects()
 
     def update_weather(self, dt: float) -> None:
+        """Update weather."""
         pass  # Weather rendering handled by dedicated weather renderer
 
     def update_shell_casings(self, dt: float) -> None:
+        """Update shell casings."""
         pass  # Shell casings handled by dedicated shell casing system
 
     def update_suppression_overlay(self, dt: float, units) -> None:
+        """Update suppression overlay."""
         pass  # Suppression overlay handled by dedicated overlay system
 
     def _smooth_positions(self, units, dt: float) -> None:
@@ -1158,6 +1171,7 @@ class SpriteRenderer:
         self._cache_manager.tile_cache.invalidate()
 
     def shutdown(self) -> None:
+        """Shut down the sprite renderer and release caches."""
         self._screen = None
         self._cache_manager.clear()
         self._effect_renderer.clear()

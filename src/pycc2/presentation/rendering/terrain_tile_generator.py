@@ -1038,6 +1038,7 @@ class TerrainTileGenerator:
 
     @staticmethod
     def generate_crater(size: int, variant: int = 0) -> PixelCanvas:
+        """Generate crater."""
         c = PixelCanvas(size, size, bg=(90, 75, 60))
         cx, cy = size // 2, size // 2
         rng = random.Random(variant * 137 + 42)
@@ -1068,6 +1069,7 @@ class TerrainTileGenerator:
 
     @staticmethod
     def generate_swamp(size: int, variant: int = 0) -> PixelCanvas:
+        """Generate swamp."""
         c = PixelCanvas(size, size, bg=(60, 80, 50))
         rng = random.Random(variant * 199 + 7)
 
@@ -1099,6 +1101,7 @@ class TerrainTileGenerator:
 
     @staticmethod
     def generate_mud(size: int, variant: int = 0) -> PixelCanvas:
+        """Generate mud."""
         c = PixelCanvas(size, size, bg=(90, 70, 45))
         rng = random.Random(variant * 211 + 13)
 
@@ -1131,6 +1134,7 @@ class TerrainTileGenerator:
 
     @staticmethod
     def generate_sand(size: int, variant: int = 0) -> PixelCanvas:
+        """Generate sand."""
         c = PixelCanvas(size, size, bg=(180, 165, 120))
         rng = random.Random(variant * 317 + 23)
 
@@ -1164,6 +1168,7 @@ class TerrainTileGenerator:
 
     @staticmethod
     def generate_snow(size: int, variant: int = 0) -> PixelCanvas:
+        """Generate snow."""
         c = PixelCanvas(size, size, bg=(230, 235, 240))
         rng = random.Random(variant * 431 + 37)
 
@@ -1199,6 +1204,7 @@ class TerrainTileGenerator:
 
     @staticmethod
     def generate_wire(size: int, variant: int = 0) -> PixelCanvas:
+        """Generate wire."""
         c = TerrainTileGenerator.generate_grass(size, variant=variant + 10)
 
         rng = random.Random(variant * 523 + 51)
@@ -1229,6 +1235,7 @@ class TerrainTileGenerator:
 
     @staticmethod
     def generate_trench(size: int, variant: int = 0) -> PixelCanvas:
+        """Generate trench."""
         c = PixelCanvas(size, size, bg=(76, 153, 0))
         rng = random.Random(variant * 641 + 61)
 
@@ -1274,6 +1281,7 @@ class TerrainTileGenerator:
 
     @staticmethod
     def generate_bunker(size: int, variant: int = 0) -> PixelCanvas:
+        """Generate bunker."""
         c = PixelCanvas(size, size, bg=(76, 153, 0))
         grass_base = CCPalette.GRASS_LIGHT.value
         c.fill_rect(0, 0, size, size, grass_base)

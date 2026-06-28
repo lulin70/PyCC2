@@ -15,6 +15,7 @@ class CommandBarRenderer:
     """Renders the vertical command button bar and optional battle timer."""
 
     def __init__(self, panel: CC2BottomPanel) -> None:
+        """Initialize the CommandBarRenderer."""
         self._panel = panel
 
     def render(

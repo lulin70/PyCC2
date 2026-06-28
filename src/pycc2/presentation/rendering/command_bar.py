@@ -19,6 +19,7 @@ class CommandBar:
     """Command bar with action buttons."""
 
     def __init__(self, display_config: DisplayConfig | None = None, height: int | None = None):
+        """Initialize the CommandBar."""
         self._dc = display_config or DisplayConfig()
         self.height = height or int(60 * self._dc.ui_scale)
         self.spec = VisualSpec()

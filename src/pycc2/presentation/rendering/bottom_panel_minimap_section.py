@@ -18,6 +18,7 @@ class MinimapSectionRenderer:
     """Renders the minimap, info-toggle buttons, and zoom controls."""
 
     def __init__(self, panel: CC2BottomPanel) -> None:
+        """Initialize the MinimapSectionRenderer."""
         self._panel = panel
 
     def render(

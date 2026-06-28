@@ -57,6 +57,7 @@ class CombatEngagement:
 
     @property
     def rule(self) -> EngagementRule:
+        """Return the engagement rule used by this evaluator."""
         return self._rule
 
     def evaluate_engagement(
@@ -67,6 +68,7 @@ class CombatEngagement:
         blackboard: Blackboard | None = None,
         difficulty_config: DifficultyConfig | None = None,
     ) -> EngagementResult:
+        """Evaluate whether and how a unit should engage a target at the given distance."""
         if distance < self._rule.min_engagement_distance:
             return EngagementResult(
                 decision=EngagementDecision.CLOSE_DISTANCE,
@@ -158,6 +160,7 @@ class CombatEngagement:
         visible_enemies: list[Unit],
         blackboard: Blackboard | None = None,
     ) -> Unit | None:
+        """Select the highest-priority target from visible enemies in firing range."""
         if not visible_enemies:
             return None
 
@@ -198,6 +201,7 @@ class CombatEngagement:
         distance: float,
         difficulty_config: DifficultyConfig | None = None,
     ) -> str:
+        """Choose a fire mode (single, burst, auto, suppress) based on unit and distance."""
         is_mg = unit.unit_type.name == "MACHINE_GUN_SQUAD"
         low_ammo = unit.weapon.ammo_ratio < 0.25
 
@@ -229,6 +233,7 @@ class CombatEngagement:
         has_cover: bool,
         difficulty_config: DifficultyConfig | None = None,
     ) -> bool:
+        """Return whether the unit should reload now based on ammo, combat, and cover."""
         if unit.weapon.ammo_remaining == unit.weapon.max_ammo:
             return False
 

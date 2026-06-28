@@ -20,6 +20,7 @@ class HintManager:
     HINT_COOLDOWN: int = 300
 
     def __init__(self):
+        """Initialize the HintManager."""
         self._hints: list[ActiveHint] = []
         self._global_cooldown: int = 0
         self._enabled: bool = True
@@ -28,6 +29,7 @@ class HintManager:
 
     @property
     def enabled(self) -> bool:
+        """Get the enabled."""
         return self._enabled
 
     def _init_font(self) -> None:
@@ -36,11 +38,13 @@ class HintManager:
         self._font = pygame.font.Font(None, 16)
 
     def set_enabled(self, val: bool) -> None:
+        """Set the enabled."""
         self._enabled = val
         if not val:
             self._hints.clear()
 
     def show_hint(self, text: str, x: float, y: float, lifetime: int = 180) -> None:
+        """Show hint."""
         if not self._enabled:
             return
         self._hints.append(
@@ -48,6 +52,7 @@ class HintManager:
         )
 
     def update(self) -> None:
+        """Update internal state."""
         if self._global_cooldown > 0:
             self._global_cooldown -= 1
         surviving = []
@@ -58,6 +63,7 @@ class HintManager:
         self._hints = surviving
 
     def render(self, screen) -> None:
+        """Render to the screen."""
         if not self._enabled:
             return
         # Lazy-init font on first render

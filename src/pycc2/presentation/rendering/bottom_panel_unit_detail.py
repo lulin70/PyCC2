@@ -19,6 +19,7 @@ class UnitDetailRenderer:
     """Renders detailed status info and soldier monitor for the selected unit."""
 
     def __init__(self, panel: CC2BottomPanel) -> None:
+        """Initialize the UnitDetailRenderer."""
         self._panel = panel
         self._soldier_monitor = SoldierMonitorRenderer(panel)
 

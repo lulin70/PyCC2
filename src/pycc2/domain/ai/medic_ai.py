@@ -288,10 +288,12 @@ class MedicAI(TacticalAIBase):
         return completed
 
     def get_treatment_state(self, medic_id: str) -> TreatmentRecord | None:
+        """Return the active treatment record for a medic, or None."""
         return self._active_treatments.get(medic_id)
 
     @property
     def active_treatment_count(self) -> int:
+        """Return the number of treatments currently in progress."""
         return len(self._active_treatments)
 
     # ------------------------------------------------------------------

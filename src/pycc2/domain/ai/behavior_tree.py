@@ -24,7 +24,9 @@ class BTNode(ABC):
     """Abstract base class for all behavior tree nodes."""
 
     @abstractmethod
-    def tick(self, blackboard: Blackboard) -> NodeStatus: ...
+    def tick(self, blackboard: Blackboard) -> NodeStatus:
+        """Execute the node against the blackboard and return its status."""
+        ...
 
 
 @dataclass(slots=True)
@@ -34,6 +36,7 @@ class Sequence(BTNode):
     children: list[BTNode] = field(default_factory=list)
 
     def tick(self, blackboard: Blackboard) -> NodeStatus:
+        """Tick children in order, returning the first non-success status."""
         for child in self.children:
             status = child.tick(blackboard)
             if status != NodeStatus.SUCCESS:
@@ -48,6 +51,7 @@ class Selector(BTNode):
     children: list[BTNode] = field(default_factory=list)
 
     def tick(self, blackboard: Blackboard) -> NodeStatus:
+        """Tick children in order, returning the first non-failure status."""
         for child in self.children:
             status = child.tick(blackboard)
             if status != NodeStatus.FAILURE:
@@ -63,6 +67,7 @@ class Parallel(BTNode):
     policy: str = "ALL"
 
     def tick(self, blackboard: Blackboard) -> NodeStatus:
+        """Tick all children, combining results under the configured policy."""
         if not self.children:
             return NodeStatus.SUCCESS if self.policy == "ALL" else NodeStatus.FAILURE
 
@@ -87,6 +92,7 @@ class Condition(BTNode):
     predicate: Callable[[Blackboard], bool]
 
     def tick(self, blackboard: Blackboard) -> NodeStatus:
+        """Return success when the predicate holds, failure otherwise."""
         return NodeStatus.SUCCESS if self.predicate(blackboard) else NodeStatus.FAILURE
 
 
@@ -97,6 +103,7 @@ class Action(BTNode):
     action_fn: Callable[[Blackboard], NodeStatus]
 
     def tick(self, blackboard: Blackboard) -> NodeStatus:
+        """Delegate execution to the wrapped action function."""
         return self.action_fn(blackboard)
 
 
@@ -107,6 +114,7 @@ class Inverter(BTNode):
     child: BTNode
 
     def tick(self, blackboard: Blackboard) -> NodeStatus:
+        """Tick the child and invert success/failure status."""
         status = self.child.tick(blackboard)
         if status == NodeStatus.SUCCESS:
             return NodeStatus.FAILURE
@@ -124,6 +132,7 @@ class Repeater(BTNode):
     _count: int = field(default=0, init=False)
 
     def tick(self, blackboard: Blackboard) -> NodeStatus:
+        """Tick the child repeatedly up to the configured repeat limit."""
         if self.max_repeats == 0:
             return NodeStatus.SUCCESS
 
@@ -150,6 +159,7 @@ class WaitUntil(BTNode):
     _initialized: bool = field(default=False, init=False)
 
     def tick(self, blackboard: Blackboard) -> NodeStatus:
+        """Run until the condition holds or the optional timeout expires."""
         if not self._initialized:
             self._start_tick = blackboard.get("_tick", 0)
             self._initialized = True

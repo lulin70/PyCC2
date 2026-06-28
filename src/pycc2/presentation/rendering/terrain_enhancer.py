@@ -17,6 +17,7 @@ class PerlinNoise:
     """Perlin噪声生成器 - 用于生成自然地形纹理"""
 
     def __init__(self, seed: int | None = None):
+        """Initialize the PerlinNoise."""
         self.rng = random.Random(seed)
         # 生成256个随机排列
         self.p = list(range(256))
@@ -107,6 +108,7 @@ class TerrainEnhancer:
     """地形增强器 - 使用Perlin噪声生成更精细的地形纹理"""
 
     def __init__(self, seed: int | None = None):
+        """Initialize the TerrainEnhancer."""
         self.perlin = PerlinNoise(seed)
         self.rng = random.Random(seed)
 

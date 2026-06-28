@@ -44,6 +44,7 @@ class WindowManager:
     _shutdown_called: bool = False
 
     def initialize(self) -> pygame.Surface:
+        """Initialize the window and return the display surface."""
         self.display_info.dpi_scale = self.detect_dpi()
         self.display_info.is_retina = self.display_info.dpi_scale >= 2.0
         info = pygame.display.Info()
@@ -61,6 +62,7 @@ class WindowManager:
         return self._screen
 
     def initialize_with_config(self, display_config) -> pygame.Surface:
+        """Initialize with config."""
         from pycc2.domain.interfaces.display_config import DisplayConfig as DC
 
         if not isinstance(display_config, DC):
@@ -83,11 +85,13 @@ class WindowManager:
         return self._screen
 
     def get_screen(self) -> pygame.Surface:
+        """Get the screen."""
         if self._screen is None:
             self._screen = self.initialize()
         return self._screen
 
     def toggle_fullscreen(self) -> None:
+        """Toggle fullscreen."""
         if self.mode == WindowMode.WINDOWED:
             self.mode = WindowMode.FULLSCREEN
             flags = pygame.FULLSCREEN | pygame.DOUBLEBUF
@@ -106,6 +110,7 @@ class WindowManager:
             )
 
     def toggle_maximize(self) -> None:
+        """Toggle maximize."""
         flags = pygame.SCALED | pygame.RESIZABLE | pygame.DOUBLEBUF
         if self.mode == WindowMode.WINDOWED:
             self._screen = pygame.display.set_mode(
@@ -122,6 +127,7 @@ class WindowManager:
             self.mode = WindowMode.WINDOWED
 
     def resize(self, width: int, height: int) -> None:
+        """Resize the window to the given dimensions."""
         self.display_info.base_width = width
         self.display_info.base_height = height
         if self._screen is not None:
@@ -131,6 +137,7 @@ class WindowManager:
             self._screen = pygame.display.set_mode((width, height), flags, vsync=1)
 
     def handle_event(self, event: pygame.event.EventType) -> bool:
+        """Handle event."""
         if event.type == pygame.QUIT:
             return True
         if event.type == pygame.VIDEORESIZE:
@@ -138,11 +145,13 @@ class WindowManager:
         return False
 
     def get_actual_size(self) -> tuple[int, int]:
+        """Get the actual size."""
         if self._screen is not None:
             return self._screen.get_size()
         return (self.display_info.base_width, self.display_info.base_height)
 
     def detect_dpi(self) -> float:
+        """Detect dpi."""
         system = platform.system()
         if system == "Darwin":
             try:
@@ -194,16 +203,19 @@ class WindowManager:
 
     @property
     def fps(self) -> float:
+        """Get the FPS."""
         if self._clock is not None:
             return self._clock.get_fps()
         return 0.0
 
     def tick(self, target_fps: int = 60) -> int:
+        """Advance the frame timer and return elapsed milliseconds."""
         if self._clock is None:
             self._clock = pygame.time.Clock()
         return self._clock.tick(target_fps)
 
     def shutdown(self) -> None:
+        """Shut down the window."""
         if self._shutdown_called:
             return
         self._shutdown_called = True

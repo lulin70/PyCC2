@@ -61,6 +61,7 @@ class TimeControlConfig:
 
 class TimeControlUI:
     def __init__(self, config: TimeControlConfig | None = None):
+        """Initialize the TimeControlUI."""
         self.config = config or TimeControlConfig()
         self._current_speed: TimeSpeed = TimeSpeed.NORMAL
         self._button_rects: dict[TimeSpeed, pygame.Rect] = {}
@@ -69,39 +70,47 @@ class TimeControlUI:
 
     @property
     def current_speed(self) -> TimeSpeed:
+        """Get the current speed."""
         return self._current_speed
 
     @property
     def speed_multiplier(self) -> float:
+        """Get the speed multiplier."""
         return TIME_SPEED_CONFIG[self._current_speed]["ups_mult"]
 
     @property
     def is_paused(self) -> bool:
+        """Get the is paused."""
         return self._current_speed == TimeSpeed.PAUSED
 
     def set_speed(self, speed: TimeSpeed) -> None:
+        """Set the speed."""
         if speed in TIME_SPEED_CONFIG:
             self._current_speed = speed
 
     def toggle_pause(self) -> None:
+        """Toggle pause."""
         if self._current_speed == TimeSpeed.PAUSED:
             self._current_speed = TimeSpeed.NORMAL
         else:
             self._current_speed = TimeSpeed.PAUSED
 
     def speed_up(self) -> TimeSpeed:
+        """Speed up."""
         idx = SPEED_ORDER.index(self._current_speed)
         if idx < len(SPEED_ORDER) - 1:
             self._current_speed = SPEED_ORDER[idx + 1]
         return self._current_speed
 
     def speed_down(self) -> TimeSpeed:
+        """Speed down."""
         idx = SPEED_ORDER.index(self._current_speed)
         if idx > 0:
             self._current_speed = SPEED_ORDER[idx - 1]
         return self._current_speed
 
     def handle_key(self, key: int) -> bool:
+        """Handle key."""
         import pygame
 
         if key == pygame.K_SPACE:
@@ -118,6 +127,7 @@ class TimeControlUI:
     def render(
         self, screen: pygame.Surface, font=None, tick: int = 0, fps: float = 0.0
     ) -> list[dict]:
+        """Render to the screen."""
         import pygame
 
         cfg = self.config
@@ -171,6 +181,7 @@ class TimeControlUI:
         return clickable
 
     def handle_click(self, x: int, y: int) -> bool:
+        """Handle click."""
         for speed, rect in self._button_rects.items():
             if rect.collidepoint(x, y):
                 self._current_speed = speed

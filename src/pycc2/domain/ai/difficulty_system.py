@@ -146,13 +146,16 @@ class DifficultySystem:
 
     @property
     def config(self) -> DifficultyConfig:
+        """Return the active difficulty configuration."""
         return self._config
 
     @property
     def level(self) -> DifficultyLevel:
+        """Return the current difficulty level."""
         return self._level
 
     def set_level(self, level: DifficultyLevel) -> None:
+        """Apply the preset configuration for the given difficulty level."""
         preset = self.PRESETS[level]
         self._config = preset.__class__(**dataclasses.asdict(preset))
         self._level = level
@@ -163,6 +166,7 @@ class DifficultySystem:
         blackboard: Blackboard,
         rng: random.Random | None = None,
     ) -> TacticIntent | None:
+        """Optionally replace or modify a tactic intent based on difficulty."""
         if rng is None:
             rng = random.Random()
 
@@ -218,6 +222,7 @@ class DifficultySystem:
         return dataclasses.replace(intent, tactic_type=chosen)
 
     def should_coordinate(self) -> bool:
+        """Return whether squad coordination tactics are enabled by difficulty."""
         return self._config.coordination_enabled
 
     @classmethod
@@ -253,6 +258,7 @@ class DifficultySystem:
         )
 
     def apply_combat_modifier(self, base_hit_chance: float) -> float:
+        """Apply the difficulty hit-chance modifier to a base hit chance."""
         modified = base_hit_chance * (self._config.base_hit_chance / 0.5)
         return max(0.05, min(0.95, modified))
 

@@ -73,6 +73,7 @@ class HUDManager:
         minimap: IMinimap | None = None,
         cc2_panel: IBottomPanel | None = None,
     ) -> None:
+        """Wire up the CC2 panel, minimap, callbacks, and renderer integration."""
         dc = display_config
 
         # Store references
@@ -448,6 +449,7 @@ class HUDManager:
 
     @property
     def minimap(self) -> IMinimap | None:
+        """Return the minimap instance, or None if not initialized."""
         return self._minimap
 
     # ------------------------------------------------------------------

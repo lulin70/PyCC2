@@ -17,20 +17,24 @@ class AtmosphereController:
     """Owns weather, screen flash, and shell casing systems."""
 
     def __init__(self) -> None:
+        """Initialize the AtmosphereController."""
         self._flash_sys = FlashEffectSystem()
         self._weather_sys = WeatherSystem()
         self._shell_sys = ShellCasingSystem()
 
     @property
     def flash_sys(self) -> FlashEffectSystem:
+        """Get the flash system."""
         return self._flash_sys
 
     @property
     def weather_sys(self) -> WeatherSystem:
+        """Get the weather system."""
         return self._weather_sys
 
     @property
     def shell_sys(self) -> ShellCasingSystem:
+        """Get the shell system."""
         return self._shell_sys
 
     def trigger_flash(

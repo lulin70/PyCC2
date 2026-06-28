@@ -51,6 +51,7 @@ class Tooltip:
     LINE_HEIGHT: int = 18
 
     def __init__(self):
+        """Initialize the Tooltip."""
         self.target_unit: Unit | None = None
         self._show_timer: float = 0.0
         self._hide_timer: float = 0.0
@@ -256,10 +257,12 @@ class Tooltip:
 
     @property
     def is_visible(self) -> bool:
+        """Get the is visible."""
         return self._visible
 
     @property
     def data(self) -> TooltipData:
+        """Get the data."""
         return self._data
 
     def force_hide(self) -> None:

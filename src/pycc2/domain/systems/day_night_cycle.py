@@ -29,15 +29,18 @@ class GameTime:
 
     @property
     def hours(self) -> float:
+        """Return the current in-game hour (0-24)."""
         game_total = self.total_seconds * self.time_scale
         return (game_total / 3600.0) % 24
 
     @property
     def minutes(self) -> int:
+        """Return the current in-game minute (0-59)."""
         return int((self.hours % 1) * 60)
 
     @property
     def time_of_day(self) -> TimeOfDay:
+        """Return the discrete time-of-day phase for the current game time."""
         h = self.hours
         if 5 <= h < 7:
             return TimeOfDay.DAWN
@@ -49,6 +52,7 @@ class GameTime:
 
     @property
     def formatted_time(self) -> str:
+        """Return the current game time as a formatted 12-hour clock string."""
         h = int(self.hours)
         m = self.minutes
         period = "AM" if h < 12 else "PM"
@@ -58,9 +62,11 @@ class GameTime:
         return f"{display_h:02d}:{m:02d} {period}"
 
     def advance(self, dt: float) -> None:
+        """Advance game time by the given delta seconds."""
         self.total_seconds += dt
 
     def set_time(self, hour: float) -> None:
+        """Set the in-game hour, preserving the current day."""
         scaled_hour = (hour % 24) / self.time_scale * 3600.0
         base_days = int(self.total_seconds * self.time_scale / 86400.0)
         self.total_seconds = base_days * 86400.0 / self.time_scale + scaled_hour
@@ -98,18 +104,22 @@ class DayNightEffects:
     }
 
     def apply_vision_penalty(self, base_range: float, tod: TimeOfDay) -> float:
+        """Return the vision range adjusted for the given time of day."""
         modifier = self.VISION_MODIFIERS.get(tod, 1.0)
         return base_range * modifier
 
     def apply_stealth_bonus(self, base_chance: float, tod: TimeOfDay) -> float:
+        """Return the stealth chance increased by the time-of-day bonus."""
         bonus = self.STEALTH_BONUSES.get(tod, 0.0)
         return min(1.0, base_chance + bonus)
 
     def apply_accuracy_modifier(self, base_accuracy: float, tod: TimeOfDay) -> float:
+        """Return the accuracy scaled by the time-of-day modifier."""
         modifier = self.ACCURACY_MODIFIERS.get(tod, 1.0)
         return base_accuracy * modifier
 
     def get_lighting_color(self, tod: TimeOfDay) -> tuple[int, int, int]:
+        """Return the ambient lighting RGB tuple for the given time of day."""
         return self.LIGHTING_COLORS.get(tod, (255, 255, 255))
 
     def get_combined_vision_modifier(
@@ -118,6 +128,7 @@ class DayNightEffects:
         tod: TimeOfDay,
         weather_modifier: float = 1.0,
     ) -> float:
+        """Return the vision range adjusted for both time of day and weather."""
         vision = self.apply_vision_penalty(base_range, tod)
         return vision * weather_modifier
 
@@ -127,6 +138,7 @@ class DayNightEffects:
         tod: TimeOfDay,
         weather_concealment: float = 0.0,
     ) -> float:
+        """Return the stealth chance adjusted for time of day and weather concealment."""
         stealth = self.apply_stealth_bonus(base_chance, tod)
         return min(1.0, stealth + weather_concealment)
 
@@ -149,6 +161,7 @@ class Searchlight:
         self._current_direction = self.direction_deg
 
     def get_illuminated_tiles(self) -> list[tuple[int, int]]:
+        """Return the list of tiles currently illuminated by the searchlight."""
         illuminated: list[tuple[int, int]] = []
         if not self.is_active:
             return illuminated
@@ -168,6 +181,7 @@ class Searchlight:
         return illuminated
 
     def is_tile_illuminated(self, x: int, y: int) -> bool:
+        """Return True if the given tile lies within the searchlight's arc."""
         if not self.is_active:
             return False
 
@@ -186,6 +200,7 @@ class Searchlight:
         return angle_diff <= (self.arc_angle / 2.0)
 
     def update(self, dt: float) -> None:
+        """Advance the searchlight sweep direction by the given delta seconds."""
         if not self.is_active:
             return
 
@@ -195,4 +210,5 @@ class Searchlight:
 
     @property
     def current_direction(self) -> float:
+        """Return the searchlight's current sweep direction in degrees."""
         return self._current_direction

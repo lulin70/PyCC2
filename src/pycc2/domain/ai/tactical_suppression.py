@@ -51,6 +51,7 @@ class SuppressionAI(TacticalAIBase):
     """
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return suppression priority based on MG availability and high-threat enemies."""
         mg_units = self._mg_units(context)
         enemies = [e for e in context.enemy_units if e.is_alive]
         if not mg_units or not enemies:
@@ -70,6 +71,7 @@ class SuppressionAI(TacticalAIBase):
         return min(score * diff_mod, 1.0)
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate suppress-fire intents assigning MG units to high-threat enemies."""
         mg_units = self._mg_units(context)
         enemies = [e for e in context.enemy_units if e.is_alive]
         if not mg_units or not enemies:

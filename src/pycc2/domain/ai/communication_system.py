@@ -127,10 +127,12 @@ class CommMessage:
 
     @property
     def is_delivered(self) -> bool:
+        """Return whether the message has been delivered (no ticks remaining)."""
         return self.ticks_remaining <= 0
 
     @property
     def is_lost(self) -> bool:
+        """Return whether the message has been lost in transit."""
         return self.status == CommStatus.LOST
 
 
@@ -152,6 +154,7 @@ class UnitCommState:
 
     @property
     def can_transmit(self) -> bool:
+        """Return whether the unit has a working radio and contact."""
         return self.radio_type != RadioType.NONE and self.has_contact
 
 
@@ -258,10 +261,12 @@ class CommunicationSystem:
 
     @property
     def message_queue(self) -> list[CommMessage]:
+        """Return a copy of the pending message queue."""
         return list(self._message_queue)
 
     @property
     def unit_states(self) -> dict[str, UnitCommState]:
+        """Return a copy of the per-unit communication states."""
         return dict(self._unit_states)
 
     def register_unit(self, unit: Unit) -> None:

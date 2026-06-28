@@ -119,6 +119,7 @@ class GameMap:
 
     @classmethod
     def from_json(cls, filepath: str | Path) -> GameMap:
+        """Load a GameMap from a JSON scenario file."""
         with open(filepath, encoding="utf-8") as f:
             data: dict[str, Any] = json.load(f)
 
@@ -191,9 +192,11 @@ class GameMap:
         )
 
     def get_terrain(self, coord: TileCoord) -> TerrainType:
+        """Return the terrain type at the given tile coordinate."""
         return TerrainType(int(self.tile_grid[coord.y, coord.x]))
 
     def set_terrain(self, coord: TileCoord, terrain: TerrainType) -> None:
+        """Overwrite the terrain type at the given tile coordinate."""
         self.tile_grid[coord.y, coord.x] = terrain.value
 
     def modify_terrain(self, x: int, y: int, new_terrain: TerrainType) -> None:
@@ -208,14 +211,17 @@ class GameMap:
         self.tile_grid[y, x] = new_terrain.value
 
     def is_passable(self, coord: TileCoord) -> bool:
+        """Return True if a unit can enter the tile at the given coordinate."""
         if not self.is_within_bounds(coord):
             return False
         return self.get_terrain(coord).is_passable
 
     def is_within_bounds(self, coord: TileCoord) -> bool:
+        """Return True if the coordinate lies inside the map extents."""
         return coord.is_within_bounds(self.width, self.height)
 
     def has_line_of_sight(self, from_coord: TileCoord, to_coord: TileCoord) -> bool:
+        """Return True if line of sight between two tiles is unobstructed."""
         # Window firing arc check: if shooter is inside a building, verify
         # the firing angle passes through a window
         from_terrain = self.get_terrain(from_coord)
@@ -319,12 +325,14 @@ class GameMap:
         return points
 
     def get_spawn_point(self, side: str) -> SpawnPoint | None:
+        """Return the spawn point registered for the given faction side."""
         for sp in self.spawn_points:
             if sp.side == side:
                 return sp
         return None
 
     def get_objectives(self) -> list[MapObjective]:
+        """Return a copy of all map objectives."""
         return list(self.objectives)
 
     def get_enhanced_tile(self, x: int, y: int) -> dict | None:

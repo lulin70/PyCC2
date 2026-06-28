@@ -22,6 +22,7 @@ class UnitFadeRenderer:
     """Renders semi-transparent death fade-out ghosts for dying units."""
 
     def __init__(self) -> None:
+        """Initialize the UnitFadeRenderer."""
         # {unit_id: {"x": float, "y": float, "start_time": float, "duration": float}}
         self._fading_units: dict[str, dict] = {}
 

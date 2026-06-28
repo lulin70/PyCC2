@@ -109,10 +109,12 @@ class AmmoInventory:
 
     @property
     def current_type(self) -> AmmoType:
+        """Return the currently selected ammo type."""
         return self._current_type
 
     @property
     def current_effects(self) -> AmmoEffects:
+        """Return the effects configuration for the active ammo type."""
         return AMMO_EFFECTS_CONFIG.get(
             self._current_type,
             AMMO_EFFECTS_CONFIG[AmmoType.STANDARD],
@@ -120,9 +122,11 @@ class AmmoInventory:
 
     @property
     def available_types(self) -> list[AmmoType]:
+        """Return ammo types that still have remaining rounds."""
         return [t for t in AmmoType if self._inventory.get(t, 0) > 0]
 
     def get_ammo_count(self, ammo_type: AmmoType) -> int:
+        """Return the remaining count for the given ammo type."""
         return self._inventory.get(ammo_type, 0)
 
     def can_fire(self) -> bool:

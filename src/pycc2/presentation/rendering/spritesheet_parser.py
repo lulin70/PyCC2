@@ -76,6 +76,7 @@ class SpritesheetParser:
         image_path: str | None = None,
         config: SpritesheetConfig | None = None,
     ):
+        """Initialize the SpritesheetParser."""
         self.config = config or SpritesheetConfig()
         self._image: pygame.Surface | None = None
         self._image_array: np.ndarray | None = None
@@ -422,18 +423,22 @@ class SpritesheetParser:
 
     @property
     def is_loaded(self) -> bool:
+        """Get the is loaded."""
         return self._is_loaded
 
     @property
     def frame_count(self) -> int:
+        """Get the frame count."""
         return len(self._frames)
 
     @property
     def directions_found(self) -> int:
+        """Get the directions found."""
         return len(set(f.direction_index for f in self._frames if f.has_content))
 
     @property
     def sprite_size(self) -> tuple[int, int]:
+        """Get the sprite size."""
         return self.config.sprite_size
 
     def get_analysis_report(self) -> str:

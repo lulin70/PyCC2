@@ -59,9 +59,11 @@ class Achievement:
     unlock_condition: str = ""
 
     def is_complete(self, current_progress: int) -> bool:
+        """Return True if the current progress meets or exceeds the requirement."""
         return current_progress >= self.max_progress
 
     def get_progress_percent(self, current_progress: int) -> float:
+        """Return the achievement completion percentage from 0 to 100."""
         if self.max_progress <= 0:
             return 100.0
         return min(100.0, (current_progress / self.max_progress) * 100)
@@ -77,6 +79,7 @@ class AchievementState:
     notified: bool = False
 
     def is_unlocked(self) -> bool:
+        """Return True if this achievement has been unlocked."""
         return self.unlocked_at is not None
 
 
@@ -103,6 +106,7 @@ class AchievementManager:
             )
 
     def register_many(self, achievements: list[Achievement]) -> None:
+        """Register multiple achievement definitions at once."""
         for a in achievements:
             self.register(a)
 
@@ -165,14 +169,17 @@ class AchievementManager:
         return False
 
     def is_unlocked(self, achievement_id: str) -> bool:
+        """Return True if the achievement with the given id has been unlocked."""
         state = self._states.get(achievement_id)
         return state.is_unlocked() if state else False
 
     def get_progress(self, achievement_id: str) -> int:
+        """Return the current progress value for the achievement, or 0 if unknown."""
         state = self._states.get(achievement_id)
         return state.progress if state else 0
 
     def get_all_unlocked(self) -> list[Achievement]:
+        """Return the list of Achievement definitions that have been unlocked."""
         result = []
         for aid, state in self._states.items():
             if state.is_unlocked() and aid in self._definitions:
@@ -195,6 +202,7 @@ class AchievementManager:
         return result
 
     def get_stats(self) -> dict[str, Any]:
+        """Return summary statistics about achievement completion."""
         total = len(self._definitions)
         unlocked = sum(1 for s in self._states.values() if s.is_unlocked())
         by_category: dict[str, int] = {}

@@ -46,6 +46,7 @@ class CombatDirector:
     )  # R10: Camera position for sound falloff
 
     def initialize(self) -> None:
+        """Initialize ballistic engine, pathfinder, and event subscriptions."""
         from pycc2.domain.systems.ballistic import BallisticEngine
         from pycc2.domain.systems.pathfinder import PathFinder
         from pycc2.services.event_protocol import PlayerCommand, UnitAttacked
@@ -58,6 +59,7 @@ class CombatDirector:
         self.event_bus.subscribe(UnitAttacked, self._on_unit_attacked_event)
 
     def set_context(self, units: list[Unit], game_map: GameMap) -> None:
+        """Cache the current units and game map for combat processing."""
         self._units = units
         self._game_map = game_map
 
@@ -68,6 +70,7 @@ class CombatDirector:
         dt: float,
         battle_stats: BattleStats | None = None,
     ) -> None:
+        """Advance weapon reloads, movement, and death processing for one tick."""
         self.set_context(units, game_map)
 
         for unit in units:
@@ -85,6 +88,7 @@ class CombatDirector:
         self.on_unit_attacked(data)
 
     def handle_player_command(self, data: dict, units: list[Unit], game_map: GameMap) -> None:
+        """Dispatch a player command (attack, move, defend, smoke, etc.) to units."""
         cmd = data.get("command")
         unit_ids = data.get("unit_ids", [])
 
@@ -255,6 +259,7 @@ class CombatDirector:
                     logger.warning("[SMOKE] %s has no weapon system", unit.name or uid)
 
     def execute_attack(self, attacker, target) -> None:
+        """Resolve an attack: fire weapon, apply damage, and emit combat events."""
         from pycc2.services.event_protocol import UnitAttacked, UnitKilled
 
         if self.ballistic_engine is None:
@@ -369,6 +374,7 @@ class CombatDirector:
                 )
 
     def on_unit_attacked(self, data: dict) -> None:
+        """Queue visual effects (hit/death) for an attacked unit event."""
         target_id = data.get("target_id")
         damage = data.get("damage", 0)
         killed = data.get("killed", False) or data.get("kill_shot", False)
@@ -400,6 +406,7 @@ class CombatDirector:
             )
 
     def record_stats(self, data: dict, units: list[Unit], battle_stats: BattleStats) -> None:
+        """Record shot, damage, and kill statistics into the battle stats."""
         if battle_stats is None:
             return
         attacker_id = data.get("attacker_id", "")
@@ -421,6 +428,7 @@ class CombatDirector:
                 battle_stats.record_unit_lost(target_faction)
 
     def process_effects(self, renderer: Any | None = None, camera: Camera | None = None) -> None:
+        """Flush pending visual effects to the renderer and clear the queue."""
         if renderer is None or not hasattr(renderer, "spawn_hit_flash"):
             self._pending_effects.clear()
             return
@@ -502,6 +510,7 @@ class CombatDirector:
         return any(kw in wid_lower for kw in explosive_keywords)
 
     def process_deaths(self, units: list[Unit], battle_stats: BattleStats | None = None) -> None:
+        """Record casualties for dead units into the battle stats."""
         dead_units = [u for u in units if not u.is_alive]
         for unit in dead_units:
             if battle_stats:
@@ -510,6 +519,7 @@ class CombatDirector:
 
     def process_movements(self, units: list[Unit], game_map: GameMap) -> None:
 
+        """Advance pending unit movements along their queued paths."""
         from pycc2.domain.value_objects.tile_coord import TileCoord
         from pycc2.domain.value_objects.vec2 import Vec2
 
@@ -570,6 +580,7 @@ class CombatDirector:
                 unit.position.set_facing_toward(target_tc)
 
     def tick_weapon_reload(self, units: list[Unit]) -> None:
+        """Advance weapon reload progress for all currently reloading units."""
         for unit in units:
             if unit.weapon.state.name == "RELOADING":
                 unit.weapon.tick()

@@ -21,6 +21,7 @@ class PerceptionSystem:
         all_units: list[Unit] | None = None,
         fog_of_war: dict[tuple[int, int], bool] | None = None,
     ) -> None:
+        """Populate the blackboard with sensed combat data for the given unit."""
         blackboard.set("health_ratio", unit.health.hp_ratio)
         blackboard.set("is_suppressed", unit.morale.state.value >= 2)
         blackboard.set("current_tile", unit.position.tile_coord)

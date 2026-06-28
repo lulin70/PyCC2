@@ -25,11 +25,13 @@ class SaveController:
     save_manager: SecureSaveManager | None = None
 
     def initialize(self) -> None:
+        """Initialize the underlying SecureSaveManager."""
         from pycc2.infrastructure.save_system import SecureSaveManager
 
         self.save_manager = SecureSaveManager()
 
     def quick_save(self, slot: int = 0, game_loop: GameLoop | None = None) -> bool:
+        """Export and persist game state to the given save slot."""
         if self.save_manager is None or game_loop is None:
             return False
         from pycc2.infrastructure.save_system import SaveMetaData
@@ -50,6 +52,7 @@ class SaveController:
         return result
 
     def quick_load(self, slot: int = 0, game_loop: GameLoop | None = None) -> bool:
+        """Load and restore game state from the given save slot."""
         if self.save_manager is None or game_loop is None:
             return False
         state_dict, meta, status = self.save_manager.load_game(slot)
@@ -77,11 +80,13 @@ class SaveController:
         return False
 
     def list_saves(self) -> list:
+        """Return a list of available save slot metadata."""
         if self.save_manager is None:
             return []
         return self.save_manager.list_all_slots()
 
     def export_state(self, game_loop: GameLoop) -> dict:
+        """Serialize the current game loop state to a plain dict."""
         if self.save_manager is not None and hasattr(
             self.save_manager, "export_state_from_game_loop"
         ):

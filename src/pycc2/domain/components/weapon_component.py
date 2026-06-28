@@ -46,16 +46,19 @@ class WeaponComponent:
 
     @property
     def can_fire(self) -> bool:
+        """Return whether the weapon is ready and has ammo."""
         return self.state == WeaponState.READY and self.ammo_remaining > 0
 
     @property
     def ammo_ratio(self) -> float:
+        """Return remaining ammo as a 0-1 ratio of max ammo."""
         if self.max_ammo <= 0:
             return 0.0
         return self.ammo_remaining / self.max_ammo
 
     @property
     def is_reloading(self) -> bool:
+        """Return whether the weapon is currently reloading."""
         return self.state == WeaponState.RELOADING
 
     @property
@@ -64,6 +67,7 @@ class WeaponComponent:
         return 0.8 if self.is_captured else 1.0
 
     def fire(self) -> bool:
+        """Consume one ammo and return whether the shot was fired."""
         if not self.can_fire:
             if self.ammo_remaining == 0 and self.state != WeaponState.OUT_OF_AMMO:
                 self.state = WeaponState.OUT_OF_AMMO
@@ -75,12 +79,14 @@ class WeaponComponent:
         return True
 
     def start_reload(self, reload_ticks: int) -> None:
+        """Begin a reload, applying captured-weapon penalty if applicable."""
         if self.is_captured:
             reload_ticks = int(reload_ticks * 1.5)  # +50% reload time for captured weapons
         self.reload_ticks_left = reload_ticks
         self.state = WeaponState.RELOADING
 
     def tick(self) -> None:
+        """Advance reload progress by one tick."""
         if self.state == WeaponState.RELOADING and self.reload_ticks_left > 0:
             self.reload_ticks_left -= 1
             if self.reload_ticks_left == 0:
@@ -88,6 +94,7 @@ class WeaponComponent:
                 self.state = WeaponState.READY
 
     def clear_jam(self) -> None:
+        """Clear a jammed state, returning to ready or out-of-ammo as appropriate."""
         if self.state == WeaponState.JAMMED:
             if self.ammo_remaining > 0:
                 self.state = WeaponState.READY

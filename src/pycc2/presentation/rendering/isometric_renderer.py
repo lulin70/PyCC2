@@ -106,6 +106,7 @@ class IsometricRenderer:
     """
 
     def __init__(self) -> None:
+        """Initialize the IsometricRenderer."""
         # Base (unscaled) tile surfaces — generated once at initialize()
         self._tile_cache: dict[int, pygame.Surface] = {}
         self._building_cache: dict[tuple[int, int, int], pygame.Surface] = {}

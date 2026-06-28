@@ -146,6 +146,7 @@ class Mine:
 
     @property
     def properties(self) -> MineProperties:
+        """Return the static properties (damage, trigger chance) for this mine type."""
         return _MINE_PROPERTIES[self.mine_type]
 
 
@@ -165,10 +166,12 @@ class LayProgress:
 
     @property
     def is_complete(self) -> bool:
+        """Return whether the laying progress has reached completion."""
         return self.progress >= MINE_LAY_TICKS
 
     @property
     def can_lay_more(self) -> bool:
+        """Return whether the squad can still lay more mines this battle."""
         return self.mines_laid < MAX_MINES_PER_SQUAD
 
 
@@ -182,6 +185,7 @@ class DefuseProgress:
 
     @property
     def is_complete(self) -> bool:
+        """Return whether the defusal progress has reached completion."""
         return self.progress >= MINE_DEFUSE_TICKS
 
 
@@ -209,10 +213,12 @@ class MineWarfareSystem:
 
     @property
     def mines(self) -> list[Mine]:
+        """Return a copy of all mines currently on the map."""
         return list(self._mines)
 
     @property
     def active_mines(self) -> list[Mine]:
+        """Return a list of all mines that have not yet been triggered."""
         return [m for m in self._mines if m.active]
 
     def can_lay_mine(self, unit: Unit, game_map: GameMap) -> bool:
@@ -426,9 +432,11 @@ class MineWarfareSystem:
         return None
 
     def get_lay_progress(self, unit_id: str) -> LayProgress | None:
+        """Return the lay progress for a unit, or None if not laying."""
         return self._lay_progress.get(unit_id)
 
     def get_defuse_progress(self, unit_id: str) -> DefuseProgress | None:
+        """Return the defuse progress for a unit, or None if not defusing."""
         return self._defuse_progress.get(unit_id)
 
     def get_mines_at(self, position: TileCoord) -> list[Mine]:
@@ -481,9 +489,11 @@ class MineWarfareAI(TacticalAIBase):
 
     @property
     def system(self) -> MineWarfareSystem:
+        """Return the backing mine warfare system instance."""
         return self._system
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return mine-laying priority based on chokepoints and engineer availability."""
         engineers = self._find_engineers(context)
         if not engineers:
             return 0.0
@@ -510,6 +520,7 @@ class MineWarfareAI(TacticalAIBase):
         return max(0.0, min(score, 1.0))
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate LAY_MINE intents for engineers at identified chokepoints."""
         engineers = self._find_engineers(context)
         if not engineers:
             return []

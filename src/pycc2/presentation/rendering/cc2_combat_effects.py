@@ -31,6 +31,7 @@ class EnhancedParticleSystem:
         particle_type: str  # "fire", "smoke", "debris", "spark"
 
     def __init__(self):
+        """Initialize the EnhancedParticleSystem."""
         self.particles: list[EnhancedParticleSystem.Particle] = []
 
     def emit_explosion(self, x: float, y: float, intensity: float = 1.0):
@@ -191,9 +192,11 @@ class SurrenderFlagEffect:
     """White flag indicator for surrendered units — top-down view: white circle dot above unit."""
 
     def __init__(self):
+        """Initialize the SurrenderFlagEffect."""
         self._active_flags: dict[str, dict] = {}
 
     def show(self, unit_id: str, x: float, y: float, duration: int = 120) -> None:
+        """Show an element."""
         self._active_flags[unit_id] = {
             "x": x,
             "y": y,
@@ -202,9 +205,11 @@ class SurrenderFlagEffect:
         }
 
     def remove(self, unit_id: str) -> None:
+        """Remove an item."""
         self._active_flags.pop(unit_id, None)
 
     def update(self) -> None:
+        """Update internal state."""
         to_remove = []
         for uid, flag in self._active_flags.items():
             flag["tick"] += 1
@@ -214,6 +219,7 @@ class SurrenderFlagEffect:
             del self._active_flags[uid]
 
     def render(self, surface: Surface, camera_offset: tuple[float, float] = (0, 0)) -> None:
+        """Render to the screen."""
         for _uid, flag in self._active_flags.items():
             sx = int(flag["x"] - camera_offset[0])
             sy = int(flag["y"] - camera_offset[1])
@@ -236,6 +242,7 @@ class CC2ExplosionEffect:
     """CC2-style explosion: 3-frame core flash + lingering smoke cloud + camera shake."""
 
     def __init__(self, x: float, y: float):
+        """Initialize the CC2ExplosionEffect."""
         self.x = x
         self.y = y
         self.tick = 0
@@ -262,9 +269,11 @@ class CC2ExplosionEffect:
 
     @property
     def alive(self) -> bool:
+        """Get the alive."""
         return self.tick < self.duration
 
     def update(self):
+        """Update internal state."""
         if not self.alive:
             return
         self.tick += 1
@@ -283,6 +292,7 @@ class CC2ExplosionEffect:
             p["radius"] += 0.15
 
     def render(self, surface: Surface, camera_offset: tuple[float, float] = (0, 0)):
+        """Render to the screen."""
         if not self.alive:
             return
         sx = int(self.x - camera_offset[0])
@@ -326,6 +336,7 @@ class CC2SmokeEffect:
     """Large-area smoke cloud seen from above: flat circular blobs expanding on ground plane."""
 
     def __init__(self, x: float, y: float, tile_size: int = 48):
+        """Initialize the CC2SmokeEffect."""
         self.x = x
         self.y = y
         self.tick = 0
@@ -354,9 +365,11 @@ class CC2SmokeEffect:
 
     @property
     def alive(self) -> bool:
+        """Get the alive."""
         return self.tick < self.duration
 
     def update(self):
+        """Update internal state."""
         if not self.alive:
             return
         self.tick += 1
@@ -365,6 +378,7 @@ class CC2SmokeEffect:
             b["dist"] += 0.03
 
     def render(self, surface: Surface, camera_offset: tuple[float, float] = (0, 0)):
+        """Render to the screen."""
         if not self.alive:
             return
         sx = int(self.x - camera_offset[0])
@@ -403,6 +417,7 @@ class CC2HitSparkEffect:
     """Short-lived hit spark: 3-5 yellow/white dots scattering radially."""
 
     def __init__(self, x: float, y: float):
+        """Initialize the CC2HitSparkEffect."""
         self.x = x
         self.y = y
         self.tick = 0
@@ -433,9 +448,11 @@ class CC2HitSparkEffect:
 
     @property
     def alive(self) -> bool:
+        """Get the alive."""
         return self.tick < self.duration
 
     def update(self):
+        """Update internal state."""
         if not self.alive:
             return
         self.tick += 1
@@ -446,6 +463,7 @@ class CC2HitSparkEffect:
             sp["vy"] *= 0.85
 
     def render(self, surface: Surface, camera_offset: tuple[float, float] = (0, 0)):
+        """Render to the screen."""
         if not self.alive:
             return
         sx = int(self.x - camera_offset[0])
@@ -466,6 +484,7 @@ class CC2MuzzleFlashEffect:
     """Brief muzzle flash at weapon tip: top-down bright dot on ground plane, 1-2 frames."""
 
     def __init__(self, x: float, y: float, angle: float = 0.0):
+        """Initialize the CC2MuzzleFlashEffect."""
         self.x = x
         self.y = y
         self.angle = angle
@@ -479,14 +498,17 @@ class CC2MuzzleFlashEffect:
 
     @property
     def alive(self) -> bool:
+        """Get the alive."""
         return self.tick < self.duration
 
     def update(self):
+        """Update internal state."""
         if not self.alive:
             return
         self.tick += 1
 
     def render(self, surface: Surface, camera_offset: tuple[float, float] = (0, 0)):
+        """Render to the screen."""
         if not self.alive:
             return
         sx = int(self.x - camera_offset[0])

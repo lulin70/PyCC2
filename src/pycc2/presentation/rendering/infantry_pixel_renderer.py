@@ -1047,6 +1047,7 @@ class InfantryAnimator:
     WALK_CYCLE_INTERVAL = 0.2  # Walk frame switch interval (seconds), ~5 FPS
 
     def __init__(self):
+        """Initialize the InfantryAnimator."""
         self._frame: int = 0
         self._state: InfantryAnimState = InfantryAnimState.IDLE
         self._walk_timer: float = 0.0

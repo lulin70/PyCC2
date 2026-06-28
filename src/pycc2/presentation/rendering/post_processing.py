@@ -17,6 +17,7 @@ class PostProcessingEffects:
     """屏幕后处理效果"""
 
     def __init__(self, screen_width: int, screen_height: int):
+        """Initialize the PostProcessingEffects."""
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.vignette_surface: Surface | None = None

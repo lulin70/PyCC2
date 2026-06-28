@@ -276,13 +276,16 @@ class GameSettingsApplier:
 
     @property
     def settings(self) -> GameSettings:
+        """Return the game settings applied by this applier."""
         return self._settings
 
     def get_experience_effects(self, side: str) -> ExperienceLevelEffects:
+        """Return the experience-level effects for the given side."""
         side_settings = self._get_side_settings(side)
         return EXPERIENCE_EFFECTS[side_settings.experience_level]
 
     def get_supply_effects(self, side: str) -> SupplyLevelEffects:
+        """Return the supply-level effects for the given side."""
         side_settings = self._get_side_settings(side)
         return SUPPLY_EFFECTS[side_settings.supply_level]
 

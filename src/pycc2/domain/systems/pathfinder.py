@@ -40,6 +40,7 @@ class PathFinder:
         game_map: GameMap,
         max_iterations: int = 10000,
     ) -> list[TileCoord] | None:
+        """Find the lowest-cost tile path from start to goal using A*."""
         if not game_map.is_within_bounds(start) or not game_map.is_within_bounds(goal):
             return None
         if not game_map.is_passable(start) or not game_map.is_passable(goal):
@@ -97,6 +98,7 @@ class PathFinder:
 
     @staticmethod
     def octile_heuristic(a: TileCoord, b: TileCoord) -> float:
+        """Return the octile distance heuristic between two tiles."""
         dx = abs(a.x - b.x)
         dy = abs(a.y - b.y)
         sqrt2 = math.sqrt(2)
@@ -108,6 +110,7 @@ class PathFinder:
         max_cost: float,
         game_map: GameMap,
     ) -> set[TileCoord]:
+        """Return all tiles reachable from start within the given movement cost budget."""
         reachable: set[TileCoord] = set()
         if not game_map.is_within_bounds(start) or not game_map.is_passable(start):
             return reachable

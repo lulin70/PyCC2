@@ -24,6 +24,7 @@ class PauseMenuController:
 
     @property
     def is_active(self) -> bool:
+        """Return whether the pause menu is currently shown."""
         return self._active
 
     def toggle(self) -> None:

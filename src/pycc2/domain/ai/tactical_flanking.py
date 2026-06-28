@@ -58,6 +58,7 @@ class FlankingAI(TacticalAIBase):
     FLANK_OFFSET: int = 4
 
     def evaluate(self, context: TacticalContext) -> float:
+        """Return flanking priority based on enemy concentration and mobile unit availability."""
         enemies = [e for e in context.enemy_units if e.is_alive]
         mobile = self._mobile_units(context)
         if len(enemies) < 1 or len(mobile) < self.MIN_FLANKING_UNITS:
@@ -77,6 +78,7 @@ class FlankingAI(TacticalAIBase):
         return min(score * diff_mod, 1.0)
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
+        """Generate flanking move intents for mobile units around enemy positions."""
         enemies = [e for e in context.enemy_units if e.is_alive]
         mobile = self._mobile_units(context)
         if len(enemies) < 1 or len(mobile) < self.MIN_FLANKING_UNITS:
