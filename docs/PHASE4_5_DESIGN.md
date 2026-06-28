@@ -365,3 +365,155 @@ lint → unit-tests → integration-tests → e2e-tests → docker-build
 
 每步验证：`ruff check <new_files> && MYPYPATH=src mypy <new_files> && pytest tests/unit/test_<relevant> -q`
 全量验证：`ruff check src/ && MYPYPATH=src mypy -p pycc2 && SDL_VIDEODRIVER=dummy python -m pytest tests/ -x -q --timeout=120`
+
+---
+
+## 八、P5-1 第2批：逻辑类拆分详细设计
+
+> **目标**：2 个大逻辑文件（共 1529 行）按 SRP 拆分，game_loop.py 采用 mixin 模式，morale_system.py 采用"types + calculator + effects + facade"模式
+> **原则**：公共 API 100% 向后兼容；循环导入通过"先定义 dataclass 后导入子模块"解决；mixin 类禁止持有自有状态，所有状态由 facade 的 `self` 提供
+> **验证**：每文件拆分后运行 `ruff check` + `mypy` + 对应单元测试 + 全量回归
+
+### 8.1 game_loop.py (828L → ~250L facade + 3 mixin + types)
+
+**现状结构**：
+- L1-71：imports + 模块常量 `LOGIC_DT`/`TARGET_FPS`/`MAX_FRAME_TIME`
+- L73-88：`GameState` dataclass（slots=True，11 字段）
+- L90-142：`GameLoop` dataclass（39 字段：8 公有 + 31 私有）
+- L143-166：`__post_init__`/`deployment_ui`/`deployment_phase_active`/`_get_time_speed`
+- L167-286：`run()` 主循环（~120L）
+- L287-362：渲染方法 `_apply_camera_effects`/`_render_scene`（~76L）
+- L363-596：更新方法 `_update_logic` + 10 个 `_update_*` + `_ensure_ai_units_registered`（~234L）
+- L623-719：战斗/事件处理 `_handle_player_command`/`_execute_attack`/`_on_unit_attacked*`/`_on_projectile_fired`/`_process_combat_popups`（~97L）
+- L720-808：输入/部署/属性访问器 `_handle_input`/`start_deployment`/`complete_deployment`/`get_deployment_state`/`set_campaign_ui`/`campaign_ui`/`victory_manager`/`shutdown`
+- L809-828：存档 `quick_save`/`quick_load`/`list_saves`
+
+**导入者（来自 grep）**：`save_controller.py`、`game_loop_assembler.py`、`main.py` + 14 个测试文件
+**必须保持的公共 API**：`GameState`、`GameLoop`、`LOGIC_DT`、`MAX_FRAME_TIME`（`TARGET_FPS` 为内部常量，保持但可不导出）
+
+**拆分方案（mixin 模式）**：
+
+| 新文件 | 内容 | 预估行数 |
+|--------|------|---------|
+| `game_loop_types.py` | `GameState` dataclass + `LOGIC_DT`/`TARGET_FPS`/`MAX_FRAME_TIME` 常量 | ~70 |
+| `game_loop_rendering.py` | `GameLoopRenderingMixin`（`_apply_camera_effects`/`_render_scene`） | ~85 |
+| `game_loop_updating.py` | `GameLoopUpdatingMixin`（`_update_logic` + 10 `_update_*` + `_ensure_ai_units_registered`） | ~245 |
+| `game_loop_combat.py` | `GameLoopCombatMixin`（`_handle_player_command`/`_execute_attack`/`_on_unit_attacked*`/`_on_projectile_fired`/`_process_combat_popups`） | ~105 |
+| `game_loop.py` (facade) | `GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixin)` dataclass：字段 + `__post_init__` + `run()` + 部署 + 存档 + 属性访问器 | ~260 |
+
+**循环导入规避**：
+1. `game_loop_types.py` 无外部 pycc2 依赖（仅 `dataclass`/`field`）→ 可被所有 mixin 和 facade 安全导入
+2. 每个 mixin 文件 `from pycc2.services.game_loop_types import GameState`（仅类型，运行时不触发循环）
+3. facade `game_loop.py` 导入 3 个 mixin + `game_loop_types`，定义 `GameLoop(*Mixin)` dataclass
+4. `GameLoopAssembler` 在 `__post_init__` 中延迟导入（已是现有模式）
+
+**Mixin 设计契约**：
+- mixin 类只定义方法，不定义 `__init__`、不持有 `_xxx` 字段
+- mixin 方法通过 `self.<attr>` 访问 facade 的字段（类型注解用 `TYPE_CHECKING` 导入 `GameLoop` 或使用 `Protocol`）
+- mixin 类标记 `@dataclass` 不需要（不实例化）；仅作为方法容器
+- facade 继承顺序：`GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixin)` — MRO 自左向右
+
+### 8.2 morale_system.py (701L → ~150L facade + types + calculator + 2 effects 模块)
+
+**现状结构**：
+- L1-33：imports
+- L34-58：`MoraleEvent` 枚举（7 事件）+ `MoraleState` 枚举（5 状态）
+- L59-79：`RoutingTarget` + `MoraleCalculationResult` dataclass
+- L80-172：`MoraleCalculator` 类（6 方法 + 1 静态方法）— 纯计算逻辑，无副作用
+- L174-674：`MoraleSystem` 类（11 个 `@staticmethod`）：
+  - 状态查询：`get_state`/`get_accuracy_modifier`/`get_movement_modifier`/`can_move`/`can_accept_orders`/`predict_state`
+  - 压制与恢复：`apply_suppression`/`update_morale_recovery`
+  - 路由与溃逃：`check_routing_behavior`/`_calculate_flee_target`/`_play_morale_collapse_voice`
+  - 传染与重整：`apply_panic_contagion`/`apply_nco_rally`
+- L676-701：`demo_morale_system()` 演示函数
+
+**导入者（来自 grep）**：
+- `src/`：`combat_service.py`、`game_loop.py`、`sprite_renderer.py`、`tactic_executor.py`、`suppression_overlay_renderer.py`、`attack_line_system.py`、`unit.py`、`combat_resolver.py`、`__init__.py`
+- `tests/`：`test_morale_system.py`、`test_morale_calculator.py`、`test_combat_resolver.py`、`test_battle_flow_e2e.py`、`test_comprehensive_acceptance.py`、`test_full_customer_journey.py`、`test_performance_baseline.py`、`test_performance.py`
+
+**必须保持的公共 API**：
+- `MoraleEvent`、`MoraleState`、`RoutingTarget`、`MoraleCalculationResult`（类型）
+- `MoraleCalculator`（类）
+- `MoraleSystem`（类，所有静态方法签名不变）
+- `demo_morale_system`（函数）
+
+**拆分方案（types + calculator + effects + facade）**：
+
+| 新文件 | 内容 | 预估行数 |
+|--------|------|---------|
+| `morale_types.py` | `MoraleEvent`/`MoraleState` 枚举 + `RoutingTarget`/`MoraleCalculationResult` dataclass | ~80 |
+| `morale_calculator.py` | `MoraleCalculator` 类（6 方法 + `predict_state`） — 纯计算 | ~105 |
+| `morale_effects.py` | `MoraleEffects` 类（静态方法：`apply_suppression`/`update_morale_recovery`/`apply_panic_contagion`/`apply_nco_rally`） | ~210 |
+| `morale_routing.py` | `MoraleRouting` 类（静态方法：`check_routing_behavior`/`_calculate_flee_target`/`_play_morale_collapse_voice`） | ~155 |
+| `morale_system.py` (facade) | `MoraleSystem` 类（所有原静态方法名不变，方法体委托到 `MoraleCalculator`/`MoraleEffects`/`MoraleRouting`）+ `demo_morale_system()` | ~165 |
+
+**循环导入规避**：
+1. `morale_types.py` 无 pycc2 依赖（仅 `Enum`/`dataclass`）→ 安全基石
+2. `morale_calculator.py` 依赖 `morale_types` + `MoraleComponent`/`Unit`（已存在的 domain 实体）
+3. `morale_effects.py` / `morale_routing.py` 依赖 `morale_types` + `morale_calculator`（仅类型注解） + `Unit`/`GameMap`（运行时延迟导入避免循环）
+4. facade `morale_system.py` 导入 4 个子模块 + 通过 `__all__` 重新导出全部类型，保持现有导入语句 100% 兼容
+
+**Facade 委托模式**：
+```python
+class MoraleSystem:
+    @staticmethod
+    def get_state(morale_value: int) -> MoraleState:
+        return MoraleStateResolver.resolve(morale_value)  # 或直接内联
+    @staticmethod
+    def apply_suppression(unit: Unit, amount: float, dt: float) -> dict:
+        return MoraleEffects.apply_suppression(unit, amount, dt)
+    @staticmethod
+    def check_routing_behavior(unit: Unit, game_map=None) -> tuple[bool, object]:
+        return MoraleRouting.check_routing_behavior(unit, game_map)
+    # ...
+```
+
+**特殊处理**：
+- `MoraleSystem.get_state`/`get_accuracy_modifier` 等纯查表方法可直接保留在 facade（< 20 行总计），无需委托
+- `_play_morale_collapse_voice` 是音频副作用方法，与路由逻辑耦合（溃逃时播放），归入 `morale_routing.py`
+- `demo_morale_system()` 函数保留在 facade 末尾
+
+### 8.3 执行顺序与验证
+
+**优先级**：先拆 `morale_system.py`（影响面更小，纯静态方法委托），后拆 `game_loop.py`（mixin 模式更复杂）
+
+**步骤 1：morale_system.py 拆分**
+1. 创建 `morale_types.py` — 转移 4 个类型定义
+2. 创建 `morale_calculator.py` — 转移 `MoraleCalculator` 类
+3. 创建 `morale_effects.py` — 提取 4 个 effects 静态方法为 `MoraleEffects` 类
+4. 创建 `morale_routing.py` — 提取 3 个 routing 静态方法为 `MoraleRouting` 类
+5. 重写 `morale_system.py` facade — 保留 `MoraleSystem` 类所有原方法签名，方法体委托；末尾保留 `demo_morale_system()`
+6. 验证：`ruff check src/pycc2/domain/systems/morale_*.py && MYPYPATH=src mypy src/pycc2/domain/systems/morale_*.py && pytest tests/unit/test_morale_system.py tests/unit/test_morale_calculator.py tests/unit/test_combat_resolver.py -q`
+
+**步骤 2：game_loop.py 拆分**
+1. 创建 `game_loop_types.py` — 转移 `GameState` + 3 个常量
+2. 创建 `game_loop_rendering.py` — 提取 2 个渲染方法为 `GameLoopRenderingMixin`
+3. 创建 `game_loop_updating.py` — 提取 12 个更新方法为 `GameLoopUpdatingMixin`
+4. 创建 `game_loop_combat.py` — 提取 5 个战斗方法为 `GameLoopCombatMixin`
+5. 重写 `game_loop.py` facade — 定义 `GameLoop(*Mixin)` dataclass + 主循环 `run()` + 部署 + 存档
+6. 验证：`ruff check src/pycc2/services/game_loop*.py && MYPYPATH=src mypy src/pycc2/services/game_loop*.py && pytest tests/unit/test_game_loop.py tests/integration/test_combat_loop.py tests/integration/test_deployment_to_battle.py -q`
+
+**步骤 3：全量回归**
+```bash
+ruff check src/ tests/ && \
+MYPYPATH=src mypy -p pycc2 && \
+SDL_VIDEODRIVER=dummy python -m pytest tests/ -x -q --timeout=120 \
+  --deselect tests/integration/test_visual_smoke.py::test_visual_smoke_test
+```
+
+### 8.4 风险与缓解
+
+| 风险 | 缓解措施 |
+|------|---------|
+| Mixin 方法访问 facade 私有字段时类型检查失败 | 使用 `TYPE_CHECKING` 导入 `GameLoop` 并在 mixin 方法内 `if TYPE_CHECKING: _: GameLoop = self` 注解；或使用 `Protocol` |
+| `MoraleSystem` 静态方法委托链引入运行时开销 | 性能敏感方法（`get_state`/`get_accuracy_modifier`）直接内联在 facade；仅副作用方法（`apply_suppression` 等涉及 IO/状态修改）委托 |
+| `game_loop.py` 的 `__post_init__` 延迟导入 `GameLoopAssembler` 可能因模块拆分后路径变化失效 | 保持现有 `from pycc2.services.game_loop_assembler import GameLoopAssembler` 路径不变；assembler 不需要修改 |
+| 测试中 `from pycc2.services.game_loop import LOGIC_DT, MAX_FRAME_TIME, GameLoop, GameState` 失败 | facade `game_loop.py` 通过 `__all__` 重新导出 `LOGIC_DT`/`MAX_FRAME_TIME`/`GameState` |
+| `morale_system.__init__.py` 中 `from pycc2.domain.systems.morale_system import MoraleCalculator` 失败 | facade 重新导出 `MoraleCalculator`，`__init__.py` 无需修改 |
+
+### 8.5 完成记录表
+
+| 文件 | 拆分前 | facade | 子模块数 | 子模块行数 | 测试通过 | commit |
+|------|-------|--------|---------|-----------|---------|--------|
+| morale_system.py | 701L | (待填) | 4 | (待填) | (待填) | (待填) |
+| game_loop.py | 828L | (待填) | 4 | (待填) | (待填) | (待填) |
