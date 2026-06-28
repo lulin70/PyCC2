@@ -10,12 +10,12 @@ All notable changes to PyCC2 will be documented in this file.
 - **P4-2 撤退断后增强**: `RetreatDecisionAI` 新增 Phase 4 断后逻辑 — HP>70% 单位发出 HOLD_POSITION + SUPPRESS_FIRE 掩护撤退。断后数量不超过撤退单位 1/3。3 个新测试。
 - **P4-3 战略反击 AI** (新建): `CounterattackAI(TacticalAIBase)` — force_ratio>1.2（增援到达后力量逆转）触发反击。选 2-3 个友方单位攻击最弱敌方。新增 COUNTER_ATTACK 枚举 + handler。5 个单元测试。
 - **P4-5 地形高度系统修复**: `GameMap.from_json` 从 `tiles_enhanced.height` 读取到 `height_grid`（建筑高度）。`LOSSystem._get_elevation`/`_get_building_height` 改读 `GameMap` grid 而非 enhanced dict。修复后 night_map.json 的 height_grid 有 403/672 个非零格（修复前为 0）。3 个新测试 + 2 个回归修复。
-- **P4-4 补给线征用点采购 UI**: 进行中 — SupplyLineManager 接入 + UI 新建
-- **Verification**: ruff 0 errors / mypy 0 errors / 83 AI behavior tests passed / 90 P4-0/P4-5 tests passed
+- **P4-4 补给线征用点采购 UI**: 完成 — `SupplyLineManager.procure_supply()` 接入 + `SupplyProcurementUI` 新建（参考 deployment_ui SRP 模式）+ CampaignUI 集成（新增 'supply_procurement' 字符串状态）。每点补给提升 ammo(+0.6%)/reinforcement(+0.4%)/morale(+0.3%) 速率，10/30/60 点阈值提升 SupplyLevel 等级。31 单元测试 + 227 回归测试通过。
+- **Verification**: ruff 0 errors / mypy 0 errors / 83 AI behavior tests passed / 90 P4-0/P4-5 tests passed / 31 P4-4 tests passed
 
 ### Phase 5: 长期架构改进 (D8 Remediation Plan)
 - **P5-4 CI 管道 4 阶段分离**: 重写 `.github/workflows/ci.yml` — lint→unit-tests→integration-tests→e2e-tests→docker-build 串行 + slow-tests/benchmark 并行。分层 timeout（10/20/15/30/20/15min）+ 每 job 独立 junit.xml artifact。
-- **P5-3 slow 测试优化**: 进行中 — sprite @lru_cache 缓存
+- **P5-3 slow 测试优化**: 完成 — `pixel_artist.py` 新增 `@lru_cache(maxsize=128)` sprite 缓存（`UnitSpriteGenerator.generate()` 确定性随机，缓存安全）；`create_unit_sprite()` 返回 `.copy()` 防止调用方修改污染缓存。5 个 session-scoped fixture 共享 canvas。slow 测试 3.5min→0.56s。
 
 ## [0.4.0] - 2026-06-27
 

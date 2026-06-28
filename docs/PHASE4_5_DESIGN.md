@@ -269,18 +269,88 @@ lint → unit-tests → integration-tests → e2e-tests → docker-build
 | P4-1 通用伏击 AmbushAI | `2564773` | 15 测试通过 |
 | P4-2 撤退断后增强 | `2564773` | 3 测试 + 33 回归通过 |
 | P4-3 战略反击 CounterattackAI | `2564773` | 5 测试通过 |
-| P4-4 补给线征用点采购UI | (未提交) | 31 测试通过 + 227 回归通过；ruff/mypy 0 |
+| P4-4 补给线征用点采购UI | `16ca262` (+ `bbae572` 含核心3文件) | 31 测试通过 + 227 回归通过；ruff/mypy 0 |
+| P5-3 slow测试优化 | `bbae572` | @lru_cache(128) + 5 session fixture；3.5min→0.56s |
 
-### 2026-06-28 进行中
-
-| 任务 | 状态 | 备注 |
-|------|------|------|
-| P5-3 slow测试优化 | 后台agent执行中 | sprite @lru_cache 缓存 |
-
-### 待推进
+### 2026-06-28 待推进
 
 | 任务 | 优先级 | 依赖 |
 |------|--------|------|
-| P5-1 第1批 数据文件拆分 | 中 | 无 |
+| P5-1 第1批 数据文件拆分 | 中 | 无（独立于 P4-4） |
 | P5-2 application层独立 | 中 | P5-1 第2批 |
 | P5-1 第3-5批 剩余文件拆分 | 低 | P5-2 |
+
+---
+
+## 七、P5-1 第1批：数据文件拆分详细设计
+
+> **目标**：4 个大数据文件（共 4917 行）按 SRP 拆分为 facade + 子模块，目标各 facade <300 行
+> **原则**：facade 模式保持公共 API 100% 向后兼容，循环导入通过"先定义 dataclass 后导入子模块"解决
+> **验证**：每文件拆分后运行 `ruff check` + `mypy` + 对应单元测试
+
+### 7.1 cc2_authentic_weapons.py (1854L → ~100L facade)
+
+**现状结构**：
+- L1-142：3 个枚举 (WeaponType/InfantryRole/VehicleType) + WeaponProfile dataclass
+- L143-1785：`build_cc2_weapon_database()` 单体函数 1642 行，按武器类型分段（轻/中/重型坦克炮、车载 MG、迫击炮、反坦克、手枪、狙击、步枪等 24 个区段）
+- L1786-end：`get_cc2_weapons()` + `get_weapons_for_faction()` 公共 API
+
+**拆分方案**：
+| 新文件 | 内容 | 预估行数 |
+|--------|------|---------|
+| `weapon_type_defs.py` | 3 枚举 + WeaponProfile dataclass | ~142 |
+| `allied_weapon_profiles.py` | `build_allied_weapons() -> dict[str, WeaponProfile]`（美军/英军武器） | ~800 |
+| `axis_weapon_profiles.py` | `build_axis_weapons() -> dict[str, WeaponProfile]`（德军武器） | ~800 |
+| `cc2_authentic_weapons.py` (facade) | `build_cc2_weapon_database()` 合并两 dict + `get_cc2_weapons()` + `get_weapons_for_faction()` | ~100 |
+
+**循环导入规避**：`weapon_type_defs.py` 无外部依赖 → 子模块导入 type_defs → facade 导入子模块
+
+### 7.2 campaign_data.py (1456L → ~80L facade)
+
+**现状结构**：
+- L1-49：imports + `create_market_garden_campaign()` 函数开始
+- L50-719：**Arnhem Sector** — 3 个 operation（Landing/Perimeter Defense/Evacuation）
+- L721-1077：**Nijmegen Sector** — 2 个 operation（Waal Crossing/Bridge Defense）
+- L1079-1425：**Eindhoven Sector** — 2 个 operation（Hell's Highway/Corridor Defense）
+- L1427-1456：Grand Campaign 组装 + `_SUPPLY_LINE_AMMO_RESUPPLY` + `_HP_RECOVERY_PER_DAY` 常量
+
+**拆分方案**：
+| 新文件 | 内容 | 预估行数 |
+|--------|------|---------|
+| `arnhem_campaign_data.py` | `build_arnhem_sector() -> SectorCampaignDefinition` | ~670 |
+| `nijmegen_campaign_data.py` | `build_nijmegen_sector() -> SectorCampaignDefinition` | ~357 |
+| `eindhoven_campaign_data.py` | `build_eindhoven_sector() -> SectorCampaignDefinition` | ~347 |
+| `campaign_data.py` (facade) | `create_market_garden_campaign()` 组合 3 sector + 常量 | ~80 |
+
+**循环导入规避**：sector 文件仅依赖 domain entities（`OperationDefinition`/`BattleDefinition` 等）→ facade 导入 3 个 sector
+
+### 7.3 unit_diversity_expansion.py (1000L → ~300L facade)
+
+**现状结构**：
+- L1-94：imports + `UnitDiversityGenerator` 类开始
+- L95-521：`generate_variants` + `generate_vehicle_variants`（371 行，车辆变体生成）
+- L522-927：`generate_experience_variants` + `generate_faction_variants`（349 行，阵营变体生成）
+- L928-947：`count_total_units`/`get_all_units`/`get_units_by_faction` 查询方法
+- L948-end：`get_expanded_unit_database()` 公共 API
+
+**拆分方案**：
+| 新文件 | 内容 | 预估行数 |
+|--------|------|---------|
+| `vehicle_variant_generator.py` | `VehicleVariantGenerator` 类（含 `generate_vehicle_variants` 逻辑） | ~400 |
+| `faction_variant_generator.py` | `FactionVariantGenerator` 类（含 `generate_faction_variants` 逻辑） | ~380 |
+| `unit_diversity_expansion.py` (facade) | `UnitDiversityGenerator` 委托 2 子生成器 + 查询方法 + 公共 API | ~300 |
+
+**委托模式**：facade `__init__` 实例化 2 子生成器，`generate_*` 方法委托调用，结果聚合到 `_variants` 列表
+
+### 7.4 weapon_sounds.py (607L — 不拆分)
+
+**决策**：607 行仅略超 500 阈值，模块内聚（Profile dataclass + 默认配置 + Generator 类），拆分 ROI 低。**标记为"评估完成，无需拆分"**。
+
+### 7.5 执行顺序与验证
+
+1. **先拆 campaign_data.py**（最清晰，纯数据搬运，零逻辑风险）
+2. **再拆 cc2_authentic_weapons.py**（类似纯数据，但需注意 WeaponProfile 引用）
+3. **最后拆 unit_diversity_expansion.py**（涉及类委托，逻辑稍复杂）
+
+每步验证：`ruff check <new_files> && MYPYPATH=src mypy <new_files> && pytest tests/unit/test_<relevant> -q`
+全量验证：`ruff check src/ && MYPYPATH=src mypy -p pycc2 && SDL_VIDEODRIVER=dummy python -m pytest tests/ -x -q --timeout=120`

@@ -87,7 +87,7 @@
 | P3-3 | 拆分 pixel_artist_3d.py (1134→<800 行) | TD-058 | `wc -l` 验证 + 测试全通过 | ✅ 完成 — 1134→458 行，抽取 VehiclePixelRenderer(521L)+EnvironmentPixelRenderer(282L)，147 测试通过 |
 | P3-4 | 拆分 deployment_ui.py 剩余部分 | TD-058 | `wc -l` 验证 + 测试全通过 | ✅ 评估完成 — 687行已合理（D7-P2已从1183拆分），进一步拆分ROI低，标记无需再拆 |
 
-### Phase 4: CC2 机制补全（P2 — v0.5.0 规划）✅ 4/5 完成 2026-06-28
+### Phase 4: CC2 机制补全（P2 — v0.5.0 规划）✅ 5/5 完成 2026-06-28
 
 > **目标**：机制还原度 92%→95%，补全 CC2 高级战术行为
 > **前置阻断项 P4-0**：修复 TacticExecutor 5 个缺失 handler（FLANKING/COORDINATED_ADVANCE/CAPTURE_VL/DEFEND_VL/DEMOLISH_BRIDGE）✅
@@ -97,18 +97,18 @@
 | P4-1 | AI 伏击行为（通用步兵伏击） | GAP §6.2 | P2 | ✅ 完成 — 新建 AmbushAI + SET_AMBUSH/BREAK_AMBUSH 枚举，15 测试通过 |
 | P4-2 | AI 撤退决策（断后增强） | GAP §6.2 | P2 | ✅ 完成 — HP>70% 断后 + MG/Sniper 掩护火力，3 测试通过 |
 | P4-3 | AI 反击行为（增援后反击） | GAP §6.2 | P2 | ✅ 完成 — 新建 CounterattackAI + COUNTER_ATTACK 枚举，force_ratio>1.2 触发，5 测试通过 |
-| P4-4 | 补给线征用点采购 UI | GAP §5.2 | P2 | ⏳ 进行中 — SupplyLineManager 接入 + UI 新建 |
+| P4-4 | 补给线征用点采购 UI | GAP §5.2 | P2 | ✅ 完成 — SupplyLineManager.procure_supply + SupplyProcurementUI + CampaignUI 集成，31 测试通过 |
 | P4-5 | 地形高度系统（丘陵 LOS 影响） | GAP §4.2 | P2 | ✅ 完成 — from_json 修复 + LOSSystem 数据源修复 + 3 测试通过 |
 
-### Phase 5: 长期架构改进（P2 — v0.6.0 规划）1/4 完成
+### Phase 5: 长期架构改进（P2 — v0.6.0 规划）2/4 完成
 
 > **目标**：可维护性 75→85，架构 82→90
 
 | 编号 | 任务 | 关联 | 状态 |
 |------|------|------|------|
-| P5-1 | 43 个 >500 行文件逐步拆分（实测修正：文档原说29） | TD-026 | ⬜ |
+| P5-1 | 43 个 >500 行文件逐步拆分（实测修正：文档原说29） | TD-026 | ⏳ 进行中 — 第1批 4 数据文件 |
 | P5-2 | 添加独立 application 层 | D8 §1.1 | ⬜ |
-| P5-3 | slow 测试优化（sprite 缓存） | D8 §1.3 | ⏳ 进行中 |
+| P5-3 | slow 测试优化（sprite 缓存） | D8 §1.3 | ✅ 完成 — @lru_cache(128) + session fixture，3.5min→0.56s |
 | P5-4 | CI 管道 4 阶段分离（lint→unit→integration→e2e） | ROADMAP M5 | ✅ 完成 — 5+2 job 串行+并行，分层 timeout+junit |
 
 ---
