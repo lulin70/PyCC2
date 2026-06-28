@@ -492,7 +492,7 @@
   - 超出 `MAX_SURFACE_POOL_SIZE=50` 时 `popitem(last=False)` 淘汰最久未使用
   - 显式 `del evicted_surf` 释放内存
 
-### 🟢 TD-063: Docstring 覆盖率不足 (62.8%, 目标 80%) — D7 P2-2 评估
+### ✅ TD-063: Docstring 覆盖率不足 (62.8%→88.2%) ✅ 已修复 (2026-06-27)
 
 - **描述**: D7 成熟度评估 P2-2 阶段使用 `interrogate` 工具评估 docstring 覆盖率，当前仅 62.8%，低于 80% 目标
 - **影响**: 新开发者理解公共 API 成本高；外部文档（README/USER_MANUAL）与代码内文档脱节
@@ -513,7 +513,13 @@
   - 其他缺失: 12
   - **缺失小计**: 1388
   - D212/D400/D415/D413 等格式问题: 1163（可 `ruff --fix` 自动修复 808 个）
-- **状态**: ❌ 未解决 — 工作量过大（~1972 个），不在 D7 P2-2 阶段补全
+- **状态**: ✅ 已修复 (2026-06-27) — D8 Phase 3 P3-1 完成
+- **修复详情**: 3阶段递进修复
+  - Phase A: `ruff check --select D --fix` 自动修复 796 个格式问题
+  - Phase B: 补充模块级(D100)+类级(D101) docstring (101文件, +555行)
+  - Phase C: 3个并行subagent补充方法级(D102)+__init__(D107) docstring (presentation 407处 + domain 76处 + ai/components/services 全覆盖)
+- **最终覆盖率**: 88.2%（超额完成 80% 目标）
+- **验证**: ruff 0 / mypy 0 / 3660 unit tests passed
 - **清理方案** (分阶段):
   1. **Phase A (快速)**: 运行 `ruff check src/ --select D --fix` 自动修复 808 个格式问题（无逻辑变更）
   2. **Phase B (优先)**: 补充公共 API docstring — 聚焦 `__init__.py` 导出的公开类/函数（约 200 个）
