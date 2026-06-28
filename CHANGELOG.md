@@ -16,6 +16,12 @@ All notable changes to PyCC2 will be documented in this file.
 ### Phase 5: 长期架构改进 (D8 Remediation Plan)
 - **P5-4 CI 管道 4 阶段分离**: 重写 `.github/workflows/ci.yml` — lint→unit-tests→integration-tests→e2e-tests→docker-build 串行 + slow-tests/benchmark 并行。分层 timeout（10/20/15/30/20/15min）+ 每 job 独立 junit.xml artifact。
 - **P5-3 slow 测试优化**: 完成 — `pixel_artist.py` 新增 `@lru_cache(maxsize=128)` sprite 缓存（`UnitSpriteGenerator.generate()` 确定性随机，缓存安全）；`create_unit_sprite()` 返回 `.copy()` 防止调用方修改污染缓存。5 个 session-scoped fixture 共享 canvas。slow 测试 3.5min→0.56s。
+- **P5-1 第1批 数据文件拆分**: 完成 — 3 个大数据文件按 facade 模式拆分（共 4310→367L facade + 9 子模块）：
+  - `campaign_data.py` (1456→63L facade): arnhem/nijmegen/eindhoven 3 个 sector 文件，268 测试通过
+  - `cc2_authentic_weapons.py` (1854→76L facade): weapon_type_defs/allied/axis/vehicle 4 个文件，84 测试通过 / 69 weapons
+  - `unit_diversity_expansion.py` (1000→228L facade): vehicle_variant/faction_variant 2 个文件，69 测试通过 / 277 templates
+  - `weapon_sounds.py` (607L): 评估完成无需拆分（模块内聚）
+  - 全量回归: ruff 0 / mypy 0 (356 files) / 4352 tests passed
 
 ## [0.4.0] - 2026-06-27
 

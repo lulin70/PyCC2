@@ -276,9 +276,20 @@ lint → unit-tests → integration-tests → e2e-tests → docker-build
 
 | 任务 | 优先级 | 依赖 |
 |------|--------|------|
-| P5-1 第1批 数据文件拆分 | 中 | 无（独立于 P4-4） |
+| P5-1 第2批 game_loop/morale_system 拆分 | 中 | 无 |
 | P5-2 application层独立 | 中 | P5-1 第2批 |
 | P5-1 第3-5批 剩余文件拆分 | 低 | P5-2 |
+
+### 2026-06-28 P5-1 第1批完成
+
+| 文件 | 原→facade | 子模块 | Commit | 验证 |
+|------|----------|--------|--------|------|
+| campaign_data.py | 1456→63L | arnhem(690)+nijmegen(376)+eindhoven(366) | `45d6b06` | 268 tests ✅ |
+| cc2_authentic_weapons.py | 1854→76L | weapon_type_defs(141)+allied(468)+axis(378)+vehicle(826) | `63a40c1` | 84 tests ✅ / 69 weapons |
+| unit_diversity_expansion.py | 1000→228L | vehicle_variant(388)+faction_variant(366) | `b6dfad3` | 69 tests ✅ / 277 templates |
+| weapon_sounds.py | 607L | (评估完成，无需拆分) | — | — |
+
+**全量回归**: ruff 0 / mypy 0 (356 files) / 3734 unit + 618 integration/e2e = 4352 tests passed
 
 ---
 
