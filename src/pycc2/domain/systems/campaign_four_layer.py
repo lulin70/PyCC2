@@ -39,6 +39,9 @@ from pycc2.domain.systems.campaign_types import (  # noqa: F401
     VictoryLocationDef,
 )
 
+# -- Supply line integration (P4-4) ---------------------------------------
+from pycc2.domain.systems.supply_line import SupplyLineManager, SupplyType
+
 logger = logging.getLogger(__name__)
 
 
@@ -64,6 +67,11 @@ class FourLayerCampaignManager:
         self._saved_unit_states: dict[str, UnitCarryoverState] = {}
         self._persistence = None
 
+        # Supply line manager (P4-4) — single source of truth for supply type
+        # determination.  Lazily synced to the campaign day on demand.
+        self._supply_manager: SupplyLineManager = SupplyLineManager.create_default()
+        self._supply_manager_synced_day: int = 1
+
     @property
     def campaign_definition(self) -> GrandCampaignDefinition:
         """Return the static campaign definition in use."""
@@ -78,6 +86,35 @@ class FourLayerCampaignManager:
     def saved_unit_states(self) -> dict[str, UnitCarryoverState]:
         """Return the dict of unit carryover states persisted between battles."""
         return self._saved_unit_states
+
+    @property
+    def supply_manager(self) -> SupplyLineManager:
+        """Return the SupplyLineManager (P4-4) used for supply determination."""
+        return self._supply_manager
+
+    def _sync_supply_manager(self) -> None:
+        """Synchronise the supply manager with the campaign's current day.
+
+        Advances the manager's internal day to match
+        ``self._campaign_state.current_day`` and propagates each sector's
+        LZ-control flag from the runtime campaign state so that the
+        manager's ``SupplyState`` reflects the live battlefield.
+
+        """
+        target_day = self._campaign_state.current_day
+        while self._supply_manager.current_day < target_day:
+            self._supply_manager.advance_day()
+        self._supply_manager_synced_day = target_day
+
+        # Propagate LZ control from campaign state to the supply manager.
+        for sector_id, supply in self._supply_manager.sector_supply.items():
+            sector_state = self._campaign_state.sectors.get(sector_id)
+            if sector_state is not None:
+                supply.lz_controlled = sector_state.lz_controlled
+
+        # Recalculate supply effects with the synced LZ flags.
+        for supply in self._supply_manager.sector_supply.values():
+            supply.calculate_supply()
 
     def get_battles_for_day(self, day: int) -> list[BattleDefinition]:
         """Get all battles scheduled for a specific day across all sectors."""
@@ -115,25 +152,38 @@ class FourLayerCampaignManager:
             self._campaign_state.victory_determined = True
 
     def _get_supply_type(self, faction: str, sector_id: str) -> str:
-        """Determine supply line type for a faction in a sector."""
+        """Determine supply line type for a faction in a sector.
+
+        Delegates to :class:`SupplyLineManager` (P4-4) for Allied supply
+        determination, mapping the manager's :class:`SupplyType` enum back
+        to the string keys used by ``_SUPPLY_LINE_AMMO_RESUPPLY``.
+
+        German/Axis forces always use land supply (historical: the Germans
+        held the road/rail network throughout Market Garden).
+
+        """
         if faction.lower() in ("german", "axis"):
             return "axis_land"
 
-        sector_state = self._campaign_state.sectors.get(sector_id)
-        if sector_id == "eindhoven":
-            # XXX Corps advances through Eindhoven — land supply
-            return "allies_land"
-        elif sector_id == "nijmegen":
-            # After bridge capture, land supply; before that, airdrop
-            if sector_state and sector_state.lz_controlled:
-                return "allies_airdrop"
+        # Sync the supply manager to the current campaign day and LZ state
+        # so its SupplyState reflects the live battlefield.
+        self._sync_supply_manager()
+
+        supply = self._supply_manager.sector_supply.get(sector_id)
+        if supply is None:
+            # Unknown sector — fall back to airdrop (the historical default
+            # for airborne sectors before XXX Corps linkup).
             return "allies_airdrop"
-        elif sector_id == "arnhem":
-            # Arnhem relies on airdrops; if LZ lost, minimal supply
-            if sector_state and not sector_state.lz_controlled:
+
+        if supply.supply_type == SupplyType.LAND:
+            return "allies_land"
+        elif supply.supply_type == SupplyType.AIRDROP:
+            # Airdrop is only useful while the LZ is held.
+            if not supply.lz_controlled:
                 return "allies_no_supply"
             return "allies_airdrop"
-        return "allies_airdrop"
+        else:  # SupplyType.BLOCKED
+            return "allies_no_supply"
 
     # ------------------------------------------------------------------
     # Core carryover methods

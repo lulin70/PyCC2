@@ -127,6 +127,13 @@ class SupplyLineManager:
     # Priority sector chosen by player
     priority_sector: str = "arnhem"
 
+    # Supply points procured (allocated) per sector during the daily phase.
+    # Populated by ``procure_supply``; reset to empty when a new day begins.
+    procured_points: dict[str, int] = field(default_factory=dict)
+
+    # Total points procured so far this day (cached for fast availability checks).
+    _total_procured: int = 0
+
     def advance_day(self) -> None:
         """Advance to next day, update XXX Corps position and supply."""
         self.current_day += 1
@@ -135,8 +142,101 @@ class SupplyLineManager:
         if self.current_day in XXX_CORPS_TIMELINE:
             self.xxx_corps_position = XXX_CORPS_TIMELINE[self.current_day]
 
+        # Reset daily procurement — new day, fresh pool of supply points
+        self.procured_points = {}
+        self._total_procured = 0
+
         # Update supply for each sector
         self._update_sector_supply()
+
+    # ------------------------------------------------------------------
+    # Supply procurement (player-driven allocation, P4-4)
+    # ------------------------------------------------------------------
+
+    @property
+    def available_supply_points(self) -> int:
+        """Supply points still available for procurement today."""
+        return max(0, self.daily_supply_points - self._total_procured)
+
+    def procure_supply(self, sector_id: str, allocation: int) -> bool:
+        """Allocate supply points to a sector, boosting its supply level.
+
+        Called by the supply procurement UI (P4-4) when the player assigns
+        supply points to a sector.  Each procured point increases the
+        sector's ammunition, reinforcement, and morale recovery rates.
+
+        Args:
+            sector_id: Target sector (must exist in ``sector_supply``).
+            allocation: Number of supply points to assign.  A negative
+                value revokes points (e.g. when the player clicks the
+                decrement button in the UI).
+
+        Returns:
+            True if the procurement was applied; False if the sector is
+            unknown or the allocation would exceed the available pool.
+
+        """
+        if sector_id not in self.sector_supply:
+            return False
+        if allocation == 0:
+            return True
+
+        current = self.procured_points.get(sector_id, 0)
+        new_total = current + allocation
+
+        # Revoking points: cannot go below zero for the sector
+        if new_total < 0:
+            return False
+
+        # Adding points: cannot exceed the daily pool
+        if allocation > 0 and allocation > self.available_supply_points:
+            return False
+
+        self.procured_points[sector_id] = new_total
+        self._total_procured += allocation
+
+        # Apply the boost to the sector's supply effects.
+        # Recalculate the base supply first, then add the procurement bonus.
+        supply = self.sector_supply[sector_id]
+        supply.calculate_supply()
+        self._apply_procurement_boost(supply, new_total)
+        return True
+
+    def _apply_procurement_boost(self, supply: SupplyState, points: int) -> None:
+        """Boost a sector's supply rates based on procured points.
+
+        Each procured point adds a small increment to ammo, reinforcement,
+        and morale recovery rates (capped at 1.0).  The boost is relative
+        to the sector's base ``calculate_supply()`` output, so a sector
+        with a working supply line still benefits from priority allocation.
+
+        """
+        # 0.6% per point → ~60 points yields a full +0.36 bonus
+        ammo_bonus = points * 0.006
+        reinforce_bonus = points * 0.004
+        morale_bonus = points * 0.003
+
+        supply.ammo_replenishment_rate = min(
+            1.0, supply.ammo_replenishment_rate + ammo_bonus
+        )
+        supply.reinforcement_rate = min(
+            1.0, supply.reinforcement_rate + reinforce_bonus
+        )
+        supply.morale_recovery_rate = min(
+            1.0, supply.morale_recovery_rate + morale_bonus
+        )
+
+        # Promote the supply level tier if enough points are allocated.
+        # This lets a BLOCKED sector reach MINIMAL, or an AIRDROP sector
+        # reach FULL, when the player invests enough points.
+        if points >= 60:
+            supply.supply_level = SupplyLevel.FULL
+        elif points >= 30:
+            if supply.supply_level != SupplyLevel.FULL:
+                supply.supply_level = SupplyLevel.REDUCED
+        elif points >= 10:
+            if supply.supply_level == SupplyLevel.NONE:
+                supply.supply_level = SupplyLevel.MINIMAL
 
     def _update_sector_supply(self) -> None:
         """Recalculate supply for all sectors."""

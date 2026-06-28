@@ -231,12 +231,45 @@ class TestInfantrySprite:
 # ============================================================
 
 
+# ----------------------------------------------------------------
+# Session-scoped fixtures: share expensive sprite generation across
+# all slow tests. These are read-only by contract — no test mutates
+# the shared canvas. Generation is deterministic (fixed noise seed)
+# so sharing is safe.
+# ----------------------------------------------------------------
+
+
+@pytest.fixture(scope="session")
+def shared_mg_allies_56():
+    return create_unit_sprite("allies", "MACHINE_GUN_SQUAD", size=56)
+
+
+@pytest.fixture(scope="session")
+def shared_mg_axis_56():
+    return create_unit_sprite("axis", "MACHINE_GUN_SQUAD", size=56)
+
+
+@pytest.fixture(scope="session")
+def shared_infantry_allies_56():
+    return create_unit_sprite("allies", "INFANTRY_SQUAD", size=56)
+
+
+@pytest.fixture(scope="session")
+def shared_infantry_allies_directions():
+    return [create_unit_sprite("allies", "INFANTRY_SQUAD", direction=d) for d in range(8)]
+
+
+@pytest.fixture(scope="session")
+def shared_commander_axis_48():
+    return create_unit_sprite("axis", "COMMANDER", direction=5, size=48)
+
+
 @pytest.mark.slow
 class TestMGSquadSprite:
     """MG机枪组精灵测试"""
 
-    def test_mg_squad_has_dual_barrel_shape(self):
-        canvas = create_unit_sprite("allies", "MACHINE_GUN_SQUAD", size=56)
+    def test_mg_squad_has_dual_barrel_shape(self, shared_mg_allies_56):
+        canvas = shared_mg_allies_56
         cx = canvas.width // 2
         right_side_nonzero = 0
         for y in range(canvas.height):
@@ -245,8 +278,8 @@ class TestMGSquadSprite:
                     right_side_nonzero += 1
         assert right_side_nonzero > 20, "MG squad should have weapon on right side"
 
-    def test_mg_squad_has_tripod(self):
-        canvas = create_unit_sprite("axis", "MACHINE_GUN_SQUAD", size=56)
+    def test_mg_squad_has_tripod(self, shared_mg_axis_56):
+        canvas = shared_mg_axis_56
         bottom_nonzero = 0
         for x in range(canvas.width):
             for y in range(canvas.height - 16, canvas.height):
@@ -254,9 +287,9 @@ class TestMGSquadSprite:
                     bottom_nonzero += 1
         assert bottom_nonzero > 5, "MG squad should have tripod/base at bottom"
 
-    def test_mg_differs_from_infantry(self):
-        mg_canvas = create_unit_sprite("allies", "MACHINE_GUN_SQUAD", size=56)
-        inf_canvas = create_unit_pixel_artist("allies", "INFANTRY_SQUAD", size=56)
+    def test_mg_differs_from_infantry(self, shared_mg_allies_56, shared_infantry_allies_56):
+        mg_canvas = shared_mg_allies_56
+        inf_canvas = shared_infantry_allies_56
         assert not np.array_equal(mg_canvas.pixels, inf_canvas.pixels), (
             "MG and infantry sprites should look different"
         )
@@ -318,17 +351,13 @@ class TestCommanderSprite:
 class TestEightDirections:
     """8方向朝向测试"""
 
-    def test_all_eight_directions_generate_without_crash(self):
-        for d in range(8):
-            canvas = create_unit_sprite("allies", "INFANTRY_SQUAD", direction=d)
+    def test_all_eight_directions_generate_without_crash(self, shared_infantry_allies_directions):
+        for canvas in shared_infantry_allies_directions:
             assert canvas.width == 24
             assert canvas.height == 24
 
-    def test_direction_affects_arrow_position(self):
-        canvases = []
-        for d in range(8):
-            c = create_unit_sprite("allies", "INFANTRY_SQUAD", direction=d)
-            canvases.append(c.pixels.copy())
+    def test_direction_affects_arrow_position(self, shared_infantry_allies_directions):
+        canvases = [c.pixels.copy() for c in shared_infantry_allies_directions]
         all_same = all(np.array_equal(canvases[0], c) for c in canvases[1:])
         assert not all_same, "Different directions should produce different sprites"
 
@@ -387,8 +416,8 @@ class TestTerrainTiles:
 class TestCreateUnitSpriteFactory:
     """create_unit_sprite 工厂函数测试"""
 
-    def test_factory_returns_valid_canvas(self):
-        canvas = create_unit_sprite("axis", "COMMANDER", direction=5, size=48)
+    def test_factory_returns_valid_canvas(self, shared_commander_axis_48):
+        canvas = shared_commander_axis_48
         assert isinstance(canvas, PixelCanvas)
         assert canvas.width == 48
         assert canvas.height == 48

@@ -8,6 +8,8 @@ This module was split into three sub-modules for better maintainability:
 This file retains the public factory API so existing imports continue to work.
 """
 
+import functools
+
 # Re-export all public symbols from sub-modules for backward compatibility
 from pycc2.presentation.rendering.pixel_canvas import (
     CCPalette,
@@ -42,15 +44,24 @@ __all__ = [
 # ============================================================
 
 
-def create_unit_sprite(
+@functools.lru_cache(maxsize=128)
+def _create_unit_sprite_cached(
     faction: str,
     unit_type: str,
-    direction: int = 0,
-    size: int = 24,
-    frame: int = 0,
-    state: str = "idle",
+    direction: int,
+    size: int,
+    frame: int,
+    state: str,
 ) -> PixelCanvas:
-    """便捷函数：创建单位精灵"""
+    """Internal cached sprite generator.
+
+    Returns the shared canonical canvas for the given spec. The result is
+    deterministic because ``UnitSpriteGenerator.generate`` uses a fixed seed
+    (``np.random.RandomState(42)``) inside ``add_noise``.
+
+    Callers MUST NOT mutate the returned canvas — use
+    :func:`create_unit_sprite` instead, which returns an independent copy.
+    """
     spec = UnitSpriteSpec(
         faction=faction,
         unit_type=unit_type,
@@ -60,6 +71,24 @@ def create_unit_sprite(
         state=state,
     )
     return UnitSpriteGenerator.generate(spec)
+
+
+def create_unit_sprite(
+    faction: str,
+    unit_type: str,
+    direction: int = 0,
+    size: int = 24,
+    frame: int = 0,
+    state: str = "idle",
+) -> PixelCanvas:
+    """便捷函数：创建单位精灵
+
+    Returns an independent copy of the cached sprite so callers may safely
+    mutate the returned canvas without affecting other consumers.
+    """
+    return _create_unit_sprite_cached(
+        faction, unit_type, direction, size, frame, state
+    ).copy()
 
 
 def create_terrain_tile(

@@ -46,6 +46,10 @@ from .campaign_ui_types import (  # noqa: F401
     CampaignOperation,
 )
 
+# Supply procurement integration (P4-4)
+from pycc2.domain.systems.supply_line import SupplyLineManager
+from pycc2.presentation.ui.supply_procurement_ui import SupplyProcurementUI
+
 
 class CampaignUI:
     """Campaign screen UI with full flow.
