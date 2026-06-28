@@ -2,6 +2,21 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## [0.5.0] - 2026-06-28 (开发中)
+
+### Phase 4: CC2 机制补全 (D8 Remediation Plan)
+- **P4-0 TacticExecutor 5 缺失 handler 修复** (前置阻断项): 补齐 FLANKING/COORDINATED_ADVANCE/CAPTURE_VL/DEFEND_VL/DEMOLISH_BRIDGE 5 个有枚举无 handler 的 TacticType。DEMOLISH_BRIDGE 搜索单位 3x3 邻域的 BRIDGE 地形并设为 BRIDGE_DESTROYED。17 个新单元测试。
+- **P4-1 通用步兵伏击 AI** (新建): `AmbushAI(TacticalAIBase)` — 检测隐蔽地形（concealment>0.4）中的步兵 + 敌方接近 → SET_AMBUSH（潜伏等待）/ BREAK_AMBUSH（集中开火）。夜间加成 +0.2。新增 SET_AMBUSH/BREAK_AMBUSH 枚举 + handler。15 个单元测试。
+- **P4-2 撤退断后增强**: `RetreatDecisionAI` 新增 Phase 4 断后逻辑 — HP>70% 单位发出 HOLD_POSITION + SUPPRESS_FIRE 掩护撤退。断后数量不超过撤退单位 1/3。3 个新测试。
+- **P4-3 战略反击 AI** (新建): `CounterattackAI(TacticalAIBase)` — force_ratio>1.2（增援到达后力量逆转）触发反击。选 2-3 个友方单位攻击最弱敌方。新增 COUNTER_ATTACK 枚举 + handler。5 个单元测试。
+- **P4-5 地形高度系统修复**: `GameMap.from_json` 从 `tiles_enhanced.height` 读取到 `height_grid`（建筑高度）。`LOSSystem._get_elevation`/`_get_building_height` 改读 `GameMap` grid 而非 enhanced dict。修复后 night_map.json 的 height_grid 有 403/672 个非零格（修复前为 0）。3 个新测试 + 2 个回归修复。
+- **P4-4 补给线征用点采购 UI**: 进行中 — SupplyLineManager 接入 + UI 新建
+- **Verification**: ruff 0 errors / mypy 0 errors / 83 AI behavior tests passed / 90 P4-0/P4-5 tests passed
+
+### Phase 5: 长期架构改进 (D8 Remediation Plan)
+- **P5-4 CI 管道 4 阶段分离**: 重写 `.github/workflows/ci.yml` — lint→unit-tests→integration-tests→e2e-tests→docker-build 串行 + slow-tests/benchmark 并行。分层 timeout（10/20/15/30/20/15min）+ 每 job 独立 junit.xml artifact。
+- **P5-3 slow 测试优化**: 进行中 — sprite @lru_cache 缓存
+
 ## [0.4.0] - 2026-06-27
 
 ### Phase 2: CC2 Visual Polish (D8 Remediation Plan)
