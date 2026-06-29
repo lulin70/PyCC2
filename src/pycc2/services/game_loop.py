@@ -1,8 +1,17 @@
 """Main game loop driving update, rendering, and event handling each frame.
 
-Hosts the GameState dataclass and the GameLoop dataclass that wires together
-all subsystems (input, AI, rendering, audio, combat) into a fixed-timestep
-simulation with variable-rate rendering.
+Facade that wires together all subsystems (input, AI, rendering, audio,
+combat) into a fixed-timestep simulation with variable-rate rendering.
+
+Behavior is split across focused mixin modules (P5-1 batch 2):
+  - game_loop_types.py: GameState dataclass + LOGIC_DT/TARGET_FPS/MAX_FRAME_TIME
+  - game_loop_rendering.py: GameLoopRenderingMixin (_apply_camera_effects, _render_scene)
+  - game_loop_updating.py: GameLoopUpdatingMixin (_update_logic + 10 _update_* + _ensure_ai_units_registered)
+  - game_loop_combat.py: GameLoopCombatMixin (_handle_player_command, _execute_attack, _on_*, _process_combat_popups)
+  - game_loop.py (this facade): GameLoop dataclass + run() + deployment + save/load
+
+Public API (100% backward-compatible):
+  - GameState, GameLoop, LOGIC_DT, MAX_FRAME_TIME, TARGET_FPS
 """
 
 from __future__ import annotations
@@ -16,7 +25,6 @@ from typing import TYPE_CHECKING, Any
 
 import pygame
 
-from pycc2.domain.entities.unit import UnitState
 from pycc2.domain.interfaces import (
     IAchievementBridge,
     ICombatCamera,
@@ -42,11 +50,17 @@ from pycc2.domain.interfaces import (
     IWeatherState,
     IWeatherSystem,
 )
+from pycc2.services.game_loop_combat import GameLoopCombatMixin
+from pycc2.services.game_loop_rendering import GameLoopRenderingMixin
+from pycc2.services.game_loop_types import (
+    LOGIC_DT,
+    MAX_FRAME_TIME,
+    TARGET_FPS,
+    GameState,
+)
+from pycc2.services.game_loop_updating import GameLoopUpdatingMixin
 
 if TYPE_CHECKING:
-    from pycc2.domain.entities.game_map import GameMap
-    from pycc2.domain.entities.unit import Unit
-    from pycc2.domain.interfaces.camera_protocol import ICamera as Camera
     from pycc2.domain.interfaces.campaign_ui_protocol import ICampaignUI
     from pycc2.domain.interfaces.deployment_ui_protocol import IDeploymentUI
     from pycc2.domain.interfaces.display_config import DisplayConfig
@@ -65,31 +79,23 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-LOGIC_DT: float = 1.0 / 30.0
-TARGET_FPS: int = 60
-MAX_FRAME_TIME: float = 0.25
-
-
-@dataclass(slots=True)
-class GameState:
-    """Mutable snapshot of the current game world each frame operates on."""
-
-    game_map: GameMap
-    units: list[Unit]
-    camera: Camera
-    selected_unit_ids: set[str] = field(default_factory=set)
-    tick: int = 0
-    running: bool = True
-    paused: bool = False
-    debug_mode: bool = False
-    side_turn: str = "allies"
-    time_speed: float = 1.0
-    current_weather: object | None = None  # WeatherType enum
+__all__ = [
+    "LOGIC_DT",
+    "MAX_FRAME_TIME",
+    "TARGET_FPS",
+    "GameLoop",
+    "GameState",
+]
 
 
 @dataclass
-class GameLoop:
-    """Top-level game loop wiring subsystems into a fixed-timestep simulation."""
+class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixin):
+    """Top-level game loop wiring subsystems into a fixed-timestep simulation.
+
+    Inherits rendering/update/combat methods from focused mixins. This facade
+    retains the dataclass fields, main run() loop, deployment, save/load,
+    and property accessors.
+    """
 
     renderer: EnhancedRenderer
     window_manager: WindowManager
@@ -283,439 +289,6 @@ class GameLoop:
 
         self.shutdown()
         return 0
-
-    def _apply_camera_effects(self, time_speed: float) -> tuple[float, float]:
-        """Apply cinematic camera effects and return the offset for later restoration."""
-        camera_offset = (0.0, 0.0)
-        if self._effect_stack is not None and not self._effect_stack.is_empty():
-            camera_offset = self._effect_stack.get_total_offset()
-            if camera_offset != (0.0, 0.0):
-                from pycc2.domain.value_objects.vec2 import Vec2
-
-                self.state.camera.position = Vec2(
-                    self.state.camera.position.x + camera_offset[0],
-                    self.state.camera.position.y + camera_offset[1],
-                )
-
-            # Apply slow-motion time scale from EffectStack
-            time_scale = self._effect_stack.get_time_scale()
-            if time_scale < 1.0:
-                time_speed *= time_scale
-
-        return camera_offset
-
-    def _render_scene(self, screen, alpha: float) -> None:
-        """Render the game scene — shared by both deployment and battle phases.
-
-        This method eliminates the code duplication between deployment and battle
-        rendering by extracting the common render pipeline + weather/lighting steps,
-        then branching only for the phase-specific UI overlay.
-        """
-        if self._render_pipeline is None:
-            return
-        # Step 1: Render map and units (common to both phases)
-        victory = self._victory_manager
-        self._render_pipeline.render(
-            game_map=self.state.game_map,
-            units=self.state.units,
-            camera=self.state.camera,
-            alpha=alpha,
-            selected_unit_ids=self.state.selected_unit_ids,
-            debug_mode=self.state.debug_mode,
-            paused=self.state.paused,
-            tick=self.state.tick,
-            show_post_battle=victory.show_post_battle if victory else False,
-            game_result=victory.game_result if victory else None,
-            battle_stats=victory.battle_stats if victory else None,
-        )
-
-        # Step 2: Render weather/lighting effects (common to both phases)
-        if self._weather_renderer is not None and self._weather_state is not None:
-            self._weather_renderer.render(screen, self.state.camera, self._weather_state)
-        if self._lighting_renderer is not None and self._day_night_time is not None:
-            self._lighting_renderer.render(screen, self._day_night_time)
-
-        # Step 3: Phase-specific UI overlay
-        dm = self._deployment_manager
-        if dm is not None and dm.is_active and dm.deployment_ui is not None:
-            # Deployment phase: render deployment UI
-            deployment_ui = dm.deployment_ui
-            dc = self.display_config
-            tile_size = dc.base_tile_size if dc else 16
-            deployment_ui.render(
-                screen,
-                font=None,
-                map_offset_x=0,
-                map_offset_y=0,
-                tile_size=tile_size,
-            )
-        else:
-            # Battle phase: render CC2 unified bottom HUD panel
-            if self._hud_manager:
-                self._hud_manager.render(screen, self.state.camera, self.state)
-            elif self.use_full_hud:
-                # HUD expected but missing — log warning for debugging
-                logger.warning(
-                    "[HUD] Battle phase active but _hud_manager is None. "
-                    "Check GameLoopAssembler._init_hud() completed successfully."
-                )
-
-    def _update_logic(self, dt: float) -> None:
-        if self.state.paused:
-            return
-        if self._combat_director is None:
-            return
-
-        self._update_weather(dt)
-        self._update_audio_sync(dt)
-        self._update_unit_movement(dt)
-        self._update_fatigue(dt)
-        self._update_combat(dt)
-        self._update_popups()
-        self._update_camera(dt)
-        self._update_visual_effects(dt)
-        self._update_hud(dt)
-        self._update_ai(dt)
-        self._update_victory()
-
-    def _update_weather(self, dt: float) -> None:
-        # Update weather system
-        if self._weather_system is not None:
-            self._weather_system.update(dt)
-
-        # Apply weather effects to game state
-        if self._weather_effects is not None and self._weather_state is not None:
-            # Weather modifiers are read by Unit.get_accuracy_modifier() etc.
-            # Store current weather type for unit queries
-            self.state.current_weather = self._weather_state.weather_type
-
-        # Update day-night cycle
-        if self._day_night_cycle is not None:
-            self._day_night_cycle.advance(dt)
-
-    def _update_audio_sync(self, dt: float) -> None:
-        # Process audio event queue
-        if self.sound_system:
-            self.sound_system.process_event_queue()
-
-        # Update environmental ambient audio system
-        if self._environmental_audio is not None:
-            with contextlib.suppress(Exception):
-                self._environmental_audio.update(dt)
-
-        # Sync environmental audio context with game state
-        if self._environmental_audio is not None:
-            try:
-                # Sync time-of-day from day-night cycle
-                if self._day_night_cycle is not None:
-                    tod = self._day_night_cycle.time_of_day
-                    if tod is not None:
-                        hour = int(tod * 24) % 24
-                        self._environmental_audio.set_time_of_day(hour)
-                elif self._day_night_time is not None:
-                    hour = int(self._day_night_time * 24) % 24
-                    self._environmental_audio.set_time_of_day(hour)
-
-                # Sync weather (rain)
-                if self._weather_state is not None:
-                    weather_type = self._weather_state.weather_type
-                    if weather_type is not None:
-                        is_raining = "rain" in str(weather_type).lower()
-                        self._environmental_audio.set_weather_rain(is_raining)
-
-                # Estimate combat intensity from unit states (single pass)
-                attacking_count = 0
-                total_alive = 0
-                for u in self.state.units:
-                    if u.is_alive:
-                        total_alive += 1
-                        if u.state_machine.current == UnitState.ATTACKING:
-                            attacking_count += 1
-                intensity = min(1.0, attacking_count / max(1, total_alive * 0.15))
-                self._environmental_audio.set_combat_intensity(intensity)
-            except (AttributeError, ValueError, TypeError):
-                pass
-
-    def _update_unit_movement(self, dt: float) -> None:
-        # Update unit movements (smooth movement toward targets)
-        for unit in self.state.units:
-            # Update movement mode timers (Fast Move, Sneak, Defend)
-            unit.update_movement_mode()
-
-            if unit.move_target is not None:
-                arrived = unit.update_movement(dt)
-                if arrived:
-                    logger.debug("[MOVEMENT] %s arrived at destination", unit.display_name)
-
-    def _update_fatigue(self, dt: float) -> None:
-        # Update unit fatigue, veterancy, and weather effects
-        for unit in self.state.units:
-            # Fatigue accumulation
-            if unit.fatigue is not None:
-                if unit.move_target is not None:
-                    activity = "fast_move" if unit.is_fast_moving else "moving"
-                    unit.fatigue.accumulate(activity)
-                elif unit.state_machine.current == UnitState.ATTACKING:
-                    unit.fatigue.accumulate("firing")
-                else:
-                    unit.fatigue.recover()
-
-            # Veterancy: record shots (integration point for combat)
-            # (actual XP from kills is handled in combat_director)
-
-        # Update attack line tracking (unit targets follow movement)
-        if self.interaction_controller:
-            self.interaction_controller.attack_line.update_tracking(self.state.units)
-
-    def _update_combat(self, dt: float) -> None:
-        if self._combat_director is None:
-            return
-        battle_stats = self._victory_manager.battle_stats if self._victory_manager else None
-        self._combat_director.update(
-            units=self.state.units,
-            game_map=self.state.game_map,
-            dt=dt,
-            battle_stats=battle_stats,
-        )
-        self._combat_director.process_effects(renderer=self.renderer, camera=self.state.camera)
-
-        # Process queued commands for units that completed their current command
-        for unit in self.state.units:
-            if not unit.is_alive:
-                continue
-            if unit.state_machine.current == UnitState.IDLE and unit.has_queued_commands:
-                next_cmd = unit.get_next_queued_command()
-                if next_cmd is not None:
-                    unit._execute_queued_command(next_cmd)
-
-    def _update_popups(self) -> None:
-        # Trigger combat popups for significant events
-        self._process_combat_popups()
-
-    def _update_camera(self, dt: float) -> None:
-        # Update camera screen shake
-        self.state.camera.update_shake(dt)
-
-    def _update_visual_effects(self, dt: float) -> None:
-        # P2-03: Update screen flash overlay alpha (fade-out)
-        self.renderer.update_flash(dt)
-        self.renderer.update_weather(dt)
-        self.renderer.update_shell_casings(dt)
-        self.renderer.update_suppression_overlay(dt, self.state.units)
-        self.renderer._smooth_positions(self.state.units, dt)
-
-        # Update cinematic camera effect stack
-        if self._effect_stack is not None:
-            self._effect_stack.update(dt)
-
-        # Update projectile trail system
-        if self._projectile_trail_sys is not None:
-            self._projectile_trail_sys.update(dt)
-
-        # Update dynamic shadow time-of-day
-        if self._dynamic_shadow_sys is not None:
-            if self._day_night_time is not None:
-                self._dynamic_shadow_sys.set_time_of_day(self._day_night_time)
-            elif self._day_night_cycle is not None:
-                tod = self._day_night_cycle.time_of_day
-                self._dynamic_shadow_sys.set_time_of_day(tod)
-
-    def _update_hud(self, dt: float) -> None:
-        # P2-05: Update UI fade transitions (HUDManager panel/minimap fades)
-        if self._hud_manager is not None:
-            self._hud_manager.update(dt)
-
-    def _ensure_ai_units_registered(self) -> None:
-        """Safety net: auto-register non-player units that lack AI behavior trees.
-
-        This handles cases where units are added directly to state.units
-        without going through the deployment flow (e.g., test scripts,
-        debug commands, or scenario editors).
-        """
-        if self.ai_service is None:
-            return
-
-        # Determine player faction from existing registrations or default
-        player_faction = getattr(self.state, "player_faction", None)
-        if player_faction is None:
-            # Heuristic: if any ALLIES unit exists, player is ALLIES
-            from pycc2.domain.entities.unit import Faction
-
-            has_allies = any(u.faction == Faction.ALLIES for u in self.state.units)
-            player_faction = Faction.ALLIES if has_allies else Faction.AXIS
-
-        # Find unregistered enemy units
-        registered_ids = set(self.ai_service._unit_entities.keys())
-        unregistered_enemies = [
-            u
-            for u in self.state.units
-            if u.id not in registered_ids and u.faction != player_faction and u.is_alive
-        ]
-
-        if not unregistered_enemies:
-            return
-
-        try:
-            from pycc2.domain.ai.unit_bt_factory import UnitBTFactory
-            from pycc2.domain.entities.unit import UnitType
-
-            for unit in unregistered_enemies:
-                # Select appropriate behavior tree by unit type
-                if unit.unit_type == UnitType.MACHINE_GUN_SQUAD:
-                    bt = UnitBTFactory.create_mg_squad_bt(unit_id=unit.id)
-                elif unit.unit_type == UnitType.COMMANDER:
-                    bt = UnitBTFactory.create_commander_bt(unit_id=unit.id)
-                else:
-                    bt = UnitBTFactory.create_infantry_bt(unit_id=unit.id)
-
-                self.ai_service.register_ai_unit(unit, bt)
-                logger.info(
-                    "Auto-registered AI unit: %s [%s] (%s)",
-                    unit.name,
-                    unit.id,
-                    unit.unit_type.name,
-                )
-        except ImportError as e:
-            logger.warning("Could not auto-register AI units: %s", e)
-
-    def _update_ai(self, dt: float) -> None:
-        # Safety net: ensure enemy units are registered before ticking
-        self._ensure_ai_units_registered()
-
-        if self.ai_service is not None and self.ai_service.managed_unit_count > 0:
-            self._ai_tick_counter += 1
-            if self._ai_tick_counter >= self._ai_update_interval:
-                intents = self.ai_service.tick(
-                    dt,
-                    game_map=self.state.game_map,
-                    all_units=self.state.units,
-                )
-                if intents:
-                    self.ai_service.execute_intents(intents)
-                self._ai_tick_counter = 0
-
-    def _update_victory(self) -> None:
-        if self._victory_manager is None:
-            return
-        victory_outcome = self._victory_manager.evaluate(self.state.units, self.state.tick)
-        if victory_outcome is not None:
-            result, reason = victory_outcome
-            self.state.paused = True
-
-            # Publish BattleWon named event for camera effects and achievement tracking
-            self.event_bus.publish_named(
-                "BattleWon",
-                {
-                    "result": result.name,
-                    "reason": reason,
-                    "duration_seconds": self.state.tick * LOGIC_DT,
-                },
-            )
-
-            if self.sound_system:
-                from pycc2.domain.value_objects.audio_enums import SoundType
-
-                if result.name == "ALLIES_VICTORY":
-                    self.sound_system.play(SoundType.UI_COMMAND)
-                else:
-                    self.sound_system.play(SoundType.UI_CANCEL)
-
-    def _handle_player_command(self, data: dict) -> None:
-        if self._combat_director is None:
-            return
-        self._combat_director.handle_player_command(data, self.state.units, self.state.game_map)
-
-    def _execute_attack(self, attacker, target) -> None:
-        if self._combat_director is None:
-            return
-        self._combat_director.execute_attack(attacker, target)
-
-    def _on_unit_attacked(self, data: dict) -> None:
-        if self._combat_director is None:
-            return
-        self._combat_director.on_unit_attacked(data)
-        # Trigger "Taking fire!" popup on the target unit
-        target_id = data.get("target_id")
-        if target_id and self._popup_manager is not None:
-            target = next((u for u in self.state.units if u.id == target_id), None)
-            if target and target.position is not None:
-                pp = target.position.pixel_position
-                self._popup_manager.add_taking_fire(pp.x, pp.y)
-
-    def _on_unit_attacked_for_stats(self, data: dict) -> None:
-        if self._combat_director is None or self._victory_manager is None:
-            return
-        self._combat_director.record_stats(
-            data, self.state.units, self._victory_manager.battle_stats
-        )
-
-    def _on_projectile_fired(self, data: dict) -> None:
-        """Handle ProjectileFired event — add trail to ProjectileTrailSystem."""
-        if self._projectile_trail_sys is None:
-            return
-        weapon_type = data.get("weapon_type", "bullet")
-        sx = data.get("start_x", 0.0)
-        sy = data.get("start_y", 0.0)
-        ex = data.get("end_x", 0.0)
-        ey = data.get("end_y", 0.0)
-
-        if weapon_type == "shell":
-            self._projectile_trail_sys.add_shell_trail(sx, sy, ex, ey)
-        elif weapon_type == "rocket":
-            self._projectile_trail_sys.add_rocket_trail(sx, sy, ex, ey)
-        elif weapon_type == "mortar":
-            self._projectile_trail_sys.add_mortar_trail(sx, sy, ex, ey)
-        else:
-            self._projectile_trail_sys.add_bullet_trail(sx, sy, ex, ey)
-
-    def _process_combat_popups(self) -> None:
-        """Scan units for combat events and trigger floating popups."""
-        if self._popup_manager is None:
-            return
-        from pycc2.domain.systems.morale_system import MoraleState, MoraleSystem
-
-        for unit in self.state.units:
-            if not unit.is_alive:
-                continue
-            # Get pixel position for popup placement
-            px, py = 0.0, 0.0
-            if unit.position is not None:
-                pp = unit.position.pixel_position
-                px, py = pp.x, pp.y
-
-            # Check morale state changes → popup
-            if unit.morale is not None:
-                morale_state = MoraleSystem.get_state(unit.morale.value)
-                # Track previous state to detect transitions
-                prev_state = getattr(unit, "_prev_morale_state", None)
-                if prev_state is not None and prev_state != morale_state:
-                    if morale_state == MoraleState.BROKEN:
-                        self._popup_manager.add_breaking(px, py)
-                    elif morale_state == MoraleState.PINNED:
-                        self._popup_manager.add_pinned(px, py)
-                unit._prev_morale_state = morale_state
-
-            # Check for out-of-ammo
-            if unit.weapon is not None:
-                weapon_state = unit.weapon.state
-                if weapon_state is not None:
-                    if weapon_state.name == "EMPTY" and not getattr(
-                        unit, "_ammo_popup_shown", False
-                    ):
-                        self._popup_manager.add_out_of_ammo(px, py)
-                        unit._ammo_popup_shown = True
-                    elif weapon_state.name != "EMPTY":
-                        unit._ammo_popup_shown = False
-
-        # Check for KIA (newly dead units)
-        for unit in self.state.units:
-            if not unit.is_alive and not getattr(unit, "_kia_popup_shown", False):
-                px, py = 0.0, 0.0
-                if unit.position is not None:
-                    pp = unit.position.pixel_position
-                    px, py = pp.x, pp.y
-                self._popup_manager.add_kia(px, py)
-                unit._kia_popup_shown = True
 
     def _handle_input(self, event) -> None:
         if self._input_router is None:

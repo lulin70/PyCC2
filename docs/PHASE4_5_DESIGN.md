@@ -515,5 +515,20 @@ SDL_VIDEODRIVER=dummy python -m pytest tests/ -x -q --timeout=120 \
 
 | 文件 | 拆分前 | facade | 子模块数 | 子模块行数 | 测试通过 | commit |
 |------|-------|--------|---------|-----------|---------|--------|
-| morale_system.py | 701L | (待填) | 4 | (待填) | (待填) | (待填) |
-| game_loop.py | 828L | (待填) | 4 | (待填) | (待填) | (待填) |
+| morale_system.py | 701L | 311L | 4 | types 122L / calculator 123L / effects 249L / routing 169L | ruff 0 / mypy 0 / 94 单元 + 145 e2e 通过 | b2b51da |
+| game_loop.py | 828L | 401L | 4 | types 47L / rendering 130L / combat 136L / updating 349L | ruff 0 / mypy 0 (364文件) / 102 单元 + 34 e2e + 全量 4398 通过 | (本次提交) |
+
+### 8.6 game_loop.py 拆分技术要点（mixin 模式）
+
+**mypy 兼容性关键**：mixin 类不能使用 `self: GameLoop` 注解（mypy 报 "The erased type of self is not a supertype of its class"）。采用 **类级属性声明模式**（Django mixin 标准模式）：
+- 每个 mixin 在类体顶部声明所依赖的 facade 字段为类级类型注解（无默认值）
+- facade 通过 dataclass 字段提供实际值
+- 跨 mixin 方法（如 `_update_popups` 调用 `_process_combat_popups`）在调用方 mixin 中声明方法 stub
+
+**继承顺序**：`GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixin)` — MRO 自左向右，rendering 优先于 combat（`_render_scene` 中调用 `_process_combat_popups`）
+
+**循环导入规避**：
+1. `game_loop_types.py` 无 pycc2 依赖 → 可被所有 mixin 安全导入
+2. 每个 mixin 仅导入 `game_loop_types`（类型），不导入 facade
+3. facade 导入 3 个 mixin + `game_loop_types`，定义 dataclass
+4. `GameLoopAssembler` 在 `__post_init__` 中延迟导入（保持现有模式）

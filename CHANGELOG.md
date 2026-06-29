@@ -22,6 +22,10 @@ All notable changes to PyCC2 will be documented in this file.
   - `unit_diversity_expansion.py` (1000→228L facade): vehicle_variant/faction_variant 2 个文件，69 测试通过 / 277 templates
   - `weapon_sounds.py` (607L): 评估完成无需拆分（模块内聚）
   - 全量回归: ruff 0 / mypy 0 (356 files) / 4352 tests passed
+- **P5-1 第2批 逻辑类拆分**: 完成 — 2 个大逻辑文件按 SRP 拆分（共 1529→712L facade + 8 子模块）：
+  - `morale_system.py` (701→311L facade): morale_types/calculator/effects/routing 4 个子模块（types+calculator 纯计算无副作用，effects+routing 副作用隔离）。94 单元 + 145 e2e 测试通过。commit b2b51da
+  - `game_loop.py` (828→401L facade): game_loop_types/rendering/updating/combat 4 个子模块（mixin 模式）。mypy 兼容性关键：mixin 类用类级属性声明替代 `self: GameLoop` 注解（Django mixin 标准模式）。102 单元 + 34 e2e + 全量 4398 测试通过。
+  - 全量回归: ruff 0 / mypy 0 (364 files) / 4398 tests passed / 0 failures
 
 ## [0.4.0] - 2026-06-27
 

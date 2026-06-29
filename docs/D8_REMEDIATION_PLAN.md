@@ -106,8 +106,8 @@
 
 | 编号 | 任务 | 关联 | 状态 |
 |------|------|------|------|
-| P5-1 | 43 个 >500 行文件逐步拆分（实测修正：文档原说29） | TD-026 | ⏳ 进行中 — 第1批 3/4 完成 (campaign_data/cc2_authentic_weapons/unit_diversity_expansion 已拆, weapon_sounds 评估无需拆分) |
-| P5-2 | 添加独立 application 层 | D8 §1.1 | ⬜ |
+| P5-1 | 43 个 >500 行文件逐步拆分（实测修正：文档原说29） | TD-026 | ⏳ 进行中 — 第1批 3/4 完成 + 第2批 2/2 完成 (morale_system.py 701→311L commit b2b51da / game_loop.py 828→401L facade+mixin 模式) |
+| P5-2 | 添加独立 application 层 | D8 §1.1 | ⬜ 可启动（P5-1 第2批已完成，无阻塞依赖） |
 | P5-3 | slow 测试优化（sprite 缓存） | D8 §1.3 | ✅ 完成 — @lru_cache(128) + session fixture，3.5min→0.56s |
 | P5-4 | CI 管道 4 阶段分离（lint→unit→integration→e2e） | ROADMAP M5 | ✅ 完成 — 5+2 job 串行+并行，分层 timeout+junit |
 
