@@ -6,9 +6,15 @@ All notable changes to PyCC2 will be documented in this file.
 
 ### D9 成熟度评估 P1 修复 (D9 Maturity Assessment)
 - **P1-1 README_zh 测试数表述错误**: 6 处过期表述（4367个通过/100%）已修正为实测值（4424 collected / 4398 passed / 25 skipped），含 badge + 5 处正文 + 最后更新日期。
-- **P1-2 TECH_DEBT TD-058 过期**: 标记为 ✅ 已解决 — 4 文件实测行数（deployment_ui 689 / pixel_artist_3d 456 / enhanced_renderer 485 / campaign_four_layer 524）全部达标 <1500 行。状态行与表格 P1 数字对齐（2→1，TD-061 仍未解决）。">1000 行" 计数修正（12→8，实测验证）。核查日期更新为 2026-06-29。
+- **P1-2 TECH_DEBT TD-058 过期**: 标记为 ✅ 已解决 — 4 文件实测行数（deployment_ui 689 / pixel_artist_3d 456 / enhanced_renderer 485 / campaign_four_layer 524）全部达标 <1500 行。状态行与表格 P1 数字对齐（2→1）。">1000 行" 计数修正（12→8，实测验证）。核查日期更新为 2026-06-29。
 - **P1-3 E2E 测试隔离缺陷**: 修复 `test_vertical_slice.py::pygame_env` fixture teardown `pygame.quit()` 破坏后续测试 display 子系统 → `pygame.display.quit()`（限定 teardown 范围）。`test_visual_smoke.py::setup_pygame` 添加 `pygame.display.quit()` + `pygame.display.init()` 防御性重置。完整 E2E 套件 483 passed / 0 failed（修复前 482+1 failed）。
 - **Verification**: mypy 0 errors / ruff 仅 1 预先存在的 I001 error（morale_system.py:16，非本次修改范围）/ pytest 全量回归待确认
+
+### D9 后续发现验证 (DevSquad ConsensusEngine)
+- **后续发现 1 (ruff I001 morale_system.py:16)**: ✅ **已修复** — `ruff --fix` 一键重排 `morale_types` import 块（4 个 MixedCase 名称排序）。DevSquad Worker A 独立验证：错误真实存在 + 预先存在（父 commit 253e471 已有相同 diff，引入于 commit 0f4da91 P5-1 game_loop 拆分）+ 本次 723150a 未触碰该文件。CI 现状：`ruff check .` "All checks passed!" (0 errors)。
+- **后续发现 2 (TD-061 enhanced_renderer God Class)**: 🟡 **部分解决** — TD-061 描述严重过期已更新：行数 2250→485（↓78%），方法数 59→30（公开 23 / 私有 7，↓49%），清理方案中 3 个子模块（particle_effects_renderer / unit_renderer / environment_renderer）已于 commit 61b9b39 (2026-06-26) 全部提取。架构定位从 God Class 转为 Coordinator/Delegator 模式。状态从 ❌ 未解决改为 🟡 部分解决，优先级 P1→P2（残留 30 方法略超 <20 SRP 阈值，但本质是薄委托包装）。
+- **Verification**: ruff 0 errors / mypy 0 errors (CI 命令 MYPYPATH=src mypy -p pycc2) / pytest 全量回归待确认
+- **DevSquad 共识**: 两项发现均非 D9 P1 修复遗漏，ruff I001 为预先存在机械问题（一键修复），TD-061 描述过期是技术债登记滞后（已同步）
 
 ### Phase 4: CC2 机制补全 (D8 Remediation Plan)
 - **P4-0 TacticExecutor 5 缺失 handler 修复** (前置阻断项): 补齐 FLANKING/COORDINATED_ADVANCE/CAPTURE_VL/DEFEND_VL/DEMOLISH_BRIDGE 5 个有枚举无 handler 的 TacticType。DEMOLISH_BRIDGE 搜索单位 3x3 邻域的 BRIDGE 地形并设为 BRIDGE_DESTROYED。17 个新单元测试。

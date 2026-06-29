@@ -1,8 +1,8 @@
 # PyCC2 技术债清单
 
 > **版本**: v0.4.0 | **日期**: 2026-06-29 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-06-29 (v0.4.0 D9 P1-1/P1-2/P1-3 修复后更新) | **P0未解决**: 0 | **P1未解决**: 1 | **P2未解决**: 9
-> **状态**: ✅ P0全部清除 | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (Phase 2) | ✅ Marker 覆盖率 100% (Phase 5) | ⚠️ 8 文件 >1000 行待拆分 | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
+> **上次核查**: 2026-06-29 (v0.4.0 D9 后续发现验证后更新) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 9
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (Phase 2) | ✅ ruff 0 errors (morale_system.py I001 已修复) | ✅ Marker 覆盖率 100% (Phase 5) | ⚠️ 8 文件 >1000 行待拆分 | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
 
 ---
 
@@ -11,8 +11,8 @@
 | 类别 | 数量 | 严重程度 | 清理状态 |
 |------|------|---------|---------|
 | 🔴 P0 致命（游戏不可玩） | 0 | — | ✅ 全部清除 |
-| 🟡 P1 严重（功能受损） | 1 | 🟡 严重 | 🟡 部分未解决 |
-| 🟢 P2 中等（质量/维护） | 16 | 🟢 中等 | ❌ 未解决 |
+| 🟡 P1 严重（功能受损） | 0 | 🟡 严重 | ✅ 全部清除 (TD-061 降级为 P2) |
+| 🟢 P2 中等（质量/维护） | 17 | 🟢 中等 | 🟡 部分未解决 (TD-061 部分解决) |
 | ~~M2新增发现 (TD-045~049)~~ | 5 | — | ✅ 已解决 |
 | ~~7-dimension review新增 (TD-050~056)~~ | 7 | — | ✅ **已解决** |
 | ~~v0.3.11 DevSquad审计新增 (TD-057~059)~~ | 3 | — | ✅ **TD-057, TD-060 已解决** |
@@ -471,14 +471,17 @@
   - 🔴 **Bug发现**: `game_loop.shutdown()` 未设置 `state.running = False`（被 `assert True` NOOP 掩盖）
   - 🔸 **Flaky test修复**: `test_has_wall_faces` 改用多点采样(4px) + 75%阈值策略
 
-### 🟢 TD-061: enhanced_renderer.py God Class (59方法)
+### ~~🟢 TD-061: enhanced_renderer.py God Class (59方法)~~ 🟡 **部分解决** (2026-06-29)
 
-- **描述**: enhanced_renderer.py 仍有 59 个方法，远超 SRP 推荐的 <20 方法上限
-- **影响**: 修改风险高，测试困难，新开发者理解成本大
-- **文件**: `src/pycc2/presentation/rendering/enhanced_renderer.py` (~2250行)
-- **优先级**: P1
-- **状态**: ❌ 未解决
-- **清理方案**: 提取 particle_effects_renderer.py, unit_renderer.py, environment_renderer.py
+- **描述**: enhanced_renderer.py 经 D8 Phase 3 拆分后已从 God Class 转为 Coordinator/Delegator 模式
+- **影响**: 已大幅降低 — 修改风险高、测试困难、新开发者理解成本大等问题已基本消除
+- **文件**: `src/pycc2/presentation/rendering/enhanced_renderer.py` (~2250行 → **485行**, ↓78%)
+- **方法数**: 59 → **30** (公开 23 / 私有 7), ↓49%
+- **优先级**: P1 → **P2** (架构关切已消除，残留为数量阈值)
+- **状态**: 🟡 **部分解决** — 清理方案中 3 个子模块 (`particle_effects_renderer.py` / `unit_renderer.py` / `environment_renderer.py`) 已于 commit 61b9b39 (2026-06-26) 全部提取完成
+- **残留**: 方法数 30 略超 <20 SRP 阈值，但本质是薄委托包装方法，可后续考虑合并
+- **清理方案**: 提取 particle_effects_renderer.py, unit_renderer.py, environment_renderer.py (✅ 已实施)
+- **修复日期**: 2026-06-29 (D9 Worker B 独立验证)
 
 ### ✅ TD-062: Surface对象池无LRU淘汰机制 ✅ **已修复** (2026-06-01)
 
