@@ -210,7 +210,7 @@ class GameLoopAssembler:
         logger.info("[HUD] ✅ HUD initialization complete!")
 
     def _init_event_dispatcher(self) -> None:
-        from pycc2.services.event_dispatcher import EventDispatcher as ED
+        from pycc2.infrastructure.events.event_dispatcher import EventDispatcher as ED
 
         pause_menu = self._loop._pause_menu
         deployment_manager = self._loop._deployment_manager

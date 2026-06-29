@@ -10,7 +10,7 @@ _service_modules = [
     ("pycc2.services.combat_service", "CombatService"),
     ("pycc2.services.ai_service", "AIService"),
     ("pycc2.services.turn_service", "TurnService"),
-    ("pycc2.services.event_bus", "EventBus"),
+    ("pycc2.infrastructure.events.event_bus", "EventBus"),
 ]
 
 _all_exports: list[str] = []

@@ -34,6 +34,7 @@ from pathlib import Path
 
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.value_objects.vec2 import Vec2
+from pycc2.infrastructure.events.event_bus import EventBus
 from pycc2.presentation.input.handler import PygameInputHandler
 from pycc2.presentation.input.interaction_controller import InteractionController
 from pycc2.presentation.rendering.camera import Camera
@@ -41,7 +42,6 @@ from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 from pycc2.presentation.rendering.window_config import DisplayInfo, WindowManager
 from pycc2.presentation.ui.new_game_menu import MenuScreen, NewGameMenu
 from pycc2.services.ai_service import AIService
-from pycc2.services.event_bus import EventBus
 from pycc2.services.game_loop import GameLoop, GameState
 
 SCREENSHOT_DIR = Path(__file__).resolve().parent.parent.parent / "screenshots"

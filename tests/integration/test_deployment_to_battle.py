@@ -23,9 +23,9 @@ from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.value_objects.vec2 import Vec2
+from pycc2.infrastructure.events.event_bus import EventBus
 from pycc2.presentation.rendering.camera import Camera
 from pycc2.services.deployment_manager import DeploymentManager
-from pycc2.services.event_bus import EventBus
 from pycc2.services.game_loop import GameState
 
 # ── Fixtures ──────────────────────────────────────────────────────────

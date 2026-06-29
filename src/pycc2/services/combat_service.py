@@ -15,8 +15,8 @@ from pycc2.domain.entities.unit import Unit
 from pycc2.domain.systems.ballistic import BallisticEngine, ShotResult
 from pycc2.domain.systems.combat_resolver import CombatResolver
 from pycc2.domain.systems.morale_system import MoraleCalculator
-from pycc2.services.event_bus import EventBus
-from pycc2.services.event_protocol import (
+from pycc2.infrastructure.events.event_bus import EventBus
+from pycc2.infrastructure.events.event_protocol import (
     UnitAttacked,
     UnitKilled,
     WeaponFired,

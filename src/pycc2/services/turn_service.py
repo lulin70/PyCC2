@@ -9,8 +9,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
-from pycc2.services.event_bus import EventBus
-from pycc2.services.event_protocol import (
+from pycc2.infrastructure.events.event_bus import EventBus
+from pycc2.infrastructure.events.event_protocol import (
     GamePhaseChangedEvent,
     TurnEndedEvent,
     TurnStartedEvent,

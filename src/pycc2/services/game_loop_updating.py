@@ -48,9 +48,9 @@ if TYPE_CHECKING:
         IInteractionController as InteractionController,
     )
     from pycc2.domain.interfaces.renderer_protocol import IRenderer as EnhancedRenderer
+    from pycc2.infrastructure.events.event_bus import EventBus
     from pycc2.presentation.audio.sound_system import SoundSystem
     from pycc2.services.ai_service import AIService
-    from pycc2.services.event_bus import EventBus
 
 logger = logging.getLogger(__name__)
 

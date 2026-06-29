@@ -170,9 +170,9 @@ def _load_saved_game(slot, screen, wm):
     """
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.value_objects.vec2 import Vec2
+    from pycc2.infrastructure.events.event_bus import EventBus
     from pycc2.infrastructure.save_system import SecureSaveManager
     from pycc2.presentation.rendering.camera import Camera
-    from pycc2.services.event_bus import EventBus
     from pycc2.services.save_controller import SaveController
 
     save_mgr = SecureSaveManager()
@@ -231,9 +231,9 @@ def _start_new_game(menu, menu_action, screen, wm):
     from pycc2.domain.entities.game_map import GameMap, SpawnPoint
     from pycc2.domain.value_objects.tile_coord import TileCoord
     from pycc2.domain.value_objects.vec2 import Vec2
+    from pycc2.infrastructure.events.event_bus import EventBus
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.services.ai_service import AIService
-    from pycc2.services.event_bus import EventBus
 
     # Resolve map path
     map_stem = menu.get_selected_map()

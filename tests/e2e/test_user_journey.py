@@ -45,6 +45,7 @@ from pycc2.domain.systems.victory_conditions import (
 from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.value_objects.vec2 import Vec2
+from pycc2.infrastructure.events.event_bus import EventBus
 
 # ---------------------------------------------------------------------------
 # Presentation imports
@@ -66,7 +67,6 @@ from pycc2.presentation.ui.deployment_ui import DeploymentPhase, DeploymentUI
 # Service imports
 # ---------------------------------------------------------------------------
 from pycc2.services.combat_director import CombatDirector
-from pycc2.services.event_bus import EventBus
 from pycc2.services.victory_manager import VictoryManager
 
 # ============================================================================

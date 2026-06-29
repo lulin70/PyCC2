@@ -117,8 +117,8 @@ class TestGameRun60sE2E:
 
     def test_60_second_run(self):
         """Run the game for 1800 ticks (60 seconds at 30 UPS) and verify stability."""
+        from pycc2.infrastructure.events.event_bus import EventBus
         from pycc2.services.combat_director import CombatDirector
-        from pycc2.services.event_bus import EventBus
         from pycc2.services.victory_manager import VictoryManager
 
         state = _create_game_state()

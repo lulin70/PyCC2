@@ -26,6 +26,10 @@ All notable changes to PyCC2 will be documented in this file.
   - `morale_system.py` (701→311L facade): morale_types/calculator/effects/routing 4 个子模块（types+calculator 纯计算无副作用，effects+routing 副作用隔离）。94 单元 + 145 e2e 测试通过。commit b2b51da
   - `game_loop.py` (828→401L facade): game_loop_types/rendering/updating/combat 4 个子模块（mixin 模式）。mypy 兼容性关键：mixin 类用类级属性声明替代 `self: GameLoop` 注解（Django mixin 标准模式）。102 单元 + 34 e2e + 全量 4398 测试通过。
   - 全量回归: ruff 0 / mypy 0 (364 files) / 4398 tests passed / 0 failures
+- **P5-2 精简版 基础设施事件层迁移**: 完成 — 3 个事件基础设施文件从 services/ 迁移至 infrastructure/events/（方向C决策，避免全量161导入重组违反 Simplicity First）：
+  - `event_bus.py` / `event_dispatcher.py` / `event_protocol.py` → `infrastructure/events/`
+  - 57 个外部导入 + 3 个内部导入更新；services/__init__.py 保持 EventBus 向后兼容重导出
+  - 全量回归: ruff 0 / mypy 0 (365 files) / 4398 passed / 0 failures / E2E 34 + 关键 124 测试通过
 
 ## [0.4.0] - 2026-06-27
 

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
         GameResult,
         VictoryConditionEvaluator,
     )
-    from pycc2.services.event_bus import EventBus
+    from pycc2.infrastructure.events.event_bus import EventBus
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class VictoryManager:
             VictoryConditionEvaluator,
             VictoryConditionType,
         )
-        from pycc2.services.event_protocol import UnitAttacked
+        from pycc2.infrastructure.events.event_protocol import UnitAttacked
 
         self._event_bus = event_bus
         self._combat_director = combat_director

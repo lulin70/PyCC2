@@ -21,8 +21,8 @@ if TYPE_CHECKING:
     from pycc2.domain.systems.ballistic import BallisticEngine
     from pycc2.domain.systems.pathfinder import PathFinder
     from pycc2.domain.systems.victory_conditions import BattleStats
+    from pycc2.infrastructure.events.event_bus import EventBus
     from pycc2.presentation.rendering.camera import Camera
-    from pycc2.services.event_bus import EventBus
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class CombatDirector:
         """Initialize ballistic engine, pathfinder, and event subscriptions."""
         from pycc2.domain.systems.ballistic import BallisticEngine
         from pycc2.domain.systems.pathfinder import PathFinder
-        from pycc2.services.event_protocol import PlayerCommand, UnitAttacked
+        from pycc2.infrastructure.events.event_protocol import PlayerCommand, UnitAttacked
         from pycc2.services.random_context import RandomContext
 
         self.ballistic_engine = BallisticEngine(rng=RandomContext())
@@ -260,7 +260,7 @@ class CombatDirector:
 
     def execute_attack(self, attacker, target) -> None:
         """Resolve an attack: fire weapon, apply damage, and emit combat events."""
-        from pycc2.services.event_protocol import UnitAttacked, UnitKilled
+        from pycc2.infrastructure.events.event_protocol import UnitAttacked, UnitKilled
 
         if self.ballistic_engine is None:
             return

@@ -29,7 +29,7 @@ from pycc2.domain.ai.tactical_ai import (
 )
 from pycc2.domain.ai.tick_scheduler import AITickScheduler
 from pycc2.domain.entities.unit import Unit
-from pycc2.services.event_bus import EventBus
+from pycc2.infrastructure.events.event_bus import EventBus
 
 if TYPE_CHECKING:
     from pycc2.domain.ai.combat_engagement import CombatEngagement

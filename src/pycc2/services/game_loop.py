@@ -70,12 +70,11 @@ if TYPE_CHECKING:
     )
     from pycc2.domain.interfaces.renderer_protocol import IRenderer as EnhancedRenderer
     from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
+    from pycc2.infrastructure.events.event_bus import EventBus
+    from pycc2.infrastructure.events.event_dispatcher import EventDispatcher
     from pycc2.presentation.audio.sound_system import SoundSystem
     from pycc2.presentation.ui.time_control import TimeControlUI
     from pycc2.services.ai_service import AIService
-    from pycc2.services.event_bus import EventBus
-
-    from .event_dispatcher import EventDispatcher
 
 logger = logging.getLogger(__name__)
 

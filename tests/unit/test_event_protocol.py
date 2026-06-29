@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 
-from pycc2.services.event_protocol import (
+from pycc2.infrastructure.events.event_protocol import (
     DebugCommand,
     ErrorOccurred,
     FogOfWarUpdated,

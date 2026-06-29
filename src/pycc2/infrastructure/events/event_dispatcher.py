@@ -23,11 +23,10 @@ if TYPE_CHECKING:
     from pycc2.domain.interfaces.ui_overlay_protocol import ISettingsMenu, ITutorialOverlay
     from pycc2.domain.interfaces.victory_manager_protocol import IVictoryManager
     from pycc2.domain.interfaces.window_manager_protocol import IWindowManager
+    from pycc2.infrastructure.events.event_bus import EventBus
     from pycc2.presentation.audio.sound_system import SoundSystem
     from pycc2.presentation.ui.time_control import TimeControlUI
-    from pycc2.services.event_bus import EventBus
-
-    from .game_loop import GameState
+    from pycc2.services.game_loop import GameState
 
 logger = logging.getLogger(__name__)
 

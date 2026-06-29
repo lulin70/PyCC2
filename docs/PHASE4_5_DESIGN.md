@@ -532,3 +532,59 @@ SDL_VIDEODRIVER=dummy python -m pytest tests/ -x -q --timeout=120 \
 2. 每个 mixin 仅导入 `game_loop_types`（类型），不导入 facade
 3. facade 导入 3 个 mixin + `game_loop_types`，定义 dataclass
 4. `GameLoopAssembler` 在 `__post_init__` 中延迟导入（保持现有模式）
+
+---
+
+## 九、P5-2 精简版：基础设施事件层迁移
+
+> **决策背景**：P5-2 全量重组涉及 161 个导入变更、58 个文件，与 CarryMem "全量目录重组被否决(250+导入变更违反 Simplicity First)" 教训相似。用户决策（2026-06-29）：仅执行方向 C 精简版 — 迁移最清晰的基础设施层违规（event_bus/dispatcher/protocol），保留 game_loop/controllers/services 在原位。
+
+### 9.1 迁移范围
+
+| 源文件 | 目标位置 | 职责 |
+|--------|---------|------|
+| `services/event_bus.py` | `infrastructure/events/event_bus.py` | 发布/订阅事件总线（基础设施，非业务服务） |
+| `services/event_dispatcher.py` | `infrastructure/events/event_dispatcher.py` | pygame 事件路由（基础设施，非业务服务） |
+| `services/event_protocol.py` | `infrastructure/events/event_protocol.py` | TypedDict 事件协议定义（基础设施，非业务服务） |
+
+**不迁移**（保留在 services/）：game_loop、game_loop_assembler、combat_service、ai_service、turn_service、deployment_manager、hud_manager、victory_manager、save_controller、pause_menu_controller、achievement_event_bridge、random_context
+
+### 9.2 影响分析
+
+- **外部导入**：57 个 `from pycc2.services.event_{bus,dispatcher,protocol} import` 语句分布在 src/(15) + tests/(40) + scripts/(1) + services/__init__.py(1)
+- **内部导入**（移动文件内）：
+  - `event_dispatcher.py` L28: `from pycc2.services.event_bus import EventBus` → `from pycc2.infrastructure.events.event_bus import EventBus`
+  - `event_dispatcher.py` L30: `from .game_loop import GameState` → `from pycc2.services.game_loop import GameState`（相对导入改绝对导入）
+- **game_loop.py** L78: `from .event_dispatcher import EventDispatcher` → `from pycc2.infrastructure.events.event_dispatcher import EventDispatcher`
+
+### 9.3 迁移策略
+
+1. 创建 `infrastructure/events/__init__.py`（空包初始化）
+2. `git mv` 3 个文件（保留 git history）
+3. 修复移动文件内的 2 个内部导入
+4. 修复 game_loop.py 的 1 个相对导入
+5. 全局 sed 替换 57 个外部导入
+6. 更新 `services/__init__.py` 的 `_service_modules` 指向新路径（保持 `from pycc2.services import EventBus` 向后兼容）
+7. 验证：ruff 0 / mypy 0 / 全量测试通过 / E2E 模拟真实用户测试通过
+
+### 9.4 风险缓解
+
+| 风险 | 缓解 |
+|------|------|
+| sed 替换遗漏 | ruff + mypy + 全量测试三重验证 |
+| `services/__init__.py` 重导出断裂 | 保留 EventBus 在 `_service_modules`，仅改模块路径 |
+| 循环导入 | `infrastructure/events/` 仅依赖 `domain/interfaces/`，不依赖 `services/` |
+
+### 9.5 完成记录
+
+| 步骤 | 状态 | 验证 |
+|------|------|------|
+| 创建 infrastructure/events/ 包 | ✅ | `__init__.py` 创建 |
+| git mv 3 文件 | ✅ | event_bus/event_dispatcher/event_protocol 迁移完成 |
+| 修复内部导入 | ✅ | event_dispatcher.py 2 处（event_bus 绝对路径 + game_loop 绝对路径） |
+| 修复 game_loop.py 相对导入 | ✅ | `from .event_dispatcher` → `from pycc2.infrastructure.events.event_dispatcher` |
+| 全局替换外部导入 | ✅ | sed 替换 39 个文件 57 处导入 |
+| 更新 services/__init__.py | ✅ | `_service_modules` 指向新路径，保持 `from pycc2.services import EventBus` 向后兼容 |
+| ruff + mypy + 全量测试 | ✅ | ruff 0 / mypy 0 (365 files) / 4398 passed / 0 failures |
+| E2E 模拟真实用户测试 | ✅ | 34 e2e + 124 关键测试通过（含 60s 游戏运行 + 真实操作流程） |
+| 文档同步 + commit + push | ✅ | (本次提交) |

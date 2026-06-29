@@ -166,12 +166,12 @@ class TestFullCustomerJourney:
     def test_05_commands_can_be_issued(self):
         """User can issue all 7 commands to units."""
         from pycc2.domain.value_objects.vec2 import Vec2
+        from pycc2.infrastructure.events.event_bus import EventBus
         from pycc2.presentation.input.interaction_controller import (
             InteractionController,
             InteractionMode,
         )
         from pycc2.presentation.rendering.camera import Camera
-        from pycc2.services.event_bus import EventBus
 
         camera = Camera(position=Vec2(320, 320), viewport_width=1024, viewport_height=768)
         game_map = _make_map()
@@ -216,7 +216,7 @@ class TestFullCustomerJourney:
         from pycc2.domain.systems.ballistic import BallisticEngine
         from pycc2.domain.systems.combat_resolver import CombatResolver
         from pycc2.domain.systems.morale_system import MoraleCalculator
-        from pycc2.services.event_bus import EventBus
+        from pycc2.infrastructure.events.event_bus import EventBus
         from pycc2.services.random_context import RandomContext
 
         game_map = _make_map()

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pycc2.services.event_bus import EventBus
-from pycc2.services.event_protocol import MoraleChanged, UnitMoved
+from pycc2.infrastructure.events.event_bus import EventBus
+from pycc2.infrastructure.events.event_protocol import MoraleChanged, UnitMoved
 
 
 class TestSubscribeUnsubscribe:

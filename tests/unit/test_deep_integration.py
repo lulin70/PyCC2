@@ -13,6 +13,7 @@ from pycc2.domain.systems.achievement_system import (
     AchievementManager,
     create_default_achievements,
 )
+from pycc2.infrastructure.events.event_bus import EventBus
 from pycc2.presentation.rendering.camera_effects import (
     EffectStack,
     EffectType,
@@ -24,7 +25,6 @@ from pycc2.presentation.rendering.combat_camera_controller import CombatCameraCo
 from pycc2.presentation.rendering.dynamic_shadow_system import DynamicShadowSystem
 from pycc2.presentation.rendering.projectile_trail_system import ProjectileTrailSystem
 from pycc2.services.achievement_event_bridge import AchievementEventBridge
-from pycc2.services.event_bus import EventBus
 
 
 class TestEventBusNamedChannel:

@@ -16,7 +16,7 @@ from pycc2.domain.systems.achievement_system import (
 )
 
 if TYPE_CHECKING:
-    from pycc2.services.event_bus import EventBus
+    from pycc2.infrastructure.events.event_bus import EventBus
 
 
 class AchievementEventBridge:

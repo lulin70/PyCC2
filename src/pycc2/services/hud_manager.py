@@ -25,8 +25,8 @@ if TYPE_CHECKING:
     from pycc2.domain.interfaces.render_pipeline_protocol import IRenderPipeline
     from pycc2.domain.interfaces.renderer_protocol import IRenderer
     from pycc2.domain.interfaces.window_manager_protocol import IWindowManager
+    from pycc2.infrastructure.events.event_bus import EventBus
     from pycc2.presentation.audio.sound_system import SoundSystem
-    from pycc2.services.event_bus import EventBus
 
     from .game_loop import GameState
 
@@ -137,7 +137,7 @@ class HUDManager:
 
     def _bind_command_callbacks(self) -> None:
         from pycc2.domain.value_objects.audio_enums import SoundType
-        from pycc2.services.event_protocol import PlayerCommand
+        from pycc2.infrastructure.events.event_protocol import PlayerCommand
 
         if not self._cc2_panel:
             return
@@ -281,7 +281,7 @@ class HUDManager:
     # ------------------------------------------------------------------
 
     def _bind_interaction_callbacks(self) -> None:
-        from pycc2.services.event_protocol import PlayerCommand
+        from pycc2.infrastructure.events.event_protocol import PlayerCommand
 
         if not self._interaction_controller:
             return

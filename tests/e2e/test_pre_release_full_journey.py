@@ -82,6 +82,7 @@ class TestPreReleaseFullJourney:
         from pycc2.domain.interfaces.display_config import DisplayConfig as DC
         from pycc2.domain.value_objects.tile_coord import TileCoord
         from pycc2.domain.value_objects.vec2 import Vec2
+        from pycc2.infrastructure.events.event_bus import EventBus
         from pycc2.presentation.input.handler import PygameInputHandler
         from pycc2.presentation.input.interaction_controller import InteractionController
         from pycc2.presentation.rendering.camera import Camera
@@ -92,7 +93,6 @@ class TestPreReleaseFullJourney:
         from pycc2.presentation.ui.settings_menu import SettingsMenu
         from pycc2.presentation.ui.tutorial_system import TutorialOverlay
         from pycc2.services.ai_service import AIService
-        from pycc2.services.event_bus import EventBus
         from pycc2.services.game_loop import GameLoop, GameState
 
         map_path = _find_map_path()
