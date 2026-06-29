@@ -30,7 +30,7 @@ def pygame_env():
     os.environ["SDL_AUDIODRIVER"] = "dummy"
     pygame.init()
     yield
-    pygame.quit()
+    pygame.display.quit()
 
 
 @pytest.fixture

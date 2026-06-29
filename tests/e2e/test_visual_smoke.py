@@ -65,6 +65,8 @@ def _make_unit(unit_id: str = "u1") -> Unit:
 def setup_pygame():
     if not pygame.get_init():
         pygame.init()
+    pygame.display.quit()
+    pygame.display.init()
     yield
     # Don't quit — conftest _pygame_recovery handles cleanup
 
