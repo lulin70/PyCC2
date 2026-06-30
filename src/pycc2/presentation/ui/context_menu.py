@@ -21,7 +21,7 @@ class ContextAction(Enum):
 
     MOVE = auto()
     ATTACK = auto()
-    STOP = auto()
+    DEFEND = auto()
     SMOKE = auto()
     HIDE = auto()
     SNEAK = auto()
@@ -44,7 +44,7 @@ class ContextMenu:
 
     Features:
     - Appears on right-click near cursor
-    - Shows Move/Attack/Stop/Smoke/Hide/Sneak/Cancel options
+    - Shows Move/Attack/Defend/Smoke/Hide/Sneak/Cancel options
     - Each item has icon and keyboard shortcut hint
     - Closes on ESC or click outside
     - Executes callback when item selected
@@ -78,7 +78,7 @@ class ContextMenu:
         self._items = [
             MenuItem(ContextAction.MOVE, "Move", "Z", "→"),
             MenuItem(ContextAction.ATTACK, "Attack", "C", "✶"),
-            MenuItem(ContextAction.STOP, "Stop", "D", "■"),
+            MenuItem(ContextAction.DEFEND, "Defend", "D", "■"),
             MenuItem(ContextAction.SMOKE, "Smoke", "V", "☁"),
             MenuItem(ContextAction.HIDE, "Hide", "H", "▽"),
             MenuItem(ContextAction.SNEAK, "Sneak", "S", "◇"),
@@ -249,7 +249,7 @@ class ContextMenu:
         key_map = {
             pygame.K_z: ContextAction.MOVE,
             pygame.K_c: ContextAction.ATTACK,
-            pygame.K_d: ContextAction.STOP,
+            pygame.K_d: ContextAction.DEFEND,
             pygame.K_v: ContextAction.SMOKE,
             pygame.K_h: ContextAction.HIDE,
             pygame.K_s: ContextAction.SNEAK,
@@ -287,7 +287,7 @@ class ContextMenu:
 
         """
         always_enabled = {
-            ContextAction.STOP,
+            ContextAction.DEFEND,
             ContextAction.CANCEL,
         }
 

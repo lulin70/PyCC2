@@ -4,6 +4,17 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D10 改进优化推进 (DevSquad V3.6.5 多角色共识)
+
+- **P0-1 CI/Docker/release 接入 requirements-dev.lock**: 修复硬约束违反"依赖锁文件确保构建可复现"。`requirements.lock` 存在但 CI 6 jobs + release Quality Gate 全部用 `pip install -e ".[dev]"`（unpinned），新增 `requirements-dev.lock`（`uv pip compile pyproject.toml --extra dev`）含运行时+测试依赖完整 pinned 版本。CI/release 改用 `pip install -r requirements-dev.lock && pip install -e . --no-deps` 两步安装。lint job 的 bandit/pip-audit 仍按需临时安装（扫描工具不影响构建产物）。
+- **P0-2 context_menu K_d 热键语义冲突修复**: `context_menu.py` K_d→STOP 与 `keybind_manager.py` K_d→defend 在右键菜单和主路径语义不一致。直接重命名 `ContextAction.STOP` → `ContextAction.DEFEND`（避免死代码/幽灵功能），MenuItem label "Stop"→"Defend"，docstring 同步。`tests/acceptance/test_phase_a.py` 3 处 STOP 引用 + `stop_item` 变量名同步重命名。符合 CC2 原版 D=Defend 约定。
+- **P0-3 三语 README 日期同步**: `README_zh.md` + `README_ja.md` 最后更新日期 6/14→6/19，与 `README.md` 对齐。
+- **P1-1 VERSION 失真修复**: `tests/benchmark/test_performance_baseline.py:56` 硬编码 `VERSION = "0.3.0"`（与 `__version__ = "0.4.0"` 不一致）。改为 `from pycc2 import __version__ as VERSION` 并移至 pycc2 imports 组首行（修正 ruff I001 import 排序）。
+- **P1-2 xfail reason 更新**: `tests/e2e/test_vl_flag_rendering.py` 单独跑 XFAIL / 组合跑 XPASS 的 flaky 行为在 reason 中说明（前置测试初始化 EnhancedRenderer post-render layers）。保留 strict=False，P2-5 修复已在单元测试级别验证。
+- **P1-3 TD-026 描述同步**: `docs/TECH_DEBT.md` TD-026 "29个文件超过500行" → "53个文件超过500行"（最大文件超过1300行），与实测对齐。
+- **Verification**: ruff 0 errors / mypy 0 errors (CI 命令 `MYPYPATH=src mypy -p pycc2`) / pytest 全量回归 4398 passed / 25 skipped / 1 xfailed / 0 failed（flaky 测试单独 XFAIL，符合 P1-2 reason 描述）
+- **DevSquad 共识**: P0×3 + P1×3 共 6 项推进，3 个并行 Worker（Tester/DevOps/Architect）+ ConsensusEngine 共识决策，对照 ASSESSMENT_D9_MATURITY.md P1/P2 改进清单逐项落地
+
 ### D9 成熟度评估 P1 修复 (D9 Maturity Assessment)
 - **P1-1 README_zh 测试数表述错误**: 6 处过期表述（4367个通过/100%）已修正为实测值（4424 collected / 4398 passed / 25 skipped），含 badge + 5 处正文 + 最后更新日期。
 - **P1-2 TECH_DEBT TD-058 过期**: 标记为 ✅ 已解决 — 4 文件实测行数（deployment_ui 689 / pixel_artist_3d 456 / enhanced_renderer 485 / campaign_four_layer 524）全部达标 <1500 行。状态行与表格 P1 数字对齐（2→1）。">1000 行" 计数修正（12→8，实测验证）。核查日期更新为 2026-06-29。

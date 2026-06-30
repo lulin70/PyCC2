@@ -1,6 +1,6 @@
 # 🎮 PyCC2 — 近距离作战2：遥远的桥梁 (Python重制版)
 
-**v0.4.0 | Beta 候选版本 | 2026年6月14日**
+**v0.4.0 | Beta 候选版本 | 2026年6月19日**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />

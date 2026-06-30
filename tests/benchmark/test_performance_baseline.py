@@ -33,6 +33,7 @@ try:
 except ImportError:
     PYGAME_AVAILABLE = False
 
+from pycc2 import __version__ as VERSION
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent
 from pycc2.domain.components.position_component import PositionComponent
@@ -52,8 +53,6 @@ RESULTS_FILE = BASELINE_DIR / ".baseline_results.json"
 
 WARMUP_RUNS = 3
 MEASUREMENT_RUNS = 5
-
-VERSION = "0.3.0"
 
 
 @dataclass

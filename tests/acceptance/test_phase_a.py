@@ -331,7 +331,7 @@ class TestA4ContextMenu:
         expected_actions = [
             ContextAction.MOVE,
             ContextAction.ATTACK,
-            ContextAction.STOP,
+            ContextAction.DEFEND,
             ContextAction.SMOKE,
             ContextAction.HIDE,
             ContextAction.SNEAK,
@@ -383,14 +383,14 @@ class TestA4ContextMenu:
 
         menu = ContextMenu()
         callback = MagicMock()
-        enabled = {ContextAction.STOP, ContextAction.CANCEL}
+        enabled = {ContextAction.DEFEND, ContextAction.CANCEL}
 
         menu.show((50, 50), callback, enabled_actions=enabled)
 
-        stop_item = next(item for item in menu._items if item.action == ContextAction.STOP)
+        defend_item = next(item for item in menu._items if item.action == ContextAction.DEFEND)
         attack_item = next(item for item in menu._items if item.action == ContextAction.ATTACK)
 
-        assert stop_item.enabled is True
+        assert defend_item.enabled is True
         assert attack_item.enabled is False
         pygame.quit()
 
