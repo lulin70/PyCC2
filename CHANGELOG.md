@@ -4,6 +4,17 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D11 SRP 大文件拆分 (DevSquad V3.6.5 方案C)
+
+- **D11-1 XXX 标记误报关闭**: src/ 下 43 处 `XXX` 经独立 grep 验证全部是英国陆军 XXX Corps（市场花园行动参战部队）历史引用，零真实 XXX/TODO/FIXME 技术债。
+- **D11-2 拆分 3 个 >1000 行 Top 大文件** (方案C: A部分 + 拆分全部 Top 3):
+  - `cc2_building_renderer.py` 1215→46L facade + 4 子模块（cc2_building_common 217L + cc2_residential_renderer 268L + cc2_normandy_renderer 321L + cc2_special_renderer 480L）。纯函数模块无共享状态，最低风险。facade 保留全部原 public API，下游 building_renderer.py 和测试零修改。
+  - `sprite_renderer.py` 1178→47L facade + 5 mixin（sprite_renderer_base 303L + terrain_rendering_mixin 97L + vl_flag_rendering_mixin 228L + unit_rendering_mixin 306L + unit_overlay_rendering_mixin 459L）。class + 13 backward-compat property，采用 game_loop mixin 先例。关键修复：cross-mixin method stubs 必须放在 `if TYPE_CHECKING:` 块中避免 MRO shadow。
+  - `tactic_executor.py` 1346→包结构 9 文件（__init__ 9L + facade 277L + 7 mixin: movement 157L / combat 416L / defense 97L / engineering 237L / logistics 325L / vehicle 140L / smoke 121L）。32 TacticType dispatch + 12 依赖，最高风险。`_environment` 死代码保留原样（pre-existing bug，文档化但不在本次修复）。
+- **D11-3 CHANGELOG Phase 3 补齐**: 在 [0.4.0] 区段补"Phase 3: 代码质量提升 (D8 Remediation Plan)"条目。
+- **Verification**: ruff 0 errors / mypy 0 errors (382 files) / pytest unit 3734 passed + e2e 483 passed / 0 failures（累计 4217 tests）
+- **DevSquad 共识**: 方案C（A部分 + 拆分全部 Top 3）按风险从低到高推进，每个文件拆分后立即跑 ruff+mypy+pytest 三重验证，全部通过后才推进下一个。3 commits: a3c3c9c / cc75e3a / 183745b
+
 ### D10 改进优化推进 (DevSquad V3.6.5 多角色共识)
 
 - **P0-1 CI/Docker/release 接入 requirements-dev.lock**: 修复硬约束违反"依赖锁文件确保构建可复现"。`requirements.lock` 存在但 CI 6 jobs + release Quality Gate 全部用 `pip install -e ".[dev]"`（unpinned），新增 `requirements-dev.lock`（`uv pip compile pyproject.toml --extra dev`）含运行时+测试依赖完整 pinned 版本。CI/release 改用 `pip install -r requirements-dev.lock && pip install -e . --no-deps` 两步安装。lint job 的 bandit/pip-audit 仍按需临时安装（扫描工具不影响构建产物）。
