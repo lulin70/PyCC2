@@ -56,6 +56,13 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.4.0] - 2026-06-27
 
+### Phase 3: 代码质量提升 (D8 Remediation Plan)
+- **P3-1 docstring 覆盖率提升**: 62.8%→88.2%（超额完成 80% 目标，`interrogate src/` PASSED，TD-063 已解决）。4 阶段修复：Phase A auto-fix 808 format issues / Phase B public API docstrings / Phase C boy-scout rule / Phase D CI gate with 65% baseline。
+- **P3-2 删除 2 个半幽灵模块**: `weapon_switch_system.py` + `airdrop_supply.py`（有单元测试但零生产引用，属"幽灵功能"反模式）。
+- **P3-3 pixel_artist_3d.py 拆分**: 1134→458L（抽取 `VehiclePixelRenderer` 521L + `EnvironmentPixelRenderer` 282L，147 测试通过）。
+- **P3-4 deployment_ui 评估**: 687L 已合理（已通过 P2-1 拆分降为 facade 包装），无需再拆。
+- **Verification**: ruff 0 errors / mypy 0 errors / 3660 unit tests passed
+
 ### Phase 2: CC2 Visual Polish (D8 Remediation Plan)
 - **P2-5 VP numeral display fix** (BUG): `SpriteRenderer._draw_vl_flag` production path was only drawing the flag polygon, omitting the CC2-authentic large gold numeral. Added VP value rendering (font size 52, gold color (255,220,100), 4-direction black outline, pulse animation) mirroring the `ui_overlay_renderer` fallback. `MapObjective` gained a `points` field; `GameMap.from_json` resolves VP values via `_resolve_vp_points()` using CC2 standard (Bridge=40, Road=30, LZ=20, Regular=10). 5 unit tests + 1 E2E test added.
 - **P2-6 Dynamic crater rendering fix** (BUG): `EffectRenderer.spawn_explosion` was only generating transient particles, leaving no persistent ground mark. Added `_crater_decals` persistent decal list (FIFO cap 64), `_spawn_crater_decal()` using `SpriteGenerator._draw_crater_small`/`_draw_crater_large`, `render_decals()` method called in `SpriteRenderer.render` after terrain but before units/VL flags, and `clear_decals()` for map unload. 8 unit tests added.
