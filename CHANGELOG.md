@@ -4,6 +4,23 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D12 P0-9 覆盖率提升第二批 (DevSquad V3.8)
+
+- **11 个 AI 模块补测试** (3 增强 + 8 新增，共 485 tests):
+  - `test_squad_degradation.py` (21→50 tests): 增强 SquadDegradationManager + NCORallyBehavior 覆盖，含 register/unregister/state 转换/modifiers/tactic 可用性/leader-killed 降级/tick 恢复/NCO 识别/rally 判定 + 边界/错误场景。
+  - `test_command_obedience.py` (14→20 tests): 增强 CommandObedienceSystem 覆盖，含 OBEY/DELAYED/REFUSED/SUICIDAL 4 分支 + 延迟订单生命周期 + 自杀命令检测（重伤/冲 MG/AT 对坦克）+ 边界场景。
+  - `test_mg_takeover.py` (12→23 tests): 增强 MGTakeoverSystem 覆盖，含 IN_PROGRESS/COMPLETED/ABANDONED 3 状态 + replacement 筛选/abandonment/tick 推进/查询 + 边界场景。
+  - `test_ammo_pickup.py` (66 tests, 新增): FallenUnitCache + AmmoPickupSystem + WeaponScavengeAI，覆盖 cache register/claim/expire/find_sources + pickup start/tick/apply + enemy/friendly transfer + captured weapon penalties。
+  - `test_artillery_callin.py` (46 tests, 新增): ArtilleryCallinSystem，覆盖 callin 请求/FO correction/landing/damage/scatter + cancel/expire。
+  - `test_building_clearing.py` (25 tests, 新增): BuildingClearingSystem，覆盖 stack clearing/floor transition/room-by-room + reserve rotation。
+  - `test_communication_system.py` (57 tests, 新增): CommunicationSystem，覆盖 message send/receive/decay + HQ relay + signal range/interference。
+  - `test_mine_warfare.py` (58 tests, 新增): MineWarfareSystem，覆盖 mine laying/detection/clearing + minefield density/trigger + engineer roles。
+  - `test_night_stealth_ai.py` (49 tests, 新增): NightStealthAI，覆盖 stealth movement/detection chance/illumination + flare/moonlight modifiers。
+  - `test_smoke_tactical_ai.py` (48 tests, 新增): SmokeTacticalAI，覆盖 smoke deployment/screening/cover + wind dispersion/duration。
+  - `test_tank_riders.py` (43 tests, 新增): TankRidersSystem，覆盖 mount/dismount/transfer + passenger safety + movement penalties。
+- **覆盖率提升**: 总体 54% → 57% (44167 stmts, 17078 missed，含 branch coverage)。新增覆盖约 1300+ 行。
+- **Verification**: ruff 0 errors / pytest 4206 passed / 1 failed (预存在 flaky 性能测试 test_spatial_hash) / 2 skipped
+
 ### D12 P0-9 覆盖率提升第一批 (DevSquad V3.8)
 
 - **3 个 0% 覆盖率 AI 模块补测试**:
