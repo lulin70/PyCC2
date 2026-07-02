@@ -79,6 +79,7 @@ class Unit:
     position: PositionComponent
     vision: VisionComponent
     squad_id: str | None = None
+    is_squad_leader: bool = False  # Marks squad leader for degradation/NCO rally (used by squad_degradation.py, tick_scheduler.py)
     fatigue: FatigueComponent | None = None
     veterancy: VeterancyComponent | None = None
     crew: VehicleCrew | None = None  # Only for vehicle units
