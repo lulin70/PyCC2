@@ -4,6 +4,14 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D12 P0-3 事件名大小写不匹配修复 (DevSquad V3.8)
+
+- **P0-3 事件丢失功能性 bug 修复**: `combat_service.py` L95/L119 `publish_named` 事件名用 snake_case（"weapon_fired"/"unit_attacked"），但所有订阅者 `subscribe_to` 用 PascalCase（"WeaponFired"/"UnitAttacked"）。EventBus.publish_named 大小写敏感，字符串不匹配导致 handler 永远不被调用 → 事件丢失。
+  - 根因: `UnitAttacked`/`WeaponFired` 是 `TypedDict(total=False)`，运行时即 dict。`publish()` 的 `_match_typed_dict` 对 total=False 无效（required keys 为空），所以 `publish_named` 是有意 workaround，但事件名拼错。
+  - 修复: `"weapon_fired"` → `"WeaponFired"`，`"unit_attacked"` → `"UnitAttacked"`（2 行字符串改动，Surgical Changes）
+  - 影响: achievement_event_bridge（成就追踪）+ combat_camera_controller（镜头震动）+ victory_manager 现在能收到战斗事件
+  - Verification: ruff 0 errors / pytest 4186 passed / 0 failed（test_deep_integration 已验证 publish_named("UnitAttacked") 被 subscribe_to 收到）
+
 ### D12 项目整理评估 + P0 低风险批次修复 (DevSquad V3.8)
 
 - **D12-1 7 维度评估**: 4 并行 agent 采集 + Coordinator 独立验证 9 P0 发现。总分 5.9/10 (D+)，较 D9 的 8.2/B 下降。评分下降原因：检查更严格，暴露硬约束违反。报告 `docs/ASSESSMENT_D12_MATURITY.md`。

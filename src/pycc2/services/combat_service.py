@@ -92,7 +92,7 @@ class CombatService:
             )
 
         self.event_bus.publish_named(
-            "weapon_fired",
+            "WeaponFired",
             dict(
                 WeaponFired(
                     unit_id=attacker.unit_id,
@@ -116,7 +116,7 @@ class CombatService:
 
         damage_applied = target.take_damage(int(shot_result.damage_dealt))
         self.event_bus.publish_named(
-            "unit_attacked",
+            "UnitAttacked",
             dict(
                 UnitAttacked(
                     attacker_id=attacker.unit_id,
