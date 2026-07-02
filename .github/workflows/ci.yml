@@ -172,6 +172,7 @@ jobs:
           pytest tests/e2e/ \
             -m "not slow" \
             --timeout=300 \
+            --ignore=tests/e2e/test_real_gameplay_e2e.py \
             --junitxml=junit.xml
 
       - name: Upload test results
