@@ -138,4 +138,3 @@ class WeaponProfile:
     # Historical notes
     year_introduced: int = 1944
     notes: str = ""
-

@@ -164,24 +164,18 @@ class AmbushAI(TacticalAIBase):
         return [
             u
             for u in context.friendly_units
-            if u.is_alive
-            and u.can_act
-            and u.unit_type in _AMBUSH_INFANTRY_TYPES
+            if u.is_alive and u.can_act and u.unit_type in _AMBUSH_INFANTRY_TYPES
         ]
 
     @staticmethod
-    def _nearest_enemy(
-        unit: Unit, context: TacticalContext
-    ) -> tuple[Unit | None, int]:
+    def _nearest_enemy(unit: Unit, context: TacticalContext) -> tuple[Unit | None, int]:
         """Return the nearest living enemy and its chebyshev distance."""
         best: Unit | None = None
         best_dist = int(1 << 30)
         for enemy in context.enemy_units:
             if not enemy.is_alive:
                 continue
-            dist = unit.position.tile_coord.chebyshev_distance(
-                enemy.position.tile_coord
-            )
+            dist = unit.position.tile_coord.chebyshev_distance(enemy.position.tile_coord)
             if dist < best_dist:
                 best_dist = dist
                 best = enemy

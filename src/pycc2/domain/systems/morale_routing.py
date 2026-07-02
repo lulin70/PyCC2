@@ -36,9 +36,7 @@ class MoraleRouting:
     """Static utility class for routing / flee behavior management."""
 
     @staticmethod
-    def check_routing_behavior(
-        unit: Unit, game_map: GameMap | None = None
-    ) -> tuple[bool, object]:
+    def check_routing_behavior(unit: Unit, game_map: GameMap | None = None) -> tuple[bool, object]:
         """Check if unit should attempt to flee.
 
         Broken units may refuse orders and try to flee toward map edge.

@@ -349,8 +349,20 @@ class UIOverlayRenderer:
                     self._draw_dashed_line(start_pos, end_pos, (255, 165, 0), dash_len=6)
                     # Attack marker: orange crosshair
                     pygame.draw.circle(offscreen, (255, 165, 0), end_pos, 5, 1)
-                    pygame.draw.line(offscreen, (255, 165, 0), (end_pos[0] - 7, end_pos[1]), (end_pos[0] + 7, end_pos[1]), 1)
-                    pygame.draw.line(offscreen, (255, 165, 0), (end_pos[0], end_pos[1] - 7), (end_pos[0], end_pos[1] + 7), 1)
+                    pygame.draw.line(
+                        offscreen,
+                        (255, 165, 0),
+                        (end_pos[0] - 7, end_pos[1]),
+                        (end_pos[0] + 7, end_pos[1]),
+                        1,
+                    )
+                    pygame.draw.line(
+                        offscreen,
+                        (255, 165, 0),
+                        (end_pos[0], end_pos[1] - 7),
+                        (end_pos[0], end_pos[1] + 7),
+                        1,
+                    )
                 else:
                     self._draw_dashed_line(start_pos, end_pos, (0, 220, 220), dash_len=6)
                     # Move marker: cyan circle

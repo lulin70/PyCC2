@@ -1111,9 +1111,7 @@ class CampaignUIRenderer:
         if supply_ui.manager is None:
             surface.fill(ui.BG_COLOR)
             assert ui._font_normal is not None
-            msg = ui._font_normal.render(
-                "Supply procurement unavailable", True, ui.TEXT_COLOR
-            )
+            msg = ui._font_normal.render("Supply procurement unavailable", True, ui.TEXT_COLOR)
             surface.blit(msg, (ui.MARGIN, ui.MARGIN))
             return
 

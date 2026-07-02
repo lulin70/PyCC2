@@ -1,5 +1,4 @@
-"""TileCoord Value Object - Immutable Grid Coordinate
-"""
+"""TileCoord Value Object - Immutable Grid Coordinate"""
 
 from __future__ import annotations
 

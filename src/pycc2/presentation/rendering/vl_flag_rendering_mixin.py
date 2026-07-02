@@ -166,7 +166,10 @@ class VlFlagRenderingMixin:
                 for dx, dy in ((-1, -1), (1, -1), (-1, 1), (1, 1)):
                     outline_surf = vp_font.render(vp_text, True, (0, 0, 0))
                     outline_surf.set_alpha(pulse_alpha)
-                    surface.blit(outline_surf, (int(base_x + dx * pulse_scale), int(base_y + dy * pulse_scale)))
+                    surface.blit(
+                        outline_surf,
+                        (int(base_x + dx * pulse_scale), int(base_y + dy * pulse_scale)),
+                    )
 
                 # Main gold numeral with subtle pulse scale
                 text_surf = vp_font.render(vp_text, True, text_color)

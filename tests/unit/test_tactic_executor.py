@@ -331,9 +331,7 @@ class TestMissingHandlers:
         assert unit._movement_mode == "defend"
 
     # --- _execute_demolish_bridge ---
-    def test_demolish_bridge_destroys_adjacent_bridge(
-        self, executor_with_map, game_map, event_bus
-    ):
+    def test_demolish_bridge_destroys_adjacent_bridge(self, executor_with_map, game_map, event_bus):
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
         game_map.set_terrain(TileCoord(6, 5), TerrainType.BRIDGE)

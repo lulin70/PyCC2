@@ -4,6 +4,22 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D12 项目整理评估 + P0 低风险批次修复 (DevSquad V3.8)
+
+- **D12-1 7 维度评估**: 4 并行 agent 采集 + Coordinator 独立验证 9 P0 发现。总分 5.9/10 (D+)，较 D9 的 8.2/B 下降。评分下降原因：检查更严格，暴露硬约束违反。报告 `docs/ASSESSMENT_D12_MATURITY.md`。
+- **D12-2 P0 低风险批次修复** (P0-4~P0-9 + P1-4/5/6):
+  - **P0-4 新建 `docs/PROJECT_STATUS.md`**: 含版本/模块数/测试数/覆盖率/评估结论/发布检查清单
+  - **P0-6 + P1-4 新建 `SKILL.md` + `VERSION`**: SKILL.md 模块数 380 与实际一致；VERSION 文件与 pyproject.toml/__init__.py 三处一致
+  - **P0-5 三语 README 测试数同步**: README.md/README_ja.md 旧值 4367→4424 collected / 4398 passed / 25 skipped；补 en/ja "最后更新"行；README_zh.md 模块数 283→380
+  - **P0-7 SKIP_E2E CI 接入**: ci.yml e2e-tests job 添加 `SKIP_E2E: "0"` 默认环境变量 + 条件跳过逻辑
+  - **P0-8 publish-pypi 独立 job**: release.yml 将 publish-pypi 从 step 拆为独立 job（needs: release + artifact 下载 + twine upload）
+  - **P0-9 覆盖率门禁**: pyproject.toml `[tool.coverage.report]` 添加 `fail_under=60`；ci.yml `--cov-fail-under` 70→60 统一
+  - **P1-5 timeout-minutes 补全**: ci.yml docker-build + release.yml release/publish-pypi job
+  - **P1-6 .gitignore 加 coverage.json**: 防止误提交生成文件
+- **D12-3 CI 红色根因修复**: 发现 CI 最近 5 次全失败（D11 声称"CI 全绿"为虚报）。根因 `ruff format --check` 失败（39 文件需格式化，D11 拆分引入）。`ruff format .` 自动修复。
+- **D12-4 覆盖率问题暴露**: 修 ruff format 后 unit-tests job 首次实际运行，实测覆盖率 52.66% < 60% 门禁，CI unit-tests job 红色。列为后续 P0 任务（提升覆盖率 53%→60%）。
+- **Verification**: ruff 0 errors / mypy 0 errors (382 files) / pytest unit+e2e 4186 passed / 0 failed / 25 skipped
+
 ### D11 SRP 大文件拆分 (DevSquad V3.6.5 方案C)
 
 - **D11-1 XXX 标记误报关闭**: src/ 下 43 处 `XXX` 经独立 grep 验证全部是英国陆军 XXX Corps（市场花园行动参战部队）历史引用，零真实 XXX/TODO/FIXME 技术债。

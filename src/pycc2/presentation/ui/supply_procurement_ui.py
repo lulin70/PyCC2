@@ -329,9 +329,7 @@ class SupplyProcurementUI:
 
     def _render_header(self, screen: pygame.Surface, sw: int) -> None:
         assert self._font_title is not None and self._font_normal is not None
-        title = self._font_title.render(
-            "SUPPLY PROCUREMENT", True, _HIGHLIGHT_COLOR
-        )
+        title = self._font_title.render("SUPPLY PROCUREMENT", True, _HIGHLIGHT_COLOR)
         screen.blit(title, (sw // 2 - title.get_width() // 2, _MARGIN))
 
         day_text = f"Day {self._state.day} of 9"
@@ -339,9 +337,7 @@ class SupplyProcurementUI:
         screen.blit(day_surf, (sw - _MARGIN - day_surf.get_width(), _MARGIN + 8))
 
         sep_y = _MARGIN + title.get_height() + 8
-        pygame.draw.line(
-            screen, _BORDER_COLOR, (_MARGIN, sep_y), (sw - _MARGIN, sep_y), 1
-        )
+        pygame.draw.line(screen, _BORDER_COLOR, (_MARGIN, sep_y), (sw - _MARGIN, sep_y), 1)
 
     def _render_pool_bar(self, screen: pygame.Surface, sw: int) -> None:
         assert self._font_normal is not None and self._font_small is not None
@@ -365,9 +361,7 @@ class SupplyProcurementUI:
 
         # Allocation summary on the right.
         spent = total - available
-        spent_label = self._font_small.render(
-            f"Allocated: {spent}", True, _TEXT_DIM
-        )
+        spent_label = self._font_small.render(f"Allocated: {spent}", True, _TEXT_DIM)
         screen.blit(
             spent_label,
             (bar_rect.right - spent_label.get_width() - 10, bar_rect.top + 12),
@@ -404,9 +398,7 @@ class SupplyProcurementUI:
             pygame.draw.rect(screen, _BORDER_COLOR, row_rect, 1)
 
             # Sector name (capitalised).
-            name_surf = self._font_title.render(
-                sector_id.upper(), True, _HIGHLIGHT_COLOR
-            )
+            name_surf = self._font_title.render(sector_id.upper(), True, _HIGHLIGHT_COLOR)
             screen.blit(name_surf, (row_rect.left + 10, row_rect.top + 6))
 
             # Supply type + level.
@@ -414,14 +406,10 @@ class SupplyProcurementUI:
             level_label = _SUPPLY_LEVEL_LABELS.get(supply.supply_level, "?")
             level_color = self._level_color(supply.supply_level)
 
-            type_surf = self._font_small.render(
-                f"Type: {type_label}", True, _TEXT_DIM
-            )
+            type_surf = self._font_small.render(f"Type: {type_label}", True, _TEXT_DIM)
             screen.blit(type_surf, (row_rect.left + 10, row_rect.top + 34))
 
-            level_surf = self._font_small.render(
-                f"Level: {level_label}", True, level_color
-            )
+            level_surf = self._font_small.render(f"Level: {level_label}", True, level_color)
             screen.blit(level_surf, (row_rect.left + 10, row_rect.top + 52))
 
             # Rates (ammo / reinforce / morale).
@@ -436,9 +424,7 @@ class SupplyProcurementUI:
 
             # Allocated points (large, prominent).
             allocated = self._state.allocations.get(sector_id, 0)
-            alloc_label = self._font_normal.render(
-                f"Allocated: {allocated}", True, _POOL_COLOR
-            )
+            alloc_label = self._font_normal.render(f"Allocated: {allocated}", True, _POOL_COLOR)
             screen.blit(
                 alloc_label,
                 (rates_x, row_rect.top + 8),
@@ -462,18 +448,14 @@ class SupplyProcurementUI:
             self._inc_button_rects[sector_id] = inc_rect
 
             dec_disabled = allocated <= 0 or self._state.confirmed
-            inc_disabled = (
-                manager.available_supply_points < ALLOCATE_STEP or self._state.confirmed
-            )
+            inc_disabled = manager.available_supply_points < ALLOCATE_STEP or self._state.confirmed
 
             self._draw_button(screen, dec_rect, "-", disabled=dec_disabled)
             self._draw_button(screen, inc_rect, "+", disabled=inc_disabled)
 
             rows_y += _SECTOR_ROW_HEIGHT + 6
 
-    def _render_buttons(
-        self, screen: pygame.Surface, sw: int, sh: int
-    ) -> None:
+    def _render_buttons(self, screen: pygame.Surface, sw: int, sh: int) -> None:
         assert self._font_normal is not None
         btn_y = sh - _BUTTON_HEIGHT - _MARGIN
 

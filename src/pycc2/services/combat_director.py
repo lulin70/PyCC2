@@ -518,7 +518,6 @@ class CombatDirector:
                 battle_stats.record_unit_lost(faction)
 
     def process_movements(self, units: list[Unit], game_map: GameMap) -> None:
-
         """Advance pending unit movements along their queued paths."""
         from pycc2.domain.value_objects.tile_coord import TileCoord
         from pycc2.domain.value_objects.vec2 import Vec2

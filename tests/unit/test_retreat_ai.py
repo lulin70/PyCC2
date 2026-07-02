@@ -511,13 +511,9 @@ class TestRearGuard:
         weak2 = _make_unit("weak2", hp=30, max_hp=100, x=11, y=10)
         weak3 = _make_unit("weak3", hp=30, max_hp=100, x=12, y=10)
         # 5 strong candidates — only 1 should be selected as rear guard
-        strong_units = [
-            _make_unit(f"s{i}", hp=90, max_hp=100, x=13 + i, y=10) for i in range(5)
-        ]
+        strong_units = [_make_unit(f"s{i}", hp=90, max_hp=100, x=13 + i, y=10) for i in range(5)]
         enemies = [_make_unit("e1", faction=Faction.AXIS, x=30, y=10)]
-        ctx = _make_context(
-            friendly=[weak1, weak2, weak3, *strong_units], enemy=enemies
-        )
+        ctx = _make_context(friendly=[weak1, weak2, weak3, *strong_units], enemy=enemies)
 
         intents = ai.execute(ctx)
         hold_intents = [i for i in intents if i.tactic_type == TacticType.HOLD_POSITION]

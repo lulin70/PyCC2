@@ -166,9 +166,7 @@ class CounterattackAI(TacticalAIBase):
         return eligible
 
     @staticmethod
-    def _enemy_in_offensive_posture(
-        friendly: list[Unit], enemies: list[Unit]
-    ) -> bool:
+    def _enemy_in_offensive_posture(friendly: list[Unit], enemies: list[Unit]) -> bool:
         """Return True when >60% of enemies have advanced to the front line.
 
         The front line is the midpoint between the friendly and enemy

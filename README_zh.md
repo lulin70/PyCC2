@@ -103,7 +103,7 @@
 | **武器类型** | 69种CC2原版武器 |
 | **战役战斗** | 29场战斗，跨越9天，3个战区 |
 | **AI行为类型** | 6种战术AI (包抄、压制、夺点等) |
-| **代码文件** | ~283个 Python模块 (+37个新模块: surface_pool.py, fade_transition.py + shell_casing_system.py, flash_effect_system.py, weather_system.py, resource_cache.py + 天气/弹壳系统 in v0.3.31-v0.3.34 + casualty_system, unit_diversity_expansion, cover_seek_ai 等) |
+| **代码文件** | 380个 Python 模块（src/pycc2 下 .py 文件，实测 `find src/pycc2 -name "*.py" \| wc -l`） |
 | **类定义数** | 286+ 个类 |
 | **CC2还原度** | ~88% (视觉: 85%, 机制: 92%) ⚠️ | 详见 [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) |
 

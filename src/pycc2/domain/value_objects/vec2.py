@@ -1,5 +1,4 @@
-"""Vec2 Value Object - Immutable 2D Vector
-"""
+"""Vec2 Value Object - Immutable 2D Vector"""
 
 from __future__ import annotations
 

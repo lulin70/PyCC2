@@ -755,9 +755,7 @@ class TestVPNumeralRendering:
         renderer._draw_vl_flag(surface, 400, 300, "allies", False, 0.0, 40)
 
         # Numeral drawn at y-48 with font size 52; check region y-75 to y-10
-        gold_count = self._count_gold_pixels(
-            surface, range(370, 430), range(225, 290)
-        )
+        gold_count = self._count_gold_pixels(surface, range(370, 430), range(225, 290))
         assert gold_count > 0, "VP numeral (points=40) should render gold pixels"
 
     def test_vl_flag_no_numeral_when_points_none(self, renderer):
@@ -768,9 +766,7 @@ class TestVPNumeralRendering:
         surface.fill((50, 50, 50))
         renderer._draw_vl_flag(surface, 400, 300, "allies", False, 0.0, None)
 
-        gold_count = self._count_gold_pixels(
-            surface, range(370, 430), range(225, 290)
-        )
+        gold_count = self._count_gold_pixels(surface, range(370, 430), range(225, 290))
         assert gold_count == 0, "points=None should not render any gold pixels"
 
     def test_vl_flag_no_numeral_when_points_zero(self, renderer):
@@ -781,9 +777,7 @@ class TestVPNumeralRendering:
         surface.fill((50, 50, 50))
         renderer._draw_vl_flag(surface, 400, 300, "allies", False, 0.0, 0)
 
-        gold_count = self._count_gold_pixels(
-            surface, range(370, 430), range(225, 290)
-        )
+        gold_count = self._count_gold_pixels(surface, range(370, 430), range(225, 290))
         assert gold_count == 0, "points=0 should not render any gold pixels"
 
     def test_vl_flag_renders_black_outline_with_numeral(self, renderer):
@@ -811,17 +805,13 @@ class TestVPNumeralRendering:
         surface40 = pygame.Surface((800, 600))
         surface40.fill((50, 50, 50))
         renderer._draw_vl_flag(surface40, 400, 300, "allies", False, 0.0, 40)
-        gold40 = self._count_gold_pixels(
-            surface40, range(370, 430), range(225, 290)
-        )
+        gold40 = self._count_gold_pixels(surface40, range(370, 430), range(225, 290))
 
         # Render with points=100
         surface100 = pygame.Surface((800, 600))
         surface100.fill((50, 50, 50))
         renderer._draw_vl_flag(surface100, 400, 300, "allies", False, 0.0, 100)
-        gold100 = self._count_gold_pixels(
-            surface100, range(360, 440), range(225, 290)
-        )
+        gold100 = self._count_gold_pixels(surface100, range(360, 440), range(225, 290))
 
         # Both should have gold pixels
         assert gold40 > 0, "points=40 should render gold pixels"

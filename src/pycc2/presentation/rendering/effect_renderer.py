@@ -182,9 +182,7 @@ class EffectRenderer:
 
         if len(self._crater_decals) >= self._crater_decals_max:
             self._crater_decals.pop(0)
-        self._crater_decals.append(
-            {"pos": (position.x, position.y), "sprite": decal, "size": size}
-        )
+        self._crater_decals.append({"pos": (position.x, position.y), "sprite": decal, "size": size})
 
     def render_decals(self, surface: Surface, camera: Camera) -> None:
         """Render persistent ground decals (craters) below units/effects.

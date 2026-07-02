@@ -129,7 +129,7 @@ class ThemeManager:
     _themes: dict[str, Theme] = {}
 
     def __new__(cls) -> "ThemeManager":
-        """  new  ."""
+        """new  ."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialize_default_themes()

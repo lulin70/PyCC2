@@ -1,5 +1,4 @@
-"""Unit Entity - Core Game Unit
-"""
+"""Unit Entity - Core Game Unit"""
 
 from __future__ import annotations
 

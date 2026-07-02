@@ -136,9 +136,7 @@ class EngineeringTacticsMixin:
             "timestamp": time.time(),
         }
         self.event_bus.publish(event)
-        self._logger.info(
-            f"Unit {intent.unit_id} demolished {len(bridge_tiles)} bridge tile(s)"
-        )
+        self._logger.info(f"Unit {intent.unit_id} demolished {len(bridge_tiles)} bridge tile(s)")
         return True
 
     def _execute_lay_mine(self, intent: TacticIntent) -> bool:

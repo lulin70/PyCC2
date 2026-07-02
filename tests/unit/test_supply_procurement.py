@@ -95,9 +95,7 @@ class TestSupplyLineManagerProcure:
         assert supply_manager.procure_supply("unknown_sector", 10) is False
         assert supply_manager.available_supply_points == 100
 
-    def test_procure_respects_daily_pool(
-        self, supply_manager: SupplyLineManager
-    ) -> None:
+    def test_procure_respects_daily_pool(self, supply_manager: SupplyLineManager) -> None:
         """Allocating more than the available pool must fail."""
         manager = supply_manager
         # Spend 90 of 100 points.
@@ -122,18 +120,14 @@ class TestSupplyLineManagerProcure:
         assert manager.procured_points["arnhem"] == 20
         assert manager.available_supply_points == 80
 
-    def test_procure_cannot_revoke_below_zero(
-        self, supply_manager: SupplyLineManager
-    ) -> None:
+    def test_procure_cannot_revoke_below_zero(self, supply_manager: SupplyLineManager) -> None:
         manager = supply_manager
         assert manager.procure_supply("arnhem", 10) is True
         # Try to revoke 20 when only 10 allocated.
         assert manager.procure_supply("arnhem", -20) is False
         assert manager.procured_points["arnhem"] == 10
 
-    def test_procure_promotes_supply_level_to_full(
-        self, supply_manager: SupplyLineManager
-    ) -> None:
+    def test_procure_promotes_supply_level_to_full(self, supply_manager: SupplyLineManager) -> None:
         """Allocating >=60 points promotes the sector to FULL supply level."""
         manager = supply_manager
         assert manager.sector_supply["arnhem"].supply_level == SupplyLevel.REDUCED
@@ -151,18 +145,14 @@ class TestSupplyLineManagerProcure:
         assert manager.procure_supply("arnhem", 10) is True
         assert manager.sector_supply["arnhem"].supply_level == SupplyLevel.MINIMAL
 
-    def test_procure_zero_allocation_is_noop(
-        self, supply_manager: SupplyLineManager
-    ) -> None:
+    def test_procure_zero_allocation_is_noop(self, supply_manager: SupplyLineManager) -> None:
         manager = supply_manager
         base_ammo = manager.sector_supply["arnhem"].ammo_replenishment_rate
         assert manager.procure_supply("arnhem", 0) is True
         assert manager.sector_supply["arnhem"].ammo_replenishment_rate == base_ammo
         assert manager.available_supply_points == 100
 
-    def test_advance_day_resets_procured_points(
-        self, supply_manager: SupplyLineManager
-    ) -> None:
+    def test_advance_day_resets_procured_points(self, supply_manager: SupplyLineManager) -> None:
         manager = supply_manager
         assert manager.procure_supply("arnhem", 40) is True
         assert manager.procured_points == {"arnhem": 40}
@@ -180,9 +170,7 @@ class TestSupplyLineManagerProcure:
 class TestSupplyProcurementUIInitialState:
     """Verify the UI's initial display after start_procurement."""
 
-    def test_supply_procurement_ui_initial_state(
-        self, procurement_ui: SupplyProcurementUI
-    ) -> None:
+    def test_supply_procurement_ui_initial_state(self, procurement_ui: SupplyProcurementUI) -> None:
         """The UI shows the full pool and zero allocations on entry.
 
         Headline P4-4 UI test: after binding a fresh manager the UI must
@@ -214,18 +202,14 @@ class TestSupplyProcurementUIInitialState:
         assert ui._confirm_button_rect is not None
         assert ui._back_button_rect is not None
 
-    def test_initial_state_manager_bound(
-        self, procurement_ui: SupplyProcurementUI
-    ) -> None:
+    def test_initial_state_manager_bound(self, procurement_ui: SupplyProcurementUI) -> None:
         """The UI holds a live reference to the real SupplyLineManager."""
         ui = procurement_ui
         assert ui.manager is not None
         assert isinstance(ui.manager, SupplyLineManager)
         assert ui.manager.current_day == 1
 
-    def test_initial_sector_supply_levels(
-        self, procurement_ui: SupplyProcurementUI
-    ) -> None:
+    def test_initial_sector_supply_levels(self, procurement_ui: SupplyProcurementUI) -> None:
         """Day-1 sectors all show AIRDROP / REDUCED supply (historical)."""
         ui = procurement_ui
         manager = ui.manager
@@ -244,9 +228,7 @@ class TestSupplyProcurementUIInitialState:
 class TestSupplyProcurementUIAllocate:
     """Verify clicking [+] / [-] updates numbers and the bound manager."""
 
-    def test_supply_procurement_ui_allocate(
-        self, procurement_ui: SupplyProcurementUI
-    ) -> None:
+    def test_supply_procurement_ui_allocate(self, procurement_ui: SupplyProcurementUI) -> None:
         """Clicking [+] on a sector increases its allocation by ALLOCATE_STEP.
 
         Headline P4-4 UI test: the click must both (a) update the UI's
@@ -272,9 +254,7 @@ class TestSupplyProcurementUIAllocate:
         # Supply effect applied.
         assert manager.sector_supply[sector].ammo_replenishment_rate > 0.6
 
-    def test_allocate_multiple_clicks_accumulate(
-        self, procurement_ui: SupplyProcurementUI
-    ) -> None:
+    def test_allocate_multiple_clicks_accumulate(self, procurement_ui: SupplyProcurementUI) -> None:
         ui = procurement_ui
         sector = "nijmegen"
         inc_rect = ui._inc_button_rects[sector]
@@ -285,9 +265,7 @@ class TestSupplyProcurementUIAllocate:
         assert ui.get_allocation(sector) == 30
         assert ui.get_available_points() == 70
 
-    def test_deallocate_reduces_numbers(
-        self, procurement_ui: SupplyProcurementUI
-    ) -> None:
+    def test_deallocate_reduces_numbers(self, procurement_ui: SupplyProcurementUI) -> None:
         ui = procurement_ui
         sector = "eindhoven"
 
@@ -304,9 +282,7 @@ class TestSupplyProcurementUIAllocate:
         assert ui.get_allocation(sector) == 10
         assert ui.get_available_points() == 90
 
-    def test_deallocate_below_zero_blocked(
-        self, procurement_ui: SupplyProcurementUI
-    ) -> None:
+    def test_deallocate_below_zero_blocked(self, procurement_ui: SupplyProcurementUI) -> None:
         ui = procurement_ui
         sector = "arnhem"
         dec_rect = ui._dec_button_rects[sector]
@@ -316,9 +292,7 @@ class TestSupplyProcurementUIAllocate:
         assert ui.get_allocation(sector) == 0
         assert ui.get_available_points() == 100
 
-    def test_confirm_freezes_allocation(
-        self, procurement_ui: SupplyProcurementUI
-    ) -> None:
+    def test_confirm_freezes_allocation(self, procurement_ui: SupplyProcurementUI) -> None:
         ui = procurement_ui
         sector = "arnhem"
         inc_rect = ui._inc_button_rects[sector]
@@ -337,9 +311,7 @@ class TestSupplyProcurementUIAllocate:
         assert action is None
         assert ui.get_allocation(sector) == ALLOCATE_STEP
 
-    def test_confirm_returns_final_allocation(
-        self, procurement_ui: SupplyProcurementUI
-    ) -> None:
+    def test_confirm_returns_final_allocation(self, procurement_ui: SupplyProcurementUI) -> None:
         ui = procurement_ui
         ui.handle_click(
             ui._inc_button_rects["arnhem"].centerx,
@@ -375,9 +347,7 @@ class TestSupplyProcurementUIAllocate:
 class TestCampaignUISupplyProcurementIntegration:
     """Verify CampaignUI wires the supply procurement state correctly."""
 
-    def test_campaign_ui_enters_supply_procurement_state(
-        self, pygame_display
-    ) -> None:
+    def test_campaign_ui_enters_supply_procurement_state(self, pygame_display) -> None:
         from pycc2.presentation.ui.campaign_ui import CampaignUI
 
         ui = CampaignUI()
@@ -389,9 +359,7 @@ class TestCampaignUISupplyProcurementIntegration:
         assert ui.supply_procurement_ui.manager is manager
         assert ui.supply_procurement_ui.state.day == 2
 
-    def test_campaign_ui_confirm_returns_to_return_state(
-        self, pygame_display
-    ) -> None:
+    def test_campaign_ui_confirm_returns_to_return_state(self, pygame_display) -> None:
         from pycc2.presentation.ui.campaign_ui import CampaignUI
 
         ui = CampaignUI()
@@ -413,9 +381,7 @@ class TestCampaignUISupplyProcurementIntegration:
         assert action.startswith("supply_confirmed")
         assert ui.state == "operation_select"
 
-    def test_campaign_ui_back_returns_to_return_state(
-        self, pygame_display
-    ) -> None:
+    def test_campaign_ui_back_returns_to_return_state(self, pygame_display) -> None:
         from pycc2.presentation.ui.campaign_ui import CampaignUI
 
         ui = CampaignUI()
@@ -435,9 +401,7 @@ class TestCampaignUISupplyProcurementIntegration:
         assert action == "back"
         assert ui.state == "briefing"
 
-    def test_campaign_ui_allocate_click_pass_through(
-        self, pygame_display
-    ) -> None:
+    def test_campaign_ui_allocate_click_pass_through(self, pygame_display) -> None:
         """Allocation clicks in CampaignUI reach the embedded SupplyProcurementUI."""
         from pycc2.presentation.ui.campaign_ui import CampaignUI
 

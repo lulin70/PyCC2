@@ -86,9 +86,7 @@ def create_unit_sprite(
     Returns an independent copy of the cached sprite so callers may safely
     mutate the returned canvas without affecting other consumers.
     """
-    return _create_unit_sprite_cached(
-        faction, unit_type, direction, size, frame, state
-    ).copy()
+    return _create_unit_sprite_cached(faction, unit_type, direction, size, frame, state).copy()
 
 
 def create_terrain_tile(

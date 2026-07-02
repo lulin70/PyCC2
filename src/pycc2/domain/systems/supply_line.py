@@ -216,15 +216,9 @@ class SupplyLineManager:
         reinforce_bonus = points * 0.004
         morale_bonus = points * 0.003
 
-        supply.ammo_replenishment_rate = min(
-            1.0, supply.ammo_replenishment_rate + ammo_bonus
-        )
-        supply.reinforcement_rate = min(
-            1.0, supply.reinforcement_rate + reinforce_bonus
-        )
-        supply.morale_recovery_rate = min(
-            1.0, supply.morale_recovery_rate + morale_bonus
-        )
+        supply.ammo_replenishment_rate = min(1.0, supply.ammo_replenishment_rate + ammo_bonus)
+        supply.reinforcement_rate = min(1.0, supply.reinforcement_rate + reinforce_bonus)
+        supply.morale_recovery_rate = min(1.0, supply.morale_recovery_rate + morale_bonus)
 
         # Promote the supply level tier if enough points are allocated.
         # This lets a BLOCKED sector reach MINIMAL, or an AIRDROP sector

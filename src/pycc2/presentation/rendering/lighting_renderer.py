@@ -1,5 +1,4 @@
-"""Lighting Renderer — applies color grading and illumination overlays for day-night cycle.
-"""
+"""Lighting Renderer — applies color grading and illumination overlays for day-night cycle."""
 
 from __future__ import annotations
 

@@ -1,5 +1,4 @@
-"""Phase 2: 地形改进 - Perlin噪声生成器和边缘混合
-"""
+"""Phase 2: 地形改进 - Perlin噪声生成器和边缘混合"""
 
 from __future__ import annotations
 

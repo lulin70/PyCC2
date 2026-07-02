@@ -151,9 +151,7 @@ class TestExecuteLimitsAttackers:
     def test_execute_limits_attackers_to_3(self):
         """Even with many eligible friendlies, at most 3 COUNTER_ATTACK intents."""
         ai = CounterattackAI()
-        friendlies = [
-            _make_unit(f"f{i}", x=10 + i, y=10) for i in range(5)
-        ]
+        friendlies = [_make_unit(f"f{i}", x=10 + i, y=10) for i in range(5)]
         enemies = [
             _make_unit("e1", faction=Faction.AXIS, x=30, y=10, hp=40, max_hp=100),
             _make_unit("e2", faction=Faction.AXIS, x=31, y=10, hp=80, max_hp=100),
@@ -206,5 +204,5 @@ class TestEvaluateMoraleBonus:
         score_low = ai.evaluate(ctx_low)
 
         assert score_high > score_low
-        assert score_high >= 0.9   # 0.8 base + 0.1 morale bonus
-        assert score_low <= 0.8    # 0.8 base, no morale bonus
+        assert score_high >= 0.9  # 0.8 base + 0.1 morale bonus
+        assert score_low <= 0.8  # 0.8 base, no morale bonus

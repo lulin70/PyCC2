@@ -140,9 +140,7 @@ class MoraleSystem:
         return MoraleEffects.update_morale_recovery(unit, dt, near_commander, in_cover)
 
     @staticmethod
-    def check_routing_behavior(
-        unit: Unit, game_map: GameMap | None = None
-    ) -> tuple[bool, object]:
+    def check_routing_behavior(unit: Unit, game_map: GameMap | None = None) -> tuple[bool, object]:
         """Check if unit should attempt to flee.
 
         Delegates to MoraleRouting.check_routing_behavior.

@@ -1,5 +1,4 @@
-"""After Action Report (AAR) Panel — displays detailed post-battle statistics.
-"""
+"""After Action Report (AAR) Panel — displays detailed post-battle statistics."""
 
 from __future__ import annotations
 

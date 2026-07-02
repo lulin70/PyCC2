@@ -200,7 +200,7 @@ class DirectionSpriteManager:
     _cache: dict[str, DirectionSpriteSet] = {}
 
     def __new__(cls) -> DirectionSpriteManager:
-        """  new  ."""
+        """new  ."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance

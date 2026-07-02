@@ -393,7 +393,9 @@ class TestVLFlagRendering:
                         and abs(b - gold_color[2]) < tolerance
                     ):
                         gold_matches += 1
-            print(f"[VP CHECK] VL '{obj.id}' (points={points}) at ({sx},{sy}): gold pixels = {gold_matches}")
+            print(
+                f"[VP CHECK] VL '{obj.id}' (points={points}) at ({sx},{sy}): gold pixels = {gold_matches}"
+            )
             if gold_matches > 0:
                 any_gold_found = True
                 break

@@ -53,9 +53,7 @@ def _make_map(w: int = 40, h: int = 30) -> GameMap:
     return GameMap(id="test", name="test", width=w, height=h, tile_grid=grid)
 
 
-def _make_map_with_woods(
-    woods_x: int = 10, woods_y: int = 10, w: int = 40, h: int = 30
-) -> GameMap:
+def _make_map_with_woods(woods_x: int = 10, woods_y: int = 10, w: int = 40, h: int = 30) -> GameMap:
     grid = np.zeros((h, w), dtype=np.int8)
     grid[woods_y, woods_x] = TerrainType.WOODS
     return GameMap(id="test", name="test_woods", width=w, height=h, tile_grid=grid)
@@ -143,9 +141,7 @@ class TestEvaluateReturnsZeroForTanks:
         gm = _make_map_with_woods(woods_x=5, woods_y=5)
         inf = _make_unit("inf1", unit_type=UnitType.INFANTRY_SQUAD, x=5, y=5)
         # Enemy 25 tiles away — beyond the 15-tile approach radius
-        enemy = _make_unit(
-            "e1", faction=Faction.AXIS, unit_type=UnitType.INFANTRY_SQUAD, x=30, y=5
-        )
+        enemy = _make_unit("e1", faction=Faction.AXIS, unit_type=UnitType.INFANTRY_SQUAD, x=30, y=5)
         ctx = _make_context(friendly=[inf], enemy=[enemy], game_map=gm)
         assert ai.evaluate(ctx) == 0.0
 
@@ -177,9 +173,7 @@ class TestExecuteBreakAmbush:
         )
         ctx = _make_context(friendly=[inf], enemy=[enemy], game_map=gm)
         intents = ai.execute(ctx)
-        break_intents = [
-            i for i in intents if i.tactic_type == TacticType.BREAK_AMBUSH
-        ]
+        break_intents = [i for i in intents if i.tactic_type == TacticType.BREAK_AMBUSH]
         assert len(break_intents) == 1
         assert break_intents[0].unit_id == "inf1"
         assert break_intents[0].target_unit_id == "e1"
@@ -192,14 +186,10 @@ class TestExecuteBreakAmbush:
         near = _make_unit(
             "near", faction=Faction.AXIS, unit_type=UnitType.INFANTRY_SQUAD, x=12, y=10
         )
-        far = _make_unit(
-            "far", faction=Faction.AXIS, unit_type=UnitType.INFANTRY_SQUAD, x=7, y=10
-        )
+        far = _make_unit("far", faction=Faction.AXIS, unit_type=UnitType.INFANTRY_SQUAD, x=7, y=10)
         ctx = _make_context(friendly=[inf], enemy=[far, near], game_map=gm)
         intents = ai.execute(ctx)
-        break_intents = [
-            i for i in intents if i.tactic_type == TacticType.BREAK_AMBUSH
-        ]
+        break_intents = [i for i in intents if i.tactic_type == TacticType.BREAK_AMBUSH]
         assert len(break_intents) == 1
         # "near" at distance 2 is closer than "far" at distance 3
         assert break_intents[0].target_unit_id == "near"
@@ -254,9 +244,7 @@ class TestExecutePriorityOrder:
         enemy = _make_unit(
             "e1", faction=Faction.AXIS, unit_type=UnitType.INFANTRY_SQUAD, x=15, y=10
         )
-        ctx = _make_context(
-            friendly=[inf, mg, sniper], enemy=[enemy], game_map=gm
-        )
+        ctx = _make_context(friendly=[inf, mg, sniper], enemy=[enemy], game_map=gm)
         intents = ai.execute(ctx)
         # All three should produce intents
         unit_ids_in_order = [i.unit_id for i in intents]

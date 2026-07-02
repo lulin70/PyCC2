@@ -319,8 +319,7 @@ class TerrainDetailGenerator:
     def _get_eligible_decorations(
         self, biome: BiomeType, terrain: int
     ) -> list[tuple[DecorationType, float]]:
-        """Get list of (decoration_type, base_density) tuples eligible for this location.
-        """
+        """Get list of (decoration_type, base_density) tuples eligible for this location."""
         rules = {
             BiomeType.GRASSLAND: [
                 (DecorationType.BUSH_SMALL, self.config.vegetation_density * 0.4),

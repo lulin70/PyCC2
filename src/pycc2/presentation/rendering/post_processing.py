@@ -1,5 +1,4 @@
-"""Post-processing effects: vignette, color grading.
-"""
+"""Post-processing effects: vignette, color grading."""
 
 from __future__ import annotations
 
