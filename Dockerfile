@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # Install pygame system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -24,5 +24,5 @@ RUN pip install --no-cache-dir --no-build-isolation ".[dev]" || \
 ENV SDL_VIDEODRIVER=dummy
 ENV SDL_AUDIODRIVER=dummy
 
-# Default: run tests
-CMD ["python", "-m", "pytest", "tests/", "-q", "--tb=short"]
+# Default: run unit tests only (e2e tests require display renderer, see CI workflow)
+CMD ["python", "-m", "pytest", "tests/unit/", "-q", "--tb=short"]
