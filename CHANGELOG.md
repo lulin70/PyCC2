@@ -4,6 +4,29 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D12 P0-9 覆盖率提升第三批 — 覆盖率达标 60% (DevSquad V3.8)
+
+- **8 个低覆盖率模块补测试** (7 新增 + 1 快速补丁，共 579 tests):
+  - `test_combat_config.py` (83 tests, 新增): combat_config 全 frozen dataclass 构造与方法，覆盖率 0% → 100% (157 stmts)。
+  - `test_morale_routing.py` (39 tests, 新增): MoraleRouting flee/rally 流程 + 4 种 MoraleState 转换 + voice callback，覆盖率 19% → 95% (70 stmts)。
+  - `test_event_dispatcher.py` (79 tests, 新增): EventDispatcher 7 个 handler 分发路径 + KEYDOWN/MOUSEBUTTONDOWN 路由 + 异常吞噬，覆盖率 13% → 94% (194 stmts)。
+  - `test_campaign_persistence_io.py` (71 tests, 新增): CampaignPersistence save/load round-trip + apply_inheritance + reinforcement_bonus，覆盖率 0% → 100% (198 stmts)。
+  - `test_terrain_detail_generator.py` (111 tests, 新增): TerrainDetailGenerator biome/height_map/decoration/batch_process，覆盖率 0% → 94% (237 stmts)。
+  - `test_engineer_assault.py` (78 tests, 新增): EngineerAssaultAI 完整生命周期 (APPROACH→PLACE_CHARGE→RETREAT→DETONATE→COMPLETE) + bangalore clearing，覆盖率 25% → 96% (222 stmts)。
+  - `test_skirmish_generator.py` (70 tests, 新增): SkirmishSetup 4 种战斗类型生成 + victory_locations + 部署区，覆盖率 28% → 96% (215 stmts)。
+  - `test_variant_generators.py` (48 tests, 新增): FactionVariantGenerator + VehicleVariantGenerator + UnitDiversityGenerator facade + EXPERIENCE_MODIFIERS + get_expanded_unit_database，3 个模块覆盖率 0% → 100% (115 stmts)。
+- **覆盖率达标**: 57% → 60.05% (CI 参数含 deselect) / 60% (本地无 deselect)。CI `--cov-fail-under` 从 50 恢复至 60。missed 行 17078 → 15918 (-1160 行)。
+- **后台 agent 发现 8 个源码 bug** (Iron Rule 2: 文档化在测试 docstring 中，未修复源码):
+  - `engineer_assault.py:196-219` `execute()` 死亡工程师清理逻辑永不执行 (早返回守卫在清理循环之前)
+  - `campaign_persistence.py:294` `HealthComponent.current_hp` 是只读 property，`apply_inheritance_to_units` 赋值抛 AttributeError
+  - `campaign_persistence.py:298` `MoraleComponent` 字段名是 `value` 而非 `current_morale`
+  - `campaign_persistence.py:319` `StateMachine` 方法是 `force_transition` 而非 `force_state`
+  - `campaign_persistence.py` `load_campaign_progress` 不重建 BattleOutcome 枚举，save/load 后 reinforcement_bonus 计算错误
+  - `terrain_detail_generator.py` `_value_noise` 负坐标超出 [0,1] 范围
+  - `terrain_detail_generator.py` `_place_decorations` 噪声尺度致小地图装饰为死代码
+  - `terrain_detail_generator.py` `batch_enhance_maps` 不创建输出目录，静默跳过
+- **Verification**: ruff 0 errors / pytest 4784 passed / 0 failed / 2 skipped / 14 deselected (slow + sprite)
+
 ### E2E flaky 失败修复 (DevSquad V3.8)
 
 - **源码 bug 修复**: `handler.py:136` `_get_modifiers()` 调用 `pygame.key.get_mods()` 未处理 video 系统未初始化的情况。pytest-randomly 随机顺序下，某些测试调用 `pygame.quit()` 后 `_pygame_recovery` fixture 恢复失败时，后续测试调用 `process_event` → `_get_modifiers` 抛 `pygame.error: video system not initialized`。添加 try/except 返回 `(False, False, False, False)` 安全默认值（无修饰键）。
