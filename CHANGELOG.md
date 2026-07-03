@@ -4,6 +4,12 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### E2E flaky 失败修复 (DevSquad V3.8)
+
+- **源码 bug 修复**: `handler.py:136` `_get_modifiers()` 调用 `pygame.key.get_mods()` 未处理 video 系统未初始化的情况。pytest-randomly 随机顺序下，某些测试调用 `pygame.quit()` 后 `_pygame_recovery` fixture 恢复失败时，后续测试调用 `process_event` → `_get_modifiers` 抛 `pygame.error: video system not initialized`。添加 try/except 返回 `(False, False, False, False)` 安全默认值（无修饰键）。
+- **影响测试**: `test_j08_input_handler_process_left_click` / `test_j09_input_handler_process_right_click` / `test_j10_input_handler_process_escape` (test_comprehensive_acceptance.py)
+- **Verification**: 133 comprehensive acceptance tests 全部通过 / ruff 0 errors
+
 ### D12 P0-9 覆盖率提升第二批 (DevSquad V3.8)
 
 - **11 个 AI 模块补测试** (3 增强 + 8 新增，共 485 tests):

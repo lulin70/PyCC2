@@ -133,7 +133,10 @@ class PygameInputHandler:
         return (dx, dy)
 
     def _get_modifiers(self) -> tuple[bool, bool, bool, bool]:
-        mods = pygame.key.get_mods()
+        try:
+            mods = pygame.key.get_mods()
+        except pygame.error:
+            return (False, False, False, False)
         return (
             bool(mods & pygame.KMOD_CTRL),
             bool(mods & pygame.KMOD_SHIFT),
