@@ -335,6 +335,7 @@ class TestEdgeCases:
 
 
 class TestPerformance:
+    @pytest.mark.slow
     def test_query_radius_faster_than_linear_scan(self):
         """Verify spatial hash query outperforms brute-force for large datasets."""
         n = 5000
