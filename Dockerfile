@@ -23,6 +23,7 @@ RUN pip install --no-cache-dir --no-build-isolation ".[dev]" || \
 # Set environment for headless CI
 ENV SDL_VIDEODRIVER=dummy
 ENV SDL_AUDIODRIVER=dummy
+ENV PYTHONPATH=/app/src
 
 # Default: run unit tests only (e2e tests require display renderer, see CI workflow)
 CMD ["python", "-m", "pytest", "tests/unit/", "-q", "--tb=short"]
