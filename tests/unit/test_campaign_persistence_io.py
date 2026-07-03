@@ -724,21 +724,18 @@ class TestCampaignPersistenceManager:
     def test_save_returns_false_on_write_error(self, tmp_path: Path):
         """Verify save returns False when file write fails.
 
-        Error Case: OSError during write (e.g., directory made read-only).
+        Error Case: OSError during write (e.g., disk full or permission denied).
         Expected: Returns False, no exception raised (caught and logged).
         """
+        from unittest.mock import patch
+
         mgr = CampaignPersistenceManager(base_dir=tmp_path)
         progress = CampaignProgress(campaign_id="c1", current_operation_id="op1")
 
-        # Make the campaign_saves directory read-only so open(..., "w") fails.
-        campaign_dir = tmp_path / "campaign_saves"
-        campaign_dir.chmod(0o444)
-        try:
+        # Mock open to raise OSError (chmod 0o444 doesn't work as root in Docker)
+        with patch("builtins.open", side_effect=OSError("disk full")):
             result = mgr.save_campaign_progress("c1", progress)
             assert result is False
-        finally:
-            # Restore permissions for cleanup.
-            campaign_dir.chmod(0o755)
 
     def test_load_corrupted_json_returns_none(self, tmp_path: Path):
         """Verify load returns None when JSON is corrupted.

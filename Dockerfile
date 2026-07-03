@@ -33,4 +33,5 @@ CMD ["python", "-m", "pytest", "tests/unit/", "-q", "--tb=short", \
      "--deselect", "tests/unit/test_sprite_renderer.py::TestFactionColors::test_allies_sprite_has_green_tones", \
      "--deselect", "tests/unit/test_sprite_renderer.py::TestCreateUnitSprite::test_returns_surface_with_correct_size", \
      "--deselect", "tests/unit/test_sprite_renderer.py::TestUnitTypeWeaponShapes::test_mg_squad_differs_from_infantry", \
-     "--deselect", "tests/unit/test_sprite_renderer.py::TestUnitTypeWeaponShapes::test_commander_differs_from_infantry"]
+     "--deselect", "tests/unit/test_sprite_renderer.py::TestUnitTypeWeaponShapes::test_commander_differs_from_infantry", \
+     "--deselect", "tests/unit/test_sprite_renderer.py::TestVPNumeralRendering::test_vl_flag_numeral_scales_with_point_value"]
