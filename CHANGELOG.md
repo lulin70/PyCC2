@@ -4,6 +4,19 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D12 Phase 2 P0-1 大文件拆分 — campaign_ui_rendering.py (DevSquad V3.8)
+
+- **拆分 campaign_ui_rendering.py** (1118L → facade 77L + 4 mixin 1158L = 总 1235L): facade + mixin class 模式，参考 D11 `sprite_renderer.py` + `vl_flag_rendering_mixin.py` 拆分先例
+  - `campaign_ui_select_mixin.py` (275L): `CampaignUISelectMixin` class，2 个方法 (`_render_operation_select` 操作选择屏幕 + `_render_battle_select` 战斗选择屏幕)
+  - `campaign_ui_briefing_mixin.py` (364L): `CampaignUIBriefingMixin` class，2 个方法 (`_render_briefing` 简报屏幕 + 战略地图 + 战斗选择 + `_render_preview` 预览屏幕 + 迷你地图 + 目标 + 兵力)
+  - `campaign_ui_report_mixin.py` (469L): `CampaignUIReportMixin` class，3 个方法 (`_render_report` 战后报告 + 叙事 + `_generate_narrative_report` @staticmethod 生成叙事文本 + `_render_campaign_end` 战役结束屏幕 + 历史结果 + 伤亡表 + 桥梁状态)
+  - `campaign_ui_supply_mixin.py` (50L): `CampaignUISupplyMixin` class，1 个方法 (`_render_supply_procurement` 委托 SupplyProcurementUI)
+  - `campaign_ui_rendering.py` (77L): facade class `CampaignUIRenderer(SelectMixin, BriefingMixin, ReportMixin, SupplyMixin)`，保留 `__init__(ui)` + `render(surface)` dispatch（7 个状态分支）
+- **mixin 属性声明模式**: 每个 mixin class 通过 class-level 类型注解 `_ui: CampaignUI`（无默认值）声明 facade 属性，告诉 mypy 该属性由 facade `__init__` 设置；参考 D11 `vl_flag_rendering_mixin.py` 的 `TILE_SIZE: int` / `draw_surface: Surface | None` 模式
+- **public API 100% 向后兼容**: `CampaignUIRenderer` class 名 / `__init__(ui)` / `render(surface)` 签名 / 模块路径全部不变；`campaign_ui.py` 的 `from .campaign_ui_rendering import CampaignUIRenderer` 不变；测试零修改
+- **实际结构与计划差异**: `_generate_narrative_report` 是 @staticmethod 被 `_render_report` 调用（line 85），归入 report mixin 而非 briefing（计划 §2.3 列在 briefing mixin，实际更合理的分组是 report mixin）
+- **Verification**: ruff 0 errors / mypy 0 errors (5 files) / pytest unit 4785 passed / 0 failed / 2 skipped / 13 deselected（与拆分前完全一致，零回归）
+
 ### D12 Phase 2 P0-1 大文件拆分 — infantry_pixel_renderer.py (DevSquad V3.8)
 
 - **拆分 infantry_pixel_renderer.py** (1136L → facade 205L + 4 子模块 1187L = 总 1392L): facade + 子模块函数模式，参考 terrain_tile_generator.py 拆分先例

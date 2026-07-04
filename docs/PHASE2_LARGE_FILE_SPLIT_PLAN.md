@@ -119,8 +119,8 @@
 | # | 文件 | 状态 | commit | 日期 |
 |---|------|------|--------|------|
 | 1 | terrain_tile_generator.py | ✅ 完成 | 508d016 | 2026-07-04 |
-| 2 | infantry_pixel_renderer.py | ✅ 完成 | (本 commit) | 2026-07-04 |
-| 3 | campaign_ui_rendering.py | 待启动 | - | - |
+| 2 | infantry_pixel_renderer.py | ✅ 完成 | 1f5328c | 2026-07-04 |
+| 3 | campaign_ui_rendering.py | ✅ 完成 | (本 commit) | 2026-07-04 |
 | 4 | deployment_renderer.py | 待启动 | - | - |
 
 ### 5.1 terrain_tile_generator.py 拆分实测数据 (2026-07-04)
@@ -175,3 +175,43 @@
 - ✅ 测试零修改
 - ✅ facade 205L（略超 200L 上限，因 10 方法 + re-export + docstring，可接受），最大子模块 494L < 600L 上限
 - ✅ smoke test: 6 项 public API 验证全通过（create_infantry_sprite / create_infantry_animation_sheet / InfantryAnimator / apply_wounded_overlay / pixel_artist_3d 两个 re-export / pixel_artist TerrainTileGenerator）
+
+### 5.3 campaign_ui_rendering.py 拆分实测数据 (2026-07-04)
+
+| 文件 | 计划行数 | 实测行数 | 偏差 |
+|------|----------|----------|------|
+| `campaign_ui_select_mixin.py` | ~267L | 275L | +8L |
+| `campaign_ui_briefing_mixin.py` | ~356L | 364L | +8L |
+| `campaign_ui_report_mixin.py` | ~461L | 469L | +8L |
+| `campaign_ui_supply_mixin.py` | ~42L | 50L | +8L |
+| `campaign_ui_rendering.py` facade | ~77L | 77L | 0L |
+| **总计** | ~1203L | 1235L | +32L |
+
+**行数增加原因**: 子模块文件头注释 + mixin class docstring + `_ui: CampaignUI` class-level 类型注解 + `TYPE_CHECKING` import 块。原 1118L 拆分后总 1235L，增加 117L（+10%），全部为文档与代码组织开销，无逻辑变更。
+
+**实际结构与计划差异**: `_generate_narrative_report` 是 @staticmethod 被 `_render_report` 调用（line 85），实际归入 report mixin 而非 briefing mixin（计划 §2.3 列在 briefing mixin）。这是更合理的分组：被 `_render_report` 调用的 helper 应与调用方同模块。
+
+**mixin 属性声明模式**:
+- 每个 mixin class 添加 class-level 类型注解 `_ui: CampaignUI`（无默认值）
+- `if TYPE_CHECKING:` 块声明 `from .campaign_ui import CampaignUI`
+- 参考 D11 `vl_flag_rendering_mixin.py` 的 `TILE_SIZE: int` / `draw_surface: Surface | None` 模式
+- 修复了 7 个 mypy `[attr-defined]` 错误（"CampaignUI*Mixin" has no attribute "_ui"）
+
+**跨模块依赖**:
+- 4 个 mixin 间无直接依赖，全部通过 `self._ui` 访问 CampaignUI 状态
+- facade 通过 MRO 组合所有 mixin: `CampaignUIRenderer(SelectMixin, BriefingMixin, ReportMixin, SupplyMixin)`
+
+**验证结果**:
+- ✅ ruff check . : 0 errors
+- ✅ MYPYPATH=src mypy 5 files : 0 errors (Success: no issues found in 5 source files)
+- ✅ pytest tests/unit/ -m "not slow" -p no:randomly : 4785 passed / 0 failed / 2 skipped / 13 deselected（与拆分前完全一致，零回归）
+- ✅ public API 不变（class 名 + __init__(ui) + render(surface) 签名 + 模块路径）
+- ✅ 测试零修改
+- ✅ facade 77L < 200L 上限，最大子模块 469L < 600L 上限
+
+**拆分模式对比**:
+| 文件 | 模式 | 来源参考 |
+|------|------|----------|
+| terrain_tile_generator.py | facade + 子模块函数 | D11 cc2_building_renderer.py |
+| infantry_pixel_renderer.py | facade + 子模块函数 + class re-export | terrain_tile_generator.py |
+| campaign_ui_rendering.py | facade + mixin class | D11 sprite_renderer.py + vl_flag_rendering_mixin.py |
