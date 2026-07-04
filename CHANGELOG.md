@@ -4,6 +4,26 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D12 Phase 3 P1-1 Ghost 模块清理 (DevSquad V3.8)
+
+- **删除 11 个 ghost 模块**（3900L 源代码 + 4796L 测试代码 = 总 8696L 删除）: 全部经 ASSESSMENT_D12 Phase 1 确认为 ghost（src 内无真实 import，仅测试或注释引用）
+  - `src/pycc2/presentation/rendering/infantry_renderer.py` (653L) + `tests/e2e/test_infantry_rendering_e2e.py` (252L)
+  - `src/pycc2/presentation/rendering/enhanced_pixel_artist.py` (370L)
+  - `src/pycc2/presentation/rendering/terrain_enhancer.py` (284L)
+  - `src/pycc2/presentation/rendering/debug_overlay.py` (136L)
+  - `src/pycc2/presentation/rendering/lighting_renderer.py` (95L): 保留 `ILightingRenderer` 接口（定义于 `domain/interfaces/ui_overlay_protocol.py`），仅删除 `LightingRenderer` 实现类（全仓库无 import/实例化）
+  - `src/pycc2/domain/ai/command_obedience.py` (326L) + `tests/unit/test_command_obedience.py` (430L)
+  - `src/pycc2/domain/ai/communication_system.py` (587L) + `tests/unit/test_communication_system.py` (745L)
+  - `src/pycc2/domain/ai/mg_takeover.py` (287L) + `tests/unit/test_mg_takeover.py` (470L)
+  - `src/pycc2/domain/systems/combat_config.py` (332L) + `tests/unit/test_combat_config.py` (699L)
+  - `src/pycc2/domain/systems/terrain_detail_generator.py` (597L) + `tests/unit/test_terrain_detail_generator.py` (1700L)
+  - `src/pycc2/domain/systems/unit_diversity_expansion.py` (233L) + `tests/unit/test_variant_generators.py` 部分删除（500L→184L，删除 4 个 ghost 测试类 316L，保留 2 个非 ghost 测试类 TestFactionVariantGenerator + TestVehicleVariantGenerator）
+- **特殊处理**:
+  - `lighting_renderer.py`: 保留 `ILightingRenderer` 接口（被 `game_loop.py` + `game_loop_rendering.py` 使用），仅删除 `LightingRenderer` 实现类
+  - `unit_diversity_expansion.py`: 是 facade（组合 FactionVariantGenerator + VehicleVariantGenerator），但生产代码无 import，仅 test_variant_generators.py 引用。删除源 + 删除 ghost 测试类，保留非 ghost 测试类
+  - `pixvoxel_loader.py` (1139L): scripts-only（非 ghost），保留不删
+- **Verification**: ruff 0 errors（修复 1 个 unused import `get_cc2_units`）/ mypy 0 errors (387 source files) / pytest unit 4461 passed / 0 failed / 2 skipped / 13 deselected（测试数 4785→4461，-324 全部为 ghost 测试，零回归）
+
 ### D12 Phase 2 P0-1 大文件拆分 — deployment_renderer.py (DevSquad V3.8)
 
 - **拆分 deployment_renderer.py** (1170L → facade 95L + 4 mixin 1356L = 总 1451L): facade + mixin class 模式，参考 D11 `sprite_renderer.py` + `vl_flag_rendering_mixin.py` 拆分先例（与 campaign_ui_rendering.py 同模式）
