@@ -4,6 +4,18 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D12 Phase 2 P0-1 大文件拆分 — infantry_pixel_renderer.py (DevSquad V3.8)
+
+- **拆分 infantry_pixel_renderer.py** (1136L → facade 205L + 4 子模块 1187L = 总 1392L): facade + 子模块函数模式，参考 terrain_tile_generator.py 拆分先例
+  - `infantry_sprite_generator.py` (494L): 主子模块，6 个函数 (`create_infantry_sprite` public + `apply_wounded_overlay` public + `create_infantry_animation_sheet` public + `_get_infantry_direction_params` 8方向参数表 + `_get_isometric_offset` 死代码保留 + `_anim_state_to_params`)，跨模块 import pose_drawing 的 2 个 `_draw_infantry_*_topdown`
+  - `infantry_weapon_drawing.py` (260L): 2 个函数 (`_get_weapon_position` + `_draw_infantry_weapon` 处理 8 种步兵武器类型 MG/AT/OFFICER/SNIPER/MEDIC/ENGINEER/SCOUT/default；`_draw_infantry_weapon` 为死代码但作为 private API 保留)
+  - `infantry_pose_drawing.py` (325L): 2 个函数 (`_draw_infantry_prone_topdown` 处理 5 种 prone 状态 crawl/defend/attack/sneak/hide + `_draw_infantry_death_topdown` 处理 4 帧死亡动画)
+  - `infantry_animator.py` (108L): `InfantryAnimator` class 完整迁移（4 方法 `__init__` / `state` property / `update` / `reset`，状态管理 IDLE/WALK_1/WALK_2/SHOOT/PRONE/DIE_1/DIE_2/DEAD）
+  - `infantry_pixel_renderer.py` (205L): facade class `InfantryPixelRenderer`，10 个 `@staticmethod` 保留原始签名全部转发到子模块；`InfantryAnimator` 从 `infantry_animator` re-export
+- **public API 100% 向后兼容**: `InfantryPixelRenderer` / `InfantryAnimator` class 名 / 10 个方法签名 / 模块路径全部不变；`pixel_artist_3d.py` 的两个 re-export 不变；测试零修改
+- **跨模块依赖**: `infantry_sprite_generator` → `infantry_pose_drawing` 单向依赖（调用 2 个 `_draw_infantry_*_topdown`），无循环 import
+- **Verification**: ruff 0 errors（修复 6 个：2 I001 import 排序 + 2 UP037 type annotation 引号 + 2 F401 pygame 未使用）/ mypy 0 errors (5 files) / pytest unit 4785 passed / 0 failed / 2 skipped / 13 deselected（与拆分前完全一致，零回归）
+
 ### D12 Phase 2 P0-1 大文件拆分 — terrain_tile_generator.py (DevSquad V3.8)
 
 - **拆分 terrain_tile_generator.py** (1324L → facade 138L + 4 子模块 1424L = 总 1562L): facade + 子模块函数模式，参考 D11 `cc2_building_renderer.py` 拆分先例

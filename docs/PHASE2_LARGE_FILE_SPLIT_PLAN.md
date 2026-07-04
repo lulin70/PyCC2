@@ -118,8 +118,8 @@
 
 | # | 文件 | 状态 | commit | 日期 |
 |---|------|------|--------|------|
-| 1 | terrain_tile_generator.py | ✅ 完成 | (本 commit) | 2026-07-04 |
-| 2 | infantry_pixel_renderer.py | 待启动 | - | - |
+| 1 | terrain_tile_generator.py | ✅ 完成 | 508d016 | 2026-07-04 |
+| 2 | infantry_pixel_renderer.py | ✅ 完成 | (本 commit) | 2026-07-04 |
 | 3 | campaign_ui_rendering.py | 待启动 | - | - |
 | 4 | deployment_renderer.py | 待启动 | - | - |
 
@@ -143,3 +143,35 @@
 - ✅ public API 不变（class 名 + 19 个方法签名 + 模块路径）
 - ✅ 测试零修改
 - ✅ facade 138L < 200L 上限，最大子模块 523L < 600L 上限
+
+### 5.2 infantry_pixel_renderer.py 拆分实测数据 (2026-07-04)
+
+| 文件 | 计划行数 | 实测行数 | 偏差 |
+|------|----------|----------|------|
+| `infantry_sprite_generator.py` | ~400L | 494L | +94L |
+| `infantry_weapon_drawing.py` | ~250L | 260L | +10L |
+| `infantry_pose_drawing.py` | ~300L | 325L | +25L |
+| `infantry_animator.py` | ~100L | 108L | +8L |
+| `infantry_pixel_renderer.py` facade | ~150L | 205L | +55L |
+| **总计** | ~1200L | 1392L | +192L |
+
+**行数增加原因**: 子模块文件头注释 + 每个函数添加 Args/Returns docstring + facade class 完整 docstring + import 块 + 死代码保留（`_draw_infantry_weapon` + `_get_isometric_offset`）。原 1136L 拆分后总 1392L，增加 256L（+23%），全部为文档与代码组织开销，无逻辑变更。
+
+**实际结构与计划差异**: 计划 §2.2 列 9 个 @staticmethod，实际 10 个（漏列 `create_infantry_animation_sheet`）。facade 205L 略超 200L 上限（因 10 个方法签名 + InfantryAnimator re-export + 完整 docstring），可接受。
+
+**跨模块依赖**:
+- `infantry_sprite_generator` → `infantry_pose_drawing`（单向，调用 `_draw_infantry_prone_topdown` + `_draw_infantry_death_topdown`）
+- 无循环 import
+
+**死代码保留策略**:
+- `_draw_infantry_weapon` (weapon_drawing): 原文件中定义但从未被调用，作为 private API 保留
+- `_get_isometric_offset` (sprite_generator): 同上
+
+**验证结果**:
+- ✅ ruff check . : 0 errors（修复 6 个：2 I001 import 排序 + 2 UP037 type annotation 引号 + 2 F401 pygame TYPE_CHECKING 未使用）
+- ✅ MYPYPATH=src mypy 5 files : 0 errors
+- ✅ pytest tests/unit/ -m "not slow" -p no:randomly : 4785 passed / 0 failed / 2 skipped / 13 deselected（与拆分前完全一致）
+- ✅ public API 不变（class 名 + 10 个方法签名 + 模块路径 + pixel_artist_3d.py re-export）
+- ✅ 测试零修改
+- ✅ facade 205L（略超 200L 上限，因 10 方法 + re-export + docstring，可接受），最大子模块 494L < 600L 上限
+- ✅ smoke test: 6 项 public API 验证全通过（create_infantry_sprite / create_infantry_animation_sheet / InfantryAnimator / apply_wounded_overlay / pixel_artist_3d 两个 re-export / pixel_artist TerrainTileGenerator）
