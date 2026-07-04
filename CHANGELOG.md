@@ -4,6 +4,17 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D12 Phase 2 P0-1 大文件拆分 — terrain_tile_generator.py (DevSquad V3.8)
+
+- **拆分 terrain_tile_generator.py** (1324L → facade 138L + 4 子模块 1424L = 总 1562L): facade + 子模块函数模式，参考 D11 `cc2_building_renderer.py` 拆分先例
+  - `terrain_tiles_natural.py` (523L): 10 个自然地形函数 (grass/woods/water/open/shallow/rough/swamp/mud/sand/snow)，内部跨调用 `generate_open/shallow/rough` 直接调用同模块 `generate_grass`
+  - `terrain_tiles_road.py` (338L): 1 个道路函数 `generate_road`（含完整 horizontal/vertical 邻居方向逻辑 + 轮胎痕迹 + 碎石颗粒 + 裂缝纹理）
+  - `terrain_tiles_structures.py` (414L): 5 个人工建筑函数 (building/bridge/hedge/wall/bunker)
+  - `terrain_tiles_battlefield.py` (149L): 3 个战场函数 (crater/wire/trench)，`generate_wire` 跨模块 import `from .terrain_tiles_natural import generate_grass`
+  - `terrain_tile_generator.py` (138L): facade class `TerrainTileGenerator`，19 个 `@staticmethod` 保留原始签名，全部转发到子模块函数
+- **public API 100% 向后兼容**: `TerrainTileGenerator` class 名 / 19 个 `generate_*` 方法签名 / 模块路径全部不变；`pixel_artist.py` re-export 不变；测试零修改
+- **Verification**: ruff 0 errors / mypy 0 errors (5 files) / pytest unit 4785 passed / 0 failed / 2 skipped / 13 deselected（与拆分前完全一致，零回归）
+
 ### D12 Phase 1 快速清理 — 文档口径统一 + ghost 模块确认 (DevSquad V3.8)
 
 - **P1-8 三语 README 测试数同步**: README.md / README_ja.md / README_zh.md 末尾"最后更新"行统一为 `2026-07-04 | Tests: 4785 passed / 2 skipped`（旧值 `4424 collected / 4398 passed` 为 D9 旧数据）。
