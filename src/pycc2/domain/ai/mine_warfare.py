@@ -453,7 +453,7 @@ class MineWarfareSystem:
         if combat_state is not None:
             suppression = getattr(combat_state, "suppression", None)
             if suppression is not None:
-                suppression.add_suppression(MINE_TRIGGER_SUPPRESSION)
+                suppression.apply_suppression(float(MINE_TRIGGER_SUPPRESSION))
 
         mine.active = False
 

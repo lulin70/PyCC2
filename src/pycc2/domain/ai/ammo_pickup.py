@@ -147,7 +147,7 @@ class FallenUnitCache:
 
             # Check if there's anything left to scavenge
             remaining_ammo = entry.ammo_remaining - entry.ammo_claimed
-            if remaining_ammo <= 0 and not entry.weapon_claimed:
+            if remaining_ammo <= 0 and entry.weapon_claimed:
                 continue
 
             # Set the correct source type for the seeker
@@ -417,26 +417,25 @@ class AmmoPickupSystem:
           - Weapon marked as "captured" in unit's weapon component
         """
         available = source.ammo_remaining - source.ammo_claimed
-        if available <= 0:
-            return
 
-        # Transfer all remaining ammo (capped at unit's max)
-        space = unit.weapon.max_ammo - unit.weapon.ammo_remaining
-        transfer = min(available, space)
+        if available > 0:
+            # Transfer all remaining ammo (capped at unit's max)
+            space = unit.weapon.max_ammo - unit.weapon.ammo_remaining
+            transfer = min(available, space)
 
-        if transfer > 0:
-            unit.weapon.ammo_remaining += transfer
-            self.fallen_cache.claim_ammo(source.unit_id, transfer)
-            self.fallen_cache.claim_weapon(source.unit_id)
-            # Update weapon state
-            if unit.weapon.state == WeaponState.OUT_OF_AMMO and unit.weapon.ammo_remaining > 0:
-                unit.weapon.state = WeaponState.READY
-                unit.weapon._update_state()
-            logger.debug(
-                f"Unit {unit.id} picked up {transfer} ammo from enemy corpse {source.unit_id}"
-            )
+            if transfer > 0:
+                unit.weapon.ammo_remaining += transfer
+                self.fallen_cache.claim_ammo(source.unit_id, transfer)
+                self.fallen_cache.claim_weapon(source.unit_id)
+                # Update weapon state
+                if unit.weapon.state == WeaponState.OUT_OF_AMMO and unit.weapon.ammo_remaining > 0:
+                    unit.weapon.state = WeaponState.READY
+                    unit.weapon._update_state()
+                logger.debug(
+                    f"Unit {unit.id} picked up {transfer} ammo from enemy corpse {source.unit_id}"
+                )
 
-        # Mark weapon as captured — store in combat_state or weapon metadata
+        # Mark weapon as captured — always, even if no ammo was left to scavenge
         self._mark_weapon_captured(unit)
 
     def _mark_weapon_captured(self, unit: Unit) -> None:

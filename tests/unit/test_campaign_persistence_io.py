@@ -921,26 +921,40 @@ class TestCampaignPersistenceManager:
 
 
 class _FakeHealthComponent:
-    """Lightweight fake health component with settable current_hp.
+    """Lightweight fake health component matching the real HealthComponent API.
 
-    The real HealthComponent.current_hp is a read-only property, which is a
-    source-code bug documented in TestApplyInheritanceBugs.
+    Mirrors the real component's writable ``hp`` field and ``_update_state()``
+    hook so tests exercise the same code path as production. ``current_hp`` is
+    exposed as a read-only alias for backward-compatible assertions.
     """
 
     def __init__(self, max_hp: float = 100.0, current_hp: float | None = None) -> None:
         self.max_hp = max_hp
-        self.current_hp = current_hp if current_hp is not None else max_hp
+        self.hp = current_hp if current_hp is not None else max_hp
+
+    @property
+    def current_hp(self) -> float:
+        return self.hp
+
+    def _update_state(self) -> None:
+        # Real component refreshes a HealthState enum here; the fake only needs
+        # to accept the call so apply_inheritance_to_units can invoke it.
+        return None
 
 
 class _FakeMoraleComponent:
-    """Lightweight fake morale component with settable current_morale.
+    """Lightweight fake morale component matching the real MoraleComponent API.
 
-    The real MoraleComponent uses 'value' not 'current_morale', which is a
-    source-code bug documented in TestApplyInheritanceBugs.
+    Mirrors the real component's writable ``value`` field. ``current_morale`` is
+    exposed as a read-only alias for backward-compatible assertions.
     """
 
     def __init__(self, current_morale: float = 100.0) -> None:
-        self.current_morale = current_morale
+        self.value: int = int(current_morale)
+
+    @property
+    def current_morale(self) -> float:
+        return float(self.value)
 
 
 class _FakeWeaponComponent:
@@ -963,17 +977,22 @@ class _FakeVeterancyComponent:
 
 
 class _FakeStateMachine:
-    """Lightweight fake state machine with force_state method.
+    """Lightweight fake state machine matching the real StateMachine API.
 
-    The real StateMachine has force_transition (not force_state), which is a
-    source-code bug documented in TestApplyInheritanceBugs.
+    Mirrors the real component's ``force_transition(target)`` method so tests
+    exercise the same code path as production. ``force_state`` is retained as a
+    backward-compatible alias.
     """
 
     def __init__(self) -> None:
         self.current: str = "IDLE"
 
-    def force_state(self, state: Any) -> None:
+    def force_transition(self, state: Any) -> None:
         self.current = state.name if hasattr(state, "name") else str(state)
+
+    def force_state(self, state: Any) -> None:
+        # Backward-compatible alias; prefer force_transition in new tests.
+        self.force_transition(state)
 
 
 class _FakeUnit:
@@ -1368,16 +1387,11 @@ class TestApplyInheritanceBugs:
         with pytest.raises(AttributeError):
             sm.force_state(UnitState.DEAD)  # type: ignore[attr-defined]
 
-    def test_battle_outcome_not_reconstructed_after_load(self, tmp_path: Path):
-        """Document that BattleOutcome becomes a string after save/load.
-
-        Bug: load_campaign_progress does not convert the outcome field back
-        to a BattleOutcome enum. The saved JSON contains the enum's str()
-        representation (e.g., "BattleOutcome.ALLIED_VICTORY"), and load
-        passes it as-is to the BattleResult constructor.
+    def test_battle_outcome_reconstructed_after_load(self, tmp_path: Path):
+        """Verify BattleOutcome is reconstructed as an enum after save/load.
 
         Scenario: Save a BattleResult with ALLIED_VICTORY, load it back.
-        Expected: loaded outcome is a str, NOT a BattleOutcome enum.
+        Expected: loaded outcome is a BattleOutcome enum equal to ALLIED_VICTORY.
         """
         mgr = CampaignPersistenceManager(base_dir=tmp_path)
         br = BattleResult(
@@ -1394,9 +1408,8 @@ class TestApplyInheritanceBugs:
         loaded = mgr.load_campaign_progress("c1")
         assert loaded is not None
         loaded_outcome = loaded.battle_results[0].outcome
-        # ACTUAL behavior: outcome is a string, not the enum
-        assert not isinstance(loaded_outcome, BattleOutcome)
-        assert loaded_outcome != BattleOutcome.ALLIED_VICTORY
+        assert isinstance(loaded_outcome, BattleOutcome)
+        assert loaded_outcome == BattleOutcome.ALLIED_VICTORY
 
 
 # ========================================================================
@@ -1546,14 +1559,9 @@ class TestCampaignPersistenceIntegration:
     def test_reinforcement_bonus_after_save_load(self, tmp_path: Path):
         """Verify reinforcement bonus calculation after save/load.
 
-        NOTE: After save/load, BattleOutcome enum values become strings
-        (e.g., "BattleOutcome.ALLIED_VICTORY") because asdict() serializes
-        enums to their repr, and load_campaign_progress does not reconstruct
-        the enum. This is a source-code bug in load_campaign_progress.
-
-        As a result, calculate_reinforcement_bonus() falls through to the
-        else branch (50 base for both sides) instead of the victory branch.
-        This test documents the ACTUAL behavior (the bug), not the ideal.
+        After save/load, BattleOutcome enum values are properly reconstructed
+        by load_campaign_progress, so calculate_reinforcement_bonus() reaches
+        the correct victory branch.
 
         Integration: Save/load then calculate bonus.
         """
@@ -1580,11 +1588,10 @@ class TestCampaignPersistenceIntegration:
         loaded = mgr.load_campaign_progress("c1")
         assert loaded is not None
 
-        # After load: outcome is a string, not enum, so falls to else branch
-        # ACTUAL: both get 50 base + survival (8/10*50=40, 4/10*50=20)
+        # After load: outcome is reconstructed as enum, so victory branch runs
         bonus = loaded.calculate_reinforcement_bonus()
-        assert bonus["allies"] == 50 + 40  # 90 (not 140)
-        assert bonus["axis"] == 50 + 20  # 70 (not 45)
+        assert bonus["allies"] == 140  # 100 (victory) + 40 (survival 8/10*50)
+        assert bonus["axis"] == 45  # 25 (defeat) + 20 (survival 4/10*50)
 
     def test_multiple_saves_isolated(self, tmp_path: Path):
         """Verify multiple campaigns can be saved without interference.

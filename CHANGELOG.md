@@ -4,6 +4,29 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D12 P0 源码 bug 修复 — 12 个文档化 bug 全部修复 (DevSquad V3.8)
+
+- **修复 12 个在覆盖率提升过程中文档化的源码 bug** (Iron Rule 2: 失败要报告 → 修复源码而非测试):
+  - `mine_warfare.py:456` `_trigger_mine` 调用不存在的 `add_suppression` → `apply_suppression(float(...))` (Bug 1)
+  - `campaign_persistence.py:294` `HealthComponent.current_hp` 是只读 property → 改用 `hp` 字段 + `_update_state()` (Bug 2)
+  - `campaign_persistence.py:298` `MoraleComponent` 字段名 `current_morale` → `value` (Bug 3)
+  - `campaign_persistence.py:314` 死亡单位 `current_hp = 0` → `hp = 0` + `_update_state()` (Bug 4)
+  - `campaign_persistence.py:319` `StateMachine.force_state` → `force_transition` (Bug 5)
+  - `ammo_pickup.py:150` `find_sources_near` 过滤逻辑反转 `not entry.weapon_claimed` → `entry.weapon_claimed` (Bug 6)
+  - `ammo_pickup.py:419-440` `_apply_enemy_pickup` 提前返回阻止武器捕获 → 移除 early return，`_mark_weapon_captured` 始终执行 (Bug 7)
+  - `engineer_assault.py:196-219` `execute()` 死亡工程师清理循环在早返回之后 → 移到早返回之前 (Bug 8)
+  - `campaign_persistence.py:245-254` `load_campaign_progress` 不重建 BattleOutcome 枚举 → 添加枚举重建逻辑 (Bug 9)
+  - `terrain_detail_generator.py` `_value_noise` 负坐标 `int()` 截断超出 [0,1] → 改用 `math.floor` (Bug 10)
+  - `terrain_detail_generator.py` `_place_decorations` 噪声尺度致小地图装饰为死代码 → 移除多余 scale 参数 (Bug 11)
+  - `terrain_detail_generator.py` `batch_enhance_maps` 不创建输出目录 → 添加 `mkdir(parents=True, exist_ok=True)` (Bug 12)
+- **测试断言更新**: 将文档化 bug 行为的测试改为断言修复后的正确行为:
+  - `test_ammo_pickup.py`: `test_find_sources_filters_no_ammo_unclaimed_weapon` → `test_find_sources_keeps_no_ammo_unclaimed_weapon`; `test_enemy_no_ammo_available_does_nothing` → `test_enemy_no_ammo_available_captures_weapon_only`
+  - `test_engineer_assault.py`: 2 个 `_source_bug` 测试改为 `_removes_assault_for_dead_engineer` / `_removes_assault_when_engineer_not_found`
+  - `test_campaign_persistence_io.py`: Fake 组件 API 更新匹配真实组件 (`hp`/`_update_state()`/`value`/`force_transition`); `test_battle_outcome_not_reconstructed` → `test_battle_outcome_reconstructed`; reinforcement_bonus 断言改为正确值
+  - `test_mine_warfare.py`: 移除 `bypass add_suppression bug` 注释，改为 `isolate from suppression side-effect`
+  - `test_terrain_detail_generator.py`: 3 个文档化 bug 测试改为断言正确行为 (`_small_map_can_place_decorations` / `_negative_coordinates_stay_in_unit_range` / `_creates_missing_output_dir`)
+- **Verification**: ruff 0 errors / pytest 4785 passed / 0 failed / 2 skipped / 13 deselected
+
 ### D12 P0-9 覆盖率提升第三批 — 覆盖率达标 60% (DevSquad V3.8)
 
 - **8 个低覆盖率模块补测试** (7 新增 + 1 快速补丁，共 579 tests):

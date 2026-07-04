@@ -532,23 +532,13 @@ class TestExecuteStartNew:
         ai.execute(ctx)
         assert len(ai.active_assaults) == 1
 
-    def test_execute_does_not_remove_assault_for_dead_engineer_source_bug(self):
-        """Verify: execute does NOT remove an assault when the engineer is dead (SOURCE BUG).
+    def test_execute_removes_assault_for_dead_engineer(self):
+        """Verify: execute removes an assault when the engineer is dead.
 
         Scenario: Engineer has an active assault, then dies. Call execute.
-        Expected (actual behavior): Assault remains in _assaults because execute()
-        early-returns when _find_engineers() returns empty (filters by is_alive),
-        so the cleanup loop at lines 208-212 is never reached.
-
-        SOURCE BUG DOCUMENTATION (Iron Rule 2):
-        - Root cause: execute() checks `if not engineers or not fortified: return []`
-          BEFORE the cleanup loop that removes dead engineers' assaults.
-        - When the engineer dies, _find_engineers() returns [] (filters by is_alive),
-          triggering the early return, so the cleanup loop never runs.
-        - Impact: Dead engineers' assaults persist in _assaults indefinitely,
-          causing stale state and potential memory growth in long battles.
-        - Recommended fix: Move the cleanup loop BEFORE the early-return check,
-          or perform cleanup in a separate method called at the start of execute().
+        Expected: Assault is removed from _assaults because the cleanup loop
+        runs before the early-return guard, so dead engineers' assaults are
+        purged even when no new assaults can be started.
         """
         ai = EngineerAssaultAI()
         eng = _make_unit("eng", unit_type=UnitType.AT_GUN_TEAM, x=10, y=10)
@@ -561,25 +551,18 @@ class TestExecuteStartNew:
 
         _kill_unit(eng)
         intents = ai.execute(ctx)
-        # BUG: assault is NOT removed because early return prevents cleanup
-        assert len(ai.active_assaults) == 1
-        # BUG: no intents returned because early return
+        # Cleanup loop removes the dead engineer's assault before early return
+        assert len(ai.active_assaults) == 0
+        # No intents returned because no engineers or fortified enemies remain
         assert intents == []
 
-    def test_execute_does_not_remove_assault_when_engineer_not_found_source_bug(self):
-        """Verify: execute does NOT remove assault when engineer missing from friendly list (SOURCE BUG).
+    def test_execute_removes_assault_when_engineer_not_found(self):
+        """Verify: execute removes assault when engineer missing from friendly list.
 
         Scenario: Engineer has an assault, then is removed from friendly_units.
-        Expected (actual behavior): Assault remains in _assaults because execute()
-        early-returns when _find_engineers() returns empty (no engineers in list),
-        so the cleanup loop at lines 208-212 is never reached.
-
-        SOURCE BUG DOCUMENTATION (Iron Rule 2):
-        - Same root cause as test_execute_does_not_remove_assault_for_dead_engineer_source_bug:
-          the early-return guard `if not engineers or not fortified: return []` runs
-          before the cleanup loop that would remove assaults for missing engineers.
-        - When friendly_units no longer contains the engineer, _find_engineers()
-          returns [], triggering early return, so cleanup never runs.
+        Expected: Assault is removed from _assaults because the cleanup loop
+        runs before the early-return guard, treating missing engineers the
+        same as dead ones.
         """
         ai = EngineerAssaultAI()
         eng = _make_unit("eng", unit_type=UnitType.AT_GUN_TEAM, x=10, y=10)
@@ -593,9 +576,9 @@ class TestExecuteStartNew:
         # Remove engineer from friendly list
         ctx_no_eng = _make_context(friendly=[], enemy=enemy, game_map=game_map)
         intents = ai.execute(ctx_no_eng)
-        # BUG: assault is NOT removed because early return prevents cleanup
-        assert len(ai.active_assaults) == 1
-        # BUG: no intents returned because early return
+        # Cleanup loop removes the missing engineer's assault before early return
+        assert len(ai.active_assaults) == 0
+        # No intents returned because no engineers or fortified enemies remain
         assert intents == []
 
     def test_execute_assigns_multiple_engineers_to_different_targets(self):

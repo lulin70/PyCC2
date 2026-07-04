@@ -868,15 +868,8 @@ class TestPlaceDecorations:
     def test_place_decorations_on_grass(self):
         """Verify grass tiles can receive decorations on a sufficiently large map.
 
-        NOTE: The internal noise scale (scale=0.08 applied to x*0.15) makes
-        effective coordinates x*0.012, so on maps smaller than ~84 tiles wide
-        all tiles hash to the same grid point (0,0), producing nearly identical
-        noise values (~0.92 with seed=42) that exceed all density thresholds.
-        This means _place_decorations returns 0 for small maps. A 100x100 map
-        is used here so noise varies enough to trigger placement.
-
         Scenario: 100x100 grass map with default config.
-        Expected: At least some decorations placed (83 with seed=42).
+        Expected: At least some decorations placed.
         """
         gen = TerrainDetailGenerator(seed=42)
         tiles = [[EnhancedTile(base_terrain=0) for _ in range(100)] for _ in range(100)]
@@ -884,25 +877,17 @@ class TestPlaceDecorations:
         count = gen._place_decorations(tiles, 100, 100, biome_map)
         assert count > 0
 
-    def test_place_decorations_small_map_returns_zero_due_to_noise_scale(self):
-        """Document that small maps get zero decorations due to noise scale.
+    def test_place_decorations_small_map_can_place_decorations(self):
+        """Verify small maps can still place decorations after noise scale fix.
 
-        SOURCE ISSUE: The noise coordinate scaling (x*0.15 passed to
-        _value_noise with scale=0.08 → effective x*0.012) means all tiles on
-        maps smaller than ~84x84 hash to the same grid point, producing
-        uniform noise ~0.92 that exceeds all density thresholds. This makes
-        decoration placement effectively dead code for typical-sized maps.
-
-        This test documents the ACTUAL behavior (not a bug fix).
-
-        Boundary: Small map (15x15) with default config.
-        Expected: 0 decorations placed (noise too uniform).
+        Scenario: 15x15 grass map with default config.
+        Expected: At least one decoration placed (noise varies across tiles).
         """
         gen = TerrainDetailGenerator(seed=42)
         tiles = [[EnhancedTile(base_terrain=0) for _ in range(15)] for _ in range(15)]
         biome_map = gen._generate_biome_map(tiles, 15, 15)
         count = gen._place_decorations(tiles, 15, 15, biome_map)
-        assert count == 0
+        assert count > 0
 
     def test_place_decorations_max_per_tile(self):
         """Verify no tile exceeds max_decorations_per_tile.
@@ -1253,13 +1238,6 @@ class TestValueNoise:
     def test_returns_float_in_unit_range(self):
         """Verify noise output is in [0, 1] for non-negative coordinates.
 
-        NOTE: _value_noise uses int() which truncates toward zero. For
-        negative coordinates this produces negative fractional parts, causing
-        the smoothstep weight to exceed [0,1] and the interpolated result to
-        fall outside [0,1]. This test only samples non-negative coordinates
-        where the output stays in [0, 1]. The negative-coordinate behavior is
-        documented in test_negative_coordinates_exceed_unit_range.
-
         Happy Path: Sample many non-negative points and check range.
         Expected: All values in [0.0, 1.0].
         """
@@ -1271,18 +1249,12 @@ class TestValueNoise:
             assert isinstance(val, float)
             assert 0.0 <= val <= 1.0
 
-    def test_negative_coordinates_exceed_unit_range(self):
-        """Document that negative coordinates can produce out-of-range values.
+    def test_negative_coordinates_stay_in_unit_range(self):
+        """Verify negative coordinates produce values in [0, 1].
 
-        SOURCE ISSUE: int() truncates toward zero, so for negative inputs
-        the fractional part (xf = x - int(x)) is negative. The smoothstep
-        xf*xf*(3-2*xf) then yields weights outside [0,1], and bilinear
-        interpolation produces values outside [0,1]. This is a limitation
-        of the implementation, not a crash.
-
-        This test documents the ACTUAL behavior (not a bug fix).
         Boundary: Negative coordinates.
-        Expected: Some values fall outside [0.0, 1.0].
+        Expected: All values in [0.0, 1.0] (math.floor yields correct
+                  fractional parts in [0, 1) for negative inputs).
         """
         gen = TerrainDetailGenerator(seed=42)
         out_of_range_count = 0
@@ -1292,7 +1264,7 @@ class TestValueNoise:
             val = gen._value_noise(x, y)
             if val < 0.0 or val > 1.0:
                 out_of_range_count += 1
-        assert out_of_range_count > 0
+        assert out_of_range_count == 0
 
     def test_deterministic_with_seed(self):
         """Verify same seed produces same noise values.
@@ -1400,17 +1372,11 @@ class TestBatchEnhanceMaps:
     def test_batch_process_writes_output(self, tmp_path: Path):
         """Verify batch processing writes enhanced maps to output dir.
 
-        NOTE: batch_enhance_maps does NOT create the output directory; it
-        opens the output file directly. If the directory does not exist,
-        the open() call raises OSError which is caught and logged as an
-        error (the file is silently skipped). The test pre-creates the
-        output directory to match the expected usage pattern.
-
         Scenario: Process maps, write to separate output dir (pre-created).
         Expected: Output files exist with enhanced data.
         """
         out_dir = tmp_path / "output"
-        out_dir.mkdir()  # batch_enhance_maps does not create output dir
+        out_dir.mkdir()
         map_data = _make_map_data(width=3, height=3, terrain_id=0, map_id="m1")
         with open(tmp_path / "m1.json", "w") as f:
             json.dump(map_data, f)
@@ -1422,27 +1388,23 @@ class TestBatchEnhanceMaps:
             enhanced = json.load(f)
         assert enhanced.get("_detail_generated") is True
 
-    def test_batch_process_missing_output_dir_silently_skips(self, tmp_path: Path):
-        """Document that batch processing skips files when output dir is missing.
+    def test_batch_process_creates_missing_output_dir(self, tmp_path: Path):
+        """Verify batch processing creates the output directory if missing.
 
-        SOURCE ISSUE: batch_enhance_maps does not create the output directory.
-        When output_dir does not exist, open(out_file, 'w') raises OSError,
-        which is caught and logged. The file is skipped without a clear error
-        to the caller. The results dict records an error entry for that map.
-
-        This test documents the ACTUAL behavior (not a bug fix).
-        Error Case: Non-existent output directory.
-        Expected: processed=0, map entry has 'error' key, no file written.
+        Scenario: Output dir does not exist; batch_enhance_maps should create
+        it and process maps successfully.
+        Expected: processed=1, no error entry, output file written.
         """
-        out_dir = tmp_path / "nonexistent"  # NOT created
+        out_dir = tmp_path / "nonexistent"  # NOT pre-created
         map_data = _make_map_data(width=3, height=3, terrain_id=0, map_id="m1")
         with open(tmp_path / "m1.json", "w") as f:
             json.dump(map_data, f)
 
         results = batch_enhance_maps(str(tmp_path), output_dir=str(out_dir), seed=42)
-        assert results["processed"] == 0
+        assert results["processed"] == 1
         assert "m1" in results["maps"]
-        assert "error" in results["maps"]["m1"]
+        assert "error" not in results["maps"]["m1"]
+        assert (out_dir / "m1.json").exists()
 
     def test_batch_process_overwrites_input(self, tmp_path: Path):
         """Verify batch processing overwrites input when no output_dir.

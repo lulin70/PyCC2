@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import random
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -293,8 +294,11 @@ class TerrainDetailGenerator:
                 if not possible_decos:
                     continue
 
-                # Use noise to determine placement probability
-                placement_noise = self._value_noise(x * 0.15, y * 0.15, scale=0.08)
+                # Use noise to determine placement probability. Pass scale=1.0
+                # because x and y are already pre-scaled by 0.15; an additional
+                # inner scale of 0.08 collapsed small maps onto a single noise
+                # grid cell, making decoration placement effectively constant.
+                placement_noise = self._value_noise(x * 0.15, y * 0.15, scale=1.0)
 
                 for deco_type, density in possible_decos:
                     if budget_remaining <= 0:
@@ -488,8 +492,11 @@ class TerrainDetailGenerator:
 
         Returns value in [0, 1] range.
         """
-        xi = int(x * scale)
-        yi = int(y * scale)
+        # Use math.floor instead of int() so negative coordinates yield a
+        # fractional part in [0, 1) rather than a negative value, which would
+        # push the smoothstep interpolation (and the return value) outside [0, 1].
+        xi = math.floor(x * scale)
+        yi = math.floor(y * scale)
         xf = (x * scale) - xi
         yf = (y * scale) - yi
 
@@ -534,6 +541,9 @@ def batch_enhance_maps(
     """
     in_path = Path(input_dir)
     out_path = Path(output_dir) if output_dir else in_path
+    # Ensure the output directory exists so that writing enhanced map files
+    # does not fail when callers pass a non-existent output_dir.
+    out_path.mkdir(parents=True, exist_ok=True)
 
     generator = TerrainDetailGenerator(seed=seed, config=config)
 

@@ -616,15 +616,15 @@ class TestMineWarfareSystemDefusing:
         """Verify: defusal detonation applies damage to the engineer.
         Scenario: Engineer defuses, detonation occurs (10% chance).
         Expected: Unit takes damage, mine is deactivated.
-        Note: combat_state set to None to bypass _trigger_mine suppression bug
-              (source calls suppression.add_suppression() but SuppressionState
-              only has apply_suppression()).
+        Note: combat_state set to None to isolate damage and deactivation
+              assertions from the suppression side-effect (which is exercised
+              by dedicated suppression tests).
         """
         for seed in range(500):
             random.seed(seed)
             system = MineWarfareSystem()
             eng = _make_unit("eng", x=5, y=5, hp=100, max_hp=100)
-            eng.combat_state = None  # bypass add_suppression bug in _trigger_mine
+            eng.combat_state = None  # isolate from suppression side-effect
             mine = Mine(
                 mine_type=MineType.AP_MINE,
                 position=TileCoord(5, 6),
@@ -693,9 +693,9 @@ class TestMineWarfareSystemTrigger:
         """Verify: AT mine trigger applies 80 damage to a tank.
         Scenario: ALLIES tank moves onto an AXIS AT mine, trigger succeeds.
         Expected: Tank takes 80 damage, mine is deactivated.
-        Note: combat_state set to None to bypass _trigger_mine suppression bug
-              (source calls suppression.add_suppression() but SuppressionState
-              only has apply_suppression()).
+        Note: combat_state set to None to isolate damage and deactivation
+              assertions from the suppression side-effect (which is exercised
+              by dedicated suppression tests).
         """
         for seed in range(50):
             random.seed(seed)
@@ -709,7 +709,7 @@ class TestMineWarfareSystemTrigger:
                 hp=100,
                 max_hp=100,
             )
-            tank.combat_state = None  # bypass add_suppression bug in _trigger_mine
+            tank.combat_state = None  # isolate from suppression side-effect
             mine = Mine(
                 mine_type=MineType.AT_MINE,
                 position=TileCoord(5, 5),
@@ -728,9 +728,9 @@ class TestMineWarfareSystemTrigger:
         """Verify: AP mine trigger applies 30 damage to infantry.
         Scenario: ALLIES infantry moves onto an AXIS AP mine, trigger succeeds.
         Expected: Infantry takes 30 damage, mine is deactivated.
-        Note: combat_state set to None to bypass _trigger_mine suppression bug
-              (source calls suppression.add_suppression() but SuppressionState
-              only has apply_suppression()).
+        Note: combat_state set to None to isolate damage and deactivation
+              assertions from the suppression side-effect (which is exercised
+              by dedicated suppression tests).
         """
         for seed in range(50):
             random.seed(seed)
@@ -744,7 +744,7 @@ class TestMineWarfareSystemTrigger:
                 hp=100,
                 max_hp=100,
             )
-            inf.combat_state = None  # bypass add_suppression bug in _trigger_mine
+            inf.combat_state = None  # isolate from suppression side-effect
             mine = Mine(
                 mine_type=MineType.AP_MINE,
                 position=TileCoord(5, 5),
@@ -763,14 +763,14 @@ class TestMineWarfareSystemTrigger:
         """Verify: a triggered mine cannot trigger again.
         Scenario: Tank triggers AT mine, another tank moves onto same tile.
         Expected: Second check_trigger returns None (mine already consumed).
-        Note: combat_state set to None to bypass _trigger_mine suppression bug
-              (source calls suppression.add_suppression() but SuppressionState
-              only has apply_suppression()).
+        Note: combat_state set to None to isolate damage and deactivation
+              assertions from the suppression side-effect (which is exercised
+              by dedicated suppression tests).
         """
         random.seed(0)
         system = MineWarfareSystem()
         tank1 = _make_unit("t1", faction=Faction.ALLIES, unit_type=UnitType.TANK, x=5, y=5)
-        tank1.combat_state = None  # bypass add_suppression bug in _trigger_mine
+        tank1.combat_state = None  # isolate from suppression side-effect
         mine = Mine(
             mine_type=MineType.AT_MINE,
             position=TileCoord(5, 5),
@@ -786,7 +786,7 @@ class TestMineWarfareSystemTrigger:
                 # Mine triggered — now verify it can't trigger again
                 assert mine.active is False
                 tank2 = _make_unit("t2", faction=Faction.ALLIES, unit_type=UnitType.TANK, x=5, y=5)
-                tank2.combat_state = None  # bypass add_suppression bug in _trigger_mine
+                tank2.combat_state = None  # isolate from suppression side-effect
                 assert system.check_trigger(tank2, TileCoord(5, 5)) is None
                 return
         raise AssertionError("Mine never triggered in 20 attempts")

@@ -198,13 +198,11 @@ class EngineerAssaultAI(TacticalAIBase):
         engineers = self._find_engineers(context)
         fortified = self._find_fortified_enemies(context)
 
-        if not engineers or not fortified:
-            return []
-
         intents: list[TacticIntent] = []
         assigned: set[str] = set()
 
-        # Continue existing assaults
+        # Clean up assaults for dead/missing engineers (before early return
+        # so that dead engineers are removed even when no new assaults are possible)
         for eng_id, state in list(self._assaults.items()):
             engineer = self._find_unit(eng_id, context.friendly_units)
             if engineer is None or not engineer.is_alive:
@@ -216,6 +214,9 @@ class EngineerAssaultAI(TacticalAIBase):
             intent = self._advance_assault(state, engineer, context)
             if intent is not None:
                 intents.append(intent)
+
+        if not engineers or not fortified:
+            return intents
 
         # Start new assaults
         available = [e for e in engineers if e.id not in assigned and e.id not in self._assaults]

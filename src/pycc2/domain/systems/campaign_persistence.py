@@ -247,6 +247,10 @@ class CampaignPersistenceManager:
                 br_units = [UnitBattleState(**u) for u in br.get("unit_states", [])]
                 br_copy = {k: v for k, v in br.items() if k != "unit_states"}
                 br_copy["unit_states"] = br_units
+                # Reconstruct BattleOutcome enum from string (serialized via default=str)
+                outcome_val = br_copy.get("outcome")
+                if isinstance(outcome_val, str) and "." in outcome_val:
+                    br_copy["outcome"] = BattleOutcome[outcome_val.rsplit(".", 1)[1]]
                 results.append(BattleResult(**br_copy))
             progress.battle_results = results
 
@@ -291,14 +295,12 @@ class CampaignPersistenceManager:
             if prev_state and prev_state.is_alive:
                 if hasattr(unit, "health_component"):
                     hp_ratio = prev_state.current_hp / max(prev_state.max_hp, 1)
-                    unit.health_component.current_hp = unit.health_component.max_hp * hp_ratio
+                    unit.health_component.hp = int(unit.health_component.max_hp * hp_ratio)
+                    unit.health_component._update_state()
 
                 if hasattr(unit, "morale_component"):
                     recovery = min(20, 10 + progress.total_battles_completed * 2)
-                    unit.morale_component.current_morale = min(
-                        100.0,
-                        prev_state.morale + recovery,
-                    )
+                    unit.morale_component.value = int(min(100, prev_state.morale + recovery))
 
                 if hasattr(unit, "weapon_component") and prev_state.ammo_remaining:
                     for slot, ammo in prev_state.ammo_remaining.items():
@@ -311,12 +313,13 @@ class CampaignPersistenceManager:
                 inherited_count += 1
             elif prev_state and not prev_state.is_alive:
                 if hasattr(unit, "health_component"):
-                    unit.health_component.current_hp = 0
+                    unit.health_component.hp = 0
+                    unit.health_component._update_state()
 
                 if hasattr(unit, "state_machine"):
                     from pycc2.domain.entities.unit import UnitState
 
-                    unit.state_machine.force_state(UnitState.DEAD)
+                    unit.state_machine.force_transition(UnitState.DEAD)
 
         logger.info(
             "[Campaign] Applied inheritance to %d/%d units", inherited_count, len(current_units)

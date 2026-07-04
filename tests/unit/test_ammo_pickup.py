@@ -274,13 +274,13 @@ class TestFallenUnitCacheFindSources:
         )
         assert sources == []
 
-    def test_find_sources_filters_no_ammo_unclaimed_weapon(self):
-        """Verify: find_sources_near skips sources with no ammo when weapon is unclaimed.
+    def test_find_sources_keeps_no_ammo_unclaimed_weapon(self):
+        """Verify: find_sources_near keeps sources with no ammo when weapon is unclaimed.
+
         Scenario: Source with all ammo claimed, weapon_claimed == False.
-        Expected: Source excluded (filter: no ammo AND weapon not claimed → skip).
-        Note: Source filter logic `if remaining_ammo <= 0 and not weapon_claimed`
-              appears inverted — it skips when weapon is still available but not when
-              already claimed. Reported as a bug.
+        Expected: Source retained (weapon still available for pickup).
+        Note: Source filter logic `if remaining_ammo <= 0 and weapon_claimed`
+              correctly skips only when ammo is gone AND weapon is already claimed.
         """
         cache = FallenUnitCache()
         dead = _make_unit("dead1", ammo=8, max_ammo=10)
@@ -289,7 +289,7 @@ class TestFallenUnitCacheFindSources:
         sources = cache.find_sources_near(
             position=TileCoord(10, 10), seeker_faction=Faction.ALLIES, current_tick=10
         )
-        assert sources == []
+        assert len(sources) == 1
 
     def test_find_sources_sorted_by_distance(self):
         """Verify: find_sources_near returns sources sorted nearest-first.
@@ -885,13 +885,11 @@ class TestAmmoPickupApplyEnemy:
         system.apply_pickup(unit, pickup, source)
         assert unit.weapon.ammo_remaining == 10  # Capped
 
-    def test_enemy_no_ammo_available_does_nothing(self):
-        """Verify: enemy pickup does nothing when source has no ammo available.
+    def test_enemy_no_ammo_available_captures_weapon_only(self):
+        """Verify: enemy pickup captures weapon even when source has no ammo available.
         Scenario: Source has all ammo claimed (available=0).
-        Expected: No ammo transferred, weapon NOT marked captured (early return).
-        Note: _apply_enemy_pickup returns early when available <= 0, before
-              reaching _mark_weapon_captured. This means a weapon cannot be
-              scavenged from an enemy corpse if all ammo was already claimed.
+        Expected: No ammo transferred, but weapon IS marked captured (weapon
+                  can be scavenged from an enemy corpse even without ammo).
         """
         system = AmmoPickupSystem()
         unit = _set_prone(_make_unit("u1", weapon_id="rifle", ammo=5, max_ammo=10))
@@ -907,8 +905,8 @@ class TestAmmoPickupApplyEnemy:
             target_position=TileCoord(10, 10),
         )
         system.apply_pickup(unit, pickup, source)
-        assert unit.weapon.ammo_remaining == 5  # Unchanged
-        assert unit.combat_state.captured_weapon is False  # NOT marked (early return)
+        assert unit.weapon.ammo_remaining == 5  # Unchanged (no ammo to transfer)
+        assert unit.combat_state.captured_weapon is True  # Weapon captured
 
 
 # ---------------------------------------------------------------------------
