@@ -1,6 +1,12 @@
-# PyCC2 安全设计文档 **v0.1.0**
+# PyCC2 安全设计文档 **v0.1.1**
 
-> **文档版本**: v0.1.0 | **日期**: 2026-05-19 | **基于产品版本**: v0.1.0
+> **文档版本**: v0.1.1 | **日期**: 2026-07-04 | **基于产品版本**: v0.4.0
+>
+> **实现状态说明**: 本文第 2 节描述的 `SecureIO` 类是**设计参考实现**（位于
+> `pycc2/core/secure_io.py`，使用 PBKDF2 密钥派生）。**实际生产代码**使用
+> `pycc2/infrastructure/save_system.py` 中的 `SecureSaveManager` 类，它使用
+> HMAC-SHA256 + 环境变量/配置文件提供的密钥（无 PBKDF2 派生）。详见第 2.7 节
+> "实现差异说明"。
 
 ## 1. STRIDE 威胁分析 (6维度)
 
@@ -804,6 +810,36 @@ class SecureIO:
 
 ---
 
+### 2.7 实现差异说明 (v0.1.1 新增)
+
+**重要**: 本节描述 `SecureIO`（设计参考）与 `SecureSaveManager`（实际生产实现）的差异。
+
+| 特性 | SecureIO（设计参考） | SecureSaveManager（实际实现） |
+|------|----------------------|------------------------------|
+| 文件位置 | `pycc2/core/secure_io.py` | `pycc2/infrastructure/save_system.py` |
+| 密钥派生 | PBKDF2-HMAC-SHA256 (100k 迭代) | 无派生，直接从 env/config 读取 |
+| 密钥来源 | 设备 UUID + per-install salt | `PYCC2_SAVE_HMAC_KEY` 环境变量或配置文件 |
+| 签名算法 | HMAC-SHA256 | HMAC-SHA256 ✅ 一致 |
+| 恒定时间比较 | `hmac.compare_digest` | `hmac.compare_digest` ✅ 一致 |
+| 原子写入 | `os.replace` | `os.replace` ✅ 一致 |
+
+**生产实现的安全特性**:
+- ✅ HMAC-SHA256 签名完整性保护
+- ✅ `hmac.compare_digest` 恒定时间比较
+- ✅ 原子写入（`os.replace`）
+- ✅ 版本控制
+- ⚠️ 密钥来自环境变量/配置文件（非 PBKDF2 派生）
+- ⚠️ 无密钥时回退到临时随机密钥（仅开发用，重启后失效）
+
+**为何未使用 PBKDF2**:
+生产实现选择 env/config 密钥而非 PBKDF2 派生，原因是：
+1. 单机游戏无需设备绑定（无多用户/云端场景）
+2. PBKDF2 100k 迭代首次调用 ~200-500ms，影响游戏启动体验
+3. env/config 密钥更灵活，便于 CI/CD 测试和部署
+4. `SecureIO` 设计保留为未来 v1.0 正式版的可选升级路径
+
+---
+
 ## 3. 输入校验策略 (7个入口)
 
 ### 3.1 校验入口总览
@@ -1328,7 +1364,8 @@ mod.json 结构:
 #### SEC-01: SecureIO 实现完整
 
 **要求：**
-- [x] `_derive_key()` 使用PBKDF2 100k迭代
+- [x] HMAC 密钥来自环境变量/配置文件（生产实现 `SecureSaveManager`）
+- [~] `_derive_key()` 使用PBKDF2 100k迭代（仅设计参考 `SecureIO`，生产未采用，见 2.7 节）
 - [x] `write_save()` 生成HMAC-SHA256签名
 - [x] `read_save()` 验证签名 (compare_digest恒定时间)
 - [x] 原子写入 (os.replace)

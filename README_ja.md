@@ -609,4 +609,4 @@ Close Combat 2はそれぞれの所有者の商標です。これは教育目的
 
 ---
 
-<p align="center"><sub>最終更新: 2026-07-02 | v0.4.0（Beta Candidate） | テスト: 4424 collected / 4398合格 | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a> | <a href="docs/PROJECT_STATUS.md">プロジェクト状態</a></sub></p>
+<p align="center"><sub>最終更新: 2026-07-04 | v0.4.0（Beta Candidate） | テスト: 4785合格 / 2スキップ | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a> | <a href="docs/PROJECT_STATUS.md">プロジェクト状態</a></sub></p>

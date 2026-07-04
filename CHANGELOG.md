@@ -4,6 +4,17 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D12 Phase 1 快速清理 — 文档口径统一 + ghost 模块确认 (DevSquad V3.8)
+
+- **P1-8 三语 README 测试数同步**: README.md / README_ja.md / README_zh.md 末尾"最后更新"行统一为 `2026-07-04 | Tests: 4785 passed / 2 skipped`（旧值 `4424 collected / 4398 passed` 为 D9 旧数据）。
+- **P1-3 SECURITY.md 实现差异说明**: 版本 v0.1.0→v0.1.1，日期 2026-05-19→2026-07-04，产品版本 v0.1.0→v0.4.0。文件开头添加"实现状态说明"：SecureIO（PBKDF2）为设计参考，实际生产使用 SecureSaveManager（env/config HMAC key）。新增第 2.7 节"实现差异说明"含 6 项对比表（密钥派生/密钥来源/签名算法/盐/迭代/存储）+ "为何未使用 PBKDF2" 4 点理由。SEC-01 checklist 修正：`[x] _derive_key() PBKDF2` → `[~] 仅设计参考，生产未采用，见 2.7 节`；新增 `[x] HMAC 密钥来自环境变量/配置文件`。
+- **P1-7 CHANGELOG 测试数口径统一**: D10/D9 entry 中的 `全量回归 4398 passed` / `4424 collected` 表述统一为 `unit 4398 passed` / `unit 4424 collected`，明确区分 unit-only 与 unit+e2e 累计口径。D11 entry `累计 4217 tests` 已标注 `(= 3734 unit + 483 e2e)`。
+- **P1-1 ghost 模块确认 (Phase 3 清理依据)**: 后台 agent 核查 D12 评估发现的 12 个 ghost 候选模块，确认结果记录到 `docs/ASSESSMENT_D12_MATURITY.md`：
+  - **11 个确认为 ghost**（src 内无真实 import，仅测试或注释引用）：infantry_renderer / enhanced_pixel_artist / terrain_enhancer / debug_overlay / lighting_renderer（实现类未实例化，接口 ILightingRenderer 被使用）/ command_obedience / communication_system / mg_takeover / combat_config / terrain_detail_generator / unit_diversity_expansion
+  - **1 个为 scripts-only**（非 ghost）：pixvoxel_loader（scripts/validate_isometric.py 使用，src 内仅注释提及）
+  - Phase 1 不执行删除（高风险，需逐文件评估 lighting_renderer 接口保留策略），留到 Phase 3 集中清理
+- **Verification**: 文档级修改，无源码变更，无需回归测试（ruff/pytest 跳过）
+
 ### D12 P0 源码 bug 修复 — 12 个文档化 bug 全部修复 (DevSquad V3.8)
 
 - **修复 12 个在覆盖率提升过程中文档化的源码 bug** (Iron Rule 2: 失败要报告 → 修复源码而非测试):
@@ -127,11 +138,11 @@ All notable changes to PyCC2 will be documented in this file.
 - **P1-1 VERSION 失真修复**: `tests/benchmark/test_performance_baseline.py:56` 硬编码 `VERSION = "0.3.0"`（与 `__version__ = "0.4.0"` 不一致）。改为 `from pycc2 import __version__ as VERSION` 并移至 pycc2 imports 组首行（修正 ruff I001 import 排序）。
 - **P1-2 xfail reason 更新**: `tests/e2e/test_vl_flag_rendering.py` 单独跑 XFAIL / 组合跑 XPASS 的 flaky 行为在 reason 中说明（前置测试初始化 EnhancedRenderer post-render layers）。保留 strict=False，P2-5 修复已在单元测试级别验证。
 - **P1-3 TD-026 描述同步**: `docs/TECH_DEBT.md` TD-026 "29个文件超过500行" → "53个文件超过500行"（最大文件超过1300行），与实测对齐。
-- **Verification**: ruff 0 errors / mypy 0 errors (CI 命令 `MYPYPATH=src mypy -p pycc2`) / pytest 全量回归 4398 passed / 25 skipped / 1 xfailed / 0 failed（flaky 测试单独 XFAIL，符合 P1-2 reason 描述）
+- **Verification**: ruff 0 errors / mypy 0 errors (CI 命令 `MYPYPATH=src mypy -p pycc2`) / pytest unit 4398 passed / 25 skipped / 1 xfailed / 0 failed（flaky 测试单独 XFAIL，符合 P1-2 reason 描述；e2e 未跑）
 - **DevSquad 共识**: P0×3 + P1×3 共 6 项推进，3 个并行 Worker（Tester/DevOps/Architect）+ ConsensusEngine 共识决策，对照 ASSESSMENT_D9_MATURITY.md P1/P2 改进清单逐项落地
 
 ### D9 成熟度评估 P1 修复 (D9 Maturity Assessment)
-- **P1-1 README_zh 测试数表述错误**: 6 处过期表述（4367个通过/100%）已修正为实测值（4424 collected / 4398 passed / 25 skipped），含 badge + 5 处正文 + 最后更新日期。
+- **P1-1 README_zh 测试数表述错误**: 6 处过期表述（4367个通过/100%）已修正为实测值（unit 4424 collected / 4398 passed / 25 skipped），含 badge + 5 处正文 + 最后更新日期。
 - **P1-2 TECH_DEBT TD-058 过期**: 标记为 ✅ 已解决 — 4 文件实测行数（deployment_ui 689 / pixel_artist_3d 456 / enhanced_renderer 485 / campaign_four_layer 524）全部达标 <1500 行。状态行与表格 P1 数字对齐（2→1）。">1000 行" 计数修正（12→8，实测验证）。核查日期更新为 2026-06-29。
 - **P1-3 E2E 测试隔离缺陷**: 修复 `test_vertical_slice.py::pygame_env` fixture teardown `pygame.quit()` 破坏后续测试 display 子系统 → `pygame.display.quit()`（限定 teardown 范围）。`test_visual_smoke.py::setup_pygame` 添加 `pygame.display.quit()` + `pygame.display.init()` 防御性重置。完整 E2E 套件 483 passed / 0 failed（修复前 482+1 failed）。
 - **Verification**: mypy 0 errors / ruff 仅 1 预先存在的 I001 error（morale_system.py:16，非本次修改范围）/ pytest 全量回归待确认

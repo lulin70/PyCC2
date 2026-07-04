@@ -99,8 +99,40 @@
 ## 维度5: 可维护性 (6/10)
 
 ### 幽灵功能（有测试无生产引用）: 12 个
-- **大文件 ghost**: `infantry_renderer.py` 653L、`pixvoxel_loader.py` 1139L（仅 scripts/ 引用）、`enhanced_pixel_artist.py`、`terrain_enhancer.py`、`debug_overlay.py`、`lighting_renderer.py`
-- **小 ghost**: `domain.ai.command_obedience`、`communication_system`、`mg_takeover`、`domain.systems.combat_config`、`terrain_detail_generator`、`unit_diversity_expansion`（已部分迁移）
+
+> **2026-07-04 Phase 1 确认结果**（后台 Explore agent 核查）：12 个候选模块中 **11 个确认为 ghost**，**1 个为 scripts-only**（非 ghost）。详见下方分类。Phase 3 将根据此结果执行清理。
+
+#### 11 个确认为 ghost（src 内无真实 import，仅测试或注释引用）
+
+| # | 模块 | 行数 | 引用情况 | Phase 3 处理建议 |
+|---|------|------|----------|-----------------|
+| 1 | `infantry_renderer.py` | 653L | 仅 `tests/e2e/test_infantry_rendering_e2e.py` | 删除源 + 删除测试 |
+| 2 | `enhanced_pixel_artist.py` | - | 无（`test_pixel_artist.py` 测的是别的模块） | 删除源 + 删除测试 |
+| 3 | `terrain_enhancer.py` | - | 无 | 删除源 + 删除测试 |
+| 4 | `debug_overlay.py` | - | 仅 `tests/e2e/test_e2e_full_coverage.py` | 删除源 + 删除测试 |
+| 5 | `lighting_renderer.py` | - | **特殊**：实现类 `LightingRenderer` 全仓库无导入/实例化，但接口 `ILightingRenderer`（定义于 `ui_overlay_protocol.py`）被生产代码使用 | 保留接口，删除实现类 |
+| 6 | `domain.ai.command_obedience` | - | 仅 `tests/unit/test_command_obedience.py` | 删除源 + 删除测试 |
+| 7 | `communication_system` | - | 仅 `tests/unit/test_communication_system.py` | 删除源 + 删除测试 |
+| 8 | `mg_takeover` | - | 仅 `tests/unit/test_mg_takeover.py` | 删除源 + 删除测试 |
+| 9 | `domain.systems.combat_config` | - | 仅 `tests/unit/test_combat_config.py` | 删除源 + 删除测试 |
+| 10 | `terrain_detail_generator` | - | 仅 `tests/unit/test_terrain_detail_generator.py` | 删除源 + 删除测试 |
+| 11 | `unit_diversity_expansion` | - | `faction/vehicle_variant_generator.py` 仅 docstring 注释提及，非 import | 删除源 + 删除测试 |
+
+#### 1 个为 scripts-only（非 ghost，保留）
+
+| # | 模块 | 行数 | 引用情况 | 处理建议 |
+|---|------|------|----------|----------|
+| 1 | `pixvoxel_loader.py` | 1139L | `scripts/validate_isometric.py` 使用，`resource_cache.py` 仅注释提及 | 保留（同时是 P0-1 大文件，Phase 2 评估是否拆分） |
+
+#### Phase 1 处理结论
+
+- **Phase 1 不执行删除**：删除 11 个生产代码文件 + 对应测试是高风险操作，需逐文件评估（尤其 lighting_renderer 的接口/实现分离策略），按 5-Phase 计划留到 **Phase 3 集中清理**（1 天）。
+- **Phase 2 影响**：原 P0-1 列表中的 `pixvoxel_loader.py` 1139L 实际是 scripts-only，Phase 2 拆分评估时需重新判断是否值得拆（如 scripts-only 可考虑移至 scripts/ 目录而非 src/）。
+
+#### 历史 ghost 分类（已被 Phase 1 确认结果取代）
+
+- ~~**大文件 ghost**: `infantry_renderer.py` 653L、`pixvoxel_loader.py` 1139L（仅 scripts/ 引用）、`enhanced_pixel_artist.py`、`terrain_enhancer.py`、`debug_overlay.py`、`lighting_renderer.py`~~
+- ~~**小 ghost**: `domain.ai.command_obedience`、`communication_system`、`mg_takeover`、`domain.systems.combat_config`、`terrain_detail_generator`、`unit_diversity_expansion`（已部分迁移）~~
 
 ### 正面
 - D11 facade/mixin 拆分模式一致
@@ -187,7 +219,7 @@
 
 | # | 问题 | 修复方案 |
 |---|------|----------|
-| P1-1 | 12 ghost 模块 | 删除或集成 |
+| P1-1 | 12 ghost 模块 | 删除或集成（Phase 1 已确认：11 ghost + 1 scripts-only，详见维度5；Phase 3 集中清理） |
 | P1-2 | 9 孤儿事件 + 1 反向孤儿 | 对齐发布/订阅契约 |
 | P1-3 | SECURITY.md PBKDF2 宣称不符 | 修正文档或实现 PBKDF2 |
 | P1-4 | VERSION 文件缺失 | 新建 VERSION 文件 |
