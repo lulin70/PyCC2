@@ -4,6 +4,21 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D12 Phase 2 P0-1 大文件拆分 — deployment_renderer.py (DevSquad V3.8)
+
+- **拆分 deployment_renderer.py** (1170L → facade 95L + 4 mixin 1356L = 总 1451L): facade + mixin class 模式，参考 D11 `sprite_renderer.py` + `vl_flag_rendering_mixin.py` 拆分先例（与 campaign_ui_rendering.py 同模式）
+  - `deployment_zone_rendering_mixin.py` (398L): `DeploymentZoneRenderingMixin` class，6 个方法 (`render_deployment_zones` public + `_render_zone_overlays` + `_render_placement_highlights` + `_render_placed_units` 4 种单位形状 CC2 风格 + `_render_pending_orders` GAP-8 + `_render_los_preview` 委托)；跨 mixin 调用 `self._draw_dashed_line` + `self._draw_arrowhead`（来自 LOSHelpersMixin via MRO）
+  - `deployment_roster_rendering_mixin.py` (630L): `DeploymentRosterRenderingMixin` class，7 个方法 (`_rebuild_roster_layout` + `_render_roster` + `_render_rp_header` 含进度条 + `_render_requisition_points` + `_render_unit_counts` + `_render_start_battle_button` 脉冲动画 + `_render_unit_details_panel` 含按钮 rect 保存)
+  - `deployment_los_helpers_mixin.py` (105L): `DeploymentLOSHelpersMixin` class，4 个方法 (`_estimate_deployment_hit_probability` + `_hit_probability_to_los_color` + `_draw_dashed_line` @staticmethod + `_draw_arrowhead` @staticmethod) + 5 个 class constants (`_LOS_COLOR_HIGH/MODERATE/LOW/IMPOSSIBLE` + `_LOS_DEFAULT_RANGE`)
+  - `deployment_drag_mixin.py` (223L): `DeploymentDragMixin` class，3 个方法 (`handle_deployment_drag` public 含 MOUSEBUTTONDOWN/MOTION/UP 处理 + `_render_drag_feedback` ghost unit + tile 高亮 + `_ensure_fonts` 字体初始化)
+  - `deployment_renderer.py` (95L): facade class `DeploymentRenderer(ZoneRenderingMixin, RosterRenderingMixin, LOSHelpersMixin, DragMixin)`，保留 `__init__(ui)` + 5 个 surface cache + 4 个 cache_size 字段
+- **mixin 属性声明模式**: 每个 mixin class 通过 class-level 类型注解声明 facade 属性（`_ui: DeploymentUI` + 各自使用的 surface cache 字段），参考 D11 `vl_flag_rendering_mixin.py` 模式
+- **cross-mixin 方法声明**: zone_rendering_mixin 通过 class 内 `if TYPE_CHECKING:` 块声明 `_draw_dashed_line` + `_draw_arrowhead` 为普通实例方法（运行时实际是 staticmethod，但 mypy 接受 `self.method()` 调用，行为一致）
+- **public API 100% 向后兼容**: `DeploymentRenderer` class 名 / `__init__(ui)` / 20 个方法签名（含 2 个 public `render_deployment_zones` + `handle_deployment_drag`）/ 5 个 class constants / 模块路径全部不变；`deployment_ui.py` 的 `from .deployment_renderer import DeploymentRenderer` 不变；测试零修改
+- **pygame lazy import 模式**: 4 个 mixin 各自 try/except import pygame + 定义自己的 `_pygame_available` flag（与原 facade 模式一致，保持 headless 测试兼容）
+- **Verification**: ruff 0 errors / mypy 0 errors (5 files) / pytest unit 4785 passed / 0 failed / 2 skipped / 13 deselected（与拆分前完全一致，零回归）
+- **Phase 2 P0-1 完成**: 4/4 文件全部拆分完成（terrain_tile_generator + infantry_pixel_renderer + campaign_ui_rendering + deployment_renderer），剩 pixvoxel_loader 为 scripts-only 不拆分
+
 ### D12 Phase 2 P0-1 大文件拆分 — campaign_ui_rendering.py (DevSquad V3.8)
 
 - **拆分 campaign_ui_rendering.py** (1118L → facade 77L + 4 mixin 1158L = 总 1235L): facade + mixin class 模式，参考 D11 `sprite_renderer.py` + `vl_flag_rendering_mixin.py` 拆分先例

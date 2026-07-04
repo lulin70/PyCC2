@@ -41,6 +41,18 @@ DDD 4 层结构（domain / infrastructure / presentation / services），364+ �
 
 ## 最近变更
 
+### D12 Phase 2 P0-1 大文件拆分 — deployment_renderer.py (2026-07-04)
+- **拆分 deployment_renderer.py** (1170L → facade 95L + 4 mixin 1356L = 总 1451L): facade + mixin class 模式，参考 D11 sprite_renderer.py + vl_flag_rendering_mixin.py 拆分先例
+  - `deployment_zone_rendering_mixin.py` (398L): 6 个方法 (render_deployment_zones public + _render_zone_overlays + _render_placement_highlights + _render_placed_units + _render_pending_orders + _render_los_preview)
+  - `deployment_roster_rendering_mixin.py` (630L): 7 个方法 (_rebuild_roster_layout + _render_roster + _render_rp_header + _render_requisition_points + _render_unit_counts + _render_start_battle_button + _render_unit_details_panel)
+  - `deployment_los_helpers_mixin.py` (105L): 4 个方法 (_estimate_deployment_hit_probability + _hit_probability_to_los_color + _draw_dashed_line staticmethod + _draw_arrowhead staticmethod) + 5 class constants
+  - `deployment_drag_mixin.py` (223L): 3 个方法 (handle_deployment_drag public + _render_drag_feedback + _ensure_fonts)
+  - `deployment_renderer.py` (95L): facade class DeploymentRenderer(ZoneRenderingMixin, RosterRenderingMixin, LOSHelpersMixin, DragMixin)，保留 __init__(ui) + 5 surface cache
+- **mixin 属性声明模式**: 每个 mixin class 通过 class-level 类型注解声明 facade 属性 (_ui + surface cache)；cross-mixin 方法通过 class 内 TYPE_CHECKING 块声明
+- **public API 100% 向后兼容**: DeploymentRenderer class 名 / __init__(ui) / 20 个方法签名 / 5 class constants / 模块路径全部不变；deployment_ui.py import 不变；测试零修改
+- Verification: ruff 0 errors / mypy 0 errors (5 files) / pytest unit 4785 passed / 0 failed / 2 skipped / 13 deselected（零回归）
+- Phase 2 P0-1 完成: 4/4 文件全部拆分完成（terrain + infantry + campaign_ui + deployment），剩 pixvoxel_loader 为 scripts-only 不拆分
+
 ### D12 Phase 2 P0-1 大文件拆分 — campaign_ui_rendering.py (2026-07-04)
 - **拆分 campaign_ui_rendering.py** (1118L → facade 77L + 4 mixin 1158L = 总 1235L): facade + mixin class 模式，参考 D11 `sprite_renderer.py` + `vl_flag_rendering_mixin.py` 拆分先例
   - `campaign_ui_select_mixin.py` (275L): `CampaignUISelectMixin` class，2 个方法 (_render_operation_select + _render_battle_select)
@@ -128,7 +140,7 @@ DDD 4 层结构（domain / infrastructure / presentation / services），364+ �
 
 ## 已知技术债
 
-- 2 个 >1000 行文件待拆分（deployment_renderer / pixvoxel_loader）— terrain_tile_generator + infantry_pixel_renderer + campaign_ui_rendering 已于 2026-07-04 Phase 2 完成
+- 1 个 >1000 行文件待拆分（pixvoxel_loader 为 scripts-only 不拆分）— terrain_tile_generator + infantry_pixel_renderer + campaign_ui_rendering + deployment_renderer 已于 2026-07-04 Phase 2 全部完成
 - `unit.py` God Class（54 方法）待拆分
 - 12 个 ghost 模块（有测试无生产引用）待清理 — **2026-07-04 Phase 1 已确认**：11 个确认为 ghost + 1 个为 scripts-only（pixvoxel_loader），详见 [ASSESSMENT_D12_MATURITY.md](ASSESSMENT_D12_MATURITY.md) 维度5；Phase 3 集中清理
 - 事件名大小写不匹配致部分事件丢失（unit_attacked vs UnitAttacked）
@@ -143,5 +155,5 @@ DDD 4 层结构（domain / infrastructure / presentation / services），364+ �
 - [x] 全量回归测试通过
 - [x] CI 全绿（7/7 jobs passed: Lint / Unit / Integration / Benchmark / Slow / E2E / Docker Build）
 - [x] 覆盖率 ≥60% fail_under 门禁已配置并达标（pyproject.toml + CI 均为 60%，实际 60.05%）
-- [~] 5 个 >1000L 文件拆分（P0-1 进行中: 3/5 完成 — terrain_tile_generator + infantry_pixel_renderer + campaign_ui_rendering 已拆分，剩余 deployment_renderer / pixvoxel_loader）
+- [x] 5 个 >1000L 文件拆分（P0-1 完成: 4/5 拆分 — terrain_tile_generator + infantry_pixel_renderer + campaign_ui_rendering + deployment_renderer 已拆分，pixvoxel_loader 为 scripts-only 不拆分）
 - [ ] unit.py God Class 拆分（P0-2 待修复）
