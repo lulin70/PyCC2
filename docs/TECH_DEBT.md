@@ -1,8 +1,8 @@
 # PyCC2 技术债清单
 
-> **版本**: v0.4.3 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-07-05 (D14 项目整理评估) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 14
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (392 files, Phase 4 后) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ⚠️ 5 个 God Class >800L 待 v0.5+ 评估 (enhanced_sound_bridge 949L/terrain_rendering_system 896L/hud_renderer 886L/vehicle_weapon_profiles 826L/environmental_audio 811L) | ⚠️ 7 慢测试超时（sprite 生成，预先存在） | ⚠️ pre-commit hooks 版本陈旧 (ruff v0.5.0 vs lock 0.15.20) | ⚠️ 5 e2e skip 偷懒 | ⚠️ 12 零覆盖文件含 main.py P0
+> **版本**: v0.4.5 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
+> **上次核查**: 2026-07-05 (v0.4.5 God Class 评估) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 14
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (392 files, Phase 4 后) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ⚠️ 1 个 TRUE God Class 待 v0.5.0 拆分 (TD-072: enhanced_sound_bridge) | ⚠️ 7 慢测试超时（sprite 生成，预先存在） | ⚠️ 5 e2e skip 偷懒 (TD-068) | ⚠️ mypy 非严格 check_untyped_defs=false (TD-071, v0.6.0+)
 
 ---
 
@@ -665,17 +665,26 @@
 
 ## 🆕 七、D14 项目整理评估新增 (TD-067~TD-071, 2026-07-05)
 
-### 🟢 TD-067: 5 个 God Class >800L 待 v0.5+ 评估 (P2)
+### 🟡 TD-067: 5 个 God Class >800L 评估完成 — 1/5 TRUE (P2)
 
-- **描述**: D14 发现 5 个 >800L 文件，基于"单类多职责"标准（非方法数阈值）需逐一评估:
-  - `enhanced_sound_bridge.py` (949L)
-  - `terrain_rendering_system.py` (896L)
-  - `hud_renderer.py` (886L)
-  - `vehicle_weapon_profiles.py` (826L)
-  - `environmental_audio.py` (811L)
-- **影响**: 单文件过大难以维护，修改风险高
-- **清理方案**: v0.5+ 按真实职责评估，确认是多职责才拆分，避免 D13 N-1 方法数阈值误判
-- **状态**: 🟢 记录 (v0.5+ 评估)
+- **描述**: D14 发现 5 个 >800L 文件，v0.4.5 已基于"单类多不相干职责"标准（非方法数阈值）逐一评估:
+  - ✅ `enhanced_sound_bridge.py` (949L) — TRUE God Class: 音频桥接 + 程序化波形合成 (~500L DSP) 双职责 → 拆分至 TD-072
+  - ❌ `terrain_rendering_system.py` (896L) — FALSE: 单职责=地形渲染管线，cache/transitions/smoothing/borders 是顺序层
+  - ❌ `hud_renderer.py` (886L) — FALSE: 单职责=渲染 HUD，三 panel 是空间划分非正交职责，仅 14 方法
+  - ❌ `vehicle_weapon_profiles.py` (826L) — FALSE: 非 class，单函数 `build_vehicle_weapons()` 纯数据/查找表
+  - ❌ `environmental_audio.py` (811L) — FALSE: D13 判断正确，Generator/System 双类结构已是自然缝隙
+- **影响**: 仅 1 个 TRUE God Class，4 个保留
+- **清理方案**: 详见 `docs/ASSESSMENT_GODCLASS_V045.md`；TRUE 项转 TD-072
+- **状态**: 🟡 评估完成 (v0.4.5)，1 项转 TD-072 (v0.5.0)
+
+### 🟢 TD-072: 拆分 enhanced_sound_bridge → ProceduralSoundSynthesizer + EnhancedSoundSystem (P2, v0.5.0)
+
+- **描述**: TD-067 评估确认的唯一 TRUE God Class。`EnhancedSoundSystem` (949L) 混合两个不相干职责:
+  - 职责 A: 音频桥接（文件加载→缓存→播放调度），共享 `_sound_cache`/`_event_mappings`/`_initialized`/volume
+  - 职责 B: 程序化波形合成（13 个 `_gen_*` numpy DSP 方法 ~500L），仅读 `_sfx_volume` 返回 `np.ndarray`，与缓存/加载无协作
+- **影响**: 17 个 `play_*` 便捷方法非问题；问题在 DSP 层嵌入桥接
+- **清理方案**: 提取 `ProceduralSoundSynthesizer` 持有全部 `_gen_*` + `_generate_cc2_combat_fallback` + `_generate_procedural_fallback`；`EnhancedSoundSystem` 组合委托。预期各 ~450L。同时清理未实现的 `position` 参数（docstring 承诺 3D positional audio 但未实现）
+- **状态**: 🟢 记录 (v0.5.0)
 
 ### 🟢 TD-068: 5 个 e2e skip 偷懒 (P2)
 
