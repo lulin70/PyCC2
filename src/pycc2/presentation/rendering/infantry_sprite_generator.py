@@ -178,12 +178,8 @@ def create_infantry_sprite(
     perp_leg = base_angle + math.pi / 2
     lx1 = cx + int(math.cos(back_angle) * leg_len) + int(math.cos(perp_leg) * spread)
     ly1 = cy + int(math.sin(back_angle) * leg_len) + int(math.sin(perp_leg) * spread)
-    lx2 = (
-        cx + int(math.cos(back_angle + 0.4) * leg_len * 0.7) - int(math.cos(perp_leg) * spread)
-    )
-    ly2 = (
-        cy + int(math.sin(back_angle + 0.4) * leg_len * 0.7) - int(math.sin(perp_leg) * spread)
-    )
+    lx2 = cx + int(math.cos(back_angle + 0.4) * leg_len * 0.7) - int(math.cos(perp_leg) * spread)
+    ly2 = cy + int(math.sin(back_angle + 0.4) * leg_len * 0.7) - int(math.sin(perp_leg) * spread)
     pygame.draw.circle(surface, boots_color, (lx1, ly1), 1)
     pygame.draw.circle(surface, boots_color, (lx2, ly2), 1)
 

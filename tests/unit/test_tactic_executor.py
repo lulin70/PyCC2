@@ -410,9 +410,7 @@ class TestTacticExecutorSetAmbush:
         unit = make_unit("u_ambush_idem", TileCoord(1, 1))
         unit.set_movement_mode("sneak")
         executor.register_unit(unit)
-        intent = TacticIntent(
-            unit_id="u_ambush_idem", tactic_type=TacticType.SET_AMBUSH
-        )
+        intent = TacticIntent(unit_id="u_ambush_idem", tactic_type=TacticType.SET_AMBUSH)
         assert executor.execute(intent) is True
         assert unit._movement_mode == "sneak"
 
@@ -424,9 +422,7 @@ class TestTacticExecutorBreakAmbush:
     target_unit_id / target_position / path. Returns _execute_attack's result.
     """
 
-    def test_break_ambush_restores_normal_and_publishes_attack(
-        self, executor, event_bus
-    ):
+    def test_break_ambush_restores_normal_and_publishes_attack(self, executor, event_bus):
         from pycc2.domain.interfaces.event_types import PlayerCommand
 
         published: list[PlayerCommand] = []
@@ -462,18 +458,14 @@ class TestTacticExecutorBreakAmbush:
         assert executor.execute(intent) is False
         assert published == []
 
-    def test_break_ambush_without_target_returns_false_but_mode_reset(
-        self, executor
-    ):
+    def test_break_ambush_without_target_returns_false_but_mode_reset(self, executor):
         """Boundary: no target_unit_id -> _execute_attack returns False because
         target is None. Movement mode is still reset to "normal" before
         delegation."""
         unit = make_unit("u_ambush_nt", TileCoord(2, 2))
         unit.set_movement_mode("sneak")
         executor.register_unit(unit)
-        intent = TacticIntent(
-            unit_id="u_ambush_nt", tactic_type=TacticType.BREAK_AMBUSH
-        )
+        intent = TacticIntent(unit_id="u_ambush_nt", tactic_type=TacticType.BREAK_AMBUSH)
         assert executor.execute(intent) is False
         # Mode reset happens before delegation, so it should be "normal" now.
         assert unit._movement_mode == "normal"
@@ -487,9 +479,7 @@ class TestTacticExecutorCounterAttack:
     _execute_attack to validate unit/target.
     """
 
-    def test_counter_attack_delegates_to_attack_with_priority_boost(
-        self, executor, event_bus
-    ):
+    def test_counter_attack_delegates_to_attack_with_priority_boost(self, executor, event_bus):
         from pycc2.domain.interfaces.event_types import PlayerCommand
 
         published: list[PlayerCommand] = []
@@ -526,9 +516,7 @@ class TestTacticExecutorCounterAttack:
         because target is None."""
         unit = make_unit("u_ca_nt", TileCoord(0, 0))
         executor.register_unit(unit)
-        intent = TacticIntent(
-            unit_id="u_ca_nt", tactic_type=TacticType.COUNTER_ATTACK
-        )
+        intent = TacticIntent(unit_id="u_ca_nt", tactic_type=TacticType.COUNTER_ATTACK)
         assert executor.execute(intent) is False
 
 
@@ -558,9 +546,7 @@ class TestTacticExecutorTakeCover:
     def test_take_cover_without_target_returns_true_in_place(self, executor):
         unit = make_unit("u_tc_ip", TileCoord(2, 2))
         executor.register_unit(unit)
-        intent = TacticIntent(
-            unit_id="u_tc_ip", tactic_type=TacticType.TAKE_COVER
-        )
+        intent = TacticIntent(unit_id="u_tc_ip", tactic_type=TacticType.TAKE_COVER)
         assert executor.execute(intent) is True
         # Unit stays in place.
         assert unit.position.tile_coord == TileCoord(2, 2)
@@ -583,9 +569,7 @@ class TestTacticExecutorSurrender:
       - Unknown unit -> False.
     """
 
-    def test_surrender_transitions_state_zeros_ammo_publishes_event(
-        self, executor, event_bus
-    ):
+    def test_surrender_transitions_state_zeros_ammo_publishes_event(self, executor, event_bus):
         from pycc2.domain.entities.unit import UnitState
 
         published: list[dict] = []
@@ -612,9 +596,7 @@ class TestTacticExecutorSurrender:
         assert executor.execute(intent) is False
         assert published == []
 
-    def test_surrender_when_already_surrendered_returns_false(
-        self, executor, event_bus
-    ):
+    def test_surrender_when_already_surrendered_returns_false(self, executor, event_bus):
         from pycc2.domain.entities.unit import UnitState
 
         published: list[dict] = []
@@ -625,9 +607,7 @@ class TestTacticExecutorSurrender:
         unit.weapon.ammo_remaining = 0
         executor.register_unit(unit)
 
-        intent = TacticIntent(
-            unit_id="u_sur_dup", tactic_type=TacticType.SURRENDER
-        )
+        intent = TacticIntent(unit_id="u_sur_dup", tactic_type=TacticType.SURRENDER)
         assert executor.execute(intent) is False
         # No new event published.
         assert published == []
@@ -642,9 +622,7 @@ class TestTacticExecutorSurrender:
         unit.state_machine.force_transition(UnitState.DEAD)
         executor.register_unit(unit)
 
-        intent = TacticIntent(
-            unit_id="u_sur_dead", tactic_type=TacticType.SURRENDER
-        )
+        intent = TacticIntent(unit_id="u_sur_dead", tactic_type=TacticType.SURRENDER)
         assert executor.execute(intent) is False
         assert published == []
 
@@ -716,9 +694,7 @@ class TestTacticExecutorDeploySmoke:
       - Unknown unit / no target_position / empty capability -> False.
     """
 
-    def test_deploy_smoke_without_capability_fallback_success(
-        self, executor, event_bus
-    ):
+    def test_deploy_smoke_without_capability_fallback_success(self, executor, event_bus):
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
         unit = make_unit("u_smoke_fb", TileCoord(0, 0))
@@ -737,9 +713,7 @@ class TestTacticExecutorDeploySmoke:
         assert smoke_events[0]["unit_id"] == "u_smoke_fb"
         assert smoke_events[0]["smoke_position"] == (3, 3)
 
-    def test_deploy_smoke_with_capability_consumes_charge(
-        self, executor, event_bus
-    ):
+    def test_deploy_smoke_with_capability_consumes_charge(self, executor, event_bus):
         from pycc2.domain.ai.smoke_tactical_ai import SmokeGrenadeCapability
 
         published: list[dict] = []
@@ -774,14 +748,10 @@ class TestTacticExecutorDeploySmoke:
     def test_deploy_smoke_without_target_returns_false(self, executor):
         unit = make_unit("u_smoke_nt", TileCoord(0, 0))
         executor.register_unit(unit)
-        intent = TacticIntent(
-            unit_id="u_smoke_nt", tactic_type=TacticType.DEPLOY_SMOKE
-        )
+        intent = TacticIntent(unit_id="u_smoke_nt", tactic_type=TacticType.DEPLOY_SMOKE)
         assert executor.execute(intent) is False
 
-    def test_deploy_smoke_with_empty_capability_returns_false(
-        self, executor, event_bus
-    ):
+    def test_deploy_smoke_with_empty_capability_returns_false(self, executor, event_bus):
         from pycc2.domain.ai.smoke_tactical_ai import SmokeGrenadeCapability
 
         published: list[dict] = []
@@ -811,33 +781,25 @@ class TestTacticExecutorDetectMines:
       - Unknown unit / no game_map -> False.
     """
 
-    def test_detect_mines_no_mines_returns_true_no_event(
-        self, executor_with_map, event_bus
-    ):
+    def test_detect_mines_no_mines_returns_true_no_event(self, executor_with_map, event_bus):
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
         unit = make_unit("u_dm", TileCoord(5, 5))
         executor_with_map.register_unit(unit)
 
-        intent = TacticIntent(
-            unit_id="u_dm", tactic_type=TacticType.DETECT_MINES
-        )
+        intent = TacticIntent(unit_id="u_dm", tactic_type=TacticType.DETECT_MINES)
         assert executor_with_map.execute(intent) is True
         detect_events = [e for e in published if e.get("action") == "mines_detected"]
         assert detect_events == []
 
     def test_detect_mines_unknown_unit_returns_false(self, executor_with_map):
-        intent = TacticIntent(
-            unit_id="ghost", tactic_type=TacticType.DETECT_MINES
-        )
+        intent = TacticIntent(unit_id="ghost", tactic_type=TacticType.DETECT_MINES)
         assert executor_with_map.execute(intent) is False
 
     def test_detect_mines_without_game_map_returns_false(self, executor):
         unit = make_unit("u_dm_nm", TileCoord(5, 5))
         executor.register_unit(unit)
-        intent = TacticIntent(
-            unit_id="u_dm_nm", tactic_type=TacticType.DETECT_MINES
-        )
+        intent = TacticIntent(unit_id="u_dm_nm", tactic_type=TacticType.DETECT_MINES)
         assert executor.execute(intent) is False
 
 
@@ -865,13 +827,8 @@ class TestTacticExecutorCallArtillery:
             target_position=TileCoord(8, 8),
         )
         assert executor.execute(intent) is True
-        assert (
-            executor._artillery_manager.missions_remaining
-            == initial_missions - 1
-        )
-        artillery_events = [
-            e for e in published if e.get("action") == "call_artillery"
-        ]
+        assert executor._artillery_manager.missions_remaining == initial_missions - 1
+        artillery_events = [e for e in published if e.get("action") == "call_artillery"]
         assert len(artillery_events) == 1
         assert artillery_events[0]["unit_id"] == "u_art"
         assert artillery_events[0]["target_pos"] == (8, 8)
@@ -887,14 +844,10 @@ class TestTacticExecutorCallArtillery:
     def test_call_artillery_without_target_returns_false(self, executor):
         unit = make_unit("u_art_nt", TileCoord(0, 0))
         executor.register_unit(unit)
-        intent = TacticIntent(
-            unit_id="u_art_nt", tactic_type=TacticType.CALL_ARTILLERY
-        )
+        intent = TacticIntent(unit_id="u_art_nt", tactic_type=TacticType.CALL_ARTILLERY)
         assert executor.execute(intent) is False
 
-    def test_call_artillery_second_call_while_active_returns_false(
-        self, executor, event_bus
-    ):
+    def test_call_artillery_second_call_while_active_returns_false(self, executor, event_bus):
         """Boundary: same observer cannot call a second mission while the
         first is still active (can_call_mission returns False)."""
         published: list[dict] = []
@@ -916,9 +869,7 @@ class TestTacticExecutorCallArtillery:
         )
         assert executor.execute(second_intent) is False  # Already active
         # Only the first call published an event
-        artillery_events = [
-            e for e in published if e.get("action") == "call_artillery"
-        ]
+        artillery_events = [e for e in published if e.get("action") == "call_artillery"]
         assert len(artillery_events) == 1
 
 
@@ -933,9 +884,7 @@ class TestTacticExecutorMeleeAttack:
     behavior (event published, return True) not on random hit/miss outcomes.
     """
 
-    def test_melee_attack_low_ammo_adjacent_publishes_event(
-        self, executor, event_bus
-    ):
+    def test_melee_attack_low_ammo_adjacent_publishes_event(self, executor, event_bus):
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
 
@@ -953,9 +902,7 @@ class TestTacticExecutorMeleeAttack:
             target_unit_id="u_melee_tgt",
         )
         assert executor.execute(intent) is True
-        melee_events = [
-            e for e in published if e.get("action") == "melee_attack"
-        ]
+        melee_events = [e for e in published if e.get("action") == "melee_attack"]
         assert len(melee_events) == 1
         assert melee_events[0]["attacker_id"] == "u_melee_atk"
         assert melee_events[0]["defender_id"] == "u_melee_tgt"
@@ -1015,9 +962,7 @@ class TestTacticExecutorDigTrench:
         "dig_trench_complete" + return True.
     """
 
-    def test_dig_trench_start_publishes_start_event(
-        self, executor_with_map, event_bus
-    ):
+    def test_dig_trench_start_publishes_start_event(self, executor_with_map, event_bus):
         """Happy: first call on a diggable infantry publishes dig_trench_start."""
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
@@ -1034,9 +979,7 @@ class TestTacticExecutorDigTrench:
         # Progress tracker now exists
         assert executor_with_map._trench_digging.get_progress("u_dt") is not None
 
-    def test_dig_trench_completion_publishes_complete_event(
-        self, executor_with_map, event_bus
-    ):
+    def test_dig_trench_completion_publishes_complete_event(self, executor_with_map, event_bus):
         """Happy: advancing progress to DIG_DURATION publishes dig_trench_complete.
 
         We seed progress one tick short of completion to avoid 90 redundant
@@ -1059,9 +1002,7 @@ class TestTacticExecutorDigTrench:
         intent = TacticIntent(unit_id="u_dt_c", tactic_type=TacticType.DIG_TRENCH)
         assert executor_with_map.execute(intent) is True
 
-        complete_events = [
-            e for e in published if e.get("action") == "dig_trench_complete"
-        ]
+        complete_events = [e for e in published if e.get("action") == "dig_trench_complete"]
         assert len(complete_events) == 1
         assert complete_events[0]["unit_id"] == "u_dt_c"
         assert complete_events[0]["position"] == (7, 7)
@@ -1101,9 +1042,7 @@ class TestTacticExecutorDigTrench:
         executor_with_map.register_unit(unit)
 
         # Force can_dig to return False (e.g. unit already in trench)
-        monkeypatch.setattr(
-            executor_with_map._trench_digging, "can_dig", lambda *args: False
-        )
+        monkeypatch.setattr(executor_with_map._trench_digging, "can_dig", lambda *args: False)
 
         intent = TacticIntent(unit_id="u_dt_it", tactic_type=TacticType.DIG_TRENCH)
         assert executor_with_map.execute(intent) is False
@@ -1123,16 +1062,12 @@ class TestTacticExecutorDigTrench:
         # First call starts digging
         intent = TacticIntent(unit_id="u_dt_tick", tactic_type=TacticType.DIG_TRENCH)
         assert executor_with_map.execute(intent) is True
-        start_count = sum(
-            1 for e in published if e.get("action") == "dig_trench_start"
-        )
+        start_count = sum(1 for e in published if e.get("action") == "dig_trench_start")
         assert start_count == 1
 
         # Second call advances progress but does not complete
         assert executor_with_map.execute(intent) is True
-        complete_events = [
-            e for e in published if e.get("action") == "dig_trench_complete"
-        ]
+        complete_events = [e for e in published if e.get("action") == "dig_trench_complete"]
         assert complete_events == []
         progress = executor_with_map._trench_digging.get_progress("u_dt_tick")
         assert progress is not None and progress.progress >= 1
@@ -1148,9 +1083,7 @@ class TestTacticExecutorDemolishBridge:
         with bridge_tiles list + return True.
     """
 
-    def test_demolish_bridge_destroys_adjacent_bridge_tile(
-        self, executor_with_map, event_bus
-    ):
+    def test_demolish_bridge_destroys_adjacent_bridge_tile(self, executor_with_map, event_bus):
         """Happy: one BRIDGE tile adjacent to unit is destroyed."""
         from pycc2.domain.value_objects.terrain_type import TerrainType
 
@@ -1160,30 +1093,21 @@ class TestTacticExecutorDemolishBridge:
         executor_with_map.register_unit(unit)
 
         # Plant a BRIDGE tile at (6, 5) — adjacent to unit
-        executor_with_map.game_map.set_terrain(
-            TileCoord(6, 5), TerrainType.BRIDGE
-        )
+        executor_with_map.game_map.set_terrain(TileCoord(6, 5), TerrainType.BRIDGE)
 
-        intent = TacticIntent(
-            unit_id="u_db", tactic_type=TacticType.DEMOLISH_BRIDGE
-        )
+        intent = TacticIntent(unit_id="u_db", tactic_type=TacticType.DEMOLISH_BRIDGE)
         assert executor_with_map.execute(intent) is True
 
-        demolish_events = [
-            e for e in published if e.get("action") == "demolish_bridge"
-        ]
+        demolish_events = [e for e in published if e.get("action") == "demolish_bridge"]
         assert len(demolish_events) == 1
         assert demolish_events[0]["unit_id"] == "u_db"
         assert (6, 5) in demolish_events[0]["bridge_tiles"]
         # Terrain actually mutated
         assert (
-            executor_with_map.game_map.get_terrain(TileCoord(6, 5))
-            == TerrainType.BRIDGE_DESTROYED
+            executor_with_map.game_map.get_terrain(TileCoord(6, 5)) == TerrainType.BRIDGE_DESTROYED
         )
 
-    def test_demolish_bridge_finds_multiple_bridges_in_3x3(
-        self, executor_with_map, event_bus
-    ):
+    def test_demolish_bridge_finds_multiple_bridges_in_3x3(self, executor_with_map, event_bus):
         """Happy: multiple BRIDGE tiles in 3x3 neighborhood all destroyed."""
         from pycc2.domain.value_objects.terrain_type import TerrainType
 
@@ -1197,48 +1121,33 @@ class TestTacticExecutorDemolishBridge:
         for c in bridge_coords:
             executor_with_map.game_map.set_terrain(c, TerrainType.BRIDGE)
 
-        intent = TacticIntent(
-            unit_id="u_db_multi", tactic_type=TacticType.DEMOLISH_BRIDGE
-        )
+        intent = TacticIntent(unit_id="u_db_multi", tactic_type=TacticType.DEMOLISH_BRIDGE)
         assert executor_with_map.execute(intent) is True
 
-        demolish_events = [
-            e for e in published if e.get("action") == "demolish_bridge"
-        ]
+        demolish_events = [e for e in published if e.get("action") == "demolish_bridge"]
         assert len(demolish_events) == 1
         reported = set(demolish_events[0]["bridge_tiles"])
         for c in bridge_coords:
             assert (c.x, c.y) in reported
-            assert (
-                executor_with_map.game_map.get_terrain(c)
-                == TerrainType.BRIDGE_DESTROYED
-            )
+            assert executor_with_map.game_map.get_terrain(c) == TerrainType.BRIDGE_DESTROYED
 
     def test_demolish_bridge_unknown_unit_returns_false(self, executor_with_map):
         """Error: unknown unit_id -> False."""
-        intent = TacticIntent(
-            unit_id="ghost", tactic_type=TacticType.DEMOLISH_BRIDGE
-        )
+        intent = TacticIntent(unit_id="ghost", tactic_type=TacticType.DEMOLISH_BRIDGE)
         assert executor_with_map.execute(intent) is False
 
-    def test_demolish_bridge_without_game_map_returns_false(
-        self, executor, event_bus
-    ):
+    def test_demolish_bridge_without_game_map_returns_false(self, executor, event_bus):
         """Error: no game_map -> False (no event published)."""
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
         unit = make_unit("u_db_nm", TileCoord(5, 5))
         executor.register_unit(unit)
 
-        intent = TacticIntent(
-            unit_id="u_db_nm", tactic_type=TacticType.DEMOLISH_BRIDGE
-        )
+        intent = TacticIntent(unit_id="u_db_nm", tactic_type=TacticType.DEMOLISH_BRIDGE)
         assert executor.execute(intent) is False
         assert published == []
 
-    def test_demolish_bridge_no_bridge_nearby_returns_false(
-        self, executor_with_map, event_bus
-    ):
+    def test_demolish_bridge_no_bridge_nearby_returns_false(self, executor_with_map, event_bus):
         """Boundary: no BRIDGE tile in 3x3 -> False, no event published."""
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
@@ -1246,15 +1155,11 @@ class TestTacticExecutorDemolishBridge:
         executor_with_map.register_unit(unit)
         # game_map is all OPEN — no BRIDGE anywhere
 
-        intent = TacticIntent(
-            unit_id="u_db_none", tactic_type=TacticType.DEMOLISH_BRIDGE
-        )
+        intent = TacticIntent(unit_id="u_db_none", tactic_type=TacticType.DEMOLISH_BRIDGE)
         assert executor_with_map.execute(intent) is False
         assert published == []
 
-    def test_demolish_bridge_at_map_corner_scans_in_bounds(
-        self, executor_with_map, event_bus
-    ):
+    def test_demolish_bridge_at_map_corner_scans_in_bounds(self, executor_with_map, event_bus):
         """Boundary: unit at (0, 0) corner — 3x3 scan stays within 20x20 map."""
         from pycc2.domain.value_objects.terrain_type import TerrainType
 
@@ -1264,17 +1169,12 @@ class TestTacticExecutorDemolishBridge:
         executor_with_map.register_unit(unit)
 
         # Plant BRIDGE at (1, 1) — within 3x3 of corner unit
-        executor_with_map.game_map.set_terrain(
-            TileCoord(1, 1), TerrainType.BRIDGE
-        )
+        executor_with_map.game_map.set_terrain(TileCoord(1, 1), TerrainType.BRIDGE)
 
-        intent = TacticIntent(
-            unit_id="u_db_corner", tactic_type=TacticType.DEMOLISH_BRIDGE
-        )
+        intent = TacticIntent(unit_id="u_db_corner", tactic_type=TacticType.DEMOLISH_BRIDGE)
         assert executor_with_map.execute(intent) is True
         assert (
-            executor_with_map.game_map.get_terrain(TileCoord(1, 1))
-            == TerrainType.BRIDGE_DESTROYED
+            executor_with_map.game_map.get_terrain(TileCoord(1, 1)) == TerrainType.BRIDGE_DESTROYED
         )
 
 
@@ -1293,9 +1193,7 @@ class TestTacticExecutorLayMine:
     so happy-path tests use AT_GUN_TEAM units.
     """
 
-    def test_lay_mine_start_publishes_start_event(
-        self, executor_with_map, event_bus
-    ):
+    def test_lay_mine_start_publishes_start_event(self, executor_with_map, event_bus):
         """Happy: AT_GUN_TEAM at target starts laying + publishes lay_mine_start."""
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
@@ -1323,9 +1221,7 @@ class TestTacticExecutorLayMine:
         assert start_events[0]["position"] == (5, 5)
         assert executor_with_map._mine_warfare_system.get_lay_progress("u_lm") is not None
 
-    def test_lay_mine_completion_publishes_mine_laid_event(
-        self, executor_with_map, event_bus
-    ):
+    def test_lay_mine_completion_publishes_mine_laid_event(self, executor_with_map, event_bus):
         """Happy: advancing laying to MINE_LAY_TICKS publishes mine_laid."""
         from pycc2.domain.ai.mine_warfare import (
             MINE_LAY_TICKS,
@@ -1397,9 +1293,7 @@ class TestTacticExecutorLayMine:
         assert executor.execute(intent) is False
         assert published == []
 
-    def test_lay_mine_without_target_position_returns_false(
-        self, executor_with_map, event_bus
-    ):
+    def test_lay_mine_without_target_position_returns_false(self, executor_with_map, event_bus):
         """Error: target_position is None -> False (no event published)."""
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
@@ -1417,9 +1311,7 @@ class TestTacticExecutorLayMine:
         assert executor_with_map.execute(intent) is False
         assert published == []
 
-    def test_lay_mine_target_far_delegates_to_move_to(
-        self, executor_with_map, event_bus
-    ):
+    def test_lay_mine_target_far_delegates_to_move_to(self, executor_with_map, event_bus):
         """Boundary: target_position > 1 tile away -> _execute_move_to handles.
 
         _execute_move_to publishes a move event; lay_mine_start should NOT
@@ -1521,9 +1413,7 @@ class TestTacticExecutorMountTank:
         assert mount_events[0]["unit_id"] == "u_mt_rider"
         assert mount_events[0]["tank_id"] == "u_mt_tank"
 
-    def test_mount_tank_already_riding_returns_true(
-        self, executor, event_bus, monkeypatch
-    ):
+    def test_mount_tank_already_riding_returns_true(self, executor, event_bus, monkeypatch):
         """Happy/Boundary: is_riding=True → idempotent True, no mount event."""
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
@@ -1532,9 +1422,7 @@ class TestTacticExecutorMountTank:
         executor.register_unit(rider)
         executor.register_unit(tank)
 
-        monkeypatch.setattr(
-            executor._tank_rider_system, "is_riding", lambda uid: True
-        )
+        monkeypatch.setattr(executor._tank_rider_system, "is_riding", lambda uid: True)
 
         intent = TacticIntent(
             unit_id="u_mt_ar",
@@ -1585,9 +1473,7 @@ class TestTacticExecutorMountTank:
         mount_events = [e for e in published if e.get("action") == "mount_tank"]
         assert mount_events == []
 
-    def test_mount_tank_cannot_mount_returns_false(
-        self, executor, event_bus, monkeypatch
-    ):
+    def test_mount_tank_cannot_mount_returns_false(self, executor, event_bus, monkeypatch):
         """Boundary: can_mount False + dist<=2 (no move delegation) → False."""
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
@@ -1596,9 +1482,7 @@ class TestTacticExecutorMountTank:
         executor.register_unit(rider)
         executor.register_unit(tank)
 
-        monkeypatch.setattr(
-            executor._tank_rider_system, "can_mount", lambda *args: False
-        )
+        monkeypatch.setattr(executor._tank_rider_system, "can_mount", lambda *args: False)
 
         intent = TacticIntent(
             unit_id="u_mt_cant",
@@ -1691,9 +1575,7 @@ class TestTacticExecutorDismountTank:
         assert len(dismount_events) == 1
         assert dismount_events[0]["instant"] is True
 
-    def test_dismount_tank_without_target_position_not_instant(
-        self, executor, event_bus
-    ):
+    def test_dismount_tank_without_target_position_not_instant(self, executor, event_bus):
         """Boundary: no target_position → instant=False (normal dismount)."""
         rider = make_unit("u_dt_slow", TileCoord(3, 3))
         tank = make_unit("u_dt_tank_slow", TileCoord(3, 4), unit_type=UnitType.TANK)
@@ -1721,9 +1603,7 @@ class TestTacticExecutorHealWounded:
     delegates move_to).
     """
 
-    def test_heal_wounded_heals_patient_and_publishes_event(
-        self, executor, event_bus
-    ):
+    def test_heal_wounded_heals_patient_and_publishes_event(self, executor, event_bus):
         """Happy: MEDIC_TEAM + wounded patient adjacent → heal + event, True."""
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
@@ -1817,9 +1697,7 @@ class TestTacticExecutorHealWounded:
         heal_events = [e for e in published if e.get("action") == "heal"]
         assert heal_events == []
 
-    def test_heal_wounded_dist_gt_adjacent_delegates_to_move_to(
-        self, executor, event_bus
-    ):
+    def test_heal_wounded_dist_gt_adjacent_delegates_to_move_to(self, executor, event_bus):
         """Boundary: dist > HEAL_ADJACENT_RANGE(1) → delegate to move_to."""
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
@@ -1917,9 +1795,7 @@ class TestTacticExecutorRallyNco:
         )
         assert executor.execute(intent) is False
 
-    def test_rally_nco_dist_gt_5_with_target_position_delegates_move_to(
-        self, executor, event_bus
-    ):
+    def test_rally_nco_dist_gt_5_with_target_position_delegates_move_to(self, executor, event_bus):
         """Boundary: dist>5 + target_position set → delegate move_to, return False."""
         from pycc2.domain.ai.squad_degradation import NCORallyBehavior
 
@@ -1943,9 +1819,7 @@ class TestTacticExecutorRallyNco:
         rally_events = [e for e in published if "rallied_unit_id" in e]
         assert rally_events == []
 
-    def test_rally_nco_dist_gt_5_without_target_position_returns_false(
-        self, executor, event_bus
-    ):
+    def test_rally_nco_dist_gt_5_without_target_position_returns_false(self, executor, event_bus):
         """Boundary: dist>5 + no target_position → False (no move delegation)."""
         from pycc2.domain.ai.squad_degradation import NCORallyBehavior
 
@@ -2039,9 +1913,7 @@ class TestTacticExecutorScavengeAmmo:
         )
         assert executor.execute(intent) is False
 
-    def test_scavenge_ammo_dist_gt_1_delegates_to_move_to(
-        self, executor, event_bus
-    ):
+    def test_scavenge_ammo_dist_gt_1_delegates_to_move_to(self, executor, event_bus):
         """Boundary: dist > 1 → delegate to _execute_move_to, no scavenge event."""
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
@@ -2221,9 +2093,7 @@ class TestTacticExecutorClearBuilding:
         )
         assert executor.execute(intent) is False
 
-    def test_clear_building_without_target_position_returns_false(
-        self, executor_with_map
-    ):
+    def test_clear_building_without_target_position_returns_false(self, executor_with_map):
         """Error: target_position is None → False."""
         unit = make_unit("u_cb_notp", TileCoord(5, 5))
         executor_with_map.register_unit(unit)
@@ -2233,9 +2103,7 @@ class TestTacticExecutorClearBuilding:
         )
         assert executor_with_map.execute(intent) is False
 
-    def test_clear_building_dist_gt_1_delegates_to_move_to(
-        self, executor_with_map, event_bus
-    ):
+    def test_clear_building_dist_gt_1_delegates_to_move_to(self, executor_with_map, event_bus):
         """Boundary: dist > 1 → delegate to _execute_move_to, no clear event."""
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
@@ -2358,9 +2226,7 @@ class TestTacticExecutorAssaultFortified:
         )
         assert executor.execute(intent) is False
 
-    def test_assault_fortified_without_target_position_returns_false(
-        self, executor_with_map
-    ):
+    def test_assault_fortified_without_target_position_returns_false(self, executor_with_map):
         """Error: target_position is None → False."""
         unit = make_unit("u_af_notp", TileCoord(5, 5))
         executor_with_map.register_unit(unit)
@@ -2370,9 +2236,7 @@ class TestTacticExecutorAssaultFortified:
         )
         assert executor_with_map.execute(intent) is False
 
-    def test_assault_fortified_dist_gt_1_delegates_to_move_to(
-        self, executor_with_map, event_bus
-    ):
+    def test_assault_fortified_dist_gt_1_delegates_to_move_to(self, executor_with_map, event_bus):
         """Boundary: dist > 1, no active assault → delegate to _execute_move_to."""
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))
@@ -2389,9 +2253,7 @@ class TestTacticExecutorAssaultFortified:
         assault_events = [e for e in published if e.get("action") == "assault_fortified"]
         assert assault_events == []
 
-    def test_assault_fortified_adjacent_publishes_event(
-        self, executor_with_map, event_bus
-    ):
+    def test_assault_fortified_adjacent_publishes_event(self, executor_with_map, event_bus):
         """Happy: dist=1 (adjacent), no active assault → publish event + True."""
         published: list[dict] = []
         event_bus.subscribe(dict, lambda e: published.append(e))

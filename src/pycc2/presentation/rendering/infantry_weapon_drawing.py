@@ -180,9 +180,7 @@ def _draw_infantry_weapon(
         pygame.draw.line(surface, weapon_color, s_start, s_end, 2)
         stock_x = int(s_start[0])
         stock_y = int(s_start[1])
-        pygame.draw.line(
-            surface, weapon_wood, (stock_x, stock_y), (stock_x - 1, stock_y + 2), 2
-        )
+        pygame.draw.line(surface, weapon_wood, (stock_x, stock_y), (stock_x - 1, stock_y + 2), 2)
         mid_x = int((s_start[0] + s_end[0]) / 2)
         mid_y = int((s_start[1] + s_end[1]) / 2)
         pygame.draw.line(surface, weapon_metal, (mid_x, mid_y), (mid_x, mid_y - 2), 1)
@@ -209,17 +207,13 @@ def _draw_infantry_weapon(
         pygame.draw.line(surface, weapon_color, c_start, c_end, 2)
         stock_x = int(c_start[0])
         stock_y = int(c_start[1])
-        pygame.draw.line(
-            surface, weapon_wood, (stock_x, stock_y), (stock_x - 1, stock_y + 2), 1
-        )
+        pygame.draw.line(surface, weapon_wood, (stock_x, stock_y), (stock_x - 1, stock_y + 2), 1)
 
     elif infantry_type == InfantryType.ENGINEER:
         pygame.draw.line(surface, weapon_color, weapon_start, weapon_end, 2)
         stock_x = int(weapon_start[0])
         stock_y = int(weapon_start[1])
-        pygame.draw.line(
-            surface, weapon_wood, (stock_x, stock_y), (stock_x - 1, stock_y + 2), 2
-        )
+        pygame.draw.line(surface, weapon_wood, (stock_x, stock_y), (stock_x - 1, stock_y + 2), 2)
         mid_x = int((weapon_start[0] + weapon_end[0]) / 2)
         mid_y = int((weapon_start[1] + weapon_end[1]) / 2)
         pygame.draw.line(surface, weapon_metal, (mid_x - 1, mid_y), (mid_x + 1, mid_y), 1)
@@ -251,9 +245,7 @@ def _draw_infantry_weapon(
         pygame.draw.line(surface, weapon_color, weapon_start, weapon_end, 2)
         stock_x = int(weapon_start[0])
         stock_y = int(weapon_start[1])
-        pygame.draw.line(
-            surface, weapon_wood, (stock_x, stock_y), (stock_x - 1, stock_y + 2), 2
-        )
+        pygame.draw.line(surface, weapon_wood, (stock_x, stock_y), (stock_x - 1, stock_y + 2), 2)
         mid_x = int((weapon_start[0] + weapon_end[0]) / 2)
         mid_y = int((weapon_start[1] + weapon_end[1]) / 2)
         pygame.draw.line(surface, weapon_metal, (mid_x - 1, mid_y), (mid_x + 1, mid_y), 1)

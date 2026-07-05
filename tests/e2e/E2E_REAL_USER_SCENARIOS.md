@@ -1124,11 +1124,10 @@ assert fog_vis < 0.5, "雾应大幅降低能见度(<50%)"
 **测试目标**: 验证爆炸时的视觉特效
 
 ```python
-from pycc2.presentation.rendering.particle_system import ParticleSystem
-from pycc2.presentation.rendering.visual_effects import VisualEffects
+from pycc2.presentation.rendering.cc2_combat_effects import CC2ExplosionEffect, EnhancedParticleSystem
 
-particles = ParticleSystem(max_particles=500)
-vfx = VisualEffects(particle_system=particles)
+particles = EnhancedParticleSystem(max_particles=500)
+vfx = CC2ExplosionEffect(particle_system=particles)
 
 vfx.create_explosion(position=(SCREEN_W//2, SCREEN_H//2), size='medium', duration=30)
 

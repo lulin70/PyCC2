@@ -6,6 +6,29 @@ All notable changes to PyCC2 will be documented in this file.
 
 基于 D13 评估建议（详见 [docs/ASSESSMENT_D13_MATURITY.md](docs/ASSESSMENT_D13_MATURITY.md)），按风险从低到高分三个小版本推进。当前基线：v0.4.3 / 4573 tests / 60.18% 覆盖率 / D13 评分 7.4/10 (B-)。
 
+### D14 项目整理评估 (DevSquad V3.8, 2026-07-05)
+
+> 7 维度代码走读 + 文档一致性 + 技术债清理 + 测试完整性 + CI/CD 检查 + 目录清理 + 诚实成熟度评分。详见 [docs/ASSESSMENT_D14_MATURITY.md](docs/ASSESSMENT_D14_MATURITY.md)。
+
+**修复清单**:
+- **F-1 CI ruff format 漂移 (P0)**: 7 个文件需重格式化（infantry_pose_drawing/infantry_sprite_generator/infantry_weapon_drawing/terrain_tiles_natural/terrain_tiles_road/terrain_tiles_structures/test_tactic_executor），运行 `ruff format` 修复
+- **F-2 xfail strict=False 不诚实标记 (P1)**: 移除 `test_vl_flag_rendering.py:334` 的 `@pytest.mark.xfail(strict=False)` 装饰器，该测试在 combined suite 中实际 XPASS 但被静默接受，违反测试哲学
+- **F-3 文档测试计数陈旧 (P1)**: README.md (2处) + README_zh.md (1处) 残留 4473，同步为 4573；其余文档已在 v0.4.3 batch 4b 同步
+- **F-4 3 个幽灵模块残留 (P1)**: 删除 `command_bar.py` (CommandBar 类零导入) + `visual_effects.py` (backward-compat shim 零导入) + `command.py` (GameCommand/CommandType/CommandResult 零导入)，累计 14 个 ghost 全部清理
+- **F-5 E2E 文档引用断链 (P2)**: `E2E_REAL_USER_SCENARIOS.md:1128` 引用不存在的 `visual_effects.VisualEffects`，更新为 `cc2_combat_effects.CC2ExplosionEffect, EnhancedParticleSystem`
+- **F-6 版本号三处不一致 (P1)**: VERSION / pyproject.toml / __init__.py 残留 0.4.0，同步为 0.4.3（跨 3 个小版本未同步）
+
+**新发现技术债 (TD-067~TD-071)**:
+- TD-067: 5 个 God Class >800L 待 v0.5+ 评估 (enhanced_sound_bridge 949L / terrain_rendering_system 896L / hud_renderer 886L / vehicle_weapon_profiles 826L / environmental_audio 811L)
+- TD-068: 5 个 e2e skip 偷懒（违反测试哲学 "Skip tests are不合理"）
+- TD-069: 12 个零覆盖文件含 main.py P0 入口点
+- TD-070: pre-commit hooks 版本陈旧 (ruff v0.5.0 vs lock 0.15.20)，导致 CI 漂移
+- TD-071: mypy 非严格 (check_untyped_defs=false)
+
+**验证**: ruff check 0 errors / ruff format --check 585 files already formatted / pytest unit 4573 passed / 2 skipped / 0 failed — 零回归
+
+**D14 评分**: 7.6/10 (B-) — D13 7.4/10 (B-) 提升 0.2 分。测试维度 +0.5（100 新单测 + xfail 移除）；可维护性 +0.5（3 ghost 清理）；文档 +0.5（版本号同步）；CI/CD -0.5（pre-commit hooks 陈旧导致 CI 漂移）。诚实评价：D14 是增量维护版本，CI 漂移暴露 pre-commit 维护缺失，xfail 是测试哲学违规，版本号跨 3 小版本未同步是文档纪律松懈。
+
 ### v0.4.1 — 低风险维护批次 (P3, 2026-07-05)
 
 - **bandit 独立配置文件** `bandit.yaml`（D13 N-6）：集中管理 skips/exclude_dirs/targets，每项 skip 附带 rationale；CI 引用改为 `bandit -c bandit.yaml -r src/ -ll`

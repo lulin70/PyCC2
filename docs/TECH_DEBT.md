@@ -1,8 +1,8 @@
 # PyCC2 技术债清单
 
 > **版本**: v0.4.3 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-07-05 (D12 Phase 5 完成后 D13 项目整理评估) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 9
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (392 files, Phase 4 后) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 11 ghost 模块清理完成（D12 Phase 3） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4560 passed) | ⚠️ 4 个 God Class 候选待 v0.5+ 按真实职责评估 (deployment_ui 50/enhanced_sound_bridge 44/sound_system 43/sprite_renderer_base 39) | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
+> **上次核查**: 2026-07-05 (D14 项目整理评估) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 14
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (392 files, Phase 4 后) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ⚠️ 5 个 God Class >800L 待 v0.5+ 评估 (enhanced_sound_bridge 949L/terrain_rendering_system 896L/hud_renderer 886L/vehicle_weapon_profiles 826L/environmental_audio 811L) | ⚠️ 7 慢测试超时（sprite 生成，预先存在） | ⚠️ pre-commit hooks 版本陈旧 (ruff v0.5.0 vs lock 0.15.20) | ⚠️ 5 e2e skip 偷懒 | ⚠️ 12 零覆盖文件含 main.py P0
 
 ---
 
@@ -660,6 +660,50 @@
 
 - **评估**: INSTALL.md / INSTALL_zh.md / INSTALL_ja.md 结构略有差异
 - **状态**: 🟢 低优先级 (待 v0.5 文档整理批次统一)
+
+---
+
+## 🆕 七、D14 项目整理评估新增 (TD-067~TD-071, 2026-07-05)
+
+### 🟢 TD-067: 5 个 God Class >800L 待 v0.5+ 评估 (P2)
+
+- **描述**: D14 发现 5 个 >800L 文件，基于"单类多职责"标准（非方法数阈值）需逐一评估:
+  - `enhanced_sound_bridge.py` (949L)
+  - `terrain_rendering_system.py` (896L)
+  - `hud_renderer.py` (886L)
+  - `vehicle_weapon_profiles.py` (826L)
+  - `environmental_audio.py` (811L)
+- **影响**: 单文件过大难以维护，修改风险高
+- **清理方案**: v0.5+ 按真实职责评估，确认是多职责才拆分，避免 D13 N-1 方法数阈值误判
+- **状态**: 🟢 记录 (v0.5+ 评估)
+
+### 🟢 TD-068: 5 个 e2e skip 偷懒 (P2)
+
+- **描述**: tests/e2e/ 存在 5 个 `@pytest.mark.skip` 标记，违反用户测试哲学 "Skip tests are不合理; if a test can be skipped, it shouldn't have been designed"
+- **影响**: 测试覆盖不完整，可能隐藏真实缺陷
+- **清理方案**: 要么修复测试让其实跑，要么删除不合理的测试标记
+- **状态**: 🟢 记录 (v0.4.4 修复)
+
+### 🟢 TD-069: 12 个零覆盖文件含 main.py P0 (P2)
+
+- **描述**: 12 个源文件无任何测试覆盖，其中 `main.py` 是入口点（P0 优先级）
+- **影响**: 入口点无测试验证启动流程，业务模块无回归保护
+- **清理方案**: 优先 main.py smoke test，其次业务模块补测
+- **状态**: 🟢 记录 (v0.4.4 main.py + v0.5 业务模块)
+
+### 🟢 TD-070: pre-commit hooks 版本陈旧 (P2)
+
+- **描述**: `.pre-commit-config.yaml` 中 ruff 版本为 v0.5.0，但 requirements.lock 为 0.15.20，导致本地格式化与 CI 不一致，D14 期间 CI 连续失败
+- **影响**: 开发者本地 commit 不触发正确格式化，CI 才发现漂移
+- **清理方案**: 更新 .pre-commit-config.yaml ruff 版本至与 lock 一致，定期 `pre-commit autoupdate`
+- **状态**: 🟢 记录 (v0.4.4 修复，D14 已手动 ruff format 临时止血)
+
+### 🟢 TD-071: mypy 非严格 check_untyped_defs=false (P3)
+
+- **描述**: pyproject.toml mypy 配置未启用 `check_untyped_defs=true`，未注解函数内部不检查类型
+- **影响**: 类型安全网不完整，未注解代码可能隐藏类型错误
+- **清理方案**: v0.6.0+ 启用 check_untyped_defs=true
+- **状态**: 🟢 记录 (v0.6.0+ 长期规划)
 
 ---
 

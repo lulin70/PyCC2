@@ -331,14 +331,6 @@ class TestVLFlagRendering:
             )
             print(f"[OK] VL '{obj.id}' at screen ({sx},{sy}) is within camera view")
 
-    @pytest.mark.xfail(
-        reason=(
-            "Flaky: XPASS in combined suite (前置测试初始化 EnhancedRenderer post-render layers), "
-            "XFAIL in isolation (layers 未初始化). P2-5 fix verified at unit level "
-            "(test_sprite_renderer.py::TestVPNumeralRendering). E2E 渲染顺序调查留作 follow-up."
-        ),
-        strict=False,
-    )
     def test_vl_points_value_rendered_on_map(self):
         """P2-5: Verify VP value numeral is rendered above the flag.
 

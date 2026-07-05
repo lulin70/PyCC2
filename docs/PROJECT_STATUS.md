@@ -11,7 +11,7 @@
 | 版本号 | 0.4.3 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
 | 源码模块数 | 390 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
 | 测试文件数 | 176 个 `.py` 文件（unit 137 / integration 7 / e2e 25 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 4473 passed / 0 failed / 2 skipped (Phase 5 后基线，D12 Phase 3 删除 324 ghost 测试) | `pytest tests/unit/ -m "not slow"` |
+| 测试用例数 | 4573 passed / 0 failed / 2 skipped (v0.4.3 batch 4b 后基线，含 100 新 TacticExecutor 单测) | `pytest tests/unit/ -m "not slow"` |
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=60`（已恢复目标值） | `.github/workflows/ci.yml` |
 | 实际覆盖率 | 60.05% (44170 stmts, 15918 missed，含 branch coverage) | `pytest tests/unit/ --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |
@@ -33,6 +33,7 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 
 | 评估 | 日期 | 评分 | 报告 |
 |------|------|------|------|
+| D14 | 2026-07-05 | 7.6/10 (B-) | [ASSESSMENT_D14_MATURITY.md](ASSESSMENT_D14_MATURITY.md) |
 | D13 | 2026-07-05 | 7.4/10 (B-) | [ASSESSMENT_D13_MATURITY.md](ASSESSMENT_D13_MATURITY.md) |
 | D12 | 2026-07-02 | 5.9/10 (D+) | [ASSESSMENT_D12_MATURITY.md](ASSESSMENT_D12_MATURITY.md) |
 | D9 | 2026-06-29 | 8.2/10 (B) | [ASSESSMENT_D9_MATURITY.md](ASSESSMENT_D9_MATURITY.md) |

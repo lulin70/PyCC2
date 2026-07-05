@@ -324,9 +324,7 @@ def generate_road(
     edge_color = CCPalette.DIRT.value
     for i in range(road_margin):
         alpha = i / road_margin
-        blended = tuple(
-            int(edge_color[j] * (1 - alpha) + road_color[j] * alpha) for j in range(3)
-        )
+        blended = tuple(int(edge_color[j] * (1 - alpha) + road_color[j] * alpha) for j in range(3))
         if orientation == "horizontal":
             c.set_pixel(i, size // 2, blended)
             c.set_pixel(size - 1 - i, size // 2, blended)

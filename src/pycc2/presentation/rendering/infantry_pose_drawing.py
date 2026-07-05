@@ -145,24 +145,16 @@ def _draw_infantry_prone_topdown(
         elbow_dist = body_len // 3
         perp_angle = angle + math.pi / 2
         elbow1_x = (
-            cx
-            + int(math.cos(angle) * elbow_dist)
-            + int(math.cos(perp_angle) * (2 + limb_offset))
+            cx + int(math.cos(angle) * elbow_dist) + int(math.cos(perp_angle) * (2 + limb_offset))
         )
         elbow1_y = (
-            cy
-            + int(math.sin(angle) * elbow_dist)
-            + int(math.sin(perp_angle) * (2 + limb_offset))
+            cy + int(math.sin(angle) * elbow_dist) + int(math.sin(perp_angle) * (2 + limb_offset))
         )
         elbow2_x = (
-            cx
-            + int(math.cos(angle) * elbow_dist)
-            - int(math.cos(perp_angle) * (2 - limb_offset))
+            cx + int(math.cos(angle) * elbow_dist) - int(math.cos(perp_angle) * (2 - limb_offset))
         )
         elbow2_y = (
-            cy
-            + int(math.sin(angle) * elbow_dist)
-            - int(math.sin(perp_angle) * (2 - limb_offset))
+            cy + int(math.sin(angle) * elbow_dist) - int(math.sin(perp_angle) * (2 - limb_offset))
         )
 
         pygame.draw.circle(surface, body_dark, (elbow1_x, elbow1_y), 1)
@@ -171,24 +163,16 @@ def _draw_infantry_prone_topdown(
         # 膝盖
         knee_dist = -body_len // 4
         knee1_x = (
-            cx
-            + int(math.cos(angle) * knee_dist)
-            + int(math.cos(perp_angle) * (2 - limb_offset))
+            cx + int(math.cos(angle) * knee_dist) + int(math.cos(perp_angle) * (2 - limb_offset))
         )
         knee1_y = (
-            cy
-            + int(math.sin(angle) * knee_dist)
-            + int(math.sin(perp_angle) * (2 - limb_offset))
+            cy + int(math.sin(angle) * knee_dist) + int(math.sin(perp_angle) * (2 - limb_offset))
         )
         knee2_x = (
-            cx
-            + int(math.cos(angle) * knee_dist)
-            - int(math.cos(perp_angle) * (2 + limb_offset))
+            cx + int(math.cos(angle) * knee_dist) - int(math.cos(perp_angle) * (2 + limb_offset))
         )
         knee2_y = (
-            cy
-            + int(math.sin(angle) * knee_dist)
-            - int(math.sin(perp_angle) * (2 + limb_offset))
+            cy + int(math.sin(angle) * knee_dist) - int(math.sin(perp_angle) * (2 + limb_offset))
         )
 
         pygame.draw.circle(surface, boots_color, (knee1_x, knee1_y), 1)

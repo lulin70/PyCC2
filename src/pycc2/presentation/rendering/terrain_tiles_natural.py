@@ -270,9 +270,7 @@ def generate_water(
         wave_freq = rng.uniform(0.2, 0.7)  # 更宽的频率范围
         wave_phase = wave_phase_base + rng.uniform(0, 2 * math.pi)
         for x in range(wx_start, min(size, wx_start + ww)):
-            wy = wy_base + int(
-                wave_amp * math.sin(wave_freq * (x + tile_x * size) + wave_phase)
-            )
+            wy = wy_base + int(wave_amp * math.sin(wave_freq * (x + tile_x * size) + wave_phase))
             if 0 <= wy < size:
                 c.set_pixel(x, wy, wave_color)
 

@@ -15,7 +15,7 @@
 <em>A Python recreation of Atomic Games' legendary WWII tactical wargame — Beta Candidate with full SRP refactoring, real-mode E2E, and mature test suite</em>
 </p>
 
-> 🟢 **Beta Candidate**: Core gameplay + cinematic effects + achievement system + dynamic shadows + projectile trails + SRP architecture cleanup + real SDL E2E validation + visual polish (death fade, screen flash, movement smoothing, UI transitions, weather overlay, shell ejection, button feedback). **~4473 tests passing (100%)**, 38-phase E2E user journey validated in real environment. Ghost feature audit complete — all critical rendering pipelines now active. Environmental audio activated, dirty rectangle optimization live, EnhancedRenderer split complete, ResourceCacheManager online.
+> 🟢 **Beta Candidate**: Core gameplay + cinematic effects + achievement system + dynamic shadows + projectile trails + SRP architecture cleanup + real SDL E2E validation + visual polish (death fade, screen flash, movement smoothing, UI transitions, weather overlay, shell ejection, button feedback). **~4573 tests passing (100%)**, 38-phase E2E user journey validated in real environment. Ghost feature audit complete — all critical rendering pipelines now active. Environmental audio activated, dirty rectangle optimization live, EnhancedRenderer split complete, ResourceCacheManager online.
 
 ---
 

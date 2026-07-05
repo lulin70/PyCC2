@@ -39,9 +39,7 @@ def generate_building(size: int, building_type: str = "solid") -> PixelCanvas:
         c.fill_rect(margin, margin, size - margin * 2, size - margin * 2, wall)
 
         roof_margin = margin - max(1, size // 32)
-        c.fill_rect(
-            roof_margin, roof_margin, size - roof_margin * 2, size - roof_margin * 2, roof
-        )
+        c.fill_rect(roof_margin, roof_margin, size - roof_margin * 2, size - roof_margin * 2, roof)
 
         shadow_w = max(2, size // 16)
         for i in range(shadow_w):
