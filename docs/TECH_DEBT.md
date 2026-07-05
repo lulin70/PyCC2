@@ -2,7 +2,7 @@
 
 > **版本**: v0.4.0 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
 > **上次核查**: 2026-07-05 (D12 Phase 5 完成后 D13 项目整理评估) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 9
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (392 files, Phase 4 后) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 11 ghost 模块清理完成（D12 Phase 3） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | 🟡 v0.4.3 TacticExecutor 单测补齐进行中 (batch 1-3: 13/19 handler + DEMOLISH_BRIDGE 额外, 54 tests, unit 4527 passed) | ⚠️ 4 个 God Class 候选待 v0.5+ 按真实职责评估 (deployment_ui 50/enhanced_sound_bridge 44/sound_system 43/sprite_renderer_base 39) | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (392 files, Phase 4 后) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 11 ghost 模块清理完成（D12 Phase 3） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | 🟡 v0.4.3 TacticExecutor 单测补齐进行中 (batch 1-4a: 17/19 handler + DEMOLISH_BRIDGE 额外, 79 tests, unit 4552 passed) | ⚠️ 4 个 God Class 候选待 v0.5+ 按真实职责评估 (deployment_ui 50/enhanced_sound_bridge 44/sound_system 43/sprite_renderer_base 39) | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
 
 ---
 

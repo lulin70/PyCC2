@@ -252,6 +252,10 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 | 16 | `HEAL_WOUNDED` | 7 | Happy(治疗+事件) + Error(未知 medic) + Error(非 MEDIC_TEAM) + Error(未知 patient) + Error(死亡 patient) + Boundary(hp≥HEAL_CAP_RATIO) + Boundary(dist>1 委托 move_to) | ✅ |
 | 17 | `RALLY_NCO` | 7 | Happy(COMMANDER+can_rally+事件) + Error(未知 NCO) + Error(nco_rally None) + Error(未知 target) + Boundary(dist>5+target_position 委托 move_to) + Boundary(dist>5 无 target_position) + Boundary(can_rally False) | ✅ |
 
+**关键实现**: DISMOUNT_TANK 用真实 TankRiderSystem.start_mount + tick×3 推进到 RIDING 状态（不 mock 内部状态）；HEAL_WOUNDED 用 take_damage(50) 触发 die() 模拟死亡 patient；RALLY_NCO 用 morale_value=5 触发 BROKEN 状态
+
+**验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 106 passed (27 既有 + 16 batch1 + 19 batch2 + 19 batch3 + 25 batch4a) / pytest unit 4552 passed / 2 skipped / 0 failed (零回归)
+
 **剩余 3 个 handler** (batch 4b 待推进): SCAVENGE_AMMO / CLEAR_BUILDING / ASSAULT_FORTIFIED — 均为多步状态机或复杂前置条件，复杂度最高
 
 ### 中期（v0.5.0 功能版本，待规划）
