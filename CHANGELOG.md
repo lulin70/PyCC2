@@ -58,7 +58,16 @@ All notable changes to PyCC2 will be documented in this file.
 
 **验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 106 passed (27 既有 + 16 batch1 + 19 batch2 + 19 batch3 + 25 batch4a) / pytest unit 4552 passed / 2 skipped / 0 failed (零回归)
 
-**剩余 3 个 handler** (batch 4b 待推进): SCAVENGE_AMMO / CLEAR_BUILDING / ASSAULT_FORTIFIED — 均为多步状态机或复杂前置条件，复杂度最高
+**Batch 4b — 3 个高复杂度 handler (2026-07-05 完成)**:
+- `SCAVENGE_AMMO`: 8 tests (Happy: start_pickup SUCCESS+事件 / Happy: 已有 pickup_state 幂等 / Happy: target_unit_id 匹配特定 source / Error: 未知 unit / Error: 无 target_position / Error: 无 source / Boundary: dist>1 委托 move_to / Boundary: WRONG_STANCE)
+- `CLEAR_BUILDING`: 7 tests (Happy: 相邻无 defenders+事件 / Happy: 相邻有 defenders+grenade 命中 / Error: 未知 unit / Error: 无 game_map / Error: 无 target_position / Boundary: dist>1 委托 move_to / Boundary: find_adjacent_approach_pos 返回 None)
+- `ASSAULT_FORTIFIED`: 6 tests (Happy: 相邻 publish 事件 / Happy: active assault 跳过 move 直接 publish / Error: 未知 unit / Error: 无 game_map / Error: 无 target_position / Boundary: dist>1 委托 move_to)
+
+**关键实现**: SCAVENGE_AMMO 用 monkeypatch AmmoPickupSystem._get_unit_stance 返回 PRONE 绕过 stance 检查（make_unit 默认无 combat_state → STANDING）；CLEAR_BUILDING 用真实 take_damage 验证 GRENADE_BUILDING_DAMAGE=30 命中 defenders；ASSAULT_FORTIFIED 用 MagicMock 预填充 _assaults dict 模拟 active assault 状态
+
+**验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 127 passed (27 既有 + 16 batch1 + 19 batch2 + 19 batch3 + 25 batch4a + 21 batch4b) / pytest unit 4560 passed / 2 skipped / 0 failed (零回归)
+
+**TD-064 单测前置补齐完成**: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, v0.5+ 拆分安全网就绪
 
 ## [0.5.0] - 2026-06-29 (开发中)
 

@@ -1994,3 +1994,439 @@ class TestTacticExecutorRallyNco:
         assert executor.execute(intent) is False
         rally_events = [e for e in published if "rallied_unit_id" in e]
         assert rally_events == []
+
+
+# ============================================================================
+# Phase: v0.4.3 — TacticExecutor untested handler coverage (batch 4b)
+# Target: 3 highest-complexity handlers (SCAVENGE_AMMO / CLEAR_BUILDING /
+#         ASSAULT_FORTIFIED) — multi-step state machines and complex
+#         preconditions. Completes TD-064 handler coverage (19/19 + DEMOLISH_BRIDGE).
+# DevSquad Testing Iron Rules followed:
+#   - Rule 1 (Documentation First): signatures verified from
+#     logistics_mixin.py / combat_mixin.py / building_clearing.py /
+#     ammo_pickup.py / engineer_assault.py before writing.
+#   - Rule 2 (Failure Means Report): assertions express expected behavior,
+#     not loosened to pass.
+#   - Rule 3 (Dimension Completeness): each handler covers Happy + Error +
+#     Boundary.
+# ============================================================================
+
+
+class TestTacticExecutorScavengeAmmo:
+    """Tests for _execute_scavenge_ammo (logistics_mixin).
+
+    Covers: Happy (start_pickup SUCCESS + event / already picking up idempotent
+    / target_unit_id source match) + Error (unknown unit / no target_position
+    / no source) + Boundary (dist>1 delegate move_to / WRONG_STANCE).
+    """
+
+    def test_scavenge_ammo_unknown_unit_returns_false(self, executor):
+        """Error: unknown unit_id → False."""
+        intent = TacticIntent(
+            unit_id="nonexistent",
+            tactic_type=TacticType.SCAVENGE_AMMO,
+            target_position=TileCoord(3, 3),
+        )
+        assert executor.execute(intent) is False
+
+    def test_scavenge_ammo_no_target_position_returns_false(self, executor):
+        """Error: target_position is None → False (warning logged)."""
+        unit = make_unit("u_sa_notp", TileCoord(3, 3))
+        executor.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_sa_notp",
+            tactic_type=TacticType.SCAVENGE_AMMO,
+        )
+        assert executor.execute(intent) is False
+
+    def test_scavenge_ammo_dist_gt_1_delegates_to_move_to(
+        self, executor, event_bus
+    ):
+        """Boundary: dist > 1 → delegate to _execute_move_to, no scavenge event."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_sa_far", TileCoord(0, 0))
+        executor.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_sa_far",
+            tactic_type=TacticType.SCAVENGE_AMMO,
+            target_position=TileCoord(5, 5),
+        )
+        # dist = 5 > 1 → delegates to move_to
+        result = executor.execute(intent)
+        assert result is True
+        scavenge_events = [e for e in published if "source_id" in e]
+        assert scavenge_events == []
+
+    def test_scavenge_ammo_no_source_returns_false(self, executor, event_bus):
+        """Error: fallen_cache empty (no sources) → False."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_sa_nosrc", TileCoord(3, 3))
+        executor.register_unit(unit)
+        # Unit at target position, but no fallen units registered in cache
+        intent = TacticIntent(
+            unit_id="u_sa_nosrc",
+            tactic_type=TacticType.SCAVENGE_AMMO,
+            target_position=TileCoord(3, 3),
+        )
+        assert executor.execute(intent) is False
+        scavenge_events = [e for e in published if "source_id" in e]
+        assert scavenge_events == []
+
+    def test_scavenge_ammo_start_pickup_success_publishes_event(
+        self, executor, event_bus, monkeypatch
+    ):
+        """Happy: fallen comrade registered + stance PRONE → SUCCESS + event."""
+        from pycc2.domain.ai.ammo_pickup import AmmoPickupSystem
+        from pycc2.domain.systems.combat_mechanics_enhanced import Stance
+
+        # AmmoPickupSystem._get_unit_stance is a staticmethod; replace with
+        # PRONE so start_pickup does not reject STANDING default stance.
+        monkeypatch.setattr(
+            AmmoPickupSystem,
+            "_get_unit_stance",
+            staticmethod(lambda u: Stance.PRONE),
+        )
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_sa_ok", TileCoord(3, 3))
+        executor.register_unit(unit)
+
+        # Register a fallen comrade at the same position (friendly)
+        fallen = make_unit("u_fallen", TileCoord(3, 3))
+        fallen.faction = Faction.ALLIES  # same faction → FALLEN_COMRADE
+        executor._ammo_pickup.fallen_cache.register(fallen, current_tick=0)
+
+        intent = TacticIntent(
+            unit_id="u_sa_ok",
+            tactic_type=TacticType.SCAVENGE_AMMO,
+            target_position=TileCoord(3, 3),
+        )
+        assert executor.execute(intent) is True
+        scavenge_events = [e for e in published if "source_id" in e]
+        assert len(scavenge_events) == 1
+        assert scavenge_events[0]["unit_id"] == "u_sa_ok"
+        assert scavenge_events[0]["source_id"] == "u_fallen"
+        assert scavenge_events[0]["source_type"] == "FALLEN_COMRADE"
+
+    def test_scavenge_ammo_already_picking_up_returns_true(self, executor):
+        """Happy idempotent: _active_pickups has unit → True without re-starting."""
+        from pycc2.domain.ai.ammo_pickup import AmmoSourceType, PickupState
+
+        unit = make_unit("u_sa_inprogress", TileCoord(3, 3))
+        executor.register_unit(unit)
+        # Pre-populate active pickup state for this unit
+        executor._ammo_pickup._active_pickups[unit.id] = PickupState(
+            unit_id=unit.id,
+            source_id="u_fallen2",
+            source_type=AmmoSourceType.FALLEN_COMRADE,
+            ticks_remaining=2,
+            target_position=TileCoord(3, 3),
+        )
+
+        intent = TacticIntent(
+            unit_id="u_sa_inprogress",
+            tactic_type=TacticType.SCAVENGE_AMMO,
+            target_position=TileCoord(3, 3),
+        )
+        assert executor.execute(intent) is True
+
+    def test_scavenge_ammo_wrong_stance_returns_false(self, executor, event_bus):
+        """Boundary: stance STANDING (default) → WRONG_STANCE → False."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_sa_standing", TileCoord(3, 3))
+        executor.register_unit(unit)
+
+        # Register a fallen comrade at the same position
+        fallen = make_unit("u_fallen3", TileCoord(3, 3))
+        fallen.faction = Faction.ALLIES
+        executor._ammo_pickup.fallen_cache.register(fallen, current_tick=0)
+
+        intent = TacticIntent(
+            unit_id="u_sa_standing",
+            tactic_type=TacticType.SCAVENGE_AMMO,
+            target_position=TileCoord(3, 3),
+        )
+        # No monkeypatch → stance STANDING → WRONG_STANCE → False
+        assert executor.execute(intent) is False
+        scavenge_events = [e for e in published if "source_id" in e]
+        assert scavenge_events == []
+
+    def test_scavenge_ammo_target_unit_id_matches_specific_source(
+        self, executor, event_bus, monkeypatch
+    ):
+        """Happy: target_unit_id selects specific source among multiple."""
+        from pycc2.domain.ai.ammo_pickup import AmmoPickupSystem
+        from pycc2.domain.systems.combat_mechanics_enhanced import Stance
+
+        monkeypatch.setattr(
+            AmmoPickupSystem,
+            "_get_unit_stance",
+            staticmethod(lambda u: Stance.PRONE),
+        )
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_sa_pick", TileCoord(3, 3))
+        executor.register_unit(unit)
+
+        # Register two fallen comrades at adjacent tiles (within FRIENDLY_RANGE=5)
+        fallen_a = make_unit("u_fallen_a", TileCoord(3, 4))
+        fallen_a.faction = Faction.ALLIES
+        fallen_b = make_unit("u_fallen_b", TileCoord(4, 3))
+        fallen_b.faction = Faction.ALLIES
+        executor._ammo_pickup.fallen_cache.register(fallen_a, current_tick=0)
+        executor._ammo_pickup.fallen_cache.register(fallen_b, current_tick=0)
+
+        intent = TacticIntent(
+            unit_id="u_sa_pick",
+            tactic_type=TacticType.SCAVENGE_AMMO,
+            target_position=TileCoord(3, 3),
+            target_unit_id="u_fallen_b",  # explicitly pick fallen_b
+        )
+        assert executor.execute(intent) is True
+        scavenge_events = [e for e in published if "source_id" in e]
+        assert len(scavenge_events) == 1
+        assert scavenge_events[0]["source_id"] == "u_fallen_b"
+
+
+class TestTacticExecutorClearBuilding:
+    """Tests for _execute_clear_building (combat_mixin).
+
+    Covers: Happy (adjacent + event with/without defenders) + Error (unknown
+    unit / no game_map / no target_position) + Boundary (dist>1 delegate
+    move_to / find_adjacent_approach_pos returns None).
+    """
+
+    def test_clear_building_unknown_unit_returns_false(self, executor_with_map):
+        """Error: unknown unit_id → False."""
+        intent = TacticIntent(
+            unit_id="nonexistent",
+            tactic_type=TacticType.CLEAR_BUILDING,
+            target_position=TileCoord(5, 5),
+        )
+        assert executor_with_map.execute(intent) is False
+
+    def test_clear_building_without_game_map_returns_false(self, executor):
+        """Error: game_map is None → False."""
+        unit = make_unit("u_cb_nomap", TileCoord(5, 5))
+        executor.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_cb_nomap",
+            tactic_type=TacticType.CLEAR_BUILDING,
+            target_position=TileCoord(5, 5),
+        )
+        assert executor.execute(intent) is False
+
+    def test_clear_building_without_target_position_returns_false(
+        self, executor_with_map
+    ):
+        """Error: target_position is None → False."""
+        unit = make_unit("u_cb_notp", TileCoord(5, 5))
+        executor_with_map.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_cb_notp",
+            tactic_type=TacticType.CLEAR_BUILDING,
+        )
+        assert executor_with_map.execute(intent) is False
+
+    def test_clear_building_dist_gt_1_delegates_to_move_to(
+        self, executor_with_map, event_bus
+    ):
+        """Boundary: dist > 1 → delegate to _execute_move_to, no clear event."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_cb_far", TileCoord(0, 0))
+        executor_with_map.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_cb_far",
+            tactic_type=TacticType.CLEAR_BUILDING,
+            target_position=TileCoord(5, 5),
+        )
+        # dist = 5 > 1, game_map is all OPEN → find_adjacent_approach_pos
+        # returns a passable tile → delegates to move_to
+        result = executor_with_map.execute(intent)
+        assert result is True
+        clear_events = [e for e in published if e.get("action") == "clear_building"]
+        assert clear_events == []
+
+    def test_clear_building_adjacent_no_defenders_publishes_event(
+        self, executor_with_map, event_bus
+    ):
+        """Happy: dist=1, no defenders → publish event with grenade_effects=0."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_cb_nodef", TileCoord(5, 5))
+        executor_with_map.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_cb_nodef",
+            tactic_type=TacticType.CLEAR_BUILDING,
+            target_position=TileCoord(5, 6),  # dist=1
+        )
+        assert executor_with_map.execute(intent) is True
+        clear_events = [e for e in published if e.get("action") == "clear_building"]
+        assert len(clear_events) == 1
+        assert clear_events[0]["unit_id"] == "u_cb_nodef"
+        assert clear_events[0]["grenade_effects"] == 0
+        # Unit moved into the building
+        assert unit.position.tile_coord == TileCoord(5, 6)
+
+    def test_clear_building_adjacent_with_defenders_publishes_event(
+        self, executor_with_map, event_bus
+    ):
+        """Happy: dist=1, enemy defenders present → grenade hits + event."""
+        from pycc2.domain.ai.building_clearing import GRENADE_BUILDING_DAMAGE
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_cb_atk", TileCoord(5, 5))
+        # Enemy defender at target_position, hp=100 (will survive GRENADE_BUILDING_DAMAGE=30)
+        defender = make_unit("u_cb_def", TileCoord(5, 6), hp=100)
+        defender.faction = Faction.AXIS  # opposite faction → counted as defender
+        executor_with_map.register_unit(unit)
+        executor_with_map.register_unit(defender)
+
+        intent = TacticIntent(
+            unit_id="u_cb_atk",
+            tactic_type=TacticType.CLEAR_BUILDING,
+            target_position=TileCoord(5, 6),  # dist=1
+        )
+        assert executor_with_map.execute(intent) is True
+        clear_events = [e for e in published if e.get("action") == "clear_building"]
+        assert len(clear_events) == 1
+        assert clear_events[0]["grenade_effects"] == 1
+        # Defender took GRENADE_BUILDING_DAMAGE damage
+        assert defender.health.hp == 100 - GRENADE_BUILDING_DAMAGE
+        # Unit moved into the building
+        assert unit.position.tile_coord == TileCoord(5, 6)
+
+    def test_clear_building_dist_gt_1_no_approach_returns_false(
+        self, executor_with_map, game_map, event_bus, monkeypatch
+    ):
+        """Boundary: dist>1 + find_adjacent_approach_pos returns None → False."""
+        from pycc2.domain.ai.building_clearing import BuildingClearingAI
+
+        # Force find_adjacent_approach_pos to return None (no passable approach)
+        monkeypatch.setattr(
+            BuildingClearingAI,
+            "find_adjacent_approach_pos",
+            staticmethod(lambda b, u, m: None),
+        )
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_cb_noapproach", TileCoord(0, 0))
+        executor_with_map.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_cb_noapproach",
+            tactic_type=TacticType.CLEAR_BUILDING,
+            target_position=TileCoord(5, 5),  # dist=5 > 1
+        )
+        assert executor_with_map.execute(intent) is False
+        clear_events = [e for e in published if e.get("action") == "clear_building"]
+        assert clear_events == []
+
+
+class TestTacticExecutorAssaultFortified:
+    """Tests for _execute_assault_fortified (combat_mixin).
+
+    Covers: Happy (adjacent publish event / active assault publish event) +
+    Error (unknown unit / no game_map / no target_position) + Boundary (dist>1
+    delegate move_to).
+    """
+
+    def test_assault_fortified_unknown_unit_returns_false(self, executor_with_map):
+        """Error: unknown unit_id → False."""
+        intent = TacticIntent(
+            unit_id="nonexistent",
+            tactic_type=TacticType.ASSAULT_FORTIFIED,
+            target_position=TileCoord(5, 5),
+        )
+        assert executor_with_map.execute(intent) is False
+
+    def test_assault_fortified_without_game_map_returns_false(self, executor):
+        """Error: game_map is None → False."""
+        unit = make_unit("u_af_nomap", TileCoord(5, 5))
+        executor.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_af_nomap",
+            tactic_type=TacticType.ASSAULT_FORTIFIED,
+            target_position=TileCoord(5, 5),
+        )
+        assert executor.execute(intent) is False
+
+    def test_assault_fortified_without_target_position_returns_false(
+        self, executor_with_map
+    ):
+        """Error: target_position is None → False."""
+        unit = make_unit("u_af_notp", TileCoord(5, 5))
+        executor_with_map.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_af_notp",
+            tactic_type=TacticType.ASSAULT_FORTIFIED,
+        )
+        assert executor_with_map.execute(intent) is False
+
+    def test_assault_fortified_dist_gt_1_delegates_to_move_to(
+        self, executor_with_map, event_bus
+    ):
+        """Boundary: dist > 1, no active assault → delegate to _execute_move_to."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_af_far", TileCoord(0, 0))
+        executor_with_map.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_af_far",
+            tactic_type=TacticType.ASSAULT_FORTIFIED,
+            target_position=TileCoord(5, 5),  # dist=5 > 1
+        )
+        # dist > 1, no active assault → delegates to move_to, returns True
+        result = executor_with_map.execute(intent)
+        assert result is True
+        assault_events = [e for e in published if e.get("action") == "assault_fortified"]
+        assert assault_events == []
+
+    def test_assault_fortified_adjacent_publishes_event(
+        self, executor_with_map, event_bus
+    ):
+        """Happy: dist=1 (adjacent), no active assault → publish event + True."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_af_adj", TileCoord(5, 5))
+        executor_with_map.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_af_adj",
+            tactic_type=TacticType.ASSAULT_FORTIFIED,
+            target_position=TileCoord(5, 6),  # dist=1
+        )
+        assert executor_with_map.execute(intent) is True
+        assault_events = [e for e in published if e.get("action") == "assault_fortified"]
+        assert len(assault_events) == 1
+        assert assault_events[0]["unit_id"] == "u_af_adj"
+        assert assault_events[0]["target_position"] == (5, 6)
+
+    def test_assault_fortified_with_active_assault_publishes_event(
+        self, executor_with_map, event_bus
+    ):
+        """Happy: active assault exists (dist>1) → skip move, publish event + True."""
+        from unittest.mock import MagicMock
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_af_active", TileCoord(0, 0))
+        executor_with_map.register_unit(unit)
+        # Pre-populate _assaults dict so assault is not None → skip move_to
+        executor_with_map._engineer_assault_ai._assaults[unit.id] = MagicMock()
+
+        intent = TacticIntent(
+            unit_id="u_af_active",
+            tactic_type=TacticType.ASSAULT_FORTIFIED,
+            target_position=TileCoord(5, 5),  # dist=5 > 1, but active assault
+        )
+        assert executor_with_map.execute(intent) is True
+        assault_events = [e for e in published if e.get("action") == "assault_fortified"]
+        assert len(assault_events) == 1
+        assert assault_events[0]["unit_id"] == "u_af_active"
