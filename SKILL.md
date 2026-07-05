@@ -1,6 +1,6 @@
 # PyCC2 Skill 描述
 
-> **版本**: v0.4.0
+> **版本**: v0.4.3
 > **最后更新**: 2026-07-05
 
 ## 模块统计
@@ -9,7 +9,7 @@
 |------|------|------|
 | 源码模块 | 390 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
 | 测试模块 | 176 个 `.py` 文件（unit 137 / integration 7 / e2e 25 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
-| 测试用例 | 4473 passed / 0 failed / 2 skipped | `pytest tests/unit/ -m "not slow"` |
+| 测试用例 | 4573 passed / 0 failed / 2 skipped | `pytest tests/unit/ -m "not slow"` |
 
 ## 项目能力
 
@@ -38,4 +38,4 @@ PyCC2 是 Close Combat 2 的 Python 复刻，战术步兵战斗模拟器。
 | mypy | 0 errors (392 files) | ✅ |
 | Bandit | 0 M/H | ✅ |
 | 覆盖率 | 60% (CI fail_under=60，实际 60.05%) | ✅ |
-| 测试回归 | 4473 passed / 0 failed / 2 skipped | ✅ |
+| 测试回归 | 4573 passed / 0 failed / 2 skipped | ✅ |

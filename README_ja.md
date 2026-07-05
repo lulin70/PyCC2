@@ -1,11 +1,11 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python再実装)
 
-**v0.4.0 | Beta Candidate | 2026年6月19日**
+**v0.4.3 | Beta Candidate | 2026年7月5日**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-%7E4473%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/Tests-%7E4573%20passed-brightgreen.svg" alt="Tests" />
 <img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC88%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Beta%20Candidate-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
@@ -186,7 +186,7 @@
 
 | メトリクス | 値 |
 |-----------|-----|
-| **総テスト数** | **4473 passed**（0 failed、2 skipped） ✅ |
+| **総テスト数** | **4573 passed**（0 failed、2 skipped） ✅ |
 | **テスト品質** | A+（121の弱いアサーション排除） 🎯 |
 | **E2Eテスト** | 22テストファイル（38フェーズリアルSDLモード、100%合格率） |
 | **マップ** | 63の史実マップ（マーケット・ガーデン作戦） |
@@ -206,7 +206,7 @@
 | 次元 | スコア | 備考 |
 |------|--------|------|
 | **アーキテクチャ** | 7.5/10 | DDD + DI、EnhancedRenderer分割完了（3サブシステム抽出）、ゴッドクラス4個残存、レイヤー違反-39% |
-| **テスト品質** | 9.5/10 ✅ | **4473テスト**、弱いアサーション<1%、カバレッジゼロモジュールにスモークテスト |
+| **テスト品質** | 9.5/10 ✅ | **4573テスト**、弱いアサーション<1%、カバレッジゼロモジュールにスモークテスト |
 | **テストカバレッジ** | 8.5/10 | 広範なカバレッジ、v0.3.27で27の新規スモークテスト、v0.3.36で55の新規HUDテスト |
 | **コード品質** | 7.5/10 | **裸print()残り~1件（99.3%クリーンアップ済み）**（200+から減少）、logging移行完了、AnimationControllerデッドコード削除 |
 | **パフォーマンス** | 8.5/10 | SurfaceプールLRU統合（6/6消費モジュール）、ダーティレクタングル最適化稼働、地形キャッシュ、戦車回転キャッシュ、ビューポートカリング |
@@ -385,7 +385,7 @@ PyCC2/
 │   ├── maps/               # 63の史実マップJSONファイル
 │   ├── scenarios/          # 11のシナリオ設定
 │   └── units/              # ユニットテンプレート定義
-├── tests/                  # 4473テスト（ユニット + 統合 + E2E + スモーク）
+├── tests/                  # 4573テスト（ユニット + 統合 + E2E + スモーク）
 ├── assets/                 # スプライト、サウンド、CC2リファレンススクリーンショット
 └── docs/                   # 設計文書、PRD、ギャップ分析
 ```
@@ -446,7 +446,7 @@ PyCC2/
 ## テスト
 
 ```bash
-# 完全テストスイート（4473テスト）
+# 完全テストスイート（4573テスト）
 pytest tests/ -q
 
 # カテゴリ別
@@ -609,4 +609,4 @@ Close Combat 2はそれぞれの所有者の商標です。これは教育目的
 
 ---
 
-<p align="center"><sub>最終更新: 2026-07-05 | v0.4.0（Beta Candidate） | テスト: 4473合格 / 2スキップ | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a> | <a href="docs/PROJECT_STATUS.md">プロジェクト状態</a></sub></p>
+<p align="center"><sub>最終更新: 2026-07-05 | v0.4.3（Beta Candidate） | テスト: 4573合格 / 2スキップ | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a> | <a href="docs/PROJECT_STATUS.md">プロジェクト状態</a></sub></p>

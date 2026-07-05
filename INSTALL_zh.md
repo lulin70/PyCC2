@@ -1,6 +1,6 @@
-# 安装指南 — PyCC2 **v0.4.0**
+# 安装指南 — PyCC2 **v0.4.3**
 
-> **本文档已更新至 v0.4.0，早期版本信息见 Git 历史**
+> **本文档已更新至 v0.4.3，早期版本信息见 Git 历史**
 
 > **本指南将帮助你从零开始搭建 PyCC2 的完整开发环境。** 请按照以下步骤依次操作，遇到问题时请参考「常见问题排查」章节。
 
@@ -183,7 +183,7 @@ Obtaining file:///Users/lin/trae_projects/pycc2
   Installed build dependencies: ...
   Checking if build backend supports build_editable: Got requirements: ...
   Installing collected packages: numpy, pygame, pydantic, ... pycc2
-Successfully installed pycc2-0.4.0 numpy-1.26.4 pygame-2.5.2 ...
+Successfully installed pycc2-0.4.3 numpy-1.26.4 pygame-2.5.2 ...
 ```
 
 ---

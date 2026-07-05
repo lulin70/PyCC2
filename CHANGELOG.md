@@ -4,7 +4,7 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## 路线图 (v0.4.1～v0.4.3 短期维护)
 
-基于 D13 评估建议（详见 [docs/ASSESSMENT_D13_MATURITY.md](docs/ASSESSMENT_D13_MATURITY.md)），按风险从低到高分三个小版本推进。当前基线：v0.4.0 / 4473 tests / 60.18% 覆盖率 / D13 评分 7.4/10 (B-)。
+基于 D13 评估建议（详见 [docs/ASSESSMENT_D13_MATURITY.md](docs/ASSESSMENT_D13_MATURITY.md)），按风险从低到高分三个小版本推进。当前基线：v0.4.3 / 4573 tests / 60.18% 覆盖率 / D13 评分 7.4/10 (B-)。
 
 ### v0.4.1 — 低风险维护批次 (P3, 2026-07-05)
 
@@ -65,7 +65,7 @@ All notable changes to PyCC2 will be documented in this file.
 
 **关键实现**: SCAVENGE_AMMO 用 monkeypatch AmmoPickupSystem._get_unit_stance 返回 PRONE 绕过 stance 检查（make_unit 默认无 combat_state → STANDING）；CLEAR_BUILDING 用真实 take_damage 验证 GRENADE_BUILDING_DAMAGE=30 命中 defenders；ASSAULT_FORTIFIED 用 MagicMock 预填充 _assaults dict 模拟 active assault 状态
 
-**验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 127 passed (27 既有 + 16 batch1 + 19 batch2 + 19 batch3 + 25 batch4a + 21 batch4b) / pytest unit 4560 passed / 2 skipped / 0 failed (零回归)
+**验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 127 passed (27 既有 + 16 batch1 + 19 batch2 + 19 batch3 + 25 batch4a + 21 batch4b) / pytest unit 4573 passed / 2 skipped / 0 failed (零回归)
 
 **TD-064 单测前置补齐完成**: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, v0.5+ 拆分安全网就绪
 

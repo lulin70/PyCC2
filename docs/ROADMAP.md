@@ -1,8 +1,8 @@
 # PyCC2 Development Roadmap
 
-**v0.4.0 | June 14, 2026 | Based on DevSquad 7-Role Analysis**
+**v0.4.3 | July 5, 2026 | Based on DevSquad 7-Role Analysis**
 
-> **Current Version**: v0.4.0 | **Tests**: ~3985 (all passing) | **CC2 Fidelity**: ~88%
+> **Current Version**: v0.4.3 | **Tests**: ~3985 (all passing) | **CC2 Fidelity**: ~88%
 > **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish in Progress**
 
 ---
