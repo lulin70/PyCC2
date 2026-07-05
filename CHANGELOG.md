@@ -154,6 +154,21 @@ All notable changes to PyCC2 will be documented in this file.
 
 **最终验证**: ruff 0 errors / mypy 0 errors (389 files, check_untyped_defs=true) / pytest unit 4611 passed / 2 skipped / 0 failed — 零回归
 
+## [0.4.7] - 2026-07-05 (开发中)
+
+### TD-027 infra/infrastructure 职责重叠 — RESOLVED (DevSquad V3.8, 2026-07-05)
+
+> 关闭 D13 遗留的 P2 技术债 TD-027（infra/ 和 infrastructure/ 目录职责重叠）。
+
+**调研结论**:
+- `src/pycc2/infra/` 目录已不存在（仅 `src/pycc2/infrastructure/`）
+- 全仓库 grep `pycc2.infra.` 零匹配，`from pycc2.infra import` 零匹配
+- infra/ 包已于 TD-049 (v0.3.6, 2026-05-28) 合并到 infrastructure/，TD-027 描述过期未同步
+
+**处置**: TD-027 标记为 ✅ RESOLVED (自然解决)，TECH_DEBT.md 状态行 + P2 总数同步更新（17→16 P2，44/64→45/64 已解决）。
+
+**Verification**: 文档级修改无源码变更，ruff/mypy 不受影响。
+
 ## [0.4.6] - 2026-06-29 (开发中)
 
 ### SemVer 纠正 (2026-07-05)
