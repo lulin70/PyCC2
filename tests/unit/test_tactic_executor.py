@@ -1486,3 +1486,511 @@ class TestTacticExecutorLayMine:
         assert laid_events == []
         progress = executor_with_map._mine_warfare_system.get_lay_progress("u_lm_tick")
         assert progress is not None and progress.progress >= 1
+
+
+# =============================================================================
+# Batch 4a — Vehicle & logistics handlers (4 handlers, 25 tests)
+# =============================================================================
+
+
+class TestTacticExecutorMountTank:
+    """Tests for _execute_mount_tank (vehicle_mixin).
+
+    Covers: Happy (start_mount + event / already-riding idempotent) +
+    Error (unknown rider / unknown tank) + Boundary (dist>2 delegates
+    move_to / can_mount False returns False).
+    """
+
+    def test_mount_tank_start_publishes_event(self, executor, event_bus):
+        """Happy: can_mount True + start_mount True → event published, True."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        rider = make_unit("u_mt_rider", TileCoord(3, 3))
+        tank = make_unit("u_mt_tank", TileCoord(3, 4), unit_type=UnitType.TANK)
+        executor.register_unit(rider)
+        executor.register_unit(tank)
+
+        intent = TacticIntent(
+            unit_id="u_mt_rider",
+            tactic_type=TacticType.MOUNT_TANK,
+            target_unit_id="u_mt_tank",
+        )
+        assert executor.execute(intent) is True
+        mount_events = [e for e in published if e.get("action") == "mount_tank"]
+        assert len(mount_events) == 1
+        assert mount_events[0]["unit_id"] == "u_mt_rider"
+        assert mount_events[0]["tank_id"] == "u_mt_tank"
+
+    def test_mount_tank_already_riding_returns_true(
+        self, executor, event_bus, monkeypatch
+    ):
+        """Happy/Boundary: is_riding=True → idempotent True, no mount event."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        rider = make_unit("u_mt_ar", TileCoord(3, 3))
+        tank = make_unit("u_mt_tank_ar", TileCoord(3, 4), unit_type=UnitType.TANK)
+        executor.register_unit(rider)
+        executor.register_unit(tank)
+
+        monkeypatch.setattr(
+            executor._tank_rider_system, "is_riding", lambda uid: True
+        )
+
+        intent = TacticIntent(
+            unit_id="u_mt_ar",
+            tactic_type=TacticType.MOUNT_TANK,
+            target_unit_id="u_mt_tank_ar",
+        )
+        assert executor.execute(intent) is True
+        mount_events = [e for e in published if e.get("action") == "mount_tank"]
+        assert mount_events == []
+
+    def test_mount_tank_unknown_unit_returns_false(self, executor):
+        """Error: unknown rider unit_id → False."""
+        intent = TacticIntent(
+            unit_id="nonexistent",
+            tactic_type=TacticType.MOUNT_TANK,
+            target_unit_id="some_tank",
+        )
+        assert executor.execute(intent) is False
+
+    def test_mount_tank_unknown_tank_returns_false(self, executor):
+        """Error: rider exists but target_unit_id invalid → False."""
+        rider = make_unit("u_mt_notank", TileCoord(3, 3))
+        executor.register_unit(rider)
+        intent = TacticIntent(
+            unit_id="u_mt_notank",
+            tactic_type=TacticType.MOUNT_TANK,
+            target_unit_id="nonexistent_tank",
+        )
+        assert executor.execute(intent) is False
+
+    def test_mount_tank_dist_gt_2_delegates_to_move_to(self, executor, event_bus):
+        """Boundary: dist>2 → can_mount False → delegate to move_to."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        rider = make_unit("u_mt_far", TileCoord(3, 3))
+        tank = make_unit("u_mt_tank_far", TileCoord(6, 6), unit_type=UnitType.TANK)
+        executor.register_unit(rider)
+        executor.register_unit(tank)
+
+        intent = TacticIntent(
+            unit_id="u_mt_far",
+            tactic_type=TacticType.MOUNT_TANK,
+            target_unit_id="u_mt_tank_far",
+        )
+        # dist = 3 > MOUNT_RANGE(2) → delegates to move_to
+        result = executor.execute(intent)
+        assert result is True
+        mount_events = [e for e in published if e.get("action") == "mount_tank"]
+        assert mount_events == []
+
+    def test_mount_tank_cannot_mount_returns_false(
+        self, executor, event_bus, monkeypatch
+    ):
+        """Boundary: can_mount False + dist<=2 (no move delegation) → False."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        rider = make_unit("u_mt_cant", TileCoord(3, 3))
+        tank = make_unit("u_mt_tank_cant", TileCoord(3, 4), unit_type=UnitType.TANK)
+        executor.register_unit(rider)
+        executor.register_unit(tank)
+
+        monkeypatch.setattr(
+            executor._tank_rider_system, "can_mount", lambda *args: False
+        )
+
+        intent = TacticIntent(
+            unit_id="u_mt_cant",
+            tactic_type=TacticType.MOUNT_TANK,
+            target_unit_id="u_mt_tank_cant",
+        )
+        # dist = 1 <= 2, can_mount False → no move delegation, return False
+        assert executor.execute(intent) is False
+        mount_events = [e for e in published if e.get("action") == "mount_tank"]
+        assert mount_events == []
+
+
+class TestTacticExecutorDismountTank:
+    """Tests for _execute_dismount_tank (vehicle_mixin).
+
+    Covers: Happy (dismount + event) + Error (unknown unit) + Boundary
+    (not-riding idempotent / target_position sets instant flag).
+    """
+
+    @staticmethod
+    def _advance_to_riding(executor: TacticExecutor, rider: Unit, tank: Unit) -> None:
+        """Advance mount progress to RIDING state via real TankRiderSystem.tick."""
+        from pycc2.domain.ai.tank_riders import MOUNT_TICKS
+
+        executor._tank_rider_system.start_mount(rider, tank)
+        for _ in range(MOUNT_TICKS):
+            executor._tank_rider_system.tick([rider, tank])
+
+    def test_dismount_tank_publishes_event(self, executor, event_bus):
+        """Happy: is_riding=True + start_dismount True → event published, True."""
+        rider = make_unit("u_dt_rider", TileCoord(3, 3))
+        tank = make_unit("u_dt_tank", TileCoord(3, 4), unit_type=UnitType.TANK)
+        executor.register_unit(rider)
+        executor.register_unit(tank)
+        self._advance_to_riding(executor, rider, tank)
+        assert executor._tank_rider_system.is_riding(rider.id) is True
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        intent = TacticIntent(
+            unit_id="u_dt_rider",
+            tactic_type=TacticType.DISMOUNT_TANK,
+        )
+        assert executor.execute(intent) is True
+        dismount_events = [e for e in published if e.get("action") == "dismount_tank"]
+        assert len(dismount_events) == 1
+        assert dismount_events[0]["unit_id"] == "u_dt_rider"
+        assert dismount_events[0]["tank_id"] == "u_dt_tank"
+
+    def test_dismount_tank_not_riding_returns_true(self, executor, event_bus):
+        """Boundary: is_riding=False → idempotent True, no dismount event."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        rider = make_unit("u_dt_notriding", TileCoord(3, 3))
+        executor.register_unit(rider)
+
+        intent = TacticIntent(
+            unit_id="u_dt_notriding",
+            tactic_type=TacticType.DISMOUNT_TANK,
+        )
+        assert executor.execute(intent) is True
+        dismount_events = [e for e in published if e.get("action") == "dismount_tank"]
+        assert dismount_events == []
+
+    def test_dismount_tank_unknown_unit_returns_false(self, executor):
+        """Error: unknown rider unit_id → False."""
+        intent = TacticIntent(
+            unit_id="nonexistent",
+            tactic_type=TacticType.DISMOUNT_TANK,
+        )
+        assert executor.execute(intent) is False
+
+    def test_dismount_tank_with_target_position_is_instant(self, executor, event_bus):
+        """Boundary: target_position set → instant=True (under-fire dismount)."""
+        rider = make_unit("u_dt_instant", TileCoord(3, 3))
+        tank = make_unit("u_dt_tank_instant", TileCoord(3, 4), unit_type=UnitType.TANK)
+        executor.register_unit(rider)
+        executor.register_unit(tank)
+        self._advance_to_riding(executor, rider, tank)
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        intent = TacticIntent(
+            unit_id="u_dt_instant",
+            tactic_type=TacticType.DISMOUNT_TANK,
+            target_position=TileCoord(4, 4),
+        )
+        assert executor.execute(intent) is True
+        dismount_events = [e for e in published if e.get("action") == "dismount_tank"]
+        assert len(dismount_events) == 1
+        assert dismount_events[0]["instant"] is True
+
+    def test_dismount_tank_without_target_position_not_instant(
+        self, executor, event_bus
+    ):
+        """Boundary: no target_position → instant=False (normal dismount)."""
+        rider = make_unit("u_dt_slow", TileCoord(3, 3))
+        tank = make_unit("u_dt_tank_slow", TileCoord(3, 4), unit_type=UnitType.TANK)
+        executor.register_unit(rider)
+        executor.register_unit(tank)
+        self._advance_to_riding(executor, rider, tank)
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        intent = TacticIntent(
+            unit_id="u_dt_slow",
+            tactic_type=TacticType.DISMOUNT_TANK,
+        )
+        assert executor.execute(intent) is True
+        dismount_events = [e for e in published if e.get("action") == "dismount_tank"]
+        assert len(dismount_events) == 1
+        assert dismount_events[0]["instant"] is False
+
+
+class TestTacticExecutorHealWounded:
+    """Tests for _execute_heal_wounded (logistics_mixin).
+
+    Covers: Happy (heal + event) + Error (unknown medic / non-medic /
+    unknown patient / dead patient) + Boundary (hp_ratio>=cap / dist>adjacent
+    delegates move_to).
+    """
+
+    def test_heal_wounded_heals_patient_and_publishes_event(
+        self, executor, event_bus
+    ):
+        """Happy: MEDIC_TEAM + wounded patient adjacent → heal + event, True."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        medic = make_unit("u_hw_medic", TileCoord(3, 3), unit_type=UnitType.MEDIC_TEAM)
+        patient = make_unit("u_hw_patient", TileCoord(3, 4), hp=50)
+        patient.health = HealthComponent(hp=20, max_hp=50)  # hp_ratio=0.4 < 0.7
+        executor.register_unit(medic)
+        executor.register_unit(patient)
+
+        initial_hp = patient.health.hp
+        intent = TacticIntent(
+            unit_id="u_hw_medic",
+            tactic_type=TacticType.HEAL_WOUNDED,
+            target_unit_id="u_hw_patient",
+        )
+        assert executor.execute(intent) is True
+        heal_events = [e for e in published if e.get("action") == "heal"]
+        assert len(heal_events) == 1
+        assert heal_events[0]["medic_id"] == "u_hw_medic"
+        assert heal_events[0]["patient_id"] == "u_hw_patient"
+        assert patient.health.hp > initial_hp
+
+    def test_heal_wounded_unknown_medic_returns_false(self, executor):
+        """Error: unknown medic unit_id → False."""
+        intent = TacticIntent(
+            unit_id="nonexistent",
+            tactic_type=TacticType.HEAL_WOUNDED,
+            target_unit_id="some_patient",
+        )
+        assert executor.execute(intent) is False
+
+    def test_heal_wounded_non_medic_unit_returns_false(self, executor):
+        """Error: unit_type != MEDIC_TEAM → False."""
+        unit = make_unit("u_hw_notmedic", TileCoord(3, 3))  # INFANTRY_SQUAD
+        patient = make_unit("u_hw_p2", TileCoord(3, 4))
+        executor.register_unit(unit)
+        executor.register_unit(patient)
+        intent = TacticIntent(
+            unit_id="u_hw_notmedic",
+            tactic_type=TacticType.HEAL_WOUNDED,
+            target_unit_id="u_hw_p2",
+        )
+        assert executor.execute(intent) is False
+
+    def test_heal_wounded_unknown_patient_returns_false(self, executor):
+        """Error: medic exists but target_unit_id invalid → False."""
+        medic = make_unit("u_hw_medic2", TileCoord(3, 3), unit_type=UnitType.MEDIC_TEAM)
+        executor.register_unit(medic)
+        intent = TacticIntent(
+            unit_id="u_hw_medic2",
+            tactic_type=TacticType.HEAL_WOUNDED,
+            target_unit_id="nonexistent_patient",
+        )
+        assert executor.execute(intent) is False
+
+    def test_heal_wounded_dead_patient_returns_false(self, executor, event_bus):
+        """Error: patient.is_alive=False → False."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        medic = make_unit("u_hw_medic3", TileCoord(3, 3), unit_type=UnitType.MEDIC_TEAM)
+        patient = make_unit("u_hw_dead", TileCoord(3, 4), hp=50)
+        patient.take_damage(50)  # hp: 50→0, triggers die() → is_alive=False
+        executor.register_unit(medic)
+        executor.register_unit(patient)
+
+        intent = TacticIntent(
+            unit_id="u_hw_medic3",
+            tactic_type=TacticType.HEAL_WOUNDED,
+            target_unit_id="u_hw_dead",
+        )
+        assert executor.execute(intent) is False
+        heal_events = [e for e in published if e.get("action") == "heal"]
+        assert heal_events == []
+
+    def test_heal_wounded_patient_at_heal_cap_returns_true(self, executor, event_bus):
+        """Boundary: patient hp_ratio >= HEAL_CAP_RATIO → True, no heal event."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        medic = make_unit("u_hw_medic4", TileCoord(3, 3), unit_type=UnitType.MEDIC_TEAM)
+        patient = make_unit("u_hw_capped", TileCoord(3, 4), hp=50)
+        # hp_ratio = 50/50 = 1.0 >= HEAL_CAP_RATIO(0.7) → no treatment needed
+        executor.register_unit(medic)
+        executor.register_unit(patient)
+
+        intent = TacticIntent(
+            unit_id="u_hw_medic4",
+            tactic_type=TacticType.HEAL_WOUNDED,
+            target_unit_id="u_hw_capped",
+        )
+        assert executor.execute(intent) is True
+        heal_events = [e for e in published if e.get("action") == "heal"]
+        assert heal_events == []
+
+    def test_heal_wounded_dist_gt_adjacent_delegates_to_move_to(
+        self, executor, event_bus
+    ):
+        """Boundary: dist > HEAL_ADJACENT_RANGE(1) → delegate to move_to."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        medic = make_unit("u_hw_medic5", TileCoord(3, 3), unit_type=UnitType.MEDIC_TEAM)
+        patient = make_unit("u_hw_far_patient", TileCoord(6, 6), hp=50)
+        patient.health = HealthComponent(hp=20, max_hp=50)  # wounded
+        executor.register_unit(medic)
+        executor.register_unit(patient)
+
+        intent = TacticIntent(
+            unit_id="u_hw_medic5",
+            tactic_type=TacticType.HEAL_WOUNDED,
+            target_unit_id="u_hw_far_patient",
+        )
+        # dist = 3 > 1 → delegates to move_to
+        result = executor.execute(intent)
+        assert result is True
+        heal_events = [e for e in published if e.get("action") == "heal"]
+        assert heal_events == []
+
+
+class TestTacticExecutorRallyNco:
+    """Tests for _execute_rally_nco (logistics_mixin).
+
+    Covers: Happy (rally + event) + Error (unknown NCO / no nco_rally
+    configured / unknown target) + Boundary (dist>5 with/without
+    target_position / can_rally False).
+    """
+
+    def test_rally_nco_success_publishes_event(self, executor, event_bus):
+        """Happy: COMMANDER + can_rally True + dist<=5 + target BROKEN → event."""
+        from pycc2.domain.ai.squad_degradation import (
+            RALLY_RESTORE_MORALE,
+            NCORallyBehavior,
+        )
+
+        executor.nco_rally = NCORallyBehavior()
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        nco = make_unit("u_rn_nco", TileCoord(3, 3), unit_type=UnitType.COMMANDER)
+        # morale_value=5 → state=BROKEN (< 20 threshold)
+        target = make_unit("u_rn_target", TileCoord(3, 4), morale_value=5)
+        executor.register_unit(nco)
+        executor.register_unit(target)
+
+        intent = TacticIntent(
+            unit_id="u_rn_nco",
+            tactic_type=TacticType.RALLY_NCO,
+            target_unit_id="u_rn_target",
+        )
+        assert executor.execute(intent) is True
+        rally_events = [e for e in published if "rallied_unit_id" in e]
+        assert len(rally_events) == 1
+        assert rally_events[0]["nco_id"] == "u_rn_nco"
+        assert rally_events[0]["rallied_unit_id"] == "u_rn_target"
+        assert target.morale.value == RALLY_RESTORE_MORALE
+
+    def test_rally_nco_unknown_nco_returns_false(self, executor):
+        """Error: unknown NCO unit_id → False."""
+        from pycc2.domain.ai.squad_degradation import NCORallyBehavior
+
+        executor.nco_rally = NCORallyBehavior()
+        intent = TacticIntent(
+            unit_id="nonexistent",
+            tactic_type=TacticType.RALLY_NCO,
+            target_unit_id="some_target",
+        )
+        assert executor.execute(intent) is False
+
+    def test_rally_nco_no_nco_rally_configured_returns_false(self, executor):
+        """Error: nco_rally is None (default) → False."""
+        # executor.nco_rally is None by default
+        nco = make_unit("u_rn_nco2", TileCoord(3, 3), unit_type=UnitType.COMMANDER)
+        target = make_unit("u_rn_target2", TileCoord(3, 4), morale_value=5)
+        executor.register_unit(nco)
+        executor.register_unit(target)
+        intent = TacticIntent(
+            unit_id="u_rn_nco2",
+            tactic_type=TacticType.RALLY_NCO,
+            target_unit_id="u_rn_target2",
+        )
+        assert executor.execute(intent) is False
+
+    def test_rally_nco_unknown_target_returns_false(self, executor):
+        """Error: NCO exists but target_unit_id invalid → False."""
+        from pycc2.domain.ai.squad_degradation import NCORallyBehavior
+
+        executor.nco_rally = NCORallyBehavior()
+        nco = make_unit("u_rn_nco3", TileCoord(3, 3), unit_type=UnitType.COMMANDER)
+        executor.register_unit(nco)
+        intent = TacticIntent(
+            unit_id="u_rn_nco3",
+            tactic_type=TacticType.RALLY_NCO,
+            target_unit_id="nonexistent_target",
+        )
+        assert executor.execute(intent) is False
+
+    def test_rally_nco_dist_gt_5_with_target_position_delegates_move_to(
+        self, executor, event_bus
+    ):
+        """Boundary: dist>5 + target_position set → delegate move_to, return False."""
+        from pycc2.domain.ai.squad_degradation import NCORallyBehavior
+
+        executor.nco_rally = NCORallyBehavior()
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        nco = make_unit("u_rn_nco_far", TileCoord(3, 3), unit_type=UnitType.COMMANDER)
+        target = make_unit("u_rn_target_far", TileCoord(10, 10), morale_value=5)
+        executor.register_unit(nco)
+        executor.register_unit(target)
+
+        intent = TacticIntent(
+            unit_id="u_rn_nco_far",
+            tactic_type=TacticType.RALLY_NCO,
+            target_unit_id="u_rn_target_far",
+            target_position=TileCoord(9, 9),
+        )
+        # dist = 7 > 5 → delegates move_to (priority+8), returns False
+        result = executor.execute(intent)
+        assert result is False
+        rally_events = [e for e in published if "rallied_unit_id" in e]
+        assert rally_events == []
+
+    def test_rally_nco_dist_gt_5_without_target_position_returns_false(
+        self, executor, event_bus
+    ):
+        """Boundary: dist>5 + no target_position → False (no move delegation)."""
+        from pycc2.domain.ai.squad_degradation import NCORallyBehavior
+
+        executor.nco_rally = NCORallyBehavior()
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        nco = make_unit("u_rn_nco_far2", TileCoord(3, 3), unit_type=UnitType.COMMANDER)
+        target = make_unit("u_rn_target_far2", TileCoord(10, 10), morale_value=5)
+        executor.register_unit(nco)
+        executor.register_unit(target)
+
+        intent = TacticIntent(
+            unit_id="u_rn_nco_far2",
+            tactic_type=TacticType.RALLY_NCO,
+            target_unit_id="u_rn_target_far2",
+        )
+        # dist = 7 > 5, no target_position → return False
+        result = executor.execute(intent)
+        assert result is False
+        rally_events = [e for e in published if "rallied_unit_id" in e]
+        assert rally_events == []
+
+    def test_rally_nco_cannot_rally_returns_false(self, executor, event_bus):
+        """Boundary: can_rally False (morale < threshold) → False."""
+        from pycc2.domain.ai.squad_degradation import NCORallyBehavior
+
+        executor.nco_rally = NCORallyBehavior()
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        # NCO morale_value=30 < RALLY_MORALE_THRESHOLD(50) → can_rally False
+        nco = make_unit(
+            "u_rn_lowmorale",
+            TileCoord(3, 3),
+            unit_type=UnitType.COMMANDER,
+            morale_value=30,
+        )
+        target = make_unit("u_rn_target3", TileCoord(3, 4), morale_value=5)
+        executor.register_unit(nco)
+        executor.register_unit(target)
+
+        intent = TacticIntent(
+            unit_id="u_rn_lowmorale",
+            tactic_type=TacticType.RALLY_NCO,
+            target_unit_id="u_rn_target3",
+        )
+        assert executor.execute(intent) is False
+        rally_events = [e for e in published if "rallied_unit_id" in e]
+        assert rally_events == []

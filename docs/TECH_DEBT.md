@@ -549,24 +549,25 @@
   3. **共享枢纽耦合**: `_execute_move_to` 被 11 个 handler 调用，`_unit_registry`/`event_bus`/`pathfinder`/`game_map`/`ballistic_engine`/`_environment`/各子系统都是 `self` 属性，拆分需引入 `HandlerContext` 上下文对象
   4. **dispatch_table 硬编码**（line 89-114）: `execute()` 按名字引用全部 24 个 handler，拆分必须改成注册式 dispatch
   5. **历史教训**: v0.3.38 曾因 TacticExecutor 发布裸 dict 事件导致 AI 不开火（已修复），该类是 AI 链路关键节点，改动需谨慎
-- **状态**: 🟡 进行中 — 单测前置补齐 (v0.4.3 batch 3 完成 13/19 + DEMOLISH_BRIDGE 额外)
+- **状态**: 🟡 进行中 — 单测前置补齐 (v0.4.3 batch 4a 完成 17/19 + DEMOLISH_BRIDGE 额外)
 - **触发拆分的时机**:
   - 新增 tactic 类型时 dispatch_table 继续膨胀
   - 某 handler 长度超过 ~80 行
   - 多个 handler 需要共享非平凡预处理逻辑
   - 工兵类 handler 出现 bug 需要独立测试时
 - **将来拆分的推荐顺序**:
-  1. 先补 19 个无测试 handler 的单测（锁定行为）— **v0.4.3 进行中: 13/19 完成 (batch 1-3) + DEMOLISH_BRIDGE 额外**
+  1. 先补 19 个无测试 handler 的单测（锁定行为）— **v0.4.3 进行中: 17/19 完成 (batch 1-4a) + DEMOLISH_BRIDGE 额外**
      - ✅ Batch 1 (2026-07-05): SET_AMBUSH / BREAK_AMBUSH / COUNTER_ATTACK / TAKE_COVER / SURRENDER — 16 tests
      - ✅ Batch 2 (2026-07-05): REGROUP / DEPLOY_SMOKE / DETECT_MINES / CALL_ARTILLERY / MELEE_ATTACK — 19 tests
      - ✅ Batch 3 (2026-07-05): DIG_TRENCH / DEMOLISH_BRIDGE / LAY_MINE — 19 tests (engineer 组; DEMOLISH_BRIDGE 为额外发现的无测试 handler)
-     - ⏳ Batch 4 (待推进): RALLY_NCO / SCAVENGE_AMMO / HEAL_WOUNDED / CLEAR_BUILDING / MOUNT_TANK / DISMOUNT_TANK / ASSAULT_FORTIFIED
+     - ✅ Batch 4a (2026-07-05): MOUNT_TANK / DISMOUNT_TANK / HEAL_WOUNDED / RALLY_NCO — 25 tests (vehicle & logistics 组)
+     - ⏳ Batch 4b (待推进): SCAVENGE_AMMO / CLEAR_BUILDING / ASSAULT_FORTIFIED — 多步状态机/复杂前置条件，复杂度最高
   2. 抽 `HandlerContext`（封装 unit_registry / event_bus / pathfinder / game_map / ballistic_engine / environment）
   3. 改 `execute()` 为注册式 dispatch（`register_handler(TacticType, callable)`）
   4. 先拆 `engineer_handlers`（最内聚：dig_trench/lay_mine/detect_mines/clear_building/assault_fortified）
   5. 再拆 `specialist_handlers`（deploy_smoke/scavenge_ammo/rally_nco/heal_wounded/call_artillery/mount_tank/dismount_tank）
   6. 最后评估是否拆 `movement_handlers`（patrol/retreat/take_cover/regroup，收益最低，可不拆）
-- **本次已完成**: deployment_ui.py 拆分（commit 88fe1b9），tactic_executor.py 评估并记录；v0.4.3 batch 1-3 单测补齐 13/19 + DEMOLISH_BRIDGE 额外 (54 tests)
+- **本次已完成**: deployment_ui.py 拆分（commit 88fe1b9），tactic_executor.py 评估并记录；v0.4.3 batch 1-4a 单测补齐 17/19 + DEMOLISH_BRIDGE 额外 (79 tests)
 
 ### 🟢 TD-065: 车辆损伤视觉反馈不区分类型 (P2-2 延期) — D8 Phase 2 评估
 

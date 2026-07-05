@@ -50,7 +50,15 @@ All notable changes to PyCC2 will be documented in this file.
 
 **验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 81 passed (27 既有 + 16 batch1 + 19 batch2 + 19 batch3) / pytest unit 4527 passed / 2 skipped / 0 failed (零回归)
 
-**剩余 7 个 handler** (batch 4 待推进): RALLY_NCO / SCAVENGE_AMMO / HEAL_WOUNDED / CLEAR_BUILDING / MOUNT_TANK / DISMOUNT_TANK / ASSAULT_FORTIFIED
+**Batch 4a — 4 个 vehicle & logistics handler (2026-07-05 完成)**:
+- `MOUNT_TANK`: 6 tests (Happy: start_mount+事件 / Happy: already riding 幂等 / Error: 未知 rider / Error: 未知 tank / Boundary: dist>2 委托 move_to / Boundary: can_mount False)
+- `DISMOUNT_TANK`: 5 tests (Happy: start_dismount+事件 / Happy: not riding 幂等 / Error: 未知单位 / Happy: target_position 触发 instant / Boundary: 无 target_position 非 instant)
+- `HEAL_WOUNDED`: 7 tests (Happy: 治疗+事件 / Error: 未知 medic / Error: 非 MEDIC_TEAM / Error: 未知 patient / Error: 死亡 patient / Boundary: hp≥HEAL_CAP_RATIO / Boundary: dist>1 委托 move_to)
+- `RALLY_NCO`: 7 tests (Happy: COMMANDER+can_rally+dist≤5+事件 / Error: 未知 NCO / Error: nco_rally None / Error: 未知 target / Boundary: dist>5+target_position 委托 move_to / Boundary: dist>5 无 target_position / Boundary: can_rally False)
+
+**验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 106 passed (27 既有 + 16 batch1 + 19 batch2 + 19 batch3 + 25 batch4a) / pytest unit 4552 passed / 2 skipped / 0 failed (零回归)
+
+**剩余 3 个 handler** (batch 4b 待推进): SCAVENGE_AMMO / CLEAR_BUILDING / ASSAULT_FORTIFIED — 均为多步状态机或复杂前置条件，复杂度最高
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
