@@ -66,11 +66,12 @@ class EnvironmentRenderer:
 
     def _get_screen_overlays(
         self, screen_size: tuple[int, int]
-    ) -> tuple[pygame.Surface, pygame.Surface]:
+    ) -> tuple[pygame.Surface | None, pygame.Surface | None]:
         """Get cached full-screen overlay surfaces (PERF-001).
 
         Returns:
             Tuple of (warm_overlay, vignette) surfaces, cached across frames.
+            May be None on first call before cache is populated.
 
         """
         if self._cached_screen_size != screen_size:

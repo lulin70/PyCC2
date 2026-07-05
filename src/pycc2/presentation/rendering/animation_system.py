@@ -56,7 +56,7 @@ class AnimationState:
 class UnitAnimator:
     """单位动画驱动器，按动画类型切换并更新动画状态。"""
 
-    CONFIGS = {
+    CONFIGS: dict[AnimationType, dict[str, int | bool]] = {
         AnimationType.IDLE: {"duration": 60, "loop": True},
         AnimationType.WALK: {"duration": 20, "loop": True},
         AnimationType.SHOOT: {"duration": 12, "loop": False},
@@ -76,7 +76,7 @@ class UnitAnimator:
             config = self.CONFIGS.get(anim_type, self.CONFIGS[AnimationType.IDLE])
             self.state.reset(anim_type)
             self.state.duration_ticks = config["duration"]
-            self.state.loop = config["loop"]
+            self.state.loop = bool(config["loop"])
             self._prev_type = anim_type
 
     def update(self) -> bool:

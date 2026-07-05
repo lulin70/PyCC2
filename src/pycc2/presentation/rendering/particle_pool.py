@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .animation_system import ParticleEmitter
@@ -15,7 +15,7 @@ class ParticlePool:
 
     def __init__(self, preallocate: int = 100):
         """预分配指定数量的粒子与字典池。"""
-        self._pool: list[object] = []
+        self._pool: list[Any] = []
         self._active_count: int = 0
         for _ in range(preallocate):
             self._pool.append(self._new_particle())

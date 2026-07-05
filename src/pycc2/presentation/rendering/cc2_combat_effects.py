@@ -26,7 +26,7 @@ class EnhancedParticleSystem:
         vy: float
         life: int
         max_life: int
-        size: int
+        size: float
         color: tuple[int, int, int]
         particle_type: str  # "fire", "smoke", "debris", "spark"
 

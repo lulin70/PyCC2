@@ -229,6 +229,10 @@ class TutorialOverlay:
         if self._overlay is None or self._panel_surf is None or self._font_lg is None:
             return
 
+        # _init_fonts() above guarantees all four fonts are non-None.
+        assert self._font_md is not None
+        assert self._font_sm is not None
+
         if self._alpha < 0.99:
             self._overlay.fill((0, 0, 0, int(self._alpha * 180)))
             screen.blit(self._overlay, (0, 0))
@@ -304,6 +308,7 @@ class TutorialOverlay:
         # Lazy-init fonts on first use
         if self._font_hint is None:
             self._init_fonts()
+        assert self._font_hint is not None
         alpha = min(255, int(self.state.hint_cooldown * 2))
         surf = self._font_hint.render(
             f"💡 {self._current_hint}",

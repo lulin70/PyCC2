@@ -2,7 +2,7 @@
 
 > **版本**: v0.4.5 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
 > **上次核查**: 2026-07-05 (v0.4.5 God Class 评估) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 14
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (392 files, Phase 4 后) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ⚠️ 1 个 TRUE God Class 待 v0.5.0 拆分 (TD-072: enhanced_sound_bridge) | ⚠️ 7 慢测试超时（sprite 生成，预先存在） | ⚠️ 5 e2e skip 偷懒 (TD-068) | ⚠️ mypy 非严格 check_untyped_defs=false (TD-071, v0.6.0+)
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ⚠️ 1 个 TRUE God Class 待 v0.5.0 拆分 (TD-072: enhanced_sound_bridge) | ⚠️ 7 慢测试超时（sprite 生成，预先存在） | ⚠️ 5 e2e skip 偷懒 (TD-068)
 
 ---
 
@@ -683,12 +683,20 @@
 - **清理方案**: 更新 .pre-commit-config.yaml ruff 版本至与 lock 一致，定期 `pre-commit autoupdate`
 - **状态**: 🟢 记录 (v0.4.4 修复，D14 已手动 ruff format 临时止血)
 
-### 🟢 TD-071: mypy 非严格 check_untyped_defs=false (P3)
+### ✅ TD-071: mypy check_untyped_defs=true 启用完成 (RESOLVED)
 
-- **描述**: pyproject.toml mypy 配置未启用 `check_untyped_defs=true`，未注解函数内部不检查类型
+- **描述**: pyproject.toml mypy 配置原 `check_untyped_defs=false`，未注解函数内部不检查类型
 - **影响**: 类型安全网不完整，未注解代码可能隐藏类型错误
-- **清理方案**: v0.6.0+ 启用 check_untyped_defs=true
-- **状态**: 🟢 记录 (v0.6.0+ 长期规划)
+- **修复**: v0.4.5 启用 `check_untyped_defs=true`，修复 9 个隐藏类型错误:
+  - `animation_system.py:79`: CONFIGS dict 推断为 `dict[str, int]` (bool 被并入 int)，赋值给 `loop: bool` 报错 → 显式标注 CONFIGS 为 `dict[str, int | bool]` + `bool(config["loop"])` 转换
+  - `cc2_combat_effects.py:150`: `Particle.size: int` 但 smoke 扩散 `+= 0.1` 产生 float → 改为 `size: float`
+  - `environment_renderer.py:97`: 函数声明 `-> tuple[Surface, Surface]` 但缓存可能为 None → 改为 `tuple[Surface | None, Surface | None]`
+  - `particle_pool.py:44`: `_pool: list[object]` 导致属性访问报错 → 改为 `list[Any]`
+  - `tutorial_system.py:277/283/287/308`: 4 处 `_font_*.render()` 在 lazy-init 后未窄化 None → 添加 assert 窄化
+  - `interaction_controller_protocol.py`: Protocol 缺 `clear_selection` 方法 → 补充 Protocol 接口
+- **tests.* override**: 保留 `check_untyped_defs=false`，测试代码不强制严格类型检查
+- **验证**: mypy 0 errors (389 source files), ruff 0, unit 4611 passed/2 skipped, 0 回归
+- **状态**: ✅ RESOLVED (v0.4.5)
 
 ---
 
