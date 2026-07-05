@@ -221,9 +221,19 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 | 4 | `TAKE_COVER` | 3 | Happy(有 target) + Happy(无 target) + Error | ✅ |
 | 5 | `SURRENDER` | 4 | Happy + Error + Boundary(已 SURRENDERED) + Boundary(DEAD) | ✅ |
 
-**验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 43 passed (27 既有 + 16 新增) / pytest unit 4489 passed (零回归)
+**Batch 2/4 — 5 个中等复杂度 handler (2026-07-05 完成)**:
 
-**剩余 14 个 handler** (batch 2-4 待推进): DEPLOY_SMOKE / RALLY_NCO / SCAVENGE_AMMO / HEAL_WOUNDED / DIG_TRENCH / LAY_MINE / DETECT_MINES / CLEAR_BUILDING / CALL_ARTILLERY / MELEE_ATTACK / MOUNT_TANK / DISMOUNT_TANK / ASSAULT_FORTIFIED / REGROUP
+| # | Handler | 测试数 | 维度覆盖 | 状态 |
+|---|---------|--------|---------|------|
+| 6 | `REGROUP` | 3 | Happy(有 target) + Happy(无 target) + Error | ✅ |
+| 7 | `DEPLOY_SMOKE` | 5 | Happy(fallback) + Happy(capability 消耗) + Error + Boundary(无 target) + Boundary(空 capability) | ✅ |
+| 8 | `DETECT_MINES` | 3 | Happy(无雷) + Error + Boundary(无 game_map) | ✅ |
+| 9 | `CALL_ARTILLERY` | 4 | Happy + Error + Boundary(无 target) + Boundary(已有活跃任务) | ✅ |
+| 10 | `MELEE_ATTACK` | 4 | Happy(低弹药) + Error(未知攻击者) + Error(未知目标) + Boundary(满弹药) | ✅ |
+
+**验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 62 passed (27 既有 + 16 batch1 + 19 batch2) / pytest unit 4508 passed (零回归)
+
+**剩余 9 个 handler** (batch 3-4 待推进): RALLY_NCO / SCAVENGE_AMMO / HEAL_WOUNDED / DIG_TRENCH / LAY_MINE / CLEAR_BUILDING / MOUNT_TANK / DISMOUNT_TANK / ASSAULT_FORTIFIED
 
 ### 中期（v0.5.0 功能版本，待规划）
 - TD-065 载具损伤视觉反馈差异化

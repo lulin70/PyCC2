@@ -34,9 +34,16 @@ All notable changes to PyCC2 will be documented in this file.
 - `TAKE_COVER`: 3 tests (Happy: 有 target 委托 MOVE_TO / Happy: 无 target 原地掩护 / Error: 未知单位)
 - `SURRENDER`: 4 tests (Happy: 状态转换 + 缴械 + 事件 / Error: 未知单位 / Boundary: 已 SURRENDERED / Boundary: DEAD)
 
-**验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 43 passed (27 既有 + 16 新增) / pytest unit 4489 passed (零回归)
+**Batch 2/4 — 5 个中等复杂度 handler (2026-07-05 完成)**:
+- `REGROUP`: 3 tests (Happy: 有 target 委托 MOVE_TO + priority+7 / Happy: 无 target 原地 regroup / Error: 未知单位)
+- `DEPLOY_SMOKE`: 5 tests (Happy: 无 capability fallback / Happy: 有 capability 消耗弹药 / Error: 未知单位 / Boundary: 无 target / Boundary: capability 空)
+- `DETECT_MINES`: 3 tests (Happy: 无雷返回 True 无事件 / Error: 未知单位 / Boundary: 无 game_map)
+- `CALL_ARTILLERY`: 4 tests (Happy: 成功+事件+弹药递减 / Error: 未知单位 / Boundary: 无 target / Boundary: 已有活跃任务)
+- `MELEE_ATTACK`: 4 tests (Happy: 低弹药+邻近+事件 / Error: 未知攻击者 / Error: 未知目标 / Boundary: 满弹药 can_melee False)
 
-**剩余 14 个 handler** (batch 2-4 待推进): DEPLOY_SMOKE / RALLY_NCO / SCAVENGE_AMMO / HEAL_WOUNDED / DIG_TRENCH / LAY_MINE / DETECT_MINES / CLEAR_BUILDING / CALL_ARTILLERY / MELEE_ATTACK / MOUNT_TANK / DISMOUNT_TANK / ASSAULT_FORTIFIED / REGROUP
+**验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 62 passed (27 既有 + 16 batch1 + 19 batch2) / pytest unit 4508 passed (零回归)
+
+**剩余 9 个 handler** (batch 3-4 待推进): RALLY_NCO / SCAVENGE_AMMO / HEAL_WOUNDED / DIG_TRENCH / LAY_MINE / CLEAR_BUILDING / MOUNT_TANK / DISMOUNT_TANK / ASSAULT_FORTIFIED
 
 ## [0.5.0] - 2026-06-29 (开发中)
 

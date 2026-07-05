@@ -634,3 +634,352 @@ class TestTacticExecutorSurrender:
         )
         assert executor.execute(intent) is False
         assert published == []
+
+
+# ============================================================================
+# Phase: v0.4.3 — TacticExecutor untested handler coverage (batch 2/4)
+# Target: 5 medium-complexity handlers (REGROUP / DEPLOY_SMOKE /
+#         DETECT_MINES / CALL_ARTILLERY / MELEE_ATTACK). Each involves a
+#         single subsystem call (smoke_manager / mine_warfare /
+#         artillery_manager / MeleeCombatSystem) or simple MOVE_TO delegation.
+# DevSquad Testing Iron Rules followed:
+#   - Rule 1 (Documentation First): signatures verified from
+#     movement_mixin.py / smoke_mixin.py / engineering_mixin.py /
+#     combat_mixin.py + ArtilleryManager / SmokeGrenadeCapability /
+#     MeleeCombatSystem.can_melee preconditions before writing.
+#   - Rule 2 (Failure Means Report): assertions express expected behavior,
+#     not loosened to pass.
+#   - Rule 3 (Dimension Completeness): each handler covers Happy + Error +
+#     Boundary.
+# ============================================================================
+
+
+class TestTacticExecutorRegroup:
+    """Cover _execute_regroup (movement_mixin).
+
+    Behavior:
+      - With target_position -> delegate to _execute_move_to (priority+7).
+      - Without target_position -> log + return True (regroup in place).
+      - Unknown unit -> False.
+    """
+
+    def test_regroup_with_target_moves_unit(self, executor, event_bus):
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_rg", TileCoord(0, 0))
+        executor.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_rg",
+            tactic_type=TacticType.REGROUP,
+            target_position=TileCoord(4, 4),
+        )
+        assert executor.execute(intent) is True
+        assert unit.position.tile_coord == TileCoord(4, 4)
+        assert any(e.get("unit_id") == "u_rg" for e in published)
+
+    def test_regroup_without_target_returns_true_in_place(self, executor):
+        unit = make_unit("u_rg_ip", TileCoord(2, 2))
+        executor.register_unit(unit)
+        intent = TacticIntent(unit_id="u_rg_ip", tactic_type=TacticType.REGROUP)
+        assert executor.execute(intent) is True
+        assert unit.position.tile_coord == TileCoord(2, 2)
+
+    def test_regroup_unknown_unit_returns_false(self, executor):
+        intent = TacticIntent(
+            unit_id="ghost",
+            tactic_type=TacticType.REGROUP,
+            target_position=TileCoord(1, 1),
+        )
+        assert executor.execute(intent) is False
+
+
+class TestTacticExecutorDeploySmoke:
+    """Cover _execute_deploy_smoke (smoke_mixin).
+
+    Behavior:
+      - Consume smoke charge (if capability registered) + create
+        SmokeDeployment on smoke_manager + publish event + return True.
+      - Units without registered capability can still deploy (fallback).
+      - Unknown unit / no target_position / empty capability -> False.
+    """
+
+    def test_deploy_smoke_without_capability_fallback_success(
+        self, executor, event_bus
+    ):
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_smoke_fb", TileCoord(0, 0))
+        executor.register_unit(unit)
+
+        intent = TacticIntent(
+            unit_id="u_smoke_fb",
+            tactic_type=TacticType.DEPLOY_SMOKE,
+            target_position=TileCoord(3, 3),
+        )
+        assert executor.execute(intent) is True
+        # Smoke deployment registered on smoke_manager
+        assert len(executor.smoke_manager._deployments) >= 1
+        smoke_events = [e for e in published if "smoke_position" in e]
+        assert len(smoke_events) == 1
+        assert smoke_events[0]["unit_id"] == "u_smoke_fb"
+        assert smoke_events[0]["smoke_position"] == (3, 3)
+
+    def test_deploy_smoke_with_capability_consumes_charge(
+        self, executor, event_bus
+    ):
+        from pycc2.domain.ai.smoke_tactical_ai import SmokeGrenadeCapability
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_smoke_cap", TileCoord(0, 0))
+        executor.register_unit(unit)
+
+        capability = SmokeGrenadeCapability.for_infantry_squad()
+        assert capability.smoke_count == 2
+        executor.register_smoke_capability("u_smoke_cap", capability)
+
+        intent = TacticIntent(
+            unit_id="u_smoke_cap",
+            tactic_type=TacticType.DEPLOY_SMOKE,
+            target_position=TileCoord(2, 2),
+        )
+        assert executor.execute(intent) is True
+        # Charge consumed
+        assert capability.smoke_count == 1
+        # Event published
+        smoke_events = [e for e in published if "smoke_position" in e]
+        assert len(smoke_events) == 1
+
+    def test_deploy_smoke_unknown_unit_returns_false(self, executor):
+        intent = TacticIntent(
+            unit_id="ghost",
+            tactic_type=TacticType.DEPLOY_SMOKE,
+            target_position=TileCoord(1, 1),
+        )
+        assert executor.execute(intent) is False
+
+    def test_deploy_smoke_without_target_returns_false(self, executor):
+        unit = make_unit("u_smoke_nt", TileCoord(0, 0))
+        executor.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_smoke_nt", tactic_type=TacticType.DEPLOY_SMOKE
+        )
+        assert executor.execute(intent) is False
+
+    def test_deploy_smoke_with_empty_capability_returns_false(
+        self, executor, event_bus
+    ):
+        from pycc2.domain.ai.smoke_tactical_ai import SmokeGrenadeCapability
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_smoke_empty", TileCoord(0, 0))
+        executor.register_unit(unit)
+
+        capability = SmokeGrenadeCapability(smoke_count=0, max_smoke=2)
+        assert capability.has_smoke is False
+        executor.register_smoke_capability("u_smoke_empty", capability)
+
+        intent = TacticIntent(
+            unit_id="u_smoke_empty",
+            tactic_type=TacticType.DEPLOY_SMOKE,
+            target_position=TileCoord(1, 1),
+        )
+        assert executor.execute(intent) is False
+        assert published == []
+
+
+class TestTacticExecutorDetectMines:
+    """Cover _execute_detect_mines (engineering_mixin).
+
+    Behavior:
+      - Call _mine_warfare_system.detect_mines(unit, game_map).
+      - If mines detected -> publish event; always return True.
+      - Unknown unit / no game_map -> False.
+    """
+
+    def test_detect_mines_no_mines_returns_true_no_event(
+        self, executor_with_map, event_bus
+    ):
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_dm", TileCoord(5, 5))
+        executor_with_map.register_unit(unit)
+
+        intent = TacticIntent(
+            unit_id="u_dm", tactic_type=TacticType.DETECT_MINES
+        )
+        assert executor_with_map.execute(intent) is True
+        detect_events = [e for e in published if e.get("action") == "mines_detected"]
+        assert detect_events == []
+
+    def test_detect_mines_unknown_unit_returns_false(self, executor_with_map):
+        intent = TacticIntent(
+            unit_id="ghost", tactic_type=TacticType.DETECT_MINES
+        )
+        assert executor_with_map.execute(intent) is False
+
+    def test_detect_mines_without_game_map_returns_false(self, executor):
+        unit = make_unit("u_dm_nm", TileCoord(5, 5))
+        executor.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_dm_nm", tactic_type=TacticType.DETECT_MINES
+        )
+        assert executor.execute(intent) is False
+
+
+class TestTacticExecutorCallArtillery:
+    """Cover _execute_call_artillery (combat_mixin).
+
+    Behavior:
+      - Check _artillery_manager.can_call_mission + start_mission.
+      - Publish event + return True on success.
+      - Unknown unit / no target / can_call_mission False -> False.
+    """
+
+    def test_call_artillery_success_publishes_event_and_decrements_missions(
+        self, executor, event_bus
+    ):
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_art", TileCoord(0, 0))
+        executor.register_unit(unit)
+
+        initial_missions = executor._artillery_manager.missions_remaining
+        intent = TacticIntent(
+            unit_id="u_art",
+            tactic_type=TacticType.CALL_ARTILLERY,
+            target_position=TileCoord(8, 8),
+        )
+        assert executor.execute(intent) is True
+        assert (
+            executor._artillery_manager.missions_remaining
+            == initial_missions - 1
+        )
+        artillery_events = [
+            e for e in published if e.get("action") == "call_artillery"
+        ]
+        assert len(artillery_events) == 1
+        assert artillery_events[0]["unit_id"] == "u_art"
+        assert artillery_events[0]["target_pos"] == (8, 8)
+
+    def test_call_artillery_unknown_unit_returns_false(self, executor):
+        intent = TacticIntent(
+            unit_id="ghost",
+            tactic_type=TacticType.CALL_ARTILLERY,
+            target_position=TileCoord(1, 1),
+        )
+        assert executor.execute(intent) is False
+
+    def test_call_artillery_without_target_returns_false(self, executor):
+        unit = make_unit("u_art_nt", TileCoord(0, 0))
+        executor.register_unit(unit)
+        intent = TacticIntent(
+            unit_id="u_art_nt", tactic_type=TacticType.CALL_ARTILLERY
+        )
+        assert executor.execute(intent) is False
+
+    def test_call_artillery_second_call_while_active_returns_false(
+        self, executor, event_bus
+    ):
+        """Boundary: same observer cannot call a second mission while the
+        first is still active (can_call_mission returns False)."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_art_dup", TileCoord(0, 0))
+        executor.register_unit(unit)
+
+        intent = TacticIntent(
+            unit_id="u_art_dup",
+            tactic_type=TacticType.CALL_ARTILLERY,
+            target_position=TileCoord(5, 5),
+        )
+        assert executor.execute(intent) is True  # First call succeeds
+
+        second_intent = TacticIntent(
+            unit_id="u_art_dup",
+            tactic_type=TacticType.CALL_ARTILLERY,
+            target_position=TileCoord(6, 6),
+        )
+        assert executor.execute(second_intent) is False  # Already active
+        # Only the first call published an event
+        artillery_events = [
+            e for e in published if e.get("action") == "call_artillery"
+        ]
+        assert len(artillery_events) == 1
+
+
+class TestTacticExecutorMeleeAttack:
+    """Cover _execute_melee_attack (combat_mixin).
+
+    Behavior:
+      - Check MeleeCombatSystem.can_melee (alive + can_act + infantry type +
+        adjacent + low ammo) + resolve_melee + publish event + return True.
+      - Unknown attacker/target / can_melee False -> False.
+    Note: resolve_melee uses random.random() — tests assert on handler
+    behavior (event published, return True) not on random hit/miss outcomes.
+    """
+
+    def test_melee_attack_low_ammo_adjacent_publishes_event(
+        self, executor, event_bus
+    ):
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+
+        # Attacker: low ammo (1/30 = 3.3% < 5% threshold) + adjacent to target
+        attacker = make_unit("u_melee_atk", TileCoord(0, 0))
+        attacker.weapon.ammo_remaining = 1  # ammo_ratio = 1/30 ≈ 0.033 < 0.05
+        target = make_unit("u_melee_tgt", TileCoord(1, 1))  # dist=1 (adjacent)
+        target.faction = Faction.AXIS
+        executor.register_unit(attacker)
+        executor.register_unit(target)
+
+        intent = TacticIntent(
+            unit_id="u_melee_atk",
+            tactic_type=TacticType.MELEE_ATTACK,
+            target_unit_id="u_melee_tgt",
+        )
+        assert executor.execute(intent) is True
+        melee_events = [
+            e for e in published if e.get("action") == "melee_attack"
+        ]
+        assert len(melee_events) == 1
+        assert melee_events[0]["attacker_id"] == "u_melee_atk"
+        assert melee_events[0]["defender_id"] == "u_melee_tgt"
+
+    def test_melee_attack_unknown_attacker_returns_false(self, executor):
+        target = make_unit("u_melee_t2", TileCoord(0, 0))
+        executor.register_unit(target)
+        intent = TacticIntent(
+            unit_id="ghost",
+            tactic_type=TacticType.MELEE_ATTACK,
+            target_unit_id="u_melee_t2",
+        )
+        assert executor.execute(intent) is False
+
+    def test_melee_attack_unknown_target_returns_false(self, executor):
+        attacker = make_unit("u_melee_a3", TileCoord(0, 0))
+        executor.register_unit(attacker)
+        intent = TacticIntent(
+            unit_id="u_melee_a3",
+            tactic_type=TacticType.MELEE_ATTACK,
+            target_unit_id="ghost",
+        )
+        assert executor.execute(intent) is False
+
+    def test_melee_attack_full_ammo_returns_false(self, executor):
+        """Boundary: can_melee returns False when attacker has full ammo
+        (ammo_ratio >= AMMO_THRESHOLD of 0.05). Default make_unit has
+        30/30 = 100% ammo."""
+        attacker = make_unit("u_melee_full", TileCoord(0, 0))
+        target = make_unit("u_melee_ft", TileCoord(1, 1))
+        target.faction = Faction.AXIS
+        executor.register_unit(attacker)
+        executor.register_unit(target)
+
+        intent = TacticIntent(
+            unit_id="u_melee_full",
+            tactic_type=TacticType.MELEE_ATTACK,
+            target_unit_id="u_melee_ft",
+        )
+        assert executor.execute(intent) is False
