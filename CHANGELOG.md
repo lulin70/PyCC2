@@ -4,6 +4,26 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D12 Phase 5 P1-2 孤儿事件对齐 (DevSquad V3.8)
+
+- **Phase 3 后孤儿清单重新评估**: 原 9 个孤儿事件中 3 个（OrderRefused/MGAbandoned/MGTakeover）因 Phase 3 删除 ghost 模块（command_obedience.py/mg_takeover.py）自然消失，无需处理
+- **P0-3 确认已修复** (Task #40, 2026-06-30): `combat_service.py:119` 已统一为 `"UnitAttacked"` (PascalCase)，与 achievement_event_bridge.py:38 + combat_camera_controller.py:52 订阅者一致
+- **删除 3 个孤儿事件发布**（无测试覆盖、无生产订阅者、无业务依赖 dead code）:
+  - `UnitArrived`: 删除 `combat_director.py:566` publish_named（单位到达目的地事件，到达逻辑已在内部 sound_system.play_footstep 处理）
+  - `WeaponFired`: 删除 `combat_service.py:94-105` publish_named + WeaponFired import（武器开火事件，开火逻辑已在内部直接处理）
+  - `AttackCommand`: 删除 `interaction_controller.py:338-347` publish_named（攻击命令事件，命令已在 _on_attack_command callback 直接执行）
+- **保留 2 个孤儿事件发布**（有测试覆盖、有意设计）:
+  - `BridgeDestroyed`: 保留 `engineer_assault.py:313` 发布（test_engineer_assault.py:1096 专门验证发布行为）
+  - `EndBattle`: 保留 `bottom_panel_input_handler.py:39` 发布（test_ui_buttons_e2e.py:135 E2E 测试订阅验证）
+- **删除 1 个反向孤儿订阅**（有订阅无发布、dead code）:
+  - `CampaignComplete`: 删除 `achievement_event_bridge.py:41` subscribe_to + `_on_campaign_complete` 方法 (lines 97-105)（战役系统未实现，CampaignComplete 永远不会被发布；_on_campaign_complete 处理 market_garden/bridge_too_far 成就但无触发源）
+  - 同步更新模块 docstring：删除 "CampaignSystem publishes CampaignComplete" 引用
+- **测试更新**:
+  - 删除 `test_combat_camera_and_achievements.py::test_on_campaign_complete`（对应方法已删除）
+  - 修改 `test_deep_integration.py::TestAchievementEventBridgeIntegration::test_subscribe_to_event_bus` 断言 `handler_count >= 4` → `>= 3`（删除 CampaignComplete 订阅后只剩 3 个）
+- **Verification**: ruff 0 errors / mypy 0 errors (392 files) / pytest unit 4473 passed / 0 failed / 2 skipped / pytest integration 136 passed / pytest e2e test_ui_buttons 12 passed — 零回归
+- **Phase 5 P1-2 完成**: 孤儿事件对齐完成，事件发布/订阅契约清理完成
+
 ### D12 Phase 4 P0-2 unit.py God Class 拆分 (DevSquad V3.8)
 
 - **拆分 unit.py** (937L / 54 方法 → facade 494L + 5 mixin 870L = 总 1364L): facade + mixin class 模式，dataclass(slots=True) + mixin 继承（Python 3.12 验证可行），参考 Phase 2 deployment_renderer.py 拆分先例

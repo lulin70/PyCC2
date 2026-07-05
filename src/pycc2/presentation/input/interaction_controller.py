@@ -334,17 +334,6 @@ class InteractionController:
                             # Ground target attack
                             if self._on_move_command:  # Reuse for ground attack
                                 self._on_move_command(self._selected_ids, target.position)
-
-                        self._event_bus.publish_named(
-                            "AttackCommand",
-                            {
-                                "command": "attack",
-                                "unit_ids": list(self._selected_ids),
-                                "target_id": target.unit_id,
-                                "target_pos": (target.position.x, target.position.y),
-                                "is_ground_target": target.is_ground_target,
-                            },
-                        )
                     else:
                         logger.warning(f"[ATTACK] Cannot attack - {target.status.name}")
 

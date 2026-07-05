@@ -563,7 +563,6 @@ class CombatDirector:
                     self.sound_system.play_footstep(terrain)
                 if not path:
                     del self._move_orders[unit.id]
-                    self.event_bus.publish_named("UnitArrived", {"unit_id": unit.id})
                 else:
                     self._move_orders[unit.id]["path"] = path
             else:

@@ -172,7 +172,7 @@ class TestAchievementEventBridgeIntegration:
         mgr = AchievementManager()
         bridge = AchievementEventBridge(mgr)
         bridge.subscribe(bus)
-        assert bus.handler_count >= 4
+        assert bus.handler_count >= 3
 
     def test_first_blood_on_kill(self):
         bus = EventBus()

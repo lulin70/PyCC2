@@ -223,27 +223,6 @@ class TestAchievementEventBridge:
         bridge._on_battle_won({})
         assert mgr.is_unlocked("zero_casualties")
 
-    def test_on_campaign_complete(self):
-        from pycc2.domain.systems.achievement_system import (
-            Achievement,
-            AchievementCategory,
-            AchievementManager,
-        )
-        from pycc2.services.achievement_event_bridge import AchievementEventBridge
-
-        mgr = AchievementManager()
-        mgr.register(
-            Achievement(
-                achievement_id="market_garden",
-                name="Market Garden",
-                description="d",
-                category=AchievementCategory.CAMPAIGN,
-            )
-        )
-        bridge = AchievementEventBridge(mgr)
-        bridge._on_campaign_complete({"campaign": "market_garden"})
-        assert mgr.is_unlocked("market_garden")
-
     def test_reset_battle_stats(self):
         from pycc2.domain.systems.achievement_system import AchievementManager
         from pycc2.services.achievement_event_bridge import AchievementEventBridge

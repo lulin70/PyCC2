@@ -1,11 +1,11 @@
 """Achievement Event Bridge - Connects game events to achievement tracking.
 
-Subscribes to EventBus combat/campaign events and triggers
+Subscribes to EventBus combat events and triggers
 achievement progress updates via AchievementManager.
 
 Integration points:
 - CombatResolver publishes UnitAttacked / UnitKilled events
-- CampaignSystem publishes BattleWon / CampaignComplete events
+- game_loop_updating publishes BattleWon events
 - AchievementEventBridge maps events to achievement progress
 """
 
@@ -38,7 +38,6 @@ class AchievementEventBridge:
         event_bus.subscribe_to("UnitAttacked", self._on_unit_attacked)
         event_bus.subscribe_to("UnitKilled", self._on_unit_killed)
         event_bus.subscribe_to("BattleWon", self._on_battle_won)
-        event_bus.subscribe_to("CampaignComplete", self._on_campaign_complete)
 
     def _on_unit_attacked(self, event: dict) -> None:
         """Track damage taken by player units."""
@@ -93,16 +92,6 @@ class AchievementEventBridge:
                 self._manager.add_progress("survivor", 1)
 
         self._reset_battle_stats()
-
-    def _on_campaign_complete(self, event: dict) -> None:
-        """Handle campaign completion."""
-        campaign_name = event.get("campaign", "")
-        if campaign_name == "market_garden":
-            self._manager.add_progress("market_garden", 1)
-
-        turns_held = event.get("arnhem_bridge_turns_held", 0)
-        if turns_held > 0:
-            self._manager.set_progress("bridge_too_far", turns_held)
 
     def _reset_battle_stats(self) -> None:
         """Reset per-battle tracking after battle ends."""

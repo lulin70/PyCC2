@@ -19,7 +19,6 @@ from pycc2.infrastructure.events.event_bus import EventBus
 from pycc2.infrastructure.events.event_protocol import (
     UnitAttacked,
     UnitKilled,
-    WeaponFired,
 )
 
 
@@ -90,19 +89,6 @@ class CombatService:
             self._logger.info(
                 f"Angle bonus applied: {angle.name} -> {damage_multiplier:.1f}x damage"
             )
-
-        self.event_bus.publish_named(
-            "WeaponFired",
-            dict(
-                WeaponFired(
-                    unit_id=attacker.unit_id,
-                    weapon_id=weapon_slot,
-                    target_id=target.unit_id,
-                    hit=shot_result.hit,
-                    ammo_remaining=getattr(attacker.weapon, "ammo_remaining", 0),
-                )
-            ),
-        )
 
         if not shot_result.hit:
             self._logger.debug(f"Miss: {attacker.name} missed {target.name}")
