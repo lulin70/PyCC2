@@ -1,7 +1,7 @@
 # PyCC2 vs CC2 原版差距分析报告
 
-> **版本**: v0.4.5 | **日期**: 2026-07-05 | **状态**: Beta Candidate
-> **本文档已更新至 v0.4.5，早期版本信息见 Git 历史**
+> **版本**: v0.5.0 | **日期**: 2026-07-05 | **状态**: Beta Candidate
+> **本文档已更新至 v0.5.0，早期版本信息见 Git 历史**
 > **参考来源**: CC2 Wiki (gamia-archive.fandom.com), CC2 策略指南 (the-spoiler.com), CC2 Steam, 用户反馈, OpenCombat (GitHub), DevSquad 7角色交叉Review, 13张CC2原版截图像素级对比
 > **目的**: 诚实记录当前PyCC2与原版CC2的所有差距，基于运行时验证+截图对比
 > **关联文档**: ROADMAP.md / TECH_DEBT.md

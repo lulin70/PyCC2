@@ -1,17 +1,17 @@
 # PyCC2 项目状态
 
 > **最后更新**: 2026-07-05
-> **版本**: v0.4.5
+> **版本**: v0.5.0
 > **状态**: Beta Candidate — 完全可玩
 
 ## 核心指标
 
 | 指标 | 数值 | 来源 |
 |------|------|------|
-| 版本号 | 0.4.5 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
+| 版本号 | 0.5.0 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
 | 源码模块数 | 390 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
 | 测试文件数 | 176 个 `.py` 文件（unit 137 / integration 7 / e2e 25 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 4611 passed / 0 failed / 2 skipped (v0.4.5 后基线，含 100 TacticExecutor 单测 + 38 零覆盖 smoke 测试) | `pytest tests/unit/ -m "not slow"` |
+| 测试用例数 | 4598 passed / 0 failed / 2 skipped (v0.5.0 基线，含 TD-072/TD-068 修复后测试数) | `pytest tests/unit/ -m "not slow"` |
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=60`（已恢复目标值） | `.github/workflows/ci.yml` |
 | 实际覆盖率 | 60.05% (44170 stmts, 15918 missed，含 branch coverage) | `pytest tests/unit/ --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |
