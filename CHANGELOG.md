@@ -198,6 +198,21 @@ All notable changes to PyCC2 will be documented in this file.
 
 **验证**: ruff 0 errors / pytest e2e 477 passed / 0 skipped / 0 failed — 3 次连续运行稳定 (36-39s each)
 
+### 3 God Class 候选评估文档化 (DevSquad V3.8, 2026-07-05)
+
+> 关闭 D13 N-1 "方法数 >30" 机械阈值遗留的 3 个候选评估（v0.4.2 记录"剩余 4 个待 v0.5+ 评估"，扣除 v0.4.5 TD-067 已评估的 enhanced_sound_bridge）。
+
+**3 个候选全部 FALSE** (0/3 hit rate):
+- ❌ `deployment_ui.py` (689L, 50 方法) — Facade 终态，7 协作者已提取 (DeploymentDragDrop/Orders/LOSSystem/Renderer/ZoneBuilder/PlacementService/InputRouter)，50 方法中绝大多数是 1-2 行委托包装
+- ❌ `sound_system.py` (741L, 43 方法) — 单一内聚域"音频引擎"，DSP 已提取为 `ProceduralSoundGenerator` (13 `@classmethod`，纯 numpy 无状态)；`SoundSystem` 27 方法共享 `_cache`/`_active_sounds`/`_config` 状态，调用链紧密
+- ❌ `sprite_renderer_base.py` (303L, 39 方法) — D11-2 SRP 拆分产物，按设计 Facade base；12 `@property` backward-compat shim + 6 `spawn_*` 1 行委托 + 4 显式 no-op + 1 `render()` orchestrator
+
+**累计 God Class 评估历史**: 3 批次共 12 候选 → 1 TRUE (enhanced_sound_bridge, 已 TD-072 拆分) / 11 FALSE → **8.3% TRUE hit rate (91.7% 误判率)**
+
+**教训再次验证**: God Class 评估必须基于"单类多职责"而非方法数/行数机械阈值。正确判断标准: (1) 单一类是否承担多个不相干职责？(2) 职责间是否共享状态？(3) 拆分后是否能独立测试/复用？(4) 是否已有 Facade/Coordinator 设计意图？
+
+**评估报告**: [docs/ASSESSMENT_GODCLASS_V050.md](docs/ASSESSMENT_GODCLASS_V050.md)
+
 ### D13 项目整理评估 (DevSquad V3.8)
 
 - **评估范围**: 7 维度代码走读 + 文档一致性更新 + 技术债清理 + 全量测试 + CI/CD 检查 + 目录清理 + 成熟度评价

@@ -43,6 +43,12 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 
 ## 最近变更
 
+### v0.5.0 3 God Class 候选评估文档化 (2026-07-05)
+- **3 个 D13 N-1 遗留候选全部 FALSE** (0/3 hit rate): `deployment_ui.py` (689L, 50 方法, Facade 终态 7 协作者已提取) / `sound_system.py` (741L, 43 方法, 单一内聚域音频引擎) / `sprite_renderer_base.py` (303L, 39 方法, D11-2 SRP 拆分 Facade base)
+- **累计 God Class 评估**: 3 批次 12 候选 → 1 TRUE (enhanced_sound_bridge, 已 TD-072 拆分) / 11 FALSE → 8.3% TRUE hit rate (91.7% 误判率)
+- **教训再次验证**: God Class 评估必须基于"单类多职责"而非方法数/行数机械阈值
+- 评估报告: [docs/ASSESSMENT_GODCLASS_V050.md](ASSESSMENT_GODCLASS_V050.md)
+
 ### v0.5.0 TD-068 e2e skip 修复 (2026-07-05)
 - **7 个 `pytest.skip` 逐项 root cause 修复**（违反用户测试哲学 "Skip tests 不合理；无数据时创建数据，系统有问题时优化系统"）:
   - #1 test_visual_smoke.py:74 — 保留（合法平台守卫 `skipif(not _can_create_display())`）
