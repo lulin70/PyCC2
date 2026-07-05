@@ -2,7 +2,7 @@
 
 > **版本**: v0.4.6 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
 > **上次核查**: 2026-07-05 (v0.4.6 TD-072/TD-068 修复 + 3 God Class 评估 + SemVer 纠正 + v0.4.7 TD-027 关闭) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 11
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题)
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md)
 
 ---
 
@@ -67,12 +67,12 @@
 
 ## 三、P1 严重技术债（功能受损）
 
-### 🟡 TD-026: 53个文件超过500行
+### ~~🟡 TD-026: 53个文件超过500行~~ 🟢 评估完成 (v0.4.7, 2026-07-05)
 
-- **描述**: 代码库中有53个文件超过500行，最大文件超过1300行，违反单一职责原则
-- **影响**: 代码难以维护和理解，修改风险高
-- **状态**: ❌ 未解决
-- **清理方案**: 按模块拆分大文件，每个文件控制在500行以内
+- **描述**: 代码库中实测 44 个 src 源码文件超过 500 行，最大文件 pixvoxel_loader.py 1143L (scripts-only)。基于"单类多职责"评估，全部为非 God Class (详见 [ASSESSMENT_TD026_V047.md](ASSESSMENT_TD026_V047.md))
+- **影响**: ~~代码难以维护和理解，修改风险高~~ 评估后无需拆分，大文件多数为多类分工或 mixin/facade 拆分产物
+- **状态**: 🟢 评估完成 — 0/44 TRUE，无需拆分 (累计 52 候选 → 1 TRUE / 51 FALSE = 1.9% hit rate，证明行数阈值是极不可靠的 God Class 判断标准)
+- **清理方案**: ~~按模块拆分大文件，每个文件控制在500行以内~~ 评估后无需拆分，保留单一职责大文件
 
 ### ~~🟡 TD-027: infra/infrastructure职责重叠~~ ✅ RESOLVED (v0.4.7, 2026-07-05)
 

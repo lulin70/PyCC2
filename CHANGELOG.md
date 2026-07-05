@@ -183,6 +183,24 @@ All notable changes to PyCC2 will be documented in this file.
 
 **Verification**: `pytest tests/ -m "slow" --durations=20 --timeout=300` → 16 passed / 0 failed / 最慢 0.17s / 总 2.76s。
 
+### TD-026 大文件评估 — 0/44 TRUE 无需拆分 (DevSquad V3.8, 2026-07-05)
+
+> 评估 D13 遗留的 P1 技术债 TD-026（53个文件超过500行，描述过时）。实测 44 个 src 源码文件 >500L。
+
+**评估结论**:
+- **已评估 8 个 (TD-067/D13/v0.4.6)**: 全部 FALSE — pixvoxel_loader (1143L, scripts-only) / terrain_rendering_system (896L, facade) / hud_renderer (886L) / vehicle_weapon_profiles (826L, 数据集合) / environmental_audio (811L, 2 类分工) / sound_system (741L) / deployment_ui (689L, Facade 终态) / smoke_tactical_ai (719L, 4 类分工)
+- **快速筛选 36 个**: 全部 FALSE — 含 0-class 数据文件 (2) / ≥3-class 多类分工 (11) / mixin-facade 拆分产物 (5) / 1-2 class 低风险 (18)
+- **累计 God Class 评估历史**: 52 候选 → 1 TRUE / 51 FALSE = 1.9% hit rate (98.1% 误判率)
+
+**关键发现**:
+1. 行数 ≠ God Class — 最大文件 pixvoxel_loader.py (1143L) 是 scripts-only
+2. 多类文件 ≠ God Class — 多 class 文件通常是多类分工集合
+3. Mixin/Facade 拆分产物本身 >500L 是正常的（单一职责内聚模块）
+
+**处置**: TD-026 标记为 🟢 评估完成 (0/44 TRUE，无需拆分)。TECH_DEBT.md TD-026 描述更新 (53→44) + 状态行追加。评估报告: [docs/ASSESSMENT_TD026_V047.md](docs/ASSESSMENT_TD026_V047.md)。
+
+**Verification**: 文档级修改无源码变更，ruff/mypy 不受影响。
+
 ## [0.4.6] - 2026-06-29 (开发中)
 
 ### SemVer 纠正 (2026-07-05)
