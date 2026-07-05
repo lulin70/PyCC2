@@ -623,14 +623,17 @@
 - **解决方案**: 新增 bandit.yaml 集中管理 skips/exclude_dirs/targets，每项 skip 附带 rationale；CI 引用改为 `bandit -c bandit.yaml -r src/ -ll`
 - **状态**: ✅ 已解决 (v0.4.1, 2026-07-05)
 
-### 🟡 D13-N1: 8 个 God Class (>30方法) 残留 (P2) — 🟡 v0.4.2/v0.4.3 推进中
+### 🟡 D13-N1: 8 个 God Class (>30方法) 残留 (P2) — 🟡 v0.4.2 诚实复核：4 个目标均非真正 God Class
 
-- **评估**: D12 Phase 4 拆分 unit.py (54 方法) 后，仍有 8 个 God Class 残留
-- **清理计划**:
-  - v0.4.2: enhanced_renderer.py (30方法) + environmental_audio.py (33方法) — 低风险
-  - v0.4.3: cc2_combat_effects.py (33方法) + smoke_tactical_ai.py (35方法) — 中风险
-  - 剩余 4 个 (deployment_ui 50 / enhanced_sound_bridge 44 / sound_system 43 / sprite_renderer_base 39) 待 v0.5+ 评估
-- **状态**: 🟡 部分解决 (v0.4.2/v0.4.3 推进中)
+- **评估**: D12 Phase 4 拆分 unit.py (54 方法) 后，仍有 8 个 God Class 残留（基于方法数 >30 阈值）
+- **v0.4.2 诚实复核** (2026-07-05): 对 v0.4.2/v0.4.3 计划的 4 个目标文件逐一复核，发现均非真正 God Class：
+  - `enhanced_renderer.py` (30方法): ✅ 已是 Coordinator/Delegator 模式（TD-061 D8 Phase 3 拆分完成），30 方法大部分是 1-2 行委托
+  - `environmental_audio.py` (33方法): 2 类分工明确 — `EnvironmentalSoundGenerator` (11 @classmethod 无状态工具类) + `EnvironmentalAudioSystem` (17 方法单一职责系统类)
+  - `cc2_combat_effects.py` (33方法): 6 个小类集合（4-9 方法/类），每个类单一职责（粒子/投降旗/爆炸/烟雾/火花/枪口闪光）
+  - `smoke_tactical_ai.py` (35方法): 4 类分工明确（数据/管理/能力/AI），`SmokeTacticalAI` 18 方法中 13 个是 @staticmethod 战术辅助函数
+- **结论**: D13 N-1 基于"方法数 >30"的机械阈值误判。真正需要拆分的 God Class 应基于"单类多职责"判断，而非方法数
+- **调整计划**: v0.4.2/v0.4.3 取消 God Class 拆分，避免 superficial optimization。剩余 4 个 (deployment_ui 50 / enhanced_sound_bridge 44 / sound_system 43 / sprite_renderer_base 39) 待 v0.5+ 按真实职责评估
+- **状态**: 🟡 重新评估 — 方法数阈值误判，需基于职责而非数量重新判定
 
 ### 🟢 D13-N2: TYPE_CHECKING 守卫 182 文件 (P3) — 保留为必要 workaround
 

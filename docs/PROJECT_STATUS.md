@@ -193,23 +193,23 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 
 **验证**: ruff 0 errors / mypy 0 errors / bandit exit 0 / pytest unit 4459 passed (60.18%) / integration 136 passed / e2e 475 passed — 零回归
 
-### v0.4.2 — God Class 拆分低风险批次 (P2)
+### v0.4.2 — God Class 拆分诚实复核 (P2, 2026-07-05)
 
-> 目标：拆分 D13 N-1 中方法数最少的 2 个 God Class，参考 D12 Phase 4 unit.py facade+mixin 模式，100% public API 向后兼容。
+> 目标：原计划拆分 4 个 God Class，经逐一复核均非真正 God Class，取消拆分。
 
-| # | 文件 | 方法数 | 风险评估 |
+| # | 文件 | 方法数 | 复核结论 |
 |---|------|--------|----------|
-| 1 | `src/pycc2/presentation/rendering/enhanced_renderer.py` | 30 | 低 — 渲染层，无状态机依赖 |
-| 2 | `src/pycc2/domain/systems/environmental_audio.py` | 33 | 低 — 音频系统，无事件总线耦合 |
+| 1 | `enhanced_renderer.py` | 30 | ✅ 已是 Coordinator/Delegator（TD-061 D8 Phase 3 拆分完成），30 方法大部分是 1-2 行委托 |
+| 2 | `environmental_audio.py` | 33 | 2 类分工明确：无状态工具类(11) + 单一职责系统类(17) |
+| 3 | `cc2_combat_effects.py` | 33 | 6 个小类集合（4-9 方法/类），每个类单一职责 |
+| 4 | `smoke_tactical_ai.py` | 35 | 4 类分工明确，13 个 @staticmethod 是辅助函数 |
 
-### v0.4.3 — God Class 拆分中风险批次 (P2)
+**教训**: D13 N-1 基于"方法数 >30"机械阈值误判。真正需要拆分的 God Class 应基于"单类多职责"判断，而非方法数。
+**调整**: 剩余 4 个 (deployment_ui 50 / enhanced_sound_bridge 44 / sound_system 43 / sprite_renderer_base 39) 待 v0.5+ 按真实职责评估。
 
-> 目标：拆分 D13 N-1 中等风险的 2 个 God Class，需要更充分的回归测试。
+### v0.4.3 — 取消（合并到 v0.4.2 复核结论）
 
-| # | 文件 | 方法数 | 风险评估 |
-|---|------|--------|----------|
-| 1 | `src/pycc2/domain/systems/cc2_combat_effects.py` | 33 | 中 — 战斗效果，可能涉及事件发布 |
-| 2 | `src/pycc2/domain/ai/smoke_tactical_ai.py` | 35 | 中 — AI 战术，可能涉及状态机 |
+原计划的 cc2_combat_effects.py + smoke_tactical_ai.py 拆分取消，原因见 v0.4.2 复核结论。
 
 ### 中期（v0.5.0 功能版本，待规划）
 - TD-065 载具损伤视觉反馈差异化

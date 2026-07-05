@@ -13,15 +13,19 @@ All notable changes to PyCC2 will be documented in this file.
 - **分层 conftest.py**（D13 N-5）：新增 `tests/unit/conftest.py` + `tests/integration/conftest.py` + `tests/e2e/conftest.py`，每层文档化测试策略，根 `tests/conftest.py` 共享 fixture 保留不动（向后兼容）
 - **验证**: ruff 0 errors / mypy 0 errors / bandit exit 0 / pytest unit 4459 passed (覆盖率 60.18%) / integration 136 passed / e2e 475 passed — 零回归
 
-### v0.4.2 — God Class 拆分低风险批次 (P2, 待规划)
+### v0.4.2 — God Class 拆分诚实复核 (P2, 2026-07-05)
 
-- 拆分 `enhanced_renderer.py` (30 方法) → facade + mixin
-- 拆分 `environmental_audio.py` (33 方法) → facade + mixin
+- **复核结论**: v0.4.2/v0.4.3 计划的 4 个目标文件经逐一复核，均非真正 God Class，取消拆分避免 superficial optimization
+  - `enhanced_renderer.py` (30方法): 已是 Coordinator/Delegator 模式（TD-061 D8 Phase 3 拆分完成）
+  - `environmental_audio.py` (33方法): 2 类分工明确（无状态工具类 + 单一职责系统类）
+  - `cc2_combat_effects.py` (33方法): 6 个小类集合（4-9 方法/类）
+  - `smoke_tactical_ai.py` (35方法): 4 类分工明确，13 个 @staticmethod 是辅助函数
+- **教训**: D13 N-1 基于"方法数 >30"的机械阈值误判。真正需要拆分的 God Class 应基于"单类多职责"判断
+- **调整**: 剩余 4 个 (deployment_ui 50 / enhanced_sound_bridge 44 / sound_system 43 / sprite_renderer_base 39) 待 v0.5+ 按真实职责评估
 
-### v0.4.3 — God Class 拆分中风险批次 (P2, 待规划)
+### v0.4.3 — 取消（合并到 v0.4.2 复核结论）
 
-- 拆分 `cc2_combat_effects.py` (33 方法) → facade + mixin
-- 拆分 `smoke_tactical_ai.py` (35 方法) → facade + mixin
+- 原计划的 cc2_combat_effects.py + smoke_tactical_ai.py 拆分取消，原因见 v0.4.2 复核结论
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
