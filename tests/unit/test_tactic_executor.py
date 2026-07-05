@@ -169,18 +169,31 @@ def make_unit(
     *,
     hp: int = 100,
     morale_value: int = 80,
+    unit_type: UnitType = UnitType.INFANTRY_SQUAD,
+    primary_weapon_id: str = "rifle",
+    max_ammo: int = 30,
+    vision_range: int = 6,
 ) -> Unit:
-    """Build a real infantry Unit with concrete components (no mocks)."""
+    """Build a real Unit with concrete components (no mocks).
+
+    Default produces an INFANTRY_SQUAD; pass ``unit_type`` (and matching
+    weapon/vision args) for other types such as AT_GUN_TEAM (engineer proxy
+    for mine warfare).
+    """
     return Unit(
         id=uid,
         name=uid,
         faction=Faction.ALLIES,
-        unit_type=UnitType.INFANTRY_SQUAD,
+        unit_type=unit_type,
         health=HealthComponent(hp=hp, max_hp=hp),
         morale=MoraleComponent(value=morale_value, panic_threshold=20, rout_threshold=10),
-        weapon=WeaponComponent(primary_weapon_id="rifle", ammo_remaining=30, max_ammo=30),
+        weapon=WeaponComponent(
+            primary_weapon_id=primary_weapon_id,
+            ammo_remaining=max_ammo,
+            max_ammo=max_ammo,
+        ),
         position=PositionComponent(tile_coord=pos),
-        vision=VisionComponent(range_tiles=6),
+        vision=VisionComponent(range_tiles=vision_range),
     )
 
 
@@ -983,3 +996,493 @@ class TestTacticExecutorMeleeAttack:
             target_unit_id="u_melee_ft",
         )
         assert executor.execute(intent) is False
+
+
+# ---------------------------------------------------------------------------
+# Batch 2 — Engineering handlers (DIG_TRENCH / DEMOLISH_BRIDGE / LAY_MINE)
+# ---------------------------------------------------------------------------
+
+
+class TestTacticExecutorDigTrench:
+    """Cover _execute_dig_trench (engineering_mixin).
+
+    Behavior:
+      - Unknown unit / no game_map -> False.
+      - If TrenchDiggingSystem.can_dig False (e.g. already in trench) -> False.
+      - First call (no progress) -> start_digging + publish "dig_trench_start"
+        + return True.
+      - Subsequent call (progress exists) -> tick; on completion publish
+        "dig_trench_complete" + return True.
+    """
+
+    def test_dig_trench_start_publishes_start_event(
+        self, executor_with_map, event_bus
+    ):
+        """Happy: first call on a diggable infantry publishes dig_trench_start."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_dt", TileCoord(5, 5))
+        executor_with_map.register_unit(unit)
+
+        intent = TacticIntent(unit_id="u_dt", tactic_type=TacticType.DIG_TRENCH)
+        assert executor_with_map.execute(intent) is True
+
+        start_events = [e for e in published if e.get("action") == "dig_trench_start"]
+        assert len(start_events) == 1
+        assert start_events[0]["unit_id"] == "u_dt"
+        assert start_events[0]["position"] == (5, 5)
+        # Progress tracker now exists
+        assert executor_with_map._trench_digging.get_progress("u_dt") is not None
+
+    def test_dig_trench_completion_publishes_complete_event(
+        self, executor_with_map, event_bus
+    ):
+        """Happy: advancing progress to DIG_DURATION publishes dig_trench_complete.
+
+        We seed progress one tick short of completion to avoid 90 redundant
+        execute() calls; the handler's tick branch must still fire.
+        """
+        from pycc2.domain.ai.trench_digging import DIG_DURATION, DigProgress
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_dt_c", TileCoord(7, 7))
+        executor_with_map.register_unit(unit)
+
+        # Seed progress just before completion
+        executor_with_map._trench_digging._progress["u_dt_c"] = DigProgress(
+            unit_id="u_dt_c",
+            progress=DIG_DURATION - 1,
+            position=TileCoord(7, 7),
+        )
+
+        intent = TacticIntent(unit_id="u_dt_c", tactic_type=TacticType.DIG_TRENCH)
+        assert executor_with_map.execute(intent) is True
+
+        complete_events = [
+            e for e in published if e.get("action") == "dig_trench_complete"
+        ]
+        assert len(complete_events) == 1
+        assert complete_events[0]["unit_id"] == "u_dt_c"
+        assert complete_events[0]["position"] == (7, 7)
+        # Progress cleared after completion
+        assert executor_with_map._trench_digging.get_progress("u_dt_c") is None
+
+    def test_dig_trench_unknown_unit_returns_false(self, executor_with_map):
+        """Error: unknown unit_id -> False."""
+        intent = TacticIntent(unit_id="ghost", tactic_type=TacticType.DIG_TRENCH)
+        assert executor_with_map.execute(intent) is False
+
+    def test_dig_trench_without_game_map_returns_false(self, executor, event_bus):
+        """Error: no game_map set on executor -> False (no event published)."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_dt_nm", TileCoord(5, 5))
+        executor.register_unit(unit)
+
+        intent = TacticIntent(unit_id="u_dt_nm", tactic_type=TacticType.DIG_TRENCH)
+        assert executor.execute(intent) is False
+        assert published == []
+
+    def test_dig_trench_unit_already_in_trench_returns_false(
+        self, executor_with_map, event_bus, monkeypatch
+    ):
+        """Boundary: can_dig returns False -> handler exits early with False.
+
+        We mock can_dig to return False (simulating 'already in trench' or
+        any other can_dig failure) to verify the handler's early-exit
+        behavior without coupling to can_dig's internal terrain checks.
+        Avoids mutating GameMap.tiles_enhanced, which is a class-level
+        default and can leak state across tests.
+        """
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_dt_it", TileCoord(3, 3))
+        executor_with_map.register_unit(unit)
+
+        # Force can_dig to return False (e.g. unit already in trench)
+        monkeypatch.setattr(
+            executor_with_map._trench_digging, "can_dig", lambda *args: False
+        )
+
+        intent = TacticIntent(unit_id="u_dt_it", tactic_type=TacticType.DIG_TRENCH)
+        assert executor_with_map.execute(intent) is False
+        assert published == []
+        # No progress started
+        assert executor_with_map._trench_digging.get_progress("u_dt_it") is None
+
+    def test_dig_trench_in_progress_tick_does_not_publish_until_complete(
+        self, executor_with_map, event_bus
+    ):
+        """Boundary: a non-completing tick advances progress without event."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_dt_tick", TileCoord(9, 9))
+        executor_with_map.register_unit(unit)
+
+        # First call starts digging
+        intent = TacticIntent(unit_id="u_dt_tick", tactic_type=TacticType.DIG_TRENCH)
+        assert executor_with_map.execute(intent) is True
+        start_count = sum(
+            1 for e in published if e.get("action") == "dig_trench_start"
+        )
+        assert start_count == 1
+
+        # Second call advances progress but does not complete
+        assert executor_with_map.execute(intent) is True
+        complete_events = [
+            e for e in published if e.get("action") == "dig_trench_complete"
+        ]
+        assert complete_events == []
+        progress = executor_with_map._trench_digging.get_progress("u_dt_tick")
+        assert progress is not None and progress.progress >= 1
+
+
+class TestTacticExecutorDemolishBridge:
+    """Cover _execute_demolish_bridge (engineering_mixin).
+
+    Behavior:
+      - Unknown unit / no game_map -> False.
+      - Scan 3x3 around unit for BRIDGE terrain; if none -> False.
+      - Found -> set each to BRIDGE_DESTROYED + publish "demolish_bridge"
+        with bridge_tiles list + return True.
+    """
+
+    def test_demolish_bridge_destroys_adjacent_bridge_tile(
+        self, executor_with_map, event_bus
+    ):
+        """Happy: one BRIDGE tile adjacent to unit is destroyed."""
+        from pycc2.domain.value_objects.terrain_type import TerrainType
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_db", TileCoord(5, 5))
+        executor_with_map.register_unit(unit)
+
+        # Plant a BRIDGE tile at (6, 5) — adjacent to unit
+        executor_with_map.game_map.set_terrain(
+            TileCoord(6, 5), TerrainType.BRIDGE
+        )
+
+        intent = TacticIntent(
+            unit_id="u_db", tactic_type=TacticType.DEMOLISH_BRIDGE
+        )
+        assert executor_with_map.execute(intent) is True
+
+        demolish_events = [
+            e for e in published if e.get("action") == "demolish_bridge"
+        ]
+        assert len(demolish_events) == 1
+        assert demolish_events[0]["unit_id"] == "u_db"
+        assert (6, 5) in demolish_events[0]["bridge_tiles"]
+        # Terrain actually mutated
+        assert (
+            executor_with_map.game_map.get_terrain(TileCoord(6, 5))
+            == TerrainType.BRIDGE_DESTROYED
+        )
+
+    def test_demolish_bridge_finds_multiple_bridges_in_3x3(
+        self, executor_with_map, event_bus
+    ):
+        """Happy: multiple BRIDGE tiles in 3x3 neighborhood all destroyed."""
+        from pycc2.domain.value_objects.terrain_type import TerrainType
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_db_multi", TileCoord(10, 10))
+        executor_with_map.register_unit(unit)
+
+        # Plant BRIDGE at three offsets within 3x3 (excluding unit's own tile)
+        bridge_coords = [TileCoord(9, 9), TileCoord(11, 10), TileCoord(10, 11)]
+        for c in bridge_coords:
+            executor_with_map.game_map.set_terrain(c, TerrainType.BRIDGE)
+
+        intent = TacticIntent(
+            unit_id="u_db_multi", tactic_type=TacticType.DEMOLISH_BRIDGE
+        )
+        assert executor_with_map.execute(intent) is True
+
+        demolish_events = [
+            e for e in published if e.get("action") == "demolish_bridge"
+        ]
+        assert len(demolish_events) == 1
+        reported = set(demolish_events[0]["bridge_tiles"])
+        for c in bridge_coords:
+            assert (c.x, c.y) in reported
+            assert (
+                executor_with_map.game_map.get_terrain(c)
+                == TerrainType.BRIDGE_DESTROYED
+            )
+
+    def test_demolish_bridge_unknown_unit_returns_false(self, executor_with_map):
+        """Error: unknown unit_id -> False."""
+        intent = TacticIntent(
+            unit_id="ghost", tactic_type=TacticType.DEMOLISH_BRIDGE
+        )
+        assert executor_with_map.execute(intent) is False
+
+    def test_demolish_bridge_without_game_map_returns_false(
+        self, executor, event_bus
+    ):
+        """Error: no game_map -> False (no event published)."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_db_nm", TileCoord(5, 5))
+        executor.register_unit(unit)
+
+        intent = TacticIntent(
+            unit_id="u_db_nm", tactic_type=TacticType.DEMOLISH_BRIDGE
+        )
+        assert executor.execute(intent) is False
+        assert published == []
+
+    def test_demolish_bridge_no_bridge_nearby_returns_false(
+        self, executor_with_map, event_bus
+    ):
+        """Boundary: no BRIDGE tile in 3x3 -> False, no event published."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_db_none", TileCoord(5, 5))
+        executor_with_map.register_unit(unit)
+        # game_map is all OPEN — no BRIDGE anywhere
+
+        intent = TacticIntent(
+            unit_id="u_db_none", tactic_type=TacticType.DEMOLISH_BRIDGE
+        )
+        assert executor_with_map.execute(intent) is False
+        assert published == []
+
+    def test_demolish_bridge_at_map_corner_scans_in_bounds(
+        self, executor_with_map, event_bus
+    ):
+        """Boundary: unit at (0, 0) corner — 3x3 scan stays within 20x20 map."""
+        from pycc2.domain.value_objects.terrain_type import TerrainType
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit("u_db_corner", TileCoord(0, 0))
+        executor_with_map.register_unit(unit)
+
+        # Plant BRIDGE at (1, 1) — within 3x3 of corner unit
+        executor_with_map.game_map.set_terrain(
+            TileCoord(1, 1), TerrainType.BRIDGE
+        )
+
+        intent = TacticIntent(
+            unit_id="u_db_corner", tactic_type=TacticType.DEMOLISH_BRIDGE
+        )
+        assert executor_with_map.execute(intent) is True
+        assert (
+            executor_with_map.game_map.get_terrain(TileCoord(1, 1))
+            == TerrainType.BRIDGE_DESTROYED
+        )
+
+
+class TestTacticExecutorLayMine:
+    """Cover _execute_lay_mine (engineering_mixin).
+
+    Behavior:
+      - Unknown unit / no game_map / no target_position -> False.
+      - If target_position > 1 tile away -> delegate to _execute_move_to.
+      - First call (no progress) -> start_laying + publish "lay_mine_start"
+        + return True.
+      - Subsequent call (progress exists) -> tick_laying; on completion
+        publish "mine_laid" + return True.
+
+    Note: can_lay_mine requires unit_type == AT_GUN_TEAM (engineer proxy),
+    so happy-path tests use AT_GUN_TEAM units.
+    """
+
+    def test_lay_mine_start_publishes_start_event(
+        self, executor_with_map, event_bus
+    ):
+        """Happy: AT_GUN_TEAM at target starts laying + publishes lay_mine_start."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit(
+            "u_lm",
+            TileCoord(5, 5),
+            unit_type=UnitType.AT_GUN_TEAM,
+            primary_weapon_id="at_gun",
+            max_ammo=8,
+            vision_range=6,
+        )
+        executor_with_map.register_unit(unit)
+
+        intent = TacticIntent(
+            unit_id="u_lm",
+            tactic_type=TacticType.LAY_MINE,
+            target_position=TileCoord(5, 5),  # Same tile -> dist=0
+        )
+        assert executor_with_map.execute(intent) is True
+
+        start_events = [e for e in published if e.get("action") == "lay_mine_start"]
+        assert len(start_events) == 1
+        assert start_events[0]["unit_id"] == "u_lm"
+        assert start_events[0]["mine_type"] == "AT_MINE"
+        assert start_events[0]["position"] == (5, 5)
+        assert executor_with_map._mine_warfare_system.get_lay_progress("u_lm") is not None
+
+    def test_lay_mine_completion_publishes_mine_laid_event(
+        self, executor_with_map, event_bus
+    ):
+        """Happy: advancing laying to MINE_LAY_TICKS publishes mine_laid."""
+        from pycc2.domain.ai.mine_warfare import (
+            MINE_LAY_TICKS,
+            LayProgress,
+            MineType,
+        )
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit(
+            "u_lm_c",
+            TileCoord(8, 8),
+            unit_type=UnitType.AT_GUN_TEAM,
+            primary_weapon_id="at_gun",
+            max_ammo=8,
+            vision_range=6,
+        )
+        executor_with_map.register_unit(unit)
+
+        # Seed laying progress one tick short of completion
+        executor_with_map._mine_warfare_system._lay_progress["u_lm_c"] = LayProgress(
+            unit_id="u_lm_c",
+            mine_type=MineType.AT_MINE,
+            progress=MINE_LAY_TICKS - 1,
+        )
+
+        intent = TacticIntent(
+            unit_id="u_lm_c",
+            tactic_type=TacticType.LAY_MINE,
+            target_position=TileCoord(8, 8),
+        )
+        assert executor_with_map.execute(intent) is True
+
+        laid_events = [e for e in published if e.get("action") == "mine_laid"]
+        assert len(laid_events) == 1
+        assert laid_events[0]["unit_id"] == "u_lm_c"
+        assert laid_events[0]["position"] == (8, 8)
+        # A mine was actually added to the system
+        assert len(executor_with_map._mine_warfare_system._mines) >= 1
+
+    def test_lay_mine_unknown_unit_returns_false(self, executor_with_map):
+        """Error: unknown unit_id -> False."""
+        intent = TacticIntent(
+            unit_id="ghost",
+            tactic_type=TacticType.LAY_MINE,
+            target_position=TileCoord(5, 5),
+        )
+        assert executor_with_map.execute(intent) is False
+
+    def test_lay_mine_without_game_map_returns_false(self, executor, event_bus):
+        """Error: no game_map -> False (no event published)."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit(
+            "u_lm_nm",
+            TileCoord(5, 5),
+            unit_type=UnitType.AT_GUN_TEAM,
+            primary_weapon_id="at_gun",
+            max_ammo=8,
+            vision_range=6,
+        )
+        executor.register_unit(unit)
+
+        intent = TacticIntent(
+            unit_id="u_lm_nm",
+            tactic_type=TacticType.LAY_MINE,
+            target_position=TileCoord(5, 5),
+        )
+        assert executor.execute(intent) is False
+        assert published == []
+
+    def test_lay_mine_without_target_position_returns_false(
+        self, executor_with_map, event_bus
+    ):
+        """Error: target_position is None -> False (no event published)."""
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit(
+            "u_lm_nt",
+            TileCoord(5, 5),
+            unit_type=UnitType.AT_GUN_TEAM,
+            primary_weapon_id="at_gun",
+            max_ammo=8,
+            vision_range=6,
+        )
+        executor_with_map.register_unit(unit)
+
+        intent = TacticIntent(unit_id="u_lm_nt", tactic_type=TacticType.LAY_MINE)
+        assert executor_with_map.execute(intent) is False
+        assert published == []
+
+    def test_lay_mine_target_far_delegates_to_move_to(
+        self, executor_with_map, event_bus
+    ):
+        """Boundary: target_position > 1 tile away -> _execute_move_to handles.
+
+        _execute_move_to publishes a move event; lay_mine_start should NOT
+        be published in this branch.
+        """
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit(
+            "u_lm_far",
+            TileCoord(0, 0),
+            unit_type=UnitType.AT_GUN_TEAM,
+            primary_weapon_id="at_gun",
+            max_ammo=8,
+            vision_range=6,
+        )
+        executor_with_map.register_unit(unit)
+
+        # Target 5 tiles away -> dist > 1 -> delegates to move_to
+        intent = TacticIntent(
+            unit_id="u_lm_far",
+            tactic_type=TacticType.LAY_MINE,
+            target_position=TileCoord(5, 5),
+        )
+        result = executor_with_map.execute(intent)
+        # _execute_move_to returns True when it publishes a move event
+        assert result is True
+        # lay_mine_start must NOT be published in the move-delegation branch
+        start_events = [e for e in published if e.get("action") == "lay_mine_start"]
+        assert start_events == []
+
+    def test_lay_mine_in_progress_tick_does_not_publish_until_complete(
+        self, executor_with_map, event_bus
+    ):
+        """Boundary: a non-completing tick advances progress without mine_laid."""
+        from pycc2.domain.ai.mine_warfare import LayProgress, MineType
+
+        published: list[dict] = []
+        event_bus.subscribe(dict, lambda e: published.append(e))
+        unit = make_unit(
+            "u_lm_tick",
+            TileCoord(6, 6),
+            unit_type=UnitType.AT_GUN_TEAM,
+            primary_weapon_id="at_gun",
+            max_ammo=8,
+            vision_range=6,
+        )
+        executor_with_map.register_unit(unit)
+
+        # Seed laying progress at 0 (just started, far from completion)
+        executor_with_map._mine_warfare_system._lay_progress["u_lm_tick"] = LayProgress(
+            unit_id="u_lm_tick",
+            mine_type=MineType.AT_MINE,
+            progress=0,
+        )
+
+        intent = TacticIntent(
+            unit_id="u_lm_tick",
+            tactic_type=TacticType.LAY_MINE,
+            target_position=TileCoord(6, 6),
+        )
+        assert executor_with_map.execute(intent) is True
+
+        laid_events = [e for e in published if e.get("action") == "mine_laid"]
+        assert laid_events == []
+        progress = executor_with_map._mine_warfare_system.get_lay_progress("u_lm_tick")
+        assert progress is not None and progress.progress >= 1

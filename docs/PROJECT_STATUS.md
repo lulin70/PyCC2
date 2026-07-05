@@ -231,9 +231,19 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 | 9 | `CALL_ARTILLERY` | 4 | Happy + Error + Boundary(无 target) + Boundary(已有活跃任务) | ✅ |
 | 10 | `MELEE_ATTACK` | 4 | Happy(低弹药) + Error(未知攻击者) + Error(未知目标) + Boundary(满弹药) | ✅ |
 
-**验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 62 passed (27 既有 + 16 batch1 + 19 batch2) / pytest unit 4508 passed (零回归)
+**Batch 3/4 — 3 个 engineer handler (2026-07-05 完成)**:
 
-**剩余 9 个 handler** (batch 3-4 待推进): RALLY_NCO / SCAVENGE_AMMO / HEAL_WOUNDED / DIG_TRENCH / LAY_MINE / CLEAR_BUILDING / MOUNT_TANK / DISMOUNT_TANK / ASSAULT_FORTIFIED
+| # | Handler | 测试数 | 维度覆盖 | 状态 |
+|---|---------|--------|---------|------|
+| 11 | `DIG_TRENCH` | 6 | Happy(start 事件) + Happy(完成 seed progress) + Error(未知单位) + Error(无 game_map) + Boundary(can_dig False) + Boundary(in_progress tick) | ✅ |
+| 12 | `DEMOLISH_BRIDGE` | 6 | Happy(相邻 bridge) + Happy(3x3 多 bridge) + Error(未知单位) + Error(无 game_map) + Boundary(无 bridge) + Boundary(地图角落) | ✅ |
+| 13 | `LAY_MINE` | 7 | Happy(start 事件 AT_GUN_TEAM) + Happy(完成 seed LayProgress) + Error(未知单位) + Error(无 game_map) + Error(无 target_position) + Boundary(target 距离>1 委托 move_to) + Boundary(in_progress tick) | ✅ |
+
+**关键实现**: `make_unit()` 扩展支持 `unit_type` 参数（LAY_MINE 要求 AT_GUN_TEAM 作为 engineer 代理）；用直接 seed progress 避免 90/20 次冗余 tick；用 `monkeypatch.setattr(can_dig, ...)` 替代 `tiles_enhanced` 直接赋值修复测试隔离污染（sprite_renderer 2 failures 根因）
+
+**验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 81 passed (27 既有 + 16 batch1 + 19 batch2 + 19 batch3) / pytest unit 4527 passed / 2 skipped / 0 failed (零回归)
+
+**剩余 7 个 handler** (batch 4 待推进): RALLY_NCO / SCAVENGE_AMMO / HEAL_WOUNDED / CLEAR_BUILDING / MOUNT_TANK / DISMOUNT_TANK / ASSAULT_FORTIFIED
 
 ### 中期（v0.5.0 功能版本，待规划）
 - TD-065 载具损伤视觉反馈差异化
