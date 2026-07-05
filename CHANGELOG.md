@@ -23,9 +23,20 @@ All notable changes to PyCC2 will be documented in this file.
 - **教训**: D13 N-1 基于"方法数 >30"的机械阈值误判。真正需要拆分的 God Class 应基于"单类多职责"判断
 - **调整**: 剩余 4 个 (deployment_ui 50 / enhanced_sound_bridge 44 / sound_system 43 / sprite_renderer_base 39) 待 v0.5+ 按真实职责评估
 
-### v0.4.3 — 取消（合并到 v0.4.2 复核结论）
+### v0.4.3 — TacticExecutor 无测试 handler 单测补齐 (P2, 2026-07-05 进行中)
 
-- 原计划的 cc2_combat_effects.py + smoke_tactical_ai.py 拆分取消，原因见 v0.4.2 复核结论
+> 目标：补齐 TacticExecutor 19 个无测试 handler 的单测（TD-064 tactic_executor 拆分前置条件），锁定现有行为，为 v0.5+ 拆分提供安全网。原计划的 God Class 拆分已在 v0.4.2 复核中取消，v0.4.3 改为测试覆盖工作。
+
+**Batch 1/4 — 5 个最简单 handler (2026-07-05 完成)**:
+- `SET_AMBUSH`: 3 tests (Happy: 切换 sneak 模式 / Error: 未知单位 / Boundary: 已 sneak 幂等)
+- `BREAK_AMBUSH`: 3 tests (Happy: 恢复 normal + 发布 attack 事件 / Error: 未知单位 / Boundary: 无 target 时 mode 仍重置但返回 False)
+- `COUNTER_ATTACK`: 3 tests (Happy: 委托 _execute_attack + priority+5 / Error: 未知单位 / Boundary: 无 target 返回 False)
+- `TAKE_COVER`: 3 tests (Happy: 有 target 委托 MOVE_TO / Happy: 无 target 原地掩护 / Error: 未知单位)
+- `SURRENDER`: 4 tests (Happy: 状态转换 + 缴械 + 事件 / Error: 未知单位 / Boundary: 已 SURRENDERED / Boundary: DEAD)
+
+**验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 43 passed (27 既有 + 16 新增) / pytest unit 4489 passed (零回归)
+
+**剩余 14 个 handler** (batch 2-4 待推进): DEPLOY_SMOKE / RALLY_NCO / SCAVENGE_AMMO / HEAL_WOUNDED / DIG_TRENCH / LAY_MINE / DETECT_MINES / CLEAR_BUILDING / CALL_ARTILLERY / MELEE_ATTACK / MOUNT_TANK / DISMOUNT_TANK / ASSAULT_FORTIFIED / REGROUP
 
 ## [0.5.0] - 2026-06-29 (开发中)
 

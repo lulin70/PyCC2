@@ -2,7 +2,7 @@
 
 > **版本**: v0.4.0 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
 > **上次核查**: 2026-07-05 (D12 Phase 5 完成后 D13 项目整理评估) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 9
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (392 files, Phase 4 后) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 11 ghost 模块清理完成（D12 Phase 3） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ⚠️ 8 个 God Class (>30方法) 残留待评估 (v0.4.2/v0.4.3 推进) | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (392 files, Phase 4 后) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 11 ghost 模块清理完成（D12 Phase 3） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | 🟡 v0.4.3 TacticExecutor 单测补齐进行中 (batch 1: 5/19 handler, 16 tests, unit 4489 passed) | ⚠️ 4 个 God Class 候选待 v0.5+ 按真实职责评估 (deployment_ui 50/enhanced_sound_bridge 44/sound_system 43/sprite_renderer_base 39) | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
 
 ---
 
@@ -549,20 +549,22 @@
   3. **共享枢纽耦合**: `_execute_move_to` 被 11 个 handler 调用，`_unit_registry`/`event_bus`/`pathfinder`/`game_map`/`ballistic_engine`/`_environment`/各子系统都是 `self` 属性，拆分需引入 `HandlerContext` 上下文对象
   4. **dispatch_table 硬编码**（line 89-114）: `execute()` 按名字引用全部 24 个 handler，拆分必须改成注册式 dispatch
   5. **历史教训**: v0.3.38 曾因 TacticExecutor 发布裸 dict 事件导致 AI 不开火（已修复），该类是 AI 链路关键节点，改动需谨慎
-- **状态**: ❌ 未解决 — 待触发条件满足时拆分
+- **状态**: 🟡 进行中 — 单测前置补齐 (v0.4.3 batch 1 完成 5/19)
 - **触发拆分的时机**:
   - 新增 tactic 类型时 dispatch_table 继续膨胀
   - 某 handler 长度超过 ~80 行
   - 多个 handler 需要共享非平凡预处理逻辑
   - 工兵类 handler 出现 bug 需要独立测试时
 - **将来拆分的推荐顺序**:
-  1. 先补 16 个无测试 handler 的单测（锁定行为）
+  1. 先补 19 个无测试 handler 的单测（锁定行为）— **v0.4.3 进行中: 5/19 完成 (batch 1)**
+     - ✅ Batch 1 (2026-07-05): SET_AMBUSH / BREAK_AMBUSH / COUNTER_ATTACK / TAKE_COVER / SURRENDER — 16 tests
+     - ⏳ Batch 2-4 (待推进): DEPLOY_SMOKE / RALLY_NCO / SCAVENGE_AMMO / HEAL_WOUNDED / DIG_TRENCH / LAY_MINE / DETECT_MINES / CLEAR_BUILDING / CALL_ARTILLERY / MELEE_ATTACK / MOUNT_TANK / DISMOUNT_TANK / ASSAULT_FORTIFIED / REGROUP
   2. 抽 `HandlerContext`（封装 unit_registry / event_bus / pathfinder / game_map / ballistic_engine / environment）
   3. 改 `execute()` 为注册式 dispatch（`register_handler(TacticType, callable)`）
   4. 先拆 `engineer_handlers`（最内聚：dig_trench/lay_mine/detect_mines/clear_building/assault_fortified）
   5. 再拆 `specialist_handlers`（deploy_smoke/scavenge_ammo/rally_nco/heal_wounded/call_artillery/mount_tank/dismount_tank）
   6. 最后评估是否拆 `movement_handlers`（patrol/retreat/take_cover/regroup，收益最低，可不拆）
-- **本次已完成**: deployment_ui.py 拆分（commit 88fe1b9），tactic_executor.py 评估并记录
+- **本次已完成**: deployment_ui.py 拆分（commit 88fe1b9），tactic_executor.py 评估并记录；v0.4.3 batch 1 单测补齐 5/19
 
 ### 🟢 TD-065: 车辆损伤视觉反馈不区分类型 (P2-2 延期) — D8 Phase 2 评估
 
