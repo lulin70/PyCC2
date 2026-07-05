@@ -1,4 +1,36 @@
-"""Unit Entity - Core Game Unit"""
+"""Unit Entity - Core Game Unit.
+
+Facade composing SRP-split behavior mixins (D12 Phase 4 P0-2 God Class split,
+2026-07-04). The original 937L / 54-method monolith was split into this
+facade plus 5 function-specific mixins:
+
+  - ``unit_movement_mixin.UnitMovementMixin`` (16 methods)
+      Movement-mode properties (movement_mode, is_fast_moving, is_sneaking,
+      is_defending, can_use_smoke, can_sneak, can_hide), mode mutation
+      (set_movement_mode, update_movement_mode), mode-derived modifiers
+      (get_speed_multiplier, get_accuracy_modifier, get_detection_modifier),
+      garrison status (update_garrison_status), and movement execution
+      (move_to_tile, set_move_target, update_movement).
+  - ``unit_combat_mixin.UnitCombatMixin`` (5 methods)
+      Combat-action eligibility (can_act, combat_effective, is_pinned) and
+      suppression/concealment queries (suppression_level, concealment_level).
+  - ``unit_morale_mixin.UnitMoraleMixin`` (4 methods)
+      Morale-derived state (is_broken, morale_state) and order-acceptance
+      gating (can_move, can_accept_orders) via MoraleSystem.
+  - ``unit_damage_vfx_mixin.UnitDamageVfxMixin`` (4 methods)
+      Damage-state classification (damage_state, is_damaged,
+      damage_level_numeric) and per-tick VFX particle generation
+      (update_damage_vfx).
+  - ``unit_command_queue_mixin.UnitCommandQueueMixin`` (5 methods)
+      Shift+right-click queued-command manipulation (queue_command,
+      get_next_queued_command, has_queued_commands, clear_command_queue,
+      _execute_queued_command).
+
+The facade ``Unit`` inherits all of the above (mixin-first order in MRO) and
+keeps the dataclass fields, ``__post_init__``, legacy component aliases,
+squad-reference properties, life-state queries, and core life-cycle
+(take_damage / die). Public API is 100% backward-compatible.
+"""
 
 from __future__ import annotations
 
@@ -17,15 +49,18 @@ from pycc2.domain.components.position_component import PositionComponent
 from pycc2.domain.components.veterancy_component import VeterancyComponent
 from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
+from pycc2.domain.entities.unit_combat_mixin import UnitCombatMixin
+from pycc2.domain.entities.unit_command_queue_mixin import UnitCommandQueueMixin
+from pycc2.domain.entities.unit_damage_vfx_mixin import UnitDamageVfxMixin
+from pycc2.domain.entities.unit_morale_mixin import UnitMoraleMixin
+from pycc2.domain.entities.unit_movement_mixin import UnitMovementMixin
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
 if TYPE_CHECKING:
-    from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.squad import Squad
     from pycc2.domain.state_machine import StateMachine
     from pycc2.domain.systems.combat_mechanics_enhanced import (
         CombatState,
-        SuppressionEffect,
     )
     from pycc2.domain.systems.vehicle_crew_system import VehicleCrew
 
@@ -66,8 +101,22 @@ class UnitState(Enum):
 
 
 @dataclass(slots=True)
-class Unit:
-    """Core combat unit aggregating health, morale, weapon, and position components."""
+class Unit(
+    UnitMovementMixin,
+    UnitCombatMixin,
+    UnitMoraleMixin,
+    UnitDamageVfxMixin,
+    UnitCommandQueueMixin,
+):
+    """Core combat unit aggregating health, morale, weapon, and position components.
+
+    Composes 5 SRP-split mixins (movement/combat/morale/damage-vfx/command-queue)
+    split out during Phase 4 P0-2 (2026-07-04). Each mixin holds the methods
+    for its functional group; the facade provides dataclass fields,
+    ``__post_init__``, legacy component aliases, squad-reference properties,
+    life-state queries, and core life-cycle (take_damage / die). Public API
+    100% backward-compatible.
+    """
 
     id: str
     name: str
@@ -191,195 +240,6 @@ class Unit:
         """Human-readable name for UI and logs."""
         return self.name or self.id
 
-    @property
-    def movement_mode(self) -> str:
-        """Current movement mode."""
-        return self._movement_mode
-
-    @property
-    def is_fast_moving(self) -> bool:
-        """Check if unit is in fast move mode."""
-        return self._movement_mode == "fast_move"
-
-    @property
-    def is_sneaking(self) -> bool:
-        """Check if unit is in sneak mode."""
-        return self._movement_mode == "sneak"
-
-    @property
-    def is_defending(self) -> bool:
-        """Check if unit is in defend mode."""
-        return self._movement_mode == "defend"
-
-    @property
-    def can_use_smoke(self) -> bool:
-        """Check if unit can deploy smoke (has smoke grenades)."""
-        if not hasattr(self, "weapon") or self.weapon is None:
-            return False
-        # Most infantry and support units have smoke capability
-        return self.unit_type in (
-            UnitType.INFANTRY_SQUAD,
-            UnitType.MACHINE_GUN_SQUAD,
-            UnitType.COMMANDER,
-            UnitType.SNIPER_TEAM,
-        )
-
-    @property
-    def can_sneak(self) -> bool:
-        """Check if unit can use sneak mode."""
-        # Infantry and recon units can sneak
-        return self.unit_type in (
-            UnitType.INFANTRY_SQUAD,
-            UnitType.SNIPER_TEAM,
-            UnitType.COMMANDER,
-            UnitType.MEDIC_TEAM,
-        )
-
-    @property
-    def can_hide(self) -> bool:
-        """Check if unit can hide (take cover)."""
-        # All infantry-sized units can hide
-        return not getattr(self, "is_vehicle", False)
-
-    def set_movement_mode(self, mode: str, duration_ticks: int = -1) -> None:
-        """Set movement mode for the unit.
-
-        Args:
-            mode: One of "normal", "fast_move", "sneak", "defend"
-            duration_ticks: Duration in game ticks (-1 = indefinite until cancelled)
-
-        """
-        valid_modes = {"normal", "fast_move", "sneak", "defend"}
-        if mode not in valid_modes:
-            raise ValueError(f"Invalid movement mode: {mode}. Must be one of {valid_modes}")
-
-        old_mode = self._movement_mode
-        self._movement_mode = mode
-
-        if duration_ticks > 0:
-            self._movement_mode_ticks_remaining = duration_ticks
-        elif duration_ticks == -1:
-            self._movement_mode_ticks_remaining = -1  # Indefinite
-        else:
-            self._movement_mode_ticks_remaining = 0  # Immediate reset
-
-        if old_mode != mode:
-            logger.info(f"[COMMAND] {self.name or self.id} mode change: {old_mode} -> {mode}")
-
-    def get_speed_multiplier(self) -> float:
-        """Get current speed multiplier based on movement mode.
-
-        Returns:
-            Speed multiplier (1.0 = normal, <1.0 = slower, >1.0 = faster)
-
-        """
-        if self._movement_mode == "fast_move":
-            base = self._fast_speed_multiplier
-        elif self._movement_mode == "sneak":
-            base = self._sneak_speed_multiplier
-        elif self._movement_mode == "defend":
-            base = self._defend_mobility_penalty
-        else:
-            base = 1.0
-        # Apply fatigue penalty
-        if self.fatigue is not None:
-            base *= self.fatigue.movement_modifier
-        # Apply crew efficiency for vehicles
-        if self.crew is not None:
-            base *= self.crew.vehicle_efficiency
-        return base
-
-    def get_accuracy_modifier(self) -> float:
-        """Get accuracy modifier based on movement mode.
-
-        Returns:
-            Accuracy multiplier (1.0 = normal, >1.0 = bonus)
-
-        """
-        base = 1.0
-        if self._movement_mode == "defend":
-            base = 1.0 + self._defend_accuracy_bonus
-        elif self._movement_mode == "fast_move":
-            base = 0.85
-        elif self._movement_mode == "sneak":
-            base = 0.95
-        # Apply fatigue penalty
-        if self.fatigue is not None:
-            base *= self.fatigue.accuracy_modifier
-        # Apply veterancy bonus
-        if self.veterancy is not None:
-            base *= self.veterancy.accuracy_bonus
-        # Apply crew efficiency for vehicles
-        if self.crew is not None:
-            base *= self.crew.vehicle_efficiency
-        return base
-
-    def get_detection_modifier(self) -> float:
-        """Get detection chance modifier based on movement mode.
-
-        Returns:
-            Detection multiplier (>1.0 = easier to detect, <1.0 = harder to detect)
-
-        """
-        if self._movement_mode == "fast_move":
-            base = 1.5  # Much easier to detect when sprinting
-        elif self._movement_mode == "sneak":
-            base = 0.5  # Harder to detect when sneaking
-        elif self._movement_mode == "defend":
-            base = 0.8  # Slightly harder (stationary)
-        else:
-            base = 1.0
-        # Veterans are harder to spot (better fieldcraft)
-        if self.veterancy is not None and self.veterancy.rank.value >= 3:  # VETERAN+
-            base *= 0.9
-        return base
-
-    def update_movement_mode(self) -> None:
-        """Update movement mode timer (call once per tick)."""
-        if self._movement_mode_ticks_remaining > 0:
-            self._movement_mode_ticks_remaining -= 1
-            if self._movement_mode_ticks_remaining == 0:
-                # Reset to normal when duration expires
-                self._movement_mode = "normal"
-
-    def queue_command(
-        self, command_type: str, target_x: float = 0, target_y: float = 0, **kwargs
-    ) -> None:
-        """Add a command to the execution queue (Shift+right-click)."""
-        self._command_queue.append(
-            {"type": command_type, "target_x": target_x, "target_y": target_y, **kwargs}
-        )
-
-    def get_next_queued_command(self) -> dict | None:
-        """Get and remove the next command from the queue."""
-        if self._command_queue:
-            return self._command_queue.popleft()
-        return None
-
-    @property
-    def has_queued_commands(self) -> bool:
-        """Return True if there are pending commands in the queue."""
-        return len(self._command_queue) > 0
-
-    def clear_command_queue(self) -> None:
-        """Remove all pending commands from the queue."""
-        self._command_queue.clear()
-
-    def _execute_queued_command(self, cmd: dict) -> None:
-        """Execute the next queued command after current one completes."""
-        cmd_type = cmd.get("type", "move")
-        if cmd_type == "move":
-            tx = cmd.get("target_x", 0)
-            ty = cmd.get("target_y", 0)
-            from pycc2.domain.value_objects.tile_coord import TileCoord
-
-            self.set_move_target(TileCoord(int(tx), int(ty)))
-        elif cmd_type == "attack":
-            try:
-                self.state_machine.try_transition(UnitState.ATTACKING)
-            except (ValueError, RuntimeError) as e:
-                logging.warning("Unit state transition to ATTACKING failed: %s", e)
-
     def __post_init__(self) -> None:
         from pycc2.domain.state_machine import StateMachine
 
@@ -481,312 +341,6 @@ class Unit:
         if self.fuel < 0:
             return False  # Not a vehicle
         return self.fuel <= 0
-
-    @property
-    def damage_state(self) -> str:
-        """STEP A-2: Calculate damage state based on HP percentage.
-
-        Returns one of: undamaged / light / moderate / heavy / destroyed
-        Used for visual feedback (smoke, fire, appearance changes).
-        """
-        if not hasattr(self, "health") or self.health is None:
-            return "undamaged"
-
-        hp_ratio = self.health.hp / self.health.max_hp if self.health.max_hp > 0 else 1.0
-
-        if hp_ratio <= 0:
-            return "destroyed"
-        elif hp_ratio <= 0.25:
-            return "heavy"  # 🔥 Heavy damage: fire + thick smoke
-        elif hp_ratio <= 0.50:
-            return "moderate"  # 💨 Moderate: smoke + visible damage
-        elif hp_ratio <= 0.75:
-            return "light"  # ☁️ Light: light smoke wisps
-        else:
-            return "undamaged"
-
-    @property
-    def is_damaged(self) -> bool:
-        """Check if unit has any damage (for quick filtering)."""
-        return self.damage_state != "undamaged"
-
-    @property
-    def damage_level_numeric(self) -> int:
-        """Numeric damage level (0-4) for rendering intensity."""
-        states = {"undamaged": 0, "light": 1, "moderate": 2, "heavy": 3, "destroyed": 4}
-        return states.get(self.damage_state, 0)
-
-    def update_damage_vfx(self) -> None:
-        """STEP A-2: Update visual effect particles based on current damage state.
-
-        Called each tick to animate smoke/fire particles.
-        Generates particle positions for renderer to display.
-        """
-        self._damage_vfx_timer += 1
-
-        state = self.damage_state
-
-        # Clear old particles periodically
-        if self._damage_vfx_timer % 30 == 0:
-            self._smoke_particles.clear()
-            self._fire_particles.clear()
-
-        # Generate new particles based on damage state
-        import random as _rng
-
-        rng = _rng.Random(self.id + str(self._damage_vfx_timer))
-
-        if state in ("light", "moderate", "heavy", "destroyed"):
-            # Smoke particles (more for heavier damage)
-            num_smoke = {"light": 2, "moderate": 4, "heavy": 6, "destroyed": 8}.get(state, 0)
-            for _ in range(num_smoke):
-                offset_x = rng.randint(-8, 8)
-                offset_y = rng.randint(-10, -2)  # Smoke rises upward
-                alpha = rng.randint(80, 180)  # Semi-transparent
-                size = rng.randint(2, 5)
-                self._smoke_particles.append(
-                    {
-                        "x": offset_x,
-                        "y": offset_y,
-                        "alpha": alpha,
-                        "size": size,
-                        "life": rng.randint(15, 30),  # Ticks until fade
-                    }
-                )
-
-        if state in ("heavy", "destroyed"):
-            # Fire particles (only for heavy damage or destroyed)
-            num_fire = 4 if state == "heavy" else 6
-            for _ in range(num_fire):
-                offset_x = rng.randint(-6, 6)
-                offset_y = rng.randint(-4, 4)
-                color_var = rng.choice(
-                    [
-                        (220, 120, 20),  # Orange
-                        (240, 200, 50),  # Yellow
-                        (180, 50, 10),  # Red-orange
-                    ]
-                )
-                size = rng.randint(2, 4)
-                self._fire_particles.append(
-                    {
-                        "x": offset_x,
-                        "y": offset_y,
-                        "color": color_var,
-                        "size": size,
-                        "life": rng.randint(8, 20),
-                    }
-                )
-
-    @property
-    def can_act(self) -> bool:
-        """Return True if the unit is alive and not in a blocking state."""
-        return (
-            self.is_alive
-            and self.state_machine.current != UnitState.DEAD
-            and self.state_machine.current != UnitState.RELOADING
-            and self.state_machine.current != UnitState.SURRENDERED
-        )
-
-    @property
-    def combat_effective(self) -> bool:
-        """Return True if the unit is alive and its morale allows combat."""
-        return self.is_alive and self.morale.is_combat_effective
-
-    @property
-    def is_pinned(self) -> bool:
-        """Return True if the unit is currently pinned down by suppression."""
-        return self.combat_state.is_pinned if self.combat_state is not None else False
-
-    @property
-    def is_broken(self) -> bool:
-        """Check if unit is in broken state (morale < 20)."""
-        if hasattr(self, "morale") and self.morale is not None:
-            return self.morale.value < 20
-        return False
-
-    @property
-    def morale_state(self):
-        """Get current morale state from MoraleSystem."""
-        from pycc2.domain.systems.morale_system import MoraleSystem
-
-        if hasattr(self, "morale") and self.morale is not None:
-            return MoraleSystem.get_state(self.morale.value)
-        from pycc2.domain.systems.morale_system import MoraleState
-
-        return MoraleState.RALLYED
-
-    def can_move(self) -> bool:
-        """Check if unit can move based on morale and suppression."""
-        from pycc2.domain.systems.morale_system import MoraleSystem
-
-        # Check alive status first
-        if not self.is_alive:
-            return False
-
-        # Check combat state machine
-        if self.state_machine.current in (UnitState.DEAD, UnitState.SURRENDERED):
-            return False
-
-        # Use MoraleSystem for detailed check
-        if hasattr(self, "morale") and self.morale is not None:
-            return MoraleSystem.can_move(self)
-
-        return True
-
-    def can_accept_orders(self) -> bool:
-        """Check if unit will accept orders."""
-        from pycc2.domain.systems.morale_system import MoraleSystem
-
-        if hasattr(self, "morale") and self.morale is not None:
-            return MoraleSystem.can_accept_orders(self)
-        return True
-
-    @property
-    def suppression_level(self) -> SuppressionEffect:
-        """Return the current suppression effect applied to the unit."""
-        if self.combat_state is not None:
-            return self.combat_state.suppression.get_current_effect()
-        from pycc2.domain.systems.combat_mechanics_enhanced import SuppressionEffect
-
-        return SuppressionEffect.NONE
-
-    @property
-    def concealment_level(self) -> float:
-        """Return the unit's current total concealment value."""
-        if self.combat_state is not None:
-            return self.combat_state.concealment.calculate_total_concealment()
-        return 0.0
-
-    def update_garrison_status(self, game_map: GameMap) -> None:
-        """Update building garrison status based on current tile terrain.
-
-        When a unit moves onto a BUILDING_ENTERABLE tile, it is considered
-        garrisoned inside the building. When it moves off, the garrison
-        status is cleared.
-        """
-        from pycc2.domain.value_objects.terrain_type import TerrainType
-
-        tc = self.position.tile_coord
-        if 0 <= tc.x < game_map.width and 0 <= tc.y < game_map.height:
-            terrain = game_map.get_terrain(tc)
-            if terrain == TerrainType.BUILDING_ENTERABLE:
-                self.current_building_pos = (tc.x, tc.y)
-            else:
-                self.current_building_pos = None
-        else:
-            self.current_building_pos = None
-
-    def move_to_tile(self, tile: TileCoord) -> None:
-        """Move the unit immediately to the specified tile coordinate."""
-        self.position.move_to_tile(tile)
-
-    def set_move_target(self, tile: TileCoord) -> None:
-        """Set movement target (unit will move toward it each tick)."""
-        self.move_target = tile
-        if self.state_machine.current != UnitState.MOVING:
-            try:
-                self.state_machine.try_transition(UnitState.MOVING)
-            except (ValueError, RuntimeError) as e:
-                logging.warning("Unit state transition to MOVING failed: %s", e)
-
-    def update_movement(self, dt: float = 1.0) -> bool:
-        """Move unit toward target. Call once per game tick.
-        Returns True if unit reached target, False if still moving.
-        """
-        if self.move_target is None:
-            return True  # Not moving
-
-        if not self.is_alive:
-            self.move_target = None
-            return True
-
-        # R6: Out of fuel vehicles cannot move
-        if self.is_out_of_fuel:
-            self.move_target = None
-            try:
-                self.state_machine.try_transition(UnitState.IDLE)
-            except (ValueError, RuntimeError) as e:
-                logging.warning("Unit state transition to IDLE failed: %s", e)
-            return True
-
-        # Get current and target positions
-        current = self.position.tile_coord
-        target = self.move_target
-
-        # Check if already at target
-        if current.x == target.x and current.y == target.y:
-            self.move_target = None
-            try:
-                self.state_machine.try_transition(UnitState.IDLE)
-            except (ValueError, RuntimeError) as e:
-                logging.warning("Unit state transition to IDLE failed: %s", e)
-            return True  # Arrived!
-
-        # Calculate direction
-        dx = target.x - current.x
-        dy = target.y - current.y
-        dist = (dx * dx + dy * dy) ** 0.5
-
-        # Move based on speed (tiles per tick)
-        # Speed affected by: base speed, fatigue, morale, unit type
-        base_speed = getattr(self, "movement_speed", 3.0)
-
-        # Apply modifiers
-        speed_modifier = 1.0
-
-        # Apply movement mode speed multiplier (Fast Move, Sneak, Defend)
-        if hasattr(self, "get_speed_multiplier"):
-            speed_modifier *= self.get_speed_multiplier()
-
-        # Fatigue reduces speed (if fatigue system exists)
-        if hasattr(self, "fatigue"):
-            fatigue_val = getattr(self.fatigue, "current", 0) if self.fatigue else 0
-            # Fatigue 0-100: at 100, speed reduced by 50%
-            speed_modifier *= 1.0 - (fatigue_val / 200)
-
-        # Low morale slightly reduces speed
-        if hasattr(self, "morale"):
-            morale_val = getattr(self.morale, "current", 75) if self.morale else 75
-            # Morale < 30: panic, slower movement
-            if morale_val < 30:
-                speed_modifier *= 0.6
-            elif morale_val < 50:
-                speed_modifier *= 0.8
-
-        # Vehicles move faster than infantry on roads, slower in rough terrain
-        # (terrain modifier would be applied here if we had terrain data)
-
-        # Final speed calculation
-        speed = base_speed * speed_modifier * dt * 0.15  # Scaled for smooth visual movement
-
-        if dist <= speed:
-            # Close enough: snap to target
-            # R6: Consume fuel for vehicle movement
-            if self.fuel >= 0:
-                self.fuel = max(0.0, self.fuel - self.fuel_per_tile)
-            self.move_to_tile(target)
-            self.move_target = None
-            # Check for queued commands before transitioning to IDLE
-            next_cmd = self.get_next_queued_command()
-            if next_cmd is not None:
-                self._execute_queued_command(next_cmd)
-            else:
-                try:
-                    self.state_machine.try_transition(UnitState.IDLE)
-                except (ValueError, RuntimeError) as e:
-                    logging.warning("Unit state transition to IDLE (after move) failed: %s", e)
-            return True
-        else:
-            # Move toward target
-            # R6: Consume fuel for vehicle movement (partial tile)
-            if self.fuel >= 0:
-                self.fuel = max(0.0, self.fuel - self.fuel_per_tile * speed / max(dist, 1.0))
-            move_x = int(dx / dist * speed)
-            move_y = int(dy / dist * speed)
-            new_tile = type(target)(x=current.x + move_x, y=current.y + move_y)
-            self.move_to_tile(new_tile)
-            return False  # Still moving
 
     def take_damage(self, amount: int) -> int:
         """Apply damage to the unit and return the actual amount dealt."""

@@ -4,6 +4,22 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D12 Phase 4 P0-2 unit.py God Class 拆分 (DevSquad V3.8)
+
+- **拆分 unit.py** (937L / 54 方法 → facade 494L + 5 mixin 870L = 总 1364L): facade + mixin class 模式，dataclass(slots=True) + mixin 继承（Python 3.12 验证可行），参考 Phase 2 deployment_renderer.py 拆分先例
+  - `unit_movement_mixin.py` (384L): `UnitMovementMixin` class，16 个方法（移动模式属性 movement_mode/is_fast_moving/is_sneaking/is_defending/can_use_smoke/can_sneak/can_hide + 模式突变 set_movement_mode/update_movement_mode + 模式修饰符 get_speed_multiplier/get_accuracy_modifier/get_detection_modifier + 驻防 update_garrison_status + 移动执行 move_to_tile/set_move_target/update_movement 含燃料消耗）
+  - `unit_combat_mixin.py` (91L): `UnitCombatMixin` class，5 个方法（can_act/combat_effective/is_pinned + suppression_level/concealment_level）
+  - `unit_morale_mixin.py` (92L): `UnitMoraleMixin` class，4 个方法（is_broken/morale_state + can_move/can_accept_orders 经 MoraleSystem 门禁）
+  - `unit_damage_vfx_mixin.py` (135L): `UnitDamageVfxMixin` class，4 个方法（damage_state/is_damaged/damage_level_numeric + update_damage_vfx 烟雾/火焰粒子生成）
+  - `unit_command_queue_mixin.py` (86L): `UnitCommandQueueMixin` class，5 个方法（queue_command/get_next_queued_command/has_queued_commands/clear_command_queue + _execute_queued_command）
+  - `unit.py` (494L): facade `Unit(MovementMixin, CombatMixin, MoraleMixin, DamageVfxMixin, CommandQueueMixin)` dataclass(slots=True)，保留所有 dataclass fields + `__post_init__` + 11 个组件别名属性 + 4 个 squad 引用属性 + is_alive/is_out_of_fuel + take_damage/die + UnitTemplate/UNIT_TEMPLATES/UNIT_ARMOR_PROFILES
+- **mixin 字段声明模式**: 每个 mixin class 通过 class-level 类型注解声明 facade 字段（用具体类型如 `FatigueComponent | None`/`StateMachine`/`HealthComponent` 而非 `object`），mypy 严格类型检查通过
+- **cross-mixin 方法声明**: movement_mixin 通过 class 内 `if TYPE_CHECKING:` 块声明 `get_next_queued_command`/`_execute_queued_command`（来自 CommandQueueMixin via MRO）；command_queue_mixin 声明 `set_move_target`（来自 MovementMixin via MRO）；morale_mixin 用 `cast("Unit", self)` 传递给 `MoraleSystem.can_move`（运行时 facade IS Unit via 继承）
+- **local import 避免循环**: mixin 中 `UnitType`/`UnitState`/`MoraleSystem` 等通过方法内 local import（非模块级），避免 `unit.py` ↔ `mixin.py` 循环 import
+- **public API 100% 向后兼容**: `Unit` class 名 / `__init__` 字段顺序 / 54 个方法签名 / `Faction`/`UnitType`/`UnitState` enums / `UnitTemplate`/`UNIT_TEMPLATES`/`UNIT_ARMOR_PROFILES` 全部不变；全仓库 `from pycc2.domain.entities.unit import Unit` 不变；测试零修改
+- **Verification**: ruff 0 errors / mypy 0 errors (392 source files) / pytest unit 4472 passed / 2 failed (pre-existing sprite_renderer 隔离问题，stash 验证) / 2 skipped — 零回归（测试数与拆分前完全一致）
+- **Phase 4 P0-2 完成**: unit.py God Class 54 方法拆分完成，最高优先级 P0 项全部解决
+
 ### D12 Phase 3 P1-1 Ghost 模块清理 (DevSquad V3.8)
 
 - **删除 11 个 ghost 模块**（3900L 源代码 + 4796L 测试代码 = 总 8696L 删除）: 全部经 ASSESSMENT_D12 Phase 1 确认为 ghost（src 内无真实 import，仅测试或注释引用）
