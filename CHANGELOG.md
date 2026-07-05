@@ -201,6 +201,28 @@ All notable changes to PyCC2 will be documented in this file.
 
 **Verification**: 文档级修改无源码变更，ruff/mypy 不受影响。
 
+### 版本号同步 0.4.6 → 0.4.7 (DevSquad V3.8, 2026-07-05)
+
+> v0.4.7 为 PATCH 递增版本，工作内容（TD-027 关闭 + 慢测试调研 + TD-026 评估 + 版本号同步）均为非功能更新，按 SemVer 规则只在第三位变化。
+
+**同步范围**:
+- 版本号源文件: `VERSION` / `pyproject.toml` / `src/pycc2/__init__.py`
+- `SKILL.md`
+- 三语 README: `README.md` / `README_zh.md` / `README_ja.md`
+- 三语 USER_MANUAL: `USER_MANUAL.md` / `USER_MANUAL_zh.md` / `USER_MANUAL_ja.md`
+- 三语 INSTALL: `INSTALL.md` / `INSTALL_zh.md` / `INSTALL_ja.md`
+- docs 当前版本号: `SECURITY.md` / `GAP_ANALYSIS.md` / `ROADMAP.md` / `DESIGN.md` / `USER_GUIDE.md` / `PRD.md` / `PROJECT_STATUS.md` / `TECH_DEBT.md`
+
+**保留不动**:
+- `CHANGELOG.md` [0.4.6] 区段及历史引用
+- 历史评估报告: `ASSESSMENT_GODCLASS_V045.md` / `ASSESSMENT_GODCLASS_V046.md`
+- 历史规划文档: `v0.4.6_PLAN.md`
+- `PROJECT_STATUS.md` line 14 "v0.4.6 基线" (测试数 4598 来自 v0.4.6 基线)
+- `TECH_DEBT.md` TD-072/TD-068 历史条目中的 v0.4.6 引用
+- ruff 工具版本号 v0.5.0 (非项目版本号)
+
+**Verification**: ruff 0 errors / mypy 0 errors (版本号字段更新无源码逻辑变更)
+
 ## [0.4.6] - 2026-06-29 (开发中)
 
 ### SemVer 纠正 (2026-07-05)

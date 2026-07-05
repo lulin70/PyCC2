@@ -1,6 +1,6 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python再実装)
 
-**v0.4.6 | Beta Candidate | 2026年7月5日**
+**v0.4.7 | Beta Candidate | 2026年7月5日**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
@@ -609,4 +609,4 @@ Close Combat 2はそれぞれの所有者の商標です。これは教育目的
 
 ---
 
-<p align="center"><sub>最終更新: 2026-07-05 | v0.4.6（Beta Candidate） | テスト: 4598合格 / 2スキップ | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a> | <a href="docs/PROJECT_STATUS.md">プロジェクト状態</a></sub></p>
+<p align="center"><sub>最終更新: 2026-07-05 | v0.4.7（Beta Candidate） | テスト: 4598合格 / 2スキップ | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a> | <a href="docs/PROJECT_STATUS.md">プロジェクト状態</a></sub></p>
