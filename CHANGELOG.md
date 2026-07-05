@@ -181,6 +181,23 @@ All notable changes to PyCC2 will be documented in this file.
 
 **验证**: ruff 0 errors / mypy 0 errors (3 files) / 导入冒烟测试通过 (CombatSoundEvent 身份一致, _synth 实例化正常) / pytest unit 4596 passed / 2 failed (pre-existing sprite_renderer 隔离问题，与音频无关) / 2 skipped — 零回归
 
+### TD-068 e2e skip 修复 (DevSquad V3.8, 2026-07-05)
+
+> 修复 D14 暴露的 7 个 e2e `pytest.skip` 偷懒（违反测试哲学 "Skip tests 不合理；无数据时创建数据，系统有问题时优化系统"）。逐项 root cause 分析 + 对症修复，非一刀切删除。
+
+**7 个 skip 处置明细**:
+- **#1 test_visual_smoke.py:74** — 保留：合法平台守卫 `@pytest.mark.skipif(not _can_create_display())`，CI dummy driver 无法创建 SCALED+vsync 显示
+- **#2-#5 test_unit_movement.py** — 删除 4 个 Phase 2 占位符测试 (`test_unit_movement_with_screen_to_map_coords` + `TestUnitMovementIntegration` 类 3 个方法)：纯 `pytest.skip("Phase 2 placeholder")` 无实现，删除即清理而非修复
+- **#6 test_real_gameplay_e2e.py:389 `test_phase3_los_blocked_by_terrain`** — 创建数据：game_env fixture tile_grid 添加 `tile_grid[12, 15] = 5  # TerrainType.BUILDING_SOLID`，为 LOS 阻挡测试提供建筑物；`skip` 改为 `fail`（有数据后必须验证）
+- **#7 test_real_gameplay_e2e.py:554 `test_phase6_ai_units_registered`** — 优化系统：用正确的 `UnitBTFactory` API（来自 `pycc2.domain.ai.unit_bt_factory`）替换不存在的 `InfantryBehaviorTree`（`ai_service` 是单文件模块非包，类不存在）；与生产代码 `game_loop_updating.py:_ensure_ai_units_registered` 用法一致；`skip` 改为 `fail`
+
+**附带修复 — test_vl_flag_rendering.py tolerance 40→60**:
+- TD-068 skip #7 修复后 `test_phase6_ai_units_registered` 真实运行 20 次 `_update_logic`，shift 了 `time.time()`，暴露 `test_vl_points_value_rendered_on_map` 的 latent flaky bug
+- 根因: `vl_flag_rendering_mixin._VP_PULSE_BASE_ALPHA=200` 使金色 (255,220,100) 与背景 (34,40,48) alpha-blend 后中心像素变为 (207,182,88)，red channel 差 48 > tolerance=40
+- 修复: tolerance 40→60，覆盖完整 pulse alpha 范围 (200-255)；添加注释说明 alpha-blend 数学期
+
+**验证**: ruff 0 errors / pytest e2e 477 passed / 0 skipped / 0 failed — 3 次连续运行稳定 (36-39s each)
+
 ### D13 项目整理评估 (DevSquad V3.8)
 
 - **评估范围**: 7 维度代码走读 + 文档一致性更新 + 技术债清理 + 全量测试 + CI/CD 检查 + 目录清理 + 成熟度评价

@@ -86,17 +86,6 @@ class TestUnitMovementE2E:
         assert pos2 != (0, 0)
         assert pos3 != (0, 0)
 
-    def test_unit_movement_with_screen_to_map_coords(self):
-        """
-        Test coordinate conversion from screen clicks to map positions.
-
-        The bug might be in coordinate transformation, where screen
-        coordinates are not properly converted to map tile coordinates.
-        """
-        # This test will need actual camera/viewport system
-        # Placeholder for now - will be implemented once we find the actual code
-        pytest.skip("Requires camera/viewport system - to be implemented")
-
     def test_unit_preserves_state_after_movement(self):
         """
         Unit should preserve all attributes except position after moving.
@@ -132,33 +121,6 @@ class TestUnitMovementE2E:
             position=PositionComponent(tile_coord=TileCoord(x, y)),
             vision=VisionComponent(),
         )
-
-
-class TestUnitMovementIntegration:
-    """Integration tests for movement with game systems."""
-
-    def test_movement_command_from_input(self):
-        """
-        Test full pipeline: User click → Input processing → Unit movement.
-
-        This simulates the actual game flow when user clicks to move a unit.
-        """
-        pytest.skip("Requires full game loop integration - Phase 2")
-
-    def test_movement_with_pathfinding(self):
-        """
-        Test movement with obstacle avoidance and pathfinding.
-        """
-        pytest.skip("Requires pathfinding system - Phase 2")
-
-    def test_movement_animation_sync(self):
-        """
-        Verify sprite position syncs with unit logical position.
-
-        Bug might be: unit.position updates correctly, but sprite
-        rendering uses wrong coordinates.
-        """
-        pytest.skip("Requires rendering system integration - Phase 2")
 
 
 if __name__ == "__main__":

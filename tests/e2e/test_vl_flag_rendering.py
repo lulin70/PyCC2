@@ -366,7 +366,11 @@ class TestVLFlagRendering:
         # VP numeral is drawn at y - 48 with font size 52, so check region
         # from sy-75 to sy-15 (above the flag pole which ends at sy-20)
         gold_color = (255, 220, 100)
-        tolerance = 40
+        # Tolerance must account for vl_flag_rendering_mixin._VP_PULSE_BASE_ALPHA
+        # (200) which blends the gold text with the background. At alpha=200,
+        # center pixels become (207, 182, 88) — a max diff of ~48 in the red
+        # channel. Tolerance 60 safely covers the full pulse range (200-255).
+        tolerance = 60
         any_gold_found = False
 
         for obj in self.game_map.objectives:

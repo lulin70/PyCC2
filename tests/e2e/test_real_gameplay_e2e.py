@@ -96,6 +96,9 @@ def game_env():
     from pycc2.services.game_loop import GameLoop, GameState
 
     tile_grid = np.zeros((30, 40), dtype=np.int8)  # All grass (terrain type 0)
+    # Place a BUILDING_SOLID tile at (x=15, y=12) for LOS blocking test
+    # (test_phase3_los_blocked_by_terrain searches tx=14-17, ty=10-14)
+    tile_grid[12, 15] = 5  # TerrainType.BUILDING_SOLID
     game_map = GameMap(
         id="test_e2e_map",
         name="E2E Test Map",
@@ -176,14 +179,20 @@ def game_env():
 
     loop.state.units.extend([allies, axis_mg, axis_rifle])
 
-    # Register AI for Axis units via safety net path
+    # Register AI for Axis units via UnitBTFactory (matches production path
+    # in game_loop_updating.py:_ensure_ai_units_registered)
     if loop.ai_service:
+        from pycc2.domain.ai.unit_bt_factory import UnitBTFactory
+
         for u in loop.state.units:
             if u.faction == Faction.AXIS:
                 try:
-                    from pycc2.services.ai_service.behavior_trees import InfantryBehaviorTree
-
-                    bt = InfantryBehaviorTree(unit_id=u.id)
+                    if u.unit_type == UnitType.MACHINE_GUN_SQUAD:
+                        bt = UnitBTFactory.create_mg_squad_bt(unit_id=u.id)
+                    elif u.unit_type == UnitType.COMMANDER:
+                        bt = UnitBTFactory.create_commander_bt(unit_id=u.id)
+                    else:
+                        bt = UnitBTFactory.create_infantry_bt(unit_id=u.id)
                     loop.ai_service.register_ai_unit(u, bt)
                 except Exception:
                     pass  # Safety net will handle this during _update_ai()
@@ -373,7 +382,7 @@ class TestRealGameplayOperations:
         allies = game_env["allies"]
 
         # Check LOS through a building tile (if one exists near center)
-        # Buildings block LOS absolutely
+        # Buildings block LOS absolutely. Fixture places BUILDING_SOLID at (15, 12).
         for tx in range(14, 18):
             for ty in range(10, 15):
                 terrain = game_map.get_terrain(TileCoord(tx, ty))
@@ -385,8 +394,8 @@ class TestRealGameplayOperations:
                         print(f"  ✅ Building at ({tx},{ty}) correctly blocks LOS")
                         return
 
-        # If no building found in range, still pass (map-dependent)
-        pytest.skip("No building tile found in expected LOS test area")
+        # If no building found in range, fail — fixture must provide one
+        pytest.fail("No building tile found in expected LOS test area (fixture must provide one)")
 
     def test_phase3_ctrl_held_enables_los_overlay(self, game_env):
         """Phase 3c: Ctrl key held enables LOS overlay rendering."""
@@ -544,14 +553,19 @@ class TestRealGameplayOperations:
         if ai_count == 0:
             # Manual registration fallback: verify AI service can accept units
             if loop.ai_service:
+                from pycc2.domain.ai.unit_bt_factory import UnitBTFactory
+
                 for u in axis_units:
                     try:
-                        from pycc2.services.ai_service.behavior_trees import InfantryBehaviorTree
-
-                        bt = InfantryBehaviorTree(unit_id=u.id)
+                        if u.unit_type == UnitType.MACHINE_GUN_SQUAD:
+                            bt = UnitBTFactory.create_mg_squad_bt(unit_id=u.id)
+                        elif u.unit_type == UnitType.COMMANDER:
+                            bt = UnitBTFactory.create_commander_bt(unit_id=u.id)
+                        else:
+                            bt = UnitBTFactory.create_infantry_bt(unit_id=u.id)
                         loop.ai_service.register_ai_unit(u, bt)
                     except Exception as exc:
-                        pytest.skip(f"AI registration not available: {exc}")
+                        pytest.fail(f"AI registration failed: {exc}")
 
         ai_count_after = loop.ai_service.managed_unit_count if loop.ai_service else 0
         print(
