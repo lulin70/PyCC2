@@ -1,5 +1,9 @@
 """PixVoxel Sprite Loader - 加载 PixVoxel 等距/正交精灵资源
 
+NOTE: 本模块为 scripts-only（仅 scripts/validate_isometric.py 引用），
+生产代码 src/pycc2/ 内无 import。保留在 src/ 是因为 mypy 类型检查覆盖。
+后续可考虑迁移至 scripts/ 目录。详见 docs/TECH_DEBT.md。
+
 支持功能:
 - 从 PixVoxel 资源目录加载精灵
 - 调色板替换（阵营颜色: 盟军绿色、轴心国灰色）

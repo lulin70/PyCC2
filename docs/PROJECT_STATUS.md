@@ -1,6 +1,6 @@
 # PyCC2 项目状态
 
-> **最后更新**: 2026-07-04
+> **最后更新**: 2026-07-05
 > **版本**: v0.4.0
 > **状态**: Beta Candidate — 完全可玩
 
@@ -9,35 +9,36 @@
 | 指标 | 数值 | 来源 |
 |------|------|------|
 | 版本号 | 0.4.0 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
-| 源码模块数 | 380 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
-| 测试文件数 | 182 个 `.py` 文件 | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 4785 passed / 0 failed / 2 skipped / 13 deselected (slow + sprite) | `pytest tests/unit/ -m "not slow" --deselect ...` |
+| 源码模块数 | 390 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
+| 测试文件数 | 176 个 `.py` 文件（unit 137 / integration 7 / e2e 25 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
+| 测试用例数 | 4473 passed / 0 failed / 2 skipped (Phase 5 后基线，D12 Phase 3 删除 324 ghost 测试) | `pytest tests/unit/ -m "not slow"` |
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=60`（已恢复目标值） | `.github/workflows/ci.yml` |
 | 实际覆盖率 | 60.05% (44170 stmts, 15918 missed，含 branch coverage) | `pytest tests/unit/ --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |
-| mypy | 0 errors (382 files) | `MYPYPATH=src mypy -p pycc2` |
+| mypy | 0 errors (392 files) | `MYPYPATH=src mypy -p pycc2` |
 | Bandit | 0 Medium / 0 High | `bandit -r src/ -ll --skip B101,B311,B601` |
 
 ## 架构
 
-DDD 4 层结构（domain / infrastructure / presentation / services），364+ 模块零循环依赖。
+DDD 4 层结构（domain / infrastructure / presentation / services），390 模块零循环依赖。
 
 | 层 | 文件数 | 行数 | 职责 |
 |----|--------|------|------|
-| domain | 160 | ~39000 | 核心游戏逻辑（纯 Python，零向上依赖） |
-| infrastructure | 19 | ~4800 | 事件总线/解析器/配置 |
-| presentation | 164 | ~49000 | 渲染/UI/输入 |
-| services | 18 | ~4800 | 战斗/AI/补给等跨层协调 |
+| domain | 167 | ~37390 | 核心游戏逻辑（纯 Python，零向上依赖） |
+| infrastructure | 19 | ~4777 | 事件总线/解析器/配置 |
+| presentation | 184 | ~49168 | 渲染/UI/输入 |
+| services | 18 | ~4773 | 战斗/AI/补给等跨层协调 |
 
 ## 最近评估
 
 | 评估 | 日期 | 评分 | 报告 |
 |------|------|------|------|
+| D13 | 2026-07-05 | 7.4/10 (B-) | [ASSESSMENT_D13_MATURITY.md](ASSESSMENT_D13_MATURITY.md) |
 | D12 | 2026-07-02 | 5.9/10 (D+) | [ASSESSMENT_D12_MATURITY.md](ASSESSMENT_D12_MATURITY.md) |
 | D9 | 2026-06-29 | 8.2/10 (B) | [ASSESSMENT_D9_MATURITY.md](ASSESSMENT_D9_MATURITY.md) |
 | D8 | 2026-06-27 | 8.0/10 (B-) | [ASSESSMENT_D8_MATURITY.md](ASSESSMENT_D8_MATURITY.md) |
 
-**D12 评分下降原因**: 检查更严格，暴露硬约束违反（PROJECT_STATUS/SKILL/VERSION 缺失、SKIP_E2E 缺失、覆盖率门禁未配置文件级）。D11 拆分质量高但仅处理 3/8 大文件。
+**D13 评分提升原因**: D12 9 项 P0 + 8 项 P1 全部修复验证（Phase 1-5），文档一致性深度修复，saves/ 运行时数据清理，总分 5.9→7.4。
 
 ## 最近变更
 

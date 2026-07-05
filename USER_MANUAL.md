@@ -2,7 +2,7 @@
 
 > **This document has been updated to v0.4.0. For earlier version information, see Git history.**
 
-*Manual version: 2.0 — For PyCC2 v0.4.0 | Last updated: 2026-06-14*
+*Manual version: 2.0 — For PyCC2 v0.4.0 | Last updated: 2026-07-05*
 
 *The complete guide to commanding your Allied squads in Operation Market Garden*
 
@@ -629,7 +629,7 @@ PyCC2 includes a **campaign system** with **10 predefined missions** of escalati
 
 ## Tutorial System
 
-PyCC2 v0.6 includes an **integrated tutorial system** designed to help new players learn the game mechanics progressively:
+PyCC2 includes an **integrated tutorial system** designed to help new players learn the game mechanics progressively:
 
 ### Tutorial Features
 
@@ -790,4 +790,4 @@ Each save stores the complete game state:
 
 ---
 *Manual version: 2.0 — For PyCC2 v0.4.0*
-*Last updated: 2026-06-14*
+*Last updated: 2026-07-05*

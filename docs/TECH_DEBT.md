@@ -1,8 +1,8 @@
 # PyCC2 技术债清单
 
-> **版本**: v0.4.0 | **日期**: 2026-06-29 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-06-29 (v0.4.0 D9 后续发现验证后更新) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 9
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (Phase 2) | ✅ ruff 0 errors (morale_system.py I001 已修复) | ✅ Marker 覆盖率 100% (Phase 5) | ⚠️ 8 文件 >1000 行待拆分 | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
+> **版本**: v0.4.0 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
+> **上次核查**: 2026-07-05 (D12 Phase 5 完成后 D13 项目整理评估) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 9
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (392 files, Phase 4 后) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 11 ghost 模块清理完成（D12 Phase 3） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ⚠️ 8 个 God Class (>30方法) 残留待评估 | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
 
 ---
 

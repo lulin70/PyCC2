@@ -166,6 +166,8 @@ key.*
 # Save files
 saves/*.sav
 saves/*.bak_*
+saves/achievements.json
+saves/*.json
 
 # Benchmark baseline (auto-generated)
 tests/benchmark/.baseline_results.json

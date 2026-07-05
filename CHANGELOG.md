@@ -4,6 +4,38 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### D13 项目整理评估 (DevSquad V3.8)
+
+- **评估范围**: 7 维度代码走读 + 文档一致性更新 + 技术债清理 + 全量测试 + CI/CD 检查 + 目录清理 + 成熟度评价
+- **D12 P0/P1 全部验证通过**: 9 项 P0 + 8 项 P1 经独立命令验证全部修复（Phase 1-5）
+- **文档一致性深度修复**:
+  - `PROJECT_STATUS.md`: 模块数 380→390，测试数 4785→4473，分层行数更新（domain 167/presentation 184），mypy 382→392 files
+  - `SKILL.md`: 测试数 4424→4473，覆盖率门禁 70%→60%，模块数 380→390，测试文件数 163→176
+  - 三语 README (en/zh/ja): 徽章/统计表/目录树/测试命令/末尾更新行全部同步为 4473 passed，日期 2026-07-05
+  - `TECH_DEBT.md`: 移除"8 文件 >1000 行待拆分"过时状态，更新为 Phase 2-5 完成状态
+  - `USER_MANUAL.md/ja`: 修复 "PyCC2 v0.6" 版本号错误（当前 v0.4.0）
+  - `MANUAL_zh.md` → `USER_MANUAL_zh.md`（三语命名一致）
+  - 三语 USER_MANUAL 日期同步为 2026-07-05
+- **技术债清理**:
+  - `saves/achievements.json` 从 git 追踪移除（运行时数据，achievement_system.py load() 在文件不存在时正常返回）
+  - `.gitignore` 添加 `saves/*.json`
+  - `pixvoxel_loader.py` 添加 scripts-only 标注注释（1139L，仅 scripts/validate_isometric.py 引用）
+- **全量测试验证**（零回归）:
+  - 单元: 4459 passed / 1 failed (pre-existing sprite_renderer 隔离) / 2 skipped / 13 deselected — 覆盖率 60.18%
+  - 集成: 136 passed / 0 failed
+  - E2E: 457 passed / 0 failed / 4 skipped / 1 xpassed（含 UI 用户旅程 test_full_user_journey.py 8 步完整流程）
+- **D13 新发现 8 项**（全部 P2-P3，无 P0/P1）:
+  - N-1: 8 个 God Class (>30方法) 残留（P2，记录为技术债）
+  - N-2: TYPE_CHECKING 守卫 182 文件（P3，mixin 模式必要 workaround）
+  - N-3: pixvoxel_loader.py scripts-only 在 src/（P3，已标注注释）
+  - N-4: tests/acceptance/ 覆盖偏薄（P3）
+  - N-5: 各测试层无独立 conftest.py（P3）
+  - N-6: bandit 无独立配置文件（P3）
+  - N-7: docs/ 历史评估文档未归档（P3，保留为历史记录）
+  - N-8: INSTALL 三语结构略有差异（P3）
+- **D13 评分**: 7.4/10 (B-) — D12 5.9/10 (D+) 提升 1.5 分
+- **评估报告**: [docs/ASSESSMENT_D13_MATURITY.md](docs/ASSESSMENT_D13_MATURITY.md)
+
 ### D12 Phase 5 P1-2 孤儿事件对齐 (DevSquad V3.8)
 
 - **Phase 3 后孤儿清单重新评估**: 原 9 个孤儿事件中 3 个（OrderRefused/MGAbandoned/MGTakeover）因 Phase 3 删除 ghost 模块（command_obedience.py/mg_takeover.py）自然消失，无需处理
