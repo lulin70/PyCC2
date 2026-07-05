@@ -156,6 +156,31 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
+### TD-072 enhanced_sound_bridge God Class 拆分 (DevSquad V3.8, 2026-07-05)
+
+> 拆分 `enhanced_sound_bridge.py` (949L) 唯一 TRUE God Class — 单类承担"音频桥接"+"程序化波形合成"两个不相干职责。采用 facade + 子模块组合委托模式（非 mixin，因合成器方法无状态仅读 `_sfx_volume` 返回 ndarray）。
+
+**新增模块**:
+- `src/pycc2/presentation/audio/combat_sound_events.py` (47L): 提取 `CombatSoundEvent` enum (29 成员) 到独立模块，破解 `enhanced_sound_bridge` ↔ `procedural_sound_synthesizer` 循环依赖
+- `src/pycc2/presentation/audio/procedural_sound_synthesizer.py` (536L): 新增 `ProceduralSoundSynthesizer` 类，15 个合成方法原样迁移（13 个 `_gen_*` + `generate_cc2_combat` 派发 + `generate_via_sound_system` 派发 + `generate_suppression_fire` 公开入口）。合成器返回 `np.ndarray`，mixer.Sound 包装 + 缓存逻辑留在 `EnhancedSoundSystem` 侧
+
+**修改 `enhanced_sound_bridge.py`** (949L → 493L, -456L):
+- `CombatSoundEvent` 改从 `combat_sound_events` 导入 + re-export (向后兼容)
+- `__init__` 添加 `self._synth = ProceduralSoundSynthesizer(self._sfx_volume)`
+- 删除 13 个 `_gen_*` 方法 + 2 个 `_generate_*_fallback` 合成逻辑
+- `_generate_cc2_combat_fallback` 改为委托 `self._synth.generate_cc2_combat(event)` + `mixer.Sound(buffer=raw.tobytes())` 包装 + 缓存
+- `_generate_procedural_fallback` 改为委托 `self._synth.generate_via_sound_system(event)` + `mixer.Sound(array=raw)` 包装 + 缓存
+- `play_suppression_fire` 改为调用 `self._synth.generate_suppression_fire(duration_ms)`
+- `sfx_volume` setter 添加 `self._synth.sfx_volume = self._sfx_volume` 同步
+- 移除不再需要的 `numpy` TYPE_CHECKING 导入
+
+**Public API 100% 向后兼容**:
+- `EnhancedSoundSystem` 类名 / `__init__(self)` 签名 / 所有 public 方法签名不变
+- `CombatSoundEvent` / `SoundFileMapping` / `DEFAULT_SOUND_MAPPINGS` / `get_enhanced_sound_system` 模块级导出不变
+- 现有 2 个测试文件 (test_phase_b_final_sprint.py + test_smoke_zero_coverage.py) 零修改
+
+**验证**: ruff 0 errors / mypy 0 errors (3 files) / 导入冒烟测试通过 (CombatSoundEvent 身份一致, _synth 实例化正常) / pytest unit 4596 passed / 2 failed (pre-existing sprite_renderer 隔离问题，与音频无关) / 2 skipped — 零回归
+
 ### D13 项目整理评估 (DevSquad V3.8)
 
 - **评估范围**: 7 维度代码走读 + 文档一致性更新 + 技术债清理 + 全量测试 + CI/CD 检查 + 目录清理 + 成熟度评价

@@ -653,14 +653,15 @@
 - **清理方案**: 详见 `docs/ASSESSMENT_GODCLASS_V045.md`；TRUE 项转 TD-072
 - **状态**: 🟡 评估完成 (v0.4.5)，1 项转 TD-072 (v0.5.0)
 
-### 🟢 TD-072: 拆分 enhanced_sound_bridge → ProceduralSoundSynthesizer + EnhancedSoundSystem (P2, v0.5.0)
+### ✅ TD-072: 拆分 enhanced_sound_bridge → ProceduralSoundSynthesizer + EnhancedSoundSystem (P2, v0.5.0)
 
 - **描述**: TD-067 评估确认的唯一 TRUE God Class。`EnhancedSoundSystem` (949L) 混合两个不相干职责:
   - 职责 A: 音频桥接（文件加载→缓存→播放调度），共享 `_sound_cache`/`_event_mappings`/`_initialized`/volume
   - 职责 B: 程序化波形合成（13 个 `_gen_*` numpy DSP 方法 ~500L），仅读 `_sfx_volume` 返回 `np.ndarray`，与缓存/加载无协作
 - **影响**: 17 个 `play_*` 便捷方法非问题；问题在 DSP 层嵌入桥接
 - **清理方案**: 提取 `ProceduralSoundSynthesizer` 持有全部 `_gen_*` + `_generate_cc2_combat_fallback` + `_generate_procedural_fallback`；`EnhancedSoundSystem` 组合委托。预期各 ~450L。同时清理未实现的 `position` 参数（docstring 承诺 3D positional audio 但未实现）
-- **状态**: 🟢 记录 (v0.5.0)
+- **实际产出** (2026-07-05): `combat_sound_events.py` (47L) + `procedural_sound_synthesizer.py` (536L) + `enhanced_sound_bridge.py` (949L→493L)。CombatSoundEvent 提取到独立模块破解循环依赖。public API 100% 向后兼容（`position` 参数保留向后兼容，docstring 已标注 "future"）。ruff/mypy 0 errors，pytest unit 4596 passed 零回归
+- **状态**: ✅ RESOLVED (v0.5.0, 2026-07-05)
 
 ### 🟢 TD-068: 5 个 e2e skip 偷懒 (P2)
 

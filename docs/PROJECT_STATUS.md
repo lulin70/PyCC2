@@ -43,6 +43,15 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 
 ## 最近变更
 
+### v0.5.0 TD-072 enhanced_sound_bridge God Class 拆分 (2026-07-05)
+- **拆分 `enhanced_sound_bridge.py`** (949L → 493L facade + 536L synth + 47L enum = 总 1076L): facade + 子模块组合委托模式，分离"音频桥接"+"程序化波形合成"两个不相干职责
+  - `combat_sound_events.py` (47L): 提取 `CombatSoundEvent` enum (29 成员) 到独立模块，破解循环依赖
+  - `procedural_sound_synthesizer.py` (536L): 新增 `ProceduralSoundSynthesizer` 类，15 个合成方法原样迁移（13 `_gen_*` + `generate_cc2_combat` + `generate_via_sound_system` + `generate_suppression_fire`），返回 `np.ndarray`，仅读 `_sfx_volume` 无状态
+  - `enhanced_sound_bridge.py` (493L): `EnhancedSoundSystem` 委托 `self._synth`，保留文件加载/缓存/播放派发/音量混合职责
+- **委托模式**: `_generate_cc2_combat_fallback` → `self._synth.generate_cc2_combat(event)` + mixer.Sound 包装；`_generate_procedural_fallback` → `self._synth.generate_via_sound_system(event)`；`play_suppression_fire` → `self._synth.generate_suppression_fire(duration_ms)`；`sfx_volume` setter 同步 `self._synth.sfx_volume`
+- **public API 100% 向后兼容**: EnhancedSoundSystem 类名/`__init__` 签名/所有 public 方法签名不变；CombatSoundEvent re-export；现有 2 个测试文件零修改
+- Verification: ruff 0 errors / mypy 0 errors (3 files) / 导入冒烟测试通过 (CombatSoundEvent identity True) / pytest unit 4596 passed / 2 failed (pre-existing sprite_renderer 隔离问题) / 2 skipped — 零回归
+
 ### D12 Phase 5 P1-2 孤儿事件对齐 (2026-07-04)
 - **Phase 3 后孤儿清单重新评估**: 原 9 个孤儿中 3 个（OrderRefused/MGAbandoned/MGTakeover）因 Phase 3 删除 ghost 模块自然消失
 - **P0-3 确认已修复** (Task #40): combat_service.py:119 已统一为 "UnitAttacked" (PascalCase)
