@@ -8,7 +8,7 @@
 
 | # | 文件 | 行数 | 真实 God Class? | 处置 |
 |---|------|------|-----------------|------|
-| 1 | `presentation/audio/enhanced_sound_bridge.py` | 949 | ✅ TRUE | 计划 v0.5.0 拆分 |
+| 1 | `presentation/audio/enhanced_sound_bridge.py` | 949 | ✅ TRUE | 计划 v0.4.6 拆分 |
 | 2 | `presentation/rendering/terrain_rendering_system.py` | 896 | ❌ FALSE | 保留 |
 | 3 | `presentation/ui/hud_renderer.py` | 886 | ❌ FALSE | 保留 |
 | 4 | `domain/systems/vehicle_weapon_profiles.py` | 826 | ❌ FALSE | 保留 |
@@ -26,7 +26,7 @@
 - **职责 A**: 音频桥接（文件加载 → 缓存 → 播放调度），共享状态 `_sound_cache` / `_event_mappings` / `_initialized` / volume
 - **职责 B**: 程序化波形合成（13 个 `_gen_*` numpy DSP 方法，~500 LOC），仅读 `self._sfx_volume`，返回 `np.ndarray`，与缓存/加载无协作
 
-### 拆分边界建议（v0.5.0）
+### 拆分边界建议（v0.4.6）
 - 提取 `ProceduralSoundSynthesizer`（或 `CombatSoundGenerator`）：持有全部 `_gen_*` + `_generate_cc2_combat_fallback` + `_generate_procedural_fallback`
 - `EnhancedSoundSystem` 通过组合委托调用合成器
 - 预期结果：~450 行合成器 + ~450 行桥接，各自单一职责
@@ -87,7 +87,7 @@
 
 ## 下一步行动
 
-### v0.5.0 计划（仅 1 项）
+### v0.4.6 计划（仅 1 项）
 - TD-072（新建）: 拆分 `enhanced_sound_bridge.py` → `ProceduralSoundSynthesizer` + `EnhancedSoundSystem`，并清理未实现的 `position` 参数承诺
 
 ### v0.4.5 收尾

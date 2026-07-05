@@ -1,17 +1,17 @@
 # PyCC2 项目状态
 
 > **最后更新**: 2026-07-05
-> **版本**: v0.5.0
+> **版本**: v0.4.6
 > **状态**: Beta Candidate — 完全可玩
 
 ## 核心指标
 
 | 指标 | 数值 | 来源 |
 |------|------|------|
-| 版本号 | 0.5.0 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
+| 版本号 | 0.4.6 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
 | 源码模块数 | 390 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
 | 测试文件数 | 176 个 `.py` 文件（unit 137 / integration 7 / e2e 25 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 4598 passed / 0 failed / 2 skipped (v0.5.0 基线，含 TD-072/TD-068 修复后测试数) | `pytest tests/unit/ -m "not slow"` |
+| 测试用例数 | 4598 passed / 0 failed / 2 skipped (v0.4.6 基线，含 TD-072/TD-068 修复后测试数) | `pytest tests/unit/ -m "not slow"` |
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=60`（已恢复目标值） | `.github/workflows/ci.yml` |
 | 实际覆盖率 | 60.05% (44170 stmts, 15918 missed，含 branch coverage) | `pytest tests/unit/ --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |
@@ -43,13 +43,13 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 
 ## 最近变更
 
-### v0.5.0 3 God Class 候选评估文档化 (2026-07-05)
+### v0.4.6 3 God Class 候选评估文档化 (2026-07-05)
 - **3 个 D13 N-1 遗留候选全部 FALSE** (0/3 hit rate): `deployment_ui.py` (689L, 50 方法, Facade 终态 7 协作者已提取) / `sound_system.py` (741L, 43 方法, 单一内聚域音频引擎) / `sprite_renderer_base.py` (303L, 39 方法, D11-2 SRP 拆分 Facade base)
 - **累计 God Class 评估**: 3 批次 12 候选 → 1 TRUE (enhanced_sound_bridge, 已 TD-072 拆分) / 11 FALSE → 8.3% TRUE hit rate (91.7% 误判率)
 - **教训再次验证**: God Class 评估必须基于"单类多职责"而非方法数/行数机械阈值
-- 评估报告: [docs/ASSESSMENT_GODCLASS_V050.md](ASSESSMENT_GODCLASS_V050.md)
+- 评估报告: [docs/ASSESSMENT_GODCLASS_V046.md](ASSESSMENT_GODCLASS_V046.md)
 
-### v0.5.0 TD-068 e2e skip 修复 (2026-07-05)
+### v0.4.6 TD-068 e2e skip 修复 (2026-07-05)
 - **7 个 `pytest.skip` 逐项 root cause 修复**（违反用户测试哲学 "Skip tests 不合理；无数据时创建数据，系统有问题时优化系统"）:
   - #1 test_visual_smoke.py:74 — 保留（合法平台守卫 `skipif(not _can_create_display())`）
   - #2-#5 test_unit_movement.py — 删除 4 个 Phase 2 占位符测试（无实现）
@@ -58,7 +58,7 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 - **附带修复 — test_vl_flag_rendering.py tolerance 40→60**: TD-068 #7 修复后 test_phase6 真实运行暴露 latent flaky bug — `vl_flag_rendering_mixin._VP_PULSE_BASE_ALPHA=200` 使金色 (255,220,100) alpha-blend 后中心像素 (207,182,88) red channel 差 48 > tolerance=40；tolerance 60 覆盖完整 pulse 范围 (200-255)
 - Verification: ruff 0 errors / pytest e2e 477 passed / 0 skipped / 0 failed — 3 次连续运行稳定 (36-39s each)
 
-### v0.5.0 TD-072 enhanced_sound_bridge God Class 拆分 (2026-07-05)
+### v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分 (2026-07-05)
 - **拆分 `enhanced_sound_bridge.py`** (949L → 493L facade + 536L synth + 47L enum = 总 1076L): facade + 子模块组合委托模式，分离"音频桥接"+"程序化波形合成"两个不相干职责
   - `combat_sound_events.py` (47L): 提取 `CombatSoundEvent` enum (29 成员) 到独立模块，破解循环依赖
   - `procedural_sound_synthesizer.py` (536L): 新增 `ProceduralSoundSynthesizer` 类，15 个合成方法原样迁移（13 `_gen_*` + `generate_cc2_combat` + `generate_via_sound_system` + `generate_suppression_fire`），返回 `np.ndarray`，仅读 `_sfx_volume` 无状态
@@ -312,7 +312,7 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 | # | 任务 | 文件 | 状态 |
 |---|------|------|------|
 | 1 | 12 零覆盖文件补测 (TD-069) | `tests/unit/test_zero_coverage_smoke.py` (新增 677L, 38 tests/8 classes) | ✅ 完成 — 覆盖 8/9 零覆盖源文件（pixvoxel_loader scripts-only 排除） |
-| 2 | 5 God Class 评估 (TD-067) | `docs/ASSESSMENT_GODCLASS_V045.md` (新增) | ✅ 完成 — 1/5 TRUE (enhanced_sound_bridge), 4/5 FALSE positive. 新增 TD-072 (v0.5.0 拆分) |
+| 2 | 5 God Class 评估 (TD-067) | `docs/ASSESSMENT_GODCLASS_V045.md` (新增) | ✅ 完成 — 1/5 TRUE (enhanced_sound_bridge), 4/5 FALSE positive. 新增 TD-072 (v0.4.6 拆分) |
 | 3 | TacticExecutor 拆分评估 (TD-064) | `docs/TECH_DEBT.md` | ✅ 完成 — 已在 D11-2 #3 (commit 183745b) 拆分，TD-064 标记 RESOLVED |
 | 4 | mypy 严格化 (TD-071) | `pyproject.toml` + 6 源文件 | ✅ 完成 — 启用 check_untyped_defs=true，修 9 隐藏类型错误 |
 

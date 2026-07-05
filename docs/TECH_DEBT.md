@@ -1,8 +1,8 @@
 # PyCC2 技术债清单
 
-> **版本**: v0.5.0 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-07-05 (v0.5.0 TD-072/TD-068 修复 + 3 God Class 评估) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 12
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.5.0 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.5.0 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.5.0 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V050.md) | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
+> **版本**: v0.4.6 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
+> **上次核查**: 2026-07-05 (v0.4.6 TD-072/TD-068 修复 + 3 God Class 评估 + SemVer 纠正) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 12
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
 
 ---
 
@@ -651,9 +651,9 @@
   - ❌ `environmental_audio.py` (811L) — FALSE: D13 判断正确，Generator/System 双类结构已是自然缝隙
 - **影响**: 仅 1 个 TRUE God Class，4 个保留
 - **清理方案**: 详见 `docs/ASSESSMENT_GODCLASS_V045.md`；TRUE 项转 TD-072
-- **状态**: 🟡 评估完成 (v0.4.5)，1 项转 TD-072 (v0.5.0)
+- **状态**: 🟡 评估完成 (v0.4.5)，1 项转 TD-072 (v0.4.6)
 
-### ✅ TD-072: 拆分 enhanced_sound_bridge → ProceduralSoundSynthesizer + EnhancedSoundSystem (P2, v0.5.0)
+### ✅ TD-072: 拆分 enhanced_sound_bridge → ProceduralSoundSynthesizer + EnhancedSoundSystem (P2, v0.4.6)
 
 - **描述**: TD-067 评估确认的唯一 TRUE God Class。`EnhancedSoundSystem` (949L) 混合两个不相干职责:
   - 职责 A: 音频桥接（文件加载→缓存→播放调度），共享 `_sound_cache`/`_event_mappings`/`_initialized`/volume
@@ -661,9 +661,9 @@
 - **影响**: 17 个 `play_*` 便捷方法非问题；问题在 DSP 层嵌入桥接
 - **清理方案**: 提取 `ProceduralSoundSynthesizer` 持有全部 `_gen_*` + `_generate_cc2_combat_fallback` + `_generate_procedural_fallback`；`EnhancedSoundSystem` 组合委托。预期各 ~450L。同时清理未实现的 `position` 参数（docstring 承诺 3D positional audio 但未实现）
 - **实际产出** (2026-07-05): `combat_sound_events.py` (47L) + `procedural_sound_synthesizer.py` (536L) + `enhanced_sound_bridge.py` (949L→493L)。CombatSoundEvent 提取到独立模块破解循环依赖。public API 100% 向后兼容（`position` 参数保留向后兼容，docstring 已标注 "future"）。ruff/mypy 0 errors，pytest unit 4596 passed 零回归
-- **状态**: ✅ RESOLVED (v0.5.0, 2026-07-05)
+- **状态**: ✅ RESOLVED (v0.4.6, 2026-07-05)
 
-### ✅ TD-068: 7 个 e2e skip 偷懒 (P2) — RESOLVED (v0.5.0, 2026-07-05)
+### ✅ TD-068: 7 个 e2e skip 偷懒 (P2) — RESOLVED (v0.4.6, 2026-07-05)
 
 - **描述**: tests/e2e/ 存在 7 个 `pytest.skip` 标记，违反用户测试哲学 "Skip tests 不合理；无数据时创建数据，系统有问题时优化系统"
 - **影响**: 测试覆盖不完整，可能隐藏真实缺陷
@@ -674,7 +674,7 @@
   - #6 test_real_gameplay_e2e.py `test_phase3_los_blocked_by_terrain` — 创建数据（tile_grid 添加 BUILDING_SOLID）+ skip→fail
   - #7 test_real_gameplay_e2e.py `test_phase6_ai_units_registered` — 优化系统（UnitBTFactory 替换不存在的 InfantryBehaviorTree）+ skip→fail
   - 附带修复: test_vl_flag_rendering.py tolerance 40→60（暴露的 latent flaky bug，alpha-blend 数学期不足）
-- **状态**: ✅ RESOLVED (v0.5.0, 2026-07-05) — pytest e2e 477 passed / 0 skipped / 3 次连续稳定
+- **状态**: ✅ RESOLVED (v0.4.6, 2026-07-05) — pytest e2e 477 passed / 0 skipped / 3 次连续稳定
 
 ### 🟢 TD-069: 12 个零覆盖文件含 main.py P0 (P2)
 

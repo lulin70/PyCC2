@@ -1,6 +1,6 @@
-# Installation Guide — PyCC2 v0.5.0
+# Installation Guide — PyCC2 v0.4.6
 
-> **This document has been updated to v0.5.0. For earlier version information, see Git history.**
+> **This document has been updated to v0.4.6. For earlier version information, see Git history.**
 
 **Complete installation instructions for all platforms | Updated: 2026-06-14**
 
@@ -450,4 +450,4 @@ After successful installation:
 
 *Document Version*: 3.41
 *Last Updated*: 2026-06-14
-*Compatible with*: PyCC2 v0.5.0+
+*Compatible with*: PyCC2 v0.4.6+

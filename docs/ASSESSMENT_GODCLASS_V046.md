@@ -1,4 +1,4 @@
-# God Class 评估报告 (v0.5.0, D13 N-1 遗留)
+# God Class 评估报告 (v0.4.6, D13 N-1 遗留)
 
 **评估日期**: 2026-07-05
 **评估方法**: 基于项目约定 — God Class = "单一类承担多个不相干职责"，**不**使用 "方法数 >30" 机械阈值
@@ -141,13 +141,13 @@ def spawn_damage_number(self, position: Vec2, damage: int, is_kill: bool = False
 |---------|--------|------|-------|----------|
 | D13 N-1 (方法数 >30) | 4 | 0 | 4 | 0% |
 | TD-067 (v0.4.5, >800L) | 5 | 1 | 4 | 20% |
-| v0.5.0 (D13 遗留) | 3 | 0 | 3 | 0% |
+| v0.4.6 (D13 遗留) | 3 | 0 | 3 | 0% |
 | **累计** | **12** | **1** | **11** | **8.3%** |
 
 ### 唯一 TRUE: enhanced_sound_bridge.py
 
 - v0.4.5 (TD-067) 评估为 TRUE
-- v0.5.0 (TD-072) 完成拆分 → `combat_sound_events.py` (47L) + `procedural_sound_synthesizer.py` (536L) + `enhanced_sound_bridge.py` (493L)
+- v0.4.6 (TD-072) 完成拆分 → `combat_sound_events.py` (47L) + `procedural_sound_synthesizer.py` (536L) + `enhanced_sound_bridge.py` (493L)
 
 ### 教训再次验证
 
@@ -177,5 +177,5 @@ def spawn_damage_number(self, position: Vec2, damage: int, is_kill: bool = False
 
 - [ASSESSMENT_GODCLASS_V045.md](ASSESSMENT_GODCLASS_V045.md) — v0.4.5 TD-067 5 候选评估 (1 TRUE / 4 FALSE)
 - [TECH_DEBT.md](TECH_DEBT.md) — TD-067 (✅ 5/5 评估完成) / TD-072 (✅ RESOLVED enhanced_sound_bridge 拆分)
-- [v0.5.0_PLAN.md](v0.5.0_PLAN.md) — v0.5.0 推进计划 Section 4
+- [v0.4.6_PLAN.md](v0.4.6_PLAN.md) — v0.4.6 推进计划 Section 4
 - 项目记忆 `Lessons Learned`: "D13 N-1 God Class identification using 'method count >30' threshold led to misjudgment"

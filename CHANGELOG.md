@@ -114,7 +114,7 @@ All notable changes to PyCC2 will be documented in this file.
 
 **TD-067 — 5 God Class >800L 评估** (commit `bc0af89`)
 - 5 个 >800L 候选文件逐一评估，结论 **1/5 TRUE** (20% hit rate):
-  - ✅ TRUE: `enhanced_sound_bridge.py` (949L) — 单类承担合成器+系统双职责，计划 v0.5.0 拆分 (TD-072)
+  - ✅ TRUE: `enhanced_sound_bridge.py` (949L) — 单类承担合成器+系统双职责，计划 v0.4.6 拆分 (TD-072)
   - ❌ FALSE: `terrain_rendering_system.py` (896L) — facade + 多 private helpers 单一职责
   - ❌ FALSE: `hud_renderer.py` (886L) — HUD 渲染单一职责，方法多但内聚
   - ❌ FALSE: `vehicle_weapon_profiles.py` (826L) — 数据 + 工具函数集合，非类
@@ -140,7 +140,7 @@ All notable changes to PyCC2 will be documented in this file.
   - `interaction_controller_protocol.py` — Protocol 补充 `clear_selection` 方法
 - **状态**: ✅ RESOLVED
 
-**TD-072 — 新增 (v0.5.0 计划)**
+**TD-072 — 新增 (v0.4.6 计划)**
 - 拆分 `enhanced_sound_bridge.py` (949L) → `ProceduralSoundSynthesizer` (合成器) + `EnhancedSoundSystem` (系统)
 - 评估为 TD-067 中唯一 TRUE God Class
 
@@ -154,7 +154,17 @@ All notable changes to PyCC2 will be documented in this file.
 
 **最终验证**: ruff 0 errors / mypy 0 errors (389 files, check_untyped_defs=true) / pytest unit 4611 passed / 2 skipped / 0 failed — 零回归
 
-## [0.5.0] - 2026-06-29 (开发中)
+## [0.4.6] - 2026-06-29 (开发中)
+
+### SemVer 纠正 (2026-07-05)
+
+> **背景**: v0.4.6 原误标为 v0.5.0（MINOR 递增），但本版本工作内容（TD-072 重构 / TD-068 测试修复 / 3 God Class 评估 / 版本同步）均为非功能更新，按 SemVer 规则应为 PATCH 递增（0.4.5→0.4.6）。
+>
+> **纠正**: 项目版本号在所有位置（VERSION / pyproject.toml / __init__.py / 三语 README/USER_MANUAL/INSTALL / docs/*）从 v0.5.0 同步为 v0.4.6。重命名 `docs/ASSESSMENT_GODCLASS_V050.md` → `docs/ASSESSMENT_GODCLASS_V046.md` + `docs/v0.5.0_PLAN.md` → `docs/v0.4.6_PLAN.md`。
+>
+> **保留**: ruff 工具版本号 `v0.5.0`（如 `.pre-commit-config.yaml` 中 `ruff v0.5.0→v0.15.20`）和 `requirements-dev.lock` 中 `ast-serialize==0.5.0` 第三方依赖版本不变；历史评估报告（D8/D13/D14）和路线图规划文档中 v0.5.0 引用作为历史记录保留。
+>
+> **教训记录**: 已添加到 `project_memory.md` Hard Constraints — 版本号遵循 SemVer: MAJOR.MINOR.PATCH。除非有功能更新(MINOR)，否则只在第三位(PATCH)变化。重构/测试修复/文档/版本同步/God Class 评估等无功能变更的工作只递增 PATCH 版本。MINOR 递增仅用于向后兼容的功能新增。
 
 ### TD-072 enhanced_sound_bridge God Class 拆分 (DevSquad V3.8, 2026-07-05)
 
