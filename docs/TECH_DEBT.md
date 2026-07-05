@@ -2,7 +2,7 @@
 
 > **版本**: v0.4.0 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
 > **上次核查**: 2026-07-05 (D12 Phase 5 完成后 D13 项目整理评估) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 9
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (392 files, Phase 4 后) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 11 ghost 模块清理完成（D12 Phase 3） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ⚠️ 8 个 God Class (>30方法) 残留待评估 | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (392 files, Phase 4 后) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 11 ghost 模块清理完成（D12 Phase 3） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ⚠️ 8 个 God Class (>30方法) 残留待评估 (v0.4.2/v0.4.3 推进) | ⚠️ 7 慢测试超时（sprite 生成，预先存在）
 
 ---
 
@@ -600,6 +600,58 @@
   4. 在 `EffectRenderer.render_smoke` 中先渲染 `CC2SmokeEffect`（底层），再渲染通用粒子（上层）
   5. 新增性能基准测试（10 个烟幕同屏 FPS ≥ 50）
   6. 新增 5+ 单测覆盖 `CC2SmokeEffect` 集成
+
+---
+
+## 🆕 D13 项目整理评估新增 (2026-07-05)
+
+### ✅ D13-N4: tests/acceptance/ 覆盖偏薄 (P3) — ✅ v0.4.1 已解决
+
+- **评估**: 42 个测试覆盖 8 个 Phase A 功能 + 1 集成场景，覆盖密度合理；用户旅程由 tests/e2e/test_full_user_journey.py 覆盖
+- **解决方案**: 新增 tests/acceptance/README.md 文档化覆盖范围，按 Simplicity First 不强行扩充
+- **状态**: ✅ 已解决 (v0.4.1, 2026-07-05)
+
+### ✅ D13-N5: 各测试层无独立 conftest.py (P3) — ✅ v0.4.1 已解决
+
+- **评估**: 仅根 tests/conftest.py（450L），各层无独立入口点
+- **解决方案**: 新增 tests/unit/conftest.py + tests/integration/conftest.py + tests/e2e/conftest.py，每层文档化测试策略，根 conftest.py 共享 fixture 保留不动（向后兼容）
+- **状态**: ✅ 已解决 (v0.4.1, 2026-07-05)
+
+### ✅ D13-N6: bandit 无独立配置文件 (P3) — ✅ v0.4.1 已解决
+
+- **评估**: CI 命令行 `bandit -r src/ -ll --skip B101,B311,B601` 参数分散，无 rationale
+- **解决方案**: 新增 bandit.yaml 集中管理 skips/exclude_dirs/targets，每项 skip 附带 rationale；CI 引用改为 `bandit -c bandit.yaml -r src/ -ll`
+- **状态**: ✅ 已解决 (v0.4.1, 2026-07-05)
+
+### 🟡 D13-N1: 8 个 God Class (>30方法) 残留 (P2) — 🟡 v0.4.2/v0.4.3 推进中
+
+- **评估**: D12 Phase 4 拆分 unit.py (54 方法) 后，仍有 8 个 God Class 残留
+- **清理计划**:
+  - v0.4.2: enhanced_renderer.py (30方法) + environmental_audio.py (33方法) — 低风险
+  - v0.4.3: cc2_combat_effects.py (33方法) + smoke_tactical_ai.py (35方法) — 中风险
+  - 剩余 4 个 (deployment_ui 50 / enhanced_sound_bridge 44 / sound_system 43 / sprite_renderer_base 39) 待 v0.5+ 评估
+- **状态**: 🟡 部分解决 (v0.4.2/v0.4.3 推进中)
+
+### 🟢 D13-N2: TYPE_CHECKING 守卫 182 文件 (P3) — 保留为必要 workaround
+
+- **评估**: mixin 模式需要 TYPE_CHECKING 守卫避免循环 import，是 Python 类型系统的必要 workaround
+- **状态**: 🟢 保留 (mixin 模式必要 workaround，非技术债)
+
+### 🟢 D13-N3: pixvoxel_loader.py scripts-only 在 src/ (P3) — 已标注
+
+- **评估**: 1139L 文件仅 scripts/validate_isometric.py 引用，生产代码零 import；保留在 src/ 是为 mypy 类型检查覆盖
+- **解决方案**: D13 已在 docstring 添加 scripts-only 标注注释
+- **状态**: 🟢 已标注 (后续可考虑迁移至 scripts/ 目录)
+
+### 🟢 D13-N7: docs/ 历史评估文档未归档 (P3) — 保留为历史记录
+
+- **评估**: ASSESSMENT_D1x_MATURITY.md 系列文档是项目成熟度演进的历史记录
+- **状态**: 🟢 保留 (历史记录，非技术债)
+
+### 🟢 D13-N8: INSTALL 三语结构略有差异 (P3) — 待 v0.5 整理
+
+- **评估**: INSTALL.md / INSTALL_zh.md / INSTALL_ja.md 结构略有差异
+- **状态**: 🟢 低优先级 (待 v0.5 文档整理批次统一)
 
 ---
 

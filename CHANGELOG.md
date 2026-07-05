@@ -2,6 +2,27 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## 路线图 (v0.4.1～v0.4.3 短期维护)
+
+基于 D13 评估建议（详见 [docs/ASSESSMENT_D13_MATURITY.md](docs/ASSESSMENT_D13_MATURITY.md)），按风险从低到高分三个小版本推进。当前基线：v0.4.0 / 4473 tests / 60.18% 覆盖率 / D13 评分 7.4/10 (B-)。
+
+### v0.4.1 — 低风险维护批次 (P3, 2026-07-05)
+
+- **bandit 独立配置文件** `bandit.yaml`（D13 N-6）：集中管理 skips/exclude_dirs/targets，每项 skip 附带 rationale；CI 引用改为 `bandit -c bandit.yaml -r src/ -ll`
+- **acceptance 测试覆盖文档化**（D13 N-4）：新增 `tests/acceptance/README.md`，复核 42 个测试覆盖 8 个 Phase A 功能 + 1 集成场景，按 Simplicity First 不强行扩充，记录未来扩充方向
+- **分层 conftest.py**（D13 N-5）：新增 `tests/unit/conftest.py` + `tests/integration/conftest.py` + `tests/e2e/conftest.py`，每层文档化测试策略，根 `tests/conftest.py` 共享 fixture 保留不动（向后兼容）
+- **验证**: ruff 0 errors / mypy 0 errors / bandit exit 0 / pytest unit 4459 passed (覆盖率 60.18%) / integration 136 passed / e2e 475 passed — 零回归
+
+### v0.4.2 — God Class 拆分低风险批次 (P2, 待规划)
+
+- 拆分 `enhanced_renderer.py` (30 方法) → facade + mixin
+- 拆分 `environmental_audio.py` (33 方法) → facade + mixin
+
+### v0.4.3 — God Class 拆分中风险批次 (P2, 待规划)
+
+- 拆分 `cc2_combat_effects.py` (33 方法) → facade + mixin
+- 拆分 `smoke_tactical_ai.py` (35 方法) → facade + mixin
+
 ## [0.5.0] - 2026-06-29 (开发中)
 
 ### D13 项目整理评估 (DevSquad V3.8)

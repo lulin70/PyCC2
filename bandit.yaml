@@ -1,0 +1,37 @@
+# PyCC2 Bandit Security Lint Configuration
+#
+# Replaces command-line flags in CI (.github/workflows/ci.yml):
+#   bandit -r src/ -ll --skip B101,B311,B601
+#
+# Severity threshold (-ll = MEDIUM+) is still passed on CLI to keep
+# explicit visibility in the workflow. This config centralizes:
+#   - skips (with rationale)
+#   - exclude_dirs
+#   - targets
+#
+# D13 N-6 (P3): Independent config file for maintainability and local dev use.
+# Usage: bandit -c bandit.yaml -r src/ -ll
+
+# Recursive scan root
+recursive: true
+
+# Directories to scan
+targets:
+  - src/
+
+# Skipped tests (with rationale)
+skips:
+  - B101    # assert_use_of_eval: pytest uses assert statements extensively; not a security risk in test-heavy codebase
+  - B311    # random: pycc2 uses random for game mechanics (procedural generation, AI behavior); not crypto
+  - B601    # paramiko_auto_trust: not applicable — no paramiko usage, suppress to avoid false positives in dependency scan
+
+# Exclude generated/vendored/build directories
+exclude_dirs:
+  - build/
+  - dist/
+  - .venv/
+  - venv/
+  - __pycache__/
+  - .pytest_cache/
+  - .mypy_cache/
+  - .ruff_cache/

@@ -177,6 +177,49 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 
 详见 [CHANGELOG.md](../CHANGELOG.md)
 
+## 路线图 (v0.4.1～v0.4.3 短期维护)
+
+基于 D13 评估建议（详见 [ASSESSMENT_D13_MATURITY.md](ASSESSMENT_D13_MATURITY.md)），按风险从低到高分三个小版本推进：
+
+### v0.4.1 — 低风险维护批次 (P3, 2026-07-05 完成)
+
+> 目标：清理 D13 N-4/N-5/N-6 三项 P3 维护类技术债，零功能变更，零回归。
+
+| # | 任务 | 文件 | 状态 |
+|---|------|------|------|
+| 1 | bandit 独立配置文件 | `bandit.yaml` + CI 引用更新 | ✅ 完成 — 集中管理 skips/exclude_dirs/targets，每项 skip 附带 rationale |
+| 2 | acceptance 覆盖文档化 | `tests/acceptance/README.md` | ✅ 完成 — 复核 42 测试覆盖 8 Phase A 功能，按 Simplicity First 不强行扩充 |
+| 3 | 分层 conftest.py | `tests/unit/conftest.py` + `tests/integration/conftest.py` + `tests/e2e/conftest.py` | ✅ 完成 — 每层文档化测试策略，根 conftest.py 保留共享 fixture |
+
+**验证**: ruff 0 errors / mypy 0 errors / bandit exit 0 / pytest unit 4459 passed (60.18%) / integration 136 passed / e2e 475 passed — 零回归
+
+### v0.4.2 — God Class 拆分低风险批次 (P2)
+
+> 目标：拆分 D13 N-1 中方法数最少的 2 个 God Class，参考 D12 Phase 4 unit.py facade+mixin 模式，100% public API 向后兼容。
+
+| # | 文件 | 方法数 | 风险评估 |
+|---|------|--------|----------|
+| 1 | `src/pycc2/presentation/rendering/enhanced_renderer.py` | 30 | 低 — 渲染层，无状态机依赖 |
+| 2 | `src/pycc2/domain/systems/environmental_audio.py` | 33 | 低 — 音频系统，无事件总线耦合 |
+
+### v0.4.3 — God Class 拆分中风险批次 (P2)
+
+> 目标：拆分 D13 N-1 中等风险的 2 个 God Class，需要更充分的回归测试。
+
+| # | 文件 | 方法数 | 风险评估 |
+|---|------|--------|----------|
+| 1 | `src/pycc2/domain/systems/cc2_combat_effects.py` | 33 | 中 — 战斗效果，可能涉及事件发布 |
+| 2 | `src/pycc2/domain/ai/smoke_tactical_ai.py` | 35 | 中 — AI 战术，可能涉及状态机 |
+
+### 中期（v0.5.0 功能版本，待规划）
+- TD-065 载具损伤视觉反馈差异化
+- TD-066 烟雾粒子效果统一
+- 补充 16 个无测试 handler 的单测（tactic_executor 拆分前置）
+
+### 长期（v0.6.0+，待规划）
+- mypy 启用 check_untyped_defs=true
+- 性能阈值组件数从 4 扩展到 8+
+
 ## 已知技术债
 
 - 1 个 >1000 行文件待拆分（pixvoxel_loader 为 scripts-only 不拆分）— terrain_tile_generator + infantry_pixel_renderer + campaign_ui_rendering + deployment_renderer 已于 2026-07-04 Phase 2 全部完成
