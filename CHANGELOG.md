@@ -169,6 +169,20 @@ All notable changes to PyCC2 will be documented in this file.
 
 **Verification**: 文档级修改无源码变更，ruff/mypy 不受影响。
 
+### 慢测试超时调研 — 无超时问题 (DevSquad V3.8, 2026-07-05)
+
+> 调研 D14 状态行中 "⚠️ 7 慢测试超时（sprite 生成，预先存在）" 的实际情况。
+
+**调研结论**:
+- 16 个 `@pytest.mark.slow` 测试全部通过（分布在 test_pixel_artist 3 class / test_perf_benchmark 1 / test_performance_baseline 1 / test_spatial_hash 1 / test_content_expansion 1 class / test_e2e_full_coverage 1）
+- 实际耗时：最慢 0.17s (`test_query_radius_faster_than_linear_scan`)，总耗时 2.76s（含 collection 2.56s）
+- 无任何测试接近 300s timeout，"7 慢测试超时"描述为过时信息
+- 根因：P5-3 slow 测试优化（`pixel_artist.py` `@lru_cache(maxsize=128)` sprite 缓存 + `create_unit_sprite()` `.copy()` 防污染）已生效，slow 测试不再慢
+
+**处置**: TECH_DEBT.md 状态行 "⚠️ 7 慢测试超时" 更新为 "✅ 16 slow tests 全部通过 (最慢 0.17s, P5-3 lru_cache 优化已生效)"。无需代码优化。
+
+**Verification**: `pytest tests/ -m "slow" --durations=20 --timeout=300` → 16 passed / 0 failed / 最慢 0.17s / 总 2.76s。
+
 ## [0.4.6] - 2026-06-29 (开发中)
 
 ### SemVer 纠正 (2026-07-05)
