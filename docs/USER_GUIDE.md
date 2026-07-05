@@ -1,9 +1,9 @@
 # PyCC2 User Guide
 
-**v0.4.3 | Beta Candidate — Fully Playable | July 5, 2026**
+**v0.4.5 | Beta Candidate — Fully Playable | July 5, 2026**
 
 > 🎮 **Game Status**: Beta Candidate — AI対戦可用、コア玩法完整！
-> This guide covers the current v0.4.3 features based on runtime verification.
+> This guide covers the current v0.4.5 features based on runtime verification.
 
 ---
 
@@ -537,7 +537,7 @@ These were all fixed in M1/M2:
 
 *User Guide Version*: 3.39
 *Last Updated*: 2026-06-13
-*Game Version*: PyCC2 v0.4.3
+*Game Version*: PyCC2 v0.4.5
 *CC2 Fidelity*: ~88%
 *Status*: Beta Candidate — Fully Playable
 

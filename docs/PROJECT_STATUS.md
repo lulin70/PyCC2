@@ -1,21 +1,21 @@
 # PyCC2 项目状态
 
 > **最后更新**: 2026-07-05
-> **版本**: v0.4.3
+> **版本**: v0.4.5
 > **状态**: Beta Candidate — 完全可玩
 
 ## 核心指标
 
 | 指标 | 数值 | 来源 |
 |------|------|------|
-| 版本号 | 0.4.3 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
+| 版本号 | 0.4.5 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
 | 源码模块数 | 390 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
 | 测试文件数 | 176 个 `.py` 文件（unit 137 / integration 7 / e2e 25 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 4573 passed / 0 failed / 2 skipped (v0.4.3 batch 4b 后基线，含 100 新 TacticExecutor 单测) | `pytest tests/unit/ -m "not slow"` |
+| 测试用例数 | 4611 passed / 0 failed / 2 skipped (v0.4.5 后基线，含 100 TacticExecutor 单测 + 38 零覆盖 smoke 测试) | `pytest tests/unit/ -m "not slow"` |
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=60`（已恢复目标值） | `.github/workflows/ci.yml` |
 | 实际覆盖率 | 60.05% (44170 stmts, 15918 missed，含 branch coverage) | `pytest tests/unit/ --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |
-| mypy | 0 errors (392 files) | `MYPYPATH=src mypy -p pycc2` |
+| mypy | 0 errors (389 files, check_untyped_defs=true 已启用) | `MYPYPATH=src mypy -p pycc2` |
 | Bandit | 0 Medium / 0 High | `bandit -r src/ -ll --skip B101,B311,B601` |
 
 ## 架构
@@ -178,9 +178,9 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 
 详见 [CHANGELOG.md](../CHANGELOG.md)
 
-## 路线图 (v0.4.1～v0.4.3 短期维护)
+## 路线图 (v0.4.1～v0.4.5 短期维护)
 
-基于 D13 评估建议（详见 [ASSESSMENT_D13_MATURITY.md](ASSESSMENT_D13_MATURITY.md)），按风险从低到高分三个小版本推进：
+基于 D13/D14 评估建议（详见 [ASSESSMENT_D13_MATURITY.md](ASSESSMENT_D13_MATURITY.md) 与 [ASSESSMENT_D14_MATURITY.md](ASSESSMENT_D14_MATURITY.md)），按风险从低到高分五个小版本推进：
 
 ### v0.4.1 — 低风险维护批次 (P3, 2026-07-05 完成)
 
@@ -208,7 +208,7 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 **教训**: D13 N-1 基于"方法数 >30"机械阈值误判。真正需要拆分的 God Class 应基于"单类多职责"判断，而非方法数。
 **调整**: 剩余 4 个 (deployment_ui 50 / enhanced_sound_bridge 44 / sound_system 43 / sprite_renderer_base 39) 待 v0.5+ 按真实职责评估。
 
-### v0.4.3 — TacticExecutor 无测试 handler 单测补齐 (P2, 2026-07-05 进行中)
+### v0.4.3 — TacticExecutor 无测试 handler 单测补齐 (P2, 2026-07-05 完成)
 
 > 目标：补齐 TacticExecutor 19 个无测试 handler 的单测（TD-064 拆分前置条件），锁定现有行为，为 v0.5+ 拆分提供安全网。原计划的 God Class 拆分已在 v0.4.2 复核中取消，v0.4.3 改为测试覆盖工作。
 
@@ -271,13 +271,45 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 
 **TD-064 单测前置补齐完成**: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, v0.5+ 拆分安全网就绪
 
+### v0.4.4 — pre-commit hooks 修复 (P2, 2026-07-05 完成)
+
+> 目标：修复 `.pre-commit-config.yaml` ruff 版本陈旧 (v0.5.0 vs lock 0.15.20) 导致 CI 漂移 (TD-070)。
+
+| # | 任务 | 文件 | 状态 |
+|---|------|------|------|
+| 1 | ruff 版本同步 | `.pre-commit-config.yaml` | ✅ 完成 — ruff rev v0.5.0→v0.15.20 与 requirements-dev.lock 一致 |
+
+**验证**: ruff check 0 / ruff format --check 0 / pytest unit 4573 passed / 2 skipped / 0 failed
+
+### v0.4.5 — 评估 + 补测 + 严格化 (P2, 2026-07-05 完成)
+
+> 目标：完成 D14 项目整理评估遗留的 4 项工作：12 零覆盖文件补测 / 5 God Class 评估 / TacticExecutor 拆分评估 / mypy 严格化。
+
+| # | 任务 | 文件 | 状态 |
+|---|------|------|------|
+| 1 | 12 零覆盖文件补测 (TD-069) | `tests/unit/test_zero_coverage_smoke.py` (新增 677L, 38 tests/8 classes) | ✅ 完成 — 覆盖 8/9 零覆盖源文件（pixvoxel_loader scripts-only 排除） |
+| 2 | 5 God Class 评估 (TD-067) | `docs/ASSESSMENT_GODCLASS_V045.md` (新增) | ✅ 完成 — 1/5 TRUE (enhanced_sound_bridge), 4/5 FALSE positive. 新增 TD-072 (v0.5.0 拆分) |
+| 3 | TacticExecutor 拆分评估 (TD-064) | `docs/TECH_DEBT.md` | ✅ 完成 — 已在 D11-2 #3 (commit 183745b) 拆分，TD-064 标记 RESOLVED |
+| 4 | mypy 严格化 (TD-071) | `pyproject.toml` + 6 源文件 | ✅ 完成 — 启用 check_untyped_defs=true，修 9 隐藏类型错误 |
+
+**mypy 修复的 9 个隐藏错误**:
+- `animation_system.py:79` — CONFIGS dict 类型推断错误，显式标注为 `dict[str, int | bool]` + `bool()` 转换
+- `cc2_combat_effects.py:150` — `Particle.size: int` → `size: float`（smoke 扩散产生 float）
+- `environment_renderer.py:97` — 返回类型改为 `tuple[Surface | None, Surface | None]`
+- `particle_pool.py:44` — `_pool: list[object]` → `list[Any]`
+- `tutorial_system.py:277/283/287/308` — 4 处 lazy-init 后 assert 窄化 None
+- `interaction_controller_protocol.py` — Protocol 补 `clear_selection` 方法
+
+**验证**: ruff 0 errors / mypy 0 errors (389 files, check_untyped_defs=true) / pytest unit 4611 passed / 2 skipped / 0 failed (零回归)
+
 ### 中期（v0.5.0 功能版本，待规划）
+- TD-072 拆分 enhanced_sound_bridge → ProceduralSoundSynthesizer + EnhancedSoundSystem
 - TD-065 载具损伤视觉反馈差异化
 - TD-066 烟雾粒子效果统一
 
 ### 长期（v0.6.0+，待规划）
-- mypy 启用 check_untyped_defs=true
 - 性能阈值组件数从 4 扩展到 8+
+- TD-068 5 e2e skip 偷懒修复
 
 ## 已知技术债
 

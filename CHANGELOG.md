@@ -2,9 +2,9 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
-## 路线图 (v0.4.1～v0.4.3 短期维护)
+## 路线图 (v0.4.1～v0.4.5 短期维护)
 
-基于 D13 评估建议（详见 [docs/ASSESSMENT_D13_MATURITY.md](docs/ASSESSMENT_D13_MATURITY.md)），按风险从低到高分三个小版本推进。当前基线：v0.4.3 / 4573 tests / 60.18% 覆盖率 / D13 评分 7.4/10 (B-)。
+基于 D13/D14 评估建议（详见 [docs/ASSESSMENT_D13_MATURITY.md](docs/ASSESSMENT_D13_MATURITY.md) 与 [docs/ASSESSMENT_D14_MATURITY.md](docs/ASSESSMENT_D14_MATURITY.md)），按风险从低到高分五个小版本推进。当前基线：v0.4.5 / 4611 tests / 60.18% 覆盖率 / D14 评分 7.6/10 (B-) / mypy check_untyped_defs=true 已启用。
 
 ### D14 项目整理评估 (DevSquad V3.8, 2026-07-05)
 
@@ -46,7 +46,7 @@ All notable changes to PyCC2 will be documented in this file.
 - **教训**: D13 N-1 基于"方法数 >30"的机械阈值误判。真正需要拆分的 God Class 应基于"单类多职责"判断
 - **调整**: 剩余 4 个 (deployment_ui 50 / enhanced_sound_bridge 44 / sound_system 43 / sprite_renderer_base 39) 待 v0.5+ 按真实职责评估
 
-### v0.4.3 — TacticExecutor 无测试 handler 单测补齐 (P2, 2026-07-05 进行中)
+### v0.4.3 — TacticExecutor 无测试 handler 单测补齐 (P2, 2026-07-05 完成)
 
 > 目标：补齐 TacticExecutor 19 个无测试 handler 的单测（TD-064 tactic_executor 拆分前置条件），锁定现有行为，为 v0.5+ 拆分提供安全网。原计划的 God Class 拆分已在 v0.4.2 复核中取消，v0.4.3 改为测试覆盖工作。
 
@@ -91,6 +91,68 @@ All notable changes to PyCC2 will be documented in this file.
 **验证**: ruff 0 errors / mypy 0 errors / pytest test_tactic_executor.py 127 passed (27 既有 + 16 batch1 + 19 batch2 + 19 batch3 + 25 batch4a + 21 batch4b) / pytest unit 4573 passed / 2 skipped / 0 failed (零回归)
 
 **TD-064 单测前置补齐完成**: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, v0.5+ 拆分安全网就绪
+
+### v0.4.4 — pre-commit hooks 修复 (P1, 2026-07-05 完成)
+
+> 目标：修复 TD-070 pre-commit hooks 版本陈旧导致的 CI 漂移（ruff v0.5.0 vs lock 0.15.20）。
+
+- **TD-070 pre-commit hooks 版本陈旧修复**:
+  - 同步 `.pre-commit-config.yaml` 中 ruff / mypy / bandit 等 hooks 至与 lockfile / CI 一致的版本
+  - 消除 D14 维度 6 (CI/CD) 暴露的"hooks 陈旧 → CI 漂移"根因
+- **验证**: ruff 0 errors / mypy 0 errors / pre-commit run --all-files 通过
+- **Commit**: `7b32176`
+
+### v0.4.5 — 评估 + 补测 + 严格化 (P2, 2026-07-05 完成)
+
+> 目标：完成 D14 暴露的 4 项 P1-P2 技术债 (TD-064/067/069/071)，并把版本号统一同步至 0.4.5。
+
+**TD-069 — 12 零覆盖文件 smoke 测试补齐** (commit `092044e`)
+- 为 8/9 个零覆盖源文件（`pixvoxel_loader.py` 为 scripts-only 排除）补齐 38 个 smoke 测试
+- 覆盖: `cc2_map_parser.py` / `enhanced_particle_system` / `cc2_combat_effects` / `particle_pool` / `environment_renderer` / `animation_system` / `tutorial_system` / `interaction_controller_protocol`
+- 修复 5 个失败测试 (CC2MapParser API 误用、EnhancedParticleSystem 无参构造、CC2ExplosionEffect 坐标参数、parse_cc2_map 返回结构、CC2_TO_PYCC2_MAP 模块级 dict 查询)
+- 验证: ruff 0 / mypy 0 / pytest unit 4611 passed / 2 skipped / 0 failed
+
+**TD-067 — 5 God Class >800L 评估** (commit `bc0af89`)
+- 5 个 >800L 候选文件逐一评估，结论 **1/5 TRUE** (20% hit rate):
+  - ✅ TRUE: `enhanced_sound_bridge.py` (949L) — 单类承担合成器+系统双职责，计划 v0.5.0 拆分 (TD-072)
+  - ❌ FALSE: `terrain_rendering_system.py` (896L) — facade + 多 private helpers 单一职责
+  - ❌ FALSE: `hud_renderer.py` (886L) — HUD 渲染单一职责，方法多但内聚
+  - ❌ FALSE: `vehicle_weapon_profiles.py` (826L) — 数据 + 工具函数集合，非类
+  - ❌ FALSE: `environmental_audio.py` (811L) — 2 类分工明确（D13 N-1 已评估为非 God Class）
+- **教训**: D14 N-1 列出 5 个 >800L 文件作为 God Class 候选 → 仅 1 个真正需要拆分。再次验证 D13 教训：God Class 评估必须基于"单类多职责"而非行数/方法数机械阈值
+- 评估报告: [docs/ASSESSMENT_GODCLASS_V045.md](docs/ASSESSMENT_GODCLASS_V045.md)
+
+**TD-064 — TacticExecutor 拆分评估** (commit `31cceca`)
+- 复核确认: TacticExecutor 已在 **D11-2 #3 (commit `183745b`)** 拆分为 facade + 7 mixin 包结构
+- 当前 `src/pycc2/domain/ai/tactic_executor/` 含 facade.py (277L) + 7 mixin (97-416L each)
+- v0.4.3 batch 1-4b 单测前置补齐 (100 tests / 19+1 handler) 已为拆分提供安全网
+- **状态**: ✅ RESOLVED
+
+**TD-071 — mypy 严格化 check_untyped_defs=true** (commit `1fde3a0`)
+- `pyproject.toml` 启用 `check_untyped_defs = true`（覆盖 src/pycc2 全部 389 文件）
+- `tests.*` override 保留 `check_untyped_defs = false`（测试代码不强制类型注解）
+- 修复 9 个隐藏类型错误:
+  - `animation_system.py:79` — `CONFIGS` dict 显式标注 `dict[AnimationType, dict[str, int | bool]]` + `bool(config["loop"])` 转换（bool 是 int 子类，`int | bool` 会坍缩为 `int`）
+  - `cc2_combat_effects.py:150` — `Particle.size: int` → `float`（smoke 扩散 `+= 0.1` 产生 float）
+  - `environment_renderer.py:97` — 返回类型 `tuple[Surface, Surface]` → `tuple[Surface | None, Surface | None]`（缓存可能为 None）
+  - `particle_pool.py:44` — `_pool: list[object]` → `list[Any]`（需访问 `_pool_active` 属性）
+  - `tutorial_system.py:277/283/287/308` — 4 处 `_font_*` lazy-init 后添加 `assert ... is not None` 窄化
+  - `interaction_controller_protocol.py` — Protocol 补充 `clear_selection` 方法
+- **状态**: ✅ RESOLVED
+
+**TD-072 — 新增 (v0.5.0 计划)**
+- 拆分 `enhanced_sound_bridge.py` (949L) → `ProceduralSoundSynthesizer` (合成器) + `EnhancedSoundSystem` (系统)
+- 评估为 TD-067 中唯一 TRUE God Class
+
+**版本号同步 0.4.3 → 0.4.5** (本次提交)
+- 核心文件: `VERSION` / `pyproject.toml` / `src/pycc2/__init__.py` / `SKILL.md`
+- 三语 README: `README.md` / `README_zh.md` / `README_ja.md` (含测试数 3513 → 4611)
+- 三语 USER_MANUAL: `USER_MANUAL.md` / `USER_MANUAL_zh.md` / `USER_MANUAL_ja.md`
+- 三语 INSTALL: `INSTALL.md` / `INSTALL_ja.md` / `INSTALL_zh.md`
+- docs 目录: `SECURITY.md` / `GAP_ANALYSIS.md` / `ROADMAP.md` / `DESIGN.md` / `USER_GUIDE.md` / `PROJECT_STATUS.md` / `PRD.md` / `TECH_DEBT.md`
+- 全量 grep 验证: 仅历史记录残留 (ASSESSMENT_D14 基线引用、TECH_DEBT 历史条目、CHANGELOG 旧条目、test_tactic_executor.py phase 标记) 与 `requirements-dev.lock` 的 `distlib==0.4.3` 第三方依赖（非 PyCC2 版本）
+
+**最终验证**: ruff 0 errors / mypy 0 errors (389 files, check_untyped_defs=true) / pytest unit 4611 passed / 2 skipped / 0 failed — 零回归
 
 ## [0.5.0] - 2026-06-29 (开发中)
 
