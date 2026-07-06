@@ -325,6 +325,26 @@ All notable changes to PyCC2 will be documented in this file.
 
 **Verification**: ruff 0 errors / mypy 0 errors / pytest test_smoke_td059.py 58 passed / pytest unit 4669 passed (零回归，pre-existing sprite_renderer 测试隔离问题无关)
 
+### TD-035 RESOLVED — 4 组件接口契约测试 (DevSquad V3.8, 2026-07-06)
+
+> 补齐 TD-035 接口契约测试缺口。纯测试工作，零功能变更，版本保持 v0.4.7。
+
+**新增测试文件**: `tests/integration/test_contract_interfaces.py` (39 tests)
+
+**测试结构** (6 个契约测试类):
+1. **TestHealthComponentContract** (9 tests) — HealthComponent 接口冻结: 构造签名 (hp, max_hp) + hp/max_hp 字段可写 + current_hp 只读 property (负契约，documented in TestApplyInheritanceBugs) + _update_state/take_damage/heal/is_alive 方法 + slots=True 阻止新增属性
+2. **TestMoraleComponentContract** (8 tests) — MoraleComponent 接口冻结: 构造签名 (value) + value 字段可写 + 无 current_morale 属性 (负契约) + apply_delta/state/is_combat_effective/start_routing/stop_routing 方法 + slots=True
+3. **TestStateMachineContract** (8 tests) — StateMachine 接口冻结: 构造签名 (initial, transitions) + force_transition 方法 (consumer 使用) + 无 force_state 方法 (负契约) + current/history 只读 property + try_transition/transition_or_raise/reset 方法
+4. **TestVeterancyComponentContract** (8 tests) — VeterancyComponent 接口冻结: 构造签名 + add_xp(amount) -> bool + rank 只读 property + xp 字段可写 + record_kill/record_battle_survived 方法 + slots=True
+5. **TestCampaignPersistenceSerializationContract** (3 tests) — 序列化保真: BattleOutcome enum 6 个成员 save/load 循环后保持 enum 类型 (bug #4 契约) + UnitBattleState 字段 round-trip 保真
+6. **TestApplyInheritanceConsumerContract** (3 tests) — 端到端消费者契约: 真实 Unit + apply_inheritance_to_units 不抛 AttributeError (alive/dead/no-match 三种场景)，验证 supplier 表面 (hp/value/force_transition/add_xp) 与 consumer 表面 (campaign_persistence L297-322) 互相一致
+
+**Consumer-Driven Contract 设计**: 与 `tests/unit/test_campaign_persistence_io.py::TestApplyInheritanceBugs` (4 个负契约测试记录 failure mode) 配对，本文件提供正契约测试记录 supplier 表面，形成完整双向契约。
+
+**测试哲学遵循**: 全部使用真实组件 (HealthComponent/MoraleComponent/StateMachine/VeterancyComponent/Unit)，无 Mock/Fake/MagicMock，遵循测试哲学；1 个初始断言错误 (morale recovery 计算误用 total_battles_completed=0) 为测试预期错误，已修正为 72 (recovery=min(20, 10+1*2)=12, 60+12=72)
+
+**Verification**: ruff 0 errors / mypy 0 errors / pytest test_contract_interfaces.py 39 passed / pytest integration 175 passed / pytest campaign_persistence unit 162 passed (零回归)
+
 ## [0.4.6] - 2026-06-29 (开发中)
 
 ### SemVer 纠正 (2026-07-05)

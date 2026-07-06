@@ -1,8 +1,8 @@
 # PyCC2 技术债清单
 
 > **版本**: v0.4.7 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-07-06 (v0.4.7 P0-P3 文档同步 + TD-059 RESOLVED: 6 模块 smoke 测试补齐 58 tests) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 4
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md) | ✅ v0.4.7 TD-038 RESOLVED (4 份核心文档批量同步: PRD 33 用户故事 + ROADMAP M3/M4 + GAP_ANALYSIS A1-A3/R8/R9/R10 + TECH_DEBT checklist) | ✅ v0.4.7 TD-036 RESOLVED (评估确认 tests/benchmark/test_performance_baseline.py 已实现 per-metric threshold 断言) | ✅ v0.4.7 P1 工程实践债评估完成 (TD-035/037/039/040 现状文档化，留待 v0.5+ 推进) | ✅ v0.4.7 P2 视觉/资源/性能/测试债评估完成 (TD-043 RESOLVED + TD-044 WONTFIX + TD-042/059/065/066 现状文档化) | ✅ v0.4.7 P3 低优先级债复核完成 (TD-033/034 checklist 修正 + v2.0 旧条目 18/20 验证通过 + D13-N8 维持待 v0.5 整理) | ✅ v0.4.7 TD-059 RESOLVED (6 模块 smoke 测试补齐: direction/damage/combat_result/stereo_sound/environmental_audio/cc2_map_parser, 58 tests, 全部使用真实组件非 Mock)
+> **上次核查**: 2026-07-06 (v0.4.7 P0-P3 文档同步 + TD-059 RESOLVED: 6 模块 smoke 测试补齐 58 tests + TD-035 RESOLVED: 4 组件接口契约测试 39 tests) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 3
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md) | ✅ v0.4.7 TD-038 RESOLVED (4 份核心文档批量同步: PRD 33 用户故事 + ROADMAP M3/M4 + GAP_ANALYSIS A1-A3/R8/R9/R10 + TECH_DEBT checklist) | ✅ v0.4.7 TD-036 RESOLVED (评估确认 tests/benchmark/test_performance_baseline.py 已实现 per-metric threshold 断言) | ✅ v0.4.7 P1 工程实践债评估完成 (TD-035/037/039/040 现状文档化，留待 v0.5+ 推进) | ✅ v0.4.7 P2 视觉/资源/性能/测试债评估完成 (TD-043 RESOLVED + TD-044 WONTFIX + TD-042/059/065/066 现状文档化) | ✅ v0.4.7 P3 低优先级债复核完成 (TD-033/034 checklist 修正 + v2.0 旧条目 18/20 验证通过 + D13-N8 维持待 v0.5 整理) | ✅ v0.4.7 TD-059 RESOLVED (6 模块 smoke 测试补齐: direction/damage/combat_result/stereo_sound/environmental_audio/cc2_map_parser, 58 tests, 全部使用真实组件非 Mock) | ✅ v0.4.7 TD-035 RESOLVED (4 组件接口契约测试 39 tests: HealthComponent/MoraleComponent/StateMachine/VeterancyComponent 接口冻结 + apply_inheritance_to_units 端到端消费者契约 + CampaignPersistence 序列化保真, 全部使用真实组件非 Mock)
 
 ---
 
@@ -19,7 +19,7 @@
 | 🆕 v0.3.13 批判性审核新增 | 2 | 🟢 P2 | ❌ 未解决 |
 | 🆕 v0.4.0 D8 Phase 2 新增 (TD-065~066) | 2 | 🟢 P2 | ❌ 未解决 |
 | v2.0旧条目（声称已解决） | 20 | — | ✅ 18/20 已验证 (v0.4.7 复核) |
-| **合计（活跃）** | **19** | — | **52/64 已解决** |
+| **合计（活跃）** | **19** | — | **53/64 已解决** |
 
 ---
 
@@ -334,12 +334,19 @@
 - **状态**: ✅ **已解决** — 现在所有测试稳定通过
 - **修复日期**: 2026-05-31 (v0.3.9)
 
-### 🟢 TD-035: 缺少接口契约测试
+### ~~🟢 TD-035: 缺少接口契约测试~~ ✅ RESOLVED (v0.4.7, 2026-07-06)
 
 - **描述**: 模块间接口没有契约测试（Consumer-Driven Contract），导致属性名不匹配等问题无法被测试发现
 - **影响**: P0-002（属性名不匹配）类问题会反复出现
-- **状态**: ❌ 未解决 (v0.4.7 评估) — `tests/integration/` 无 `test_*_contract.py`/`test_*_interface.py`；`test_campaign_persistence_io.py:1040` 显式记录 "the real domain components have interface mismatches"，使用 fakes/duck-typing 而非真实组件兼容性断言
-- **清理方案**: 为关键模块接口添加契约测试（实例化真实 HealthComponent/MoraleComponent，断言 CombatDirector/save 系统消费的属性名匹配）
+- **状态**: ✅ RESOLVED — v0.4.7 新增 `tests/integration/test_contract_interfaces.py` (39 tests)：
+  - ✅ `TestHealthComponentContract` (9 tests): 构造签名 + hp/max_hp 字段可写 + current_hp 只读 property + _update_state/take_damage/heal/is_alive 方法 + slots=True 阻止新增属性
+  - ✅ `TestMoraleComponentContract` (8 tests): 构造签名 + value 字段可写 + 无 current_morale 属性 (负契约) + apply_delta/state/is_combat_effective/start_routing/stop_routing 方法 + slots=True
+  - ✅ `TestStateMachineContract` (8 tests): 构造签名 + force_transition 方法 + 无 force_state 方法 (负契约) + current/history 只读 property + try_transition/transition_or_raise/reset 方法
+  - ✅ `TestVeterancyComponentContract` (8 tests): 构造签名 + add_xp(amount) -> bool + rank 只读 property + xp 字段可写 + record_kill/record_battle_survived 方法 + slots=True
+  - ✅ `TestCampaignPersistenceSerializationContract` (3 tests): BattleOutcome enum save/load 循环保真 (6 个 enum 成员全覆盖) + UnitBattleState 字段 round-trip 保真
+  - ✅ `TestApplyInheritanceConsumerContract` (3 tests): 端到端消费者契约 — 真实 Unit + apply_inheritance_to_units 不抛 AttributeError (alive/dead/no-match 三种场景)
+  - 全部使用真实组件 (HealthComponent/MoraleComponent/StateMachine/VeterancyComponent/Unit)，无 Mock/Fake，遵循测试哲学
+- **清理方案**: ~~为关键模块接口添加契约测试~~ 已完成
 
 ### ~~🟢 TD-036: 缺少性能回归测试~~ ✅ RESOLVED (v0.4.7 评估确认, 2026-07-05)
 
@@ -451,7 +458,7 @@
 
 - [x] ~~TD-033: 创建E2E测试套件~~ ✅ 已完成 (v0.3.11) — 475 个 E2E 测试用例
 - [x] ~~TD-034: 修复失败测试用例~~ ✅ 已修复 (v0.3.9) — test_swiss_cheese.py 失败已修正
-- [ ] TD-035: 添加接口契约测试
+- [x] ~~TD-035: 添加接口契约测试~~ ✅ RESOLVED (v0.4.7, 2026-07-06) — `tests/integration/test_contract_interfaces.py` 39 tests: 4 组件接口冻结 (HealthComponent/MoraleComponent/StateMachine/VeterancyComponent) + apply_inheritance_to_units 端到端消费者契约 + CampaignPersistence 序列化保真
 - [x] ~~TD-036: 建立性能回归测试基线~~ ✅ RESOLVED (v0.4.7 评估确认) — `tests/benchmark/test_performance_baseline.py` 已实现 per-metric threshold 断言
 - [ ] TD-037: 添加AI行为集成测试
 - [x] ~~TD-038: 建立文档-代码同步验证机制~~ ✅ RESOLVED (v0.4.7, 2026-07-05) — 4 份核心文档批量同步 (PRD/ROADMAP/GAP_ANALYSIS/TECH_DEBT)
