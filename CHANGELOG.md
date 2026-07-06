@@ -289,6 +289,24 @@ All notable changes to PyCC2 will be documented in this file.
 
 **Verification**: 文档级修改无源码变更，ruff/mypy 不受影响。代码层验证通过 Explore agent 完成证据采集 (isometric_renderer.py dirty flag + camera.py ProjectionMode docstring + assets/sprites/ 目录 + tests/unit/ 覆盖交叉引用)。
 
+### P3 低优先级债复核 — v2.0 旧条目 18/20 验证通过 + D13-N8 维持待 v0.5 (DevSquad V3.8, 2026-07-05)
+
+> 复核 v2.0 声称已解决的 20 项技术债 + D13-N8 INSTALL 三语差异评估。v3.0 验证仅 9/20 通过，v0.4.7 复核提升至 18/20。
+
+**评估结果**:
+
+1. **v2.0 旧条目复核 (20 项)** — 18/20 完全验证通过 (v3.0 仅 9/20)，1 项 STILL PARTIAL，1 项 STILL OPEN:
+   - ✅ **18 项验证通过**: TD-001/002/004/005/006/008/009/010/011/012/013/014/015/016/017/018/019/020 — v0.3.x-v0.4.7 工作解决了 v3.0 复核中 9/11 项 partial/open 问题
+   - 🟡 **TD-003 STILL PARTIAL**: `campaign.py` 与 `campaign_four_layer.py` 仍并存 (历史记录，非阻塞)
+   - ❌ **TD-007 STILL OPEN**: 地图边界处理 (低优先级，留待 v0.5+)
+2. **TD-033 checklist 修正**: ⬜ → ✅ 已完成 (v0.3.11) — 475 个 E2E 测试用例 (原 checklist 漏标)
+3. **TD-034 checklist 修正**: ⬜ → ✅ 已修复 (v0.3.9) — test_swiss_cheese.py 失败已修正 (原 checklist 漏标)
+4. **D13-N8 INSTALL 三语差异**: 维持 🟢 待 v0.5 整理 — ZH 版本缺 Configuration + Uninstallation 节，使用教程式结构而非主题式 (与 EN/JA 不一致)
+
+**处置**: v2.0 旧条目状态从 "⚠️ 待验证" 升级为 "✅ 18/20 已验证"；TD-033/034 checklist 与详情对齐；D13-N8 维持低优先级。总览表 49/64→51/64 已解决，P2未解决 7→5。
+
+**Verification**: 文档级修改无源码变更，ruff/mypy 不受影响。v2.0 旧条目复核通过 Explore agent 交叉验证各 TD 详情节 + 关联代码文件确认现状。
+
 ## [0.4.6] - 2026-06-29 (开发中)
 
 ### SemVer 纠正 (2026-07-05)
