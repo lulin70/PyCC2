@@ -345,6 +345,26 @@ All notable changes to PyCC2 will be documented in this file.
 
 **Verification**: ruff 0 errors / mypy 0 errors / pytest test_contract_interfaces.py 39 passed / pytest integration 175 passed / pytest campaign_persistence unit 162 passed (零回归)
 
+### TD-037 RESOLVED — AI GameLoop 集成测试 (DevSquad V3.8, 2026-07-06)
+
+> 补齐 TD-037 AI 行为集成测试缺口。纯测试工作，零功能变更，版本保持 v0.4.7。
+
+**新增测试文件**: `tests/integration/test_ai_gameloop_integration.py` (6 tests)
+
+**测试结构** (TestAIGameLoopIntegration, 6 tests):
+1. **test_ai_service_attached_to_game_loop** — GameLoop 真实 AIService 已附加 (managed_unit_count=0 初始)
+2. **test_enemy_units_auto_registered_via_update_logic** — _update_logic 自动注册敌方单位到 AIService (_ensure_ai_units_registered 契约, game_loop_updating.py L253-304)
+3. **test_ai_tick_executed_after_update_interval** — 调用 _update_logic _ai_update_interval(=3) 次后 AIService._current_tick 递增 (tick 被执行)
+4. **test_full_ai_chain_runs_without_error** — 10 ticks 端到端烟雾测试 (GameLoop → _update_logic → _update_ai → ai_service.tick → execute_intents 全链路无异常)
+5. **test_ai_tick_counter_resets_after_execution** — tick 执行后 _ai_tick_counter 重置为 0 (game_loop_updating.py L312-320 契约)
+6. **test_ai_continues_ticking_across_multiple_cycles** — 9 ticks = 3 个 AI tick cycle, _current_tick >= 3 (持续 tick 验证)
+
+**填补的缺口**: TD-037 评估指出 `tests/e2e/test_ai_behaviors_e2e.py` 直接调用 `system.tick(unit)`/`evaluate_tick()` 而非驱动 GameLoop；`tests/integration/test_combat_loop.py` 实例化 GameLoop 但测试战斗流程而非 AI 行为端到端。本文件首次通过 GameLoop._update_logic 驱动真实 AIService 完成端到端集成验证。
+
+**测试哲学遵循**: 全部使用真实 GameLoop + 真实 AIService + 真实 BehaviorTree (UnitBTFactory) + 真实 TacticExecutor + 真实 EventBus, 仅 WindowManager 用 Mock (headless pygame 必需, 与 test_combat_loop.py 同模式)
+
+**Verification**: ruff 0 errors / mypy 0 errors / pytest test_ai_gameloop_integration.py 6 passed / pytest integration 181 passed (零回归, 175→181 新增 6)
+
 ## [0.4.6] - 2026-06-29 (开发中)
 
 ### SemVer 纠正 (2026-07-05)
