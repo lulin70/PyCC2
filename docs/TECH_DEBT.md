@@ -1,8 +1,8 @@
 # PyCC2 技术债清单
 
 > **版本**: v0.4.7 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-07-05 (v0.4.7 P0 文档同步批次 + P1 工程实践债评估: TD-038 RESOLVED + TD-036 RESOLVED 评估确认 + TD-035/037/039/040 现状文档化) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 9
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md) | ✅ v0.4.7 TD-038 RESOLVED (4 份核心文档批量同步: PRD 33 用户故事 + ROADMAP M3/M4 + GAP_ANALYSIS A1-A3/R8/R9/R10 + TECH_DEBT checklist) | ✅ v0.4.7 TD-036 RESOLVED (评估确认 tests/benchmark/test_performance_baseline.py 已实现 per-metric threshold 断言) | ✅ v0.4.7 P1 工程实践债评估完成 (TD-035/037/039/040 现状文档化，留待 v0.5+ 推进)
+> **上次核查**: 2026-07-05 (v0.4.7 P0 文档同步 + P1 工程实践债评估 + P2 视觉/资源/性能/测试债评估: TD-038/036/043 RESOLVED + TD-044 WONTFIX + TD-035/037/039/040/042/059/065/066 现状文档化) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 7
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md) | ✅ v0.4.7 TD-038 RESOLVED (4 份核心文档批量同步: PRD 33 用户故事 + ROADMAP M3/M4 + GAP_ANALYSIS A1-A3/R8/R9/R10 + TECH_DEBT checklist) | ✅ v0.4.7 TD-036 RESOLVED (评估确认 tests/benchmark/test_performance_baseline.py 已实现 per-metric threshold 断言) | ✅ v0.4.7 P1 工程实践债评估完成 (TD-035/037/039/040 现状文档化，留待 v0.5+ 推进) | ✅ v0.4.7 P2 视觉/资源/性能/测试债评估完成 (TD-043 RESOLVED + TD-044 WONTFIX + TD-042/059/065/066 现状文档化)
 
 ---
 
@@ -19,7 +19,7 @@
 | 🆕 v0.3.13 批判性审核新增 | 2 | 🟢 P2 | ❌ 未解决 |
 | 🆕 v0.4.0 D8 Phase 2 新增 (TD-065~066) | 2 | 🟢 P2 | ❌ 未解决 |
 | v2.0旧条目（声称已解决） | 20 | — | ⚠️ 待验证 |
-| **合计（活跃）** | **19** | — | **47/64 已解决** |
+| **合计（活跃）** | **19** | — | **49/64 已解决** |
 
 ---
 
@@ -129,24 +129,24 @@
 - **描述**: PixVoxel Revised Isometric精灵(CC0, 35单位+7设施)下载脚本已就绪，但网络慢(28.8MB)未完成下载
 - **影响**: 等距模式仍使用程序化生成的简单精灵，视觉还原度不足
 - **文件**: `scripts/download_pixvoxel_assets.py`, `src/pycc2/presentation/rendering/pixvoxel_loader.py`
-- **状态**: ❌ 未解决 (下载脚本就绪，需手动执行)
-- **清理方案**: 在网络良好时执行 `python scripts/download_pixvoxel_assets.py`
+- **状态**: ❌ 未解决 (v0.4.7 评估) — 下载脚本完整实现 (curl/wget/urllib + 7z 解压 + manifest writer)，但 `assets/sprites/` 无 `pixvoxel_isometric/` 目录，脚本从未成功执行；`pixvoxel_loader.py` docstring 明确 "PLANNED: Not yet wired into game loop"，`src/pycc2/` 零导入
+- **清理方案**: 下载是 quick win (单脚本执行)，但接入渲染管线替换程序化精灵是非平凡集成工作，留待 v0.5+ 推进
 
-### 🟢 TD-043: 等距渲染性能未优化
+### ~~🟢 TD-043: 等距渲染性能未优化~~ ✅ RESOLVED (v0.4.7 评估确认, 2026-07-05)
 
-- **描述**: IsometricRenderer每帧重新生成所有可见瓦片，无脏矩形优化，大地图可能卡顿
-- **影响**: 100×100地图等距模式帧率可能低于30 FPS
+- **描述**: ~~IsometricRenderer每帧重新生成所有可见瓦片，无脏矩形优化，大地图可能卡顿~~ 已优化
+- **影响**: ~~100×100地图等距模式帧率可能低于30 FPS~~ 已通过缓存+脏矩形解决
 - **文件**: `src/pycc2/presentation/rendering/isometric_renderer.py`
-- **状态**: ❌ 未解决
-- **清理方案**: 实现瓦片缓存+脏矩形渲染+精灵批处理
+- **状态**: ✅ RESOLVED — 模块 docstring 声明 "Phase 3 (optimized)"；代码实现：`_dirty: bool` 标志 (L126) + `mark_dirty()`/`is_dirty()` (L187-198) + `_invalidate_scaled_cache()` (L182) + `_pregenerate_tiles()` (L155) + `_pregenerate_buildings()` (L161) + L259-260 "If not dirty, skip full redraw (just re-blit the offscreen buffer)"。瓦片从预缓存 surface blit，无每帧生成
+- **清理方案**: ~~实现瓦片缓存+脏矩形渲染+精灵批处理~~ 已实现
 
-### 🟢 TD-044: 等距模式默认仍为ORTHOGRAPHIC
+### ~~🟢 TD-044: 等距模式默认仍为ORTHOGRAPHIC~~ ✅ WONTFIX (v0.4.7 设计决策确认, 2026-07-05)
 
-- **描述**: Camera默认projection=ORTHOGRAPHIC，等距模式需手动按I键切换
-- **影响**: 用户首次启动看不到等距效果
+- **描述**: ~~Camera默认projection=ORTHOGRAPHIC，等距模式需手动按I键切换~~ 前提已被否决
+- **影响**: ~~用户首次启动看不到等距效果~~ 不适用 (CC2 原版使用正交投影)
 - **文件**: `src/pycc2/presentation/rendering/camera.py`
-- **状态**: ❌ 未解决 (Phase 3计划)
-- **清理方案**: 等距渲染稳定后切换默认为ISOMETRIC
+- **状态**: ✅ WONTFIX — `camera.py` L14-23 `ProjectionMode` docstring 明确声明："CC2 uses Orthographic Top-Down projection, NOT Isometric. Analysis of original CC2 screenshots confirms this. ORTHOGRAPHIC is the CC2-correct default." ISOMETRIC 声明为 "experimental feature for modding/future use"。`isometric_renderer.py` L22-25 呼应："EXPERIMENTAL FEATURE ... NOT the primary rendering path"。TD 前提 (默认应切换为等距) 已被团队基于截图分析明确否决
+- **清理方案**: ~~等距渲染稳定后切换默认为ISOMETRIC~~ 不再适用，CC2 原版即为正交投影
 
 ---
 
@@ -259,8 +259,11 @@
   - UI组件: cc2_hud.py (1138行无测试)
 - **影响**: 回归风险，重构信心不足
 - **优先级**: P2 (先覆盖核心路径)
-- **状态**: ❌ 未解决
-- **清理方案**: 为核心模块添加单元测试
+- **状态**: 🟡 PARTIAL (v0.4.7 评估) — v0.4.3/v0.4.5 批次已覆盖部分模块：
+  - ✅ 已覆盖: save_system.py / bgm_system.py / cc2_hud.py / terrain_type.py (v0.4.5 "12 零覆盖文件补测" + 38 smoke tests)
+  - ⚠️ 部分: config.py (仅 test_display_config.py，非完整覆盖)
+  - ❌ 仍缺失: cc2_map_parser.py / environmental_audio.py / stereo_sound.py / combat_result.py / direction.py / damage.py (5-6 个模块)
+- **清理方案**: 为剩余 5-6 个模块添加 smoke 测试 (每个 <30 min，均为小型 value-object/infrastructure 模块)，留待 v0.5+ 推进
 
 ### ~~🔴 TD-053: TopDownParticleSystem 重复定义~~ ✅ 已修复 (v0.3.8)
 
@@ -454,8 +457,8 @@
 - [ ] TD-040: 添加启动时健康检查
 - [ ] TD-041: 建立变更影响分析流程
 - [ ] TD-042: 下载集成PixVoxel CC0精灵资源
-- [ ] TD-043: 优化等距渲染性能
-- [ ] TD-044: 等距模式默认切换
+- [x] ~~TD-043: 优化等距渲染性能~~ ✅ RESOLVED (v0.4.7 评估确认) — isometric_renderer.py 已实现 dirty flag + 瓦片缓存 + culling
+- [x] ~~TD-044: 等距模式默认切换~~ ✅ WONTFIX (v0.4.7 设计决策) — CC2 原版使用正交投影，ISOMETRIC 为实验性功能
 - [x] ~~TD-048: 审查并重构quick_implementations.py~~ ✅ 已修复 (2026-05-28)
 - [x] ~~TD-049: 合并infra/到infrastructure/~~ ✅ 已修复 (2026-05-28)
 - [x] ~~TD-052: 拆分enhanced_renderer.py（~2521行，目标<2000行）~~ ✅ 已完成 (v0.3.11) — 5975行→2239行，-62.5%

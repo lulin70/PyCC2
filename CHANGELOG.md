@@ -272,6 +272,23 @@ All notable changes to PyCC2 will be documented in this file.
 
 **Verification**: 文档级修改无源码变更，ruff/mypy 不受影响。代码层验证通过 Explore agent 完成证据采集。
 
+### P2 视觉/资源/性能/测试债评估 — TD-043 RESOLVED + TD-044 WONTFIX (DevSquad V3.8, 2026-07-05)
+
+> 评估 6 项 P2 视觉/资源/性能/测试债 (TD-042/043/044/059/065/066) 的当前状态。2 项关闭，4 项现状文档化。
+
+**评估结果**:
+
+1. **TD-043 等距渲染性能 ✅ RESOLVED** — `isometric_renderer.py` 已实现 Phase 3 优化：`_dirty: bool` 标志 + `mark_dirty()`/`is_dirty()` + `_invalidate_scaled_cache()` + `_pregenerate_tiles()` + `_pregenerate_buildings()` + L259-260 "If not dirty, skip full redraw"。瓦片从预缓存 surface blit，无每帧生成。原 TECH_DEBT 标注过期
+2. **TD-044 等距模式默认 ✅ WONTFIX** — `camera.py` L14-23 `ProjectionMode` docstring 明确声明："CC2 uses Orthographic Top-Down projection, NOT Isometric. Analysis of original CC2 screenshots confirms this." TD 前提 (默认应切换为等距) 已被团队基于 CC2 原版截图分析明确否决。ISOMETRIC 为实验性功能
+3. **TD-042 PixVoxel 资源 ❌ 留待 v0.5+** — 下载脚本完整，但 `assets/sprites/` 无 pixvoxel 目录，从未执行；`pixvoxel_loader.py` 未接入 game loop。下载是 quick win，接入渲染管线是非平凡工作
+4. **TD-059 测试覆盖缺口 🟡 PARTIAL** — v0.4.5 已覆盖 save_system/bgm_system/cc2_hud/terrain_type (38 smoke tests)；仍缺 cc2_map_parser/environmental_audio/stereo_sound/combat_result/direction/damage (5-6 模块)
+5. **TD-065 车辆损伤视觉 ❌ 延期 v0.5** — D8 Phase 2 评估后延期 (通用损伤视觉已实现，载具部件差异化需核心逻辑改动)
+6. **TD-066 烟雾粒子效果 ❌ 延期 v0.5** — D8 Phase 2 评估后延期 (CC2SmokeEffect 存在但未接入生产链路)
+
+**处置**: TD-043 ✅ RESOLVED + TD-044 ✅ WONTFIX；TD-042/059/065/066 状态更新为带证据的标注，留待 v0.5+ 推进。总览表 47/64→49/64 已解决，P2未解决 9→7。
+
+**Verification**: 文档级修改无源码变更，ruff/mypy 不受影响。代码层验证通过 Explore agent 完成证据采集 (isometric_renderer.py dirty flag + camera.py ProjectionMode docstring + assets/sprites/ 目录 + tests/unit/ 覆盖交叉引用)。
+
 ## [0.4.6] - 2026-06-29 (开发中)
 
 ### SemVer 纠正 (2026-07-05)
