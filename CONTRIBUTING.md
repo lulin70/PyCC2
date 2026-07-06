@@ -124,6 +124,28 @@ Include version info and test count when relevant.
 4. **Event-driven**: Use EventBus for decoupled communication
 5. **Object pooling**: Rendering pipeline uses SurfacePool, ParticlePool, TerrainTileCache
 
+### Architecture Guard Tests (TD-041)
+
+Layer dependencies are enforced automatically by `tests/unit/test_architecture_guards.py`:
+- Domain must not import from services/presentation/infrastructure
+- Services must not import from presentation at module level (TYPE_CHECKING and function-local lazy imports are exempt)
+- Presentation must not import from infrastructure
+- Infrastructure must not import from presentation/services
+
+The composition root (`game_loop_assembler.py`) is exempt — its cross-layer imports are function-local for dependency injection. Run `pytest tests/unit/test_architecture_guards.py -v` before submitting changes that touch imports.
+
+## Change Impact Analysis (TD-041)
+
+Before modifying a module's public interface (function/method signature, class fields, Protocol definitions), check all references:
+
+1. **Find all callers** — `grep -rn "module_name" src/pycc2/ tests/` or use IDE "Find Usages"
+2. **Check Protocol contracts** — changes to `src/pycc2/domain/interfaces/*.py` affect all implementations; search for classes implementing the Protocol
+3. **Run architecture guards** — `pytest tests/unit/test_architecture_guards.py -v` ensures no new layer violations
+4. **Run affected tests** — `pytest tests/unit/test_<module>.py tests/integration/ -v` for the module and its integration tests
+5. **Update docs if API changes** — README, USER_MANUAL, CONTRIBUTING, TECH_DEBT must stay consistent with code
+
+For cross-layer changes (e.g., modifying a domain entity used by services and presentation), run the full regression: `SDL_VIDEODRIVER=dummy python -m pytest tests/ -m "not slow" -q`.
+
 ## Reporting Issues
 
 - Bug reports: Include steps to reproduce, expected vs actual behavior

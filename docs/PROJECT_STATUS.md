@@ -1,17 +1,17 @@
 # PyCC2 项目状态
 
 > **最后更新**: 2026-07-06
-> **版本**: v0.4.8
+> **版本**: v0.4.9
 > **状态**: Beta Candidate — 完全可玩
 
 ## 核心指标
 
 | 指标 | 数值 | 来源 |
 |------|------|------|
-| 版本号 | 0.4.8 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
+| 版本号 | 0.4.9 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
 | 源码模块数 | 390 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
 | 测试文件数 | 176 个 `.py` 文件（unit 137 / integration 7 / e2e 25 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 4877 passed / 0 failed / 2 skipped (v0.4.8 基线，含 TD-040/TD-039 新增 27 tests) | `pytest tests/unit tests/integration` |
+| 测试用例数 | 4885 passed / 0 failed / 2 skipped (v0.4.9 基线，含 TD-041 架构守卫 8 tests) | `pytest tests/unit tests/integration` |
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=60`（已恢复目标值） | `.github/workflows/ci.yml` |
 | 实际覆盖率 | 60.05% (44170 stmts, 15918 missed，含 branch coverage) | `pytest tests/unit/ --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |

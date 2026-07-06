@@ -365,6 +365,38 @@ All notable changes to PyCC2 will be documented in this file.
 
 **Verification**: ruff 0 errors / mypy 0 errors / pytest test_ai_gameloop_integration.py 6 passed / pytest integration 181 passed (零回归, 175→181 新增 6)
 
+### v0.4.9 — TD-041 + TD-061 工程实践债清除 (P2, 2026-07-06 完成)
+
+> 推进 v0.4.8 后剩余 P2 中的 TD-041 (变更影响分析流程) + TD-061 (enhanced_renderer God Class 评估收尾)。新增架构守卫测试 8 tests + 流程文档 + 诚实评估。技术债 56/64 → 58/64。
+
+**TD-041: 变更影响分析流程 (架构守卫测试 + 流程文档)**:
+- 新建 `tests/unit/test_architecture_guards.py` (8 tests) — 4 层 DDD 依赖方向自动验证
+  - `TestDomainLayerIsolation`: domain 不导入 services/presentation/infrastructure
+  - `TestServicesLayerIsolation`: services 不导入 presentation (模块级, TYPE_CHECKING 与函数内 lazy import 豁免)
+  - `TestPresentationLayerIsolation`: presentation 不导入 infrastructure
+  - `TestInfrastructureLayerIsolation`: infrastructure 不导入 presentation/services
+  - `TestLayerDirectoriesExist`: 4 层目录存在性 (parametrized 4 cases)
+  - AST 解析模块级 Import/ImportFrom, 排除 `if TYPE_CHECKING:` 块, 不检查函数内 lazy import
+  - 组合根 `game_loop_assembler.py` 自动豁免 (其跨层导入都在函数内)
+- `CONTRIBUTING.md` 新增 "Architecture Guard Tests" 节 + "Change Impact Analysis" 5 步流程:
+  1. Find all callers (grep/IDE Find Usages)
+  2. Check Protocol contracts (domain/interfaces/ 影响所有实现)
+  3. Run architecture guards (pytest test_architecture_guards.py)
+  4. Run affected tests (module + integration)
+  5. Update docs if API changes
+
+**TD-061: enhanced_renderer God Class 诚实评估收尾 (ACCEPTED)**:
+- 评估 `src/pycc2/presentation/rendering/enhanced_renderer.py` 当前状态: 485 行 / 30 方法
+- 30 方法全部是薄委托到 9 个已提取子模块 (AtmosphereController/UnitPositionInterpolator/SuppressionOverlayRenderer/RendererStateManager/EnvironmentRenderer/UIOverlayRenderer/ScreenEffectsRenderer/WorldRenderer/TerrainRenderingSystem)
+- 核心方法仅 4 个: `__init__` (组合根) / `initialize` (初始化协调) / `render` (6 步管线协调) / `shutdown` (清理)
+- 其余 26 个方法都是 1-3 行委托包装, 维持向后兼容 API
+- **决策: ACCEPTED** — 协调者模式不应按方法数阈值强行拆分。基于 D13 N-1 教训 (机械阈值 >30 方法误判率 98.1%), 强行拆分会破坏 API 兼容性或引入不必要间接层, 无实际收益
+- 从 v0.3.13 "部分解决" 升级为 v0.4.9 "ACCEPTED" (最终状态)
+
+**Verification**: ruff 0 errors / mypy 0 errors / pytest unit+integration 4885 passed, 2 skipped (零回归, 4877→4885 新增 8 架构守卫)
+
+**技术债进展**: 56/64 → 58/64 已解决 | P2 活跃 17 → 15 | 剩余 6 项 (TD-003/007/042/065/066 + v0.3.13 1 项) 延期至 v0.5+
+
 ### v0.4.8 — TD-040 + TD-039 工程实践债清除 (P2, 2026-07-06 完成)
 
 > 推进 v0.4.7 P1 评估留下的 TD-039/TD-040 两项 P2 工程实践债。源码修改 + 新增 27 tests。技术债 54/64 → 56/64, P2 未解决 2 → 0。
