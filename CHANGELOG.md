@@ -256,6 +256,22 @@ All notable changes to PyCC2 will be documented in this file.
 
 **Verification**: 文档级修改无源码变更，ruff/mypy 不受影响。代码层验证: `los_system.py` elevation_grid/height_grid 实现确认 + `ambush_ai.py`/`retreat_ai.py`/`counterattack_ai.py` 文件存在确认 + `infra/` 目录不存在确认。
 
+### P1 工程实践债评估 — TD-036 RESOLVED + 4 项现状文档化 (DevSquad V3.8, 2026-07-05)
+
+> 评估 5 项 P2 工程实践债 (TD-035/036/037/039/040) 的当前状态。1 项已解决，4 项为真实差距并文档化现状证据。
+
+**评估结果**:
+
+1. **TD-036 性能回归测试 ✅ RESOLVED** — `tests/benchmark/test_performance_baseline.py` 已实现 per-metric `threshold: float` 断言 (覆盖 render/AI tick/surface pool/startup/memory)。`PERF_THRESHOLDS.md` 文档化基线。原 TECH_DEBT 标注过期，本次评估确认已解决
+2. **TD-035 接口契约测试 ❌ 真实差距** — `tests/integration/` 无 contract 测试；`test_campaign_persistence_io.py:1040` 显式记录 "the real domain components have interface mismatches"，使用 fakes 而非真实组件兼容性断言。留待 v0.5+ 推进
+3. **TD-037 AI 行为集成测试 🟡 PARTIAL** — `tests/e2e/test_ai_behaviors_e2e.py` 覆盖 6 类 AI 行为，但直接调用 `system.tick(unit)` 而非驱动 `GameLoop`；`test_combat_loop.py:123` 实例化 GameLoop 但测试战斗流程而非 AI 端到端。留待 v0.5+ 推进
+4. **TD-039 错误恢复机制 🟡 PARTIAL** — 选择性实现：audio init 失败降级为 None / asset loader 回退程序化精灵 / shutdown 用 contextlib.suppress。**但** `game_loop.py:run()` 主 update/render 路径无 try/except，单组件异常会崩溃循环。留待 v0.5+ 推进
+5. **TD-040 运行时健康检查 ❌ MISSING** — 全仓库无 health_check/diagnostic/preflight 模块；`game_loop_assembler.py` 初始化但不验证 post-init 状态。留待 v0.5+ 推进
+
+**处置**: TD-036 标记为 ✅ RESOLVED；TD-035/037/039/040 状态更新为带证据的 PARTIAL/MISSING 标注，清理方案细化为可执行的 v0.5+ 任务。总览表 46/64→47/64 已解决，P2未解决 10→9。
+
+**Verification**: 文档级修改无源码变更，ruff/mypy 不受影响。代码层验证通过 Explore agent 完成证据采集。
+
 ## [0.4.6] - 2026-06-29 (开发中)
 
 ### SemVer 纠正 (2026-07-05)
