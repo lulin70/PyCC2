@@ -223,6 +223,39 @@ All notable changes to PyCC2 will be documented in this file.
 
 **Verification**: ruff 0 errors / mypy 0 errors (版本号字段更新无源码逻辑变更)
 
+### P0 文档状态同步批次 — TD-038 RESOLVED (DevSquad V3.8, 2026-07-05)
+
+> 7 维度审计发现 PRD/ROADMAP/GAP_ANALYSIS/TECH_DEBT 4 份核心文档状态标注严重过时（TD-038 集中爆发）。本批次完成全量同步。
+
+**同步内容**:
+
+1. **PRD.md (P0-1)**: 33 个用户故事 ❌/⚠️ → ✅ (P0 Bug TD-021~025 已在 v0.3.x 全部修复，原"❌ 因 P0 Bug 阻塞"标注过时)。2 个路线图表格 + 依赖关系图同步。
+2. **ROADMAP.md (P0-2)**:
+   - M3 Task List 5 项: Command queue UI ✅ (R1, v0.4.0 D8 Phase 2) + Save/Load UI ✅ (R4, v0.4.0 D8 Phase 2) + Vehicle damage ⬜ 延期 v0.5 (TD-065) + Smoke particles ⬜ 延期 v0.5 (TD-066) + Audio mixing ⚠️ partial
+   - M4 Task List 9 项: 7✅ (TD-027/045/046/047/048/058 + GameLoop split D11/D12) + 2⬜ pending (Domain layer slimdown + Unify unit definition)
+   - M3/M4 Acceptance Criteria 同步勾选
+   - Version Timeline 新增 v0.4.7 行 + v0.4-alpha/v0.5-alpha 状态改为 Partial
+   - Document Version 0.3.39→0.4.7, Updated 2026-06-13→2026-07-05
+3. **GAP_ANALYSIS.md (P0-3)**:
+   - 4.2 表格: 丘陵地形 ❌→✅ (R9, 已验证 `los_system.py` elevation_grid + HEIGHT_BLOCK_THRESHOLD=1.5) + 多层建筑 ❌→✅ (R10, 已验证 height_grid 0-3 floors + _get_building_height)
+   - 6.2 表格: AI 伏击/撤退/反击 ❌→✅ (R8, 已验证 `ambush_ai.py`/`retreat_ai.py`/`counterattack_ai.py`)
+   - 10.3 表格: A1-A3 架构差距 ❌→✅ RESOLVED (TD-050 v0.3.9 审计确认 / TD-051 v0.3.9 / TD-052 v0.3.11 — 5975行→2239行 -62.5%)
+   - 一、总体评估表: AI战术 🟡→✅
+   - 底部 summary 行: A1-A3 加入已解决列表 + 剩余功能差距明确列出
+4. **TECH_DEBT.md (P0-4)**:
+   - TD-038 ❌→✅ RESOLVED (v0.4.7) — 含 4 份文档详细清理记录
+   - Checklist 同步: TD-026 ✅ (评估完成) + TD-027 ✅ (RESOLVED) + TD-038 ✅ (RESOLVED) + TD-052 ✅ (v0.3.11 已完成，原 checklist 漏标)
+   - 总览表: 45/64→46/64 已解决，P2未解决 11→10
+   - 顶部状态行追加 v0.4.7 TD-038 RESOLVED 条目
+
+**关键发现**:
+- TD-038 (文档与代码不同步) 是系统性问题，根因是缺乏版本发布前的文档状态核查机制
+- R8/R9/R10 在 v0.3.0 已 RESOLVED 但 4.2/6.2 表格从未同步，跨 4 个小版本 (v0.3.0→v0.4.7) 未被发现
+- A1-A3 在 v0.3.9/v0.3.11 已 RESOLVED 但 10.3 表格从未同步
+- TECH_DEBT.md 自身 checklist 与详细条目存在内部不一致 (TD-052 详细条目 ✅ 但 checklist ⬜)
+
+**Verification**: 文档级修改无源码变更，ruff/mypy 不受影响。代码层验证: `los_system.py` elevation_grid/height_grid 实现确认 + `ambush_ai.py`/`retreat_ai.py`/`counterattack_ai.py` 文件存在确认 + `infra/` 目录不存在确认。
+
 ## [0.4.6] - 2026-06-29 (开发中)
 
 ### SemVer 纠正 (2026-07-05)

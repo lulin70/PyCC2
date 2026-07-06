@@ -3,7 +3,7 @@
 **v0.4.7 | July 5, 2026 | Based on DevSquad 7-Role Analysis**
 
 > **Current Version**: v0.4.7 | **Tests**: ~4598 (all passing) | **CC2 Fidelity**: ~88%
-> **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish in Progress**
+> **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish Mostly Complete (2 items deferred to v0.5 per TD-065/TD-066)**
 
 ---
 
@@ -173,26 +173,28 @@ The project now has **~3985 passing tests**, **63 historical maps**, **277 unit 
 
 ---
 
-## Current Phase: M3 — Polish & Visual Fidelity 🟡 (Ongoing)
+## Current Phase: M3 — Polish & Visual Fidelity 🟡 (Mostly Complete, 2 items deferred to v0.5)
 
 **Target**: v0.4-alpha | **Timeline**: 5-7 days | **Focus**: User-facing polish
+
+> **v0.4.7 同步更新**: M3 任务列表已根据 v0.4.0 D8 Phase 2 实际完成情况同步。R1 (命令队列视觉路径点) 和 R4 (存档系统完整集成) 已在 v0.4.0 D8 Phase 2 完成。Vehicle damage visual feedback 和 Smoke particle effects 延期至 v0.5 (TD-065/TD-066)。Audio mixing balance pass 部分完成 (R5 ✅ RESOLVED in v0.3.0, 但部分音效音量仍不一致)。
 
 ### M3 Task List
 
 | Task | Priority | Est. Hours | Status | Owner |
 |------|----------|------------|--------|-------|
-| Command queue UI (visual waypoint display) | P1 | 4h | ⬜ | UI Designer + Coder |
-| Vehicle damage visual feedback (smoke, fire, immobilized) | P1 | 4h | ⬜ | UI Designer + Coder |
-| Smoke particle effects improvement | P1 | 4h | ⬜ | UI Designer + Coder |
-| Save/Load full UI integration | P2 | 4h | ⬜ | PM + Coder |
-| Audio mixing balance pass | P2 | 2h | ⬜ | UI Designer |
+| Command queue UI (visual waypoint display) | P1 | 4h | ✅ Complete (v0.4.0 D8 Phase 2, R1) | UI Designer + Coder |
+| Vehicle damage visual feedback (smoke, fire, immobilized) | P1 | 4h | ⬜ Deferred to v0.5 (TD-065) | UI Designer + Coder |
+| Smoke particle effects improvement | P1 | 4h | ⬜ Deferred to v0.5 (TD-066) | UI Designer + Coder |
+| Save/Load full UI integration | P2 | 4h | ✅ Complete (v0.4.0 D8 Phase 2, R4) | PM + Coder |
+| Audio mixing balance pass | P2 | 2h | ⚠️ Partial (R5 RESOLVED v0.3.0, 部分音量不一致) | UI Designer |
 
 **M3 Acceptance Criteria**:
-- [ ] Command queue shows visual waypoints with numbering
-- [ ] Vehicle damage has visual feedback (smoke, fire, disabled appearance)
-- [ ] Smoke has improved particle effects
-- [ ] Save/Load fully integrated into UI
-- [ ] Audio volume levels balanced
+- [x] Command queue shows visual waypoints with numbering ✅ (v0.4.0 D8 Phase 2, R1)
+- [ ] Vehicle damage has visual feedback (smoke, fire, disabled appearance) — ⬜ Deferred to v0.5 (TD-065)
+- [ ] Smoke has improved particle effects — ⬜ Deferred to v0.5 (TD-066)
+- [x] Save/Load fully integrated into UI ✅ (v0.4.0 D8 Phase 2, R4)
+- [ ] Audio volume levels balanced — ⚠️ Partial (R5 RESOLVED v0.3.0, 部分音量不一致)
 
 ---
 
@@ -202,26 +204,28 @@ The project now has **~3985 passing tests**, **63 historical maps**, **277 unit 
 
 **Target**: v0.5-alpha | **Timeline**: 5-7 days | **Focus**: Code maintainability
 
+> **v0.4.7 同步更新**: M4 任务列表已根据 v0.3.x~v0.4.7 实际完成情况同步。9 项任务中 7 项已完成 (TD-027/045/046/047/048/058 + GameLoop split D11/D12)。Domain layer slimdown 和 Unify unit definition system 仍需推进。
+
 | Task | Priority | Est. Hours | Status | Owner |
 |------|----------|------------|--------|-------|
-| Domain layer slimdown (75.4% → <50%) | P1 | 8h | ⬜ | Architect + Coder |
-| Split large files (8 files >1000 lines) | P1 | 8h | ⬜ | Coder |
-| GameLoop split (1226 lines → <400 lines) | P1 | 6h | ⬜ | Coder |
-| Merge infra/ into infrastructure/ | P2 | 1h | ⬜ | DevOps |
-| Unify unit definition system (4 sets → 1 set) | P2 | 4h | ⬜ | Architect + Coder |
-| Clean up duplicate morale modules | P2 | 2h | ⬜ | Coder |
-| Fix 68 bare except blocks | P2 | 3h | ⬜ | Coder |
-| Remove domain quick_implementations.py | P2 | 2h | ⬜ | Coder |
-| Fix domain→presentation layer violations | P2 | 2h | ⬜ | Architect |
+| Domain layer slimdown (75.4% → <50%) | P1 | 8h | ⬜ Still pending | Architect + Coder |
+| Split large files (8 files >1000 lines) | P1 | 8h | ✅ Complete (TD-058, D12 Phase 2, 2026-06-29) | Coder |
+| GameLoop split (1226 lines → <400 lines) | P1 | 6h | ✅ Complete (D11/D12) | Coder |
+| Merge infra/ into infrastructure/ | P2 | 1h | ✅ Complete (TD-027 RESOLVED v0.4.7, 2026-07-05) | DevOps |
+| Unify unit definition system (4 sets → 1 set) | P2 | 4h | ⬜ Still pending | Architect + Coder |
+| Clean up duplicate morale modules | P2 | 2h | ✅ Complete (TD-046, 2026-05-28) | Coder |
+| Fix 68 bare except blocks | P2 | 3h | ✅ Complete (TD-047, 2026-05-28) | Coder |
+| Remove domain quick_implementations.py | P2 | 2h | ✅ Complete (TD-048, 2026-05-28) | Coder |
+| Fix domain→presentation layer violations | P2 | 2h | ✅ Complete (TD-045, 2026-05-28) | Architect |
 
 **M4 Acceptance Criteria**:
-- [ ] No Python file exceeds 800 lines
-- [ ] Domain layer code <50% of total
-- [ ] GameLoop <400 lines
-- [ ] All existing tests still pass
-- [ ] No circular dependencies
-- [ ] No bare except blocks
-- [ ] No duplicate modules
+- [ ] No Python file exceeds 800 lines — ⚠️ TD-026 评估完成 (v0.4.7): 44 文件 >500L，但均非 God Class
+- [ ] Domain layer code <50% of total — ⬜ Still pending
+- [ ] GameLoop <400 lines — ✅ Complete (D11/D12)
+- [x] All existing tests still pass ✅ (~4598 tests, 100% pass rate)
+- [x] No circular dependencies ✅ (D11/D12 已清理)
+- [x] No bare except blocks ✅ (TD-047, 2026-05-28)
+- [x] No duplicate modules ✅ (TD-046 morale + TD-048 quick_implementations 已清理)
 
 ---
 
@@ -273,8 +277,9 @@ The project now has **~3985 passing tests**, **63 historical maps**, **277 unit 
 | v0.3.25-v0.3.30 | Arch Cleanup | M3-late | ~88% | 3850 | Circular deps, GameLoopAssembler, E2E upgrade, doc sync | ✅ Completed |
 | v0.3.31-v0.3.34 | Visual Polish | M3-polish | ~88% | 3920 | Desaturation, weather, death fade, screen flash, ghost fixes | ✅ Completed |
 | **v0.4.0** | **Beta Candidate** | **M3** | **~88%** | **~3985** | **ThemeManager, env audio, dirty rect, SRP splits, security** | ✅ **Current** |
-| v0.4-alpha | Polish Complete | M3-final | ~90% | 4000 | Command queue UI + Damage visuals + Save/Load UI | ⬜ Next |
-| v0.5-alpha | Maintainable | M4 | ~92% | 4100 | Architecture refactor + Tech debt cleanup | ⬜ Planned |
+| v0.4.7 | Doc Sync | M3 | ~88% | ~4598 | TD-027 关闭 + TD-026 评估 + 文档状态同步 (PRD/ROADMAP/GAP/TECH_DEBT) | ✅ Current |
+| v0.4-alpha | Polish Complete | M3-final | ~90% | 4000 | Command queue UI + Save/Load UI ✅ / Damage visuals + Smoke deferred to v0.5 | 🟡 Partial (3/5 done, 2 deferred) |
+| v0.5-alpha | Maintainable | M4 | ~92% | 4100 | Architecture refactor + Tech debt cleanup | 🟡 Partial (7/9 M4 tasks done) |
 | v0.6-alpha | Sustainable | M5 | ~95% | 4200 | CI enhancement + Docs + E2E expansion | ⬜ Planned |
 | v1.0-beta | A Bridge Too Far | Final | ≥95% | ≥4200 | Full release candidate | ⬜ Target |
 
@@ -346,9 +351,9 @@ We welcome community contributions to any milestone:
 
 ---
 
-**Document Version**: 0.3.39
+**Document Version**: 0.4.7
 **Created**: 2026-05-19
-**Updated**: 2026-06-13
-**Status**: Beta Candidate — M3 Visual Polish & Deep Optimization
-**Next Review**: Upon M3 Completion
+**Updated**: 2026-07-05
+**Status**: Beta Candidate — M3 Visual Polish Mostly Complete (2 items deferred to v0.5 per TD-065/TD-066); M4 7/9 tasks done
+**Next Review**: Upon v0.5-alpha start (Domain layer slimdown + Unify unit definition system)
 **Related Documents**: [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) | [TECH_DEBT.md](docs/TECH_DEBT.md)

@@ -1,8 +1,8 @@
 # PyCC2 技术债清单
 
 > **版本**: v0.4.7 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-07-05 (v0.4.6 TD-072/TD-068 修复 + 3 God Class 评估 + SemVer 纠正 + v0.4.7 TD-027 关闭) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 11
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md)
+> **上次核查**: 2026-07-05 (v0.4.7 P0 文档同步批次: PRD/ROADMAP/GAP_ANALYSIS/TECH_DEBT 4 份核心文档状态同步 + TD-038 RESOLVED + TD-027/TD-052 checklist 同步) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 10
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md) | ✅ v0.4.7 TD-038 RESOLVED (4 份核心文档批量同步: PRD 33 用户故事 + ROADMAP M3/M4 + GAP_ANALYSIS A1-A3/R8/R9/R10 + TECH_DEBT checklist)
 
 ---
 
@@ -19,7 +19,7 @@
 | 🆕 v0.3.13 批判性审核新增 | 2 | 🟢 P2 | ❌ 未解决 |
 | 🆕 v0.4.0 D8 Phase 2 新增 (TD-065~066) | 2 | 🟢 P2 | ❌ 未解决 |
 | v2.0旧条目（声称已解决） | 20 | — | ⚠️ 待验证 |
-| **合计（活跃）** | **19** | — | **45/64 已解决** |
+| **合计（活跃）** | **19** | — | **46/64 已解决** |
 
 ---
 
@@ -352,12 +352,16 @@
 - **状态**: ❌ 未解决
 - **清理方案**: 添加AI行为集成测试，验证AI在游戏循环中的完整行为链
 
-### 🟢 TD-038: 文档与代码不同步
+### ~~🟢 TD-038: 文档与代码不同步~~ ✅ RESOLVED (v0.4.7, 2026-07-05)
 
-- **描述**: 多处文档声称功能"已完成"但实际不可用（如v2.5声称还原度~97%）
+- **描述**: 多处文档声称功能"已完成"但实际不可用（如v2.5声称还原度~97%）。v0.4.7 审计发现 PRD.md 用户故事状态标注、ROADMAP.md M3/M4 任务状态、GAP_ANALYSIS.md A1-A3 架构差距状态、TECH_DEBT.md checklist 均严重过时
 - **影响**: 决策基于错误信息，资源分配不当
-- **状态**: ❌ 未解决（本次v0.1.0已修正PRD，其他文档待同步）
-- **清理方案**: 建立文档-代码同步验证机制，每个Phase结束时实际运行验证
+- **状态**: ✅ RESOLVED — v0.4.7 完成 4 份核心文档批量同步：
+  - PRD.md: 33 个用户故事 ❌/⚠️ → ✅ (P0 Bug 已在 v0.3.x 修复)
+  - ROADMAP.md: M3 Task List (2✅+2延期v0.5+1partial) + M4 Task List (7✅/9) + Acceptance Criteria 同步
+  - GAP_ANALYSIS.md: 4.2 表格丘陵/多层建筑 ❌→✅ (R9/R10) + 6.2 表格 AI 伏击/撤退/反击 ❌→✅ (R8) + 10.3 表格 A1-A3 ❌→✅ (TD-050/051/052)
+  - TECH_DEBT.md: TD-027/TD-038/TD-052 checklist 同步 + 总览表更新
+- **清理方案**: ~~建立文档-代码同步验证机制，每个Phase结束时实际运行验证~~ 已通过 v0.4.7 4份文档批量同步解决；建议后续每个版本发布前执行文档状态核查
 
 ### 🟢 TD-039: 缺少错误恢复机制
 
@@ -425,8 +429,8 @@
 
 ### 🟡 P1 应尽快修复（功能受损/架构违规）
 
-- [ ] TD-026: 拆分29个超500行文件
-- [ ] TD-027: 明确infra/infrastructure职责
+- [x] ~~TD-026: 拆分29个超500行文件~~ ✅ 评估完成 (v0.4.7, 2026-07-05) — 44 文件 >500L 全 FALSE，无需拆分 (详见 ASSESSMENT_TD026_V047.md)
+- [x] ~~TD-027: 明确infra/infrastructure职责~~ ✅ RESOLVED (v0.4.7, 2026-07-05) — infra/ 已不存在，自然解决
 - [x] ~~TD-028: 添加集成测试~~ ✅ 已修复 (2026-05-24, 6个集成测试文件)
 - [x] TD-029: 合并4个视觉优化文档 ✅ **已解决** (2026-06-01) — 创建 VISUAL_OPTIMIZATION_UNIFIED.md
 - [x] ~~TD-030: 修复音频stereo预生成~~ ✅ 已修复 (2026-05-24)
@@ -445,7 +449,7 @@
 - [ ] TD-035: 添加接口契约测试
 - [ ] TD-036: 建立性能回归测试基线
 - [ ] TD-037: 添加AI行为集成测试
-- [ ] TD-038: 建立文档-代码同步验证机制
+- [x] ~~TD-038: 建立文档-代码同步验证机制~~ ✅ RESOLVED (v0.4.7, 2026-07-05) — 4 份核心文档批量同步 (PRD/ROADMAP/GAP_ANALYSIS/TECH_DEBT)
 - [ ] TD-039: 添加关键组件错误恢复机制
 - [ ] TD-040: 添加启动时健康检查
 - [ ] TD-041: 建立变更影响分析流程
@@ -454,7 +458,7 @@
 - [ ] TD-044: 等距模式默认切换
 - [x] ~~TD-048: 审查并重构quick_implementations.py~~ ✅ 已修复 (2026-05-28)
 - [x] ~~TD-049: 合并infra/到infrastructure/~~ ✅ 已修复 (2026-05-28)
-- [ ] TD-052: 拆分enhanced_renderer.py（~2521行，目标<2000行）
+- [x] ~~TD-052: 拆分enhanced_renderer.py（~2521行，目标<2000行）~~ ✅ 已完成 (v0.3.11) — 5975行→2239行，-62.5%
 
 ---
 
