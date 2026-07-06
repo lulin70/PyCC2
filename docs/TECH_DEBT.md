@@ -1,8 +1,8 @@
 # PyCC2 技术债清单
 
-> **版本**: v0.4.7 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-07-06 (v0.4.7 P0-P3 文档同步 + TD-059 RESOLVED: 6 模块 smoke 测试补齐 58 tests + TD-035 RESOLVED: 4 组件接口契约测试 39 tests + TD-037 RESOLVED: AI GameLoop 集成测试 6 tests) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 2
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md) | ✅ v0.4.7 TD-038 RESOLVED (4 份核心文档批量同步: PRD 33 用户故事 + ROADMAP M3/M4 + GAP_ANALYSIS A1-A3/R8/R9/R10 + TECH_DEBT checklist) | ✅ v0.4.7 TD-036 RESOLVED (评估确认 tests/benchmark/test_performance_baseline.py 已实现 per-metric threshold 断言) | ✅ v0.4.7 P1 工程实践债评估完成 (TD-035/037/039/040 现状文档化，留待 v0.5+ 推进) | ✅ v0.4.7 P2 视觉/资源/性能/测试债评估完成 (TD-043 RESOLVED + TD-044 WONTFIX + TD-042/059/065/066 现状文档化) | ✅ v0.4.7 P3 低优先级债复核完成 (TD-033/034 checklist 修正 + v2.0 旧条目 18/20 验证通过 + D13-N8 维持待 v0.5 整理) | ✅ v0.4.7 TD-059 RESOLVED (6 模块 smoke 测试补齐: direction/damage/combat_result/stereo_sound/environmental_audio/cc2_map_parser, 58 tests, 全部使用真实组件非 Mock) | ✅ v0.4.7 TD-035 RESOLVED (4 组件接口契约测试 39 tests: HealthComponent/MoraleComponent/StateMachine/VeterancyComponent 接口冻结 + apply_inheritance_to_units 端到端消费者契约 + CampaignPersistence 序列化保真, 全部使用真实组件非 Mock) | ✅ v0.4.7 TD-037 RESOLVED (AI GameLoop 集成测试 6 tests: 真实 GameLoop + 真实 AIService + _update_logic 驱动 N ticks, 验证敌方单位自动注册 + AIService.tick 执行 + _ai_tick_counter 重置 + 多 cycle 持续 tick)
+> **版本**: v0.4.8 | **日期**: 2026-07-06 | **原则**: 不留技术债，发现即记录，按计划清理
+> **上次核查**: 2026-07-06 (v0.4.8 TD-040 RESOLVED: 运行时健康检查 preflight_check 模块 19 tests + TD-039 RESOLVED: 错误恢复机制 _update_ai/_render_scene try/except 降级 8 tests) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 0
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md) | ✅ v0.4.7 TD-038 RESOLVED (4 份核心文档批量同步: PRD 33 用户故事 + ROADMAP M3/M4 + GAP_ANALYSIS A1-A3/R8/R9/R10 + TECH_DEBT checklist) | ✅ v0.4.7 TD-036 RESOLVED (评估确认 tests/benchmark/test_performance_baseline.py 已实现 per-metric threshold 断言) | ✅ v0.4.7 P1 工程实践债评估完成 (TD-035/037/039/040 现状文档化，留待 v0.5+ 推进) | ✅ v0.4.7 P2 视觉/资源/性能/测试债评估完成 (TD-043 RESOLVED + TD-044 WONTFIX + TD-042/059/065/066 现状文档化) | ✅ v0.4.7 P3 低优先级债复核完成 (TD-033/034 checklist 修正 + v2.0 旧条目 18/20 验证通过 + D13-N8 维持待 v0.5 整理) | ✅ v0.4.7 TD-059 RESOLVED (6 模块 smoke 测试补齐: direction/damage/combat_result/stereo_sound/environmental_audio/cc2_map_parser, 58 tests, 全部使用真实组件非 Mock) | ✅ v0.4.7 TD-035 RESOLVED (4 组件接口契约测试 39 tests: HealthComponent/MoraleComponent/StateMachine/VeterancyComponent 接口冻结 + apply_inheritance_to_units 端到端消费者契约 + CampaignPersistence 序列化保真, 全部使用真实组件非 Mock) | ✅ v0.4.7 TD-037 RESOLVED (AI GameLoop 集成测试 6 tests: 真实 GameLoop + 真实 AIService + _update_logic 驱动 N ticks, 验证敌方单位自动注册 + AIService.tick 执行 + _ai_tick_counter 重置 + 多 cycle 持续 tick) | ✅ v0.4.8 TD-040 RESOLVED (运行时健康检查 preflight_check 模块 19 tests: 3 层子系统检查 critical/assembler/optional, GameLoop.run() 启动前 fail-fast) | ✅ v0.4.8 TD-039 RESOLVED (错误恢复机制 8 tests: _update_ai try/except 降级 AI tick 失败→单位静止 + _render_scene try/except 降级 render 失败→跳过本帧, 单组件异常不崩溃整个游戏)
 
 ---
 
@@ -12,14 +12,14 @@
 |------|------|---------|---------|
 | 🔴 P0 致命（游戏不可玩） | 0 | — | ✅ 全部清除 |
 | 🟡 P1 严重（功能受损） | 0 | 🟡 严重 | ✅ 全部清除 (TD-061 降级为 P2) |
-| 🟢 P2 中等（质量/维护） | 16 | 🟢 中等 | 🟡 部分未解决 (TD-061 部分解决) |
+| 🟢 P2 中等（质量/维护） | 14 | 🟢 中等 | 🟡 部分未解决 (TD-061 部分解决) |
 | ~~M2新增发现 (TD-045~049)~~ | 5 | — | ✅ 已解决 |
 | ~~7-dimension review新增 (TD-050~056)~~ | 7 | — | ✅ **已解决** |
 | ~~v0.3.11 DevSquad审计新增 (TD-057~059)~~ | 3 | — | ✅ **TD-057, TD-060 已解决** |
 | 🆕 v0.3.13 批判性审核新增 | 2 | 🟢 P2 | ❌ 未解决 |
 | 🆕 v0.4.0 D8 Phase 2 新增 (TD-065~066) | 2 | 🟢 P2 | ❌ 未解决 |
 | v2.0旧条目（声称已解决） | 20 | — | ✅ 18/20 已验证 (v0.4.7 复核) |
-| **合计（活跃）** | **19** | — | **54/64 已解决** |
+| **合计（活跃）** | **17** | — | **56/64 已解决** |
 
 ---
 
@@ -384,15 +384,15 @@
 
 - **描述**: 关键路径缺少错误恢复机制，一个组件崩溃导致整个游戏崩溃
 - **影响**: P0 Bug导致游戏完全不可玩，而非降级运行
-- **状态**: 🟡 PARTIAL (v0.4.7 评估) — 选择性实现，非系统性：`game_loop_assembler.py:78-94` EnvironmentalAudioSystem init 失败降级为 None（"game runs without ambient audio"）；`game_loop_updating.py:128` `contextlib.suppress(Exception)` 包裹环境音更新；`game_loop.py:373` shutdown 用 `contextlib.suppress` 停止音频；`asset_loader.py:206-220` 资产加载回退到程序化精灵。**但** `game_loop.py:run()` (lines 172-237) 主 `_update_logic`/render 路径无 try/except — 单个组件异常（CombatDirector.update/renderer 失败）会崩溃整个循环
-- **清理方案**: 为关键子系统更新包裹 try/except + 显式降级策略（如 renderer 失败 → fallback 几何渲染；AI tick 失败 → 该单位本 tick 静止）
+- **状态**: ✅ RESOLVED (v0.4.8, 2026-07-06) — `game_loop_updating.py:_update_ai` 添加 try/except 包裹 `ai_service.tick()` + `execute_intents()`, AI tick 失败降级为单位本 tick 静止 (log warning, 不传播异常)；`game_loop_rendering.py:_render_scene` 添加 try/except 包裹整个渲染管线 (Step 1-3: render_pipeline + weather/lighting + UI overlay), render 失败降级为跳过本帧 (log error, 不传播异常)。测试: `tests/unit/test_error_recovery.py` 8 tests (4 AI + 4 Render) 验证异常不传播 + counter 重置 + execute_intents 异常不传播 + 10 ticks 全链路存活 + render 失败跳过后续步骤 + 10 帧持续失败存活 + pipeline=None 早返回
+- **清理方案**: ✅ 已实施 — 为关键子系统更新包裹 try/except + 显式降级策略（AI tick 失败 → 该单位本 tick 静止；render 失败 → 跳过本帧不崩溃）
 
 ### 🟢 TD-040: 缺少运行时健康检查
 
 - **描述**: 没有运行时健康检查机制，无法在启动时检测关键组件是否正常
 - **影响**: 游戏启动后才发现Bug，而非启动时即报错
-- **状态**: ❌ MISSING (v0.4.7 评估) — 全仓库无 `health_check.py`/`diagnostic.py`/`startup_check.py`/`preflight*`/`verify_critical_components`；`game_loop_assembler.py` 初始化子系统但不验证 post-init 状态或 fail-fast；`__init__.py` 无验证逻辑确认关键组件（renderer/mixer/save controller/AI service）初始化成功
-- **清理方案**: 添加启动 preflight 检查，断言每个关键子系统 non-None + `initialize()` 成功；进入主循环前发射诊断信号
+- **状态**: ✅ RESOLVED (v0.4.8, 2026-07-06) — 新建 `src/pycc2/infrastructure/diagnostics/preflight_check.py` 模块, 提供 `run_preflight_check(game_loop) -> PreflightResult` 3 层子系统检查: (1) Critical (constructor-injected): renderer/window_manager/event_bus/state/display_config; (2) Assembler-initialized: _combat_director/_render_pipeline/_event_dispatcher; (3) Optional (headless-safe): ai_service/sound_system/input_handler。`game_loop.py:run()` 启动主循环前调用 preflight, 失败时 logger.critical + return 1 (fail-fast)。测试: `tests/unit/test_preflight_check.py` 19 tests (3 dataclass + 15 parametrized 失败检测 + 1 真实 GameLoop happy-path)
+- **清理方案**: ✅ 已实施 — 添加启动 preflight 检查，断言每个关键子系统 non-None；进入主循环前 fail-fast
 
 ### 🟢 TD-041: 缺少变更影响分析流程
 
@@ -469,8 +469,8 @@
 - [x] ~~TD-036: 建立性能回归测试基线~~ ✅ RESOLVED (v0.4.7 评估确认) — `tests/benchmark/test_performance_baseline.py` 已实现 per-metric threshold 断言
 - [x] ~~TD-037: 添加AI行为集成测试~~ ✅ RESOLVED (v0.4.7, 2026-07-06) — `tests/integration/test_ai_gameloop_integration.py` 6 tests: 真实 GameLoop + 真实 AIService + _update_logic 驱动 N ticks, 验证敌方单位自动注册 + AIService.tick 执行 + _ai_tick_counter 重置 + 多 cycle 持续 tick
 - [x] ~~TD-038: 建立文档-代码同步验证机制~~ ✅ RESOLVED (v0.4.7, 2026-07-05) — 4 份核心文档批量同步 (PRD/ROADMAP/GAP_ANALYSIS/TECH_DEBT)
-- [ ] TD-039: 添加关键组件错误恢复机制
-- [ ] TD-040: 添加启动时健康检查
+- [x] ~~TD-039: 添加关键组件错误恢复机制~~ ✅ RESOLVED (v0.4.8, 2026-07-06) — `_update_ai` + `_render_scene` try/except 降级, 8 tests
+- [x] ~~TD-040: 添加启动时健康检查~~ ✅ RESOLVED (v0.4.8, 2026-07-06) — `preflight_check.py` 3 层子系统检查 + `GameLoop.run()` fail-fast, 19 tests
 - [ ] TD-041: 建立变更影响分析流程
 - [ ] TD-042: 下载集成PixVoxel CC0精灵资源
 - [x] ~~TD-043: 优化等距渲染性能~~ ✅ RESOLVED (v0.4.7 评估确认) — isometric_renderer.py 已实现 dirty flag + 瓦片缓存 + culling

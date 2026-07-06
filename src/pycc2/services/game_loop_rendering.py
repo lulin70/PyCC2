@@ -76,55 +76,67 @@ class GameLoopRenderingMixin:
         This method eliminates the code duplication between deployment and battle
         rendering by extracting the common render pipeline + weather/lighting steps,
         then branching only for the phase-specific UI overlay.
+
+        TD-039: Render failures degrade to skipping this frame (game continues
+        running without visual update) instead of crashing the whole game.
         """
         if self._render_pipeline is None:
             return
-        # Step 1: Render map and units (common to both phases)
-        victory = self._victory_manager
-        self._render_pipeline.render(
-            game_map=self.state.game_map,
-            units=self.state.units,
-            camera=self.state.camera,
-            alpha=alpha,
-            selected_unit_ids=self.state.selected_unit_ids,
-            debug_mode=self.state.debug_mode,
-            paused=self.state.paused,
-            tick=self.state.tick,
-            show_post_battle=victory.show_post_battle if victory else False,
-            game_result=victory.game_result if victory else None,
-            battle_stats=victory.battle_stats if victory else None,
-        )
-
-        # Step 2: Render weather/lighting effects (common to both phases)
-        if self._weather_renderer is not None and self._weather_state is not None:
-            self._weather_renderer.render(screen, self.state.camera, self._weather_state)
-        if self._lighting_renderer is not None and self._day_night_time is not None:
-            self._lighting_renderer.render(screen, self._day_night_time)
-
-        # Step 3: Phase-specific UI overlay
-        dm = self._deployment_manager
-        if dm is not None and dm.is_active and dm.deployment_ui is not None:
-            # Deployment phase: render deployment UI
-            deployment_ui = dm.deployment_ui
-            dc = self.display_config
-            tile_size = dc.base_tile_size if dc else 16
-            deployment_ui.render(
-                screen,
-                font=None,
-                map_offset_x=0,
-                map_offset_y=0,
-                tile_size=tile_size,
+        try:
+            # Step 1: Render map and units (common to both phases)
+            victory = self._victory_manager
+            self._render_pipeline.render(
+                game_map=self.state.game_map,
+                units=self.state.units,
+                camera=self.state.camera,
+                alpha=alpha,
+                selected_unit_ids=self.state.selected_unit_ids,
+                debug_mode=self.state.debug_mode,
+                paused=self.state.paused,
+                tick=self.state.tick,
+                show_post_battle=victory.show_post_battle if victory else False,
+                game_result=victory.game_result if victory else None,
+                battle_stats=victory.battle_stats if victory else None,
             )
-        else:
-            # Battle phase: render CC2 unified bottom HUD panel
-            if self._hud_manager:
-                self._hud_manager.render(screen, self.state.camera, self.state)
-            elif self.use_full_hud:
-                # HUD expected but missing — log warning for debugging
-                logger.warning(
-                    "[HUD] Battle phase active but _hud_manager is None. "
-                    "Check GameLoopAssembler._init_hud() completed successfully."
+
+            # Step 2: Render weather/lighting effects (common to both phases)
+            if self._weather_renderer is not None and self._weather_state is not None:
+                self._weather_renderer.render(screen, self.state.camera, self._weather_state)
+            if self._lighting_renderer is not None and self._day_night_time is not None:
+                self._lighting_renderer.render(screen, self._day_night_time)
+
+            # Step 3: Phase-specific UI overlay
+            dm = self._deployment_manager
+            if dm is not None and dm.is_active and dm.deployment_ui is not None:
+                # Deployment phase: render deployment UI
+                deployment_ui = dm.deployment_ui
+                dc = self.display_config
+                tile_size = dc.base_tile_size if dc else 16
+                deployment_ui.render(
+                    screen,
+                    font=None,
+                    map_offset_x=0,
+                    map_offset_y=0,
+                    tile_size=tile_size,
                 )
+            else:
+                # Battle phase: render CC2 unified bottom HUD panel
+                if self._hud_manager:
+                    self._hud_manager.render(screen, self.state.camera, self.state)
+                elif self.use_full_hud:
+                    # HUD expected but missing — log warning for debugging
+                    logger.warning(
+                        "[HUD] Battle phase active but _hud_manager is None. "
+                        "Check GameLoopAssembler._init_hud() completed successfully.",
+                    )
+        except Exception:
+            # TD-039: Render failure degrades to skipping this frame.
+            # Log error and continue — do not propagate the exception
+            # (a single render bug should not crash the whole game).
+            logger.error(
+                "Render failed, skipping this frame",
+                exc_info=True,
+            )
 
 
 __all__ = ["GameLoopRenderingMixin"]

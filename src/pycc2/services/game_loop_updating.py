@@ -310,13 +310,22 @@ class GameLoopUpdatingMixin:
         if self.ai_service is not None and self.ai_service.managed_unit_count > 0:
             self._ai_tick_counter += 1
             if self._ai_tick_counter >= self._ai_update_interval:
-                intents = self.ai_service.tick(
-                    dt,
-                    game_map=self.state.game_map,
-                    all_units=self.state.units,
-                )
-                if intents:
-                    self.ai_service.execute_intents(intents)
+                try:
+                    intents = self.ai_service.tick(
+                        dt,
+                        game_map=self.state.game_map,
+                        all_units=self.state.units,
+                    )
+                    if intents:
+                        self.ai_service.execute_intents(intents)
+                except Exception:
+                    # TD-039: AI tick failure degrades to idle units this tick.
+                    # Log warning and continue — do not propagate the exception
+                    # (a single AI bug should not crash the whole game).
+                    logger.warning(
+                        "AI tick failed, units idle this tick",
+                        exc_info=True,
+                    )
                 self._ai_tick_counter = 0
 
     def _update_victory(self) -> None:

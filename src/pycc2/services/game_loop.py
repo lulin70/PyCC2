@@ -171,6 +171,16 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
 
     def run(self) -> int:
         """Run the game loop. Returns 0 for normal exit, 1 for restart request."""
+        from pycc2.infrastructure.diagnostics.preflight_check import run_preflight_check
+
+        preflight = run_preflight_check(self)
+        if not preflight.ok:
+            logger.critical(
+                "Preflight check failed, aborting startup: %s",
+                preflight.failures,
+            )
+            return 1
+
         while self.state.running:
             new_time = time.perf_counter()
             frame_time = min(new_time - self._current_time, MAX_FRAME_TIME)

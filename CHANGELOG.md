@@ -365,6 +365,31 @@ All notable changes to PyCC2 will be documented in this file.
 
 **Verification**: ruff 0 errors / mypy 0 errors / pytest test_ai_gameloop_integration.py 6 passed / pytest integration 181 passed (零回归, 175→181 新增 6)
 
+### v0.4.8 — TD-040 + TD-039 工程实践债清除 (P2, 2026-07-06 完成)
+
+> 推进 v0.4.7 P1 评估留下的 TD-039/TD-040 两项 P2 工程实践债。源码修改 + 新增 27 tests。技术债 54/64 → 56/64, P2 未解决 2 → 0。
+
+**TD-040: 运行时健康检查 (preflight_check)**:
+- 新建 `src/pycc2/infrastructure/diagnostics/preflight_check.py` — `PreflightResult` dataclass + `run_preflight_check(game_loop)` 3 层子系统检查
+  - Critical (constructor-injected): renderer / window_manager / event_bus / state / display_config
+  - Assembler-initialized: _combat_director / _render_pipeline / _event_dispatcher
+  - Optional (headless-safe): ai_service / sound_system / input_handler
+- `src/pycc2/services/game_loop.py:run()` 启动主循环前调用 preflight, 失败时 logger.critical + return 1 (fail-fast)
+- 测试 `tests/unit/test_preflight_check.py` 19 tests: 3 dataclass 行为 + 15 parametrized 失败检测 (3 层 × 各子系统 None + 多重失败 + 混合层级) + 1 真实 GameLoop happy-path
+
+**TD-039: 错误恢复机制 (try/except 降级)**:
+- `src/pycc2/services/game_loop_updating.py:_update_ai` 添加 try/except 包裹 `ai_service.tick()` + `execute_intents()`, AI tick 失败降级为单位本 tick 静止 (log warning, 不传播异常, counter 仍重置)
+- `src/pycc2/services/game_loop_rendering.py:_render_scene` 添加 try/except 包裹整个渲染管线 (Step 1-3: render_pipeline + weather/lighting + UI overlay), render 失败降级为跳过本帧 (log error, 不传播异常, pipeline=None 早返回保留)
+- 测试 `tests/unit/test_error_recovery.py` 8 tests (4 AI + 4 Render):
+  - AI: tick 异常不传播 + counter 重置 + execute_intents 异常不传播 + 10 ticks 全链路存活
+  - Render: render 异常不传播 + 失败时跳过后续步骤 + 10 帧持续失败存活 + pipeline=None 早返回
+
+**测试哲学遵循**: error_recovery_game_loop fixture 使用真实 GameLoop + 真实 AIService + 真实 SpriteRenderer + 真实 EventBus, 仅 WindowManager 用 Mock (headless pygame 必需) + 仅 Mock 用于注入失败 (Mock side_effect RuntimeError)。GameLoop 本身是真实的, 验证真实降级路径而非 Mock 行为。
+
+**Verification**: ruff 0 errors / mypy 0 errors (3 source files) / pytest test_error_recovery.py 8 passed + test_preflight_check.py 19 passed / pytest unit+integration 4877 passed, 2 skipped (零回归, 4598→4877 新增 27 + 252 既有增长)
+
+**技术债进展**: 54/64 → 56/64 已解决 | P2 未解决 2 → 0 | 剩余 P2: TD-041/042/061/065/066 + v0.3.13 批判性审核 2 项
+
 ## [0.4.6] - 2026-06-29 (开发中)
 
 ### SemVer 纠正 (2026-07-05)
