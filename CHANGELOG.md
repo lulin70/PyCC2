@@ -307,6 +307,24 @@ All notable changes to PyCC2 will be documented in this file.
 
 **Verification**: 文档级修改无源码变更，ruff/mypy 不受影响。v2.0 旧条目复核通过 Explore agent 交叉验证各 TD 详情节 + 关联代码文件确认现状。
 
+### TD-059 RESOLVED — 6 模块 smoke 测试补齐 (DevSquad V3.8, 2026-07-06)
+
+> 补齐 TD-059 最后 6 个缺失测试模块。纯测试工作，零功能变更，版本保持 v0.4.7。
+
+**新增测试文件**: `tests/unit/test_smoke_td059.py` (58 tests)
+
+**覆盖模块**:
+1. **direction.py** (12 tests) — Direction enum: 8 方向值 + offset/opposite/is_cardinal/is_diagonal 属性 + from_offset/from_angle classmethods + rotate_cw/rotate_ccw + 模块级 DIRECTION_ANGLES/DIRECTION_VECTORS/DIRECTION_VECTORS_REVERSE 常量
+2. **damage.py** (12 tests) — Damage 不可变值对象: 创建 + 验证 (负数/越界抛 ValueError) + is_lethal/is_critical + apply_armor_reduction/apply_cover_bonus/multiply/add + create_kinetic/create_explosive/zero 工厂方法 + frozen 不可变验证
+3. **combat_result.py** (3 tests) — CombatResult/ShotResult dataclass: 默认值 + shot_results 列表
+4. **stereo_sound.py** (8 tests) — StereoSoundSystem: calculate_stereo_pan (左/右/中/同位) + calculate_volume (零距离/超距/中距衰减)
+5. **environmental_audio.py** (11 tests) — EnvironmentSoundType 11 类型 + EnvironmentalSoundGenerator 6 个 generate_* classmethod (返回 numpy ndarray) + _to_int16 范围验证 + EnvironmentalAudioSystem 实例化/set_time_of_day/set_combat_intensity/stop_all
+6. **cc2_map_parser.py** (12 tests) — CC2TerrainCode 32 码 + CC2_TO_PYCC2_MAP 32 映射 + CC2MapHeader/CC2MapData 创建 + to_pycc2_json + CC2MapParser 实例化 + parse 不存在文件抛异常
+
+**测试哲学遵循**: 全部使用真实组件（无 Mock）；无 skip 测试；创建数据而非跳过；2 个初始断言错误为测试预期错误（非源码 bug），已修正
+
+**Verification**: ruff 0 errors / mypy 0 errors / pytest test_smoke_td059.py 58 passed / pytest unit 4669 passed (零回归，pre-existing sprite_renderer 测试隔离问题无关)
+
 ## [0.4.6] - 2026-06-29 (开发中)
 
 ### SemVer 纠正 (2026-07-05)

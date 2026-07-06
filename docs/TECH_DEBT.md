@@ -1,8 +1,8 @@
 # PyCC2 技术债清单
 
 > **版本**: v0.4.7 | **日期**: 2026-07-05 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-07-05 (v0.4.7 P0 文档同步 + P1 工程实践债评估 + P2 视觉/资源/性能/测试债评估 + P3 低优先级债复核: TD-038/036/043 RESOLVED + TD-044 WONTFIX + TD-033/034 checklist 修正 + v2.0 旧条目 18/20 验证通过) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 5
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md) | ✅ v0.4.7 TD-038 RESOLVED (4 份核心文档批量同步: PRD 33 用户故事 + ROADMAP M3/M4 + GAP_ANALYSIS A1-A3/R8/R9/R10 + TECH_DEBT checklist) | ✅ v0.4.7 TD-036 RESOLVED (评估确认 tests/benchmark/test_performance_baseline.py 已实现 per-metric threshold 断言) | ✅ v0.4.7 P1 工程实践债评估完成 (TD-035/037/039/040 现状文档化，留待 v0.5+ 推进) | ✅ v0.4.7 P2 视觉/资源/性能/测试债评估完成 (TD-043 RESOLVED + TD-044 WONTFIX + TD-042/059/065/066 现状文档化) | ✅ v0.4.7 P3 低优先级债复核完成 (TD-033/034 checklist 修正 + v2.0 旧条目 18/20 验证通过 + D13-N8 维持待 v0.5 整理)
+> **上次核查**: 2026-07-06 (v0.4.7 P0-P3 文档同步 + TD-059 RESOLVED: 6 模块 smoke 测试补齐 58 tests) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 4
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 (TD-061 降级为 P2 部分解决) | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md) | ✅ v0.4.7 TD-038 RESOLVED (4 份核心文档批量同步: PRD 33 用户故事 + ROADMAP M3/M4 + GAP_ANALYSIS A1-A3/R8/R9/R10 + TECH_DEBT checklist) | ✅ v0.4.7 TD-036 RESOLVED (评估确认 tests/benchmark/test_performance_baseline.py 已实现 per-metric threshold 断言) | ✅ v0.4.7 P1 工程实践债评估完成 (TD-035/037/039/040 现状文档化，留待 v0.5+ 推进) | ✅ v0.4.7 P2 视觉/资源/性能/测试债评估完成 (TD-043 RESOLVED + TD-044 WONTFIX + TD-042/059/065/066 现状文档化) | ✅ v0.4.7 P3 低优先级债复核完成 (TD-033/034 checklist 修正 + v2.0 旧条目 18/20 验证通过 + D13-N8 维持待 v0.5 整理) | ✅ v0.4.7 TD-059 RESOLVED (6 模块 smoke 测试补齐: direction/damage/combat_result/stereo_sound/environmental_audio/cc2_map_parser, 58 tests, 全部使用真实组件非 Mock)
 
 ---
 
@@ -19,7 +19,7 @@
 | 🆕 v0.3.13 批判性审核新增 | 2 | 🟢 P2 | ❌ 未解决 |
 | 🆕 v0.4.0 D8 Phase 2 新增 (TD-065~066) | 2 | 🟢 P2 | ❌ 未解决 |
 | v2.0旧条目（声称已解决） | 20 | — | ✅ 18/20 已验证 (v0.4.7 复核) |
-| **合计（活跃）** | **19** | — | **51/64 已解决** |
+| **合计（活跃）** | **19** | — | **52/64 已解决** |
 
 ---
 
@@ -250,7 +250,7 @@
 - **清理方案**: 按功能域拆分为子模块
 - **修复日期**: 2026-06-29 (v0.4.0 D9 P1-2 核查更新)
 
-### 🟢 TD-059: 测试覆盖缺口 (20+模块无测试)
+### ~~🟢 TD-059: 测试覆盖缺口 (20+模块无测试)~~ ✅ RESOLVED (v0.4.7, 2026-07-06)
 
 - **描述**: 以下关键模块缺少对应测试文件：
   - 基础设施: save_system.py, config.py, cc2_map_parser.py
@@ -259,11 +259,11 @@
   - UI组件: cc2_hud.py (1138行无测试)
 - **影响**: 回归风险，重构信心不足
 - **优先级**: P2 (先覆盖核心路径)
-- **状态**: 🟡 PARTIAL (v0.4.7 评估) — v0.4.3/v0.4.5 批次已覆盖部分模块：
-  - ✅ 已覆盖: save_system.py / bgm_system.py / cc2_hud.py / terrain_type.py (v0.4.5 "12 零覆盖文件补测" + 38 smoke tests)
-  - ⚠️ 部分: config.py (仅 test_display_config.py，非完整覆盖)
-  - ❌ 仍缺失: cc2_map_parser.py / environmental_audio.py / stereo_sound.py / combat_result.py / direction.py / damage.py (5-6 个模块)
-- **清理方案**: 为剩余 5-6 个模块添加 smoke 测试 (每个 <30 min，均为小型 value-object/infrastructure 模块)，留待 v0.5+ 推进
+- **状态**: ✅ RESOLVED — v0.4.7 补齐最后 6 个缺失模块 (58 smoke tests in `test_smoke_td059.py`)：
+  - ✅ 已覆盖 (v0.4.5): save_system.py / bgm_system.py / cc2_hud.py / terrain_type.py (38 smoke tests)
+  - ✅ 已覆盖 (v0.4.7): cc2_map_parser.py / environmental_audio.py / stereo_sound.py / combat_result.py / direction.py / damage.py (58 smoke tests — Direction 12 tests + Damage 12 tests + CombatResult 3 tests + StereoSound 8 tests + EnvironmentalAudio 11 tests + CC2MapParser 12 tests)
+  - ⚠️ 部分: config.py (仅 test_display_config.py，非完整覆盖) — 留待 v0.5+ 扩充
+- **清理方案**: ~~为剩余 5-6 个模块添加 smoke 测试~~ 已完成
 
 ### ~~🔴 TD-053: TopDownParticleSystem 重复定义~~ ✅ 已修复 (v0.3.8)
 
