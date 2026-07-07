@@ -2,6 +2,39 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.4.10 — 技术债逐一清理 (P2, 2026-07-07)
+
+### TD-003 RESOLVED: campaign.py 删除 + campaign_four_layer 完全替代
+
+- **清理**: 删除 `src/pycc2/domain/systems/campaign.py` (205L, deprecated since v0.3.x)
+- **测试清理**: 删除 `tests/unit/test_campaign.py` (legacy 13 tests)；`tests/unit/test_content_expansion.py` 移除 `TestCampaignSystem` 类 (11 tests) 和 campaign import
+- **验证**: `campaign_four_layer.py` (524L) 完全替代功能，`test_campaign_four_layer.py` (532L, 50+ tests) 覆盖完整；生产代码零引用 campaign.py
+- **回归**: ruff 0 errors / pytest 5373 passed / 21 skipped (环境限制) — 零回归
+
+### TD-007 NEEDS RE-EVALUATION: 原始 4 个问题记录已丢失
+
+- **调研**: TECH_DEBT.md 只写"已记录4个问题"但未列出细节；git log 无相关 commit；scripts/ 无 TODO/FIXME 标注
+- **分析**: 发现 `_scatter` 函数直接覆盖地形不检查重要性（潜在 bug），但修改需重新生成 36 个地图 JSON 影响所有依赖测试，违反 Surgical Changes
+- **决策**: 留待 v0.5 重新评估（原始问题记录丢失，盲目修复风险高）
+
+### TD-042/065/066 重新评估确认延期至 v0.5
+
+- **TD-042** (PixVoxel 下载集成): 下载依赖外部网络 + 接入渲染管线是 v0.5 功能开发任务
+- **TD-065** (车辆损伤差异化): 核心逻辑改动 (unit.py + combat_mechanics_enhanced.py) + 高回归风险
+- **TD-066** (烟雾粒子统一): 组件集成复杂 + API 不兼容 + 性能未验证
+- **决策**: Simplicity First + Surgical Changes 原则下不强推，维持 v0.5 延期
+
+### 总览表计数修正
+
+- v0.3.13 新增条目 (TD-060/061/062) 状态更新: ❌ 未解决 → ✅ 已解决
+- v2.0 旧条目: 18/20 → 19/20 已验证 (TD-003 RESOLVED)
+- 活跃合计: 15 → 4 (TD-007/042/065/066)
+- 已解决: 58/64 → 60/64
+
+**验证**: ruff 0 errors / pytest 5373 passed / 21 skipped — 零回归
+
+---
+
 ## 路线图 (v0.4.1～v0.4.5 短期维护)
 
 基于 D13/D14 评估建议（详见 [docs/ASSESSMENT_D13_MATURITY.md](docs/ASSESSMENT_D13_MATURITY.md) 与 [docs/ASSESSMENT_D14_MATURITY.md](docs/ASSESSMENT_D14_MATURITY.md)），按风险从低到高分五个小版本推进。当前基线：v0.4.5 / 4611 tests / 60.18% 覆盖率 / D14 评分 7.6/10 (B-) / mypy check_untyped_defs=true 已启用。
