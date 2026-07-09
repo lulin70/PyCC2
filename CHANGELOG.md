@@ -2,6 +2,29 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.4.13 — Batch 3 采购系统 UI 文档同步 + TD-042 延期确认 (文档化, 2026-07-09)
+
+### 采购系统 UI 文档同步（GAP_ANALYSIS 过期数据修正）
+
+- **调研发现**: `supply_procurement_ui.py` (575L) 在 v0.3.0 已完整实现，31 tests 全部通过，已集成到 campaign UI（campaign_ui_supply_mixin.py）
+- **GAP_ANALYSIS.md 过期数据修正**:
+  - L25 补给线还原度 80%→90%，状态 🟡→✅（采购UI已实现）
+  - L135 "⚠️ 采购UI缺失" → "✅ 已实现(v0.3.0)"
+  - L150 补给线机制 "⚠️ 剩余差距" → "✅ 已解决"
+  - L152 采购系统 "⚠️ UI未实现" → "✅ 已实现(575L + 31 tests)"
+  - L280-281 R2/R3 "⚠️ Deferred to v0.5" → "✅ RESOLVED (v0.4.11 TD-065/TD-066)"
+- **验证**: `pytest tests/unit/test_supply_procurement.py` 31/31 passed
+
+### TD-042 PixVoxel 下载延期重新确认
+
+- **v0.4.10 评估**: 延期至 v0.5+（外部网络 + 7z 工具 + 功能开发任务）
+- **v0.4.13 重新确认**: 延期理由完全成立
+  - 实测系统未安装 7z/7za/p7zip 工具（`which 7z` not found）
+  - 下载脚本 `scripts/download_pixvoxel_assets.py` 依赖 7z 解压，无法执行
+  - `pixvoxel_loader.py` 明确标注 "scripts-only, 生产代码 src/pycc2/ 内无 import"
+  - `assets/sprites/pixvoxel_isometric/` 目录不存在
+- **结论**: 维持延期至 v0.5+，需先安装 7z 工具 + 接入渲染管线设计
+
 ## v0.4.12 — M4 架构改进收尾评估 (文档化, 2026-07-09)
 
 ### M4 Domain layer slimdown 评估完成-目标已达成
