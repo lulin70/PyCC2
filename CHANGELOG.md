@@ -2,7 +2,19 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
-## v0.4.11 — TD-065 车辆损伤视觉反馈差异化 (P2, 2026-07-09)
+## v0.4.11 — TD-065 + TD-066 M3 视觉打磨收尾 (P2, 2026-07-09)
+
+### TD-066 RESOLVED: 烟雾粒子效果统一（分层集成方案）
+
+- **范围**: 仅修改 1 个源文件 + 1 个新测试文件，未触及 `CC2SmokeEffect` 类本身（适配层在 EffectRenderer 内部转换 Camera→tuple）
+- **`src/pycc2/presentation/rendering/effect_renderer.py`**:
+  - `__init__`: 新增 `_cc2_smoke_effects: list[CC2SmokeEffect]` 字段
+  - `spawn_smoke_screen`: 保留 `emit_smoke_screen`（向后兼容通用粒子）+ 实例化 `CC2SmokeEffect`（tile_size 按 radius/4 缩放，最小 8）
+  - `update_effects`: 新增 CC2SmokeEffect 更新 + 清理 `alive=False` 实例
+  - `render_effects`: 在通用粒子循环前渲染 CC2SmokeEffect（底层，不规则多边形烟团），通用粒子在上层（圆形），两层叠加产生视觉深度
+  - API 适配层: `camera_offset = (camera.x - viewport_w/2 - shake_x, camera.y - viewport_h/2 - shake_y)` — 将 Camera 对象转换为 CC2SmokeEffect.render 所需的 tuple 偏移；zoom != 1.0 是已知限制
+- **测试**: 新增 `tests/unit/test_cc2_smoke_integration.py` (11 tests) — 覆盖创建/更新/清理/渲染/radius 缩放/堆叠/backward compat
+- **验证**: ruff 0 errors / mypy 0 issues / pytest 5400 passed / 21 skipped — 零回归
 
 ### TD-065 RESOLVED: 车辆损伤视觉反馈差异化（最小化实现方案）
 
@@ -21,8 +33,8 @@ All notable changes to PyCC2 will be documented in this file.
   - destroyed: 0 damaged / 3 destroyed
 - **偏离原计划的理由** (Simplicity First + Surgical Changes): 原计划扩展 `CombatState.hit_location` + 修改 `ballistic_engine` 记录击穿位置 → 实际改为按 `damage_state` 确定性分配。原方案需改动 4 个文件 + 影响移动/开火/视野多子系统（高回归风险）；最小化方案仅改 2 个文件 + 仅影响视觉层，还原度足够（CC2 原版玩家也是从 HP 比例推断损伤程度）
 - **测试**: 新增 `tests/unit/test_vehicle_damage_vfx.py` (16 tests) — 覆盖 5 种损伤状态 + 确定性 + VFX 发射 + 步兵不受影响 + is_vehicle 属性 + 自保护 noop
-- **验证**: ruff 0 errors / mypy 0 issues / pytest 5389 passed / 21 skipped（固定顺序） — 零回归
-- **技术债进展**: 60/64 → 61/64 已解决，活跃 4 → 3（剩余 TD-007/042/066 延期至 v0.5+）
+- **验证**: ruff 0 errors / mypy 0 issues / pytest 5400 passed / 21 skipped（固定顺序） — 零回归
+- **技术债进展**: 60/64 → 62/64 已解决，活跃 4 → 2（剩余 TD-007/042 延期至 v0.5+，M3 视觉打磨全部完成）
 
 ### 已知问题（非本次引入）
 

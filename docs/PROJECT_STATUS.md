@@ -329,7 +329,7 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 ### 中期（v0.5.0 功能版本，待规划）
 - TD-072 拆分 enhanced_sound_bridge → ProceduralSoundSynthesizer + EnhancedSoundSystem
 - ~~TD-065 载具损伤视觉反馈差异化~~ ✅ v0.4.11 RESOLVED (最小化方案：unit.py + unit_damage_vfx_mixin.py, 部件差异化 VFX tracks/turret/engine)
-- TD-066 烟雾粒子效果统一
+- ~~TD-066 烟雾粒子效果统一~~ ✅ v0.4.11 RESOLVED (EffectRenderer 分层集成 CC2SmokeEffect, API 适配层 Camera→tuple)
 
 ### 长期（v0.6.0+，待规划）
 - 性能阈值组件数从 4 扩展到 8+

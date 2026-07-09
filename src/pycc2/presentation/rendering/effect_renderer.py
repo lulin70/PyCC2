@@ -26,6 +26,7 @@ from pycc2.presentation.rendering.animation_system import (
     ScreenShake,
     UnitAnimator,
 )
+from pycc2.presentation.rendering.cc2_combat_effects import CC2SmokeEffect
 from pycc2.presentation.rendering.surface_pool import SurfacePool
 
 if TYPE_CHECKING:
@@ -82,6 +83,9 @@ class EffectRenderer:
         self._crater_decals: list[dict] = []
         # Cap to prevent unbounded memory growth in long battles.
         self._crater_decals_max: int = 64
+        # TD-066: CC2-authentic irregular polygon smoke screens, layered
+        # beneath the generic particle smoke for visual depth.
+        self._cc2_smoke_effects: list[CC2SmokeEffect] = []
 
     # ====== Public API: Spawn effects ======
 
@@ -207,8 +211,20 @@ class EffectRenderer:
         self._crater_decals.clear()
 
     def spawn_smoke_screen(self, position: Vec2, radius: float = 64.0) -> None:
-        """Spawn smoke screen."""
+        """Spawn smoke screen.
+
+        TD-066: Emits BOTH generic SMOKE_SCREEN particles (upper layer, simple
+        circles) AND a CC2SmokeEffect instance (base layer, irregular polygon
+        blobs) for CC2-authentic visual fidelity. The two layers compose:
+        polygon blobs give the smoky irregular edge, circles add depth.
+        """
         self._particle_emitter.emit_smoke_screen(position.x, position.y, radius=radius)
+        # tile_size derived from radius so CC2 blob coverage tracks the
+        # caller-requested screen radius (4 tiles default → radius 64).
+        tile_size = max(8, int(radius / 4))
+        self._cc2_smoke_effects.append(
+            CC2SmokeEffect(position.x, position.y, tile_size=tile_size)
+        )
 
     # ====== Public API: Update ======
 
@@ -262,6 +278,11 @@ class EffectRenderer:
         for uid in expired_death:
             del self._death_animations[uid]
 
+        # TD-066: Update CC2 smoke effects and prune expired ones
+        for effect in self._cc2_smoke_effects:
+            effect.update()
+        self._cc2_smoke_effects = [e for e in self._cc2_smoke_effects if e.alive]
+
     def tick(self) -> None:
         """Advance animation tick counter."""
         self._animation_tick += 1
@@ -275,6 +296,20 @@ class EffectRenderer:
         from pycc2.domain.value_objects.vec2 import Vec2
 
         sx, sy = self._screen_shake.update()
+
+        # TD-066: Render CC2 irregular polygon smoke (base layer) BEFORE
+        # generic particles so circles overlay the blobs for depth.
+        # Adapter: CC2SmokeEffect.render takes a simple (x, y) offset tuple,
+        # while EffectRenderer uses Camera with zoom + viewport centering.
+        # For zoom == 1.0 (default), offset = cam_pos - viewport/2 - shake.
+        # Zoom != 1.0 is a known limitation (smoke slightly offset, still visible).
+        if self._cc2_smoke_effects:
+            cam_offset = (
+                camera.x - camera.viewport_width / 2 - sx,
+                camera.y - camera.viewport_height / 2 - sy,
+            )
+            for effect in self._cc2_smoke_effects:
+                effect.render(surface, cam_offset)
 
         for p in self._particle_emitter.particles:
             wpos = Vec2(p.x + sx, p.y + sy)

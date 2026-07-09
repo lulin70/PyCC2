@@ -609,4 +609,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Last updated: 2026-07-09 | v0.4.11 (Beta Candidate) | Tests: 5389 passed / 21 skipped | <a href="docs/GAP_ANALYSIS.md">Gap Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a> | <a href="docs/PROJECT_STATUS.md">Project Status</a></sub></p>
+<p align="center"><sub>Last updated: 2026-07-09 | v0.4.11 (Beta Candidate) | Tests: 5400 passed / 21 skipped | <a href="docs/GAP_ANALYSIS.md">Gap Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a> | <a href="docs/PROJECT_STATUS.md">Project Status</a></sub></p>
