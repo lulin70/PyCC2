@@ -2,6 +2,34 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.4.11 — TD-065 车辆损伤视觉反馈差异化 (P2, 2026-07-09)
+
+### TD-065 RESOLVED: 车辆损伤视觉反馈差异化（最小化实现方案）
+
+- **范围**: 仅修改 2 个源文件 + 1 个新测试文件，未触及 `CombatState` / `ballistic_engine` / `combat_mechanics_enhanced.py`，规避高回归风险
+- **`src/pycc2/domain/entities/unit.py`**: 新增 `_damage_components: dict` 字段（仅载具生效，步兵保持空 dict）
+- **`src/pycc2/domain/entities/unit_damage_vfx_mixin.py`**:
+  - 新增 `is_vehicle` 属性（通过 `unit_type.name == "TANK"` 判断，避免运行时导入 UnitType 造成循环引用）
+  - 新增 `update_vehicle_damage_components(state=None)` 方法 — 按 (unit.id, damage_state) 确定性分配部件损伤，同一载具在同一损伤级别始终显示相同部件故障，避免闪烁；自保护 guard 使步兵调用为 noop
+  - 新增 `_emit_vehicle_component_vfx(rng)` 私有方法 — 部件差异化 VFX：tracks→黑色低空烟+火花；turret→灰色高空烟；engine→尾部浓烟+火，粒子带 `tag` 字段供渲染器主题化
+  - 扩展 `update_damage_vfx` — 对 `is_vehicle=True` 的单位调用部件更新 + 部件 VFX 发射
+- **部件损伤计划**（单调递增）:
+  - undamaged: 0 damaged / 0 destroyed
+  - light: 1 damaged / 0 destroyed
+  - moderate: 1 damaged / 1 destroyed
+  - heavy: 2 damaged / 1 destroyed
+  - destroyed: 0 damaged / 3 destroyed
+- **偏离原计划的理由** (Simplicity First + Surgical Changes): 原计划扩展 `CombatState.hit_location` + 修改 `ballistic_engine` 记录击穿位置 → 实际改为按 `damage_state` 确定性分配。原方案需改动 4 个文件 + 影响移动/开火/视野多子系统（高回归风险）；最小化方案仅改 2 个文件 + 仅影响视觉层，还原度足够（CC2 原版玩家也是从 HP 比例推断损伤程度）
+- **测试**: 新增 `tests/unit/test_vehicle_damage_vfx.py` (16 tests) — 覆盖 5 种损伤状态 + 确定性 + VFX 发射 + 步兵不受影响 + is_vehicle 属性 + 自保护 noop
+- **验证**: ruff 0 errors / mypy 0 issues / pytest 5389 passed / 21 skipped（固定顺序） — 零回归
+- **技术债进展**: 60/64 → 61/64 已解决，活跃 4 → 3（剩余 TD-007/042/066 延期至 v0.5+）
+
+### 已知问题（非本次引入）
+
+- **sprite_renderer VP numeral 测试 order-dependent flakiness**: `tests/unit/test_sprite_renderer.py::TestVPNumeralRendering` 中的 2 个测试在 `pytest-randomly` 随机顺序下偶发失败（gold pixels 未渲染），固定顺序（`-p no:randomly`）全部通过。根因是某个先前测试污染了全局状态（疑似 pygame font cache 或 SpriteRenderer 类级状态）。已创建 Task #168 跟踪修复。
+
+---
+
 ## v0.4.10 — 技术债逐一清理 (P2, 2026-07-07)
 
 ### TD-003 RESOLVED: campaign.py 删除 + campaign_four_layer 完全替代

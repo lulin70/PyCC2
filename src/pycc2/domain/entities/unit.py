@@ -184,6 +184,9 @@ class Unit(
     _smoke_particles: list = field(init=False, default_factory=list)  # Smoke effect positions
     _fire_particles: list = field(init=False, default_factory=list)  # Fire effect positions
     _damage_vfx_timer: int = field(init=False, default=0)  # Animation timer
+    # TD-065: Vehicle component damage states (tracks/turret/engine → intact/damaged/destroyed).
+    # Empty dict for infantry; populated by UnitDamageVfxMixin.update_vehicle_damage_components.
+    _damage_components: dict = field(init=False, default_factory=dict)
 
     @property
     def unit_id(self) -> str:

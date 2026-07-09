@@ -3,7 +3,7 @@
 **v0.4.7 | July 5, 2026 | Based on DevSquad 7-Role Analysis**
 
 > **Current Version**: v0.4.7 | **Tests**: ~4598 (all passing) | **CC2 Fidelity**: ~88%
-> **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish Mostly Complete (2 items deferred to v0.5 per TD-065/TD-066)**
+> **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish Mostly Complete (1 item resolved v0.4.11 TD-065, 1 item deferred to v0.5 per TD-066)**
 
 ---
 
@@ -177,21 +177,21 @@ The project now has **~3985 passing tests**, **63 historical maps**, **277 unit 
 
 **Target**: v0.4-alpha | **Timeline**: 5-7 days | **Focus**: User-facing polish
 
-> **v0.4.7 同步更新**: M3 任务列表已根据 v0.4.0 D8 Phase 2 实际完成情况同步。R1 (命令队列视觉路径点) 和 R4 (存档系统完整集成) 已在 v0.4.0 D8 Phase 2 完成。Vehicle damage visual feedback 和 Smoke particle effects 延期至 v0.5 (TD-065/TD-066)。Audio mixing balance pass 部分完成 (R5 ✅ RESOLVED in v0.3.0, 但部分音效音量仍不一致)。
+> **v0.4.11 同步更新**: M3 任务列表已根据 v0.4.0 D8 Phase 2 实际完成情况同步。R1 (命令队列视觉路径点) 和 R4 (存档系统完整集成) 已在 v0.4.0 D8 Phase 2 完成。Vehicle damage visual feedback 已在 v0.4.11 完成 (TD-065 RESOLVED, 最小化方案：unit.py + unit_damage_vfx_mixin.py)。Smoke particle effects 仍延期至 v0.5 (TD-066)。Audio mixing balance pass 部分完成 (R5 ✅ RESOLVED in v0.3.0, 但部分音效音量仍不一致)。
 
 ### M3 Task List
 
 | Task | Priority | Est. Hours | Status | Owner |
 |------|----------|------------|--------|-------|
 | Command queue UI (visual waypoint display) | P1 | 4h | ✅ Complete (v0.4.0 D8 Phase 2, R1) | UI Designer + Coder |
-| Vehicle damage visual feedback (smoke, fire, immobilized) | P1 | 4h | ⬜ Deferred to v0.5 (TD-065) | UI Designer + Coder |
+| Vehicle damage visual feedback (smoke, fire, immobilized) | P1 | 4h | ✅ Complete (v0.4.11 TD-065 RESOLVED, 最小化方案) | UI Designer + Coder |
 | Smoke particle effects improvement | P1 | 4h | ⬜ Deferred to v0.5 (TD-066) | UI Designer + Coder |
 | Save/Load full UI integration | P2 | 4h | ✅ Complete (v0.4.0 D8 Phase 2, R4) | PM + Coder |
 | Audio mixing balance pass | P2 | 2h | ⚠️ Partial (R5 RESOLVED v0.3.0, 部分音量不一致) | UI Designer |
 
 **M3 Acceptance Criteria**:
 - [x] Command queue shows visual waypoints with numbering ✅ (v0.4.0 D8 Phase 2, R1)
-- [ ] Vehicle damage has visual feedback (smoke, fire, disabled appearance) — ⬜ Deferred to v0.5 (TD-065)
+- [x] Vehicle damage has visual feedback (smoke, fire, disabled appearance) ✅ (v0.4.11 TD-065 RESOLVED, 最小化方案：部件差异化 VFX tracks/turret/engine)
 - [ ] Smoke has improved particle effects — ⬜ Deferred to v0.5 (TD-066)
 - [x] Save/Load fully integrated into UI ✅ (v0.4.0 D8 Phase 2, R4)
 - [ ] Audio volume levels balanced — ⚠️ Partial (R5 RESOLVED v0.3.0, 部分音量不一致)
@@ -354,6 +354,6 @@ We welcome community contributions to any milestone:
 **Document Version**: 0.4.7
 **Created**: 2026-05-19
 **Updated**: 2026-07-05
-**Status**: Beta Candidate — M3 Visual Polish Mostly Complete (2 items deferred to v0.5 per TD-065/TD-066); M4 7/9 tasks done
+**Status**: Beta Candidate — M3 Visual Polish Mostly Complete (TD-065 resolved v0.4.11, 1 item deferred to v0.5 per TD-066); M4 7/9 tasks done
 **Next Review**: Upon v0.5-alpha start (Domain layer slimdown + Unify unit definition system)
 **Related Documents**: [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) | [TECH_DEBT.md](docs/TECH_DEBT.md)

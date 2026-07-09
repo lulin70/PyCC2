@@ -1,8 +1,8 @@
 # PyCC2 技术债清单
 
-> **版本**: v0.4.10 | **日期**: 2026-07-07 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-07-07 (v0.4.10 TD-003 RESOLVED: campaign.py 删除 + campaign_four_layer 完全替代 + 5373 passed 零回归; TD-007 NEEDS RE-EVALUATION: 原始 4 个问题记录已丢失，留待 v0.5 重新评估) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 0 (剩余 4 项延期至 v0.5+: TD-007/042/065/066)
-> **状态**: ✅ P0全部清除 | ✅ P1全部清除 | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md) | ✅ v0.4.7 TD-038 RESOLVED (4 份核心文档批量同步: PRD 33 用户故事 + ROADMAP M3/M4 + GAP_ANALYSIS A1-A3/R8/R9/R10 + TECH_DEBT checklist) | ✅ v0.4.7 TD-036 RESOLVED (评估确认 tests/benchmark/test_performance_baseline.py 已实现 per-metric threshold 断言) | ✅ v0.4.7 P1 工程实践债评估完成 (TD-035/037/039/040 现状文档化，留待 v0.5+ 推进) | ✅ v0.4.7 P2 视觉/资源/性能/测试债评估完成 (TD-043 RESOLVED + TD-044 WONTFIX + TD-042/059/065/066 现状文档化) | ✅ v0.4.7 P3 低优先级债复核完成 (TD-033/034 checklist 修正 + v2.0 旧条目 18/20 验证通过 + D13-N8 维持待 v0.5 整理) | ✅ v0.4.7 TD-059 RESOLVED (6 模块 smoke 测试补齐: direction/damage/combat_result/stereo_sound/environmental_audio/cc2_map_parser, 58 tests, 全部使用真实组件非 Mock) | ✅ v0.4.7 TD-035 RESOLVED (4 组件接口契约测试 39 tests: HealthComponent/MoraleComponent/StateMachine/VeterancyComponent 接口冻结 + apply_inheritance_to_units 端到端消费者契约 + CampaignPersistence 序列化保真, 全部使用真实组件非 Mock) | ✅ v0.4.7 TD-037 RESOLVED (AI GameLoop 集成测试 6 tests: 真实 GameLoop + 真实 AIService + _update_logic 驱动 N ticks, 验证敌方单位自动注册 + AIService.tick 执行 + _ai_tick_counter 重置 + 多 cycle 持续 tick) | ✅ v0.4.8 TD-040 RESOLVED (运行时健康检查 preflight_check 模块 19 tests: 3 层子系统检查 critical/assembler/optional, GameLoop.run() 启动前 fail-fast) | ✅ v0.4.8 TD-039 RESOLVED (错误恢复机制 8 tests: _update_ai try/except 降级 AI tick 失败→单位静止 + _render_scene try/except 降级 render 失败→跳过本帧, 单组件异常不崩溃整个游戏) | ✅ v0.4.9 TD-041 RESOLVED (架构守卫测试 8 tests: 4 层 DDD 依赖方向自动验证 domain→services→presentation→infrastructure + CONTRIBUTING.md 变更影响分析流程 5 步) | ✅ v0.4.9 TD-061 ACCEPTED (enhanced_renderer 485L/30 方法协调者模式评估收尾: 30 方法全部薄委托到 9 子模块, 核心方法仅 4 个, 基于 D13 N-1 教训不按机械阈值拆分) | ✅ v0.4.10 TD-003 RESOLVED (campaign.py 205L 删除 + campaign_four_layer.py 完全替代 + test_campaign.py 删除 + test_content_expansion.py 移除 TestCampaignSystem 类, 5373 passed 零回归) | ✅ v0.4.10 TD-007 NEEDS RE-EVALUATION (原始 4 个问题记录已丢失, _scatter 函数潜在覆盖 bug 发现但修改需重新生成 36 个地图 JSON, 留待 v0.5 重新评估)
+> **版本**: v0.4.11 | **日期**: 2026-07-09 | **原则**: 不留技术债，发现即记录，按计划清理
+> **上次核查**: 2026-07-09 (v0.4.11 TD-065 RESOLVED: 车辆损伤视觉反馈差异化 — 最小化方案仅改 unit.py + unit_damage_vfx_mixin.py, 新增 _damage_components 字段 + is_vehicle 属性 + update_vehicle_damage_components 方法, 部件损伤按 (unit.id, damage_state) 确定性分配, 16 新测 + 4687 unit passed 零回归) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 0 (剩余 3 项延期至 v0.5+: TD-007/042/066)
+> **状态**: ✅ P0全部清除 | ✅ P1全部清除 | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md) | ✅ v0.4.7 TD-038 RESOLVED (4 份核心文档批量同步: PRD 33 用户故事 + ROADMAP M3/M4 + GAP_ANALYSIS A1-A3/R8/R9/R10 + TECH_DEBT checklist) | ✅ v0.4.7 TD-036 RESOLVED (评估确认 tests/benchmark/test_performance_baseline.py 已实现 per-metric threshold 断言) | ✅ v0.4.7 P1 工程实践债评估完成 (TD-035/037/039/040 现状文档化，留待 v0.5+ 推进) | ✅ v0.4.7 P2 视觉/资源/性能/测试债评估完成 (TD-043 RESOLVED + TD-044 WONTFIX + TD-042/059/065/066 现状文档化) | ✅ v0.4.7 P3 低优先级债复核完成 (TD-033/034 checklist 修正 + v2.0 旧条目 18/20 验证通过 + D13-N8 维持待 v0.5 整理) | ✅ v0.4.7 TD-059 RESOLVED (6 模块 smoke 测试补齐: direction/damage/combat_result/stereo_sound/environmental_audio/cc2_map_parser, 58 tests, 全部使用真实组件非 Mock) | ✅ v0.4.7 TD-035 RESOLVED (4 组件接口契约测试 39 tests: HealthComponent/MoraleComponent/StateMachine/VeterancyComponent 接口冻结 + apply_inheritance_to_units 端到端消费者契约 + CampaignPersistence 序列化保真, 全部使用真实组件非 Mock) | ✅ v0.4.7 TD-037 RESOLVED (AI GameLoop 集成测试 6 tests: 真实 GameLoop + 真实 AIService + _update_logic 驱动 N ticks, 验证敌方单位自动注册 + AIService.tick 执行 + _ai_tick_counter 重置 + 多 cycle 持续 tick) | ✅ v0.4.8 TD-040 RESOLVED (运行时健康检查 preflight_check 模块 19 tests: 3 层子系统检查 critical/assembler/optional, GameLoop.run() 启动前 fail-fast) | ✅ v0.4.8 TD-039 RESOLVED (错误恢复机制 8 tests: _update_ai try/except 降级 AI tick 失败→单位静止 + _render_scene try/except 降级 render 失败→跳过本帧, 单组件异常不崩溃整个游戏) | ✅ v0.4.9 TD-041 RESOLVED (架构守卫测试 8 tests: 4 层 DDD 依赖方向自动验证 domain→services→presentation→infrastructure + CONTRIBUTING.md 变更影响分析流程 5 步) | ✅ v0.4.9 TD-061 ACCEPTED (enhanced_renderer 485L/30 方法协调者模式评估收尾: 30 方法全部薄委托到 9 子模块, 核心方法仅 4 个, 基于 D13 N-1 教训不按机械阈值拆分) | ✅ v0.4.10 TD-003 RESOLVED (campaign.py 205L 删除 + campaign_four_layer.py 完全替代 + test_campaign.py 删除 + test_content_expansion.py 移除 TestCampaignSystem 类, 5373 passed 零回归) | ✅ v0.4.10 TD-007 NEEDS RE-EVALUATION (原始 4 个问题记录已丢失, _scatter 函数潜在覆盖 bug 发现但修改需重新生成 36 个地图 JSON, 留待 v0.5 重新评估) | ✅ v0.4.11 TD-065 RESOLVED (车辆损伤视觉反馈差异化 — 最小化方案: unit.py 新增 _damage_components 字段 + unit_damage_vfx_mixin.py 新增 is_vehicle/update_vehicle_damage_components/_emit_vehicle_component_vfx, 部件损伤按 (unit.id, damage_state) 确定性分配, tracks/turret/engine 差异化 VFX, 16 新测 + 4687 unit passed 零回归)
 
 ---
 
@@ -17,9 +17,9 @@
 | ~~7-dimension review新增 (TD-050~056)~~ | 7 | — | ✅ **已解决** |
 | ~~v0.3.11 DevSquad审计新增 (TD-057~059)~~ | 3 | — | ✅ **TD-057, TD-060 已解决** |
 | 🆕 v0.3.13 批判性审核新增 | 2 | 🟢 P2 | ✅ 已解决 (TD-060/061/062 全部 RESOLVED/ACCEPTED) |
-| 🆕 v0.4.0 D8 Phase 2 新增 (TD-065~066) | 2 | 🟢 P2 | ❌ 未解决 (延期至 v0.5) |
+| 🆕 v0.4.0 D8 Phase 2 新增 (TD-065~066) | 2 | 🟢 P2 | 🟡 部分解决 (v0.4.11 TD-065 RESOLVED, TD-066 延期至 v0.5) |
 | v2.0旧条目（声称已解决） | 20 | — | ✅ 19/20 已验证 (v0.4.10 TD-003 RESOLVED) |
-| **合计（活跃）** | **4** | — | **60/64 已解决** |
+| **合计（活跃）** | **3** | — | **61/64 已解决** |
 
 ---
 
@@ -569,24 +569,25 @@
 - **后续观察**: combat_mixin 416L/10 handler (avg ~42L/handler) 仍属合理薄封装，不构成新 God Class。若某 handler >80L 或新增 tactic 类型持续膨胀可再评估
 - **状态**: ✅ RESOLVED (D11-2 #3 + v0.4.3 单测前置完成)
 
-### 🟢 TD-065: 车辆损伤视觉反馈不区分类型 (P2-2 延期) — D8 Phase 2 评估
+### ~~🟢 TD-065: 车辆损伤视觉反馈不区分类型 (P2-2)~~ ✅ RESOLVED (v0.4.11)
 
 - **描述**: D8 Phase 2 (CC2 视觉打磨) 评估 P2-2 时发现，当前 `Unit._damage_state` / `update_damage_vfx` 是通用实现（按 HP 比例生成 smoke + fire 粒子），未区分载具部件损伤（履带/炮塔/发动机）
 - **影响**: CC2 原版载具损伤有差异化视觉（履带断裂→无法移动；炮塔卡死→无法开火；发动机起火→持续掉血），PyCC2 当前仅显示通用烟/火，玩家无法从视觉判断载具具体受损部位
 - **文件**: `src/pycc2/domain/entities/unit.py` (line 124-130 `_damage_state`/`_smoke_particles`/`_fire_particles`/`_damage_vfx_timer`), `src/pycc2/domain/systems/vehicle_crew_system.py`
-- **评估日期**: 2026-06-27 (v0.4.0 D8 Phase 2)
-- **不立即修复的理由**:
-  1. **核心逻辑改动**: 需在 `unit.py` 中新增 `damage_components: dict[str, DamageState]` 字段（tracks/turret/engine），并修改 `update_damage_vfx` 根据 `damage_components` 渲染不同视觉
-  2. **战斗结算链路改动**: `combat_mechanics_enhanced.py` 需根据击穿位置判定具体部件损伤，当前只有总 HP 扣减
-  3. **回归风险高**: 载具损伤状态影响移动/开火/视野多个子系统，改动需全面回归测试
-- **状态**: ❌ 未解决 — 延期至 v0.5 (v0.4.10 重新评估确认延期理由有效)
-- **v0.4.10 评估**: 延期理由仍然有效 — 核心逻辑改动 (unit.py + combat_mechanics_enhanced.py) + 高回归风险 (影响移动/开火/视野多子系统)；属于 v0.5 功能开发任务，非技术债清理；Simplicity First + Surgical Changes 原则下不强推
-- **v0.5 实施计划**:
-  1. 在 `Unit` 新增 `damage_components` 字段（仅载具生效）
-  2. 扩展 `CombatState` 增加 `hit_location` 枚举（hull/turret/track/engine）
-  3. 修改 `ballistic_engine` 在击穿判定时记录 hit_location
-  4. 扩展 `update_damage_vfx` 根据受损部件渲染差异化视觉（履带→黑色烟雾+火花；炮塔→卡死图标；发动机→浓烟+火）
-  5. 新增 8+ 单测覆盖各部件损伤场景
+- **评估日期**: 2026-06-27 (v0.4.0 D8 Phase 2) → 2026-07-09 (v0.4.11 实施)
+- **状态**: ✅ RESOLVED (v0.4.11) — 采用最小化实现方案，仅修改 `unit.py` + `unit_damage_vfx_mixin.py`，未触及 `CombatState` / `ballistic_engine` / `combat_mechanics_enhanced.py`，规避高回归风险
+- **v0.4.11 实施摘要**:
+  1. ✅ 在 `Unit` 新增 `_damage_components: dict` 字段（仅载具生效，步兵保持空 dict）
+  2. ✅ 在 `UnitDamageVfxMixin` 新增 `is_vehicle` 属性 + `update_vehicle_damage_components` 方法 + `_emit_vehicle_component_vfx` 私有方法
+  3. ✅ 部件损伤按 (unit.id, damage_state) 确定性分配 — 同一载具在同一损伤级别始终显示相同部件故障，避免闪烁
+  4. ✅ 部件损伤计划单调递增：undamaged(0/0) → light(1 damaged) → moderate(1+1) → heavy(2+1) → destroyed(3 destroyed)
+  5. ✅ 部件差异化 VFX：tracks→黑色低空烟+火花；turret→灰色高空烟；engine→尾部浓烟+火，粒子带 `tag` 字段供渲染器主题化
+  6. ✅ 新增 16 个单测（覆盖 5 种损伤状态 + 确定性 + VFX 发射 + 步兵不受影响 + is_vehicle 属性）
+- **偏离原计划的理由** (Simplicity First + Surgical Changes):
+  - 原计划扩展 `CombatState.hit_location` + 修改 `ballistic_engine` 记录击穿位置 → 实际改为按 `damage_state` 确定性分配部件损伤
+  - 理由：原方案需改动 4 个文件 + 影响移动/开火/视野多子系统（高回归风险）；最小化方案仅改 2 个文件 + 不影响任何子系统行为（仅视觉层），还原度足够（CC2 原版玩家也是从 HP 比例推断损伤程度，部件差异主要通过视觉反馈而非精确 hit_location）
+  - 若未来需要精确的"履带被击中→无法移动"逻辑，可在 v0.6+ 补充 `hit_location` 路径，当前视觉差异化已满足 TD-065 核心目标
+- **验证**: 16/16 新测通过 + 181 相关回归测通过（test_swiss_cheese/test_combat_mechanics_enhanced/test_dynamic_shadows_and_trails/test_content_expansion）+ 全量 unit 套件 4687 passed 0 回归
 
 ### 🟢 TD-066: 烟雾粒子效果未统一 (P2-3 延期) — D8 Phase 2 评估
 
