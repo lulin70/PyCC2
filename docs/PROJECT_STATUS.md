@@ -1,45 +1,47 @@
 # PyCC2 项目状态
 
-> **最后更新**: 2026-07-06
-> **版本**: v0.4.9
+> **最后更新**: 2026-07-09
+> **版本**: v0.4.12
 > **状态**: Beta Candidate — 完全可玩
 
 ## 核心指标
 
 | 指标 | 数值 | 来源 |
 |------|------|------|
-| 版本号 | 0.4.9 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
+| 版本号 | 0.4.12 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
 | 源码模块数 | 390 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
-| 测试文件数 | 176 个 `.py` 文件（unit 137 / integration 7 / e2e 25 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 4885 passed / 0 failed / 2 skipped (v0.4.9 基线，含 TD-041 架构守卫 8 tests) | `pytest tests/unit tests/integration` |
+| 测试文件数 | 177 个 `.py` 文件（unit 138 / integration 7 / e2e 25 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
+| 测试用例数 | 5400 passed / 0 failed / 21 skipped (v0.4.12 基线，含 TD-065+TD-066 M3 视觉打磨 27 新测) | `pytest tests/ -p no:randomly` |
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=60`（已恢复目标值） | `.github/workflows/ci.yml` |
 | 实际覆盖率 | 60.05% (44170 stmts, 15918 missed，含 branch coverage) | `pytest tests/unit/ --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |
 | mypy | 0 errors (389 files, check_untyped_defs=true 已启用) | `MYPYPATH=src mypy -p pycc2` |
 | Bandit | 0 Medium / 0 High | `bandit -r src/ -ll --skip B101,B311,B601` |
+| Domain 层占比 | 38.5% (36966/96137 行) — ✅ M4 目标 <50% 已达成 | `find src/pycc2/domain -name "*.py" -exec wc -l {} +` |
 
 ## 架构
 
 DDD 4 层结构（domain / infrastructure / presentation / services），390 模块零循环依赖。
 
-| 层 | 文件数 | 行数 | 职责 |
-|----|--------|------|------|
-| domain | 167 | ~37390 | 核心游戏逻辑（纯 Python，零向上依赖） |
-| infrastructure | 19 | ~4777 | 事件总线/解析器/配置 |
-| presentation | 184 | ~49168 | 渲染/UI/输入 |
-| services | 18 | ~4773 | 战斗/AI/补给等跨层协调 |
+| 层 | 文件数 | 行数 | 占比 | 职责 |
+|----|--------|------|------|------|
+| domain | 167 | 36966 | 38.5% | 核心游戏逻辑（纯 Python，零向上依赖） |
+| infrastructure | 19 | ~4777 | 5.0% | 事件总线/解析器/配置 |
+| presentation | 184 | ~49168 | 51.1% | 渲染/UI/输入 |
+| services | 18 | ~4773 | 5.0% | 战斗/AI/补给等跨层协调 |
 
 ## 最近评估
 
 | 评估 | 日期 | 评分 | 报告 |
 |------|------|------|------|
+| M4 架构改进收尾 | 2026-07-09 | — | [ASSESSMENT_M4_V0411.md](ASSESSMENT_M4_V0411.md) |
 | D14 | 2026-07-05 | 7.6/10 (B-) | [ASSESSMENT_D14_MATURITY.md](ASSESSMENT_D14_MATURITY.md) |
 | D13 | 2026-07-05 | 7.4/10 (B-) | [ASSESSMENT_D13_MATURITY.md](ASSESSMENT_D13_MATURITY.md) |
 | D12 | 2026-07-02 | 5.9/10 (D+) | [ASSESSMENT_D12_MATURITY.md](ASSESSMENT_D12_MATURITY.md) |
 | D9 | 2026-06-29 | 8.2/10 (B) | [ASSESSMENT_D9_MATURITY.md](ASSESSMENT_D9_MATURITY.md) |
 | D8 | 2026-06-27 | 8.0/10 (B-) | [ASSESSMENT_D8_MATURITY.md](ASSESSMENT_D8_MATURITY.md) |
 
-**D13 评分提升原因**: D12 9 项 P0 + 8 项 P1 全部修复验证（Phase 1-5），文档一致性深度修复，saves/ 运行时数据清理，总分 5.9→7.4。
+**M4 评估结论 (2026-07-09)**: Domain slimdown 目标已达成（实测 38.5% < 50%，ROADMAP 的 75.4% 为 v0.3.x 过期数据）；Unify unit definition 前提不成立（实为 1 套 DDD 协作系统 Entity+Template+Factory+Facade，非 4 套独立定义）。M4 全部 9 项任务完成。
 
 ## 最近变更
 

@@ -2,6 +2,42 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.4.12 — M4 架构改进收尾评估 (文档化, 2026-07-09)
+
+### M4 Domain layer slimdown 评估完成-目标已达成
+
+- **原始任务**: 将 domain/ 层代码占比从 75.4% 降至 50% 以下（P1, 8h 估算）
+- **实测数据**: domain 36966 行 / src 96137 行 = **38.5%**，已低于 50% 目标
+- **75.4% 来源追溯**: v0.3.x 之前的旧数据。经 enhanced_renderer 拆分（5975→2239 行）+ GameLoop 拆分（1226→<400 行）+ unit.py God Class 拆分（937→494 行 facade + 5 mixin）+ campaign.py 删除（205 行）后自然下降
+- **结论**: 目标已达成，无需代码改动，仅更新 ROADMAP/PROJECT_STATUS 文档
+- **评估文档**: [docs/ASSESSMENT_M4_V0411.md](docs/ASSESSMENT_M4_V0411.md)
+
+### M4 Unify unit definition system 评估完成-前提不成立
+
+- **原始任务**: 将 4 套单位定义合并为 1 套（P2, 4h 估算）
+- **实际代码审查**: 不是 4 套独立定义，而是 1 套 DDD 协作系统:
+  - `unit.py` (494L) — Entity（运行时实体，状态/组件/生命周期）
+  - `unit_templates.py` (123L) — Specification（CC2UnitTemplate 配置模板）
+  - `unit_factories/` (1554L) — Factory（5 个阵营工厂，从 template 创建 Unit）
+  - `cc2_authentic_units.py` (52L) — Facade（统一导出）
+  - `unit_database.py` (56L) — Repository（数据库构建/查询）
+- **DDD 模式对照**: 标准 Entity + Specification + Factory + Facade + Repository 组合，非重复定义
+- **强行合并风险**: 破坏 SRP + DDD 分层 + 11 个消费者高回归风险 + 违反 Simplicity First
+- **结论**: 前提不成立，无需合并，仅文档化评估结论
+- **评估文档**: [docs/ASSESSMENT_M4_V0411.md](docs/ASSESSMENT_M4_V0411.md)
+
+### M4 整体状态
+
+- 9/9 任务完成（7 原已完成 + 2 本次评估完成）
+- M4 验收标准全部达成: Domain <50% ✅ (38.5%) + GameLoop <400 行 ✅ + 无循环依赖 ✅ + 无 bare except ✅ + 无重复模块 ✅
+- 详见 [docs/ROADMAP.md](docs/ROADMAP.md) M4 章节
+
+### 教训
+
+- ROADMAP 量化目标需定期校准（75.4% 和 "4 sets" 均为 v0.3.x 过期数据）
+- "N 套定义" 类合并任务执行前需先做职责审查（确认是独立 vs 协作，是否符合标准设计模式）
+- 累计教训: TD-026（52 候选 1.9% hit rate）+ TD-061（enhanced_renderer 评估）+ M4 评估 → 证明基于过期数据/机械阈值的架构改进任务需重新校准前提
+
 ## v0.4.11 — TD-065 + TD-066 M3 视觉打磨收尾 (P2, 2026-07-09)
 
 ### TD-066 RESOLVED: 烟雾粒子效果统一（分层集成方案）
