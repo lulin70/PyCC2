@@ -2,6 +2,19 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.4.14 — TD-007 v0.5 重新评估完成 (文档化, 2026-07-09)
+
+### TD-007 ACCEPTED: 地图扩展脚本边界区域不自然
+
+- **v0.4.10 评估**: NEEDS RE-EVALUATION（原始 4 个问题记录已丢失，_scatter 潜在 bug 发现但修改需重新生成 36 个地图 JSON）
+- **v0.4.14 重新评估完成**: ACCEPTED — 接受现状，不修改
+  - `_scatter` 函数（`scripts/gen_campaign_maps.py:98` + `scripts/gen_historical_maps.py:85`）直接覆盖地形 `tiles[r][c] = terrain`，不检查原有地形重要性（road/bridge/building 可能被 hedge/woods/rough 覆盖）
+  - 修改需重新生成 64 个地图 JSON（不是 v0.4.10 评估的 36 个）+ 影响 7 个测试文件（含 E2E test_full_user_journey / test_pre_release_full_journey）
+  - 高风险：地图布局变化 → 单位移动路径变化 → 战斗结果变化 → 大量测试断言失败
+  - 低收益：原始 4 个问题记录已丢失无法验证；无用户报告实际游戏地图边界问题
+- **决策理由**: Simplicity First + Surgical Changes — 不做高风险低收益的修改
+- **技术债进展**: 62/64 → 63/64 已解决，活跃 2→1（剩余 TD-042 延期至 v0.5+）
+
 ## v0.4.13 — Batch 3 采购系统 UI 文档同步 + TD-042 延期确认 (文档化, 2026-07-09)
 
 ### 采购系统 UI 文档同步（GAP_ANALYSIS 过期数据修正）
