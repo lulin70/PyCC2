@@ -1188,25 +1188,10 @@ assert complete and tick >= 20, "死亡动画应在20-60帧内完成"
 
 ---
 
-### 6.10 TC-047: 等距视角渲染(Isometric) (P2)
+### 6.10 TC-047: ~~等距视角渲染(Isometric)~~ (已移除 — v0.5.1 P2)
 
-**测试目标**: 验证等距视角（伪3D）渲染模式
-
-```python
-from pycc2.presentation.rendering.isometric_renderer import IsometricRenderer
-
-iso_renderer = IsometricRenderer()
-iso_screen = pygame.Surface((SCREEN_W, SCREEN_H))
-
-iso_renderer.render(surface=iso_screen, game_map=game_map, 
-                    units=game_loop.state.units, camera=game_loop.state.camera)
-
-pixel_data = pygame.surfarray.array3d(iso_screen)
-coverage = (pixel_data.sum(axis=2) > 0).sum() / (SCREEN_W * SCREEN_H)
-assert coverage > 0.3
-```
-
-**预计执行时间**: 2分钟
+**状态**: 已移除。CC2 原版仅使用顶部正交视角，等距视角(isometric)为 experimental 代码，
+已在 v0.5.1 P2 清理中完整删除。正交视角渲染覆盖见 TC-048（小地图）及主渲染管线 E2E 场景。
 
 ---
 

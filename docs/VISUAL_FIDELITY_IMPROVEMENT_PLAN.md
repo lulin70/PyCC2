@@ -1,8 +1,8 @@
 # PyCC2 视觉还原度提升计划
 
-> **版本**: v0.5.0 | **日期**: 2026-07-10 | **状态**: P0 已完成 ✅，待推进 P2 → P1 → P3
+> **版本**: v0.5.1 | **日期**: 2026-07-10 | **状态**: P0 ✅ + P2 ✅ 已完成，待推进 P1 → P3
 > **基线**: v0.4.16 代码审核 — 视觉~52% / 机制~78% / 综合~65%
-> **当前**: v0.5.0 P0 完成 — 视觉~67% / 机制~78% / 综合~72%
+> **当前**: v0.5.0 P0 + v0.5.1 P2 完成 — 视觉~67% / 机制~78% / 综合~72%
 > **目标**: 通过 P0-P3 逐级提升，达到视觉~75% / 机制~85% / 综合~80%
 > **关联文档**: [GAP_ANALYSIS.md](GAP_ANALYSIS.md) | [ROADMAP.md](ROADMAP.md) | [TECH_DEBT.md](TECH_DEBT.md)
 
@@ -121,36 +121,28 @@
 
 ---
 
-## 四、P2：清理 isometric 幽灵功能（代码质量）
+## 四、P2：清理 isometric experimental 代码（代码质量）✅ 已完成 (v0.5.1)
 
-### 4.1 目标
-删除不存在的 isometric_renderer.py / isometric_transform.py 引用，消除幽灵功能。
+### 4.1 背景
+v0.4.16 审核曾将 isometric_renderer/isometric_transform 等 5 个文件误判为"幽灵功能"（声称文件不存在），实际文件全部存在且有完整实现。CC2 原版（1997）仅使用顶部正交视角，isometric 为 experimental 代码，从未在正式渲染管线中启用。
 
-### 4.2 问题代码位置
+### 4.2 决策
+完整重构 — 删除 isometric 专属代码，保留可复用部分（CC2 地形调色板 + tile 尺寸常量内联到使用方）。
 
-| 文件 | 行号 | 问题 |
+### 4.3 实际实施（v0.5.1 P2 完成）
+
+| 步骤 | 内容 | 状态 |
 |------|------|------|
-| [enhanced_renderer.py](../src/pycc2/presentation/rendering/enhanced_renderer.py) | L53 | `from pycc2.presentation.rendering.isometric_renderer import IsometricRenderer` (TYPE_CHECKING) |
-| enhanced_renderer.py | L99-100 | 声称支持 ISOMETRIC 模式 |
-| [unit_rendering_mixin.py](../src/pycc2/presentation/rendering/unit_rendering_mixin.py) | L76-77 | `from pycc2.presentation.rendering.isometric_transform import depth_sort_key` (运行时，仅 ISOMETRIC 模式触发) |
-
-### 4.3 方案选项
-
-| 方案 | 描述 | 工作量 | 风险 |
-|------|------|--------|------|
-| A | 删除所有 isometric 引用 | 0.5 天 | 低 |
-| B | 实际实现 isometric 模式 | 5+ 天 | 中 |
-
-**推荐**: 方案 A（删除引用）。CC2 原版就是俯视正交，不需要等距模式。方案 B 是过度设计。
-
-### 4.4 实施步骤（方案 A）
-1. 删除 enhanced_renderer.py L53 的 TYPE_CHECKING import
-2. 删除 enhanced_renderer.py L99-100 的 ISOMETRIC 模式声明
-3. 删除 unit_rendering_mixin.py L76-85 的 ISOMETRIC 分支
-4. 清理 ProjectionMode 枚举中的 ISOMETRIC（或保留但标注未实现）
-5. 全量测试验证
-
-**总工作量**: 0.5 天
+| 1 | CC2_ISOMETRIC_PALETTE + TILE_W/TILE_H 内联到 enhanced_terrain_generator.py | ✅ |
+| 2 | camera.py 移除 isometric 投影代码 (ProjectionMode.ISOMETRIC + _world/_screen_to_world_isometric) | ✅ |
+| 3 | unit_rendering_mixin.py 移除 isometric 深度排序分支 | ✅ |
+| 4 | minimap.py 移除 _draw_terrain_isometric, set_projection_mode 改 no-op | ✅ |
+| 5 | enhanced_renderer.py 移除 IsometricRenderer 引用 + ISOMETRIC 分支 | ✅ |
+| 6 | enhanced_renderer_delegate_mixin.py 移除 _render_isometric 委托方法 | ✅ |
+| 7 | interaction_controller.py 修复关键 bug: screen_to_tile + K_i 引用已删除的 ProjectionMode.ISOMETRIC | ✅ |
+| 8 | 删除 5 源文件 + 3 测试文件 + 1 脚本 (validate_isometric.py) | ✅ |
+| 9 | 测试引用迁移 (test_enhanced_terrain_generator + test_renderer_submodules) | ✅ |
+| 10 | ruff check + format 通过, 4636 unit tests passed 零回归 | ✅ |
 
 ---
 
@@ -235,15 +227,15 @@
 
 1. **还原度数据修正共识**: 88%→65% 的修正是正确的，基于代码证据 ✅ 用户已确认 (2026-07-10)
 2. **P0 优先级共识**: PixVoxel 接入是最高性价比提升，应优先执行 ✅ P0 已完成 (v0.5.0, 2026-07-10)
-3. **isometric 幽灵功能处理共识**: 删除引用而非实现（方案 A） ⏳ 待 P2 执行
+3. **isometric 代码处理共识**: 完整重构（删除 experimental 代码 + 迁移可复用部分） ✅ P2 已完成 (v0.5.1, 2026-07-10)
 4. **CC2 视角共识**: CC2 原版是俯视正交，不需要等距视角 ✅ 用户已确认 (2026-07-10)
-5. **推进顺序共识**: P0 → P2 → P1 → P3（先接入精灵，再清理幽灵，再提升地形，最后补机制） ✅ 用户已确认 (2026-07-10)
+5. **推进顺序共识**: P0 → P2 → P1 → P3（先接入精灵，再清理代码，再提升地形，最后补机制） ✅ P0+P2 已完成，待推进 P1
 
-**P0 已完成 (v0.5.0)，下一步推进 P2：清理 isometric 幽灵功能**
+**P0 + P2 已完成 (v0.5.1)，下一步推进 P1：地形贴图资源提升**
 
 ---
 
-**文档状态**: P0 已完成 (v0.5.0, 2026-07-10)，待推进 P2 → P1 → P3
+**文档状态**: P0 ✅ + P2 ✅ 已完成 (v0.5.1, 2026-07-10)，待推进 P1 → P3
 **创建者**: DevSquad Multi-Agent Team
 **分析方法**: 逐文件代码审核 + 代码证据核实
-**下一步**: P2 清理 isometric 幽灵功能 → P1 地形贴图资源 → P3 补充机制细节
+**下一步**: P1 地形贴图资源提升 → P3 补充机制细节

@@ -139,16 +139,8 @@ class InteractionController:
             return TileCoord(0, 0)
         world_vec = self._camera.screen_to_world(screen_pos)
 
-        from pycc2.presentation.rendering.camera import ProjectionMode
-
-        if self._camera.projection == ProjectionMode.ISOMETRIC:
-            # In isometric mode, use isometric-aware tile picking
-            # Camera.screen_to_world already handles the inverse isometric transform
-            tile_x = int(world_vec.x // 32)
-            tile_y = int(world_vec.y // 32)
-        else:
-            tile_x = int(world_vec.x // 32)
-            tile_y = int(world_vec.y // 32)
+        tile_x = int(world_vec.x // 32)
+        tile_y = int(world_vec.y // 32)
 
         tile_x = max(0, min(tile_x, self._game_map.width - 1))
         tile_y = max(0, min(tile_y, self._game_map.height - 1))
@@ -568,14 +560,6 @@ class InteractionController:
                     "unit_ids": list(self._selected_ids),
                 }
             )
-        elif key == pygame.K_i:
-            # Toggle between ORTHOGRAPHIC and ISOMETRIC projection
-            from pycc2.presentation.rendering.camera import ProjectionMode
-
-            if self._camera.projection == ProjectionMode.ORTHOGRAPHIC:
-                self._camera.projection = ProjectionMode.ISOMETRIC
-            else:
-                self._camera.projection = ProjectionMode.ORTHOGRAPHIC
 
     def register_on_selected(self, callback: Callable[[set[str]], None]) -> None:
         """Register on selected."""

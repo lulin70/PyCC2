@@ -50,13 +50,11 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.entities.unit import Unit
     from pycc2.presentation.rendering.camera import Camera
-    from pycc2.presentation.rendering.isometric_renderer import IsometricRenderer
     from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
 from pycc2.presentation.rendering.atmosphere_controller import AtmosphereController
 from pycc2.presentation.rendering.autotile_system import AutotileCache
 from pycc2.presentation.rendering.building_renderer import BuildingRenderer
-from pycc2.presentation.rendering.camera import ProjectionMode
 from pycc2.presentation.rendering.combat_effects_coordinator import CombatEffectsCoordinator
 from pycc2.presentation.rendering.decoration_renderer import DecorationRenderer
 from pycc2.presentation.rendering.enhanced_renderer_delegate_mixin import (
@@ -95,9 +93,7 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
     - 48×48 pixel tiles (orthographic top-down)
     - CC2 terrain palette from screenshot analysis
     - Procedural texture generation with variation
-    - Supports dual projection modes:
-      * ORTHOGRAPHIC: Classic top-down rendering (default, CC2-style)
-      * ISOMETRIC: 2:1 isometric diamond rendering
+    - Orthographic top-down projection (CC2-style)
     """
 
     TILE_SIZE = 48  # CC2 authentic: 48×48 pixel tiles
@@ -127,7 +123,6 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
         self._building_clusters: list[list[tuple[int, int]]] | None = None
         self._frame_count = 0
         self._sprite_renderer: SpriteRenderer | None = None
-        self._isometric_renderer: IsometricRenderer | None = None
         self._shadow_renderer = ShadowRenderer()
         self._shadow_rendering_sys = ShadowRenderingSystem(self._shadow_renderer, self.TILE_SIZE)
         self._attack_line_system = attack_line_system
@@ -383,10 +378,6 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
 
         # Phase 6: record frame timing for FPS adaptive post-processing.
         self._state_manager.update_fps()
-
-        if camera.projection == ProjectionMode.ISOMETRIC:
-            self._render_isometric(game_map, units, camera, selected_unit_ids, debug_mode)
-            return
 
         self._frame_count += 1
 

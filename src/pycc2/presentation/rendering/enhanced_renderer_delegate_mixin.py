@@ -12,22 +12,18 @@ from typing import TYPE_CHECKING
 import pygame
 
 if TYPE_CHECKING:
-    from pycc2.domain.entities.game_map import GameMap
-    from pycc2.domain.entities.unit import Unit
-    from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.rendering.combat_effects_coordinator import (
         CombatEffectsCoordinator,
     )
     from pycc2.presentation.rendering.environment_renderer import EnvironmentRenderer
-    from pycc2.presentation.rendering.isometric_renderer import IsometricRenderer
     from pycc2.presentation.rendering.lighting_effects import LightingEffectsSystem
     from pycc2.presentation.rendering.renderer_state_manager import RendererStateManager
     from pycc2.presentation.rendering.terrain_rendering_system import TerrainRenderingSystem
 
 
 class EnhancedRendererDelegateMixin:
-    """Mixin providing legacy terrain helpers, isometric rendering delegate,
-    dynamic-light delegates, and combat-effect proxy methods for EnhancedRenderer.
+    """Mixin providing legacy terrain helpers, dynamic-light delegates,
+    and combat-effect proxy methods for EnhancedRenderer.
 
     These methods were extracted from EnhancedRenderer during the God Class
     refactoring to keep the coordinator file under 500 lines.
@@ -40,37 +36,6 @@ class EnhancedRendererDelegateMixin:
     _lighting_effects_sys: LightingEffectsSystem
     _environment: EnvironmentRenderer
     _combat_effects: CombatEffectsCoordinator
-    _isometric_renderer: IsometricRenderer | None
-
-    # ------------------------------------------------------------------
-    # Isometric rendering
-    # ------------------------------------------------------------------
-
-    def _render_isometric(
-        self,
-        game_map: GameMap,
-        units: list[Unit],
-        camera: Camera,
-        selected_unit_ids: set[str] | None = None,
-        debug_mode: bool = False,
-    ) -> None:
-        """Delegate rendering to IsometricRenderer when in ISOMETRIC mode."""
-        if self._isometric_renderer is None:
-            from pycc2.presentation.rendering.isometric_renderer import IsometricRenderer
-
-            self._isometric_renderer = IsometricRenderer()
-            if self._state_manager.screen is not None:
-                self._isometric_renderer.initialize(self._state_manager.screen)
-
-        if self._isometric_renderer is None:
-            raise RuntimeError("IsometricRenderer failed to initialize")
-        self._isometric_renderer.render(
-            game_map=game_map,
-            units=units,
-            camera=camera,
-            selected_unit_ids=selected_unit_ids,
-            debug_mode=debug_mode,
-        )
 
     # ------------------------------------------------------------------
     # Legacy terrain tile helpers (consumed by TerrainTileCache)

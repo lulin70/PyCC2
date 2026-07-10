@@ -7,7 +7,7 @@
 > **关联文档**: ROADMAP.md / TECH_DEBT.md
 > **⚠️ 重要修正历史**:
 > - v0.3.0: 曾声称"视觉保真度99%"，经7维度审查修正为"视觉85%/机制92%"
-> - **v0.4.16 严格代码审核（本次修正）**: 经逐文件代码证据核实，发现 85%/88% 数据仍严重高估。问题包括：(1) 11维度简单平均无权重，虚高；(2) isometric_renderer/isometric_transform 文件不存在（幽灵功能）；(3) PixVoxel 精灵加载器完整实现但**完全未接入游戏循环**（scripts-only）。基于代码证据修正为**视觉~52% / 机制~78% / 综合~65%**。详见第二章修正说明。
+> - **v0.4.16 严格代码审核（本次修正）**: 经逐文件代码证据核实，发现 85%/88% 数据仍严重高估。问题包括：(1) 11维度简单平均无权重，虚高；(2) isometric_renderer/isometric_transform 等 5 个文件实际存在但为 experimental 代码（v0.4.16 审核误判为"幽灵功能"，v0.5.1 P2 已完整删除）；(3) PixVoxel 精灵加载器完整实现但**完全未接入游戏循环**（scripts-only）。基于代码证据修正为**视觉~52% / 机制~78% / 综合~65%**。详见第二章修正说明。
 
 ---
 
@@ -27,7 +27,7 @@
 | **补给线** | XXX Corps+空投+LZ | SupplyLineManager+炸桥+采购UI | 50% | **90%** | ✅ | 炸桥+征用点采购UI已实现(v0.3.0, supply_procurement_ui.py 575L + 31 tests) |
 | **音频** | 完整音效+语音+BGM | 18种武器音效+32战斗事件+11环境音 | 30% | **92%** | ✅ | STEP C完整实现(18/18 E2E通过) |
 | **命令系统** | 7命令完整可操作 | 7命令+热键+队列+预置命令 | 57% | **98%** | ✅ | 全部7命令+Z/X/S/C/V/D/H热键+队列 |
-| **综合还原度** | — | — | **~45%** | **~72%** (v0.5.0 P0 PixVoxel接入) | ⚠️ 视觉~67%/机制~78%，架构良好(DDD+模块化)；v0.5.0 P0: PixVoxel Blank 正交版精灵接入游戏循环 (3968精灵, 14/18单位类型覆盖)；P2待清理 isometric 幽灵功能 |
+| **综合还原度** | — | — | **~45%** | **~72%** (v0.5.0 P0 PixVoxel接入) | ⚠️ 视觉~67%/机制~78%，架构良好(DDD+模块化)；v0.5.0 P0: PixVoxel Blank 正交版精灵接入游戏循环 (3968精灵, 14/18单位类型覆盖)；v0.5.1 P2: isometric experimental 代码已完整清理 |
 
 ### v0.1.1 vs v0.3.0 完成度对比（7-dimension review修正版）
 
@@ -314,15 +314,17 @@
 
 ---
 
-**文档状态**: v0.4.16 严格代码审核更新 (2026-07-10) — 基于 src/pycc2/ 逐文件代码证据核实，修正历史高估数据
+**文档状态**: v0.5.1 更新 (2026-07-10) — v0.4.16 严格代码审核 + v0.5.0 P0 PixVoxel 接入 + v0.5.1 P2 isometric 清理
 **⚠️ 重要修正历史**:
 - v0.3.0: 曾声称"视觉99%"→修正为"85%/92%/88%"
-- **v0.4.16（本次）**: 85%/88% 仍严重高估。代码审核发现：(1) isometric_renderer/isometric_transform 文件不存在（幽灵 import，仅 TYPE_CHECKING 保护）；(2) PixVoxel 加载器 1143 行完整实现但**完全未接入游戏循环**（scripts-only）；(3) 11 维度简单平均无权重计算法不科学。基于代码证据修正为**视觉~52% / 机制~78% / 综合~65%**。v0.3.33-v0.3.42 视觉打磨（死亡淡出/屏幕闪光/移动平滑/UI过渡/天气叠加/弹壳弹出）和 v0.4.0 D8 Phase 2（VP显示/弹坑/路径点）确实已实现并接入，但无法弥补程序化生成 vs 手绘像素艺术的根本差距。
-**关键差距 (v0.4.16 审核发现，按影响排序)**:
+- **v0.4.16**: 85%/88% 仍严重高估。代码审核发现：(1) isometric_renderer/isometric_transform 等 5 个文件实际存在但为 experimental 代码（v0.4.16 审核误判为"幽灵功能"）；(2) PixVoxel 加载器 1143 行完整实现但**完全未接入游戏循环**（scripts-only）；(3) 11 维度简单平均无权重计算法不科学。基于代码证据修正为**视觉~52% / 机制~78% / 综合~65%**。
+- **v0.5.0 P0**: PixVoxel Blank 正交版精灵接入游戏循环，视觉还原度 52%→67%，综合 65%→72%。
+- **v0.5.1 P2**: isometric experimental 代码完整清理（删除 5 源文件 + 3 测试 + 1 脚本，修复 interaction_controller.py 关键 bug）。CC2 原版仅使用顶部正交视角，isometric 从未在正式渲染管线中启用。
+**关键差距 (v0.5.1 更新，按影响排序)**:
 - **G-V1** ⚠️ 地形渲染: 程序化生成 vs CC2原版手绘像素艺术 — enhanced_renderer.py L8 "Procedural texture generation"
-- **G-V2** ⚠️ 单位精灵: 程序化/SVG生成 vs CC2原版手绘35+单位×8阵营 — PixVoxel CC0手绘资源完整加载器(1143L)未接入
-- **G-V3** ⚠️ Isometric 幽灵功能: enhanced_renderer.py L53/L99-100 声称支持 ISOMETRIC 模式，但 isometric_renderer.py / isometric_transform.py 文件不存在
-- **G-V4** ⚠️ PixVoxel 未接入: pixvoxel_loader.py L3 明确 "scripts-only, 生产代码 src/pycc2/ 内无 import"
+- **G-V2** ✅ 单位精灵: v0.5.0 P0 PixVoxel Blank 正交版精灵已接入游戏循环 (3968精灵, 14/18单位类型覆盖)
+- **G-V3** ✅ Isometric 代码清理: v0.5.1 P2 完整删除 experimental isometric 代码 (5 源文件 + 3 测试 + 1 脚本), 修复 interaction_controller.py ProjectionMode.ISOMETRIC 引用 bug
+- **G-V4** ✅ PixVoxel 已接入: v0.5.0 P0 pixvoxel_loader.py 已接入游戏循环 (unit_rendering_mixin.py)
 - **V-01~V-05** ✅ 已解决: 底部UI面板/VP显示/弹坑/爆炸/色调（v0.3.4-v0.4.0 修复并验证）
 **关键差距 (TOP5)**:
 - **V-01** ✅ 底部UI面板: CC2三栏式(单位列表+状态+命令) — **v0.3.4已修复接入渲染管线**

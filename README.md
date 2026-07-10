@@ -1,6 +1,6 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.5.0 | Beta Candidate | July 10, 2026**
+**v0.5.1 | Beta Candidate | July 10, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
@@ -530,7 +530,7 @@ pytest tests/e2e/ -m e2e -v
 
 **Target: v1.0**
 - [x] Full gameplay loop working end-to-end
-- [ ] ≥90% CC2 fidelity (currently ~72%, visual ~67% / mechanics ~78% — v0.5.0 P0: PixVoxel ortho sprites wired; P2/P1/P3 pending)
+- [ ] ≥90% CC2 fidelity (currently ~72%, visual ~67% / mechanics ~78% — v0.5.0 P0: PixVoxel ortho sprites wired; v0.5.1 P2: isometric cleanup done; P1/P3 pending)
 - [x] Complete AI tactical behaviors
 - [x] Sound effects and music
 - [x] CC2-authentic victory conditions
@@ -609,4 +609,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Last updated: 2026-07-10 | v0.5.0 (Beta Candidate) | Tests: 5400 passed / 21 skipped | <a href="docs/GAP_ANALYSIS.md">Gap Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a> | <a href="docs/PROJECT_STATUS.md">Project Status</a></sub></p>
+<p align="center"><sub>Last updated: 2026-07-10 | v0.5.1 (Beta Candidate) | Tests: 5400 passed / 21 skipped | <a href="docs/GAP_ANALYSIS.md">Gap Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a> | <a href="docs/PROJECT_STATUS.md">Project Status</a></sub></p>

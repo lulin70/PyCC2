@@ -2,6 +2,42 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.5.1 — P2 isometric experimental 代码清理 (refactor, 2026-07-10)
+
+### P2: 清理 isometric experimental 代码 (完整重构)
+
+- **背景**: v0.4.16 代码审核曾将 isometric_renderer/isometric_transform 等 5 个文件误判为"幽灵功能"（声称文件不存在），实际文件全部存在且有完整实现。CC2 原版（1997）仅使用顶部正交视角，isometric 为 experimental 代码，从未在正式渲染管线中启用
+- **决策**: 完整重构 — 删除 isometric 专属代码，保留可复用部分（CC2 地形调色板 + tile 尺寸常量内联到使用方）
+- **删除的源文件 (5个)**: isometric_renderer.py, isometric_transform.py, isometric_tile_generator.py, isometric_building_renderer.py, isometric_depth_sorter.py
+- **删除的测试文件 (3个)**: test_isometric_transform.py, test_isometric_renderer.py, test_isometric_depth_sorter.py
+- **删除的脚本**: scripts/validate_isometric.py (依赖全部已删除模块)
+- **迁移**: CC2_ISOMETRIC_PALETTE + TILE_W/TILE_H 从 isometric_tile_generator.py 内联到 enhanced_terrain_generator.py (保留 CC2_ISOMETRIC_PALETTE 别名向后兼容)
+- **camera.py**: ProjectionMode 枚举仅保留 ORTHOGRAPHIC, 移除 _world_to_screen_isometric/_screen_to_world_isometric/_ISO_* 常量
+- **interaction_controller.py**: 修复关键 bug — screen_to_tile 和 K_i 热键处理仍引用 ProjectionMode.ISOMETRIC (已删除), 会导致运行时 AttributeError; 简化 screen_to_tile (两分支逻辑相同), 移除 K_i isometric 切换
+- **minimap.py**: set_projection_mode() 改为 no-op (保留 API 兼容), 移除 _draw_terrain_isometric 方法
+- **enhanced_renderer.py / enhanced_renderer_delegate_mixin.py**: 移除 IsometricRenderer 引用 + _render_isometric 委托方法
+- **unit_rendering_mixin.py**: 移除 isometric 深度排序分支
+- **验证**: ruff check + format 通过, 4636 unit tests passed 零回归 (2 skipped 预存)
+- **版本**: PATCH 递增 (0.5.0→0.5.1), 代码质量改进无功能新增
+
+### 改动文件
+
+- 删除: `src/pycc2/presentation/rendering/isometric_renderer.py`, `isometric_transform.py`, `isometric_tile_generator.py`, `isometric_building_renderer.py`, `isometric_depth_sorter.py`
+- 删除: `tests/unit/test_isometric_transform.py`, `test_isometric_renderer.py`, `test_isometric_depth_sorter.py`
+- 删除: `scripts/validate_isometric.py`
+- `src/pycc2/presentation/rendering/enhanced_terrain_generator.py`: 内联 CC2_ISOMETRIC_PALETTE + TILE_W/TILE_H
+- `src/pycc2/presentation/rendering/camera.py`: 移除 isometric 投影代码
+- `src/pycc2/presentation/rendering/unit_rendering_mixin.py`: 移除 isometric 深度排序分支
+- `src/pycc2/presentation/rendering/minimap.py`: 移除 _draw_terrain_isometric, set_projection_mode 改 no-op
+- `src/pycc2/presentation/rendering/enhanced_renderer.py`: 移除 IsometricRenderer 引用
+- `src/pycc2/presentation/rendering/enhanced_renderer_delegate_mixin.py`: 移除 _render_isometric + 清理未使用 import
+- `src/pycc2/presentation/input/interaction_controller.py`: 修复 ProjectionMode.ISOMETRIC 引用 (关键 bug)
+- `tests/unit/test_enhanced_terrain_generator.py`: import 路径迁移
+- `tests/unit/test_renderer_submodules.py`: 移除 _render_isometric 断言
+- `tests/unit/test_zero_coverage_smoke.py`: 更新 pixvoxel_loader 注释
+- `tests/e2e/E2E_REAL_USER_SCENARIOS.md`: TC-047 标记已移除
+- `VERSION` / `pyproject.toml` / `src/pycc2/__init__.py`: 版本号 0.5.0 → 0.5.1
+
 ## v0.5.0 — P0 PixVoxel 正交版精灵接入 (feature, 2026-07-10)
 
 ### P0: 接入 PixVoxel Blank 正交版精灵 (视觉还原度 52%→67%)

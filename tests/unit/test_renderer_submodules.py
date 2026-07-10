@@ -211,7 +211,6 @@ class TestEnhancedRendererDelegateMixin:
         assert hasattr(EnhancedRenderer, "_get_cached_texture")
         assert hasattr(EnhancedRenderer, "_generate_cc2_style_tile")
         assert hasattr(EnhancedRenderer, "_apply_height_lighting")
-        assert hasattr(EnhancedRenderer, "_render_isometric")
 
 
 if __name__ == "__main__":

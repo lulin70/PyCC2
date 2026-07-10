@@ -70,7 +70,7 @@ class TestEnhancedTerrainGenerator:
         """Test that enhanced grass tile generation returns valid pygame Surface."""
         import pygame
 
-        from pycc2.presentation.rendering.isometric_tile_generator import TILE_H, TILE_W
+        from pycc2.presentation.rendering.enhanced_terrain_generator import TILE_H, TILE_W
 
         surface = terrain_generator.generate_enhanced_grass_tile()
 
@@ -85,7 +85,7 @@ class TestEnhancedTerrainGenerator:
         """Test that enhanced dirt tile generation returns valid pygame Surface."""
         import pygame
 
-        from pycc2.presentation.rendering.isometric_tile_generator import TILE_H, TILE_W
+        from pycc2.presentation.rendering.enhanced_terrain_generator import TILE_H, TILE_W
 
         surface = terrain_generator.generate_enhanced_dirt_tile()
 
@@ -125,7 +125,7 @@ class TestEnhancedTerrainGenerator:
         """Test smooth edge transition on top edge."""
         import pygame
 
-        from pycc2.presentation.rendering.isometric_tile_generator import TILE_H, TILE_W
+        from pycc2.presentation.rendering.enhanced_terrain_generator import TILE_H, TILE_W
 
         surface = pygame.Surface((TILE_W, TILE_H), pygame.SRCALPHA)
         surface.fill((100, 200, 100, 255))  # Green base
@@ -179,7 +179,7 @@ class TestEnhancedTerrainGenerator:
         """Test smooth edge transition with invalid neighbor type (error handling)."""
         import pygame
 
-        from pycc2.presentation.rendering.isometric_tile_generator import TILE_H, TILE_W
+        from pycc2.presentation.rendering.enhanced_terrain_generator import TILE_H, TILE_W
 
         surface = pygame.Surface((TILE_W, TILE_H), pygame.SRCALPHA)
         surface.fill((100, 200, 100, 255))

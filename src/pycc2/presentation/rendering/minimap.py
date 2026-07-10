@@ -34,7 +34,7 @@ class Minimap:
         self._game_map: GameMap | None = None
         self._render_x: int = 0
         self._render_y: int = 0
-        self._is_isometric: bool = False
+        self._is_isometric: bool = False  # Deprecated: always False after P2 cleanup
         self._selected_unit_id: str | None = None
         self._camera_viewport: tuple[float, float, float, float] | None = (
             None  # (x, y, w, h) in world coords
@@ -59,10 +59,12 @@ class Minimap:
         self._terrain_cache_map_id = id(game_map) if game_map else 0
 
     def set_projection_mode(self, is_isometric: bool) -> None:
-        """Set the minimap projection mode."""
-        if is_isometric != self._is_isometric:
-            self._is_isometric = is_isometric
-            self._terrain_cache = None  # Cache invalid on projection change
+        """Set the minimap projection mode (deprecated — isometric removed in P2).
+
+        Kept for API backward compatibility; is_isometric is always ignored.
+        """
+        # No-op: isometric mode removed in v0.5.1 P2 cleanup
+        return
 
     def update_units(self, units: list[Unit]) -> None:
         """Update unit positions for minimap display."""
@@ -145,11 +147,8 @@ class Minimap:
             self._surface.blit(self._terrain_cache, (0, 0))
             return
 
-        # Rebuild terrain cache
-        if self._is_isometric:
-            self._draw_terrain_isometric()
-        else:
-            self._draw_terrain_orthographic()
+        # Rebuild terrain cache (orthographic only — isometric removed in P2)
+        self._draw_terrain_orthographic()
 
         # Cache the result (copy of just the terrain portion)
         self._terrain_cache = Surface((self.size, self.size))
@@ -253,49 +252,6 @@ class Minimap:
                 else:
                     # 普通地形：保持原有颜色映射不变
                     draw.rect(self._surface, base_color, rect)
-
-    def _draw_terrain_isometric(self) -> None:
-        """Draw simplified terrain on minimap (isometric/diamond tiles)."""
-        if not self._game_map or not self._surface:
-            return
-        from pycc2.presentation.rendering.isometric_transform import TILE_H, TILE_W
-
-        map_width = self._game_map.width
-        map_height = self._game_map.height
-
-        # Scale factor: fit the isometric map into the minimap size
-        # Isometric map bounding box: width = (w+h)*TILE_W/2, height = (w+h)*TILE_H/2
-        iso_total_w = (map_width + map_height) * TILE_W / 2
-        iso_total_h = (map_width + map_height) * TILE_H / 2
-        scale = (
-            min(self.size / iso_total_w, self.size / iso_total_h)
-            if iso_total_w > 0 and iso_total_h > 0
-            else 1.0
-        )
-
-        # Offset to center the isometric map in the minimap
-        offset_x = (self.size - iso_total_w * scale) / 2
-        offset_y = (self.size - iso_total_h * scale) / 2
-
-        for y in range(map_height):
-            for x in range(map_width):
-                terrain = self._game_map.get_terrain(TileCoord(x, y))
-                color = self.spec.get_terrain_color(terrain)
-
-                # Isometric center position
-                cx = ((x - y) * TILE_W / 2 + iso_total_w / 2) * scale + offset_x
-                cy = ((x + y) * TILE_H / 2) * scale + offset_y
-
-                # Small diamond
-                half_w = TILE_W / 2 * scale
-                half_h = TILE_H / 2 * scale
-                points = [
-                    (int(cx), int(cy - half_h)),  # top
-                    (int(cx + half_w), int(cy)),  # right
-                    (int(cx), int(cy + half_h)),  # bottom
-                    (int(cx - half_w), int(cy)),  # left
-                ]
-                draw.polygon(self._surface, color, points)
 
     def _draw_units(self) -> None:
         """Draw unit dots on minimap with selection highlight."""

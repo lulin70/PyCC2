@@ -1,6 +1,6 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python再実装)
 
-**v0.5.0 | Beta Candidate | 2026年7月10日**
+**v0.5.1 | Beta Candidate | 2026年7月10日**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
@@ -530,7 +530,7 @@ pytest tests/e2e/ -m e2e -v
 
 **目標：v1.0**
 - [x] エンドツーエンドの完全ゲームプレイループ動作
-- [ ] ≥90% CC2フィデリティ（現在~72%、ビジュアル~67% / メカニクス~78% — v0.5.0 P0: PixVoxel正交スプライト接続済み；P2/P1/P3残存）
+- [ ] ≥90% CC2フィデリティ（現在~72%、ビジュアル~67% / メカニクス~78% — v0.5.0 P0: PixVoxel正交スプライト接続済み；v0.5.1 P2: isometric実験コード削除完了；P1/P3残存）
 - [x] 完全なAI戦術ビヘイビア
 - [x] サウンドエフェクトと音楽
 - [x] CC2本格的勝利条件
@@ -609,4 +609,4 @@ Close Combat 2はそれぞれの所有者の商標です。これは教育目的
 
 ---
 
-<p align="center"><sub>最終更新: 2026-07-10 | v0.5.0（Beta Candidate） | テスト: 5400合格 / 21スキップ | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a> | <a href="docs/PROJECT_STATUS.md">プロジェクト状態</a></sub></p>
+<p align="center"><sub>最終更新: 2026-07-10 | v0.5.1（Beta Candidate） | テスト: 5400合格 / 21スキップ | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a> | <a href="docs/PROJECT_STATUS.md">プロジェクト状態</a></sub></p>

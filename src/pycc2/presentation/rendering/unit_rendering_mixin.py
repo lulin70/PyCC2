@@ -71,20 +71,8 @@ class UnitRenderingMixin:
         surface = self.draw_surface
         if surface is None:
             return
-        from pycc2.presentation.rendering.camera import ProjectionMode
 
-        if camera.projection == ProjectionMode.ISOMETRIC:
-            from pycc2.presentation.rendering.isometric_transform import depth_sort_key
-
-            sorted_units = sorted(
-                units,
-                key=lambda u: depth_sort_key(
-                    u.position.pixel_position.x,
-                    u.position.pixel_position.y,
-                ),
-            )
-        else:
-            sorted_units = sorted(units, key=lambda u: u.position.pixel_position.y)
+        sorted_units = sorted(units, key=lambda u: u.position.pixel_position.y)
 
         for unit in sorted_units:
             if not unit.is_alive:

@@ -10,7 +10,7 @@ Covers 9 files identified by D14 coverage audit as having 0% unit test coverage:
 - cc2_map_parser.py (CC2TerrainCode / CC2MapParser parse)
 - cc2_combat_effects.py (CC2ExplosionEffect / EnhancedParticleSystem)
 
-pixvoxel_loader.py is scripts-only (excluded — only used by scripts/validate_isometric.py).
+pixvoxel_loader.py is covered indirectly via unit_rendering_mixin integration (P0).
 """
 
 from __future__ import annotations

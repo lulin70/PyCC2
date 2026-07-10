@@ -14,11 +14,48 @@ import random
 
 import pygame
 
-from pycc2.presentation.rendering.isometric_tile_generator import (
-    CC2_ISOMETRIC_PALETTE,
-    TILE_H,
-    TILE_W,
-)
+# Terrain tile dimensions (originally from isometric_transform, kept for surface sizing)
+TILE_W: int = 64
+TILE_H: int = 32
+
+# CC2 terrain color palette (extracted from isometric_tile_generator during P2 cleanup)
+CC2_TERRAIN_PALETTE: dict[str, tuple[int, int, int]] = {
+    # Terrain
+    "grass_base": (56, 104, 36),
+    "grass_light": (76, 132, 52),
+    "grass_dark": (40, 80, 28),
+    "dirt_road": (140, 110, 60),
+    "dirt_dark": (110, 85, 45),
+    "dirt_light": (160, 130, 75),
+    "road_base": (149, 126, 94),
+    "road_stone": (158, 158, 158),
+    "road_stone_dark": (110, 110, 110),
+    "road_gap": (80, 80, 80),
+    "water_base": (64, 120, 172),
+    "water_light": (100, 160, 210),
+    "water_dark": (40, 80, 140),
+    "water_foam": (180, 210, 230),
+    # Building
+    "wall_light": (180, 170, 155),
+    "wall_dark": (120, 115, 105),
+    "wall_shadow": (80, 78, 72),
+    "roof_red": (160, 50, 40),
+    "roof_brown": (140, 90, 50),
+    "roof_gray": (100, 100, 100),
+    # Crater
+    "crater_base": (90, 75, 50),
+    "crater_dark": (60, 50, 35),
+    "crater_rim": (150, 130, 90),
+    "crater_water": (50, 90, 130),
+    # Hedgerow
+    "hedgerow_base": (34, 72, 30),
+    "hedgerow_light": (50, 95, 42),
+    "hedgerow_dark": (20, 48, 18),
+    "hedgerow_shadow": (15, 35, 12),
+}
+
+# Backward-compatible alias for callers that still reference the old name
+CC2_ISOMETRIC_PALETTE = CC2_TERRAIN_PALETTE
 
 
 class EnhancedTerrainGenerator:
