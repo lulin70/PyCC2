@@ -1,12 +1,12 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python再実装)
 
-**v0.4.16 | Beta Candidate | 2026年7月10日**
+**v0.5.0 | Beta Candidate | 2026年7月10日**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-%7E4573%20passed-brightgreen.svg" alt="Tests" />
-<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC88%25-yellow.svg" alt="CC2 Fidelity" />
+<img src="https://img.shields.io/badge/Tests-%7E5400%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC72%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Beta%20Candidate-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
 </p>
@@ -186,7 +186,7 @@
 
 | メトリクス | 値 |
 |-----------|-----|
-| **総テスト数** | **4573 passed**（0 failed、2 skipped） ✅ |
+| **総テスト数** | **5400 passed**（0 failed、21 skipped） ✅ |
 | **テスト品質** | A+（121の弱いアサーション排除） 🎯 |
 | **E2Eテスト** | 22テストファイル（38フェーズリアルSDLモード、100%合格率） |
 | **マップ** | 63の史実マップ（マーケット・ガーデン作戦） |
@@ -199,14 +199,14 @@
 | **抽出モジュール** | 22のレンダリング/データシステム（新規：ShellCasingSystem、FlashEffectSystem、WeatherSystem、ResourceCacheManager + 既存19） |
 | **技術的負債** | 1000行超のゴッドクラス4個残存（deployment_ui 1323↓、pixel_artist_3d 2340、campaign_four_layer 1987、pixel_artist 1971） |
 | **レイヤー違反** | ~25（v0.3.29の41から-39%） |
-| **CC2フィデリティ** | ~88%（ビジュアル：85%、メカニクス：92%） ⚠️ 詳細は[GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md)を参照 |
+| **CC2フィデリティ** | ~72%（ビジュアル：~67%、メカニクス：~78%） ⚠️ v0.5.0 P0 PixVoxel接続 | 詳細は[GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md)を参照。v0.5.0 P0: PixVoxel正交スプライトをゲームループに接続。 |
 
 ### 📈 コード品質メトリクス（v0.3.39 — 重要修正 & CI）
 
 | 次元 | スコア | 備考 |
 |------|--------|------|
 | **アーキテクチャ** | 7.5/10 | DDD + DI、EnhancedRenderer分割完了（3サブシステム抽出）、ゴッドクラス4個残存、レイヤー違反-39% |
-| **テスト品質** | 9.5/10 ✅ | **4573テスト**、弱いアサーション<1%、カバレッジゼロモジュールにスモークテスト |
+| **テスト品質** | 9.5/10 ✅ | **5400テスト**、弱いアサーション<1%、カバレッジゼロモジュールにスモークテスト |
 | **テストカバレッジ** | 8.5/10 | 広範なカバレッジ、v0.3.27で27の新規スモークテスト、v0.3.36で55の新規HUDテスト |
 | **コード品質** | 7.5/10 | **裸print()残り~1件（99.3%クリーンアップ済み）**（200+から減少）、logging移行完了、AnimationControllerデッドコード削除 |
 | **パフォーマンス** | 8.5/10 | SurfaceプールLRU統合（6/6消費モジュール）、ダーティレクタングル最適化稼働、地形キャッシュ、戦車回転キャッシュ、ビューポートカリング |
@@ -385,7 +385,7 @@ PyCC2/
 │   ├── maps/               # 63の史実マップJSONファイル
 │   ├── scenarios/          # 11のシナリオ設定
 │   └── units/              # ユニットテンプレート定義
-├── tests/                  # 4573テスト（ユニット + 統合 + E2E + スモーク）
+├── tests/                  # 5400テスト（ユニット + 統合 + E2E + スモーク）
 ├── assets/                 # スプライト、サウンド、CC2リファレンススクリーンショット
 └── docs/                   # 設計文書、PRD、ギャップ分析
 ```
@@ -446,7 +446,7 @@ PyCC2/
 ## テスト
 
 ```bash
-# 完全テストスイート（4573テスト）
+# 完全テストスイート（5400テスト）
 pytest tests/ -q
 
 # カテゴリ別
@@ -480,7 +480,7 @@ pytest tests/e2e/ -m e2e -v
 | **武器システム** | ~50武器 | 本格的ステータス付き**69武器** | ✅ 完了 |
 | **ユニット多様性** | 130+ユニットタイプ | スプライトレンダリング付き**277テンプレート** | ✅ 完了 |
 | **AI戦術** | 成熟したビヘイビアツリー | BTフレームワーク付き**6 AIタイプ** | ✅ 機能的 |
-| **ビジュアル品質** | CC2ピクセルアート | スプライト、地形、建物、シャドウ、3パネルHUD、VP表示、カラーグレーディング | ✅ ~85% |
+| **ビジュアル品質** | CC2ピクセルアート（手描き） | 手続き生成テクスチャ+PixVoxel正交スプライト+SVG/手続き生成スプライト+シャドウ+3パネルHUD+VP表示 | ⚠️ ~67% (v0.5.0 P0: PixVoxel CC0スプライト接続、14/18ユニットタイプカバー) |
 | **戦闘メカニクス** | 制圧 + 士気 | スイスチーズモデル、6レベル | ✅ 完了 |
 | **コマンドシステム** | 7コマンド | ホットキー + キュー付き**7コマンドすべて** | ✅ 完了 |
 | **勝利条件** | CC2本格的 | 即時VL、20分タイマー、ポイント | ✅ 完了 |
@@ -488,7 +488,7 @@ pytest tests/e2e/ -m e2e -v
 | **橋梁破壊** | 工兵爆破 | 工兵が橋を破壊 | ✅ 完了 |
 | **オーディオ** | 完全サウンドスケープ | 武器、環境、音楽 | 🟡 ~85% |
 
-**総合フィデリティ：~88%**（ビジュアル：85%、メカニクス：92%） ⚠️ 残存ギャップの詳細は[GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md)を参照
+**総合フィデリティ：~72%**（ビジュアル：~67%、メカニクス：~78%） ⚠️ v0.5.0 P0: PixVoxel Blank正交スプライトをゲームループに接続（3968スプライト、14/18ユニットタイプカバー、インデックスパレット置換）。元の88%は過大評価。理由：(1) 重み付けなし平均；(2) isometric_rendererファイル不存在（ゴースト機能）；(3) PixVoxelスプライトローダー1143行完了もゲームループ未接続。v0.5.0 P0は(3)を解決。残存ギャップの詳細は[GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md)を参照、改善計画は[VISUAL_FIDELITY_IMPROVEMENT_PLAN.md](docs/VISUAL_FIDELITY_IMPROVEMENT_PLAN.md)を参照。
 
 ---
 
@@ -530,7 +530,7 @@ pytest tests/e2e/ -m e2e -v
 
 **目標：v1.0**
 - [x] エンドツーエンドの完全ゲームプレイループ動作
-- [x] ≥90% CC2フィデリティ（現在~90%、ビジュアル88% / メカニクス92%）
+- [ ] ≥90% CC2フィデリティ（現在~72%、ビジュアル~67% / メカニクス~78% — v0.5.0 P0: PixVoxel正交スプライト接続済み；P2/P1/P3残存）
 - [x] 完全なAI戦術ビヘイビア
 - [x] サウンドエフェクトと音楽
 - [x] CC2本格的勝利条件
@@ -609,4 +609,4 @@ Close Combat 2はそれぞれの所有者の商標です。これは教育目的
 
 ---
 
-<p align="center"><sub>最終更新: 2026-07-10 | v0.4.16（Beta Candidate） | テスト: 5400合格 / 21スキップ | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a> | <a href="docs/PROJECT_STATUS.md">プロジェクト状態</a></sub></p>
+<p align="center"><sub>最終更新: 2026-07-10 | v0.5.0（Beta Candidate） | テスト: 5400合格 / 21スキップ | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a> | <a href="docs/PROJECT_STATUS.md">プロジェクト状態</a></sub></p>

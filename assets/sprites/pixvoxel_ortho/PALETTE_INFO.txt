@@ -1,0 +1,186 @@
+PALETTE INFO
+
+There are a lot of palettes here now. The downloads for this
+group of PixVoxel Wargame sprites are categorized into 24
+groups. 8 corresponding to different main paint colors with
+sub-folders containing different hair and skin color
+combinations that are normal enough for humans; some palettes
+are meant to allow showing people who dye their hair, or to
+allow for for the possibility of anime conventions allowing
+green-haired humans to be a normal, commonplace thing. Another
+8 downloads are categorized into the same main paint colors but
+use unnatural colors for fire and have "Alien" skin colors
+(ranging from milky white with no mouth (palettes 208-215) to
+pitch-black with no discernable features of any kind (palettes
+224-231), and from deep purple with piercing white eyes
+(palettes 280-287) to sickly yellow-green (palettes 248-255)).
+There's then a third group of "Zombie" palettes (palettes
+296-303), but these aren't just a palette swap, and actually
+alter the image to add "battle damage" to the bodies of humans
+and vehicles, and swap the head to have a gaping head wound and
+a groaning open mouth. The zombies have drab green skin and
+lurid green "blood", meant to fill the standard usage of zombies
+in many games (especially when localized for sale in Germany) to
+indicate they are clearly not human and avoid severe "violent
+content" ratings. You can use altered palettes to change blood
+to another color (such as red or black) using the same techniques
+as changing any other color; the rest of the document goes into
+more detail.
+
+Palette numbers that are exact multiples of 8 (including 0) use
+"Dark" paint colors with dark red highlights, and are in the
+"Dark" subfolder. Palettes that are 1 higher than an exact
+multiple of 8 (such as 1, 9, and 17) use "White" paint colors
+and are in the "White" subfolder (these do not default to
+aliens with pale green skin as in earlier versions; those are
+available almost without change at palette 257). After that are
+Red, Orange, Yellow, Green, Blue, and Purple, then it repeats
+to Dark, White, Red, etc. as the main paint color but with a
+different skin/hair color combination.
+
+You may want to use an alternate set of palettes for your game,
+to add an additional color scheme to the existing many, or to
+change an existing one, i.e. you could make all of the
+dark-painted units produce purple fire instead of normal colors.
+The images in standing_frames and animation_frames are
+indexed-palette PNG files. They store a palette once, and then
+each pixel is represented by a single index between 0 and 255
+that refers to a color in the palette. In various image editors,
+it is possible to copy the palette of one indexed image into the
+palette of another. That's why the palettes directory has the
+304+ existing palettes I've made so far here: so you can edit a
+palette and possibly use it to recolor existing images. It may
+be easier for some games to do this with a shader that reads,
+say, the red channel from an image and uses that as an index
+into a palette to find the real color. The blank_palette
+download is meant for exactly that. Red 0 (or blue 0, or green
+0) in those images corresponds to index 0 (transparent), red
+149 corresponds to a color used for mud and grime, etc.
+
+Because there are so many palettes (as mentioned earlier, 320),
+it may be difficult for a game to store every single variant.
+In fact, for most images of a particular unit with no visible
+human, in a particular frame, of a particular action (facing the
+same direction), only some palettes will have any difference at
+all (typically, "Alien" palettes are different in most cases from
+"normal" palettes). A Plane or Plane_P has no visible pilot, so
+the palette variants that have different skin or hair color for
+humanoids will appear identical if the main paint scheme is the 
+same. A Plane_S has visible flames coming out of the back of its
+engines, and since "Alien" units have unexplained technology
+(and because it looks cool), flames are unnatural colors for
+most alien palettes (208 to 295). This means a Plane_S with the
+same main paint color will appear identical for all "normal
+human" palettes, but for palettes 208 to 295, each variant will
+probably look different. The "Zombie" images have a different
+image to show the ragged wear and tear on vehicles and clothing
+that the walking dead should have, so while you can palette-swap
+a normal image to use a Zombie palette, it will look more fitting
+with an actual image change. It is possible that a program that
+packs many images into a texture atlas (similar in concept to a
+spritesheet) may be able to eliminate duplicate images and use
+only one image for all copies; the TexturePacker program in
+libGDX can do this, for example.
+
+A better approach, that does not require hundreds of large textures
+filled with the approximately 3.7 million images here, is to use
+only the blank_palette download and palette-swap each image (or
+region of a texture atlas) with a shader when you render it, using
+a shader uniform to choose the palette, and binding one extra
+texture that contains all the 1-pixel-tall palettes you use in
+rows that correspond to the numbers for the palettes (which could
+be the same as the ones used here). In fact, using shaders is the
+recommended approach by the authors of OpenGL to replace older
+palette-swapping techniques that relied on hardware support for
+indexed color.
+
+Now, here's the rough meanings of what editing a pixel
+in the palettes will change.
+
+The color names here are in reverse order from how they
+appear in the palette, and there are 4 levels of shading
+for most colors. To get the correct location in the palette,
+take 253, subtract 4 times the number given (such as 9 for
+skin color), and that gives you the x-position of the pixel
+with the lightest shading for that color. To its left, there
+should be the 3 darker shadings of that same color, and then
+it switches to another color.
+
+//0 tires, treads contrast
+//1 tires, treads
+//2 doors paint (dark) contrast
+//3 doors paint (dark)
+//4 main paint (mid) contrast
+//5 main paint (mid)
+//6 hair contrast (varies between humans, different for zombies, same as skin for aliens)
+//7 hair (varies between humans, different for zombies, same as skin for aliens)
+//8 skin contrast (lips, ears) (varies for all groups)
+//9 skin (varies for all groups)
+//10 eyes shine (similar for humans, different for zombies, may be unusual for aliens)
+//11 eyes (similar for humans, different for zombies, may be unusual for aliens)
+//12 exposed metal contrast
+//13 exposed metal
+//14 gun peripheral
+//15 gun barrel
+//16 inner shadow
+//17 smoke (different for aliens)
+//18 yellow fire (green for aliens)
+//19 orange fire (green for aliens)
+//20 sparks (different for aliens)
+//21 glow frame 0
+//22 glow frame 1
+//23 glow frame 2
+//24 glow frame 3
+//25 shadow
+//26 mud, wood
+//27 water
+//28 cockpit paint (gray) contrast
+//29 cockpit paint (gray)
+//30 helmet paint (bold) contrast
+//31 helmet paint (bold)
+//32 alternate paint (some very different color) contrast
+//33 alternate paint (some very different color)
+//34 gore (not used except by zombies; value is replaced with skin color, index 9)
+//35 glass
+//36 rotor frame 0 contrast
+//37 rotor frame 0
+//38 rotor frame 1 contrast
+//39 rotor frame 1
+//40 unused
+//41 darker dust (not currently used)
+//42 dust (not currently used)
+//43 always brown contrast
+//44 always brown
+//45 always tan contrast
+//46 always tan
+//47 always black contrast
+//48 always black
+//49 always white contrast
+//50 always white
+//51 always red contrast
+//52 always red
+//53 always gray contrast
+//54 always gray
+//55 always gold
+//56 always silver
+//57 unused
+//58 unused
+//59 unused
+//60 unused
+//61 total transparent
+//62 unused
+//63 unused
+
+There is also a palette provided for all of the
+terrain, and the numbers mean something completely different
+in that. Thankfully, it is organized into groups of 16, which
+are visually obvious in the image, and changing, say, all 16
+bright-yellow pixels at the left of the image will affect any
+occurences of originally-bright-yellow colors, such as some
+marks on road terrain, some small dots in jungle terrain, and
+probably some others). Some of the heavily shaded colors in
+the 16 may be hard to distinguish from their neighbors, but
+since they're always in groups of four with the lightest at
+the right, it should be easy to figure out what color a change
+will affect.
+

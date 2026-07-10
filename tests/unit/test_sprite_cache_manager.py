@@ -134,3 +134,45 @@ class TestSpriteCacheManager:
         """Verify initialize_png_sprites does not raise exceptions."""
         # AssetLoader may or may not have _sprite_cache; either way, no crash
         cache_manager.initialize_png_sprites()
+
+    # --- PixVoxel integration (P0: 2026-07-10) ---
+
+    def test_pixvoxel_loader_initialized(self, cache_manager):
+        """Verify PixVoxelLoader is initialized during SpriteCacheManager init."""
+        assert hasattr(cache_manager, "_pixvoxel_loader")
+        assert hasattr(cache_manager, "_use_pixvoxel_sprites")
+        assert isinstance(cache_manager._use_pixvoxel_sprites, bool)
+
+    def test_try_pixvoxel_sprite_unsupported_state_returns_none(self, cache_manager):
+        """Verify _try_pixvoxel_sprite returns None for unsupported animation states.
+
+        PixVoxel only supports idle/fire/hit/death; other states (sneak/hide/defend/prone)
+        must fall through to the next loader in the chain.
+        """
+        for unsupported_state in ("sneak", "hide", "defend", "prone", "crawl"):
+            result = cache_manager._try_pixvoxel_sprite(
+                "allies", "RIFLE_SQUAD", 0, state=unsupported_state
+            )
+            assert result is None, f"State '{unsupported_state}' should return None"
+
+    def test_try_pixvoxel_sprite_supported_state_no_crash(self, cache_manager):
+        """Verify _try_pixvoxel_sprite handles supported states without crashing.
+
+        When PixVoxel assets are unavailable, load_sprite returns None gracefully.
+        """
+        for supported_state in ("idle", "fire", "hit", "death"):
+            result = cache_manager._try_pixvoxel_sprite(
+                "allies", "RIFLE_SQUAD", 0, state=supported_state
+            )
+            # Result is None when assets unavailable, or Surface when available
+            assert result is None or isinstance(result, pygame.Surface)
+
+    def test_create_unit_sprite_priority_pixvoxel_first(self, cache_manager):
+        """Verify create_unit_sprite works with PixVoxel as highest priority.
+
+        When PixVoxel is unavailable, it falls through to SVG/PixelArtist3D.
+        The method must always return a Surface.
+        """
+        sprite = cache_manager.create_unit_sprite("allies", "RIFLE_SQUAD", 0)
+        assert isinstance(sprite, pygame.Surface)
+        assert sprite.get_size() == (cache_manager.SPRITE_SIZE, cache_manager.SPRITE_SIZE)

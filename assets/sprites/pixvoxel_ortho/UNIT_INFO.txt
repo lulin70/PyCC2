@@ -1,0 +1,205 @@
+UNIT INFO
+
+These are human-readable names for units, the listing of units that
+have two versions for male and female humans (and/or zombies) visible
+in them, the weapons that each unit has, and the number that is
+assigned to each weapon. The names go from, for example, Infantry_P to
+Bazooka, Plane_S to Fighter Jet and Tank_S to AA Tank, but you can call
+them whatever you want. For weapon numbers, Weapon 0 is meant to be
+usable as a default, while Weapon 1 may be more powerful but only usable
+as part of a specific action. AA is short for Anti-Air when it shows up.
+
+In this version, there are now different variants on the same unit kind;
+some of these are marked with the prefix "Zombie_" for the walking dead
+or their battle-damaged vehicles, where any visible pilot has (in the
+default palette) gray-green skin, bright-green insides exposed by gaping
+wounds, and red eyes, while the bodies of soldiers and all parts of
+vehicles have missing chunks. The suffix "_Alt" marks a female pilot of a
+vehicle or a complete replacement of a male foot-soldier with a female
+one; the non-alt images have either no human visible or have a male
+soldier in them. The differences are usually slight between male and
+female soldiers, with a small difference in chest shape, a different pose
+for legs that is meant to suggest broader hips (only when the legs are
+standing, and not, for instance, crouching to fire a weapon), changes to
+head shape (a bit longer hair with a bit more "volume", smaller chin,
+smaller mouth, but the same colors for skin, eyes, lips, etc.; these are
+soldiers after all, and lipstick is not typically rationed out in times of
+war). There are also male and female versions of zombies, where the female
+zombies have both the "Zombie_" prefix before the unit name and the "_Alt"
+suffix after the name. Female zombies have a slightly different mouth
+shape than the male zombies because the smaller chin made the low, wide
+"mid-groan" mouth of the male zombies stretch too far outside the bounds
+of the face, and they instead have more of a "baring teeth", "screeching",
+or "hissing" expression rather than a "groaning" or "roaring" one. Male and
+female zombies also have different head wounds, which may be the only way
+to distinguish the two types when just the head of a pilot is visible.
+
+There are "Alt" versions of the alien palettes as well as the humans,
+but they may look somewhat strange, since the alien palettes render hair
+as if it is bald skin, and the female soldiers have slightly longer hair
+than the male ones. This makes it look like they have extra skin coming
+off of their heads (this may be good for your aliens; it's up to you).
+This also means the bald palettes for humans will look strange when
+applied to female ("Alt") units, since it will look like they're human
+except for a fold of skin coming off the back of their heads.
+
+Units with an exclamation mark (!) instead of a colon (:) between the
+first two columns have a Super version available, which is twice the size,
+and produces bigger attacks as well. If they have an asterisk (*) instead
+of a colon or exclamation mark, that means they can have an Alt version,
+but can't have a Super version.
+
+NOTE: Earlier versions called the units now called Truck, Truck_P,
+etc. "Supply" instead of Truck, which wasn't very descriptive of
+what they actually looked like. So now you have Trucks.
+
+Infantry     * Infantry            Has Weapons: Weapon 0
+Infantry_P   * Bazooka             Has Weapons: Weapon 0 and Weapon 1
+Infantry_S   * Bike                Has Weapons: Weapon 0
+Infantry_T   * Sniper              Has Weapons: Weapon 0 and Weapon 1
+Infantry_PS  * Missile Trooper     Has Weapons: Weapon 0
+Infantry_PT  * Mortar Trooper      Has Weapons: Weapon 1
+Infantry_ST  * Jetpack Trooper     Has Weapons: Weapon 0
+Artillery    * Light Artillery     Has Weapons: Weapon 1
+Artillery_P  * Defensive Artillery Has Weapons: Weapon 0
+Artillery_S  * AA Artillery        Has Weapons: Weapon 1
+Artillery_T  * Stealth Artillery   Has Weapons: Weapon 1
+Tank         * Light Tank          Has Weapons: Weapon 0 and Weapon 1
+Tank_P       * Heavy Tank          Has Weapons: Weapon 0 and Weapon 1
+Tank_S       * AA Tank             Has Weapons: Weapon 0
+Tank_T       * Recon Tank          Has Weapons: Weapon 0 and Weapon 1
+Plane        ! Prop Plane          Has Weapons: Weapon 0
+Plane_P      ! Ground Bomber       Has Weapons: Weapon 1
+Plane_S      ! Fighter Jet         Has Weapons: Weapon 0
+Plane_T      ! Stealth Jet         Has Weapons: Weapon 0
+Truck        : Supply Truck        Has Weapons: No Weapons
+Truck_P      * Build Rig           Has Weapons: No Weapons
+Truck_S      : Amphi Transport     Has Weapons: No Weapons
+Truck_T      : Jammer              Has Weapons: No Weapons
+Copter       ! Transport Copter    Has Weapons: No Weapons
+Copter_P     ! Gunship Copter      Has Weapons: Weapon 0 and Weapon 1
+Copter_S     ! Blitz Copter        Has Weapons: Weapon 0
+Copter_T     ! Comm Copter         Has Weapons: No Weapons
+Boat         ! Patrol Boat         Has Weapons: Weapon 0
+Boat_P       ! Battleship          Has Weapons: Weapon 0
+Boat_S       ! Cruiser             Has Weapons: Weapon 0 and Weapon 1
+Boat_T       ! Submarine           Has Weapons: Weapon 0 and Weapon 1
+Recon        * Recon               Has Weapons: Weapon 0
+Flamethrower * Flamethrower        Has Weapons: Weapon 0
+City         ! City                Has Weapons: No Weapons
+Factory      ! Factory             Has Weapons: No Weapons
+Airport      ! Airport             Has Weapons: No Weapons
+Dock         ! Dock                Has Weapons: No Weapons
+Laboratory   ! Laboratory          Has Weapons: No Weapons
+Castle       ! Castle              Has Weapons: No Weapons
+Estate       ! Estate              Has Weapons: No Weapons
+Civilian     * Civilian            Has Weapons: No Weapons
+Volunteer    * Volunteer           Has Weapons: No Weapons
+Volunteer_P  * Engineer            Has Weapons: No Weapons
+Volunteer_S  * Smuggler            Has Weapons: No Weapons
+Volunteer_T  * Medic               Has Weapons: No Weapons
+
+These are the kinds of weapon these units use, so you can know which
+receive animations to show when they attack.
+
+Infantry     * Infantry            Attack Kinds: Weapon 0: Machine_Gun
+Infantry_P   * Bazooka             Attack Kinds: Weapon 0: Handgun, Weapon 1: Rocket
+Infantry_S   * Bike                Attack Kinds: Weapon 0: Machine_Gun
+Infantry_T   * Sniper              Attack Kinds: Weapon 0: Handgun, Weapon 1: Handgun
+Infantry_PS  * Missile Trooper     Attack Kinds: Weapon 0: Arc_Missile
+Infantry_PT  * Mortar Trooper      Attack Kinds: Weapon 1: Long_Cannon
+Infantry_ST  * Jetpack Trooper     Attack Kinds: Weapon 0: Machine_Gun
+Artillery    * Light Artillery     Attack Kinds: Weapon 1: Long_Cannon
+Artillery_P  * Defensive Artillery Attack Kinds: Weapon 0: Cannon
+Artillery_S  * AA Artillery        Attack Kinds: Weapon 1: Arc_Missile
+Artillery_T  * Stealth Artillery   Attack Kinds: Weapon 1: Arc_Missile
+Tank         * Light Tank          Attack Kinds: Weapon 0: Cannon, Weapon 1: Machine_Gun
+Tank_P       * Heavy Tank          Attack Kinds: Weapon 0: Cannon, Weapon 1: Machine_Gun
+Tank_S       * AA Tank             Attack Kinds: Weapon 0: Machine_Gun
+Tank_T       * Recon Tank          Attack Kinds: Weapon 0: Machine_Gun, Weapon 1: Cannon
+Plane        ! Prop Plane          Attack Kinds: Weapon 0: Machine_Gun
+Plane_P      ! Ground Bomber       Attack Kinds: Weapon 1: Bomb
+Plane_S      ! Fighter Jet         Attack Kinds: Weapon 0: Rocket
+Plane_T      ! Stealth Jet         Attack Kinds: Weapon 0: Rocket
+Truck        : Supply Truck        Attack Kinds: No Weapons
+Truck_P      * Build Rig           Attack Kinds: No Weapons
+Truck_S      : Amphi Transport     Attack Kinds: No Weapons
+Truck_T      : Jammer              Attack Kinds: No Weapons
+Copter       ! Transport Copter    Attack Kinds: No Weapons
+Copter_P     ! Gunship Copter      Attack Kinds: Weapon 0: Machine_Gun, Weapon 1: Rocket
+Copter_S     ! Blitz Copter        Attack Kinds: Weapon 0: Machine_Gun
+Copter_T     ! Comm Copter         Attack Kinds: No Weapons
+Boat         ! Patrol Boat         Attack Kinds: Weapon 0: Machine_Gun
+Boat_P       ! Battleship          Attack Kinds: Weapon 0: Long_Cannon
+Boat_S       ! Cruiser             Attack Kinds: Weapon 0: Torpedo, Weapon 1: Arc_Missile
+Boat_T       ! Submarine           Attack Kinds: Weapon 0: Torpedo, Weapon 1: Arc_Missile
+Recon        * Recon               Attack Kinds: Weapon 0: Machine_Gun
+Flamethrower * Flamethrower        Attack Kinds: Weapon 0: Bomb
+City         ! City                Attack Kinds: No Weapons
+Factory      ! Factory             Attack Kinds: No Weapons
+Airport      ! Airport             Attack Kinds: No Weapons
+Dock         ! Dock                Attack Kinds: No Weapons
+Laboratory   ! Laboratory          Attack Kinds: No Weapons
+Castle       ! Castle              Attack Kinds: No Weapons
+Estate       ! Estate              Attack Kinds: No Weapons
+Civilian     * Civilian            Attack Kinds: No Weapons
+Volunteer    * Volunteer           Attack Kinds: No Weapons
+Volunteer_P  * Engineer            Attack Kinds: No Weapons
+Volunteer_S  * Smuggler            Attack Kinds: No Weapons
+Volunteer_T  * Medic               Attack Kinds: No Weapons
+
+These are the receive strengths to use when a given unit attacks with a weapon.
+Mostly, the explosion size or the amount of sparks flying gets bigger as
+strength goes up. But for some, like Rockets, it doesn't change size, but rather
+timing -- the Infantry_P's Rocket is timed so that with a strength of 3, it hits
+at the right time.  Receive animations use the palette of the attacker, or 0 if
+there isn't an animation available in your palette.  They work well if the defender
+is facing in the direction of the attack (ready to counterattack, in some games).
+
+Infantry     * Infantry            Receive Strengths: Weapon 0: 1,    Weapon 1: none
+Infantry_P   * Bazooka             Receive Strengths: Weapon 0: 1,    Weapon 1: 3
+Infantry_S   * Bike                Receive Strengths: Weapon 0: 2,    Weapon 1: none
+Infantry_T   * Sniper              Receive Strengths: Weapon 0: 1,    Weapon 1: 1
+Infantry_PS  * Missile Trooper     Receive Strengths: Weapon 0: 2,    Weapon 1: none
+Infantry_PT  * Mortar Trooper      Receive Strengths: Weapon 0: none, Weapon 1: 2
+Infantry_ST  * Jetpack Trooper     Receive Strengths: Weapon 0: 2,    Weapon 1: none
+Artillery    * Light Artillery     Receive Strengths: Weapon 0: none, Weapon 1: 3
+Artillery_P  * Defensive Artillery Receive Strengths: Weapon 0: 4,    Weapon 1: none
+Artillery_S  * AA Artillery        Receive Strengths: Weapon 0: none, Weapon 1: 3
+Artillery_T  * Stealth Artillery   Receive Strengths: Weapon 0: none, Weapon 1: 4
+Tank         * Light Tank          Receive Strengths: Weapon 0: 2,    Weapon 1: 1
+Tank_P       * Heavy Tank          Receive Strengths: Weapon 0: 4,    Weapon 1: 2
+Tank_S       * AA Tank             Receive Strengths: Weapon 0: 2,    Weapon 1: none
+Tank_T       * Recon Tank          Receive Strengths: Weapon 0: 1,    Weapon 1: 2
+Plane        ! Prop Plane          Receive Strengths: Weapon 0: 2,    Weapon 1: none
+Plane_P      ! Ground Bomber       Receive Strengths: Weapon 0: none, Weapon 1: 4
+Plane_S      ! Fighter Jet         Receive Strengths: Weapon 0: 1,    Weapon 1: none
+Plane_T      ! Stealth Jet         Receive Strengths: Weapon 0: 2,    Weapon 1: none
+Truck        : Supply Truck        Receive Strengths: Weapon 0: none, Weapon 1: none
+Truck_P      * Build Rig           Receive Strengths: Weapon 0: none, Weapon 1: none
+Truck_S      : Amphi Transport     Receive Strengths: Weapon 0: none, Weapon 1: none
+Truck_T      : Jammer              Receive Strengths: Weapon 0: none, Weapon 1: none
+Copter       ! Transport Copter    Receive Strengths: Weapon 0: none, Weapon 1: none
+Copter_P     ! Gunship Copter      Receive Strengths: Weapon 0: 2,    Weapon 1: 2
+Copter_S     ! Blitz Copter        Receive Strengths: Weapon 0: 2,    Weapon 1: none
+Copter_T     ! Comm Copter         Receive Strengths: Weapon 0: none, Weapon 1: none
+Boat         ! Patrol Boat         Receive Strengths: Weapon 0: 2,    Weapon 1: none
+Boat_P       ! Battleship          Receive Strengths: Weapon 0: 4,    Weapon 1: none
+Boat_S       ! Cruiser             Receive Strengths: Weapon 0: 1,    Weapon 1: 3
+Boat_T       ! Submarine           Receive Strengths: Weapon 0: 1,    Weapon 1: 4
+Recon        * Recon               Receive Strengths: Weapon 0: 1,    Weapon 1: none
+Flamethrower * Flamethrower        Receive Strengths: Weapon 0: 1,    Weapon 1: none
+City         ! City                Receive Strengths: Weapon 0: none, Weapon 1: none
+Factory      ! Factory             Receive Strengths: Weapon 0: none, Weapon 1: none
+Airport      ! Airport             Receive Strengths: Weapon 0: none, Weapon 1: none
+Dock         ! Dock                Receive Strengths: Weapon 0: none, Weapon 1: none
+Laboratory   ! Laboratory          Receive Strengths: Weapon 0: none, Weapon 1: none
+Castle       ! Castle              Receive Strengths: Weapon 0: none, Weapon 1: none
+Estate       ! Estate              Receive Strengths: Weapon 0: none, Weapon 1: none
+Civilian     * Civilian            Receive Strengths: Weapon 0: none, Weapon 1: none
+Volunteer    * Volunteer           Receive Strengths: Weapon 0: none, Weapon 1: none
+Volunteer_P  * Engineer            Receive Strengths: Weapon 0: none, Weapon 1: none
+Volunteer_S  * Smuggler            Receive Strengths: Weapon 0: none, Weapon 1: none
+Volunteer_T  * Medic               Receive Strengths: Weapon 0: none, Weapon 1: none
+
+Enjoy!

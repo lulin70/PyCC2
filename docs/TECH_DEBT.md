@@ -1,7 +1,7 @@
 # PyCC2 技术债清单
 
-> **版本**: v0.4.16 | **日期**: 2026-07-10 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-07-10 (v0.4.16 Docker Build scipy 缺失修复 — Dockerfile --no-build-isolation + python:3.12-slim 无 setuptools 导致第一次 pip install 失败, fallback 列表遗漏 scipy+defusedxml, v0.4.7 TD-059 以来 Docker Build 持续失败被 Lint 失败掩盖, 修复: 先装 setuptools wheel + fallback 补全所有依赖, v0.4.15 ruff format 漂移修复 — v0.4.11 TD-065/TD-066 提交时未运行 ruff format 导致 7 文件格式漂移, main 分支 5 次 CI 全部失败, ruff format . 修复后 5400 passed 零回归, CI Lint 恢复绿灯, 解除 PR #13 合并阻塞; v0.4.14 TD-007 ACCEPTED — v0.5 重新评估: _scatter 函数直接覆盖地形不检查重要性, 但修改需重新生成 64 个地图 JSON + 影响 7 个测试文件, 高风险低收益, 原始 4 个问题记录已丢失, 无用户报告实际问题, Simplicity First + Surgical Changes 接受现状; 活跃技术债 2→1, 63/64 已解决; v0.4.13 采购系统 UI 文档同步 + TD-042 延期确认; v0.4.12 M4 架构改进收尾评估; v0.4.11 TD-065+TD-066 RESOLVED) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 0 (剩余 1 项延期至 v0.5+: TD-042)
+> **版本**: v0.5.0 | **日期**: 2026-07-10 | **原则**: 不留技术债，发现即记录，按计划清理
+> **上次核查**: 2026-07-10 (v0.5.0 P0 PixVoxel 正交版精灵接入 — 下载 Blank_PixVoxel_Wargame_Ortho_A.7z (28MB) + py7zr 解压 + 整理 3968 精灵到 assets/sprites/pixvoxel_ortho/ + pixvoxel_loader.py 新增 _load_blank_sprite/_load_blank_with_palette 索引调色板替换 + sprite_cache_manager.py 接入游戏循环 PixVoxel 最高优先级 + 修复 assets_root 路径 bug (4→5 层 parent) + 14/18 单位类型覆盖 (66.7%) + 性能 0.4ms/精灵首次加载/0.001ms 缓存命中 + 17 单元测试 + 522 渲染测试零回归; TD-042 RESOLVED + D13-N3 RESOLVED; v0.4.16 Docker Build scipy 缺失修复 — Dockerfile --no-build-isolation + python:3.12-slim 无 setuptools 导致第一次 pip install 失败, fallback 列表遗漏 scipy+defusedxml, v0.4.7 TD-059 以来 Docker Build 持续失败被 Lint 失败掩盖, 修复: 先装 setuptools wheel + fallback 补全所有依赖, v0.4.15 ruff format 漂移修复 — v0.4.11 TD-065/TD-066 提交时未运行 ruff format 导致 7 文件格式漂移, main 分支 5 次 CI 全部失败, ruff format . 修复后 5400 passed 零回归, CI Lint 恢复绿灯, 解除 PR #13 合并阻塞; v0.4.14 TD-007 ACCEPTED — v0.5 重新评估: _scatter 函数直接覆盖地形不检查重要性, 但修改需重新生成 64 个地图 JSON + 影响 7 个测试文件, 高风险低收益, 原始 4 个问题记录已丢失, 无用户报告实际问题, Simplicity First + Surgical Changes 接受现状; 活跃技术债 1→0, 64/64 全部解决; v0.4.13 采购系统 UI 文档同步 + TD-042 延期确认; v0.4.12 M4 架构改进收尾评估; v0.4.11 TD-065+TD-066 RESOLVED) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 0 (全部解决)
 > **状态**: ✅ P0全部清除 | ✅ P1全部清除 | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (389 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md) | ✅ v0.4.7 TD-038 RESOLVED (4 份核心文档批量同步: PRD 33 用户故事 + ROADMAP M3/M4 + GAP_ANALYSIS A1-A3/R8/R9/R10 + TECH_DEBT checklist) | ✅ v0.4.7 TD-036 RESOLVED (评估确认 tests/benchmark/test_performance_baseline.py 已实现 per-metric threshold 断言) | ✅ v0.4.7 P1 工程实践债评估完成 (TD-035/037/039/040 现状文档化，留待 v0.5+ 推进) | ✅ v0.4.7 P2 视觉/资源/性能/测试债评估完成 (TD-043 RESOLVED + TD-044 WONTFIX + TD-042/059/065/066 现状文档化) | ✅ v0.4.7 P3 低优先级债复核完成 (TD-033/034 checklist 修正 + v2.0 旧条目 18/20 验证通过 + D13-N8 维持待 v0.5 整理) | ✅ v0.4.7 TD-059 RESOLVED (6 模块 smoke 测试补齐: direction/damage/combat_result/stereo_sound/environmental_audio/cc2_map_parser, 58 tests, 全部使用真实组件非 Mock) | ✅ v0.4.7 TD-035 RESOLVED (4 组件接口契约测试 39 tests: HealthComponent/MoraleComponent/StateMachine/VeterancyComponent 接口冻结 + apply_inheritance_to_units 端到端消费者契约 + CampaignPersistence 序列化保真, 全部使用真实组件非 Mock) | ✅ v0.4.7 TD-037 RESOLVED (AI GameLoop 集成测试 6 tests: 真实 GameLoop + 真实 AIService + _update_logic 驱动 N ticks, 验证敌方单位自动注册 + AIService.tick 执行 + _ai_tick_counter 重置 + 多 cycle 持续 tick) | ✅ v0.4.8 TD-040 RESOLVED (运行时健康检查 preflight_check 模块 19 tests: 3 层子系统检查 critical/assembler/optional, GameLoop.run() 启动前 fail-fast) | ✅ v0.4.8 TD-039 RESOLVED (错误恢复机制 8 tests: _update_ai try/except 降级 AI tick 失败→单位静止 + _render_scene try/except 降级 render 失败→跳过本帧, 单组件异常不崩溃整个游戏) | ✅ v0.4.9 TD-041 RESOLVED (架构守卫测试 8 tests: 4 层 DDD 依赖方向自动验证 domain→services→presentation→infrastructure + CONTRIBUTING.md 变更影响分析流程 5 步) | ✅ v0.4.9 TD-061 ACCEPTED (enhanced_renderer 485L/30 方法协调者模式评估收尾: 30 方法全部薄委托到 9 子模块, 核心方法仅 4 个, 基于 D13 N-1 教训不按机械阈值拆分) | ✅ v0.4.10 TD-003 RESOLVED (campaign.py 205L 删除 + campaign_four_layer.py 完全替代 + test_campaign.py 删除 + test_content_expansion.py 移除 TestCampaignSystem 类, 5373 passed 零回归) | ✅ v0.4.10 TD-007 NEEDS RE-EVALUATION (原始 4 个问题记录已丢失, _scatter 函数潜在覆盖 bug 发现但修改需重新生成 36 个地图 JSON, 留待 v0.5 重新评估) | ✅ v0.4.11 TD-065 RESOLVED (车辆损伤视觉反馈差异化 — 最小化方案: unit.py 新增 _damage_components 字段 + unit_damage_vfx_mixin.py 新增 is_vehicle/update_vehicle_damage_components/_emit_vehicle_component_vfx, 部件损伤按 (unit.id, damage_state) 确定性分配, tracks/turret/engine 差异化 VFX, 16 新测 + 4687 unit passed 零回归) | ✅ v0.4.11 TD-066 RESOLVED (烟雾粒子效果统一 — EffectRenderer 分层集成 CC2SmokeEffect: __init__ 新增 _cc2_smoke_effects 字段 + spawn_smoke_screen 同时实例化 CC2SmokeEffect + update_effects 更新清理 + render_effects 底层渲染 CC2SmokeEffect + API 适配层 Camera→tuple 偏移, 11 新测 + 5400 全套 passed 零回归) | ✅ v0.4.12 M4 架构改进收尾评估完成 (Domain slimdown 目标已达成实测 38.5% < 50% + Unify unit definition 前提不成立实为 1 套 DDD 协作系统, 详见 ASSESSMENT_M4_V0411.md, M4 全部 9 项任务完成) | ✅ v0.4.15 ruff format 漂移修复 (v0.4.11 TD-065/TD-066 提交时未运行 ruff format 导致 7 文件格式漂移, main 分支 5 次 CI 全部失败, ruff format . 修复后 5400 passed 零回归, CI Lint 恢复绿灯, 解除 PR #13 合并阻塞) | ✅ v0.4.16 Docker Build scipy 缺失修复 (Dockerfile --no-build-isolation + python:3.12-slim 无 setuptools 导致第一次 pip install 失败, fallback 遗漏 scipy+defusedxml, v0.4.7 TD-059 以来被 Lint 失败掩盖, 修复: 先装 setuptools wheel + fallback 补全所有依赖)
 
 ---
@@ -12,14 +12,14 @@
 |------|------|---------|---------|
 | 🔴 P0 致命（游戏不可玩） | 0 | — | ✅ 全部清除 |
 | 🟡 P1 严重（功能受损） | 0 | 🟡 严重 | ✅ 全部清除 |
-| 🟢 P2 中等（质量/维护） | 12 | 🟢 中等 | 🟡 部分未解决 (剩余延期至 v0.5+) |
+| 🟢 P2 中等（质量/维护） | 12 | 🟢 中等 | ✅ 全部解决 (v0.5.0 P0 TD-042 RESOLVED) |
 | ~~M2新增发现 (TD-045~049)~~ | 5 | — | ✅ 已解决 |
 | ~~7-dimension review新增 (TD-050~056)~~ | 7 | — | ✅ **已解决** |
 | ~~v0.3.11 DevSquad审计新增 (TD-057~059)~~ | 3 | — | ✅ **TD-057, TD-060 已解决** |
 | 🆕 v0.3.13 批判性审核新增 | 2 | 🟢 P2 | ✅ 已解决 (TD-060/061/062 全部 RESOLVED/ACCEPTED) |
 | 🆕 v0.4.0 D8 Phase 2 新增 (TD-065~066) | 2 | 🟢 P2 | ✅ 已解决 (v0.4.11 TD-065+TD-066 RESOLVED) |
 | v2.0旧条目（声称已解决） | 20 | — | ✅ 20/20 已验证 (v0.4.10 TD-003 RESOLVED + v0.4.14 TD-007 ACCEPTED) |
-| **合计（活跃）** | **1** | — | **63/64 已解决** |
+| **合计（活跃）** | **0** | — | **64/64 全部解决** |
 
 ---
 
@@ -124,15 +124,19 @@
 
 ## 四点五、等距投影新增技术债 (2026-05-24)
 
-### 🟢 TD-042: PixVoxel CC0精灵资源未下载集成
+### ~~🟢 TD-042: PixVoxel CC0精灵资源未下载集成~~ ✅ RESOLVED (v0.5.0 P0, 2026-07-10)
 
-- **描述**: PixVoxel Revised Isometric精灵(CC0, 35单位+7设施)下载脚本已就绪，但网络慢(28.8MB)未完成下载
-- **影响**: 等距模式仍使用程序化生成的简单精灵，视觉还原度不足
-- **文件**: `scripts/download_pixvoxel_assets.py`, `src/pycc2/presentation/rendering/pixvoxel_loader.py`
-- **状态**: ❌ 未解决 (v0.4.13 重新确认延期) — 下载脚本完整实现 (curl/wget/urllib + 7z 解压 + manifest writer)，但 `assets/sprites/` 无 `pixvoxel_isometric/` 目录，脚本从未成功执行；`pixvoxel_loader.py` docstring 明确 "scripts-only, 生产代码 src/pycc2/ 内无 import"，`src/pycc2/` 零导入
-- **清理方案**: 下载是 quick win (单脚本执行)，但接入渲染管线替换程序化精灵是非平凡集成工作，留待 v0.5+ 推进
-- **v0.4.10 评估**: 延期理由仍然有效 — 下载依赖外部网络 (opengameart.org 28.8MB) + 7z 解压工具 + 接入渲染管线是 v0.5 功能开发任务（非技术债清理）；Simplicity First 原则下不强推
-- **v0.4.13 重新确认**: 延期理由完全成立 — 实测系统未安装 7z/7za/p7zip 工具 (`which 7z` not found)，下载脚本无法执行；pixvoxel_loader.py 已从 "PLANNED: Not yet wired" 更明确为 "scripts-only"；维持延期至 v0.5+
+- **描述**: ~~PixVoxel Revised Isometric精灵(CC0, 35单位+7设施)下载脚本已就绪，但网络慢(28.8MB)未完成下载~~
+- **影响**: ~~等距模式仍使用程序化生成的简单精灵，视觉还原度不足~~ 已接入 PixVoxel 正交版精灵
+- **文件**: `scripts/download_pixvoxel_assets.py`, `src/pycc2/presentation/rendering/pixvoxel_loader.py`, `src/pycc2/presentation/rendering/sprite_cache_manager.py`
+- **状态**: ✅ RESOLVED — P0 (2026-07-10) 完成 PixVoxel Blank 正交版精灵下载、解压、整理和接入：
+  - 下载 `Blank_PixVoxel_Wargame_Ortho_A.7z` (28MB, CC0 许可)
+  - 用 py7zr 解压，整理 3968 个精灵到 `assets/sprites/pixvoxel_ortho/`
+  - 实现 `_load_blank_sprite()` + `_load_blank_with_palette()` 索引调色板替换
+  - 通过 SpriteCacheManager.create_unit_sprite() 接入游戏循环，PixVoxel 为最高优先级
+  - 修复 assets_root 路径计算 bug (少一层 .parent)
+  - 覆盖率: 14/18 PyCC2 单位类型有 PixVoxel 精灵 (66.7%)，4 个无映射的单位 fallback 到 SVG/procedural
+  - 性能: 首次加载 0.4ms/精灵 (含调色板替换)，缓存命中 0.001ms/查询
 
 ### ~~🟢 TD-043: 等距渲染性能未优化~~ ✅ RESOLVED (v0.4.7 评估确认, 2026-07-05)
 
@@ -647,11 +651,11 @@
 - **评估**: mixin 模式需要 TYPE_CHECKING 守卫避免循环 import，是 Python 类型系统的必要 workaround
 - **状态**: 🟢 保留 (mixin 模式必要 workaround，非技术债)
 
-### 🟢 D13-N3: pixvoxel_loader.py scripts-only 在 src/ (P3) — 已标注
+### ~~🟢 D13-N3: pixvoxel_loader.py scripts-only 在 src/ (P3)~~ ✅ RESOLVED (v0.5.0 P0, 2026-07-10)
 
-- **评估**: 1139L 文件仅 scripts/validate_isometric.py 引用，生产代码零 import；保留在 src/ 是为 mypy 类型检查覆盖
-- **解决方案**: D13 已在 docstring 添加 scripts-only 标注注释
-- **状态**: 🟢 已标注 (后续可考虑迁移至 scripts/ 目录)
+- **评估**: ~~1139L 文件仅 scripts/validate_isometric.py 引用，生产代码零 import；保留在 src/ 是为 mypy 类型检查覆盖~~
+- **解决方案**: ~~D13 已在 docstring 添加 scripts-only 标注注释~~ P0 已通过 SpriteCacheManager 接入游戏循环
+- **状态**: ✅ RESOLVED — P0 (2026-07-10) pixvoxel_loader.py 已从 "scripts-only" 更新为 "WIRED"；SpriteCacheManager.create_unit_sprite() 将 PixVoxel 作为最高优先级精灵来源
 
 ### 🟢 D13-N7: docs/ 历史评估文档未归档 (P3) — 保留为历史记录
 

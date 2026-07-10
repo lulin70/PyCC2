@@ -52,7 +52,7 @@ class SpriteCacheManager:
         self._asset_loader: AssetLoader = AssetLoader()
 
         # CC2 Original Sprite Loader (NEW: 2026-06-16)
-        assets_root = Path(__file__).parent.parent.parent.parent / "assets"
+        assets_root = Path(__file__).parent.parent.parent.parent.parent / "assets"
         self._cc2_loader: CC2SpriteLoader = CC2SpriteLoader(assets_root)
         self._use_cc2_sprites: bool = self._cc2_loader.is_available()
 
@@ -61,7 +61,18 @@ class SpriteCacheManager:
         else:
             logger.info("ℹ️ CC2 sprites not found - using procedural generation")
 
-        # SVG Sprite Loader (P0: 2026-06-19) — highest priority unit sprites
+        # PixVoxel Sprite Loader (P0: 2026-07-10) — highest priority unit sprites
+        from pycc2.presentation.rendering.pixvoxel_loader import PixVoxelLoader
+
+        self._pixvoxel_loader: PixVoxelLoader = PixVoxelLoader(assets_dir=assets_root)
+        self._use_pixvoxel_sprites: bool = self._pixvoxel_loader.is_available
+
+        if self._use_pixvoxel_sprites:
+            logger.info("✅ PixVoxel sprites detected - CC0 pixel art mode enabled")
+        else:
+            logger.info("ℹ️ PixVoxel sprites not found - falling back to SVG/procedural")
+
+        # SVG Sprite Loader (was highest priority, now second after PixVoxel)
         from pycc2.presentation.rendering.svg_sprite_loader import SVGSpriteLoader
 
         self._svg_loader: SVGSpriteLoader | None = SVGSpriteLoader()
@@ -128,8 +139,18 @@ class SpriteCacheManager:
         state: str = "idle",
         sprite_size: int | None = None,
     ) -> Surface:
-        """Create a unit sprite — priority: SVG > CC2Original > AssetLoader > PixelArtist3D > legacy."""
-        # 0. Try SVG sprites (HIGHEST PRIORITY — P0: 2026-06-19)
+        """Create a unit sprite — priority: PixVoxel > SVG > CC2Original > AssetLoader > PixelArtist3D > legacy."""
+        # 0. Try PixVoxel sprites (HIGHEST PRIORITY — P0: 2026-07-10)
+        if self._use_pixvoxel_sprites:
+            pv_sprite = self._try_pixvoxel_sprite(faction, unit_type, direction, state)
+            if pv_sprite is not None:
+                if sprite_size is not None and sprite_size != self.SPRITE_SIZE:
+                    from pygame import transform as _tf
+
+                    return _tf.scale(pv_sprite, (sprite_size, sprite_size))
+                return pv_sprite
+
+        # 1. Try SVG sprites
         if self._use_svg_sprites:
             svg_sprite = self._try_svg_sprite(faction, unit_type, direction, state)
             if svg_sprite is not None:
@@ -140,7 +161,7 @@ class SpriteCacheManager:
                     return _tf.scale(svg_sprite, (sprite_size, sprite_size))
                 return svg_sprite
 
-        # 1. Try CC2 Original sprites
+        # 2. Try CC2 Original sprites
         if self._use_cc2_sprites:
             direction_map = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
             dir_str = direction_map[direction % 8]
@@ -246,6 +267,42 @@ class SpriteCacheManager:
             state=state,
         )
         return canvas.to_surface()
+
+    # ====== PixVoxel sprite resolution (P0: 2026-07-10) ======
+
+    def _try_pixvoxel_sprite(
+        self,
+        faction: str,
+        unit_type: str,
+        direction: int,
+        state: str = "idle",
+    ) -> Surface | None:
+        """Try to load a PixVoxel CC0 sprite (highest priority when available).
+
+        PixVoxel sprites are hand-drawn pixel art with 4 directions (N/E/S/W).
+        Diagonal directions (NE/SE/SW/NW) are approximated to the nearest cardinal.
+        Only idle/firing/hit/death animations are supported; other states fall through.
+        """
+        if state not in ("idle", "fire", "firing", "hit", "death"):
+            return None
+
+        faction_lower = faction.name.lower() if hasattr(faction, "name") else str(faction).lower()
+        unit_type_str = unit_type.name if hasattr(unit_type, "name") else str(unit_type)
+
+        sprite = self._pixvoxel_loader.load_sprite(
+            unit_type=unit_type_str,
+            faction=faction_lower,
+            direction=direction,
+            animation=state,
+            frame=0,
+            size=self.SPRITE_SIZE,
+            use_ortho=True,
+        )
+        if sprite is not None:
+            logger.debug(
+                f"[SPRITE] ✅ PixVoxel: {faction_lower}_{unit_type_str}_d{direction}_{state}"
+            )
+        return sprite
 
     # ====== SVG sprite resolution (P0: 2026-06-19) ======
 

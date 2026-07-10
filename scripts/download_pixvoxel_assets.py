@@ -40,10 +40,10 @@ ORTHO_OUTPUT_DIR = ASSETS_DIR / "pixvoxel_ortho"
 
 # 下载链接
 ISO_URL = "https://opengameart.org/sites/default/files/Revised_PixVoxel_Wargame_1.7z"
-ORTHO_URL = "https://opengameart.org/sites/default/files/PixVoxel_Ortho_Wargame.7z"
+ORTHO_URL = "https://opengameart.org/sites/default/files/Blank_PixVoxel_Wargame_Ortho_A.7z"
 
 ISO_ARCHIVE = DOWNLOAD_DIR / "Revised_PixVoxel_Wargame.7z"
-ORTHO_ARCHIVE = DOWNLOAD_DIR / "PixVoxel_Ortho_Wargame.7z"
+ORTHO_ARCHIVE = DOWNLOAD_DIR / "Blank_PixVoxel_Wargame_Ortho_A.7z"
 
 # PixVoxel 单位名称 → PyCC2 单位类型映射
 UNIT_NAME_MAP: dict[str, str] = {
@@ -117,6 +117,75 @@ ISO_DIRECTION_MAP: dict[str, list[str]] = {
     "E": ["E", "SE"],  # SE 由 E 近似
     "S": ["S", "SW"],  # SW 由 S 翻转或近似
     "W": ["W", "NW"],  # NW 由 W 翻转或近似
+}
+
+
+# === Blank 版本常量 (Blank_PixVoxel_Wargame_Ortho_A) ===
+
+# Blank 版本单位名 → PyCC2 单位类型 (基于 UNIT_INFO.txt)
+BLANK_UNIT_NAME_MAP: dict[str, str] = {
+    # 步兵类 (UNIT_INFO.txt: Infantry → Infantry, Infantry_P → Bazooka, etc.)
+    "Infantry": "RIFLE_SQUAD",
+    "Infantry_P": "AT_GUN_TEAM",  # Bazooka
+    "Infantry_S": "RIFLE_SQUAD",  # Bike (近似步兵)
+    "Infantry_T": "SNIPER_TEAM",  # Sniper
+    "Infantry_PS": "AT_GUN_TEAM",  # Missile Trooper
+    "Infantry_PT": "MORTAR_TEAM",  # Mortar Trooper
+    "Infantry_ST": "ASSAULT_SQUAD",  # Jetpack Trooper
+    "Flamethrower": "FLAMETHROWER_TEAM",
+    "Recon": "JEEP",  # Recon (近似载具)
+    # 炮兵类
+    "Artillery": "AT_GUN_TEAM",  # Light Artillery
+    "Artillery_P": "AT_GUN_TEAM",  # Defensive Artillery
+    "Artillery_S": "AT_GUN_TEAM",  # AA Artillery
+    "Artillery_T": "AT_GUN_TEAM",  # Stealth Artillery
+    # 载具类
+    "Tank": "LIGHT_TANK",  # Light Tank
+    "Tank_P": "HEAVY_TANK",  # Heavy Tank
+    "Tank_S": "LIGHT_TANK",  # AA Tank (近似)
+    "Tank_T": "LIGHT_TANK",  # Recon Tank (近似)
+    "Truck": "JEEP",  # Supply Truck
+    "Truck_P": "HALFTRACK",  # Build Rig (近似)
+    "Truck_S": "JEEP",  # Amphi Transport
+    "Truck_T": "JEEP",  # Jammer
+    # 志愿兵类
+    "Volunteer": "SUPPORT",
+    "Volunteer_P": "ENGINEER_SQUAD",  # Engineer
+    "Volunteer_S": "SUPPORT",  # Smuggler
+    "Volunteer_T": "MEDIC_TEAM",  # Medic
+    # 设施
+    "City": "BUILDING",
+    "Factory": "BUILDING",
+    "Airport": "BUILDING",
+    "Dock": "BUILDING",
+    "Laboratory": "BUILDING",
+    "Castle": "BUILDING",
+    "Estate": "BUILDING",
+    # 平民
+    "Civilian": "SUPPORT",  # 近似
+}
+
+# Blank 版本 face0-3 → PyCC2 方向索引
+# 假设: face0=S(4), face1=E(2), face2=N(0), face3=W(6) — 最常见精灵排列
+BLANK_FACE_TO_DIRECTION: dict[int, int] = {
+    0: 4,  # face0 → South
+    1: 2,  # face1 → East
+    2: 0,  # face2 → North
+    3: 6,  # face3 → West
+}
+
+# 阵营 → PixVoxel 调色板编号
+# 基于 PALETTE_INFO.txt: 8n+0=Dark, 8n+1=White, 8n+2=Red, 8n+3=Orange,
+#                         8n+4=Yellow, 8n+5=Green, 8n+6=Blue, 8n+7=Purple
+FACTION_PALETTE_MAP: dict[str, int] = {
+    "allies": 5,  # Green (盟军绿)
+    "axis": 0,  # Dark (轴心国灰)
+    "allies_uk": 6,  # Blue (英军蓝)
+    "allies_us": 13,  # Green, 第二组皮肤 (美军橄榄绿)
+    "allies_poland": 2,  # Red (波兰军红)
+    "axis_germany": 8,  # Dark, 第二组皮肤 (德军深灰)
+    "axis_italy": 3,  # Orange (意军沙色, 近似)
+    "resistance": 7,  # Purple (抵抗军紫)
 }
 
 
@@ -444,6 +513,211 @@ def organize_ortho_sprites(extracted_dir: Path, output_dir: Path) -> None:
     logger.info(f"正交精灵整理完成，共 {len(manifest_entries)} 个文件")
 
 
+def organize_ortho_blank_sprites(extracted_dir: Path, output_dir: Path) -> None:
+    """整理 Blank 版本正交精灵到 PyCC2 目录结构
+
+    Blank 版本结构 (Blank_PixVoxel_Wargame_Ortho_A):
+    ├── standing_frames/{Unit}/{Unit}_Large_face{0-3}_{0-3}.png  (idle, 4 frames)
+    ├── animation_frames/{Unit}/{Unit}_Large_face{0-3}_{attack|death}_{...}.png
+    ├── Palettes/color{0-325}.png  (256x1 索引调色板)
+    ├── UNIT_INFO.txt
+    └── PALETTE_INFO.txt
+
+    文件名格式:
+      standing: {Zombie_}{Unit}_{Alt_}Large_face{0-3}_{frame}.png
+      animation: {Zombie_}{Unit}_{Alt_}Large_face{0-3}_{attack|death}_{weapon}_{frame}.png
+
+    只整理标准 male 版本 (跳过 Zombie_ 和 _Alt_ 变体)。
+
+    输出结构:
+    ├── standing_frames/{Unit}/  (保持原始 Blank PNG, 索引调色板)
+    ├── animation_frames/{Unit}/
+    ├── palettes/{faction}.png   (8 个阵营调色板)
+    └── manifest.json
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # 查找提取后的根目录
+    possible_roots = list(extracted_dir.glob("Blank_PixVoxel_Wargame_Ortho*"))
+    if not possible_roots:
+        possible_roots = [extracted_dir]
+
+    root = possible_roots[0]
+    logger.info(f"整理 Blank 正交精灵，源目录: {root}")
+
+    manifest_entries: list[dict] = []
+
+    # === 1. 复制 standing_frames (idle 动画) ===
+    standing_src = root / "standing_frames"
+    if standing_src.exists():
+        for unit_dir in sorted(standing_src.iterdir()):
+            if not unit_dir.is_dir():
+                continue
+
+            unit_name = unit_dir.name
+            pycc2_type = BLANK_UNIT_NAME_MAP.get(unit_name)
+            if pycc2_type is None:
+                logger.debug(f"跳过未映射的单位: {unit_name}")
+                continue
+
+            for sprite_file in sorted(unit_dir.glob("*.png")):
+                stem = sprite_file.stem
+
+                # 跳过 Zombie_ 和 _Alt_ 变体
+                if stem.startswith("Zombie_") or "_Alt_" in stem:
+                    continue
+
+                # 解析文件名: {Unit}_Large_face{N}_{frame}
+                # 去掉 Large_ 后分割
+                cleaned = stem.replace("_Large_", "_")
+                parts = cleaned.split("_")
+
+                # 找到 face 部分
+                face_idx = None
+                for i, p in enumerate(parts):
+                    if p.startswith("face"):
+                        face_idx = i
+                        break
+
+                if face_idx is None or face_idx + 1 >= len(parts):
+                    continue
+
+                face_num = int(parts[face_idx].replace("face", ""))
+                frame = int(parts[face_idx + 1])
+
+                if face_num not in BLANK_FACE_TO_DIRECTION:
+                    continue
+
+                direction = BLANK_FACE_TO_DIRECTION[face_num]
+
+                # 目标路径: standing_frames/{Unit}/{Unit}_face{N}_{frame}.png
+                rel_path = f"standing_frames/{unit_name}/{stem}.png"
+                target_path = output_dir / rel_path
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(sprite_file, target_path)
+
+                manifest_entries.append(
+                    {
+                        "unit_name": unit_name,
+                        "pycc2_type": pycc2_type,
+                        "animation": "idle",
+                        "face": face_num,
+                        "direction": direction,
+                        "frame": frame,
+                        "path": rel_path,
+                    }
+                )
+
+    logger.info(f"standing_frames: {len(manifest_entries)} 个文件")
+
+    # === 2. 复制 animation_frames (attack/death 动画) ===
+    anim_count_before = len(manifest_entries)
+    anim_src = root / "animation_frames"
+    if anim_src.exists():
+        for unit_dir in sorted(anim_src.iterdir()):
+            if not unit_dir.is_dir():
+                continue
+
+            unit_name = unit_dir.name
+            pycc2_type = BLANK_UNIT_NAME_MAP.get(unit_name)
+            if pycc2_type is None:
+                continue
+
+            for sprite_file in sorted(unit_dir.glob("*.png")):
+                stem = sprite_file.stem
+
+                if stem.startswith("Zombie_") or "_Alt_" in stem:
+                    continue
+
+                cleaned = stem.replace("_Large_", "_")
+                parts = cleaned.split("_")
+
+                face_idx = None
+                for i, p in enumerate(parts):
+                    if p.startswith("face"):
+                        face_idx = i
+                        break
+
+                if face_idx is None or face_idx + 2 >= len(parts):
+                    continue
+
+                face_num = int(parts[face_idx].replace("face", ""))
+                anim_type = parts[face_idx + 1]  # attack or death
+
+                if face_num not in BLANK_FACE_TO_DIRECTION:
+                    continue
+
+                direction = BLANK_FACE_TO_DIRECTION[face_num]
+
+                # PyCC2 动画映射: attack → fire, death → death
+                pycc2_anim = "fire" if anim_type == "attack" else anim_type
+
+                # 提取帧号 (最后一个数字部分)
+                frame = int(parts[-1])
+
+                rel_path = f"animation_frames/{unit_name}/{stem}.png"
+                target_path = output_dir / rel_path
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(sprite_file, target_path)
+
+                manifest_entries.append(
+                    {
+                        "unit_name": unit_name,
+                        "pycc2_type": pycc2_type,
+                        "animation": pycc2_anim,
+                        "face": face_num,
+                        "direction": direction,
+                        "frame": frame,
+                        "path": rel_path,
+                    }
+                )
+
+    logger.info(f"animation_frames: {len(manifest_entries) - anim_count_before} 个文件")
+
+    # === 3. 复制阵营调色板 ===
+    palettes_src = root / "Palettes"
+    palettes_dst = output_dir / "palettes"
+    palettes_dst.mkdir(parents=True, exist_ok=True)
+
+    for faction, palette_num in FACTION_PALETTE_MAP.items():
+        palette_file = palettes_src / f"color{palette_num}.png"
+        if palette_file.exists():
+            shutil.copy2(palette_file, palettes_dst / f"{faction}.png")
+            logger.info(f"调色板: {faction} ← color{palette_num}.png")
+        else:
+            logger.warning(f"调色板文件不存在: color{palette_num}.png (faction={faction})")
+
+    # === 4. 复制信息文件 ===
+    for info_file in ("UNIT_INFO.txt", "PALETTE_INFO.txt", "LICENSE.txt"):
+        src = root / info_file
+        if src.exists():
+            shutil.copy2(src, output_dir / info_file)
+
+    # === 5. 写入 manifest.json ===
+    manifest = {
+        "type": "orthographic_blank",
+        "source": "PixVoxel Very Diverse Ortho Wargame Sprites (Blank version)",
+        "license": "CC0",
+        "author": "Thomas Ettinger (TEttinger)",
+        "url": "https://opengameart.org/content/pixvoxel-very-diverse-ortho-wargame-sprites",
+        "total_sprites": len(manifest_entries),
+        "unit_name_map": BLANK_UNIT_NAME_MAP,
+        "face_to_direction": BLANK_FACE_TO_DIRECTION,
+        "faction_palette_map": FACTION_PALETTE_MAP,
+        "animation_map": {"idle": "standing_frames", "fire": "attack", "death": "death"},
+        "note": "Blank PNG 使用索引调色板, 需运行时调色板替换 (_apply_faction_palette)",
+        "sprites": manifest_entries,
+    }
+
+    manifest_path = output_dir / "manifest.json"
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2, ensure_ascii=False)
+
+    logger.info(
+        f"Blank 正交精灵整理完成: {len(manifest_entries)} 个文件, manifest: {manifest_path}"
+    )
+
+
 def _write_manifest(
     output_dir: Path,
     entries: list[dict],
@@ -518,7 +792,8 @@ def main() -> int:
         if download_file(ORTHO_URL, ORTHO_ARCHIVE):
             ortho_extract_dir = DOWNLOAD_DIR / "ortho_extracted"
             if extract_7z(ORTHO_ARCHIVE, ortho_extract_dir):
-                organize_ortho_sprites(ortho_extract_dir, ORTHO_OUTPUT_DIR)
+                # Blank 版本使用 organize_ortho_blank_sprites (索引调色板结构)
+                organize_ortho_blank_sprites(ortho_extract_dir, ORTHO_OUTPUT_DIR)
             else:
                 logger.warning("正交精灵提取失败")
         else:

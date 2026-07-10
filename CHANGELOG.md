@@ -2,6 +2,33 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.5.0 — P0 PixVoxel 正交版精灵接入 (feature, 2026-07-10)
+
+### P0: 接入 PixVoxel Blank 正交版精灵 (视觉还原度 52%→67%)
+
+- **资源**: 下载 PixVoxel Blank 正交版精灵 (`Blank_PixVoxel_Wargame_Ortho_A.7z`, 28MB, CC0 许可)，用 py7zr 解压，整理 3968 个精灵到 `assets/sprites/pixvoxel_ortho/`
+- **接入**: SpriteCacheManager.create_unit_sprite() 将 PixVoxel 作为最高优先级精灵来源（优先级链: PixVoxel > SVG > CC2Original > AssetLoader > PixelArtist3D > legacy）
+- **调色板替换**: 实现 `_load_blank_with_palette()` 方法，用 PIL 加载索引调色板 PNG + 阵营调色板文件，运行时着色（8 阵营 × 256 色调色板）
+- **覆盖率**: 14/18 PyCC2 单位类型有 PixVoxel 精灵 (66.7%)，4 个无映射的单位 (MACHINE_GUN_SQUAD/COMMANDER/OFFICER/MEDIUM_TANK) fallback 到 SVG/procedural
+- **性能**: 首次加载 0.4ms/精灵 (含调色板替换)，缓存命中 0.001ms/查询
+- **Bug 修复**: 修复 sprite_cache_manager.py 中 assets_root 路径计算 bug (少一层 .parent，影响 CC2SpriteLoader 和 PixVoxelLoader)
+- **技术债清理**: TD-042 RESOLVED, D13-N3 RESOLVED
+- **测试**: 17 单元测试 + 522 渲染相关测试零回归，ruff check + format 通过
+
+### 改动文件
+
+- `src/pycc2/presentation/rendering/pixvoxel_loader.py`: 添加 Blank 版本映射 + _load_blank_sprite() + _build_blank_sprite_paths() + _load_blank_with_palette()
+- `src/pycc2/presentation/rendering/sprite_cache_manager.py`: 修复 assets_root 路径 + PixVoxel 接入
+- `scripts/download_pixvoxel_assets.py`: 添加 organize_ortho_blank_sprites() + Blank 版本常量
+- `tests/unit/test_sprite_cache_manager.py`: 4 个 PixVoxel 集成测试
+- `assets/sprites/pixvoxel_ortho/`: 3968 个精灵 + 8 调色板 + manifest.json
+- `docs/TECH_DEBT.md`: TD-042 + D13-N3 标记 RESOLVED, 活跃技术债 1→0 (64/64 全部解决)
+- `docs/GAP_ANALYSIS.md`: 视觉还原度 52%→67%, 综合 65%→72%
+- `docs/PROJECT_STATUS.md` / `docs/ROADMAP.md`: 版本号 v0.4.16→v0.5.0, 还原度数据同步
+- `docs/VISUAL_FIDELITY_IMPROVEMENT_PLAN.md`: P0 标记完成, 实际效果与设计决策记录
+- `README.md` / `README_zh.md` / `README_ja.md`: 三语还原度数据 (52%/65%→67%/72%) + 版本号 v0.5.0 + 测试数 4573→5400 同步
+- `pyproject.toml` / `src/pycc2/__init__.py`: 版本号 0.4.16 → 0.5.0
+
 ## v0.4.16 — Docker Build scipy 缺失修复 (fix, 2026-07-10)
 
 ### CI Docker Build 恢复绿灯

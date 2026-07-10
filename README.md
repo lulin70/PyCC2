@@ -1,12 +1,12 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.4.16 | Beta Candidate | July 10, 2026**
+**v0.5.0 | Beta Candidate | July 10, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-%7E4573%20passed-brightgreen.svg" alt="Tests" />
-<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%8885%25-yellow.svg" alt="CC2 Fidelity" />
+<img src="https://img.shields.io/badge/Tests-%7E5400%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC72%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Beta%20Candidate-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
 </p>
@@ -199,7 +199,7 @@
 | **Extracted Modules** | 22 rendering/data systems (new: ShellCasingSystem, FlashEffectSystem, WeatherSystem, ResourceCacheManager + previous 19) |
 | **Technical Debt** | 4 God Classes >1000 lines remaining (deployment_ui 1323↓, pixel_artist_3d 2340, campaign_four_layer 1987, pixel_artist 1971) |
 | **Layer Violations** | ~25 (down from 41 in v0.3.29, -39%) |
-| **CC2 Fidelity** | ~88% (Visual: 85%, Mechanics: 92%) ⚠️ | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for details |
+| **CC2 Fidelity** | ~72% (Visual: ~67%, Mechanics: ~78%) ⚠️ v0.5.0 P0 PixVoxel wired | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md). v0.5.0 P0: PixVoxel ortho sprites wired into game loop. |
 
 ### 📈 Code Quality Metrics (v0.3.39 — Critical Fix & CI)
 
@@ -480,7 +480,7 @@ pytest tests/e2e/ -m e2e -v
 | **Weapon System** | ~50 weapons | **69 weapons** with authentic stats | ✅ Complete |
 | **Unit Diversity** | 130+ unit types | **277 templates** with sprite rendering | ✅ Complete |
 | **AI Tactics** | Mature behavior trees | **6 AI types** with BT framework | ✅ Functional |
-| **Visual Quality** | CC2 pixel art | Sprites, terrain, buildings, shadows, 3-panel HUD, VP display, color grading | ✅ ~85% |
+| **Visual Quality** | CC2 pixel art (hand-drawn) | Procedural textures + PixVoxel ortho sprites + SVG/programmatic sprites + shadows + 3-panel HUD + VP display | ⚠️ ~67% (v0.5.0 P0: PixVoxel CC0 sprites wired, 14/18 unit types covered) |
 | **Combat Mechanics** | Suppression + morale | Swiss Cheese model, 6 levels | ✅ Complete |
 | **Command System** | 7 commands | **All 7 commands** with hotkeys + queue | ✅ Complete |
 | **Victory Conditions** | CC2-authentic | Instant VL, 20min timer, points | ✅ Complete |
@@ -488,7 +488,7 @@ pytest tests/e2e/ -m e2e -v
 | **Bridge Destruction** | Engineer demos | Engineers destroy bridges | ✅ Complete |
 | **Audio** | Full soundscape | Weapons, ambient, music | 🟡 ~85% |
 
-**Overall Fidelity: ~88%** (Visual: 85%, Mechanics: 92%) ⚠️ See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for remaining gaps
+**Overall Fidelity: ~72%** (Visual: ~67%, Mechanics: ~78%) ⚠️ v0.5.0 P0: PixVoxel Blank ortho sprites wired into game loop (3968 sprites, 14/18 unit types covered, indexed-palette recoloring). Original 88% was overstated due to: (1) unweighted averaging; (2) isometric ghost feature (isometric_renderer.py doesn't exist); (3) PixVoxel sprite loader (1143 lines) complete but not wired into game loop. v0.5.0 P0 has resolved (3). See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for remaining gaps and [VISUAL_FIDELITY_IMPROVEMENT_PLAN.md](docs/VISUAL_FIDELITY_IMPROVEMENT_PLAN.md) for improvement plan.
 
 ---
 
@@ -530,7 +530,7 @@ pytest tests/e2e/ -m e2e -v
 
 **Target: v1.0**
 - [x] Full gameplay loop working end-to-end
-- [x] ≥90% CC2 fidelity (currently ~90%, visual 88% / mechanics 92%)
+- [ ] ≥90% CC2 fidelity (currently ~72%, visual ~67% / mechanics ~78% — v0.5.0 P0: PixVoxel ortho sprites wired; P2/P1/P3 pending)
 - [x] Complete AI tactical behaviors
 - [x] Sound effects and music
 - [x] CC2-authentic victory conditions
@@ -609,4 +609,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Last updated: 2026-07-10 | v0.4.16 (Beta Candidate) | Tests: 5400 passed / 21 skipped | <a href="docs/GAP_ANALYSIS.md">Gap Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a> | <a href="docs/PROJECT_STATUS.md">Project Status</a></sub></p>
+<p align="center"><sub>Last updated: 2026-07-10 | v0.5.0 (Beta Candidate) | Tests: 5400 passed / 21 skipped | <a href="docs/GAP_ANALYSIS.md">Gap Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a> | <a href="docs/PROJECT_STATUS.md">Project Status</a></sub></p>

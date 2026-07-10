@@ -1,8 +1,8 @@
 """PixVoxel Sprite Loader - 加载 PixVoxel 等距/正交精灵资源
 
-NOTE: 本模块为 scripts-only（仅 scripts/validate_isometric.py 引用），
-生产代码 src/pycc2/ 内无 import。保留在 src/ 是因为 mypy 类型检查覆盖。
-后续可考虑迁移至 scripts/ 目录。详见 docs/TECH_DEBT.md。
+NOTE: 本模块已通过 SpriteCacheManager 接入游戏循环（P0: 2026-07-10）。
+SpriteCacheManager.create_unit_sprite() 将 PixVoxel 作为最高优先级精灵来源。
+当 PixVoxel 资源不可用时，自动回退到 SVG/CC2/PixelArtist3D/legacy。
 
 支持功能:
 - 从 PixVoxel 资源目录加载精灵
@@ -50,7 +50,7 @@ NOTE: 本模块为 scripts-only（仅 scripts/validate_isometric.py 引用），
 ===============================================
 """
 
-# PLANNED: Not yet wired into game loop — reserved for future feature
+# WIRED: Integrated into game loop via SpriteCacheManager (P0: 2026-07-10)
 
 from __future__ import annotations
 
@@ -194,8 +194,96 @@ for _pv_name, _pycc2_type in PIXVOXEL_TO_PYCC2.items():
     if _pycc2_type not in PYCC2_TO_PIXVOXEL:
         PYCC2_TO_PIXVOXEL[_pycc2_type] = _pv_name
 
-# PixVoxel 4 方向 → PyCC2 8 方向索引
-# PixVoxel 等距精灵有 4 个方向: N, E, S, W
+# === Blank 版本常量 (Blank_PixVoxel_Wargame_Ortho_A) ===
+# Blank 版本单位名 → PyCC2 单位类型 (基于 UNIT_INFO.txt)
+BLANK_PIXVOXEL_TO_PYCC2: dict[str, str] = {
+    # 步兵类
+    "Infantry": "RIFLE_SQUAD",
+    "Infantry_P": "AT_GUN_TEAM",  # Bazooka
+    "Infantry_S": "RIFLE_SQUAD",  # Bike (近似步兵)
+    "Infantry_T": "SNIPER_TEAM",  # Sniper
+    "Infantry_PS": "AT_GUN_TEAM",  # Missile Trooper
+    "Infantry_PT": "MORTAR_TEAM",  # Mortar Trooper
+    "Infantry_ST": "ASSAULT_SQUAD",  # Jetpack Trooper
+    "Flamethrower": "FLAMETHROWER_TEAM",
+    "Recon": "JEEP",
+    # 炮兵类
+    "Artillery": "AT_GUN_TEAM",
+    "Artillery_P": "AT_GUN_TEAM",
+    "Artillery_S": "AT_GUN_TEAM",
+    "Artillery_T": "AT_GUN_TEAM",
+    # 载具类
+    "Tank": "LIGHT_TANK",  # Light Tank
+    "Tank_P": "HEAVY_TANK",  # Heavy Tank
+    "Tank_S": "LIGHT_TANK",  # AA Tank (近似)
+    "Tank_T": "LIGHT_TANK",  # Recon Tank (近似)
+    "Truck": "JEEP",  # Supply Truck
+    "Truck_P": "HALFTRACK",  # Build Rig (近似)
+    "Truck_S": "JEEP",  # Amphi Transport
+    "Truck_T": "JEEP",  # Jammer
+    # 志愿兵类
+    "Volunteer": "SUPPORT",
+    "Volunteer_P": "ENGINEER_SQUAD",  # Engineer
+    "Volunteer_S": "SUPPORT",  # Smuggler
+    "Volunteer_T": "MEDIC_TEAM",  # Medic
+    # 设施
+    "City": "BUILDING",
+    "Factory": "BUILDING",
+    "Airport": "BUILDING",
+    "Dock": "BUILDING",
+    "Laboratory": "BUILDING",
+    "Castle": "BUILDING",
+    "Estate": "BUILDING",
+    "Civilian": "SUPPORT",
+}
+
+# PyCC2 单位类型 → Blank 版本单位名（反向映射）
+PYCC2_TO_BLANK_PIXVOXEL: dict[str, str] = {}
+for _pv_name, _pycc2_type in BLANK_PIXVOXEL_TO_PYCC2.items():
+    if _pycc2_type not in PYCC2_TO_BLANK_PIXVOXEL:
+        PYCC2_TO_BLANK_PIXVOXEL[_pycc2_type] = _pv_name
+
+# Blank 版本 face0-3 → PyCC2 方向索引
+# 假设: face0=S(4), face1=E(2), face2=N(0), face3=W(6)
+BLANK_FACE_TO_DIRECTION: dict[int, int] = {
+    0: 4,  # face0 → South
+    1: 2,  # face1 → East
+    2: 0,  # face2 → North
+    3: 6,  # face3 → West
+}
+
+# PyCC2 8 方向 → Blank 版本 face 编号（最近方向映射）
+PYCC2_DIR_TO_BLANK_FACE: dict[int, int] = {
+    0: 2,  # N → face2
+    1: 2,  # NE → 近似 face2 (N)
+    2: 1,  # E → face1
+    3: 1,  # SE → 近似 face1 (E)
+    4: 0,  # S → face0
+    5: 0,  # SW → 近似 face0 (S)
+    6: 3,  # W → face3
+    7: 3,  # NW → 近似 face3 (W)
+}
+
+# Blank 版本动画映射: PyCC2 动画 → Blank 目录/文件名关键词
+BLANK_ANIMATION_MAP: dict[str, str] = {
+    "idle": "standing",
+    "fire": "attack",
+    "death": "death",
+}
+
+# 阵营 → PixVoxel 调色板编号 (基于 PALETTE_INFO.txt)
+FACTION_PALETTE_MAP: dict[str, int] = {
+    "allies": 5,  # Green
+    "axis": 0,  # Dark
+    "allies_uk": 6,  # Blue
+    "allies_us": 13,  # Green, 第二组皮肤
+    "allies_poland": 2,  # Red
+    "axis_germany": 8,  # Dark, 第二组皮肤
+    "axis_italy": 3,  # Orange
+    "resistance": 7,  # Purple
+}
+
+# PixVoxel 4 方向 → PyCC2 8 方向索引 (等距版本)
 PIXVOXEL_DIR_TO_INDEX: dict[str, int] = {
     "N": 0,  # North
     "E": 2,  # East
@@ -203,7 +291,7 @@ PIXVOXEL_DIR_TO_INDEX: dict[str, int] = {
     "W": 6,  # West
 }
 
-# PyCC2 8 方向 → PixVoxel 4 方向（最近方向映射）
+# PyCC2 8 方向 → PixVoxel 4 方向（最近方向映射, 等距版本）
 PYCC2_DIR_TO_PIXVOXEL: dict[int, str] = {
     0: "N",  # North
     1: "N",  # Northeast → 近似 North
@@ -215,7 +303,7 @@ PYCC2_DIR_TO_PIXVOXEL: dict[int, str] = {
     7: "W",  # Northwest → 近似 West
 }
 
-# 动画类型映射
+# 动画类型映射 (等距版本)
 ANIMATION_MAP: dict[str, str] = {
     "idle": "Standing",
     "standing": "Standing",
@@ -230,7 +318,7 @@ ANIMATION_MAP: dict[str, str] = {
 
 # PixVoxel asset pack download URLs (CC0 licensed from OpenGameArt)
 PIXVOXEL_ISO_URL = "https://opengameart.org/sites/default/files/Revised_PixVoxel_Wargame_1.7z"
-PIXVOXEL_ORTHO_URL = "https://opengameart.org/sites/default/files/PixVoxel_Ortho_Wargame.7z"
+PIXVOXEL_ORTHO_URL = "https://opengameart.org/sites/default/files/Blank_PixVoxel_Wargame_Ortho_A.7z"
 
 
 class PixVoxelLoader:
@@ -649,14 +737,20 @@ class PixVoxelLoader:
         if base_dir == self.iso_dir and not self._iso_available:
             return None
 
-        # 映射单位类型
+        # Blank 版本 (正交) 使用独立的映射和路径格式
+        if use_ortho and self._ortho_available:
+            sprite = self._load_blank_sprite(
+                base_dir, faction, unit_type, direction, animation, frame, size
+            )
+            if sprite is not None:
+                self._cache[cache_key] = sprite
+            return sprite
+
+        # 等距版本: 使用原有映射
         pixvoxel_name = PYCC2_TO_PIXVOXEL.get(unit_type, unit_type)
         anim_name = ANIMATION_MAP.get(animation.lower(), "Standing")
-
-        # 映射方向
         pv_direction = PYCC2_DIR_TO_PIXVOXEL.get(direction, "N")
 
-        # 尝试多种路径格式
         possible_paths = self._build_sprite_paths(
             base_dir,
             faction,
@@ -671,9 +765,7 @@ class PixVoxelLoader:
             if sprite_path.exists():
                 try:
                     surface = pygame.image.load(str(sprite_path))
-                    # 调色板替换
                     surface = self._apply_faction_palette(surface, faction)
-                    # 缩放
                     if size is not None:
                         w, h = surface.get_size()
                         if w != size or h != size:
@@ -686,7 +778,6 @@ class PixVoxelLoader:
                     logger.warning("加载精灵失败 %s: %s", sprite_path, e)
                     continue
 
-        # 尝试从清单文件查找
         sprite = self._load_from_manifest(
             base_dir,
             faction,
@@ -700,10 +791,155 @@ class PixVoxelLoader:
             self._cache[cache_key] = sprite
             return sprite
 
-        logger.debug(
-            f"未找到 PixVoxel 精灵: {faction}/{unit_type}/{anim_name}/{pv_direction}_{frame}"
-        )
+        logger.debug(f"未找到 PixVoxel 精灵: {faction}/{unit_type}/{animation}/{direction}_{frame}")
         return None
+
+    def _load_blank_sprite(
+        self,
+        base_dir: Path,
+        faction: str,
+        unit_type: str,
+        direction: int,
+        animation: str,
+        frame: int,
+        size: int | None,
+    ) -> Surface | None:
+        """加载 Blank 版本正交精灵 (索引调色板 PNG + 运行时调色板替换)
+
+        Blank 版本文件名格式:
+          standing: {Unit}_Large_face{0-3}_{0-3}.png
+          animation: {Unit}_Large_face{0-3}_{attack|death}_{weapon}_{frame}.png
+        """
+        blank_unit = PYCC2_TO_BLANK_PIXVOXEL.get(unit_type)
+        if blank_unit is None:
+            return None
+
+        anim_lower = animation.lower()
+        blank_anim = BLANK_ANIMATION_MAP.get(anim_lower)
+        if blank_anim is None:
+            return None
+
+        face_num = PYCC2_DIR_TO_BLANK_FACE.get(direction, 2)
+
+        possible_paths = self._build_blank_sprite_paths(
+            base_dir, blank_unit, face_num, blank_anim, frame
+        )
+
+        for sprite_path in possible_paths:
+            if sprite_path.exists():
+                try:
+                    surface = self._load_blank_with_palette(sprite_path, faction)
+                    if surface is None:
+                        continue
+                    if size is not None:
+                        w, h = surface.get_size()
+                        if w != size or h != size:
+                            surface = pygame.transform.scale(surface, (size, size))
+                    logger.debug(f"加载 Blank PixVoxel 精灵: {sprite_path.name}")
+                    return surface
+                except (pygame.error, ValueError, OSError) as e:
+                    logger.warning("加载 Blank 精灵失败 %s: %s", sprite_path, e)
+                    continue
+
+        logger.debug(f"未找到 Blank 精灵: {blank_unit}/face{face_num}/{blank_anim}/{frame}")
+        return None
+
+    def _build_blank_sprite_paths(
+        self,
+        base_dir: Path,
+        blank_unit: str,
+        face_num: int,
+        blank_anim: str,
+        frame: int,
+    ) -> list[Path]:
+        """构建 Blank 版本精灵文件路径
+
+        Blank 版本目录结构:
+          standing_frames/{Unit}/{Unit}_Large_face{N}_{frame}.png
+          animation_frames/{Unit}/{Unit}_Large_face{N}_attack_{weapon}_{frame}.png
+          animation_frames/{Unit}/{Unit}_Large_face{N}_death_{frame}.png
+        """
+        paths: list[Path] = []
+
+        if blank_anim == "standing":
+            # idle 动画: standing_frames 目录
+            paths.append(
+                base_dir
+                / "standing_frames"
+                / blank_unit
+                / f"{blank_unit}_Large_face{face_num}_{frame}.png"
+            )
+        elif blank_anim == "attack":
+            # attack 动画: animation_frames 目录, 文件名含 weapon 编号
+            paths.append(
+                base_dir
+                / "animation_frames"
+                / blank_unit
+                / f"{blank_unit}_Large_face{face_num}_attack_0_{frame}.png"
+            )
+        else:
+            # death 等其他动画: animation_frames 目录, 文件名无 weapon 编号
+            paths.append(
+                base_dir
+                / "animation_frames"
+                / blank_unit
+                / f"{blank_unit}_Large_face{face_num}_{blank_anim}_{frame}.png"
+            )
+
+        return paths
+
+    def _load_blank_with_palette(
+        self,
+        sprite_path: Path,
+        faction: str,
+    ) -> Surface | None:
+        """加载 Blank 版本索引调色板 PNG 并应用阵营调色板
+
+        Blank PNG 使用索引调色板 (mode=P)，像素值是 0-255 的索引。
+        需要用 Palettes/{faction}.png 中的调色板着色。
+        """
+        palette_path = self.ortho_dir / "palettes" / f"{faction}.png"
+        if not palette_path.exists():
+            # 没有调色板文件，回退到普通加载
+            try:
+                return pygame.image.load(str(sprite_path)).convert_alpha()
+            except (pygame.error, OSError):
+                return None
+
+        try:
+            from PIL import Image
+
+            # 加载 Blank PNG (索引模式 P)
+            blank_img = Image.open(str(sprite_path))
+            if blank_img.mode != "P":
+                # 不是索引调色板 PNG，直接用 pygame 加载
+                return pygame.image.load(str(sprite_path)).convert_alpha()
+
+            # 加载阵营调色板
+            palette_img = Image.open(str(palette_path))
+            palette = palette_img.getpalette()  # [r,g,b,r,g,b,...] 256 colors
+
+            # 应用调色板到 Blank PNG
+            blank_img.putpalette(palette)
+
+            # 转换为 RGBA (处理透明度: 索引 0 通常是透明)
+            rgba_img = blank_img.convert("RGBA")
+
+            # 转换为 pygame Surface
+            data = rgba_img.tobytes()
+            w, h = rgba_img.size
+            new_surface = pygame.image.frombytes(data, (w, h), "RGBA")
+            return new_surface
+
+        except ImportError:
+            logger.warning("PIL 不可用, 无法应用调色板替换")
+            try:
+                return pygame.image.load(str(sprite_path)).convert_alpha()
+            except (pygame.error, OSError):
+                return None
+        except (OSError, ValueError, RuntimeError) as e:
+            logger.warning("调色板替换失败 %s: %s", sprite_path, e)
+            return None
 
     def _build_sprite_paths(
         self,
