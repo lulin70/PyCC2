@@ -168,6 +168,7 @@ class TestVehicleComponentVfxEmission:
         unit._smoke_particles.clear()
         unit._fire_particles.clear()
         import random
+
         rng = random.Random(unit.id + ":test")
         unit._emit_vehicle_component_vfx(rng)
 

@@ -222,9 +222,7 @@ class EffectRenderer:
         # tile_size derived from radius so CC2 blob coverage tracks the
         # caller-requested screen radius (4 tiles default → radius 64).
         tile_size = max(8, int(radius / 4))
-        self._cc2_smoke_effects.append(
-            CC2SmokeEffect(position.x, position.y, tile_size=tile_size)
-        )
+        self._cc2_smoke_effects.append(CC2SmokeEffect(position.x, position.y, tile_size=tile_size))
 
     # ====== Public API: Update ======
 

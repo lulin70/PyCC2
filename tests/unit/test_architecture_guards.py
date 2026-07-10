@@ -51,9 +51,7 @@ def _get_module_level_imports(file_path: Path) -> list[str]:
     return imports
 
 
-def _layer_violations(
-    layer: str, forbidden_layers: tuple[str, ...]
-) -> list[tuple[Path, str]]:
+def _layer_violations(layer: str, forbidden_layers: tuple[str, ...]) -> list[tuple[Path, str]]:
     """Find module-level imports from forbidden layers in the given layer."""
     layer_dir = SRC_ROOT / layer
     if not layer_dir.exists():
@@ -74,9 +72,7 @@ class TestDomainLayerIsolation:
     """Domain layer must not import from services/presentation/infrastructure."""
 
     def test_domain_no_upper_layer_imports(self):
-        violations = _layer_violations(
-            "domain", ("services", "presentation", "infrastructure")
-        )
+        violations = _layer_violations("domain", ("services", "presentation", "infrastructure"))
         assert violations == [], (
             "Domain layer must not import upper layers. Found violations:\n"
             + "\n".join(f"  {f}: {imp}" for f, imp in violations)
@@ -94,8 +90,7 @@ class TestServicesLayerIsolation:
         violations = _layer_violations("services", ("presentation",))
         assert violations == [], (
             "Services layer must not import presentation at module level. "
-            "Found violations:\n"
-            + "\n".join(f"  {f}: {imp}" for f, imp in violations)
+            "Found violations:\n" + "\n".join(f"  {f}: {imp}" for f, imp in violations)
         )
 
 
@@ -106,8 +101,7 @@ class TestPresentationLayerIsolation:
         violations = _layer_violations("presentation", ("infrastructure",))
         assert violations == [], (
             "Presentation layer must not import infrastructure. "
-            "Found violations:\n"
-            + "\n".join(f"  {f}: {imp}" for f, imp in violations)
+            "Found violations:\n" + "\n".join(f"  {f}: {imp}" for f, imp in violations)
         )
 
 
@@ -115,13 +109,10 @@ class TestInfrastructureLayerIsolation:
     """Infrastructure layer must not import from presentation/services."""
 
     def test_infrastructure_no_upper_imports(self):
-        violations = _layer_violations(
-            "infrastructure", ("presentation", "services")
-        )
+        violations = _layer_violations("infrastructure", ("presentation", "services"))
         assert violations == [], (
             "Infrastructure layer must not import upper layers. "
-            "Found violations:\n"
-            + "\n".join(f"  {f}: {imp}" for f, imp in violations)
+            "Found violations:\n" + "\n".join(f"  {f}: {imp}" for f, imp in violations)
         )
 
 

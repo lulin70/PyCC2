@@ -156,9 +156,7 @@ class EnhancedSoundSystem:
         self._master_volume: float = 0.8
         self._sfx_volume: float = 1.0
         self._base_path: Path = Path.cwd()
-        self._synth: ProceduralSoundSynthesizer = ProceduralSoundSynthesizer(
-            self._sfx_volume
-        )
+        self._synth: ProceduralSoundSynthesizer = ProceduralSoundSynthesizer(self._sfx_volume)
 
         self._initialize_default_mappings()
 

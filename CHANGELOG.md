@@ -2,6 +2,17 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.4.15 — ruff format 漂移修复 (style, 2026-07-10)
+
+### CI Lint 恢复绿灯
+
+- **根因**: v0.4.11 TD-065/TD-066 提交时未运行 `ruff format`，7 个文件格式不符合 ruff formatter 标准
+- **影响**: main 分支最近 5 次 CI（v0.4.11~v0.4.14）全部 `ruff format --check .` 失败，PR #13 继承该失败
+- **修复**: `ruff format .` 修复 7 个文件（unit_damage_vfx_mixin.py / enhanced_sound_bridge.py / procedural_sound_synthesizer.py / effect_renderer.py / test_architecture_guards.py / test_smoke_td059.py / test_vehicle_damage_vfx.py）
+- **改动性质**: 纯格式化（dict 对齐空格 + 函数调用括号换行），零逻辑改动，+80/-79
+- **验证**: 5400 passed / 21 skipped，零回归
+- **关联**: 解除 PR #13（Dependabot download-artifact v7→v8）合并阻塞
+
 ## v0.4.14 — TD-007 v0.5 重新评估完成 (文档化, 2026-07-09)
 
 ### TD-007 ACCEPTED: 地图扩展脚本边界区域不自然

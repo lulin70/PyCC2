@@ -30,9 +30,9 @@ _VEHICLE_COMPONENTS: tuple[str, ...] = ("tracks", "turret", "engine")
 # Escalates monotonically so heavier HP loss always yields more component failure.
 _VEHICLE_COMPONENT_DAMAGE_PLAN: dict[str, dict[str, int]] = {
     "undamaged": {"damaged": 0, "destroyed": 0},
-    "light":     {"damaged": 1, "destroyed": 0},
-    "moderate":  {"damaged": 1, "destroyed": 1},
-    "heavy":     {"damaged": 2, "destroyed": 1},
+    "light": {"damaged": 1, "destroyed": 0},
+    "moderate": {"damaged": 1, "destroyed": 1},
+    "heavy": {"damaged": 2, "destroyed": 1},
     "destroyed": {"damaged": 0, "destroyed": 3},
 }
 
@@ -255,54 +255,64 @@ class UnitDamageVfxMixin:
 
             if comp == "tracks":
                 for _ in range(intensity):
-                    self._smoke_particles.append({
-                        "x": rng.randint(-10, 10),
-                        "y": rng.randint(0, 4),
-                        "alpha": rng.randint(140, 200),
-                        "size": rng.randint(3, 6),
-                        "life": rng.randint(20, 35),
-                        "color": (40, 40, 40),
-                        "tag": "tracks",
-                    })
+                    self._smoke_particles.append(
+                        {
+                            "x": rng.randint(-10, 10),
+                            "y": rng.randint(0, 4),
+                            "alpha": rng.randint(140, 200),
+                            "size": rng.randint(3, 6),
+                            "life": rng.randint(20, 35),
+                            "color": (40, 40, 40),
+                            "tag": "tracks",
+                        }
+                    )
                 for _ in range(intensity):
-                    self._fire_particles.append({
-                        "x": rng.randint(-8, 8),
-                        "y": rng.randint(0, 3),
-                        "color": (255, 200, 80),
-                        "size": rng.randint(1, 2),
-                        "life": rng.randint(4, 10),
-                        "tag": "tracks_spark",
-                    })
+                    self._fire_particles.append(
+                        {
+                            "x": rng.randint(-8, 8),
+                            "y": rng.randint(0, 3),
+                            "color": (255, 200, 80),
+                            "size": rng.randint(1, 2),
+                            "life": rng.randint(4, 10),
+                            "tag": "tracks_spark",
+                        }
+                    )
 
             elif comp == "turret":
                 for _ in range(intensity):
-                    self._smoke_particles.append({
-                        "x": rng.randint(-4, 4),
-                        "y": rng.randint(-12, -6),
-                        "alpha": rng.randint(100, 160),
-                        "size": rng.randint(2, 4),
-                        "life": rng.randint(15, 25),
-                        "color": (140, 140, 140),
-                        "tag": "turret",
-                    })
+                    self._smoke_particles.append(
+                        {
+                            "x": rng.randint(-4, 4),
+                            "y": rng.randint(-12, -6),
+                            "alpha": rng.randint(100, 160),
+                            "size": rng.randint(2, 4),
+                            "life": rng.randint(15, 25),
+                            "color": (140, 140, 140),
+                            "tag": "turret",
+                        }
+                    )
 
             elif comp == "engine":
                 for _ in range(intensity):
-                    self._smoke_particles.append({
-                        "x": rng.randint(4, 10),
-                        "y": rng.randint(-4, 2),
-                        "alpha": rng.randint(160, 220),
-                        "size": rng.randint(4, 7),
-                        "life": rng.randint(25, 40),
-                        "color": (60, 60, 60),
-                        "tag": "engine",
-                    })
+                    self._smoke_particles.append(
+                        {
+                            "x": rng.randint(4, 10),
+                            "y": rng.randint(-4, 2),
+                            "alpha": rng.randint(160, 220),
+                            "size": rng.randint(4, 7),
+                            "life": rng.randint(25, 40),
+                            "color": (60, 60, 60),
+                            "tag": "engine",
+                        }
+                    )
                 for _ in range(intensity):
-                    self._fire_particles.append({
-                        "x": rng.randint(4, 9),
-                        "y": rng.randint(-3, 3),
-                        "color": rng.choice([(220, 80, 20), (200, 40, 10)]),
-                        "size": rng.randint(2, 5),
-                        "life": rng.randint(10, 20),
-                        "tag": "engine_fire",
-                    })
+                    self._fire_particles.append(
+                        {
+                            "x": rng.randint(4, 9),
+                            "y": rng.randint(-3, 3),
+                            "color": rng.choice([(220, 80, 20), (200, 40, 10)]),
+                            "size": rng.randint(2, 5),
+                            "life": rng.randint(10, 20),
+                            "tag": "engine_fire",
+                        }
+                    )

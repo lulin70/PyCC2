@@ -269,10 +269,17 @@ class TestCombatResult:
     def test_combat_result_with_shot_results(self):
         from pycc2.domain.combat.combat_result import CombatResult, ShotResult
 
-        shots = [ShotResult(hit=True, damage_dealt=25.0, distance=10.0),
-                 ShotResult(hit=False, damage_dealt=0.0, distance=12.0)]
-        cr = CombatResult(shots_fired=2, shots_hit=1, total_damage=25.0,
-                          target_eliminated=False, shot_results=shots)
+        shots = [
+            ShotResult(hit=True, damage_dealt=25.0, distance=10.0),
+            ShotResult(hit=False, damage_dealt=0.0, distance=12.0),
+        ]
+        cr = CombatResult(
+            shots_fired=2,
+            shots_hit=1,
+            total_damage=25.0,
+            target_eliminated=False,
+            shot_results=shots,
+        )
         assert len(cr.shot_results) == 2
         assert cr.shot_results[0].hit is True
         assert cr.shot_results[1].damage_dealt == 0.0
@@ -392,9 +399,7 @@ class TestEnvironmentalSoundGenerator:
             EnvironmentalSoundGenerator,
         )
 
-        wave = EnvironmentalSoundGenerator.generate_distant_artillery(
-            distance_factor=1.0
-        )
+        wave = EnvironmentalSoundGenerator.generate_distant_artillery(distance_factor=1.0)
         assert isinstance(wave, np.ndarray)
         assert len(wave) > 0
 

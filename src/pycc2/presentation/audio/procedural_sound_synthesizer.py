@@ -101,11 +101,9 @@ class ProceduralSoundSynthesizer:
                 duration_ms=80
             ),
             CombatSoundEvent.EXPLOSION: lambda: ProceduralSoundGenerator.generate_explosion(),
-            CombatSoundEvent.HIT_CONFIRM: lambda: (
-                ProceduralSoundGenerator.generate_hit_confirm()
-            ),
-            CombatSoundEvent.HIT_CRITICAL: lambda: (
-                ProceduralSoundGenerator.generate_hit_confirm(duration_ms=120)
+            CombatSoundEvent.HIT_CONFIRM: lambda: ProceduralSoundGenerator.generate_hit_confirm(),
+            CombatSoundEvent.HIT_CRITICAL: lambda: ProceduralSoundGenerator.generate_hit_confirm(
+                duration_ms=120
             ),
             CombatSoundEvent.UNIT_DEATH: lambda: ProceduralSoundGenerator.generate_death_cry(),
             CombatSoundEvent.WEAPON_RELOAD: lambda: ProceduralSoundGenerator.generate_click(
