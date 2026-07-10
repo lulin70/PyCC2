@@ -18,8 +18,9 @@ COPY data/ data/
 
 # Copy and install dependencies (layer caching)
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir --no-build-isolation ".[dev]" || \
-    pip install --no-cache-dir pygame numpy pydantic pytest pytest-cov pytest-mock pytest-randomly pytest-timeout
+RUN pip install --no-cache-dir setuptools wheel && \
+    pip install --no-cache-dir --no-build-isolation ".[dev]" || \
+    pip install --no-cache-dir pygame numpy pydantic defusedxml pytest pytest-cov pytest-mock pytest-randomly pytest-timeout freezegun scipy hypothesis
 
 # Set environment for headless CI
 ENV SDL_VIDEODRIVER=dummy

@@ -2,6 +2,16 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.4.16 — Docker Build scipy 缺失修复 (fix, 2026-07-10)
+
+### CI Docker Build 恢复绿灯
+
+- **根因**: Dockerfile `--no-build-isolation` + python:3.12-slim 无 setuptools 导致第一次 `pip install ".[dev]"` 失败，fallback 列表遗漏 scipy（pyproject.toml 正式依赖）和 defusedxml（运行时依赖）
+- **影响**: v0.4.7 TD-059 引入 test_smoke_td059.py 以来 Docker Build 持续失败，3 个 EnvironmentalSoundGenerator 测试因 `ModuleNotFoundError: No module named 'scipy'` 失败；之前被 ruff format 漂移导致的 Lint 失败掩盖
+- **修复**: Dockerfile 先安装 `setuptools wheel`（让 `--no-build-isolation` 能成功），fallback 列表补全所有 pyproject.toml 依赖（+scipy +defusedxml +freezegun +hypothesis）
+- **验证**: push 后 CI Docker Build 验证
+- **关联**: v0.4.15 ruff format 修复后 Lint 恢复绿灯，Docker Build 恢复运行暴露此预存问题
+
 ## v0.4.15 — ruff format 漂移修复 (style, 2026-07-10)
 
 ### CI Lint 恢复绿灯
