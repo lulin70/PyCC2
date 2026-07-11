@@ -2,6 +2,26 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.6.1 — P3-2 建筑窗户射击弧验证 + 边界 bug 修复 (bugfix, 2026-07-11)
+
+### P3-2: 建筑窗户射击弧验证
+
+- **验证现有实现**: `check_window_firing_arc` 逻辑正确，7 种建筑类型窗户定义完整
+- **修复边界 bug**: 45 度角边界条件 `< half_arc` → `<= half_arc`
+  - 修复前：45 度对角线方向恰好落在两个窗户弧的边界上，两个都不匹配 → 无法射击
+  - 修复后：45 度边界正确匹配对应窗户方向
+- **新增 31 个单元测试** 覆盖 7 维度:
+  - Happy Path: 4 方向射击弧 × 7 种建筑类型
+  - Error Case: 未知/空建筑类型安全降级
+  - Boundary: 45 度边界、对角线方向、_angle_diff 角度差
+  - Performance: 1000 次检查 < 50ms
+  - Config: 所有建筑类型窗户 offset 验证
+  - Integration: LOS + 建筑内射击弧集成
+
+### 验证
+- ruff 0 errors, 5401 tests passed (+31 新), 0 failures 零回归
+- 版本: PATCH 递增 (0.6.0→0.6.1), bug 修复
+
 ## v0.6.0 — P3-1 LOS 烟雾/天气影响集成 (feature, 2026-07-11)
 
 ### P3-1: LOSSystem 集成 WeatherEffects + SmokeManager

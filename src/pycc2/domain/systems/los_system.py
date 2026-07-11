@@ -526,13 +526,13 @@ class LOSSystem:
 
             if (
                 wall == "east"
-                and abs(self._angle_diff(angle, 0.0)) < half_arc
+                and abs(self._angle_diff(angle, 0.0)) <= half_arc
                 or wall == "south"
-                and abs(self._angle_diff(angle, math.pi / 2)) < half_arc
+                and abs(self._angle_diff(angle, math.pi / 2)) <= half_arc
                 or wall == "west"
-                and abs(self._angle_diff(angle, math.pi)) < half_arc
+                and abs(self._angle_diff(angle, math.pi)) <= half_arc
                 or wall == "north"
-                and abs(self._angle_diff(angle, -math.pi / 2)) < half_arc
+                and abs(self._angle_diff(angle, -math.pi / 2)) <= half_arc
             ):
                 return True
 
