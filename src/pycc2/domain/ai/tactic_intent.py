@@ -45,6 +45,7 @@ class TacticType(Enum):
     COUNTER_ATTACK = auto()  # Strategic counterattack after reinforcement
     SET_AMBUSH = auto()  # 设置伏击（隐蔽等待）
     BREAK_AMBUSH = auto()  # 触发伏击（集中开火）
+    RECONNAISSANCE = auto()  # 侦察：派出单位到战略位置收集敌方情报
 
 
 @dataclass(slots=True)

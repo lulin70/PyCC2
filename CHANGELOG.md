@@ -2,6 +2,33 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.6.3 — P3-4 AI 侦察行为 (feature, 2026-07-11)
+
+### P3-4: AI 侦察行为
+
+- **新增 TacticType.RECONNAISSANCE**: 第 31 种战术意图枚举值，语义明确的侦察命令
+- **新建 `src/pycc2/domain/ai/recon_ai.py`**: ReconAI 类（继承 TacticalAIBase）
+  - `evaluate(context)`: 评估侦察需求（情报缺口 + 可用单位比例 + 防御态势）
+  - `execute(context)`: 生成 RECONNAISSANCE 命令到战略位置
+  - 侦察单位选择: SNIPER_TEAM 优先（隐蔽性高），INFANTRY_SQUAD 次选
+  - 侦察目标选择: VL 位置优先 + 地图边缘中点（敌方可能进攻方向）
+  - Blackboard 集成: `recon_assigned_unit_ids` / `recon_target_positions` 避免重复派遣
+  - 情报需求逻辑: 敌人全灭时返回 0.0（无需侦察）
+  - 低优先级 (2): 不干扰战斗命令
+  - 每 tick 最多 3 个侦察分配
+- **新增 57 个单元测试** 覆盖 7 维度:
+  - Happy Path: 侦察命令生成/单位选择/目标选择/priority 验证
+  - Error Case: 无可用单位/无目标/空战场/已分配单位跳过
+  - Boundary: 单单位单目标/零距离/最大距离/分数边界
+  - Performance: evaluate+execute 1000 次 < 100ms
+  - Config: 不同单位类型组合/不同地图尺寸/不同 VL 配置
+  - Integration: Blackboard 读写/TacticalContext 集成/MoraleComponent 集成
+- **修复源码 bug**: `_intel_need` 在敌人全灭时错误返回 1.0 → 修正为 0.0
+
+### 验证
+- ruff 0 errors, 5601 tests passed (+57 新), 0 failures 零回归
+- 版本: PATCH 递增 (0.6.2→0.6.3), 功能新增（AI 侦察行为模块）
+
 ## v0.6.2 — P3-3 散兵坑/战壕地形验证 (verification, 2026-07-11)
 
 ### P3-3: FOXHOLE/TRENCH 地形属性验证
