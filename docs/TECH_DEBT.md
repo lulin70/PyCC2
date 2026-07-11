@@ -69,7 +69,7 @@
 
 ### ~~🟡 TD-026: 53个文件超过500行~~ 🟢 评估完成 (v0.4.7, 2026-07-05)
 
-- **描述**: 代码库中实测 44 个 src 源码文件超过 500 行，最大文件 pixvoxel_loader.py 1143L (scripts-only)。基于"单类多职责"评估，全部为非 God Class (详见 [ASSESSMENT_TD026_V047.md](ASSESSMENT_TD026_V047.md))
+- **描述**: 代码库中实测 44 个 src 源码文件超过 500 行，最大文件 pixvoxel_loader.py 1143L (scripts-only)。基于"单类多职责"评估，全部为非 God Class (详见 [ASSESSMENT_TD026_V047.md](archive/ASSESSMENT_TD026_V047.md))
 - **影响**: ~~代码难以维护和理解，修改风险高~~ 评估后无需拆分，大文件多数为多类分工或 mixin/facade 拆分产物
 - **状态**: 🟢 评估完成 — 0/44 TRUE，无需拆分 (累计 52 候选 → 1 TRUE / 51 FALSE = 1.9% hit rate，证明行数阈值是极不可靠的 God Class 判断标准)
 - **清理方案**: ~~按模块拆分大文件，每个文件控制在500行以内~~ 评估后无需拆分，保留单一职责大文件
@@ -454,7 +454,7 @@
 
 ### 🟡 P1 应尽快修复（功能受损/架构违规）
 
-- [x] ~~TD-026: 拆分29个超500行文件~~ ✅ 评估完成 (v0.4.7, 2026-07-05) — 44 文件 >500L 全 FALSE，无需拆分 (详见 ASSESSMENT_TD026_V047.md)
+- [x] ~~TD-026: 拆分29个超500行文件~~ ✅ 评估完成 (v0.4.7, 2026-07-05) — 44 文件 >500L 全 FALSE，无需拆分 (详见 archive/ASSESSMENT_TD026_V047.md)
 - [x] ~~TD-027: 明确infra/infrastructure职责~~ ✅ RESOLVED (v0.4.7, 2026-07-05) — infra/ 已不存在，自然解决
 - [x] ~~TD-028: 添加集成测试~~ ✅ 已修复 (2026-05-24, 6个集成测试文件)
 - [x] TD-029: 合并4个视觉优化文档 ✅ **已解决** (2026-06-01) — 创建 VISUAL_OPTIMIZATION_UNIFIED.md
@@ -680,7 +680,7 @@
   - ❌ `vehicle_weapon_profiles.py` (826L) — FALSE: 非 class，单函数 `build_vehicle_weapons()` 纯数据/查找表
   - ❌ `environmental_audio.py` (811L) — FALSE: D13 判断正确，Generator/System 双类结构已是自然缝隙
 - **影响**: 仅 1 个 TRUE God Class，4 个保留
-- **清理方案**: 详见 `docs/ASSESSMENT_GODCLASS_V045.md`；TRUE 项转 TD-072
+- **清理方案**: 详见 `docs/archive/ASSESSMENT_GODCLASS_V045.md`；TRUE 项转 TD-072
 - **状态**: 🟡 评估完成 (v0.4.5)，1 项转 TD-072 (v0.4.6)
 
 ### ✅ TD-072: 拆分 enhanced_sound_bridge → ProceduralSoundSynthesizer + EnhancedSoundSystem (P2, v0.4.6)
@@ -734,6 +734,50 @@
 - **tests.* override**: 保留 `check_untyped_defs=false`，测试代码不强制严格类型检查
 - **验证**: mypy 0 errors (389 source files), ruff 0, unit 4611 passed/2 skipped, 0 回归
 - **状态**: ✅ RESOLVED (v0.4.5)
+
+---
+
+## 七、v0.6.6 P2-P3 评估记录 (2026-07-12)
+
+### 🟢 TD-P2-4: 覆盖率提升路径评估 (63.68% → 70% 目标)
+
+- **当前覆盖率**: 63.68% (42764 stmts, 13753 missed, 含 branch coverage)
+- **CI 门禁**: 60% (pyproject.toml `fail_under=60`)
+- **目标**: 70% (差距 6.32%, 约需新增 ~2700 statements 覆盖)
+- **最低覆盖率模块** (提升优先级):
+  | 模块 | 覆盖率 | Missed | 备注 |
+  |------|--------|--------|------|
+  | deployment_manager.py | 12% | 221 | 部署管理器 |
+  | game_loop_combat.py | 12% | 67 | 战斗循环 |
+  | save_controller.py | 13% | 95 | 存档控制器 |
+  | combat_service.py | 26% | 69 | 战斗服务 |
+  | pause_menu_controller.py | 30% | 36 | 暂停菜单 |
+  | combat_director.py | 39% | 197 | 战斗导演 |
+  | hud_manager.py | 40% | 123 | HUD 管理器 |
+  | turn_service.py | 35% | 58 | 回合服务 |
+  | ai_service.py | 49% | 92 | AI 服务 |
+  | game_loop.py | 56% | 85 | 游戏主循环 |
+- **评估结论**: 覆盖率提升需补充 services 层测试（deployment_manager/save_controller/combat_service 为主要缺口）
+- **状态**: 🟢 评估完成，留待 v0.7+ 推进
+
+### 🟢 TD-P2-5: 大文件清单更新 (43 文件 >500L)
+
+- **统计**: `find src/pycc2 -name "*.py" -exec wc -l {} + | awk '$1 > 500'` = 43 文件
+- **Top 10 大文件**:
+  | 文件 | 行数 | 评估 |
+  |------|------|------|
+  | pixvoxel_loader.py | 1379 | scripts-only, 不拆 |
+  | terrain_rendering_system.py | 896 | 单一职责 |
+  | hud_renderer.py | 886 | FALSE (D13 评估) |
+  | vehicle_weapon_profiles.py | 826 | 非class, 纯数据 |
+  | environmental_audio.py | 811 | FALSE (D13 评估) |
+  | sprite_generator.py | 749 | 单一职责 |
+  | sound_system.py | 741 | FALSE (D13 评估) |
+  | new_game_menu.py | 730 | 单一职责 |
+  | interaction_controller.py | 722 | 单一职责 |
+  | smoke_tactical_ai.py | 719 | 单一职责 |
+- **评估结论**: 累计 52 候选 → 1 TRUE / 51 FALSE = 1.9% hit rate，行数阈值不可靠。全部保留，无需拆分
+- **状态**: 🟢 评估完成 (与 TD-026 一致)
 
 ---
 

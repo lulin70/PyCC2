@@ -1,7 +1,7 @@
 # PyCC2 v0.6.6 项目整理评估报告
 
 > **版本**: v0.6.6 | **日期**: 2026-07-12 | **方法**: DevSquad 7 角色共识
-> **前置评估**: [PROJECT_ASSESSMENT_v0.6.5.md](PROJECT_ASSESSMENT_v0.6.5.md)
+> **前置评估**: [PROJECT_ASSESSMENT_v0.6.5.md](archive/PROJECT_ASSESSMENT_v0.6.5.md)
 > **评估范围**: 7 维度全量评估（代码走读/文档一致性/技术债/测试/CI-CD/目录/成熟度）
 
 ---

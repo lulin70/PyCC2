@@ -206,7 +206,7 @@ The project now has **~3985 passing tests**, **63 historical maps**, **277 unit 
 
 **Target**: v0.5-alpha | **Timeline**: 5-7 days | **Focus**: Code maintainability
 
-> **v0.4.12 同步更新**: M4 任务列表已根据 v0.3.x~v0.4.12 实际完成情况同步。9 项任务全部完成 (TD-027/045/046/047/048/058 + GameLoop split D11/D12 + Domain slimdown 评估 + Unify unit definition 评估)。详见 [ASSESSMENT_M4_V0411.md](ASSESSMENT_M4_V0411.md)。
+> **v0.4.12 同步更新**: M4 任务列表已根据 v0.3.x~v0.4.12 实际完成情况同步。9 项任务全部完成 (TD-027/045/046/047/048/058 + GameLoop split D11/D12 + Domain slimdown 评估 + Unify unit definition 评估)。详见 [ASSESSMENT_M4_V0411.md](archive/ASSESSMENT_M4_V0411.md)。
 
 | Task | Priority | Est. Hours | Status | Owner |
 |------|----------|------------|--------|-------|

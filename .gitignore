@@ -180,6 +180,7 @@ visual_verification/
 
 # Save files in source directory
 src/saves/
+src/pycc2/saves/
 
 # OS files
 .DS_Store

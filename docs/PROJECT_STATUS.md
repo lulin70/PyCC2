@@ -34,12 +34,12 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 
 | 评估 | 日期 | 评分 | 报告 |
 |------|------|------|------|
-| M4 架构改进收尾 | 2026-07-09 | — | [ASSESSMENT_M4_V0411.md](ASSESSMENT_M4_V0411.md) |
-| D14 | 2026-07-05 | 7.6/10 (B-) | [ASSESSMENT_D14_MATURITY.md](ASSESSMENT_D14_MATURITY.md) |
-| D13 | 2026-07-05 | 7.4/10 (B-) | [ASSESSMENT_D13_MATURITY.md](ASSESSMENT_D13_MATURITY.md) |
-| D12 | 2026-07-02 | 5.9/10 (D+) | [ASSESSMENT_D12_MATURITY.md](ASSESSMENT_D12_MATURITY.md) |
-| D9 | 2026-06-29 | 8.2/10 (B) | [ASSESSMENT_D9_MATURITY.md](ASSESSMENT_D9_MATURITY.md) |
-| D8 | 2026-06-27 | 8.0/10 (B-) | [ASSESSMENT_D8_MATURITY.md](ASSESSMENT_D8_MATURITY.md) |
+| M4 架构改进收尾 | 2026-07-09 | — | [ASSESSMENT_M4_V0411.md](archive/ASSESSMENT_M4_V0411.md) |
+| D14 | 2026-07-05 | 7.6/10 (B-) | [ASSESSMENT_D14_MATURITY.md](archive/ASSESSMENT_D14_MATURITY.md) |
+| D13 | 2026-07-05 | 7.4/10 (B-) | [ASSESSMENT_D13_MATURITY.md](archive/ASSESSMENT_D13_MATURITY.md) |
+| D12 | 2026-07-02 | 5.9/10 (D+) | [ASSESSMENT_D12_MATURITY.md](archive/ASSESSMENT_D12_MATURITY.md) |
+| D9 | 2026-06-29 | 8.2/10 (B) | [ASSESSMENT_D9_MATURITY.md](archive/ASSESSMENT_D9_MATURITY.md) |
+| D8 | 2026-06-27 | 8.0/10 (B-) | [ASSESSMENT_D8_MATURITY.md](archive/ASSESSMENT_D8_MATURITY.md) |
 
 **M4 评估结论 (2026-07-09)**: Domain slimdown 目标已达成（实测 38.5% < 50%，ROADMAP 的 75.4% 为 v0.3.x 过期数据）；Unify unit definition 前提不成立（实为 1 套 DDD 协作系统 Entity+Template+Factory+Facade，非 4 套独立定义）。M4 全部 9 项任务完成。
 
@@ -49,7 +49,7 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 - **3 个 D13 N-1 遗留候选全部 FALSE** (0/3 hit rate): `deployment_ui.py` (689L, 50 方法, Facade 终态 7 协作者已提取) / `sound_system.py` (741L, 43 方法, 单一内聚域音频引擎) / `sprite_renderer_base.py` (303L, 39 方法, D11-2 SRP 拆分 Facade base)
 - **累计 God Class 评估**: 3 批次 12 候选 → 1 TRUE (enhanced_sound_bridge, 已 TD-072 拆分) / 11 FALSE → 8.3% TRUE hit rate (91.7% 误判率)
 - **教训再次验证**: God Class 评估必须基于"单类多职责"而非方法数/行数机械阈值
-- 评估报告: [docs/ASSESSMENT_GODCLASS_V046.md](ASSESSMENT_GODCLASS_V046.md)
+- 评估报告: [docs/ASSESSMENT_GODCLASS_V046.md](archive/ASSESSMENT_GODCLASS_V046.md)
 
 ### v0.4.6 TD-068 e2e skip 修复 (2026-07-05)
 - **7 个 `pytest.skip` 逐项 root cause 修复**（违反用户测试哲学 "Skip tests 不合理；无数据时创建数据，系统有问题时优化系统"）:
@@ -206,7 +206,7 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 
 ## 路线图 (v0.4.1～v0.4.5 短期维护)
 
-基于 D13/D14 评估建议（详见 [ASSESSMENT_D13_MATURITY.md](ASSESSMENT_D13_MATURITY.md) 与 [ASSESSMENT_D14_MATURITY.md](ASSESSMENT_D14_MATURITY.md)），按风险从低到高分五个小版本推进：
+基于 D13/D14 评估建议（详见 [ASSESSMENT_D13_MATURITY.md](archive/ASSESSMENT_D13_MATURITY.md) 与 [ASSESSMENT_D14_MATURITY.md](archive/ASSESSMENT_D14_MATURITY.md)），按风险从低到高分五个小版本推进：
 
 ### v0.4.1 — 低风险维护批次 (P3, 2026-07-05 完成)
 
@@ -314,7 +314,7 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 | # | 任务 | 文件 | 状态 |
 |---|------|------|------|
 | 1 | 12 零覆盖文件补测 (TD-069) | `tests/unit/test_zero_coverage_smoke.py` (新增 677L, 38 tests/8 classes) | ✅ 完成 — 覆盖 8/9 零覆盖源文件（pixvoxel_loader scripts-only 排除） |
-| 2 | 5 God Class 评估 (TD-067) | `docs/ASSESSMENT_GODCLASS_V045.md` (新增) | ✅ 完成 — 1/5 TRUE (enhanced_sound_bridge), 4/5 FALSE positive. 新增 TD-072 (v0.4.6 拆分) |
+| 2 | 5 God Class 评估 (TD-067) | `docs/archive/ASSESSMENT_GODCLASS_V045.md` (新增) | ✅ 完成 — 1/5 TRUE (enhanced_sound_bridge), 4/5 FALSE positive. 新增 TD-072 (v0.4.6 拆分) |
 | 3 | TacticExecutor 拆分评估 (TD-064) | `docs/TECH_DEBT.md` | ✅ 完成 — 已在 D11-2 #3 (commit 183745b) 拆分，TD-064 标记 RESOLVED |
 | 4 | mypy 严格化 (TD-071) | `pyproject.toml` + 6 源文件 | ✅ 完成 — 启用 check_untyped_defs=true，修 9 隐藏类型错误 |
 
