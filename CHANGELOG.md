@@ -2,6 +2,34 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.6.0 — P3-1 LOS 烟雾/天气影响集成 (feature, 2026-07-11)
+
+### P3-1: LOSSystem 集成 WeatherEffects + SmokeManager
+
+- **LosStatus 新增**: `BLOCKED_SMOKE`（烟雾完全阻挡视线）、`REDUCED_VISIBILITY`（天气降低视觉范围导致看不到）
+- **LOSSystem.__init__** 新增可选参数 `weather_effects` 和 `smoke_manager`（依赖注入，向后兼容）
+- **新增 `set_weather()` 方法**: 设置当前天气并清除缓存
+- **天气修正逻辑**: `effective_range = weather_effects.apply_to_vision(effective_range, current_weather)`
+  - CLEAR=1.0x, RAIN=0.7x, FOG=0.5x, SNOW=0.85x, OVERCAST=0.9x
+- **烟雾阻挡逻辑**: 调用 `smoke_manager.blocks_los()` 线段相交检测，烟雾完全阻挡 LOS
+  - 烟雾半径=3 tiles, 持续=180 ticks (~30s), Chebyshev 距离
+- **缓存策略优化**: 天气变化时 `clear_cache()`；烟雾活跃时跳过缓存（正确性优先）
+- **REDUCED_VISIBILITY vs OUT_OF_RANGE 区分**: 天气导致的看不到 vs 本来就在范围外
+
+### 设计决策
+
+- **依赖注入而非修改 WeatherEffects/SmokeManager**: 两个系统已完备，只在 LOSSystem 中集成
+- **向后兼容**: 新参数默认 None，现有 2 处调用方无需修改
+- **大气层先于地面遮挡**: 烟雾检查在距离检查之后、地形检查之前
+
+### 验证
+
+- 32 新单元测试覆盖 7 维度（Happy Path/Error/Boundary/Performance/Config/Integration/状态映射）
+- ruff 0 errors, 2 files formatted
+- 5370 tests passed, 21 skipped, 0 failures (零回归, +32 新测试)
+- 机制还原度: 78% → 80% (+2%), 综合还原度: 74% → 75% (+1%)
+- 版本: MINOR 递增 (0.5.3→0.6.0), 功能新增
+
 ## v0.5.3 — P1-3 纹理生成参数 CC2 风格调优 (visual quality, 2026-07-11)
 
 ### P1-3: _texture_open 草地纹理参数优化

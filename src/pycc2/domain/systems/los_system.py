@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
+from pycc2.domain.ai.smoke_tactical_ai import SmokeManager
+from pycc2.domain.systems.weather_effects import WeatherEffects, WeatherType
 from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
@@ -21,7 +23,9 @@ class LosStatus(Enum):
     CLEAR = auto()  # No obstacles
     BLOCKED_TERRAIN = auto()  # Blocked by terrain (wall, building)
     BLOCKED_HEIGHT = auto()  # Blocked by elevation difference (hill, building)
+    BLOCKED_SMOKE = auto()  # Blocked by smoke screen
     PARTIAL = auto()  # Partially blocked (soft cover)
+    REDUCED_VISIBILITY = auto()  # Weather reduced visual range below distance
     OUT_OF_RANGE = auto()  # Beyond visual range
 
 
@@ -50,17 +54,49 @@ class LOSSystem:
     - Hills can block if significantly taller
     - Walls and hedges block infantry LOS
     - Units on higher elevation have +range bonus
+    - Smoke screens completely block LOS through their radius
+    - Weather (fog/rain/snow) reduces effective visual range
     """
 
     DEFAULT_VISUAL_RANGE: int = 15  # tiles
     HEIGHT_BLOCK_THRESHOLD: float = 1.5  # height diff to block
     ELEVATION_BONUS_PER_LEVEL: float = 2.0  # extra range per elevation level
 
-    def __init__(self, game_map: GameMap) -> None:
-        """Initialize the LOS system bound to the given game map."""
+    def __init__(
+        self,
+        game_map: GameMap,
+        weather_effects: WeatherEffects | None = None,
+        smoke_manager: SmokeManager | None = None,
+    ) -> None:
+        """Initialize the LOS system bound to the given game map.
+
+        Args:
+            game_map: The game map to query terrain/elevation from.
+            weather_effects: Optional WeatherEffects engine for vision range
+                modifiers. When provided, call ``set_weather()`` to activate
+                weather-based LOS reduction.
+            smoke_manager: Optional SmokeManager for smoke screen LOS blocking.
+                When provided, active smoke deployments will block LOS lines
+                that intersect the smoke cloud.
+        """
         self._map = game_map
-        self._cache: dict[tuple[int, int, int, int], LosResult] = {}
+        self._weather_effects = weather_effects
+        self._smoke_manager = smoke_manager
+        self._current_weather: WeatherType = WeatherType.CLEAR
+        self._cache: dict[tuple[int, int, int, int, int], LosResult] = {}
         self._cache_max_size: int = 1000
+
+    def set_weather(self, weather_type: WeatherType) -> None:
+        """Set the current weather type for LOS vision range calculations.
+
+        Clears the LOS cache because weather globally affects all sight lines.
+
+        Args:
+            weather_type: The active weather type (CLEAR/RAIN/FOG/SNOW/OVERCAST).
+        """
+        if weather_type != self._current_weather:
+            self._current_weather = weather_type
+            self.clear_cache()
 
     def can_see(
         self,
@@ -107,23 +143,32 @@ class LOSSystem:
             Tuple of (can_see, LosResult)
 
         """
-        cache_key = (
-            from_coord.x,
-            from_coord.y,
-            to_coord.x,
-            to_coord.y,
+        # Skip cache when smoke is active — smoke positions drift per tick,
+        # making cached results potentially stale. Correctness over speed.
+        use_cache = not (
+            self._smoke_manager is not None and bool(self._smoke_manager.active_deployments)
         )
 
-        cached = self._cache.get(cache_key)
-        if cached:
-            return cached.can_see, cached
+        cache_key: tuple[int, int, int, int, int] | None = None
+        if use_cache:
+            cache_key = (
+                from_coord.x,
+                from_coord.y,
+                to_coord.x,
+                to_coord.y,
+                self._current_weather.value,
+            )
+            cached = self._cache.get(cache_key)
+            if cached:
+                return cached.can_see, cached
 
         result = self._calculate_los(from_coord, to_coord, max_range)
 
-        if len(self._cache) >= self._cache_max_size:
-            self._cache.clear()
+        if cache_key is not None:
+            if len(self._cache) >= self._cache_max_size:
+                self._cache.clear()
+            self._cache[cache_key] = result
 
-        self._cache[cache_key] = result
         return result.can_see, result
 
     def _calculate_los(
@@ -153,13 +198,42 @@ class LOSSystem:
         if building_bonus > 1.0:
             effective_range *= building_bonus
 
+        # Apply weather vision modifier (fog/rain/snow reduces visual range)
+        if self._weather_effects is not None:
+            effective_range = self._weather_effects.apply_to_vision(
+                effective_range,
+                self._current_weather,
+            )
+
         if distance > effective_range:
+            # Distinguish weather-reduced visibility from natural out-of-range
+            if self._weather_effects is not None and self._current_weather != WeatherType.CLEAR:
+                return LosResult(
+                    status=LosStatus.REDUCED_VISIBILITY,
+                    can_see=False,
+                    distance_tiles=distance,
+                    blocking_reason=f"Weather reduced visibility ({distance:.1f} > {effective_range:.1f})",
+                )
             return LosResult(
                 status=LosStatus.OUT_OF_RANGE,
                 can_see=False,
                 distance_tiles=distance,
                 blocking_reason=f"Out of range ({distance:.1f} > {effective_range:.1f})",
             )
+
+        # Smoke screen blocking: atmospheric obstruction checked before
+        # terrain (smoke floats above ground-level obstacles)
+        if self._smoke_manager is not None:
+            if self._smoke_manager.blocks_los(
+                (from_coord.x, from_coord.y),
+                (to_coord.x, to_coord.y),
+            ):
+                return LosResult(
+                    status=LosStatus.BLOCKED_SMOKE,
+                    can_see=False,
+                    distance_tiles=distance,
+                    blocking_reason="Blocked by smoke screen",
+                )
 
         # Window firing arc check: if shooter is inside a building, verify
         # the firing angle passes through a window
@@ -347,6 +421,8 @@ class LOSSystem:
             LosStatus.PARTIAL: "CAN_ATTACK",
             LosStatus.BLOCKED_TERRAIN: "BLOCKED",
             LosStatus.BLOCKED_HEIGHT: "BLOCKED",
+            LosStatus.BLOCKED_SMOKE: "BLOCKED",
+            LosStatus.REDUCED_VISIBILITY: "OUT_OF_RANGE",
             LosStatus.OUT_OF_RANGE: "OUT_OF_RANGE",
         }
         return status_map.get(los_result.status, "NO_TARGET")
