@@ -2,6 +2,27 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.6.2 — P3-3 散兵坑/战壕地形验证 (verification, 2026-07-11)
+
+### P3-3: FOXHOLE/TRENCH 地形属性验证
+
+- **验证现有实现**: FOXHOLE(15) 和 TRENCH(16) 枚举值已存在，所有 10 个属性完整定义
+  - cover_bonus: FOXHOLE=0.30, TRENCH=0.40 (TRENCH > FOXHOLE > CRATER)
+  - concealment: FOXHOLE=0.25, TRENCH=0.35
+  - movement_cost: FOXHOLE=1.3, TRENCH=1.5
+  - blocks_los: 两者 False, cover_type: 两者 SOFT, height: 两者 0
+- **TrenchDiggingSystem 已完整**: can_dig/start_digging/tick/interrupt + 44 个现有测试
+- **新增 143 个单元测试** 覆盖 7 维度:
+  - Happy Path: FOXHOLE/TRENCH 全部 10 属性值验证
+  - Config: 掩体层级对比 (CRATER < FOXHOLE < TRENCH < BUNKER)
+  - Boundary: cover_bonus/concealment 范围 [0,1], movement_cost 正有限
+  - Performance: 10000 次属性查询 < 50ms
+  - Integration: 22 种地形一致性验证 (全覆盖 parametrize)
+
+### 验证
+- ruff 0 errors, 5544 tests passed (+143 新), 0 failures 零回归
+- 版本: PATCH 递增 (0.6.1→0.6.2), 验证+测试补充
+
 ## v0.6.1 — P3-2 建筑窗户射击弧验证 + 边界 bug 修复 (bugfix, 2026-07-11)
 
 ### P3-2: 建筑窗户射击弧验证
