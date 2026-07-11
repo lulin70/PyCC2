@@ -2,7 +2,29 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
-## v0.5.2 — P1-1/P1-2 CC2 调色板精确修正与统一 (visual quality, 2026-07-11)
+## v0.5.3 — P1-3 纹理生成参数 CC2 风格调优 (visual quality, 2026-07-11)
+
+### P1-3: _texture_open 草地纹理参数优化
+
+- **基础色 variation**: intensity 12 → 16，增强像素级变化幅度
+- **草叶密度**: 30-50根 → 50-80根，提升纹理细节丰富度
+- **草叶颜色层次**: 单一grass_dark → 三色混合(grass_dark + grass_shadow + olive_shadow)，匹配CC2多色调
+- **草叶长度**: 2-3px → 2-4px，增加视觉变化
+- **亮斑数量**: 6-10个 → 4-8个，减少过亮区域(CC2整体偏暗)
+- **亮斑混合过渡**: 0.7阈值 → 0.6阈值，扩大渐变区域，过渡更自然
+- **新增橄榄色斑**: 3-6个olive_shadow色斑块，还原CC2标志性暗橄榄色调
+- **土块数量**: 3-6个 → 4-8个，增加泥土细节
+- **土块变化幅度**: ±10 → ±12，增强颗粒感
+
+### 视觉验证
+
+- 生成 tile 像素级分析: 主色调RGB(64,96,32)占41.9%，精确匹配CC2截图主色调
+- 新增橄榄阴影RGB(48,48,0)占1.9%，深绿阴影RGB(32,64,0)占2.2%
+- 颜色层次从3色(grass_base/light/dark)扩展到6色(+grass_shadow/olive_shadow/dirt)
+- 验证: ruff通过, 5338 tests passed, 0 failures (零回归)
+- 版本: PATCH递增(0.5.2→0.5.3), 视觉质量改进无功能新增
+
+## v0.5.2 — P1-1/P1-2 CC2 调色板精确修正与三套调色板统一 (visual quality, 2026-07-11)
 
 ### P1-1: terrain_tile_cache.py 调色板 CC2 截图精确修正
 

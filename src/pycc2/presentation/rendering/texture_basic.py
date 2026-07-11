@@ -39,22 +39,25 @@ def _texture_open(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int
 
     rng = random.Random(var * 17)
     base = CC2_TERRAIN_PALETTE["grass_base"]
-    _fill_with_variation(surface, base, rng, 12)
+    _fill_with_variation(surface, base, rng, 16)
 
     pixels = pygame.surfarray.pixels3d(surface)
     tile_sz = TILE_SIZE
 
     grass_dark = CC2_TERRAIN_PALETTE["grass_dark"]
-    num_blades = rng.randint(30, 50)
+    grass_shadow = CC2_TERRAIN_PALETTE["grass_shadow"]
+    olive_shadow = CC2_TERRAIN_PALETTE["olive_shadow"]
+    num_blades = rng.randint(50, 80)
     for _ in range(num_blades):
         x = rng.randint(0, tile_sz - 1)
         y_start = rng.randint(0, tile_sz - 4)
-        blade_len = rng.randint(2, 3)
-        shade_var = rng.randint(-8, 8)
+        blade_len = rng.randint(2, 4)
+        shade_var = rng.randint(-10, 10)
+        blade_base = rng.choice([grass_dark, grass_shadow, olive_shadow])
         blade_color = (
-            max(0, min(255, grass_dark[0] + shade_var)),
-            max(0, min(255, grass_dark[1] + shade_var)),
-            max(0, min(255, grass_dark[2] + shade_var)),
+            max(0, min(255, blade_base[0] + shade_var)),
+            max(0, min(255, blade_base[1] + shade_var)),
+            max(0, min(255, blade_base[2] + shade_var)),
         )
         for dy in range(blade_len):
             py = y_start + dy
@@ -62,7 +65,7 @@ def _texture_open(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int
                 pixels[x, py] = blade_color
 
     grass_light = CC2_TERRAIN_PALETTE["grass_light"]
-    num_patches = rng.randint(6, 10)
+    num_patches = rng.randint(4, 8)
     for _ in range(num_patches):
         cx = rng.randint(5, tile_sz - 5)
         cy = rng.randint(5, tile_sz - 5)
@@ -73,8 +76,8 @@ def _texture_open(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int
                     px, py = cx + dx, cy + dy
                     if 0 <= px < tile_sz and 0 <= py < tile_sz:
                         dist_from_center = math.sqrt(dx * dx + dy * dy) / radius
-                        if dist_from_center > 0.7:
-                            blend_factor = (dist_from_center - 0.7) / 0.3
+                        if dist_from_center > 0.6:
+                            blend_factor = (dist_from_center - 0.6) / 0.4
                             base_px = pixels[px, py]
                             try:
                                 r_base = (
@@ -107,8 +110,24 @@ def _texture_open(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int
                         else:
                             pixels[px, py] = grass_light
 
+    num_olive_patches = rng.randint(3, 6)
+    for _ in range(num_olive_patches):
+        cx = rng.randint(3, tile_sz - 4)
+        cy = rng.randint(3, tile_sz - 4)
+        size = rng.randint(2, 4)
+        for dy in range(size):
+            for dx in range(size):
+                px, py = cx + dx, cy + dy
+                if 0 <= px < tile_sz and 0 <= py < tile_sz and rng.random() > 0.25:
+                    olive_var = rng.randint(-8, 8)
+                    pixels[px, py] = (
+                        max(0, min(255, olive_shadow[0] + olive_var)),
+                        max(0, min(255, olive_shadow[1] + olive_var)),
+                        max(0, min(255, olive_shadow[2] + olive_var)),
+                    )
+
     dirt_color = CC2_TERRAIN_PALETTE.get("dirt_base", (96, 64, 32))
-    num_dirt = rng.randint(3, 6)
+    num_dirt = rng.randint(4, 8)
     for _ in range(num_dirt):
         cx = rng.randint(3, tile_sz - 4)
         cy = rng.randint(3, tile_sz - 4)
@@ -116,7 +135,7 @@ def _texture_open(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int
             for dx in range(3):
                 px, py = cx + dx, cy + dy
                 if 0 <= px < tile_sz and 0 <= py < tile_sz and rng.random() > 0.2:
-                    dirt_var = rng.randint(-10, 10)
+                    dirt_var = rng.randint(-12, 12)
                     pixels[px, py] = (
                         max(0, min(255, dirt_color[0] + dirt_var)),
                         max(0, min(255, dirt_color[1] + dirt_var)),
