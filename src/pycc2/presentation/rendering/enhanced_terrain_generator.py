@@ -18,40 +18,46 @@ import pygame
 TILE_W: int = 64
 TILE_H: int = 32
 
-# CC2 terrain color palette (extracted from isometric_tile_generator during P2 cleanup)
+# CC2 terrain color palette (v0.5.2 P1: corrected from screenshot pixel analysis)
+# Values aligned with terrain_tile_cache.py — single source of truth for CC2 colors.
 CC2_TERRAIN_PALETTE: dict[str, tuple[int, int, int]] = {
-    # Terrain
-    "grass_base": (56, 104, 36),
-    "grass_light": (76, 132, 52),
-    "grass_dark": (40, 80, 28),
-    "dirt_road": (140, 110, 60),
-    "dirt_dark": (110, 85, 45),
-    "dirt_light": (160, 130, 75),
-    "road_base": (149, 126, 94),
-    "road_stone": (158, 158, 158),
-    "road_stone_dark": (110, 110, 110),
-    "road_gap": (80, 80, 80),
-    "water_base": (64, 120, 172),
-    "water_light": (100, 160, 210),
-    "water_dark": (40, 80, 140),
+    # Grass — CC2 screenshot actual dominant colors
+    "grass_base": (64, 96, 32),
+    "grass_light": (64, 112, 32),
+    "grass_dark": (48, 80, 16),
+    "grass_shadow": (32, 64, 0),  # NEW: CC2 deep shadow
+    "olive_shadow": (48, 48, 0),  # NEW: CC2 dark olive transition
+    # Dirt
+    "dirt_road": (96, 64, 32),
+    "dirt_dark": (64, 48, 16),
+    "dirt_light": (128, 96, 48),
+    # Road
+    "road_base": (80, 72, 64),
+    "road_stone": (96, 96, 96),
+    "road_stone_dark": (64, 64, 64),
+    "road_gap": (48, 48, 48),
+    # Water
+    "water_base": (48, 88, 140),
+    "water_light": (72, 128, 168),
+    "water_dark": (32, 64, 100),
     "water_foam": (180, 210, 230),
     # Building
-    "wall_light": (180, 170, 155),
-    "wall_dark": (120, 115, 105),
-    "wall_shadow": (80, 78, 72),
-    "roof_red": (160, 50, 40),
-    "roof_brown": (140, 90, 50),
-    "roof_gray": (100, 100, 100),
+    "wall_light": (112, 104, 88),
+    "wall_dark": (90, 90, 90),
+    "wall_shadow": (64, 64, 64),
+    "roof_red": (96, 32, 24),
+    "roof_brown": (84, 54, 30),
+    "roof_gray": (64, 64, 64),
     # Crater
-    "crater_base": (90, 75, 50),
-    "crater_dark": (60, 50, 35),
-    "crater_rim": (150, 130, 90),
-    "crater_water": (50, 90, 130),
+    "crater_base": (72, 60, 32),
+    "crater_dark": (48, 40, 20),
+    "crater_rim": (104, 84, 48),
+    "crater_water": (32, 64, 100),
     # Hedgerow
-    "hedgerow_base": (34, 72, 30),
-    "hedgerow_light": (50, 95, 42),
-    "hedgerow_dark": (20, 48, 18),
-    "hedgerow_shadow": (15, 35, 12),
+    "hedgerow_base": (38, 85, 28),
+    "hedgerow_light": (58, 105, 40),
+    "hedgerow_dark": (22, 62, 16),
+    "hedgerow_shadow": (16, 48, 12),
 }
 
 # Backward-compatible alias for callers that still reference the old name

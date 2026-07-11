@@ -18,32 +18,34 @@ if TYPE_CHECKING:
 class CCPalette(Enum):
     """Close Combat 2 风格军事调色板 — 基于CC2截图精确分析
 
-    2026-05-29更新: Phase 5 Fix — 草地再降暗8%匹配CC2原版(A1)
-    CC2截图显示草地为极暗军绿色(#3A5F0F级别)，之前仍偏亮
+    v0.5.2 P1: 基于13张CC2原版截图像素级分析修正。
+    之前 v0.3 值比 CC2 截图亮约35%（非原以为的"太暗"）。
+    地形颜色已与 terrain_tile_cache.py CC2_TERRAIN_PALETTE 统一为单一真相源。
     排除: BLOOD颜色（保持鲜艳用于视觉效果）
     """
 
-    # Grass — DARK military olive green (exact from CC2 screenshot)
-    # 2026-05-29 Phase 5 Fix: 再降8%到CC2精确值（对比12张CC2截图确认）
-    GRASS_BASE = (68, 110, 32)  # 原(76,122,37) → 再降8%→#6E6E20
-    GRASS_LIGHT = (82, 126, 39)  # 原(90,139,45) → 再降8%→#527E27
-    GRASS_DARK = (52, 88, 23)  # 原(58,98,26) → 再降8%→#345817
+    # Grass — CC2 screenshot actual dominant colors (pixel-extracted)
+    GRASS_BASE = (64, 96, 32)  # CC2 dominant military green #406020 (was 68,110,32 — too bright)
+    GRASS_LIGHT = (64, 112, 32)  # CC2 sunlit green #407020 (was 82,126,39 — too bright)
+    GRASS_DARK = (48, 80, 16)  # CC2 shadow green #305010 (was 52,88,23 — too bright)
+    GRASS_SHADOW = (32, 64, 0)  # CC2 deep shadow #204000 (NEW — was missing)
+    OLIVE_SHADOW = (48, 48, 0)  # CC2 dark olive transition #303000 (NEW — was missing)
 
-    # Road — grey-brown, NOT orange-brown
-    ROAD = (105, 89, 65)  # 原始(105,89,64) → 去饱和5%
-    DIRT_ROAD = (93, 79, 56)  # 原始(93,79,55) → 去饱和5%
-    DIRT = (128, 100, 59)  # 原始(129,100,58) → 去饱和5%
+    # Road — CC2 grey-brown gravel (NOT orange-brown)
+    ROAD = (80, 72, 64)  # CC2 gravel road #504840 (was 105,89,65 — too bright)
+    DIRT_ROAD = (96, 64, 32)  # CC2 dirt road #604020 (was 93,79,56 — too bright)
+    DIRT = (128, 96, 48)  # CC2 light dirt #806030 (was 128,100,59 — slightly off)
 
-    # Water — dark blue-grey, semi-transparent
-    WATER_DEEP = (25, 55, 95)  # 原始(25,54,94) → 去饱和5%
-    WATER_SHALLOW = (46, 93, 157)  # 原始(47,94,158) → 去饱和5%
-    WATER_FOAM = (121, 159, 197)  # 原始(123,160,198) → 去饱和5%
+    # Water — CC2 dark blue-grey river
+    WATER_DEEP = (32, 64, 100)  # CC2 deep water #204064 (was 25,55,95 — too dark)
+    WATER_SHALLOW = (72, 128, 168)  # CC2 bright water #4880A8 (was 46,93,157 — too saturated)
+    WATER_FOAM = (180, 210, 230)  # CC2 foam #B4D2E6 (was 121,159,197 — too dark)
 
-    TREE_CROWN = (37, 73, 34)  # 原始(37,73,33) → 去饱和5%
-    TREE_CROWN_DARK = (28, 58, 26)  # 原始(27,58,25) → 去饱和5%
-    TREE_CROWN_MID = (48, 88, 42)  # A4: 新增中间色调 (介于dark和light之间)
-    TREE_TRUNK = (80, 57, 35)  # 原始(80,57,34) → 去饱和5%
-    HEDGE_GREEN = (44, 83, 35)  # 原始(44,83,34) → 去饱和5%
+    TREE_CROWN = (38, 85, 28)  # CC2 hedgerow base (aligned with hedgerow_base)
+    TREE_CROWN_DARK = (22, 62, 16)  # CC2 hedgerow dark (aligned with hedgerow_dark)
+    TREE_CROWN_MID = (58, 105, 40)  # CC2 hedgerow light (aligned with hedgerow_light)
+    TREE_TRUNK = (80, 57, 35)  # Trunk brown (unchanged — already close to CC2)
+    HEDGE_GREEN = (38, 85, 28)  # CC2 hedgerow base (aligned with hedgerow_base)
 
     # Building roofs — match CC2 exactly (with 5% desaturation)
     BUILDING_WALL = (173, 165, 148)  # 原始(175,166,148) → 去饱和5%
@@ -60,7 +62,7 @@ class CCPalette(Enum):
     ALLIES_UNIFORM = (80, 86, 38)  # A3: +4亮度增强对比 (原76,82,35)
     AXIS_HELMET = (60, 62, 56)  # A3: +4亮度增强对比 (原56,58,52)
     AXIS_UNIFORM = (89, 95, 84)  # A3: +4亮度增强对比 (原85,91,80)
-    WATER = (33, 66, 114)  # A3: 再降5%更深 (原35,70,120)
+    WATER = (48, 88, 140)  # CC2 river blue (aligned with water_base)
     WOOD_TRUNK = (84, 59, 37)  # A3: +4亮度增强对比 (原80,57,35)
     WOOD_LEAF_DARK = (33, 69, 30)  # A3: 再降10%增强对比 (原37,73,34)
     WOOD_LEAF_LIGHT = (79, 125, 39)  # A3: +4亮度增强对比 (原75,121,36)

@@ -1220,11 +1220,12 @@ class TestStageJKeyboardShortcuts:
         assert ic.mode == InteractionMode.SELECT
         assert len(ic.selected_unit_ids) == 0
 
-    def test_j06_i_key_toggles_projection(self, ic):
+    def test_j06_i_key_no_longer_toggles_projection(self, ic):
+        """K_i was removed in P2 (v0.5.1) — isometric projection no longer exists."""
         proj_before = ic.camera.projection
         ic.handle_shortcut_key(pygame.K_i)
         proj_after = ic.camera.projection
-        assert proj_before != proj_after
+        assert proj_before == proj_after
 
     def test_j07_input_handler_process_mouse_motion(self):
         from pycc2.presentation.input.handler import PygameInputHandler

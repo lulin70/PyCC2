@@ -2,6 +2,35 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.5.2 — P1-1/P1-2 CC2 调色板精确修正与统一 (visual quality, 2026-07-11)
+
+### P1-1: terrain_tile_cache.py 调色板 CC2 截图精确修正
+
+- **背景**: 用 PIL 对 13 张 CC2 原版截图进行像素级主色调提取，发现 v0.3 调色板值比 CC2 截图亮约 35%（非原以为的"太暗"）
+- **关键发现**: CC2 主色 RGB(64,96,32) 比 PyCC2 渲染色 RGB(94,153,48) 暗 35%；CC2 有大量暗橄榄色 RGB(48,48,0) 在 PyCC2 中缺失
+- **修正**: 完全重写 CC2_TERRAIN_PALETTE，基于截图像素分析值。新增 grass_shadow/olive_shadow 两个缺失色
+- **影响**: grass/dirt/road/water/crater/trench/building_ground 等全部地形颜色修正
+
+### P1-2: 三套调色板统一
+
+- **问题**: 代码中存在三套不一致的调色板 — CCPalette (pixel_canvas.py)、CC2_TERRAIN_PALETTE (enhanced_terrain_generator.py)、CC2_TERRAIN_PALETTE (terrain_tile_cache.py)
+- **修复**: 三套调色板全部对齐 terrain_tile_cache.py 作为单一真相源
+- **pixel_canvas.py CCPalette**: GRASS_BASE (68,110,32)→(64,96,32), GRASS_LIGHT (82,126,39)→(64,112,32), ROAD (105,89,65)→(80,72,64), WATER (33,66,114)→(48,88,140) 等；新增 GRASS_SHADOW/OLIVE_SHADOW
+- **texture_basic.py _texture_grass**: 修复硬编码亮色 (105,165,55)→CC2_TERRAIN_PALETTE["grass_light"]，shade 列表改为 CC2 palette 值
+- **enhanced_terrain_generator.py**: CC2_TERRAIN_PALETTE 对齐 terrain_tile_cache.py
+
+### 测试修复
+
+- `test_trench_main_color_value`: 期望值 (78,54,32)→(64,44,24) 匹配 CC2 精确值
+- `test_trench_embankment_color_value`: 期望值 (122,98,64)→(96,76,48) 匹配 CC2 精确值
+- `test_j06_i_key_toggles_projection` → `test_j06_i_key_no_longer_toggles_projection`: P2 遗留测试修复 (K_i 热键已移除)
+
+### 验证
+
+- ruff check + format 通过
+- 5338 tests passed, 21 skipped, 0 failures (零回归)
+- 版本: PATCH 递增 (0.5.1→0.5.2), 视觉质量改进无功能新增
+
 ## v0.5.1 — P2 isometric experimental 代码清理 (refactor, 2026-07-10)
 
 ### P2: 清理 isometric experimental 代码 (完整重构)

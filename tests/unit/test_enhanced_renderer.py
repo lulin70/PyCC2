@@ -194,24 +194,24 @@ class TestCC2TerrainPalette:
         assert "trench_embankment" in CC2_TERRAIN_PALETTE, "Missing 'trench_embankment' color"
 
     def test_trench_main_color_value(self):
-        """Test that trench_main matches CC2 brightened spec."""
+        """Test that trench_main matches CC2 screenshot spec."""
         from pycc2.presentation.rendering.terrain_tile_cache import CC2_TERRAIN_PALETTE
 
         trench_main = CC2_TERRAIN_PALETTE["trench_main"]
-        # Brightened 2026-06-19: (78, 54, 32) #4E3620 — was (58, 40, 24)
-        assert abs(trench_main[0] - 78) <= 5, f"R value off: {trench_main[0]}"
-        assert abs(trench_main[1] - 54) <= 5, f"G value off: {trench_main[1]}"
-        assert abs(trench_main[2] - 32) <= 5, f"B value off: {trench_main[2]}"
+        # v0.5.2 P1: (64, 44, 24) #402C18 — corrected from brightened (78,54,32)
+        assert abs(trench_main[0] - 64) <= 5, f"R value off: {trench_main[0]}"
+        assert abs(trench_main[1] - 44) <= 5, f"G value off: {trench_main[1]}"
+        assert abs(trench_main[2] - 24) <= 5, f"B value off: {trench_main[2]}"
 
     def test_trench_embankment_color_value(self):
-        """Test that trench_embankment matches CC2 brightened spec."""
+        """Test that trench_embankment matches CC2 screenshot spec."""
         from pycc2.presentation.rendering.terrain_tile_cache import CC2_TERRAIN_PALETTE
 
         trench_embankment = CC2_TERRAIN_PALETTE["trench_embankment"]
-        # Brightened 2026-06-19: (122, 98, 64) #7A6240 — was (90, 72, 48)
-        assert abs(trench_embankment[0] - 122) <= 5, f"R value off: {trench_embankment[0]}"
-        assert abs(trench_embankment[1] - 98) <= 5, f"G value off: {trench_embankment[1]}"
-        assert abs(trench_embankment[2] - 64) <= 5, f"B value off: {trench_embankment[2]}"
+        # v0.5.2 P1: (96, 76, 48) #604C30 — corrected from brightened (122,98,64)
+        assert abs(trench_embankment[0] - 96) <= 5, f"R value off: {trench_embankment[0]}"
+        assert abs(trench_embankment[1] - 76) <= 5, f"G value off: {trench_embankment[1]}"
+        assert abs(trench_embankment[2] - 48) <= 5, f"B value off: {trench_embankment[2]}"
 
     def test_terrain_palette_map_includes_trench(self):
         """Test that TERRAIN_PALETTE_MAP includes ID 13 for trench."""

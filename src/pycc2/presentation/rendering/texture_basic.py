@@ -107,7 +107,7 @@ def _texture_open(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int
                         else:
                             pixels[px, py] = grass_light
 
-    dirt_color = CC2_TERRAIN_PALETTE.get("dirt_base", (139, 109, 59))
+    dirt_color = CC2_TERRAIN_PALETTE.get("dirt_base", (96, 64, 32))
     num_dirt = rng.randint(3, 6)
     for _ in range(num_dirt):
         cx = rng.randint(3, tile_sz - 4)
@@ -256,31 +256,26 @@ def _texture_grass(surface: pygame.Surface, tid: int, var: int, pal, bitmask: in
     from .texture_basic import _fill_with_variation
 
     rng = random.Random(var * 31)
-    base = (105, 165, 55)
+    base = CC2_TERRAIN_PALETTE["grass_light"]
     _fill_with_variation(surface, base, rng, 14)
 
     pixels = pygame.surfarray.pixels3d(surface)
     tile_sz = TILE_SIZE
 
+    grass_dark = CC2_TERRAIN_PALETTE["grass_dark"]
+    grass_base = CC2_TERRAIN_PALETTE["grass_base"]
+    olive_shadow = CC2_TERRAIN_PALETTE.get("olive_shadow", grass_dark)
     num_blades = rng.randint(40, 60)
     for _ in range(num_blades):
         x = rng.randint(0, tile_sz - 1)
         y_start = rng.randint(0, tile_sz - 4)
         blade_len = rng.randint(2, 3)
-        shade = rng.choice(
-            [
-                (90, 150, 45),
-                (120, 180, 65),
-                (85, 140, 40),
-                (110, 170, 55),
-                (100, 160, 50),
-            ]
-        )
+        shade = rng.choice([grass_base, grass_dark, olive_shadow])
         for dy in range(blade_len):
             if 0 <= y_start + dy < tile_sz:
                 pixels[x, y_start + dy] = shade
 
-    dirt_color = CC2_TERRAIN_PALETTE.get("dirt_base", (139, 109, 59))
+    dirt_color = CC2_TERRAIN_PALETTE.get("dirt_base", (96, 64, 32))
     num_dirt = rng.randint(3, 6)
     for _ in range(num_dirt):
         cx = rng.randint(3, tile_sz - 4)
@@ -304,7 +299,7 @@ def _texture_grass(surface: pygame.Surface, tid: int, var: int, pal, bitmask: in
         for ddy in range(patch_size):
             for ddx in range(patch_size):
                 if 0 <= cx + ddx < tile_sz and 0 <= cy + ddy < tile_sz:
-                    pixels[cx + ddx, cy + ddy] = (80, 130, 35)
+                    pixels[cx + ddx, cy + ddy] = grass_dark
     del pixels
 
 

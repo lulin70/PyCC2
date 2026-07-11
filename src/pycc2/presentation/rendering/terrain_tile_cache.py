@@ -20,37 +20,47 @@ if TYPE_CHECKING:
     from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
 
 
-# CC2 Authentic Terrain Palette (from screenshot analysis)
+# CC2 Authentic Terrain Palette (from screenshot pixel analysis)
 # ============================================================
+# v0.5.2 P1: Corrected based on pixel-level analysis of 13 CC2 original screenshots.
+# Previous v0.3 values were ~35% TOO BRIGHT (not too dark as formerly commented).
+# CC2 actual dominant colors extracted from assets/CC2-snapshot/:
+#   grass dominant: RGB(64,96,32)  grass dark: RGB(48,80,16)
+#   olive shadow:   RGB(48,48,0)   dark soil:  RGB(32,32,0)
 CC2_TERRAIN_PALETTE = {
-    # CC2 authentic palette — brightened to match original game screenshots
-    # Reference: Close Combat 2 (1999) Normandy campaign maps
-    # Previous values were ~20% too dark; these match CC2's vibrant outdoor lighting
-    "grass_base": (94, 153, 48),  # Bright military green #609930 (was 65,106,30)
-    "grass_light": (112, 175, 58),  # Sunlit grass #70AF3A (was 77,121,37)
-    "grass_dark": (72, 120, 36),  # Shadow grass #487824 (was 49,85,20)
-    "grass_dry": (156, 145, 68),  # Dry summer grass #9C9144 (was 117,110,51)
-    "dirt_base": (162, 128, 68),  # Tilled earth #A28044 (was 118,93,50)
-    "dirt_dark": (128, 100, 52),  # Dark soil #806434 (was 94,72,38)
-    "dirt_light": (186, 152, 86),  # Light dirt #BA9856 (was 136,110,64)
-    "road_base": (128, 118, 102),  # Gravel road #807666 (was 91,84,71)
-    "road_stone": (156, 148, 138),  # Cobblestone #9C948A (was 111,106,98)
-    "road_dark": (102, 94, 82),  # Worn road #665E52 (was 72,66,58)
-    "water_base": (56, 112, 186),  # Deep river blue #3870BA (was 41,82,136)
-    "water_light": (92, 160, 226),  # Bright water #5CA0E2 (was 68,119,170)
-    "water_dark": (38, 82, 148),  # Deep water #265294 (was 27,61,110)
-    "water_foam": (206, 238, 255),  # White foam #CEEEFF (was 153,178,195)
-    "hedgerow_base": (38, 85, 28),  # Normandy hedge #26551C (was 27,61,20)
-    "hedgerow_light": (58, 105, 40),  # Hedge highlight #3A6928 (was 41,75,29)
-    "hedgerow_dark": (22, 62, 16),  # Hedge shadow #163E10 (was 15,44,12)
-    "embankment": (78, 66, 44),  # Dirt embankment #4E422C (was 58,49,32)
-    "wall_base": (130, 130, 130),  # Stone wall #828282 (was 95,95,95)
-    "wall_dark": (100, 100, 100),  # Dark stone #646464 (was 72,72,72)
-    "crater_center": (104, 86, 46),  # Crater bottom #68562E (was 76,63,34)
-    "crater_rim": (142, 114, 64),  # Crater edge #8E7240 (was 104,83,48)
-    "trench_main": (78, 54, 32),  # Trench floor #4E3620 (was 58,40,24)
-    "trench_embankment": (122, 98, 64),  # Trench wall #7A6240 (was 90,72,48)
-    "building_ground": (160, 148, 126),  # Building floor #A0947E (was 119,110,94)
+    # Grass — CC2 screenshot actual dominant colors
+    "grass_base": (64, 96, 32),  # CC2 dominant military green #406020 (was 94,153,48 — too bright)
+    "grass_light": (64, 112, 32),  # CC2 sunlit green #407020 (was 112,175,58 — too bright)
+    "grass_dark": (48, 80, 16),  # CC2 shadow green #305010 (was 72,120,36 — too bright)
+    "grass_dry": (96, 96, 32),  # CC2 dry olive #606020 (was 156,145,68 — too bright)
+    "grass_shadow": (32, 64, 0),  # CC2 deep shadow #204000 (NEW — was missing)
+    "olive_shadow": (48, 48, 0),  # CC2 dark olive transition #303000 (NEW — was missing)
+    # Dirt
+    "dirt_base": (96, 64, 32),  # CC2 dirt #604020 (was 162,128,68 — too bright)
+    "dirt_dark": (64, 48, 16),  # CC2 dark soil #403010 (was 128,100,52 — too bright)
+    "dirt_light": (128, 96, 48),  # CC2 light dirt #806030 (was 186,152,86 — too bright)
+    # Road
+    "road_base": (80, 72, 64),  # CC2 gravel road #504840 (was 128,118,102 — too bright)
+    "road_stone": (96, 96, 96),  # CC2 cobblestone #606060 (was 156,148,138 — too bright)
+    "road_dark": (48, 48, 48),  # CC2 worn road #303030 (was 102,94,82 — too bright)
+    # Water
+    "water_base": (48, 88, 140),  # CC2 river blue #30588C (was 56,112,186 — slightly bright)
+    "water_light": (72, 128, 168),  # CC2 bright water #4880A8 (was 92,160,226 — too bright)
+    "water_dark": (32, 64, 100),  # CC2 deep water #204064 (was 38,82,148 — slightly bright)
+    "water_foam": (180, 210, 230),  # CC2 foam #B4D2E6 (was 206,238,255 — too bright)
+    # Hedgerow (already close to CC2)
+    "hedgerow_base": (38, 85, 28),  # Normandy hedge #26551C
+    "hedgerow_light": (58, 105, 40),  # Hedge highlight #3A6928
+    "hedgerow_dark": (22, 62, 16),  # Hedge shadow #163E10
+    # Terrain features
+    "embankment": (64, 56, 36),  # CC2 dirt embankment #403824 (was 78,66,44 — slightly bright)
+    "wall_base": (90, 90, 90),  # CC2 stone wall #5A5A5A (was 130,130,130 — too bright)
+    "wall_dark": (64, 64, 64),  # CC2 dark stone #404040 (was 100,100,100 — too bright)
+    "crater_center": (72, 60, 32),  # CC2 crater bottom #483C20 (was 104,86,46 — slightly bright)
+    "crater_rim": (104, 84, 48),  # CC2 crater edge #685430 (was 142,114,64 — slightly bright)
+    "trench_main": (64, 44, 24),  # CC2 trench floor #402C18 (was 78,54,32 — slightly bright)
+    "trench_embankment": (96, 76, 48),  # CC2 trench wall #604C30 (was 122,98,64 — slightly bright)
+    "building_ground": (112, 104, 88),  # CC2 building floor #706858 (was 160,148,126 — too bright)
 }
 
 # Map terrain IDs to their base palette keys

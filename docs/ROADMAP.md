@@ -2,7 +2,7 @@
 
 **v0.4.7 | July 5, 2026 | Based on DevSquad 7-Role Analysis**
 
-> **Current Version**: v0.5.1 | **Tests**: ~5400 (all passing) | **CC2 Fidelity**: ~72% (Visual ~67% / Mechanics ~78%) ⚠️ v0.5.0 P0 PixVoxel 接入 + v0.5.1 P2 isometric 清理
+> **Current Version**: v0.5.2 | **Tests**: ~5338 (all passing) | **CC2 Fidelity**: ~72% (Visual ~67% / Mechanics ~78%) ⚠️ v0.5.0 P0 PixVoxel 接入 + v0.5.1 P2 isometric 清理 + v0.5.2 P1 调色板修正
 > **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish Complete (TD-065 + TD-066 both resolved v0.4.11) | v0.5.0 P0: PixVoxel 正交版精灵接入 | v0.5.1 P2: isometric experimental 代码清理**
 
 ---
