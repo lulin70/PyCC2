@@ -2,6 +2,40 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.6.5 — P3-6 AI 补给线意识 (feature, 2026-07-11)
+
+### P3-6: AI 补给线意识（保护/切断补给线）
+
+- **新建 `src/pycc2/domain/ai/supply_awareness_ai.py`**: SupplyAwarenessAI 类
+  - `evaluate(context) -> float`: 评估补给线威胁和机会，返回 [0.0, 1.0] 优先级分数
+  - `execute(context) -> list[TacticIntent]`: 生成 DEFEND/ATTACK 命令保护或切断补给线
+  - 继承 TacticalAIBase，遵循标准 AI 模块接口
+- **补给关键点识别**: `_identify_supply_points()` 扫描 tile_grid 找 BRIDGE 地形 + 复用 vl_positions
+- **威胁评估**: `_area_threat()` 使用 `_threat_score()` 按单位类型权重/距离/HP 计算威胁分
+  - 阈值 0.3: 步兵班 3 格内构成威胁，坦克(weight=3.5) 11 格内构成威胁
+- **攻击机会评估**: `_area_advantage()` 计算友军/敌军优势比，阈值 1.5 时发起攻击
+- **命令生成**:
+  - DEFEND: 友方补给点受威胁时，派遣步兵班/机枪班/反坦克炮组防御
+  - ATTACK: 敌方补给点脆弱时，派遣步兵班/机枪班/坦克攻击
+  - 低优先级(2)，不干扰核心战斗命令
+  - 每 tick 最多 3 条补给命令
+- **Blackboard 集成**: BB_SUPPLY_DEFEND_ASSIGNED / BB_SUPPLY_ATTACK_ASSIGNED 防止重复分配
+- **VL 归属判定**: `_is_friendly_point()` / `_is_enemy_point()` 基于 friendly_faction.name 匹配 VL owner
+- **向后兼容**: 不修改现有 TacticalAIBase/TacticalContext/TacticType/ReconAI
+- **新增 42 个单元测试** 覆盖 7 维度:
+  - Happy Path: 桥梁/VL 识别 + DEFEND/ATTACK 命令生成 (15 tests)
+  - Error Case: 空战场/死亡单位/已分配单位/最大命令数/game_map=None (6 tests)
+  - Boundary: 单桥梁/零距离/扫描半径边界/中立VL (5 tests)
+  - Performance: 1000 次循环 < 300ms + 大地图桥梁扫描 (2 tests)
+  - Config: 不同地图尺寸/不同VL owner/混合命令 (3 tests)
+  - Integration: Blackboard 防重复 + TacticalContext + _threat_score + 全场景 (10 tests)
+  - Supply Point Identification: 桥梁/VL/混合识别 (5 tests, 归入 Happy Path)
+
+### 验证
+- ruff 0 errors, 5725 tests passed (+42 新), 0 failures 零回归
+- 版本: PATCH 递增 (0.6.4→0.6.5), 功能新增（AI 补给线意识模块）
+- P3 全部 6 个子任务完成 (P3-1~P3-6)
+
 ## v0.6.4 — P3-5 AI 心理模型 (feature, 2026-07-11)
 
 ### P3-5: AI 心理模型（命令接受/拒绝/延迟）

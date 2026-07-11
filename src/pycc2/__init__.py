@@ -2,7 +2,7 @@
 Tactical Infantry Combat Simulator
 """
 
-__version__ = "0.6.4"
+__version__ = "0.6.5"
 __author__ = "PyCC2 Team"
 __license__ = "MIT"
 
