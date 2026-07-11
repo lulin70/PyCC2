@@ -2,6 +2,37 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.6.4 — P3-5 AI 心理模型 (feature, 2026-07-11)
+
+### P3-5: AI 心理模型（命令接受/拒绝/延迟）
+
+- **新建 `src/pycc2/domain/systems/psychology_system.py`**: PsychologySystem 类
+  - `evaluate_order(unit, tactic_type) -> OrderAcceptance`: 评估单位是否接受命令
+  - 6 步评估流程: 存活检查 → 生存命令直通 → 士气门 → 压制门 → 疲劳门 → 默认接受
+  - 纯静态无副作用: 只读不写，安全用于 AI 规划循环
+  - 确定性: 不使用 random，可复现测试
+- **新增 `OrderRejectionReason` 枚举**: 8 种原因 (OK/SUPPRESSED/PINNED/PANIC/BROKEN/ROUTING/EXHAUSTED/SPENT)
+- **新增 `OrderAcceptance` 数据类**: frozen dataclass (accepted/reason/delay_ticks) + 3 个工厂方法
+- **命令分类接受规则** (31 种 TacticType 分为 5 类):
+  - 生存命令 (4 种): RETREAT/TAKE_COVER/SURRENDER/RALLY_NCO — 总是接受
+  - 防御命令 (4 种): DEFEND/HOLD_POSITION/DIG_TRENCH/DEFEND_VL — 仅 PANIC 拒绝
+  - 移动命令 (6 种): MOVE_TO/PATROL/FLANKING/COORDINATED_ADVANCE/CAPTURE_VL/RECONNAISSANCE — HEAVY/PINNED/PANIC 拒绝，EXHAUSTED/SPENT 延迟 5 ticks
+  - 进攻命令 (6 种): ATTACK/SUPPRESS_FIRE/MELEE_ATTACK/ASSAULT_FORTIFIED/COUNTER_ATTACK/BREAK_AMBUSH — WAVERING 延迟 3 ticks，HEAVY/PINNED/PANIC/BROKEN/ROUTING/EXHAUSTED/SPENT 拒绝
+  - 其他命令 (11 种): IDLE/HEAL_WOUNDED/SCAVENGE_AMMO 等 — 默认接受
+- **向后兼容**: 不修改现有 MoraleComponent/FatigueComponent/UnitMoraleMixin/MoraleSystem
+- **新增 82 个单元测试** 覆盖 7 维度:
+  - Happy Path: 4 类命令的正常接受 (24 tests)
+  - Error Case: 死亡/BROKEN/ROUTING/PANIC 拒绝 + 无 morale 单位 (9 tests)
+  - Boundary: 士气阈值(71/70, 41/40, 21/20) + 疲劳阈值(74/75, 99/100) + 压制阈值(64/65, 79/80, 94/95, 24/25) (20 tests)
+  - Performance: 1000 次评估 < 50ms + 无副作用验证 (3 tests)
+  - Config: 5 种士气状态 × 4 类命令矩阵 (5 tests)
+  - Integration: Morale+Fatigue+Suppression 联合场景 + 工厂方法 + frozen 验证 + 全战场场景 (13 tests)
+  - Reason Coverage: 8 种拒绝原因可达性验证 (8 tests)
+
+### 验证
+- ruff 0 errors, 5683 tests passed (+82 新), 0 failures 零回归
+- 版本: PATCH 递增 (0.6.3→0.6.4), 功能新增（AI 心理模型系统）
+
 ## v0.6.3 — P3-4 AI 侦察行为 (feature, 2026-07-11)
 
 ### P3-4: AI 侦察行为

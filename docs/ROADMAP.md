@@ -2,7 +2,7 @@
 
 **v0.4.7 | July 5, 2026 | Based on DevSquad 7-Role Analysis**
 
-> **Current Version**: v0.6.3 | **Tests**: ~5601 (all passing) | **CC2 Fidelity**: ~75% (Visual ~70% / Mechanics ~80%) ⚠️ v0.5.0 P0 PixVoxel 接入 + v0.5.1 P2 isometric 清理 + v0.5.2 P1 调色板修正 + v0.5.3 P1 纹理调优 + v0.6.0 P3-1 LOS 烟雾天气 + v0.6.1 P3-2 窗户射击弧 + v0.6.2 P3-3 散兵坑战壕 + v0.6.3 P3-4 AI 侦察行为
+> **Current Version**: v0.6.4 | **Tests**: ~5683 (all passing) | **CC2 Fidelity**: ~75% (Visual ~70% / Mechanics ~80%) ⚠️ v0.5.0 P0 PixVoxel 接入 + v0.5.1 P2 isometric 清理 + v0.5.2 P1 调色板修正 + v0.5.3 P1 纹理调优 + v0.6.0 P3-1 LOS 烟雾天气 + v0.6.1 P3-2 窗户射击弧 + v0.6.2 P3-3 散兵坑战壕 + v0.6.3 P3-4 AI 侦察行为 + v0.6.4 P3-5 AI 心理模型
 > **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish Complete (TD-065 + TD-066 both resolved v0.4.11) | v0.5.0 P0: PixVoxel 正交版精灵接入 | v0.5.1 P2: isometric experimental 代码清理**
 
 ---
