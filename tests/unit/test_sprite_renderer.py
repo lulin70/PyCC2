@@ -727,6 +727,9 @@ class TestVPNumeralRendering:
 
     @pytest.fixture()
     def renderer(self, pygame_display):
+        import pygame
+
+        pygame.font.init()
         r = SpriteRenderer()
         r.initialize(pygame_display)
         return r
