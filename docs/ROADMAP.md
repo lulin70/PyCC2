@@ -1,6 +1,6 @@
 # PyCC2 Development Roadmap
 
-**v0.4.7 | July 5, 2026 | Based on DevSquad 7-Role Analysis**
+**v0.6.6 | July 12, 2026 | Based on DevSquad 7-Role Analysis**
 
 > **Current Version**: v0.6.6 | **Tests**: ~5725 (all passing) | **CC2 Fidelity**: ~75% (Visual ~70% / Mechanics ~80%) ⚠️ v0.5.0 P0 PixVoxel 接入 + v0.5.1 P2 isometric 清理 + v0.5.2 P1 调色板修正 + v0.5.3 P1 纹理调优 + v0.6.0 P3-1 LOS 烟雾天气 + v0.6.1 P3-2 窗户射击弧 + v0.6.2 P3-3 散兵坑战壕 + v0.6.3 P3-4 AI 侦察行为 + v0.6.4 P3-5 AI 心理模型 + v0.6.5 P3-6 AI 补给线意识 + v0.6.6 P0-P1 修复
 > **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish Complete (TD-065 + TD-066 both resolved v0.4.11) | v0.5.0 P0: PixVoxel 正交版精灵接入 | v0.5.1 P2: isometric experimental 代码清理**
@@ -281,7 +281,8 @@ The project now has **~3985 passing tests**, **63 historical maps**, **277 unit 
 | **v0.4.0** | **Beta Candidate** | **M3** | **~88%** | **~3985** | **ThemeManager, env audio, dirty rect, SRP splits, security** | ✅ **Current** |
 | v0.4.7 | Doc Sync | M3 | ~88% (偏高) | ~4598 | TD-027 关闭 + TD-026 评估 + 文档状态同步 (PRD/ROADMAP/GAP/TECH_DEBT) | ✅ Current |
 | **v0.4.16** | **Code Audit** | **M3** | **~65%** (代码审核) | **~5400** | **严格代码审核修正还原度数据 + ruff/scipy修复 + CI全绿** | ✅ Completed |
-| **v0.5.0** | **PixVoxel P0** | **M3** | **~72%** (PixVoxel 接入) | **~5400** | **P0: PixVoxel Blank 正交版精灵接入游戏循环 (3968精灵, 14/18单位覆盖) + TD-042 RESOLVED + D13-N3 RESOLVED** | ✅ **Current** |
+| **v0.5.0** | **PixVoxel P0** | **M3** | **~72%** (PixVoxel 接入) | **~5725** | **P0: PixVoxel Blank 正交版精灵接入游戏循环 (3968精灵, 14/18单位覆盖) + TD-042 RESOLVED + D13-N3 RESOLVED** | ✅ Completed |
+| **v0.6.6** | **P0-P1 Fix** | **M3** | **~75%** (P3 全完成) | **~5725** | **P3-1~P3-6 全部完成 + P0-P1 修复 (flaky 测试隔离 + CI deselect 移除 + 覆盖率评估)** | ✅ **Current** |
 | v0.4-alpha | Polish Complete | M3-final | ~90% | 4000 | Command queue UI + Save/Load UI ✅ / Damage visuals + Smoke deferred to v0.5 | 🟡 Partial (3/5 done, 2 deferred) |
 | v0.5-alpha | Maintainable | M4 | ~92% | 4100 | Architecture refactor + Tech debt cleanup | 🟡 Partial (7/9 M4 tasks done) |
 | v0.6-alpha | Sustainable | M5 | ~95% | 4200 | CI enhancement + Docs + E2E expansion | ⬜ Planned |
@@ -355,9 +356,9 @@ We welcome community contributions to any milestone:
 
 ---
 
-**Document Version**: 0.5.0
+**Document Version**: 0.6.6
 **Created**: 2026-05-19
-**Updated**: 2026-07-10
-**Status**: Beta Candidate — M3 Visual Polish Complete; v0.5.0 P0 PixVoxel 正交版精灵接入（视觉 52%→67%）
-**Next Review**: P2 清理 isometric 幽灵功能 → P1 地形贴图 → P3 机制细节
+**Updated**: 2026-07-12
+**Status**: Beta Candidate — P0-P3 全部完成; v0.6.6 P0-P1 修复（flaky 测试隔离 + CI deselect 移除）
+**Next Review**: 覆盖率提升至 70% + 大文件评估 + docs 归档
 **Related Documents**: [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) | [TECH_DEBT.md](docs/TECH_DEBT.md) | [VISUAL_FIDELITY_IMPROVEMENT_PLAN.md](VISUAL_FIDELITY_IMPROVEMENT_PLAN.md)

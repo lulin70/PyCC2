@@ -11,9 +11,9 @@
 | 版本号 | 0.6.6 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
 | 源码模块数 | 390 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
 | 测试文件数 | 177 个 `.py` 文件（unit 138 / integration 7 / e2e 25 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 5400 passed / 0 failed / 21 skipped (v0.4.12 基线，含 TD-065+TD-066 M3 视觉打磨 27 新测) | `pytest tests/ -p no:randomly` |
+| 测试用例数 | 5725 passed / 0 failed / 21 skipped (v0.6.6 基线，含 P3-1~P3-6 全部功能 + P0-P1 修复) | `pytest tests/ -p no:randomly` |
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=60`（已恢复目标值） | `.github/workflows/ci.yml` |
-| 实际覆盖率 | 60.05% (44170 stmts, 15918 missed，含 branch coverage) | `pytest tests/unit/ --cov=src/pycc2 --cov-report=term` |
+| 实际覆盖率 | 63.48% (42764 stmts, 13867 missed，含 branch coverage) | `pytest tests/unit/ --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |
 | mypy | 0 errors (389 files, check_untyped_defs=true 已启用) | `MYPYPATH=src mypy -p pycc2` |
 | Bandit | 0 Medium / 0 High | `bandit -r src/ -ll --skip B101,B311,B601` |

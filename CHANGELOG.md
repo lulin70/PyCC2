@@ -8,7 +8,7 @@ All notable changes to PyCC2 will be documented in this file.
 
 - **根因**: pytest 按字母序收集目录（acceptance → benchmark → e2e → integration → unit），benchmark 测试污染 pygame 字体全局缓存，导致后续 unit 测试中 `pygame.font.Font(None, 52)` 渲染失败
 - **修复**: 在 `tests/unit/test_sprite_renderer.py` 的 `renderer` fixture 中添加 `pygame.font.init()` 重新初始化字体系统
-- **验证**: 全量 `pytest tests/` 5709 passed, 21 skipped, 0 failures
+- **验证**: 全量 `pytest tests/ -m "not slow"` 5709 passed, 21 skipped, 0 failures（含 slow 共 5725 passed）
 
 ### P0-2: 移除 CI deselect 临时措施
 
