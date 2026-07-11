@@ -208,13 +208,15 @@ git push origin main
   - Top 10 清单已添加到 TECH_DEBT.md §七
 - **发现**: test_spatial_hash.py 性能测试 flaky（spatial hash vs linear scan），重新运行通过，记录但不在本次修复范围
 
-### Phase 6: 全量验证
+### Phase 6: 全量验证 ✅ (2026-07-12)
 
-（待执行）
+- `ruff check .`: **All checks passed!** ✅
+- `pytest tests/ -m "not slow"`: **5709 passed, 21 skipped, 16 deselected, 0 failed** (62.06s) ✅
 
-### Phase 7: Git 推送
+### Phase 7: Git 推送 ✅ (2026-07-12)
 
-（待执行）
+- Commit: `5e58c6c chore(v0.6.6): P2-P3 修复 — 文档归档 + CI/Docker 清理 + 产物清理`
+- Push: `81ef1a6..5e58c6c main -> main` ✅
 
 ---
 
