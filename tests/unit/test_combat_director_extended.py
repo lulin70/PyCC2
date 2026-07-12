@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import os
 from collections import deque
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock
 
 import pytest
 
@@ -473,20 +473,22 @@ class TestHandlePlayerCommandDeploySmoke:
         assert all(e["type"] != "smoke" for e in dc._pending_effects)
 
     def test_deploy_smoke_with_capability_and_successful_deploy(self):
-        """When AmmoInventory.deploy_smoke returns truthy, smoke effect is queued."""
+        """When unit.ammo_inventory.deploy_smoke returns truthy, smoke effect is queued."""
         dc, _ = _make_director()
         unit = _make_unit("u1", Faction.ALLIES)
         unit.can_use_smoke = True
         game_map = _make_game_map()
 
-        from pycc2.domain.systems.ammo_type_system import AmmoInventory
+        # Source calls unit.ammo_inventory.deploy_smoke((tc.x, tc.y)).
+        ammo_inv = Mock(name="ammo_inventory")
+        ammo_inv.deploy_smoke = Mock(return_value={"position": (5, 5)})
+        unit.ammo_inventory = ammo_inv
 
-        with patch.object(AmmoInventory, "deploy_smoke", return_value={"position": (5, 5)}):
-            dc.handle_player_command(
-                {"command": "deploy_smoke", "unit_ids": ["u1"]},
-                [unit],
-                game_map,
-            )
+        dc.handle_player_command(
+            {"command": "deploy_smoke", "unit_ids": ["u1"]},
+            [unit],
+            game_map,
+        )
 
         smoke_effects = [e for e in dc._pending_effects if e["type"] == "smoke"]
         assert len(smoke_effects) == 1
@@ -494,42 +496,48 @@ class TestHandlePlayerCommandDeploySmoke:
         assert unit.combat_state.concealment.in_smoke is True
 
     def test_deploy_smoke_continues_on_deploy_exception(self):
-        """When AmmoInventory.deploy_smoke raises, smoke effect is still queued
+        """When unit.ammo_inventory.deploy_smoke raises, smoke effect is still queued
         (exception is caught and visual effect proceeds)."""
         dc, _ = _make_director()
         unit = _make_unit("u1", Faction.ALLIES)
         unit.can_use_smoke = True
         game_map = _make_game_map()
 
-        from pycc2.domain.systems.ammo_type_system import AmmoInventory
+        # Source wraps ammo_inv.deploy_smoke() in try/except; raising here
+        # exercises the except branch (visual effect still proceeds).
+        ammo_inv = Mock(name="ammo_inventory")
+        ammo_inv.deploy_smoke = Mock(side_effect=RuntimeError("boom"))
+        unit.ammo_inventory = ammo_inv
 
-        with patch.object(AmmoInventory, "deploy_smoke", side_effect=RuntimeError("boom")):
-            dc.handle_player_command(
-                {"command": "deploy_smoke", "unit_ids": ["u1"]},
-                [unit],
-                game_map,
-            )
+        dc.handle_player_command(
+            {"command": "deploy_smoke", "unit_ids": ["u1"]},
+            [unit],
+            game_map,
+        )
 
         smoke_effects = [e for e in dc._pending_effects if e["type"] == "smoke"]
         assert len(smoke_effects) == 1
         assert unit.combat_state.concealment.in_smoke is True
 
     def test_deploy_smoke_skips_when_deploy_returns_falsy(self):
-        """When AmmoInventory.deploy_smoke returns None/False, the unit is skipped
-        (continue) and no smoke effect is queued."""
+        """When unit.ammo_inventory.deploy_smoke returns None/False, the unit is
+        skipped (continue) and no smoke effect is queued."""
         dc, _ = _make_director()
         unit = _make_unit("u1", Faction.ALLIES)
         unit.can_use_smoke = True
         game_map = _make_game_map()
 
-        from pycc2.domain.systems.ammo_type_system import AmmoInventory
+        # Source checks unit.ammo_inventory attribute (not AmmoInventory class
+        # method). Attach a mock ammo_inventory whose deploy_smoke returns None.
+        ammo_inv = Mock(name="ammo_inventory")
+        ammo_inv.deploy_smoke = Mock(return_value=None)
+        unit.ammo_inventory = ammo_inv
 
-        with patch.object(AmmoInventory, "deploy_smoke", return_value=None):
-            dc.handle_player_command(
-                {"command": "deploy_smoke", "unit_ids": ["u1"]},
-                [unit],
-                game_map,
-            )
+        dc.handle_player_command(
+            {"command": "deploy_smoke", "unit_ids": ["u1"]},
+            [unit],
+            game_map,
+        )
 
         smoke_effects = [e for e in dc._pending_effects if e["type"] == "smoke"]
         assert len(smoke_effects) == 0

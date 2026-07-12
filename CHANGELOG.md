@@ -2,6 +2,29 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.6.7 — TD-COV-BUG 修复 (patch, 2026-07-12)
+
+### Fixed: 9 项覆盖率提升过程中发现的源码 bug
+
+- **deployment_manager #1/#2**: complete()/_pre_create_ai_units() 阵营硬编码 `Faction.ALLIES`/`Faction.AXIS`，未使用 start() 传入的 faction。玩家选 axis 阵营时现在正确识别
+- **game_loop_combat #3**: `_process_combat_popups` 检查 `weapon_state.name == "EMPTY"` 但真实 WeaponState 枚举使用 `OUT_OF_AMMO`，导致弹药耗尽 popup 永不触发
+- **turn_service #4**: `_advance_turn()` 在 max_turns 检查前提前 return，导致最后一回合不发布 TurnEndedEvent
+- **combat_director #5**: `deploy_smoke` 参数错位（unit 当 self，game_map 当 position 元组），改为使用 `unit.ammo_inventory.deploy_smoke((tc.x, tc.y))`
+- **combat_director #6**: `process_movements` 中 `Vec2(new_x, new_y)` 死代码删除
+- **hud_manager #7**: `on_hold`/`on_dig_in` 死代码删除（已被 `on_defend` 替代）
+- **combat_service #8**: `get_angle_description` FRONT_FLANK 返回 "Front-Frontal"（笔误）→ "Front-Flank"
+- **lighting_effects #9**: `spawn_dynamic_light` 接收 Vec2 但 `render_dynamic_lights` 用 `pos[0]` 下标访问，Vec2 不支持下标。修复 #1/#2 后 axis 玩家阵营正确触发 AI 攻击暴露此 bug
+
+### Changed
+
+- 7 个测试断言从旧 bug 行为改为修复后正确行为（4 个测试文件：test_combat_service / test_turn_service / test_game_loop_combat / test_combat_director_extended）
+- 版本号同步更新：VERSION / pyproject.toml / __init__.py / 三语言 README / PROJECT_STATUS / TECH_DEBT / ROADMAP / CHANGELOG / TD-COV-BUG_FIX_PLAN / COVERAGE_IMPROVEMENT_PLAN
+
+### Verification
+
+- ruff: 0 errors
+- pytest: 6178 passed / 0 failed / 21 skipped (not slow + no:randomly)
+
 ## v0.6.6 — P0-P1 修复 (patch, 2026-07-12)
 
 ### P0-1: 修复 flaky 测试隔离

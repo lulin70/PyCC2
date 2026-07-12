@@ -224,12 +224,10 @@ class CombatDirector:
                 if hasattr(unit, "weapon") and unit.weapon:
                     # Deploy smoke effect
                     try:
-                        from pycc2.domain.systems.ammo_type_system import AmmoInventory
-
-                        # Check if AmmoInventory has smoke deployment
-                        deploy_smoke = getattr(AmmoInventory, "deploy_smoke", None)
-                        if deploy_smoke is not None:
-                            success = deploy_smoke(unit, self._game_map)
+                        ammo_inv = getattr(unit, "ammo_inventory", None)
+                        if ammo_inv is not None and hasattr(ammo_inv, "deploy_smoke"):
+                            tc = unit.position.tile_coord
+                            success = ammo_inv.deploy_smoke((tc.x, tc.y))
                             if not success:
                                 logger.warning(
                                     "[SMOKE] Failed to deploy smoke for %s",
@@ -569,7 +567,6 @@ class CombatDirector:
                 ratio = move_pixels / dist
                 new_x = current_vec.x + diff_x * ratio
                 new_y = current_vec.y + diff_y * ratio
-                Vec2(new_x, new_y)
                 tile_x = int(new_x // ts)
                 tile_y = int(new_y // ts)
                 unit.position.tile_coord = TileCoord(tile_x, tile_y)

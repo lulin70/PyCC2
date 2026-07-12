@@ -200,7 +200,7 @@ class TestGetAngleDescription:
             (AttackAngle.FLANK_LEFT, "Left Flank"),
             (AttackAngle.FLANK_RIGHT, "Right Flank"),
             (AttackAngle.REAR, "Rear"),
-            (AttackAngle.FRONT_FLANK, "Front-Frontal"),
+            (AttackAngle.FRONT_FLANK, "Front-Flank"),
         ],
     )
     def test_known_descriptions(self, angle: AttackAngle, expected: str) -> None:

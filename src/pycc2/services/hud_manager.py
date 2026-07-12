@@ -181,26 +181,6 @@ class HUDManager:
                             f"[ATTACK LINE] Started from {selected_unit.display_name} at ({source_pos.x:.0f},{source_pos.y:.0f})"
                         )
 
-        def on_hold():
-            if sound_system:
-                sound_system.play_ui_command()
-            event_bus.publish(
-                PlayerCommand(
-                    command="defend",
-                    unit_ids=list(state.selected_unit_ids),
-                )
-            )
-
-        def on_dig_in():
-            if sound_system:
-                sound_system.play_ui_command()
-            event_bus.publish(
-                PlayerCommand(
-                    command="take_cover",
-                    unit_ids=list(state.selected_unit_ids),
-                )
-            )
-
         def on_cancel():
             if sound_system:
                 sound_system.play(SoundType.UI_CANCEL)

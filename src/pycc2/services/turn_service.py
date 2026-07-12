@@ -124,15 +124,15 @@ class TurnService:
         for callback in self._turn_end_callbacks:
             callback()
 
-        if self.state.max_turns and self.state.current_turn > self.state.max_turns:
-            self._logger.info(f"Turn limit reached: {self.state.max_turns}")
-            return
-
         self.event_bus.publish(
             TurnEndedEvent(
                 turn_number=self.state.current_turn - 1,
             )
         )
+
+        if self.state.max_turns and self.state.current_turn > self.state.max_turns:
+            self._logger.info(f"Turn limit reached: {self.state.max_turns}")
+            return
 
         self.state.current_faction_index = (self.state.current_faction_index + 1) % len(
             self.state.turn_order

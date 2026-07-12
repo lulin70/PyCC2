@@ -114,12 +114,12 @@ class GameLoopCombatMixin:
             if unit.weapon is not None:
                 weapon_state = unit.weapon.state
                 if weapon_state is not None:
-                    if weapon_state.name == "EMPTY" and not getattr(
+                    if weapon_state.name == "OUT_OF_AMMO" and not getattr(
                         unit, "_ammo_popup_shown", False
                     ):
                         self._popup_manager.add_out_of_ammo(px, py)
                         unit._ammo_popup_shown = True
-                    elif weapon_state.name != "EMPTY":
+                    elif weapon_state.name != "OUT_OF_AMMO":
                         unit._ammo_popup_shown = False
 
         # Check for KIA (newly dead units)

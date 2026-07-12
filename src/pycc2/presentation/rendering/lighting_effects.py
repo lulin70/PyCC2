@@ -319,6 +319,11 @@ class LightingEffectsSystem:
         MAX_RADIUS = 200
         capped_radius = min(radius, MAX_RADIUS)
 
+        # Normalize position to tuple — callers may pass Vec2 (which does not
+        # support subscript access in render_dynamic_lights).
+        if hasattr(position, "x") and hasattr(position, "y"):
+            position = (int(position.x), int(position.y))
+
         self._dynamic_lights.append(
             {
                 "position": position,

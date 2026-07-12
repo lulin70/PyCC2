@@ -1,17 +1,17 @@
 # PyCC2 项目状态
 
 > **最后更新**: 2026-07-12
-> **版本**: v0.6.6
+> **版本**: v0.6.7
 > **状态**: Beta Candidate — 完全可玩
 
 ## 核心指标
 
 | 指标 | 数值 | 来源 |
 |------|------|------|
-| 版本号 | 0.6.6 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
+| 版本号 | 0.6.7 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
 | 源码模块数 | 390 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
 | 测试文件数 | 177 个 `.py` 文件（unit 138 / integration 7 / e2e 25 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 6177 passed / 1 pre-existing failed / 21 skipped (v0.6.6 覆盖率提升后，not slow 基线，新增 469 tests) | `pytest tests/ -m "not slow"` |
+| 测试用例数 | 6178 passed / 0 failed / 21 skipped (v0.6.7 TD-COV-BUG 修复后，not slow + no:randomly 基线) | `pytest tests/ -m "not slow" -p no:randomly` |
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=60`（已恢复目标值） | `.github/workflows/ci.yml` |
 | 实际覆盖率 | 72.64% (42764 stmts, 10107 missed，含 branch coverage，目标 70% 已达成) | `pytest tests/ -m "not slow" --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |
@@ -159,6 +159,20 @@ DDD 4 层结构（domain / infrastructure / presentation / services），390 模
 - **P1-7 CHANGELOG 测试数口径统一**: D10/D9 entry 表述统一为 `unit XXXX passed`，明确区分 unit-only 与 unit+e2e 累计口径
 - **P1-1 ghost 模块确认**: 后台 agent 核查 12 个候选模块，确认 11 ghost + 1 scripts-only（pixvoxel_loader），结果记录到 ASSESSMENT_D12_MATURITY.md 维度5；Phase 1 不执行删除（高风险），留到 Phase 3 集中清理
 - Verification: 文档级修改，无源码变更
+
+### D12 P0 TD-COV-BUG 修复 — 9 项覆盖率提升发现的源码 bug 全部修复 (2026-07-12)
+- 修复覆盖率提升过程中按 DevSquad Testing Iron Rules 记录的 9 项源码 bug (Iron Rule 2: 修复源码而非测试):
+  - `deployment_manager.py` complete()/_pre_create_ai_units() 阵营硬编码 (Bug #1/#2) — 玩家选 axis 阵营时正确识别
+  - `game_loop_combat.py` _process_combat_popups "EMPTY"→"OUT_OF_AMMO" (Bug #3) — 弹药耗尽 popup 现在正确触发
+  - `turn_service.py` _advance_turn() 事件发布顺序 (Bug #4) — 最后一回合发布 TurnEndedEvent
+  - `combat_director.py` deploy_smoke 参数错位 (Bug #5) — 使用 unit.ammo_inventory.deploy_smoke((tc.x, tc.y))
+  - `combat_director.py` process_movements Vec2 死代码删除 (Bug #6)
+  - `hud_manager.py` on_hold/on_dig_in 死代码删除 (Bug #7)
+  - `combat_service.py` get_angle_description "Front-Frontal"→"Front-Flank" (Bug #8)
+  - `lighting_effects.py` spawn_dynamic_light Vec2 不支持下标 (Bug #9) — 修复 #1/#2 后暴露
+- 测试断言更新: 7 个测试断言从旧 bug 行为改为修复后正确行为 (4 个测试文件)
+- Verification: ruff 0 errors / pytest 6178 passed / 0 failed / 21 skipped (not slow + no:randomly)
+- **方案文档**: [TD-COV-BUG_FIX_PLAN.md](TD-COV-BUG_FIX_PLAN.md)
 
 ### D12 P0 源码 bug 修复 — 12 个文档化 bug 全部修复 (2026-07-04)
 - 修复 12 个在覆盖率提升过程中文档化的源码 bug (Iron Rule 2: 修复源码而非测试):

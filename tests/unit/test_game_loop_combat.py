@@ -451,16 +451,14 @@ class TestProcessCombatPopups:
         host._process_combat_popups()
         popup_mgr.add_breaking.assert_called_once_with(0.0, 0.0)
 
-    def test_out_of_ammo_popup_with_empty_weapon(self):
-        # NOTE: real WeaponState enum uses "OUT_OF_AMMO", not "EMPTY". The
-        # source checks weapon_state.name == "EMPTY", so a real WeaponComponent
-        # never triggers this branch (see bug report). A mock weapon with
-        # state.name == "EMPTY" is used here to exercise the code path as
-        # written.
+    def test_out_of_ammo_popup_with_out_of_ammo_weapon(self):
+        # Source correctly checks weapon_state.name == "OUT_OF_AMMO" (matches
+        # real WeaponState enum). A mock weapon with state.name == "OUT_OF_AMMO"
+        # exercises the popup branch.
         unit = _make_real_unit("u1", tile_x=5, tile_y=5, morale=85)
         mock_weapon = Mock(name="weapon")
         mock_state = Mock(name="weapon_state")
-        mock_state.name = "EMPTY"
+        mock_state.name = "OUT_OF_AMMO"
         mock_weapon.state = mock_state
         unit.weapon = mock_weapon
 
@@ -475,7 +473,7 @@ class TestProcessCombatPopups:
         unit = _make_real_unit("u1", morale=85)
         mock_weapon = Mock(name="weapon")
         mock_state = Mock(name="weapon_state")
-        mock_state.name = "EMPTY"
+        mock_state.name = "OUT_OF_AMMO"
         mock_weapon.state = mock_state
         unit.weapon = mock_weapon
 
@@ -485,8 +483,8 @@ class TestProcessCombatPopups:
         host._process_combat_popups()  # already shown → should not repeat
         popup_mgr.add_out_of_ammo.assert_called_once()
 
-    def test_ammo_popup_reset_when_weapon_not_empty(self):
-        # Real WeaponComponent in READY state → state.name == "READY" (!= "EMPTY")
+    def test_ammo_popup_reset_when_weapon_not_out_of_ammo(self):
+        # Real WeaponComponent in READY state → state.name == "READY" (!= "OUT_OF_AMMO")
         # → the elif branch resets _ammo_popup_shown to False.
         unit = _make_real_unit("u1", morale=85, ammo=120)  # READY weapon
         unit._ammo_popup_shown = True  # pretend it was shown previously

@@ -490,17 +490,17 @@ class TestAdvanceTurn:
         # End callbacks ARE called before the max_turns check
         assert end_calls == ["ended"]
 
-    def test_advance_turn_at_max_turns_no_turn_ended_event(self):
-        """When max_turns reached, neither TurnEndedEvent nor TurnStartedEvent
-        is published — only turn_end_callbacks fire. This is the current
-        source behavior (see bug note in report)."""
+    def test_advance_turn_at_max_turns_publishes_ended_not_started(self):
+        """When max_turns reached, TurnEndedEvent IS published (turn just ended)
+        but TurnStartedEvent is NOT (no next turn begins). turn_end_callbacks
+        also fire before the max_turns check."""
         bus = StubEventBus()
         svc = TurnService(event_bus=bus, max_turns=1)
         for _ in range(4):
             svc.advance_phase()
         ended_events = _turn_ended_events(bus)
         started_events = _turn_started_events(bus)
-        assert ended_events == []
+        assert len(ended_events) == 1
         assert started_events == []
 
 
@@ -935,10 +935,11 @@ class TestTurnServiceFullFlow:
 
         svc.end_current_turn()
 
-        # max_turns=1 reached; no TurnStartedEvent, no TurnEndedEvent
+        # max_turns=1 reached; TurnEndedEvent published (turn just ended),
+        # but TurnStartedEvent is NOT (no next turn begins).
         started = _turn_started_events(bus)
         ended = _turn_ended_events(bus)
         assert started == []
-        assert ended == []
+        assert len(ended) == 1
         assert svc.state.current_turn == 2
         assert svc.is_turn_limit_reached is True

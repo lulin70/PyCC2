@@ -55,6 +55,7 @@ class DeploymentManager:
     deployment_ui: IDeploymentUI | None = None
     deployment_phase_active: bool = False
     attacker_faction: str = "allied"
+    player_faction: str = "ally"
     _ai_deployments: list[dict] = field(init=False, default_factory=list)
     _ai_units: list = field(init=False, default_factory=list)
     _pending_orders: dict[str, tuple[int, int]] = field(init=False, default_factory=dict)
@@ -169,6 +170,7 @@ class DeploymentManager:
 
             # Determine attacker faction from scenario data (G6)
             self.attacker_faction = self._detect_attacker_faction(map_data, faction)
+            self.player_faction = faction
 
             # Calculate requisition points with faction asymmetry (G6)
             # Attacker gets more RP (must advance and capture VLs)
@@ -313,8 +315,8 @@ class DeploymentManager:
         # Resolve enums once
         from pycc2.domain.entities.unit import Faction, UnitType
 
-        player_faction = Faction.ALLIES
-        ai_faction = Faction.AXIS
+        player_faction = Faction.ALLIES if self.player_faction in ("ally", "allied") else Faction.AXIS
+        ai_faction = Faction.AXIS if player_faction == Faction.ALLIES else Faction.ALLIES
 
         # Build runtime type map (string -> UnitType enum)
         type_map = {k: getattr(UnitType, v) for k, v in self._TYPE_MAP.items()}
@@ -603,8 +605,8 @@ class DeploymentManager:
 
         from pycc2.domain.entities.unit import Faction, UnitType
 
-        # Determine AI faction enum (consistent with complete())
-        ai_faction = Faction.AXIS
+        # Determine AI faction enum based on enemy_faction (TD-COV-BUG #2)
+        ai_faction = Faction.ALLIES if enemy_faction in ("allied", "allies") else Faction.AXIS
 
         # Build runtime type maps
         type_map = {k: getattr(UnitType, v) for k, v in self._TYPE_MAP.items()}
