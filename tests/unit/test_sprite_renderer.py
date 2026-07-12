@@ -734,6 +734,24 @@ class TestVPNumeralRendering:
         r.initialize(pygame_display)
         return r
 
+    @pytest.fixture(autouse=True)
+    def _freeze_vl_pulse_time(self):
+        """Freeze time.time() so pulse_alpha is deterministically 255.
+
+        Without this, pulse_alpha oscillates 200..255 based on real wall
+        clock, and at low alpha the gold text blends toward the background
+        enough to fall outside the _count_gold_pixels tolerance — producing
+        flaky failures on CI runners.
+        """
+        import math as _math
+
+        t_fixed = _math.pi / 4  # sin(pi/2)=1 → pulse_alpha=int(200+55*1)=255
+        with patch(
+            "pycc2.presentation.rendering.vl_flag_rendering_mixin.time.time",
+            return_value=t_fixed,
+        ):
+            yield
+
     def _count_gold_pixels(self, surface, x_range, y_range, tolerance=40):
         """Count pixels close to CC2 gold (255, 220, 100)."""
         gold = (255, 220, 100)
