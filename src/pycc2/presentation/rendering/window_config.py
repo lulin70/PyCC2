@@ -53,11 +53,19 @@ class WindowManager:
         # SCALED + DOUBLEBUF with native vsync (pygame 2.2+).
         # HWSURFACE is deprecated in SDL2 and causes flickering on macOS — removed.
         flags = pygame.SCALED | pygame.RESIZABLE | pygame.DOUBLEBUF
-        self._screen = pygame.display.set_mode(
-            (self.display_info.base_width, self.display_info.base_height),
-            flags,
-            vsync=1,
-        )
+        try:
+            self._screen = pygame.display.set_mode(
+                (self.display_info.base_width, self.display_info.base_height),
+                flags,
+                vsync=1,
+            )
+        except pygame.error:
+            # Headless environments (CI, SDL_VIDEODRIVER=dummy) lack a GPU
+            # renderer and cannot honour SCALED+vsync. Fall back to plain
+            # set_mode so tests and headless rendering still work.
+            self._screen = pygame.display.set_mode(
+                (self.display_info.base_width, self.display_info.base_height),
+            )
         pygame.display.set_caption("PyCC2 - Close Combat 2 Remake")
         return self._screen
 

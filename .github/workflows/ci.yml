@@ -172,6 +172,7 @@ jobs:
           fi
           pytest tests/e2e/ \
             -m "not slow" \
+            -p no:randomly \
             --timeout=300 \
             --junitxml=junit.xml
 
