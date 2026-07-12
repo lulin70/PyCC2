@@ -565,7 +565,9 @@ class TestExecuteAttackFull:
     def test_execute_attack_normal_hit_publishes_events_and_damage(self):
         dc, bus = _make_director()
         dc.ballistic_engine = Mock()
-        dc.ballistic_engine.calculate_shot = Mock(return_value=_make_shot_result(hit=True, damage=25.0))
+        dc.ballistic_engine.calculate_shot = Mock(
+            return_value=_make_shot_result(hit=True, damage=25.0)
+        )
         dc._game_map = _make_game_map()
         attacker = _make_unit("a1", Faction.ALLIES, 5, 5, weapon_id="rifle")
         target = _make_unit("e1", Faction.AXIS, 6, 5)
@@ -649,74 +651,104 @@ class TestExecuteAttackFull:
     def test_execute_attack_weapon_type_shell_for_tank_cannon(self):
         dc, bus = _make_director()
         dc.ballistic_engine = Mock()
-        dc.ballistic_engine.calculate_shot = Mock(return_value=_make_shot_result(hit=True, damage=50.0))
+        dc.ballistic_engine.calculate_shot = Mock(
+            return_value=_make_shot_result(hit=True, damage=50.0)
+        )
         dc._game_map = _make_game_map()
         attacker = _make_unit("a1", Faction.ALLIES, weapon_id="tank_cannon")
         target = _make_unit("e1", Faction.AXIS, 6, 5)
 
         dc.execute_attack(attacker, target)
 
-        pf = next(e for e in bus.published if isinstance(e, dict) and e.get("name") == "ProjectileFired")
+        pf = next(
+            e for e in bus.published if isinstance(e, dict) and e.get("name") == "ProjectileFired"
+        )
         assert pf["data"]["weapon_type"] == "shell"
 
     def test_execute_attack_weapon_type_shell_for_at_gun(self):
         dc, bus = _make_director()
         dc.ballistic_engine = Mock()
-        dc.ballistic_engine.calculate_shot = Mock(return_value=_make_shot_result(hit=True, damage=40.0))
+        dc.ballistic_engine.calculate_shot = Mock(
+            return_value=_make_shot_result(hit=True, damage=40.0)
+        )
         dc._game_map = _make_game_map()
         attacker = _make_unit("a1", Faction.ALLIES, weapon_id="at_gun_57mm")
         target = _make_unit("e1", Faction.AXIS, 6, 5)
 
         dc.execute_attack(attacker, target)
 
-        pf = next(e for e in bus.published if isinstance(e, dict) and e.get("name") == "ProjectileFired")
+        pf = next(
+            e for e in bus.published if isinstance(e, dict) and e.get("name") == "ProjectileFired"
+        )
         assert pf["data"]["weapon_type"] == "shell"
 
     def test_execute_attack_weapon_type_rocket_for_bazooka(self):
         dc, bus = _make_director()
         dc.ballistic_engine = Mock()
-        dc.ballistic_engine.calculate_shot = Mock(return_value=_make_shot_result(hit=True, damage=45.0))
+        dc.ballistic_engine.calculate_shot = Mock(
+            return_value=_make_shot_result(hit=True, damage=45.0)
+        )
         dc._game_map = _make_game_map()
         attacker = _make_unit("a1", Faction.ALLIES, weapon_id="bazooka_m1")
         target = _make_unit("e1", Faction.AXIS, 6, 5)
 
         dc.execute_attack(attacker, target)
 
-        pf = next(e for e in bus.published if isinstance(e, dict) and e.get("name") == "ProjectileFired")
+        pf = next(
+            e for e in bus.published if isinstance(e, dict) and e.get("name") == "ProjectileFired"
+        )
         assert pf["data"]["weapon_type"] == "rocket"
 
     def test_execute_attack_weapon_type_mortar(self):
         dc, bus = _make_director()
         dc.ballistic_engine = Mock()
-        dc.ballistic_engine.calculate_shot = Mock(return_value=_make_shot_result(hit=True, damage=32.0))
+        dc.ballistic_engine.calculate_shot = Mock(
+            return_value=_make_shot_result(hit=True, damage=32.0)
+        )
         dc._game_map = _make_game_map()
         attacker = _make_unit("a1", Faction.ALLIES, weapon_id="81mm_mortar")
         target = _make_unit("e1", Faction.AXIS, 6, 5)
 
         dc.execute_attack(attacker, target)
 
-        pf = next(e for e in bus.published if isinstance(e, dict) and e.get("name") == "ProjectileFired")
+        pf = next(
+            e for e in bus.published if isinstance(e, dict) and e.get("name") == "ProjectileFired"
+        )
         assert pf["data"]["weapon_type"] == "mortar"
 
     def test_execute_attack_weapon_type_bullet_for_mg(self):
         dc, bus = _make_director()
         dc.ballistic_engine = Mock()
-        dc.ballistic_engine.calculate_shot = Mock(return_value=_make_shot_result(hit=True, damage=30.0))
+        dc.ballistic_engine.calculate_shot = Mock(
+            return_value=_make_shot_result(hit=True, damage=30.0)
+        )
         dc._game_map = _make_game_map()
         attacker = _make_unit("a1", Faction.ALLIES, weapon_id="mg42")
         target = _make_unit("e1", Faction.AXIS, 6, 5)
 
         dc.execute_attack(attacker, target)
 
-        pf = next(e for e in bus.published if isinstance(e, dict) and e.get("name") == "ProjectileFired")
+        pf = next(
+            e for e in bus.published if isinstance(e, dict) and e.get("name") == "ProjectileFired"
+        )
         assert pf["data"]["weapon_type"] == "bullet"
 
     def test_execute_attack_sound_play_shot_without_camera(self):
         dc, _ = _make_director()
         dc.ballistic_engine = Mock()
-        dc.ballistic_engine.calculate_shot = Mock(return_value=_make_shot_result(hit=True, damage=25.0))
+        dc.ballistic_engine.calculate_shot = Mock(
+            return_value=_make_shot_result(hit=True, damage=25.0)
+        )
         dc._game_map = _make_game_map()
-        sound = Mock(spec=["play_shot", "play_hit", "play_death", "play_footstep", "play_sound_with_distance"])
+        sound = Mock(
+            spec=[
+                "play_shot",
+                "play_hit",
+                "play_death",
+                "play_footstep",
+                "play_sound_with_distance",
+            ]
+        )
         dc.sound_system = sound
         attacker = _make_unit("a1", Faction.ALLIES, weapon_id="rifle")
         target = _make_unit("e1", Faction.AXIS, 6, 5)
@@ -728,9 +760,19 @@ class TestExecuteAttackFull:
     def test_execute_attack_sound_play_sound_with_distance_with_camera(self):
         dc, _ = _make_director()
         dc.ballistic_engine = Mock()
-        dc.ballistic_engine.calculate_shot = Mock(return_value=_make_shot_result(hit=True, damage=25.0))
+        dc.ballistic_engine.calculate_shot = Mock(
+            return_value=_make_shot_result(hit=True, damage=25.0)
+        )
         dc._game_map = _make_game_map()
-        sound = Mock(spec=["play_shot", "play_hit", "play_death", "play_footstep", "play_sound_with_distance"])
+        sound = Mock(
+            spec=[
+                "play_shot",
+                "play_hit",
+                "play_death",
+                "play_footstep",
+                "play_sound_with_distance",
+            ]
+        )
         dc.sound_system = sound
         dc._camera_position = Mock(x=100, y=100)
         attacker = _make_unit("a1", Faction.ALLIES, weapon_id="mg42")
@@ -745,9 +787,19 @@ class TestExecuteAttackFull:
     def test_execute_attack_sound_pistol_with_camera(self):
         dc, _ = _make_director()
         dc.ballistic_engine = Mock()
-        dc.ballistic_engine.calculate_shot = Mock(return_value=_make_shot_result(hit=True, damage=12.0))
+        dc.ballistic_engine.calculate_shot = Mock(
+            return_value=_make_shot_result(hit=True, damage=12.0)
+        )
         dc._game_map = _make_game_map()
-        sound = Mock(spec=["play_shot", "play_hit", "play_death", "play_footstep", "play_sound_with_distance"])
+        sound = Mock(
+            spec=[
+                "play_shot",
+                "play_hit",
+                "play_death",
+                "play_footstep",
+                "play_sound_with_distance",
+            ]
+        )
         dc.sound_system = sound
         dc._camera_position = Mock(x=100, y=100)
         attacker = _make_unit("a1", Faction.ALLIES, weapon_id="pistol_45")
@@ -761,9 +813,19 @@ class TestExecuteAttackFull:
     def test_execute_attack_no_sound_when_fire_returns_false(self):
         dc, _ = _make_director()
         dc.ballistic_engine = Mock()
-        dc.ballistic_engine.calculate_shot = Mock(return_value=_make_shot_result(hit=True, damage=25.0))
+        dc.ballistic_engine.calculate_shot = Mock(
+            return_value=_make_shot_result(hit=True, damage=25.0)
+        )
         dc._game_map = _make_game_map()
-        sound = Mock(spec=["play_shot", "play_hit", "play_death", "play_footstep", "play_sound_with_distance"])
+        sound = Mock(
+            spec=[
+                "play_shot",
+                "play_hit",
+                "play_death",
+                "play_footstep",
+                "play_sound_with_distance",
+            ]
+        )
         dc.sound_system = sound
         attacker = _make_unit("a1", Faction.ALLIES, weapon_id="rifle")
         attacker.weapon.fire = Mock(return_value=False)  # weapon failed to fire
@@ -930,7 +992,9 @@ class TestProcessEffects:
 
     def test_process_effects_no_renderer_clears_queue(self):
         dc, _ = _make_director()
-        dc._pending_effects.append({"type": "hit", "position": Mock(x=0, y=0), "damage": 10, "target_id": "u1"})
+        dc._pending_effects.append(
+            {"type": "hit", "position": Mock(x=0, y=0), "damage": 10, "target_id": "u1"}
+        )
 
         dc.process_effects(renderer=None)
 
@@ -939,7 +1003,9 @@ class TestProcessEffects:
     def test_process_effects_renderer_without_spawn_hit_flash_clears(self):
         dc, _ = _make_director()
         renderer = Mock(spec=[])  # no spawn_hit_flash attribute
-        dc._pending_effects.append({"type": "hit", "position": Mock(x=0, y=0), "damage": 10, "target_id": "u1"})
+        dc._pending_effects.append(
+            {"type": "hit", "position": Mock(x=0, y=0), "damage": 10, "target_id": "u1"}
+        )
 
         dc.process_effects(renderer=renderer)
 
@@ -998,7 +1064,9 @@ class TestProcessEffects:
         camera.shake.assert_called_once_with(3.0, 0.15)
         renderer.trigger_flash.assert_called_once_with((255, 240, 200), 0.5, 0.15)
         # Explosion event published
-        explosion_events = [e for e in bus.published if isinstance(e, dict) and e.get("name") == "Explosion"]
+        explosion_events = [
+            e for e in bus.published if isinstance(e, dict) and e.get("name") == "Explosion"
+        ]
         assert len(explosion_events) == 1
         assert explosion_events[0]["data"]["intensity"] == 4.0
 
@@ -1053,7 +1121,15 @@ class TestProcessEffects:
     def test_process_effects_hit_with_sound_system(self):
         dc, _ = _make_director()
         renderer = _make_renderer()
-        sound = Mock(spec=["play_shot", "play_hit", "play_death", "play_footstep", "play_sound_with_distance"])
+        sound = Mock(
+            spec=[
+                "play_shot",
+                "play_hit",
+                "play_death",
+                "play_footstep",
+                "play_sound_with_distance",
+            ]
+        )
         dc.sound_system = sound
         pos = Vec2(100, 100)
         dc._pending_effects.append(
@@ -1075,9 +1151,7 @@ class TestProcessEffects:
         dc, _ = _make_director()
         renderer = _make_renderer()
         pos = Vec2(50, 50)
-        dc._pending_effects.append(
-            {"type": "muzzle", "position": pos, "direction": 1.57}
-        )
+        dc._pending_effects.append({"type": "muzzle", "position": pos, "direction": 1.57})
 
         dc.process_effects(renderer=renderer)
 
@@ -1086,12 +1160,18 @@ class TestProcessEffects:
     def test_process_effects_death_effect(self):
         dc, _ = _make_director()
         renderer = _make_renderer()
-        sound = Mock(spec=["play_shot", "play_hit", "play_death", "play_footstep", "play_sound_with_distance"])
+        sound = Mock(
+            spec=[
+                "play_shot",
+                "play_hit",
+                "play_death",
+                "play_footstep",
+                "play_sound_with_distance",
+            ]
+        )
         dc.sound_system = sound
         pos = Vec2(80, 80)
-        dc._pending_effects.append(
-            {"type": "death", "unit_id": "u1", "position": pos}
-        )
+        dc._pending_effects.append({"type": "death", "unit_id": "u1", "position": pos})
 
         dc.process_effects(renderer=renderer)
 
@@ -1102,9 +1182,7 @@ class TestProcessEffects:
         dc, _ = _make_director()
         renderer = _make_renderer()
         pos = Vec2(120, 120)
-        dc._pending_effects.append(
-            {"type": "smoke", "position": pos, "radius": 144.0}
-        )
+        dc._pending_effects.append({"type": "smoke", "position": pos, "radius": 144.0})
 
         dc.process_effects(renderer=renderer)
 
@@ -1208,9 +1286,7 @@ class TestProcessMovements:
             "u1", Faction.ALLIES, 5, 5, pixel_offset=Vec2(24.0, 24.0)
         )
         game_map = _make_game_map()
-        dc._move_orders["u1"] = {
-            "path": deque([TileCoord(5, 5), TileCoord(6, 5)])
-        }
+        dc._move_orders["u1"] = {"path": deque([TileCoord(5, 5), TileCoord(6, 5)])}
 
         dc.process_movements([unit], game_map)
 
@@ -1240,7 +1316,15 @@ class TestProcessMovements:
 
     def test_process_movements_arrival_plays_footstep_terrain_grass(self):
         dc, _ = _make_director()
-        sound = Mock(spec=["play_shot", "play_hit", "play_death", "play_footstep", "play_sound_with_distance"])
+        sound = Mock(
+            spec=[
+                "play_shot",
+                "play_hit",
+                "play_death",
+                "play_footstep",
+                "play_sound_with_distance",
+            ]
+        )
         dc.sound_system = sound
         unit = _make_unit_with_real_position(
             "u1", Faction.ALLIES, 5, 5, pixel_offset=Vec2(24.0, 24.0)
@@ -1257,7 +1341,15 @@ class TestProcessMovements:
 
     def test_process_movements_arrival_plays_footstep_terrain_road(self):
         dc, _ = _make_director()
-        sound = Mock(spec=["play_shot", "play_hit", "play_death", "play_footstep", "play_sound_with_distance"])
+        sound = Mock(
+            spec=[
+                "play_shot",
+                "play_hit",
+                "play_death",
+                "play_footstep",
+                "play_sound_with_distance",
+            ]
+        )
         dc.sound_system = sound
         unit = _make_unit_with_real_position(
             "u1", Faction.ALLIES, 5, 5, pixel_offset=Vec2(24.0, 24.0)
@@ -1273,7 +1365,15 @@ class TestProcessMovements:
 
     def test_process_movements_arrival_plays_footstep_terrain_wood(self):
         dc, _ = _make_director()
-        sound = Mock(spec=["play_shot", "play_hit", "play_death", "play_footstep", "play_sound_with_distance"])
+        sound = Mock(
+            spec=[
+                "play_shot",
+                "play_hit",
+                "play_death",
+                "play_footstep",
+                "play_sound_with_distance",
+            ]
+        )
         dc.sound_system = sound
         unit = _make_unit_with_real_position(
             "u1", Faction.ALLIES, 5, 5, pixel_offset=Vec2(24.0, 24.0)

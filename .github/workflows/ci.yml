@@ -50,8 +50,9 @@ jobs:
 
       - name: Dependency vulnerability audit
         run: |
+          set -o pipefail
           pip install 'pip-audit>=2.7'
-          pip-audit --desc 2>&1 | tee pip-audit-report.txt
+          pip-audit --strict --desc 2>&1 | tee pip-audit-report.txt
 
   unit-tests:
     name: Unit Tests (Python ${{ matrix.python-version }})
@@ -84,7 +85,7 @@ jobs:
             --cov=src/pycc2 \
             --cov-report=xml \
             --cov-report=html \
-            --cov-fail-under=60 \
+            --cov-fail-under=70 \
             --junitxml=junit.xml
 
       - name: Upload coverage to Codecov
@@ -94,7 +95,7 @@ jobs:
           files: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
-          fail_ci_if_error: false
+          fail_ci_if_error: true
 
       - name: Upload test results
         if: always()

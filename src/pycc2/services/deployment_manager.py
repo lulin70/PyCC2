@@ -315,7 +315,9 @@ class DeploymentManager:
         # Resolve enums once
         from pycc2.domain.entities.unit import Faction, UnitType
 
-        player_faction = Faction.ALLIES if self.player_faction in ("ally", "allied") else Faction.AXIS
+        player_faction = (
+            Faction.ALLIES if self.player_faction in ("ally", "allied") else Faction.AXIS
+        )
         ai_faction = Faction.AXIS if player_faction == Faction.ALLIES else Faction.ALLIES
 
         # Build runtime type map (string -> UnitType enum)

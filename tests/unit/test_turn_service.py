@@ -56,9 +56,7 @@ def _turn_ended_events(bus):
     return [
         e
         for e in bus.published
-        if _has_keys(e, {"turn_number"})
-        and "faction" not in e
-        and "old_phase" not in e
+        if _has_keys(e, {"turn_number"}) and "faction" not in e and "old_phase" not in e
     ]
 
 

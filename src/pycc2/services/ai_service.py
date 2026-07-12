@@ -16,7 +16,9 @@ from pycc2.domain.ai.behavior_tree import BTNode, NodeStatus
 from pycc2.domain.ai.blackboard import Blackboard
 from pycc2.domain.ai.counterattack_ai import CounterattackAI
 from pycc2.domain.ai.perception_system import PerceptionSystem
+from pycc2.domain.ai.recon_ai import ReconAI
 from pycc2.domain.ai.retreat_ai import RetreatDecisionAI
+from pycc2.domain.ai.supply_awareness_ai import SupplyAwarenessAI
 from pycc2.domain.ai.tactic_executor import TacticExecutor
 from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
 from pycc2.domain.ai.tactical_ai import (
@@ -82,6 +84,8 @@ class AIService:
         self._tactical_orchestrator.register(ATAmbushAI())
         self._tactical_orchestrator.register(CounterattackAI())
         self._tactical_orchestrator.register(AmbushAI())
+        self._tactical_orchestrator.register(ReconAI())
+        self._tactical_orchestrator.register(SupplyAwarenessAI())
         self._tick_scheduler = AITickScheduler()
         self._current_tick: int = 0
         self._logger = logging.getLogger("pycc2.ai.service")

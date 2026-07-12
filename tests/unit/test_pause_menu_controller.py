@@ -159,9 +159,7 @@ class TestHandleClick:
         assert controller.handle_click((512, 328)) is None
 
     @pytest.mark.parametrize("key", EXPECTED_KEYS)
-    def test_click_inside_each_button_returns_its_key(
-        self, controller, surface, key
-    ):
+    def test_click_inside_each_button_returns_its_key(self, controller, surface, key):
         controller.render(surface)
         rect = controller._buttons[key]
         # Click the rect's center — guaranteed inside.
@@ -174,9 +172,7 @@ class TestHandleClick:
         rect = controller._buttons["resume"]
         assert controller.handle_click((rect.left, rect.top)) == "resume"
 
-    def test_click_inside_button_bottom_right_corner_returns_key(
-        self, controller, surface
-    ):
+    def test_click_inside_button_bottom_right_corner_returns_key(self, controller, surface):
         controller.render(surface)
         rect = controller._buttons["quit_to_menu"]
         # (right-1, bottom-1) is the last interior pixel.
@@ -187,17 +183,13 @@ class TestHandleClick:
         # Top-left corner of the screen — well outside the centered panel.
         assert controller.handle_click((0, 0)) is None
 
-    def test_click_just_outside_button_right_edge_returns_none(
-        self, controller, surface
-    ):
+    def test_click_just_outside_button_right_edge_returns_none(self, controller, surface):
         controller.render(surface)
         rect = controller._buttons["resume"]
         # One pixel past the right edge is not a collision.
         assert controller.handle_click((rect.right, rect.centery)) is None
 
-    def test_click_just_outside_button_bottom_edge_returns_none(
-        self, controller, surface
-    ):
+    def test_click_just_outside_button_bottom_edge_returns_none(self, controller, surface):
         controller.render(surface)
         rect = controller._buttons["save"]
         assert controller.handle_click((rect.centerx, rect.bottom)) is None
@@ -320,9 +312,7 @@ class TestRender:
 
 @pytest.mark.unit
 class TestCombination:
-    def test_toggle_render_click_resume_deactivate_cycle(
-        self, controller, surface
-    ):
+    def test_toggle_render_click_resume_deactivate_cycle(self, controller, surface):
         # 1. Menu is initially inactive.
         assert controller.is_active is False
 
@@ -371,9 +361,7 @@ class TestCombination:
         controller.toggle()
         assert controller.is_active is True
 
-    def test_render_then_update_mouse_then_click_uses_latest_rects(
-        self, controller, surface
-    ):
+    def test_render_then_update_mouse_then_click_uses_latest_rects(self, controller, surface):
         controller.render(surface)
         quit_rect = controller._buttons["quit_to_menu"]
         controller.update_mouse(quit_rect.center)

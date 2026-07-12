@@ -108,6 +108,15 @@ class SwissCheeseEngine:
     _COVER_REDUCTION: float = 0.5
     _MORALE_PINNED_SCALE: float = 0.008
 
+    def __init__(self, rng: random.Random | None = None) -> None:
+        """Initialize engine with optional random number generator.
+
+        Args:
+            rng: Optional random.Random instance. If None, creates a new one.
+                 Tests should pass a seeded rng for reproducible outcomes.
+        """
+        self._rng = rng or random.Random()
+
     def resolve(
         self,
         target: Unit,
@@ -179,13 +188,9 @@ class SwissCheeseEngine:
         self, squad_size: int, kia_prob: float, wia_prob: float, pinned_prob: float
     ) -> list[CasualtyStatus]:
         """Resolve each squad member's status using probability rolls."""
-        rng = random.Random(
-            hash(id(object())) + int(kia_prob * 1000 + wia_prob * 100 + pinned_prob * 10)
-        )
-
         outcomes = []
         for _i in range(squad_size):
-            roll = rng.random()
+            roll = self._rng.random()
             cumulative = kia_prob
             if roll < cumulative:
                 outcomes.append(CasualtyStatus.KIA)

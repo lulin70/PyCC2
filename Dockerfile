@@ -28,5 +28,10 @@ ENV SDL_VIDEODRIVER=dummy
 ENV SDL_AUDIODRIVER=dummy
 ENV PYTHONPATH=/app/src
 
+# Create non-root user for security (P1 fix from v0.6.7 assessment)
+RUN groupadd -r pycc2 && useradd -r -g pycc2 -d /app -s /sbin/nologin pycc2 && \
+    chown -R pycc2:pycc2 /app
+USER pycc2
+
 # Default: run unit tests only (e2e tests require display renderer, see CI workflow)
 CMD ["python", "-m", "pytest", "tests/unit/", "-q", "--tb=short"]

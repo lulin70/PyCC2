@@ -110,11 +110,7 @@ def _make_service(event_bus: StubEventBus | None = None) -> CombatService:
 
 def _named_events(bus: StubEventBus, name: str) -> list[dict]:
     """Return data payloads for publish_named events matching name."""
-    return [
-        e["data"]
-        for e in bus.published
-        if isinstance(e, dict) and e.get("name") == name
-    ]
+    return [e["data"] for e in bus.published if isinstance(e, dict) and e.get("name") == name]
 
 
 def _typed_events(bus: StubEventBus) -> list[dict]:
@@ -444,9 +440,7 @@ class TestExecuteAttack:
         assert attacked[0]["damage"] == 20.0
         assert _typed_events(bus) == []
         # ballistic called with default weapon_slot
-        service.ballistic_engine.calculate_shot.assert_called_once_with(
-            attacker, target, "primary"
-        )
+        service.ballistic_engine.calculate_shot.assert_called_once_with(attacker, target, "primary")
 
     def test_hit_flank_left_applies_1_5x_damage(self) -> None:
         bus = StubEventBus()
@@ -495,7 +489,9 @@ class TestExecuteAttack:
         service.ballistic_engine.calculate_shot.return_value = shot
 
         attacker = FakeUnit("a", Faction.ALLIES, x=5, y=5)
-        target = FakeUnit("t", Faction.AXIS, x=3, y=5, facing=0.0, hp=10, max_hp=100, morale_value=80)
+        target = FakeUnit(
+            "t", Faction.AXIS, x=3, y=5, facing=0.0, hp=10, max_hp=100, morale_value=80
+        )
 
         result = service.execute_attack(attacker, target)
 
@@ -555,9 +551,7 @@ class TestExecuteSuppressionFire:
         assert len(results) == 3
         assert results == shots
         assert service.ballistic_engine.calculate_suppression_shot.call_count == 3
-        service.ballistic_engine.calculate_suppression_shot.assert_called_with(
-            attacker, (10, 10)
-        )
+        service.ballistic_engine.calculate_suppression_shot.assert_called_with(attacker, (10, 10))
 
     def test_custom_burst_size(self) -> None:
         service = _make_service()

@@ -1,18 +1,18 @@
 # PyCC2 项目状态
 
 > **最后更新**: 2026-07-12
-> **版本**: v0.6.7
+> **版本**: v0.6.8
 > **状态**: Beta Candidate — 完全可玩
 
 ## 核心指标
 
 | 指标 | 数值 | 来源 |
 |------|------|------|
-| 版本号 | 0.6.7 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
+| 版本号 | 0.6.8 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
 | 源码模块数 | 390 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
 | 测试文件数 | 177 个 `.py` 文件（unit 138 / integration 7 / e2e 25 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 6178 passed / 0 failed / 21 skipped (v0.6.7 TD-COV-BUG 修复后，not slow + no:randomly 基线) | `pytest tests/ -m "not slow" -p no:randomly` |
-| 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=60`（已恢复目标值） | `.github/workflows/ci.yml` |
+| 测试用例数 | 6178 passed / 0 failed / 21 skipped (v0.6.8 R3 评估修复后，not slow + no:randomly 基线) | `pytest tests/ -m "not slow" -p no:randomly` |
+| 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=70`（v0.6.8 提升） | `.github/workflows/ci.yml` |
 | 实际覆盖率 | 72.64% (42764 stmts, 10107 missed，含 branch coverage，目标 70% 已达成) | `pytest tests/ -m "not slow" --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |
 | mypy | 0 errors (389 files, check_untyped_defs=true 已启用) | `MYPYPATH=src mypy -p pycc2` |

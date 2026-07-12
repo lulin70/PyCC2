@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import random
+
 import numpy as np
 import pytest
 
@@ -38,7 +40,7 @@ def rng() -> RandomContext:
 
 @pytest.fixture
 def sc_engine() -> SwissCheeseEngine:
-    return SwissCheeseEngine()
+    return SwissCheeseEngine(rng=random.Random(42))
 
 
 @pytest.fixture

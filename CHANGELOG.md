@@ -2,6 +2,36 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.6.8 — R3 评估修复 (patch, 2026-07-12)
+
+### Fixed: flaky 测试根因修复
+
+- **SwissCheeseEngine 随机性注入**: `swiss_cheese_damage.py` 的 `_resolve_members` 使用 `hash(id(object()))` 生成完全不可控的随机种子，导致 `test_high_damage_more_kia` 在某些运行中失败。改为通过 `__init__` 构造器注入可选 `rng` 参数（依赖注入模式），测试传入 `random.Random(42)` 固定种子实现可复现结果
+
+### Changed: 幽灵功能接入
+
+- **ReconAI 注册**: `ai_service.py` 新增 `ReconAI()` 注册到 TacticalOrchestrator，P3-4 侦察行为正式接入游戏主循环
+- **SupplyAwarenessAI 注册**: `ai_service.py` 新增 `SupplyAwarenessAI()` 注册到 TacticalOrchestrator，P3-6 补给线意识正式接入游戏主循环
+- **PsychologySystem**: 延期接入（非 TacticalAIBase 子类，集成点在 TacticExecutor.execute()，会改变游戏行为，需独立集成任务）
+
+### CI/CD 安全增强
+
+- **pip-audit --strict**: `ci.yml` 添加 `--strict` 标志 + `set -o pipefail`，安全漏洞将阻断 CI
+- **cov-fail-under 60→70**: CI 覆盖率门禁从 60% 提升至 70%（实际覆盖率 72.64% 已达标）
+- **codecov fail_ci_if_error**: `false` → `true`，Codecov 上传失败将阻断 CI
+- **Dockerfile 非 root 用户**: 已存在 `pycc2` 非 root 用户配置（L31-34），容器以非特权用户运行
+
+### Docs
+
+- 归档 `PROJECT_ASSESSMENT_v0.6.6.md` 和 `PROJECT_ASSESSMENT_v0.6.6_r2.md` 到 `docs/archive/`
+- 新增 `PROJECT_ASSESSMENT_v0.6.7.md` (R3 评估报告，7 维度深度验证，成熟度 ~82%)
+- 版本号同步更新：VERSION / pyproject.toml / __init__.py / 三语言 README / PROJECT_STATUS / TECH_DEBT / ROADMAP / CHANGELOG / COVERAGE_IMPROVEMENT_PLAN / TD-COV-BUG_FIX_PLAN
+
+### Verification
+
+- ruff: 0 errors
+- pytest: 6178 passed / 0 failed / 21 skipped (not slow + no:randomly)
+
 ## v0.6.7 — TD-COV-BUG 修复 (patch, 2026-07-12)
 
 ### Fixed: 9 项覆盖率提升过程中发现的源码 bug

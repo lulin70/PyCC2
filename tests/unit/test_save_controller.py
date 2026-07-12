@@ -662,7 +662,12 @@ class TestRestoreState:
                     "faction": "AXIS",
                     "unit_type": "INFANTRY_SQUAD",
                     "health": {"hp": 100, "max_hp": 100, "state": "HEALTHY"},
-                    "morale": {"value": 85, "panic_threshold": 20, "suppression": 0, "state": "RALLIED"},
+                    "morale": {
+                        "value": 85,
+                        "panic_threshold": 20,
+                        "suppression": 0,
+                        "state": "RALLIED",
+                    },
                     "weapon": {
                         "primary_weapon_id": "rifle",
                         "ammo_remaining": 10,
@@ -707,29 +712,37 @@ class TestRestoreState:
         state = _make_game_state(units=[], camera_pos=(10.0, 20.0), zoom=1.0)
         loop = StubGameLoop(state)
 
-        data = {"tick": 7, "units": [
-            {
-                "id": "x",
-                "faction": "ALLIES",
-                "unit_type": "INFANTRY_SQUAD",
-                "health": {"hp": 100, "max_hp": 100, "state": "HEALTHY"},
-                "morale": {"value": 80, "panic_threshold": 20, "suppression": 0, "state": "RALLIED"},
-                "weapon": {
-                    "primary_weapon_id": "rifle",
-                    "ammo_remaining": 10,
-                    "max_ammo": 10,
-                    "reload_ticks_left": 0,
-                    "state": "READY",
-                },
-                "position": {
-                    "tile_coord": {"x": 0, "y": 0},
-                    "pixel_offset": {"x": 0.0, "y": 0.0},
-                    "facing_rad": 0.0,
-                },
-                "vision": {"range_tiles": 5, "angle_rad": 3.0},
-                "squad_id": None,
-            }
-        ]}
+        data = {
+            "tick": 7,
+            "units": [
+                {
+                    "id": "x",
+                    "faction": "ALLIES",
+                    "unit_type": "INFANTRY_SQUAD",
+                    "health": {"hp": 100, "max_hp": 100, "state": "HEALTHY"},
+                    "morale": {
+                        "value": 80,
+                        "panic_threshold": 20,
+                        "suppression": 0,
+                        "state": "RALLIED",
+                    },
+                    "weapon": {
+                        "primary_weapon_id": "rifle",
+                        "ammo_remaining": 10,
+                        "max_ammo": 10,
+                        "reload_ticks_left": 0,
+                        "state": "READY",
+                    },
+                    "position": {
+                        "tile_coord": {"x": 0, "y": 0},
+                        "pixel_offset": {"x": 0.0, "y": 0.0},
+                        "facing_rad": 0.0,
+                    },
+                    "vision": {"range_tiles": 5, "angle_rad": 3.0},
+                    "squad_id": None,
+                }
+            ],
+        }
         result = controller.restore_state(data, loop)
 
         assert result is True

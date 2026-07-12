@@ -113,9 +113,7 @@ def _make_real_unit(
         unit_type=UnitType.INFANTRY_SQUAD,
         health=HealthComponent(hp=hp, max_hp=max_hp),
         morale=MoraleComponent(value=morale),
-        weapon=WeaponComponent(
-            primary_weapon_id="rifle", ammo_remaining=ammo, max_ammo=max_ammo
-        ),
+        weapon=WeaponComponent(primary_weapon_id="rifle", ammo_remaining=ammo, max_ammo=max_ammo),
         position=PositionComponent(tile_coord=TileCoord(tile_x, tile_y)),
         vision=VisionComponent(),
     )
@@ -252,9 +250,7 @@ class TestOnUnitAttacked:
 class TestOnUnitAttackedForStats:
     def test_no_combat_director_returns_early(self):
         unit = _make_real_unit("u1")
-        host = _make_host(
-            [unit], combat_director=None, victory_manager=Mock()
-        )
+        host = _make_host([unit], combat_director=None, victory_manager=Mock())
         host._on_unit_attacked_for_stats({"attacker_id": "u1", "damage": 10})
         assert host._combat_director is None
 
@@ -270,9 +266,7 @@ class TestOnUnitAttackedForStats:
         unit = _make_real_unit("u1")
         director = Mock(name="combat_director")
         victory_mgr = Mock(name="victory_manager")
-        host = _make_host(
-            [unit], combat_director=director, victory_manager=victory_mgr
-        )
+        host = _make_host([unit], combat_director=director, victory_manager=victory_mgr)
         data = {"attacker_id": "u1", "damage": 25, "killed": False}
         host._on_unit_attacked_for_stats(data)
         director.record_stats.assert_called_once_with(
