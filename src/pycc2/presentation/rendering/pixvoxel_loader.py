@@ -919,6 +919,9 @@ class PixVoxelLoader:
             palette_img = Image.open(str(palette_path))
             palette = palette_img.getpalette()  # [r,g,b,r,g,b,...] 256 colors
 
+            if palette is None:
+                return pygame.image.load(str(sprite_path)).convert_alpha()
+
             # 应用调色板到 Blank PNG
             blank_img.putpalette(palette)
 

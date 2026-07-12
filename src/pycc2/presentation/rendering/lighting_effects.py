@@ -321,8 +321,10 @@ class LightingEffectsSystem:
 
         # Normalize position to tuple — callers may pass Vec2 (which does not
         # support subscript access in render_dynamic_lights).
-        if hasattr(position, "x") and hasattr(position, "y"):
-            position = (int(position.x), int(position.y))
+        x_val = getattr(position, "x", None)
+        y_val = getattr(position, "y", None)
+        if x_val is not None and y_val is not None:
+            position = (int(x_val), int(y_val))
 
         self._dynamic_lights.append(
             {
