@@ -1,5 +1,6 @@
 .git
 .github
+.DS_Store
 __pycache__
 *.pyc
 *.pyo
@@ -12,6 +13,7 @@ build
 .venv
 *.md
 !README.md
-docs/
+docs/*
+!docs/assets
 *.bak
 *.tmp
