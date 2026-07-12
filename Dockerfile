@@ -11,16 +11,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy source code and data files
+# Copy source code, data files, and SVG sprite assets
 COPY src/ src/
 COPY tests/ tests/
 COPY data/ data/
+COPY docs/ docs/
 
 # Copy and install dependencies (layer caching)
 COPY pyproject.toml ./
 RUN pip install --no-cache-dir setuptools wheel && \
     pip install --no-cache-dir --no-build-isolation ".[dev]" || \
-    pip install --no-cache-dir pygame numpy pydantic defusedxml pytest pytest-cov pytest-mock pytest-randomly pytest-timeout freezegun scipy hypothesis
+    pip install --no-cache-dir pygame numpy pydantic defusedxml pytest pytest-cov pytest-mock pytest-randomly pytest-timeout freezegun scipy hypothesis Pillow
 # Fallback retains as install safety net; pyproject.toml [dev] is complete.
 
 # Set environment for headless CI
