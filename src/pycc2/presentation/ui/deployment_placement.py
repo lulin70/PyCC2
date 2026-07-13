@@ -140,7 +140,9 @@ class DeploymentPlacementService:
 
     def _check_unit_limits(self, unit: DeploymentUnit) -> bool:
         ui = self._ui
-        infantry_count = sum(1 for u in ui._state.placed_units if u.unit_type == "infantry")
+        infantry_count = sum(
+            1 for u in ui._state.placed_units if u.unit_type in ("infantry", "recon")
+        )
         support_count = sum(
             1 for u in ui._state.placed_units if u.unit_type in ("support", "vehicle")
         )

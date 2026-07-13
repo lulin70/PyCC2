@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pycc2"
-version = "0.6.8"
+version = "0.6.10"
 description = "PyCC2 - Python Close Combat 2: Tactical Infantry Combat Simulator"
 readme = "README.md"
 license = {text = "MIT"}
@@ -44,6 +44,7 @@ dev = [
     "scipy>=1.12",
     "hypothesis>=6.100",
     "Pillow>=10.0",
+    "radon>=6.0",
 ]
 docs = [
     "sphinx>=7.2",

@@ -54,6 +54,20 @@ jobs:
           pip install 'pip-audit>=2.7'
           pip-audit -r requirements-dev.lock --strict --desc 2>&1 | tee pip-audit-report.txt
 
+      - name: Cyclomatic complexity check (radon)
+        run: |
+          radon cc src/ -n E -s | tee complexity-report.txt
+          current_count=$(radon cc src/ -n E -j | python3 -c "import json,sys; data=json.load(sys.stdin); print(sum(len(blocks) for blocks in data.values()))")
+          BASELINE=23
+          if [ "$current_count" -gt "$BASELINE" ]; then
+            echo "::error::Complexity regression: $current_count E+ violations (baseline: $BASELINE). New complex functions introduced."
+            exit 1
+          elif [ "$current_count" -lt "$BASELINE" ]; then
+            echo "::notice::Complexity improvement: $current_count E+ violations (baseline: $BASELINE). Update BASELINE in ci.yml."
+          else
+            echo "Complexity stable: $current_count E+ violations (baseline: $BASELINE)"
+          fi
+
   unit-tests:
     name: Unit Tests (Python ${{ matrix.python-version }})
     needs: lint
@@ -222,7 +236,7 @@ jobs:
     needs: unit-tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') || github.event_name == 'pull_request' && github.base_ref == 'main'
     steps:
       - uses: actions/checkout@v7
 

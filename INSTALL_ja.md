@@ -130,7 +130,7 @@ pip install -e .
 ```bash
 python -c "import pycc2; print('PyCC2 imported successfully')"
 python -m pytest tests/ -q --tb=no
-# 期待値: ~3513 passed
+# 期待値: ~6178 passed
 ```
 
 ---
@@ -198,7 +198,7 @@ pycc2
 ### テストスイート
 
 ```bash
-# 完全なテストスイート（~3513個すべて通過するはず）
+# 完全なテストスイート（~6178個すべて通過するはず）
 python -m pytest tests/ -q
 
 # クイックスモークテスト（インポートが機能することのみ確認）

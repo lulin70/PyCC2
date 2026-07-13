@@ -6,6 +6,8 @@ ast-serialize==0.5.0
     # via mypy
 cfgv==3.5.0
     # via pre-commit
+colorama==0.4.6
+    # via radon
 coverage==7.14.3
     # via pytest-cov
 defusedxml==0.7.1
@@ -26,6 +28,8 @@ iniconfig==2.3.0
     # via pytest
 librt==0.11.0
     # via mypy
+mando==0.7.1
+    # via radon
 mypy==2.1.0
     # via pycc2 (pyproject.toml)
 mypy-extensions==1.1.0
@@ -78,6 +82,8 @@ python-discovery==1.4.2
     # via virtualenv
 pyyaml==6.0.3
     # via pre-commit
+radon==6.0.1
+    # via pycc2 (pyproject.toml)
 ruff==0.15.20
     # via pycc2 (pyproject.toml)
 scipy==1.18.0

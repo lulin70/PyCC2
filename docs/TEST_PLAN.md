@@ -1,4 +1,4 @@
-# PyCC2 测试计划 v0.4.0 — 质量冲刺后全量 (4369 tests)
+# PyCC2 测试计划 v0.6.10 — 全量测试套件 (6552 tests)
 
 ## 1. 测试金字塔
 
@@ -8,30 +8,31 @@ PyCC2 采用经典的测试金字塔策略，强调**底层单元测试为主，
 
 ```
         ╱╲
-       ╱E2E╲         12.1%  (530 tests)
+       ╱E2E╲          7.9%  (491 tests)
       ╱──────╲
-     ╱ 集成测试 ╱        3.2%  (138 tests)
+     ╱ 集成测试 ╲        2.9%  (181 tests)
     ╱──────────╲
    ╱            ╲
-  ╱   单元测试   ╱      84.2%  (3680 tests)
+  ╱   单元测试   ╲      88.2%  (5494 tests)
  ╱──────────────╲
 ```
 
 ### 1.2 测试分布详情
 
-> 数据来源：`pytest --collect-only` 实测（2026-06-26，Phase 5 测试治理后）。
+> 数据来源：`pytest --collect-only` 实测（2026-07-13，v0.6.10）。
 > Marker 通过 `conftest.py` 的 `pytest_collection_modifyitems` 钩子按目录自动推断，
 > 显式 `@pytest.mark.slow` 等正交标记保留不覆盖。
 
 | 层级 | 数量 | 占比 | 执行时间 | 负责人 | 频率 | Marker |
 |------|------|------|----------|--------|------|--------|
-| **单元测试 (Unit)** | 3680 | 84.2% | ~3.5min | 核心开发 | 每次commit | `@pytest.mark.unit`（路径自动） |
-| **集成测试 (Integration)** | 138 | 3.2% | < 3min | 核心开发 | 每次PR | `@pytest.mark.integration`（路径自动） |
-| **端到端测试 (E2E)** | 530 | 12.1% | < 10min | QA团队 | 每日构建 | `@pytest.mark.e2e`（路径自动） |
-| **性能基准 (Benchmark)** | 20 | 0.5% | < 2min | 核心开发 | 每日构建 | `@pytest.mark.benchmark`（路径自动） |
-| **慢测试 (Slow，正交)** | 14 | 0.3% | ~3.5min | 核心开发 | CI slow job | `@pytest.mark.slow`（显式） |
+| **单元测试 (Unit)** | 5494 | 88.2% | ~4min | 核心开发 | 每次commit | `@pytest.mark.unit`（路径自动） |
+| **集成测试 (Integration)** | 181 | 2.9% | < 3min | 核心开发 | 每次PR | `@pytest.mark.integration`（路径自动） |
+| **端到端测试 (E2E)** | 491 | 7.9% | < 10min | QA团队 | 每日构建 | `@pytest.mark.e2e`（路径自动） |
+| **性能基准 (Benchmark)** | 21 | 0.3% | < 2min | 核心开发 | 每日构建 | `@pytest.mark.benchmark`（路径自动） |
+| **验收测试 (Acceptance)** | 42 | 0.7% | < 2min | QA团队 | 每次发布 | `@pytest.mark.acceptance`（路径自动） |
+| **慢测试 (Slow，正交)** | 16 | 0.3% | ~3min | 核心开发 | CI slow job | `@pytest.mark.slow`（显式） |
 
-**总计: 4369 个测试用例（v0.4.0 质量冲刺后全量）**
+**总计: 6552 个测试用例（v0.6.10 全量，含 slow 16 个；`pytest -m "not slow"` 基线 6536 collected / 2 skipped）**
 
 **Marker 策略**（Phase 5 新增）：
 - 路径自动标记：`tests/unit/` → `unit`，`tests/integration/` → `integration`，`tests/e2e/` → `e2e`，`tests/benchmark/` → `benchmark`

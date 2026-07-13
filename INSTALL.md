@@ -228,7 +228,7 @@ sfx_volume = 0.9
 ### Test Suite
 
 ```bash
-# Full test suite (~3513 tests expected)
+# Full test suite (~6178 tests expected)
 pytest tests/ -q --tb=short
 
 # Quick smoke test (just confirms import works)

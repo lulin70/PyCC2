@@ -196,7 +196,7 @@ Successfully installed pycc2-0.4.7 numpy-1.26.4 pygame-2.5.2 ...
 # 1. 确认 PyCC2 可被正确导入
 python -c "import pycc2; print(f'PyCC2 v{pycc2.__version__} 导入成功')"
 
-# 2. 运行测试套件（需要 dev 依赖，~3513 测试）
+# 2. 运行测试套件（需要 dev 依赖，~6178 测试）
 pytest tests/ -v --tb=short
 
 # 3. 运行代码质量检查

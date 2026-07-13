@@ -1,11 +1,11 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.6.8 | Beta Candidate | July 12, 2026**
+**v0.6.10 | Beta Candidate | July 13, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-5725%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/Tests-6178%20passed-brightgreen.svg" alt="Tests" />
 <img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC72%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Beta%20Candidate-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
@@ -15,7 +15,7 @@
 <em>A Python recreation of Atomic Games' legendary WWII tactical wargame — Beta Candidate with full SRP refactoring, real-mode E2E, and mature test suite</em>
 </p>
 
-> 🟢 **Beta Candidate**: Core gameplay + cinematic effects + achievement system + dynamic shadows + projectile trails + SRP architecture cleanup + real SDL E2E validation + visual polish (death fade, screen flash, movement smoothing, UI transitions, weather overlay, shell ejection, button feedback). **5725 tests passing (100%)**, 38-phase E2E user journey validated in real environment. Ghost feature audit complete — all critical rendering pipelines now active. Environmental audio activated, dirty rectangle optimization live, EnhancedRenderer split complete, ResourceCacheManager online.
+> 🟢 **Beta Candidate**: Core gameplay + cinematic effects + achievement system + dynamic shadows + projectile trails + SRP architecture cleanup + real SDL E2E validation + visual polish (death fade, screen flash, movement smoothing, UI transitions, weather overlay, shell ejection, button feedback). **6178 tests passing (100%)**, 38-phase E2E user journey validated in real environment. Ghost feature audit complete — all critical rendering pipelines now active. Environmental audio activated, dirty rectangle optimization live, EnhancedRenderer split complete, ResourceCacheManager online.
 
 ---
 
@@ -186,7 +186,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Total Tests** | **5725 passed** (0 failed, 21 skipped) ✅ |
+| **Total Tests** | **6178 passed** (0 failed, 21 skipped) ✅ |
 | **Test Quality** | A+ (121 weak assertions eliminated) 🎯 |
 | **E2E Tests** | 22 test files (38-phase real SDL mode, 100% pass rate) |
 | **Maps** | 63 historical maps (Operation Market Garden) |
@@ -206,7 +206,7 @@
 | Dimension | Score | Notes |
 |----------|-------|-------|
 | **Architecture** | 7.5/10 | DDD + DI, EnhancedRenderer split complete (3 subsystems extracted), 4 God Classes remain, layer violations -39% |
-| **Test Quality** | 9.5/10 ✅ | **5725 tests**, weak assertions <1%, smoke tests for zero-coverage modules |
+| **Test Quality** | 9.5/10 ✅ | **6178 tests**, weak assertions <1%, smoke tests for zero-coverage modules |
 | **Test Coverage** | 8.5/10 | Broad coverage, 27 new smoke tests in v0.3.27, 55 new HUD tests in v0.3.36 |
 | **Code Quality** | 7.5/10 | **~1 bare print() remaining (99.3% cleaned)** (down from 200+), logging migration complete, AnimationController dead code removed |
 | **Performance** | 8.5/10 | Surface pool LRU unified (6/6 consumers), dirty rectangle optimization live, terrain cache, tank rotation cache, viewport culling |
@@ -385,7 +385,7 @@ PyCC2/
 │   ├── maps/               # 63 historical map JSON files
 │   ├── scenarios/          # 11 scenario configurations
 │   └── units/              # Unit template definitions
-├── tests/                  # 5725 tests (unit + integration + E2E + smoke)
+├── tests/                  # 6178 tests (unit + integration + E2E + smoke)
 ├── assets/                 # Sprites, sounds, CC2 reference screenshots
 └── docs/                   # Design documents, PRD, Gap analysis
 ```
@@ -446,7 +446,7 @@ PyCC2/
 ## Testing
 
 ```bash
-# Full test suite (5725 tests)
+# Full test suite (6178 tests)
 pytest tests/ -q
 
 # By category
@@ -581,6 +581,7 @@ See [INSTALL.md](INSTALL.md) for complete setup instructions.
 | [Technical Debt](docs/TECH_DEBT.md) | Known debt items and cleanup plan |
 | [Security](docs/SECURITY.md) | Security design and audit |
 | [Test Plan](docs/TEST_PLAN.md) | Testing strategy and coverage goals |
+| [Improvement Plan](docs/IMPROVEMENT_PLAN_V070.md) | v0.6.9/v0.6.10 improvement roadmap |
 
 ---
 
@@ -609,4 +610,4 @@ Close Combat 2 is a trademark of its respective owners. This is an unofficial fa
 
 ---
 
-<p align="center"><sub>Last updated: 2026-07-12 | v0.6.8 (Beta Candidate) | Tests: 6178 passed / 21 skipped | <a href="docs/GAP_ANALYSIS.md">Gap Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a> | <a href="docs/PROJECT_STATUS.md">Project Status</a></sub></p>
+<p align="center"><sub>Last updated: 2026-07-13 | v0.6.10 (Beta Candidate) | Tests: 6536 collected / 2 skipped | <a href="docs/GAP_ANALYSIS.md">Gap Analysis</a> | <a href="docs/ROADMAP.md">Roadmap</a> | <a href="docs/PROJECT_STATUS.md">Project Status</a></sub></p>

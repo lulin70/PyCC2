@@ -2,6 +2,52 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.6.10 — 覆盖率提升 + CI 增强 (patch, 2026-07-13)
+
+### Summary
+
+五波改进全部完成（Wave 1-5），无新功能，纯优化工作。323 新测试，1 源码 bug 修复，CI 工程基础设施增强。
+
+### Wave 1: 文档校准
+
+- 三语 README（EN/CN/JA）测试计数同步（6178→6536）
+- 三语 INSTALL.md 测试引用同步
+- docs/ROADMAP.md M5 状态修正 + 脚本计数修正（32→14）+ 验收标准更新
+- docs/PRD.md / docs/DESIGN.md / docs/TEST_PLAN.md 版本与计数同步
+
+### Wave 2: 覆盖率提升（核心 UI 模块）
+
+- **campaign_ui_*.py**: 4 个文件从 4% → 93-98%（111 测试）
+- **deployment_*.py**: 4 个文件从 0% → 76-96%（111 测试）
+- **源码 bug 修复**: `deployment_placement.py` `_check_unit_limits` 侦察单位未计入步兵上限，允许无限侦察单位部署
+- 修复: `unit_type == "infantry"` → `unit_type in ("infantry", "recon")`
+
+### Wave 3: 脚本归档
+
+- 8 个零引用脚本归档到 `scripts/archive/`
+- 7 份过期文档归档到 `docs/archive/`
+
+### Wave 4: CI 工程基础设施
+
+- **radon 复杂度门禁**: CI lint job 新增 cyclomatic complexity check，baseline=23（E+ 级别），回归检测
+- **benchmark PR 触发**: 扩展从 push-to-main 到 PR-to-main + push-to-develop
+- **pre-commit 版本锁定**: mypy v1.11.0 → v2.1.0（匹配 requirements-dev.lock），消除 CI 漂移根因
+
+### Wave 5: 覆盖率提升（渲染与入口）
+
+- **procedural_sound_synthesizer.py**: 9% → 96%（48 测试，纯 DSP 模块）
+- **rendering_utils.py**: 13% → 100%（8 测试）
+- **unit_renderer.py**: 14% → 79%（22 测试，stub 类 + 结构断言）
+- **main.py**: 12% → 42%（23 测试，monkeypatch 控制流测试）
+
+### Test Results
+
+- 单元测试: 5815 passed / 2 skipped / 0 failed
+- E2E 测试: 42 passed / 0 failed
+- 全量收集: 6536 tests（not slow）/ 6552 tests（含 slow 16）
+- ruff: 0 errors
+- 零回归
+
 ## v0.6.8 — R3 评估修复 (patch, 2026-07-12)
 
 ### Fixed: flaky 测试根因修复

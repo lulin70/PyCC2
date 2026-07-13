@@ -1,11 +1,11 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python再実装)
 
-**v0.6.8 | Beta Candidate | 2026年7月12日**
+**v0.6.10 | Beta Candidate | 2026年7月13日**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-5725%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/Tests-6178%20passed-brightgreen.svg" alt="Tests" />
 <img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC72%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Beta%20Candidate-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
@@ -15,7 +15,7 @@
 <em>Atomic Gamesの伝説的WWII戦術ウォーゲームをPythonで再現 — Beta Candidate。SRPリファクタリング、リアルモードE2E、成熟したテストスイート搭載</em>
 </p>
 
-> 🟢 **Beta Candidate**: コアゲームプレイ + シネマティックエフェクト + 実績システム + 動的シャドウ + 射撃軌跡 + SRPアーキテクチャ整理 + リアルSDL E2E検証 + ビジュアルポリッシュ（死亡フェード、画面フラッシュ、移動スムージング、UIトランジション、天候オーバーレイ、薬莢排出、ボタンフィードバック）。**5725テスト合格（100%）**、38フェーズE2Eユーザージャーニーが実環境で検証済み。ゴースト機能監査完了 — すべての重要レンダリングパイプラインが稼働中。環境オーディオ起動、ダーティレクタングル最適化稼働、EnhancedRenderer分割完了、ResourceCacheManagerオンライン。
+> 🟢 **Beta Candidate**: コアゲームプレイ + シネマティックエフェクト + 実績システム + 動的シャドウ + 射撃軌跡 + SRPアーキテクチャ整理 + リアルSDL E2E検証 + ビジュアルポリッシュ（死亡フェード、画面フラッシュ、移動スムージング、UIトランジション、天候オーバーレイ、薬莢排出、ボタンフィードバック）。**6178テスト合格（100%）**、38フェーズE2Eユーザージャーニーが実環境で検証済み。ゴースト機能監査完了 — すべての重要レンダリングパイプラインが稼働中。環境オーディオ起動、ダーティレクタングル最適化稼働、EnhancedRenderer分割完了、ResourceCacheManagerオンライン。
 
 ---
 
@@ -186,7 +186,7 @@
 
 | メトリクス | 値 |
 |-----------|-----|
-| **総テスト数** | **5725 passed**（0 failed、21 skipped） ✅ |
+| **総テスト数** | **6178 passed**（0 failed、21 skipped） ✅ |
 | **テスト品質** | A+（121の弱いアサーション排除） 🎯 |
 | **E2Eテスト** | 22テストファイル（38フェーズリアルSDLモード、100%合格率） |
 | **マップ** | 63の史実マップ（マーケット・ガーデン作戦） |
@@ -206,7 +206,7 @@
 | 次元 | スコア | 備考 |
 |------|--------|------|
 | **アーキテクチャ** | 7.5/10 | DDD + DI、EnhancedRenderer分割完了（3サブシステム抽出）、ゴッドクラス4個残存、レイヤー違反-39% |
-| **テスト品質** | 9.5/10 ✅ | **5725テスト**、弱いアサーション<1%、カバレッジゼロモジュールにスモークテスト |
+| **テスト品質** | 9.5/10 ✅ | **6178テスト**、弱いアサーション<1%、カバレッジゼロモジュールにスモークテスト |
 | **テストカバレッジ** | 8.5/10 | 広範なカバレッジ、v0.3.27で27の新規スモークテスト、v0.3.36で55の新規HUDテスト |
 | **コード品質** | 7.5/10 | **裸print()残り~1件（99.3%クリーンアップ済み）**（200+から減少）、logging移行完了、AnimationControllerデッドコード削除 |
 | **パフォーマンス** | 8.5/10 | SurfaceプールLRU統合（6/6消費モジュール）、ダーティレクタングル最適化稼働、地形キャッシュ、戦車回転キャッシュ、ビューポートカリング |
@@ -385,7 +385,7 @@ PyCC2/
 │   ├── maps/               # 63の史実マップJSONファイル
 │   ├── scenarios/          # 11のシナリオ設定
 │   └── units/              # ユニットテンプレート定義
-├── tests/                  # 5725テスト（ユニット + 統合 + E2E + スモーク）
+├── tests/                  # 6178テスト（ユニット + 統合 + E2E + スモーク）
 ├── assets/                 # スプライト、サウンド、CC2リファレンススクリーンショット
 └── docs/                   # 設計文書、PRD、ギャップ分析
 ```
@@ -446,7 +446,7 @@ PyCC2/
 ## テスト
 
 ```bash
-# 完全テストスイート（5725テスト）
+# 完全テストスイート（6178テスト）
 pytest tests/ -q
 
 # カテゴリ別
@@ -581,6 +581,7 @@ pre-commit run --all-files
 | [技術的負債](docs/TECH_DEBT.md) | 既知の負債項目とクリーンアップ計画 |
 | [セキュリティ](docs/SECURITY.md) | セキュリティ設計と監査 |
 | [テスト計画](docs/TEST_PLAN.md) | テスト戦略とカバレッジ目標 |
+| [改善計画](docs/IMPROVEMENT_PLAN_V070.md) | v0.6.9/v0.6.10 改善ロードマップ |
 
 ---
 
@@ -609,4 +610,4 @@ Close Combat 2はそれぞれの所有者の商標です。これは教育目的
 
 ---
 
-<p align="center"><sub>最終更新: 2026-07-12 | v0.6.8（Beta Candidate） | テスト: 6178合格 / 21スキップ | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a> | <a href="docs/PROJECT_STATUS.md">プロジェクト状態</a></sub></p>
+<p align="center"><sub>最終更新: 2026-07-13 | v0.6.10（Beta Candidate） | テスト: 6536収集 / 2スキップ | <a href="docs/GAP_ANALYSIS.md">ギャップ分析</a> | <a href="docs/ROADMAP.md">ロードマップ</a> | <a href="docs/PROJECT_STATUS.md">プロジェクト状態</a></sub></p>

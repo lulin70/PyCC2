@@ -1,8 +1,8 @@
 # PyCC2 Development Roadmap
 
-**v0.6.8 | July 12, 2026 | Based on DevSquad 7-Role Analysis**
+**v0.6.10 | July 13, 2026 | Based on DevSquad 7-Role Analysis**
 
-> **Current Version**: v0.6.8 | **Tests**: ~6178 (all passing) | **CC2 Fidelity**: ~75% (Visual ~70% / Mechanics ~80%) ⚠️ v0.5.0 P0 PixVoxel 接入 + v0.5.1 P2 isometric 清理 + v0.5.2 P1 调色板修正 + v0.5.3 P1 纹理调优 + v0.6.0 P3-1 LOS 烟雾天气 + v0.6.1 P3-2 窗户射击弧 + v0.6.2 P3-3 散兵坑战壕 + v0.6.3 P3-4 AI 侦察行为 + v0.6.4 P3-5 AI 心理模型 + v0.6.5 P3-6 AI 补给线意识 + v0.6.6 P0-P1 修复 + v0.6.7 TD-COV-BUG 9项源码bug修复 + v0.6.8 R3 评估修复 (幽灵功能接入 + flaky 测试修复 + CI 安全增强)
+> **Current Version**: v0.6.10 | **Tests**: ~6536 (all passing) | **CC2 Fidelity**: ~75% (Visual ~70% / Mechanics ~80%) ⚠️ v0.5.0 P0 PixVoxel 接入 + v0.5.1 P2 isometric 清理 + v0.5.2 P1 调色板修正 + v0.5.3 P1 纹理调优 + v0.6.0 P3-1 LOS 烟雾天气 + v0.6.1 P3-2 窗户射击弧 + v0.6.2 P3-3 散兵坑战壕 + v0.6.3 P3-4 AI 侦察行为 + v0.6.4 P3-5 AI 心理模型 + v0.6.5 P3-6 AI 补给线意识 + v0.6.6 P0-P1 修复 + v0.6.7 TD-COV-BUG 9项源码bug修复 + v0.6.8 R3 评估修复 (幽灵功能接入 + flaky 测试修复 + CI 安全增强) + v0.6.10 覆盖率提升+CI增强 (文档校准 + 脚本归档 + 323 新测试 + radon 复杂度门禁)
 > **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish Complete (TD-065 + TD-066 both resolved v0.4.11) | v0.5.0 P0: PixVoxel 正交版精灵接入 | v0.5.1 P2: isometric experimental 代码清理**
 
 ---
@@ -17,11 +17,13 @@ PyCC2 has progressed from an unplayable state (~45% fidelity) to a Beta Candidat
 - **M2 (May 25-27)**: Core features — implemented CC2 victory conditions, command system, garrison, bridge destruction, campaign carryover, enhanced visuals
 - **M3 (ongoing)**: Visual polish & deep optimization — SRP refactoring, cinematic effects, ghost feature fixes, visual polish, architecture cleanup
 
-The project now has **~3985 passing tests**, **63 historical maps**, **277 unit templates**, and **69 authentic weapons**. All core gameplay loops work end-to-end. 38-phase E2E user journey validated in real SDL environment.
+The project now has **~6178 passing tests**, **63 historical maps**, **277 unit templates**, and **69 authentic weapons**. All core gameplay loops work end-to-end. 38-phase E2E user journey validated in real SDL environment.
 
 ---
 
 ## Current Status Dashboard
+
+> **注**: 此仪表盘反映 v0.4.0 时代状态。当前 v0.6.10 最新指标见 [PROJECT_STATUS.md](PROJECT_STATUS.md)（6536 collected / Domain 38.5%）。
 
 | Metric | v0.1.1 (May 23) | v0.4.0 (June 13) | Change |
 |--------|------------------|---------------------|--------|
@@ -237,18 +239,18 @@ The project now has **~3985 passing tests**, **63 historical maps**, **277 unit 
 
 | Task | Priority | Est. Hours | Status | Owner |
 |------|----------|------------|--------|-------|
-| Clean up scripts/ directory (32 debug scripts) | P2 | 2h | ⬜ | DevOps |
-| Consolidate documentation (4 visual docs merge + root md migration) | P2 | 3h | ⬜ | PM |
-| Add E2E test stage to CI | P2 | 4h | ⬜ | Tester + DevOps |
-| Add user operation E2E tests | P2 | 6h | ⬜ | Tester |
-| Performance optimization for large maps | P2 | 8h | ⬜ | Architect + Coder |
+| Clean up scripts/ directory (14 scripts, 10 zero-reference) | P2 | 2h | ⬜ Planned (v0.6.9 Wave 3) | DevOps |
+| Consolidate documentation (4 visual docs merge + root md migration) | P2 | 3h | ⬜ Planned (v0.6.9 Wave 3) | PM |
+| Add E2E test stage to CI | P2 | 4h | ✅ Complete (CI has 7 stages) | Tester + DevOps |
+| Add user operation E2E tests | P2 | 6h | ✅ Complete (491 E2E tests) | Tester |
+| Performance optimization for large maps | P2 | 8h | ⬜ Planned (isometric removed v0.5.1, re-scope needed) | Architect + Coder |
 
 **M5 Acceptance Criteria**:
-- [ ] CI pipeline has 4 stages: lint → unit → integration → e2e
-- [ ] scripts/ contains only useful utility scripts
-- [ ] No overlapping documentation in docs/
-- [ ] User operation E2E tests cover: select unit → command → observe result
-- [ ] 100×100 isometric map runs at ≥25fps
+- [x] CI pipeline has 7 stages: lint → unit → slow → benchmark → integration → e2e → docker ✅
+- [ ] scripts/ contains only useful utility scripts (Planned v0.6.9 Wave 3)
+- [ ] No overlapping documentation in docs/ (Planned v0.6.9 Wave 3)
+- [x] User operation E2E tests cover: select unit → command → observe result ✅ (491 E2E tests)
+- [ ] 100×100 isometric map runs at ≥25fps — ❌ Obsolete (isometric removed v0.5.1, re-scope to orthogonal map performance)
 
 ---
 
@@ -358,9 +360,9 @@ We welcome community contributions to any milestone:
 
 ---
 
-**Document Version**: 0.6.8
+**Document Version**: 0.6.10
 **Created**: 2026-05-19
-**Updated**: 2026-07-12
-**Status**: Beta Candidate — P0-P3 全部完成; v0.6.6 P0-P1 修复; v0.6.7 TD-COV-BUG 9项源码bug修复; v0.6.8 R3 评估修复 (幽灵功能接入 + flaky 测试修复 + CI 安全增强)
+**Updated**: 2026-07-13
+**Status**: Beta Candidate — P0-P3 全部完成; v0.6.6 P0-P1 修复; v0.6.7 TD-COV-BUG 9项源码bug修复; v0.6.8 R3 评估修复 (幽灵功能接入 + flaky 测试修复 + CI 安全增强); v0.6.10 覆盖率提升+CI增强 (文档校准+脚本归档+323新测试+radon复杂度门禁)
 **Next Review**: 覆盖率提升至 70% + 大文件评估 + docs 归档
 **Related Documents**: [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) | [TECH_DEBT.md](docs/TECH_DEBT.md) | [VISUAL_FIDELITY_IMPROVEMENT_PLAN.md](VISUAL_FIDELITY_IMPROVEMENT_PLAN.md)

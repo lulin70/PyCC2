@@ -1,5 +1,6 @@
 # Pre-commit configuration for PyCC2
 # See https://pre-commit.com for more information
+# Updated 2026-07-13: mypy v1.11.0→v2.1.0 to match requirements-dev.lock (W4-3 CI drift fix)
 # Updated 2026-07-05: ruff v0.5.0→v0.15.20 to match requirements-dev.lock (TD-070 fix)
 
 repos:
@@ -11,7 +12,7 @@ repos:
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.0
+    rev: v2.1.0
     hooks:
       - id: mypy
         additional_dependencies: [types-pygame, types-PyYAML]
