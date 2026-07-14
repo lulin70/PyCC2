@@ -47,6 +47,11 @@ jobs:
         run: |
           pytest tests/ -q --tb=line --maxfail=10
 
+      - name: Verify document version consistency
+        run: |
+          chmod +x scripts/check_doc_consistency.sh
+          ./scripts/check_doc_consistency.sh
+
       - name: Verify version consistency
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
@@ -71,9 +76,9 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
           # Extract changelog for this version from CHANGELOG.md
-          # Format: ## [VERSION] - DATE ... content ... ## [NEXT_VERSION]
+          # Format: ## vVERSION — TITLE (DATE) ... content ... ## vNEXT_VERSION
           if [ -f CHANGELOG.md ]; then
-            CHANGELOG=$(sed -n "/^## \[$VERSION\]/,/^## \[/p" CHANGELOG.md | head -n -1)
+            CHANGELOG=$(sed -n "/^## v$VERSION/,/^## v/p" CHANGELOG.md | head -n -1)
             echo "changelog<<EOF" >> $GITHUB_OUTPUT
             echo "$CHANGELOG" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT

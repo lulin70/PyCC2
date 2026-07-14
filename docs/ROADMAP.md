@@ -239,16 +239,16 @@ The project now has **~6178 passing tests**, **63 historical maps**, **277 unit 
 
 | Task | Priority | Est. Hours | Status | Owner |
 |------|----------|------------|--------|-------|
-| Clean up scripts/ directory (14 scripts, 10 zero-reference) | P2 | 2h | ⬜ Planned (v0.6.9 Wave 3) | DevOps |
-| Consolidate documentation (4 visual docs merge + root md migration) | P2 | 3h | ⬜ Planned (v0.6.9 Wave 3) | PM |
+| Clean up scripts/ directory (14 scripts, 10 zero-reference) | P2 | 2h | ✅ Complete (v0.6.10 Wave 3, scripts 归档完成) | DevOps |
+| Consolidate documentation (4 visual docs merge + root md migration) | P2 | 3h | ✅ Complete (v0.6.10 Wave 3, 文档校准完成) | PM |
 | Add E2E test stage to CI | P2 | 4h | ✅ Complete (CI has 7 stages) | Tester + DevOps |
 | Add user operation E2E tests | P2 | 6h | ✅ Complete (491 E2E tests) | Tester |
 | Performance optimization for large maps | P2 | 8h | ⬜ Planned (isometric removed v0.5.1, re-scope needed) | Architect + Coder |
 
 **M5 Acceptance Criteria**:
 - [x] CI pipeline has 7 stages: lint → unit → slow → benchmark → integration → e2e → docker ✅
-- [ ] scripts/ contains only useful utility scripts (Planned v0.6.9 Wave 3)
-- [ ] No overlapping documentation in docs/ (Planned v0.6.9 Wave 3)
+- [x] scripts/ contains only useful utility scripts ✅ (v0.6.10 Wave 3)
+- [x] No overlapping documentation in docs/ ✅ (v0.6.10 Wave 3)
 - [x] User operation E2E tests cover: select unit → command → observe result ✅ (491 E2E tests)
 - [ ] 100×100 isometric map runs at ≥25fps — ❌ Obsolete (isometric removed v0.5.1, re-scope to orthogonal map performance)
 

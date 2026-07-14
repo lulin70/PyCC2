@@ -68,6 +68,11 @@ jobs:
             echo "Complexity stable: $current_count E+ violations (baseline: $BASELINE)"
           fi
 
+      - name: Document version consistency check
+        run: |
+          chmod +x scripts/check_doc_consistency.sh
+          ./scripts/check_doc_consistency.sh
+
   unit-tests:
     name: Unit Tests (Python ${{ matrix.python-version }})
     needs: lint
@@ -99,7 +104,7 @@ jobs:
             --cov=src/pycc2 \
             --cov-report=xml \
             --cov-report=html \
-            --cov-fail-under=65 \
+            --cov-fail-under=70 \
             --junitxml=junit.xml
 
       - name: Upload coverage to Codecov

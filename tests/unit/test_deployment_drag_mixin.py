@@ -6,8 +6,8 @@ the mixin, mirroring the StubDeploymentUI pattern from test_deployment_manager.p
 
 from __future__ import annotations
 
-import pytest
 import pygame
+import pytest
 from pygame import Surface
 
 from pycc2.presentation.ui.deployment_drag_mixin import DeploymentDragMixin
@@ -15,7 +15,6 @@ from pycc2.presentation.ui.deployment_models import (
     DeploymentPhase,
     DeploymentState,
     DeploymentUnit,
-    ZoneType,
 )
 
 

@@ -125,7 +125,9 @@ addopts = "-v --tb=short --strict-markers --timeout=300"
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
-    "ignore::UserWarning:hmac",
+    "ignore::UserWarning:pycc2.infrastructure.save_system",
+    "ignore:No HMAC key configured:UserWarning",
+    "ignore:no fast renderer available:Warning",
 ]
 markers = [
     "unit: marks tests as unit tests",

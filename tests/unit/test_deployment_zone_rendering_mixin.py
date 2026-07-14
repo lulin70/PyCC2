@@ -6,8 +6,8 @@ the mixin, mirroring the StubDeploymentUI pattern from test_deployment_manager.p
 
 from __future__ import annotations
 
-import pytest
 import pygame
+import pytest
 from pygame import Surface
 
 from pycc2.presentation.ui.deployment_models import (
@@ -175,6 +175,7 @@ class TestRenderZoneOverlays:
         first_cache = ui._overlay_cache
         facade._render_zone_overlays(surface, 0, 0, 32)
         assert ui._overlay_tile_size == 32
+        assert ui._overlay_cache is not first_cache
 
 
 class TestRenderPlacementHighlights:
