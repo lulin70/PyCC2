@@ -113,8 +113,11 @@ class TestDrawButton:
         rect_hover = pygame.Rect(0, 50, 100, 30)
         draw_button(ui, surface, rect_normal, "Btn", hovered=False)
         draw_button(ui, surface, rect_hover, "Btn", hovered=True)
-        bg_normal = surface.get_at((50, 15))
-        bg_hover = surface.get_at((50, 65))
+        # Sample at x=10 (left of centered "Btn" text) to get pure background color.
+        # Center pixel (50,15) may land on text glyphs, causing environment-specific
+        # failures when font rendering differs (e.g., Docker DejaVu vs macOS Helvetica).
+        bg_normal = surface.get_at((10, 15))
+        bg_hover = surface.get_at((10, 65))
         assert bg_normal != bg_hover
 
 
