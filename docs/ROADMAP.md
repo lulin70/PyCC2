@@ -17,7 +17,7 @@ PyCC2 has progressed from an unplayable state (~45% fidelity) to a Beta Candidat
 - **M2 (May 25-27)**: Core features — implemented CC2 victory conditions, command system, garrison, bridge destruction, campaign carryover, enhanced visuals
 - **M3 (ongoing)**: Visual polish & deep optimization — SRP refactoring, cinematic effects, ghost feature fixes, visual polish, architecture cleanup
 
-The project now has **~6178 passing tests**, **63 historical maps**, **277 unit templates**, and **69 authentic weapons**. All core gameplay loops work end-to-end. 38-phase E2E user journey validated in real SDL environment.
+The project now has **~6536 passing tests**, **63 historical maps**, **277 unit templates**, and **69 authentic weapons**. All core gameplay loops work end-to-end. 38-phase E2E user journey validated in real SDL environment.
 
 ---
 
@@ -51,17 +51,17 @@ The project now has **~6178 passing tests**, **63 historical maps**, **277 unit 
 
 ## Seven-Dimension Quality Assessment
 
-> Updated 2026-06-13 based on codebase static analysis + runtime verification + 7-role review
+> Updated 2026-07-14 based on codebase static analysis + runtime verification + 7-role review
 
 | Dimension | Score | Trend | Notes |
 |-----------|-------|-------|-------|
-| **Architecture** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Clean DDD layers; EnhancedRenderer split complete (3 subsystems extracted); 4 God Classes remain; layer violations -39% |
+| **Architecture** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Clean DDD layers; EnhancedRenderer split complete (3 subsystems extracted); layer violations -39%; P2-2 God Class task canceled (4 candidates all judged NOT God Class via SRP analysis) |
 | **Code Quality** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Bare print() ~1 remaining (99.3% cleaned); AnimationController dead code removed; logging migration complete |
-| **Test Coverage** | ✅ EXCELLENT | ↑ from GOOD | ~3985 tests all green, includes integration+E2E+smoke; 55 HUD tests in v0.3.36; 38-phase real SDL E2E |
+| **Test Coverage** | ✅ EXCELLENT | ↑ from GOOD | ~6536 tests all green (not-slow baseline), includes integration+E2E+smoke; 55 HUD tests in v0.3.36; 38-phase real SDL E2E; 323 new tests in v0.6.10 |
 | **Security** | ✅ EXCELLENT | — | HMAC integrity protection (permissions 0o600, key validation), input validation complete, no injection vectors |
 | **Performance** | ✅ GOOD | ↑ from ADEQUATE | Surface pool LRU unified (6/6 consumers), dirty rectangle optimization, terrain cache, tank rotation cache, viewport culling |
 | **Error Handling** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Bare except replaced with specific exceptions; key paths have error recovery; some modules need enhancement |
-| **Documentation** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Version numbers unified to v0.4.0; doc-code sync mechanism pending |
+| **Documentation** | ✅ GOOD | ↑ from NEEDS_IMPROVEMENT | Version numbers unified to v0.6.10; doc-code sync via check_doc_consistency.sh integrated to CI; v0.6.10 comprehensive doc audit completed |
 
 **Scoring Scale**: EXCELLENT > GOOD > ADEQUATE > NEEDS_IMPROVEMENT > POOR
 
@@ -280,17 +280,18 @@ The project now has **~6178 passing tests**, **63 historical maps**, **277 unit 
 | v0.3.17-v0.3.23 | Cinematic+Opt | M3-mid | ~88% | 3700 | Camera effects, achievements, shadows, trails, optimization | ✅ Completed |
 | v0.3.25-v0.3.30 | Arch Cleanup | M3-late | ~88% | 3850 | Circular deps, GameLoopAssembler, E2E upgrade, doc sync | ✅ Completed |
 | v0.3.31-v0.3.34 | Visual Polish | M3-polish | ~88% | 3920 | Desaturation, weather, death fade, screen flash, ghost fixes | ✅ Completed |
-| **v0.4.0** | **Beta Candidate** | **M3** | **~88%** | **~3985** | **ThemeManager, env audio, dirty rect, SRP splits, security** | ✅ **Current** |
-| v0.4.7 | Doc Sync | M3 | ~88% (偏高) | ~4598 | TD-027 关闭 + TD-026 评估 + 文档状态同步 (PRD/ROADMAP/GAP/TECH_DEBT) | ✅ Current |
+| **v0.4.0** | **Beta Candidate** | **M3** | **~88%** | **~3985** | **ThemeManager, env audio, dirty rect, SRP splits, security** | ✅ Completed |
+| v0.4.7 | Doc Sync | M3 | ~88% (偏高) | ~4598 | TD-027 关闭 + TD-026 评估 + 文档状态同步 (PRD/ROADMAP/GAP/TECH_DEBT) | ✅ Completed |
 | **v0.4.16** | **Code Audit** | **M3** | **~65%** (代码审核) | **~5400** | **严格代码审核修正还原度数据 + ruff/scipy修复 + CI全绿** | ✅ Completed |
 | **v0.5.0** | **PixVoxel P0** | **M3** | **~72%** (PixVoxel 接入) | **~5725** | **P0: PixVoxel Blank 正交版精灵接入游戏循环 (3968精灵, 14/18单位覆盖) + TD-042 RESOLVED + D13-N3 RESOLVED** | ✅ Completed |
 | **v0.6.6** | **P0-P1 Fix** | **M3** | **~75%** (P3 全完成) | **~5725** | **P3-1~P3-6 全部完成 + P0-P1 修复 (flaky 测试隔离 + CI deselect 移除 + 覆盖率评估)** | ✅ Completed |
 | **v0.6.7** | **Bug Fix** | **M3** | **~75%** | **~6178** | **TD-COV-BUG 9项源码bug修复 (阵营硬编码/WeaponState枚举/TurnEndedEvent/deploy_smoke/死代码/Vec2下标)** | ✅ Completed |
-| **v0.6.8** | **R3 Assessment Fix** | **M3** | **~75%** | **~6178** | **R3 评估修复: 幽灵功能接入(ReconAI+SupplyAwarenessAI) + flaky 测试修复(SwissCheeseEngine rng注入) + CI安全增强(pip-audit --strict + cov-fail-under 70 + codecov fail_ci_if_error) + Dockerfile非root用户 + 评估报告归档** | ✅ **Current** |
+| **v0.6.8** | **R3 Assessment Fix** | **M3** | **~75%** | **~6178** | **R3 评估修复: 幽灵功能接入(ReconAI+SupplyAwarenessAI) + flaky 测试修复(SwissCheeseEngine rng注入) + CI安全增强(pip-audit --strict + cov-fail-under 70 + codecov fail_ci_if_error) + Dockerfile非root用户 + 评估报告归档** | ✅ Completed |
+| **v0.6.10** | **Coverage+CI** | **M3** | **~75%** | **~6536** | **323新测试(覆盖率提升) + radon复杂度门禁集成CI + 文档校准 + 脚本归档。源码模块388, 测试文件210** | ✅ **Current** |
 | v0.4-alpha | Polish Complete | M3-final | ~90% | 4000 | Command queue UI + Save/Load UI ✅ / Damage visuals + Smoke deferred to v0.5 | 🟡 Partial (3/5 done, 2 deferred) |
-| v0.5-alpha | Maintainable | M4 | ~92% | 4100 | Architecture refactor + Tech debt cleanup | 🟡 Partial (7/9 M4 tasks done) |
-| v0.6-alpha | Sustainable | M5 | ~95% | 4200 | CI enhancement + Docs + E2E expansion | ⬜ Planned |
-| v1.0-beta | A Bridge Too Far | Final | ≥95% | ≥4200 | Full release candidate | ⬜ Target |
+| v0.5-alpha | Maintainable | M4 | ~92% | 7000 | Architecture refactor + Tech debt cleanup | 🟡 Partial (7/9 M4 tasks done) |
+| v0.6-alpha | Sustainable | M5 | ~95% | 7500 | CI enhancement + Docs + E2E expansion | ⬜ Planned |
+| v1.0-beta | A Bridge Too Far | Final | ≥95% | ≥8000 | Full release candidate | ⬜ Target |
 
 ---
 

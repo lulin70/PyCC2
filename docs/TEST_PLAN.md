@@ -25,14 +25,16 @@ PyCC2 采用经典的测试金字塔策略，强调**底层单元测试为主，
 
 | 层级 | 数量 | 占比 | 执行时间 | 负责人 | 频率 | Marker |
 |------|------|------|----------|--------|------|--------|
-| **单元测试 (Unit)** | 5494 | 88.2% | ~4min | 核心开发 | 每次commit | `@pytest.mark.unit`（路径自动） |
-| **集成测试 (Integration)** | 181 | 2.9% | < 3min | 核心开发 | 每次PR | `@pytest.mark.integration`（路径自动） |
-| **端到端测试 (E2E)** | 491 | 7.9% | < 10min | QA团队 | 每日构建 | `@pytest.mark.e2e`（路径自动） |
+| **单元测试 (Unit)** | 5817 | 88.8% | ~4min | 核心开发 | 每次commit | `@pytest.mark.unit`（路径自动） |
+| **集成测试 (Integration)** | 181 | 2.8% | < 3min | 核心开发 | 每次PR | `@pytest.mark.integration`（路径自动） |
+| **端到端测试 (E2E)** | 491 | 7.5% | < 10min | QA团队 | 每日构建 | `@pytest.mark.e2e`（路径自动） |
 | **性能基准 (Benchmark)** | 21 | 0.3% | < 2min | 核心开发 | 每日构建 | `@pytest.mark.benchmark`（路径自动） |
-| **验收测试 (Acceptance)** | 42 | 0.7% | < 2min | QA团队 | 每次发布 | `@pytest.mark.acceptance`（路径自动） |
-| **慢测试 (Slow，正交)** | 16 | 0.3% | ~3min | 核心开发 | CI slow job | `@pytest.mark.slow`（显式） |
+| **验收测试 (Acceptance)** | 42 | 0.6% | < 2min | QA团队 | 每次发布 | `@pytest.mark.acceptance`（路径自动） |
+| **慢测试 (Slow，正交)** | 16 | 0.2% | ~3min | 核心开发 | CI slow job | `@pytest.mark.slow`（显式） |
 
 **总计: 6552 个测试用例（v0.6.10 全量，含 slow 16 个；`pytest -m "not slow"` 基线 6536 collected / 2 skipped）**
+
+> **数据校准说明**: 2026-07-14 通过 `pytest tests/{unit,integration,e2e,benchmark,acceptance}/ --co -q` 逐目录实测验证。单元测试数从原 5494 更新为 5817（v0.6.10 覆盖率提升新增 323 测试主要落入 unit 目录）。
 
 **Marker 策略**（Phase 5 新增）：
 - 路径自动标记：`tests/unit/` → `unit`，`tests/integration/` → `integration`，`tests/e2e/` → `e2e`，`tests/benchmark/` → `benchmark`
@@ -44,7 +46,7 @@ PyCC2 采用经典的测试金字塔策略，强调**底层单元测试为主，
 
 ### 1.3 各层职责定义
 
-#### 单元测试 (Unit Tests) - 84.2%
+#### 单元测试 (Unit Tests) - 88.8%
 
 **目标：** 验证单个函数/类的正确性
 
@@ -82,7 +84,7 @@ class TestVec2Addition:
 
 ---
 
-#### 集成测试 (Integration Tests) - 20%
+#### 集成测试 (Integration Tests) - 2.8%
 
 **目标：** 验证模块间协作的正确性
 
@@ -599,7 +601,7 @@ PathFinder 基于A*算法，支持地形代价、动态障碍物等。
 
 ---
 
-## 6. 集成测试 (40 tests, 7文件) + E2E (3 scenarios)
+## 6. 集成测试 (53 tests, 8文件) + E2E (3 scenarios)
 
 ### 6.1 集成测试模块清单
 
@@ -632,7 +634,7 @@ PathFinder 基于A*算法，支持地形代价、动态障碍物等。
 | `tests/unit/test_behavior_tree.py` | 20 | 行为树节点 | P1 |
 | `tests/unit/test_event_bus.py` | 15 | 事件总线发布/订阅 | P0 |
 | `tests/unit/test_sound_system.py` | 21 | 程序化音效生成、播放、音量控制、缓存 | P2 |
-| **单元合计** | **238** | - | - |
+| **单元合计** | **268** | - | - |
 
 **集成测试示例：**
 
@@ -1418,7 +1420,7 @@ source = [
 | 3 Sectors | ~8 | ~3 | ~2 | ~13 | Sector独立/切换/完成 |
 | 7 Operations | ~8 | ~3 | ~2 | ~13 | Operation进度/增援/时间线 |
 | 29 Battles | ~5 | ~2 | ~2 | ~9 | Battle引用地图/胜负/继承 |
-| 28 Maps引用 | ~5 | ~2 | ~1 | ~8 | 全部地图加载/Schema校验 |
+| 63 Maps引用 | ~5 | ~2 | ~1 | ~8 | 全部地图加载/Schema校验 |
 | **Campaign 合计** | **~36** | **~15** | **~9** | **~60** | **战役完成全覆盖** |
 
 ### 8.1 P4.3 Phase Additional Tests (Week 3)
@@ -2016,17 +2018,20 @@ def deterministic_rng():
 
 | 版本 | 日期 | 作者 | 变更内容 |
 |------|------|------|----------|
-| v1.0 | 2024-01 | PyCC2 QA Team | 初始测试计划，定义280个测试用例 |
-| v1.1 | 2024-02 | - | 补充E2E场景详细步骤和CI配置 |
+| v1.0 | 2026-05-15 | PyCC2 QA Team | 初始测试计划，定义280个测试用例 |
+| v1.1 | 2026-05-15 | - | 补充E2E场景详细步骤和CI配置 |
 | v1.2 | 2026-05-18 | DevSquad | P2阶段完成: 新增test_combat_loop.py(13) + test_sound_system.py(21), Test Coverage Summary表, P2 Phase Test Results章节, 总数940 |
 | v1.3 | 2026-05-18 | DevSquad | P3阶段全部完成(4子阶段): 新增test_victory_conditions(39)+test_animation_system(52)+test_content_expansion(31)+test_save_system(26), P3 Phase Test Results章节, 总数1088 |
-| v1.4 | 2025-05-18 | DocSync | P3-Fix: 4个关键Bug修复(BallisticEngine武器/quick_load/AI循环边界/main.py入口), 新增Section 11 P3-Fix Phase Results, 总数保持1088 |
+| v1.4 | 2026-05-18 | DocSync | P3-Fix: 4个关键Bug修复(BallisticEngine武器/quick_load/AI循环边界/main.py入口), 新增Section 11 P3-Fix Phase Results, 总数保持1088 |
 | v1.5 | 2026-05-18 | Integration | P4 Week 1 完成: GameLoop Decomposition(4组件/~62测试) + Settings Menu(62测试) + Security Hardening(13测试), 新增Section 12 P4 Week 1 Results, 总数1163 |
 | v1.6 | 2026-05-19 | Integration | P4 Week 2 完成: 性能优化(TileCache/AI节流/粒子池/~39测试) + 教程系统(TutorialOverlay/HintManager/~28测试) + 新任务(Mission 4夜战/Mission 5反坦克/~35测试) + 新地图(4张/~12测试), 新增Section 13 P4 Week 2 Results, 总数1270 |
 | v1.7 | 2026-05-19 | PM+CC2 Analysis | CC2差距分析完成: 新增P4.3测试(~42夜战/装甲/视觉) + QG E2E(+61文档/质量/E2E), 测试总数1377, 新增Section 8.1/8.2/8.5 P4.3统计与P5预览, 新增Section 14 P5 Test Plan Preview(P5.1/P5.2/P5.3场景+覆盖矩阵+Gate Criteria) |
 | v1.8 | 2026-05-19 | P5/P6/P7 Complete | **P5 Campaign Core完成**: ~240 tests (CampaignState/BattleResult/UnitVeterancy/StrategicMap/OperationTimeline). **P6 Combat Depth完成**: ~205 tests (Swiss Cheese/Fatigue/AAR/TimeControl). **P7 Content Expansion完成**: ~189 tests (M6-M10新任务+MAP-06~10新地图+历史真实性). **测试总数1566** (+189 from P5/P6/P7). 新增Section 8.1-8.4 P5/P6/P7完整统计与Test Growth Summary |
 | v2.0 | 2026-05-20 | P8/P9 Complete | **P8 地图与战役补全完成**: ~334 tests (9+Arnhem战区新地图/四层战役/补给线/部署UI). **P9 AI深度提升+新游戏设置完成**: ~289 tests (P0 AI行为7项+游戏设置5预设+战役完成3/7/29). **测试总数2233** (+667 from P8/P9). 新增Section 8.5 P0 AI Behavior Test Coverage / Section 8.6 Game Settings Test Coverage / Section 8.7 Campaign Completion Test Coverage / E2E Scenario 4-6 (Campaign Flow/AI Behaviors/Game Settings). 测试金字塔更新(单元~2031/集成~86/E2E~116) |
 | v0.1.1 | 2026-05-23 | M1 Fix Update | **M1紧急修复进展**: P0-1(display_name)/P0-2(属性别名)/P0-3(AI导入)/P0-4(set_mode)已修复。测试总数2767(1 failed)。版本号统一为v0.1.1 |
+| v0.4.0 | 2026-06-14 | 文档同步至v0.4.0 | 测试总数~3513。P0 Bug全部已修复。新增38-phase E2E真实SDL测试。覆盖率门禁引入 |
+| v0.5.0 | 2026-07-08 | PixVoxel P0接入 | 新增490 E2E测试验证PixVoxel正交版精灵接入。测试金字塔更新(unit占比提升) |
+| v0.6.10 | 2026-07-13 | 覆盖率提升+CI增强 | **当前版本**: 323新测试(覆盖率提升), radon复杂度门禁集成CI。测试总数6552(unit 5817/integration 181/e2e 491/benchmark 21/acceptance 42/slow 16)。数据校准: 逐目录实测验证 |
 
 ## 附录 G: 相关文档
 

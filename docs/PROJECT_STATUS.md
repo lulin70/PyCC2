@@ -9,8 +9,8 @@
 | 指标 | 数值 | 来源 |
 |------|------|------|
 | 版本号 | 0.6.10 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
-| 源码模块数 | 390 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
-| 测试文件数 | 180 个 `.py` 文件（unit 141 / integration 7 / e2e 25 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
+| 源码模块数 | 388 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
+| 测试文件数 | 210 个 `.py` 文件（unit 166 / integration 10 / e2e 27 / benchmark 4 / acceptance 1 / root 2） | `find tests -name "*.py" \| wc -l` |
 | 测试用例数 | 6536 collected / 2 skipped (v0.6.10 覆盖率提升后，not slow 基线) | `pytest tests/ -m "not slow" --co -q` |
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=70` + radon cc E+ baseline=23（v0.6.10 新增） | `.github/workflows/ci.yml` |
 | 实际覆盖率 | 72.64% (42764 stmts, 10107 missed，含 branch coverage，目标 70% 已达成) | `pytest tests/ -m "not slow" --cov=src/pycc2 --cov-report=term` |
@@ -21,7 +21,7 @@
 
 ## 架构
 
-DDD 4 层结构（domain / infrastructure / presentation / services），390 模块零循环依赖。
+DDD 4 层结构（domain / infrastructure / presentation / services），388 模块零循环依赖。
 
 | 层 | 文件数 | 行数 | 占比 | 职责 |
 |----|--------|------|------|------|

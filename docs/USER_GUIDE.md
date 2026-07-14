@@ -1,9 +1,9 @@
 # PyCC2 User Guide
 
-**v0.4.7 | Beta Candidate — Fully Playable | July 5, 2026**
+**v0.6.10 | Beta Candidate — Fully Playable | July 14, 2026**
 
 > 🎮 **Game Status**: Beta Candidate — AI対戦可用、コア玩法完整！
-> This guide covers the current v0.4.7 features based on runtime verification.
+> This guide covers the current v0.6.10 features based on runtime verification.
 
 ---
 
@@ -536,9 +536,9 @@ These were all fixed in M1/M2:
 ---
 
 *User Guide Version*: 3.39
-*Last Updated*: 2026-06-13
-*Game Version*: PyCC2 v0.4.7
-*CC2 Fidelity*: ~88%
+*Last Updated*: 2026-07-14
+*Game Version*: PyCC2 v0.6.10
+*CC2 Fidelity*: ~75% (Visual ~70% / Mechanics ~80%, v0.4.16 诚实修正)
 *Status*: Beta Candidate — Fully Playable
 
 **Next Update**: After M3 completion (command queue UI, vehicle damage visuals, save/load UI)
