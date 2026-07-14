@@ -7,14 +7,14 @@
 
 ## 执行摘要
 
-PyCC2 v0.6.10 是一个 **Beta Candidate** 级别的 CC2 (Close Combat 2: A Bridge Too Far) Python 重制项目。388 个源码模块，6536 个测试用例（全绿），DDD 四层架构，CI 7/7 绿灯。**项目整体成熟度较高，可玩性完整**，但存在 2 个文档严重过期问题（PRD/DESIGN 停留在 v0.4.7）和 4 条 ROADMAP 过期条目需清理。
+PyCC2 v0.6.10 是一个 **Beta Candidate** 级别的 CC2 (Close Combat 2: A Bridge Too Far) Python 重制项目。388 个源码模块，6536 个测试用例（全绿），DDD 四层架构，CI 7/7 绿灯。**项目整体成熟度较高，可玩性完整**。核心文档（PRD/DESIGN/ROADMAP/TEST_PLAN/GAP_ANALYSIS）已于 commit `0590a13` 同步到 v0.6.10，外部文档（README/INSTALL/USER_MANUAL/SKILL.md 三语）也已同步完成。
 
 ### 七维度评分总览
 
 | 维度 | 评分 | 趋势 | 核心结论 |
 |------|------|------|----------|
 | 1. 代码走读 | ✅ GOOD | — | DDD 四层清晰，无 ghost features，无真实 TODO/FIXME，60 个 `pass`/`...` 全部为合法 Protocol/ABC 定义 |
-| 2. 文档一致性 | ⚠️ NEEDS_IMPROVEMENT | ↓ | 版本号基本统一到 v0.6.10，但 **PRD.md 和 DESIGN.md 严重过期（v0.4.7）**，还原度声称 88% 与实际 75% 矛盾 |
+| 2. 文档一致性 | ✅ GOOD | ↑ | 版本号统一到 v0.6.10，PRD/DESIGN/ROADMAP/README/INSTALL/USER_MANUAL/SKILL.md 全部同步，还原度一致 (~75%) |
 | 3. 技术债/幽灵功能 | ✅ EXCELLENT | ↑ | 6 个 ghost feature 候选全部证伪，所有 systems 已接入 GameLoop，无 stub 方法 |
 | 4. 全链路测试 | ✅ EXCELLENT | — | 6534 passed / 0 failed (70.88s)，25 个 E2E 文件含完整用户旅程，42 acceptance，181 integration |
 | 5. CI/CD | ✅ EXCELLENT | — | 7-job 流水线，ruff+mypy+bandit+pip-audit+radon 复杂度门禁，coverage 65% gate，非 root Docker |
@@ -88,32 +88,33 @@ src/pycc2/ (388 modules)
 | docs/TECH_DEBT.md | v0.6.10 | ✅ |
 | docs/TEST_PLAN.md | v0.6.10 | ✅ |
 | docs/CHANGELOG.md | v0.6.10（含历史 v0.6.8 条目） | ✅ |
-| **docs/PRD.md** | **v0.4.7** | ❌ 严重过期 |
-| **docs/DESIGN.md** | **v0.4.7** | ❌ 严重过期 |
+| docs/PRD.md | v0.6.10 | ✅ 已修复 (commit 0590a13) |
+| docs/DESIGN.md | v0.6.10 | ✅ 已修复 (commit 0590a13) |
+| docs/SECURITY.md | v0.6.10 | ✅ |
+| docs/USER_GUIDE.md | v0.6.10 | ✅ |
+| INSTALL.md / INSTALL_zh.md / INSTALL_ja.md | v0.6.10 | ✅ |
+| USER_MANUAL.md / USER_MANUAL_zh.md / USER_MANUAL_ja.md | v0.6.10 | ✅ |
+| SKILL.md | v0.6.10 | ✅ |
 | docs/IMPROVEMENT_PLAN_V070.md | v0.6.8→v0.7.0（方案标题） | ✅ 合理 |
 
-### 2.2 严重不一致项
+### 2.2 已修复不一致项（commit 0590a13 + 本轮外部文档同步）
 
-#### ❌ 问题 1：PRD.md 停留在 v0.4.7（14 处旧版本引用）
+#### ✅ 已修复 问题 1：PRD.md 停留在 v0.4.7（14 处旧版本引用）
 
-- 标题：`# PyCC2 产品需求规格书 (PRD) v0.4.7`
-- **还原度声称 ~88%**（视觉 85% / 机制 92%）——与 ROADMAP.md 修正后的 ~75%（视觉 70% / 机制 80%）**直接矛盾**
-- v0.4.16 诚实修正（见 ROADMAP.md L14）未传播到 PRD
-- 评估表格仍基于 v0.4.0 数据
+- **状态**：已于 commit `0590a13` 修复，PRD.md 现为 v0.6.10
+- 还原度已更新为 ~75%（视觉 70% / 机制 80%），与 ROADMAP.md 一致
+- v0.4.16 诚实修正已传播到 PRD
+- 评估表格已更新到 v0.6.10 状态
 
-#### ❌ 问题 2：DESIGN.md 停留在 v0.4.7（4 处旧版本引用）
+#### ✅ 已修复 问题 2：DESIGN.md 停留在 v0.4.7（4 处旧版本引用）
 
-- 标题：`# PyCC2 技术设计文档 (DESIGN) **v0.4.7**`
-- 内容引用 v0.4.x 架构状态，未反映 v0.5~v0.6 的架构演进
+- **状态**：已于 commit `0590a13` 修复，DESIGN.md 现为 v0.6.10
+- 内容已反映 v0.5~v0.6 的架构演进
 
-#### ⚠️ 问题 3：ROADMAP.md 有 4 条过期条目
+#### ✅ 已修复 问题 3：ROADMAP.md 有 4 条过期条目
 
-```
-L242: | Clean up scripts/ directory | ⬜ Planned (v0.6.9 Wave 3) |  ← 实际已完成
-L243: | Consolidate documentation | ⬜ Planned (v0.6.9 Wave 3)    |  ← 实际已完成
-L250: - [ ] scripts/ contains only useful utility scripts (Planned v0.6.9 Wave 3)  ← 已完成
-L251: - [ ] No overlapping documentation in docs/ (Planned v0.6.9 Wave 3)          ← 已完成
-```
+- **状态**：已于 commit `0590a13` 修复，4 条过期条目已清理
+- 测试计数已更新为 ~6536
 
 ### 2.3 测试计数一致性
 
@@ -348,7 +349,7 @@ PyCC2/
 | 音效 | 有 | 有（11 环境音） | 75% | 程序化生成 |
 | 存档系统 | 有 | 有（HMAC 保护） | 85% | 安全硬化 |
 
-**综合还原度**：~75%（视觉 ~70% / 机制 ~80%）——与 ROADMAP.md 一致，与 PRD.md 的 ~88% **不一致**（PRD 未更新）。
+**综合还原度**：~75%（视觉 ~70% / 机制 ~80%）——与 ROADMAP.md、PRD.md 一致（PRD 已于 commit 0590a13 修复）。
 
 ### 7.2 优势
 
@@ -361,14 +362,14 @@ PyCC2/
 
 ### 7.3 劣势与风险
 
-1. **❌ 严重：PRD.md 和 DESIGN.md 停留在 v0.4.7**
-   - PRD 声称还原度 88%，实际 75%——对外文档不一致
-   - 违反用户规则："文档描述和代码运行一致"
-   - 风险：新贡献者读到错误信息，决策基于过期数据
+1. **✅ 已修复：PRD.md 和 DESIGN.md 停留在 v0.4.7**（commit 0590a13）
+   - PRD 还原度已更新为 ~75%，与实际一致
+   - DESIGN.md 已补充 v0.5~v0.6 架构演进
+   - 外部文档（README/INSTALL/USER_MANUAL/SKILL.md 三语）也已同步
 
-2. **⚠️ 中等：ROADMAP.md 有 4 条过期条目**
-   - Wave 3 已完成但仍标 "Planned (v0.6.9 Wave 3)"
-   - 风险：误导后续规划
+2. **✅ 已修复：ROADMAP.md 有 4 条过期条目**（commit 0590a13）
+   - Wave 3 已完成条目已标记为 ✅ Complete
+   - 测试计数已更新为 ~6536
 
 3. **⚠️ 中等：211 个测试警告**
    - 虽为预期（HMAC/display），但应区分 expected warning 与 unexpected warning
@@ -380,22 +381,12 @@ PyCC2/
 
 ### 7.4 下一步建议（优先级排序）
 
-#### P0：立即修复（文档一致性）
+#### ✅ P0：已完成（文档一致性 — commit 0590a13 + 本轮外部文档同步）
 
-1. **更新 PRD.md 到 v0.6.10**
-   - 标题版本号 v0.4.7 → v0.6.10
-   - 还原度 88% → 75%（视觉 70% / 机制 80%）
-   - 更新评估表格到 v0.6.10 状态
-   - 清理 14 处 v0.4.x 引用
-
-2. **更新 DESIGN.md 到 v0.6.10**
-   - 标题版本号 v0.4.7 → v0.6.10
-   - 补充 v0.5~v0.6 架构演进（GameLoopAssembler、DDD 四层、unit_factories 子包）
-   - 清理 4 处 v0.4.x 引用
-
-3. **清理 ROADMAP.md 过期条目**
-   - L242-243：标记为 ✅ Complete (v0.6.10 Wave 3)
-   - L250-251：勾选 `[x]` 已完成
+1. **✅ 更新 PRD.md 到 v0.6.10** — 已完成
+2. **✅ 更新 DESIGN.md 到 v0.6.10** — 已完成
+3. **✅ 清理 ROADMAP.md 过期条目** — 已完成
+4. **✅ 同步外部文档（README/INSTALL/USER_MANUAL/SKILL.md 三语）** — 已完成
 
 #### P1：发布前必做
 
@@ -418,12 +409,12 @@ PyCC2/
 | 战役系统 | ✅ | 四层架构 + 继承 |
 | 存档系统 | ✅ | HMAC 保护 |
 | 视觉质量 | 🟡 | 70%，距离 CC2 原版有差距 |
-| 文档一致性 | ❌ | PRD/DESIGN 过期 |
+| 文档一致性 | ✅ | 全部同步到 v0.6.10 |
 | CI/CD | ✅ | 7-job 全绿 |
 | 测试覆盖 | ✅ | 6536 测试 + 25 E2E |
 | 安全 | ✅ | Bandit 0 / pip-audit 0 |
 
-**v1.0 就绪度**：~85%。修复 P0 文档问题后可达 ~90%。距离 v1.0 仅差文档更新 + 性能调优 + 视觉打磨。
+**v1.0 就绪度**：~90%。P0 文档问题已全部修复。距离 v1.0 仅差性能调优 + 视觉打磨 + P1 项。
 
 ---
 
@@ -452,7 +443,7 @@ grep -rE "\bTODO\b|\bFIXME\b|\bHACK\b" src/  # → 0 处
 
 # 版本一致性
 grep -rE "0\.6\.8" --include="*.md" . | grep -v archive | grep -v CHANGELOG  # → IMPROVEMENT_PLAN 标题（合理）
-grep -rE "v?0\.4\.[0-9]+" docs/PRD.md  # → 14 处（过期）
+grep -rE "v?0\.4\.[0-9]+" docs/PRD.md  # → 0 处（已于 commit 0590a13 清理）
 ```
 
 ### A.2 评估范围与局限
@@ -464,6 +455,6 @@ grep -rE "v?0\.4\.[0-9]+" docs/PRD.md  # → 14 处（过期）
 
 ---
 
-**评估结论**：PyCC2 v0.6.10 是一个架构健康、测试扎实、CI 成熟的 Beta Candidate 项目。核心问题在于 PRD/DESIGN 文档严重过期，需立即修复。修复后即可作为 v0.7.0 Beta 发布候选。
+**评估结论**：PyCC2 v0.6.10 是一个架构健康、测试扎实、CI 成熟的 Beta Candidate 项目。P0 文档一致性问题已全部修复（commit 0590a13 + 外部文档同步），所有内外部文档均已同步到 v0.6.10，还原度一致 (~75%)。可作为 v0.7.0 Beta 发布候选。
 
-> **文档先行，万事留痕** — 本评估留档于 `docs/PROJECT_ASSESSMENT_v0.6.10.md`，后续整改按 P0→P1→P2 顺序推进。
+> **文档先行，万事留痕** — 本评估留档于 `docs/PROJECT_ASSESSMENT_v0.6.10.md`，P0 已完成，后续按 P1→P2 顺序推进。

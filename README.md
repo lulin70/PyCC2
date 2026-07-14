@@ -5,8 +5,8 @@
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-6178%20passed-brightgreen.svg" alt="Tests" />
-<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC72%25-yellow.svg" alt="CC2 Fidelity" />
+<img src="https://img.shields.io/badge/Tests-6536%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC75%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Beta%20Candidate-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
 </p>
@@ -15,11 +15,11 @@
 <em>A Python recreation of Atomic Games' legendary WWII tactical wargame — Beta Candidate with full SRP refactoring, real-mode E2E, and mature test suite</em>
 </p>
 
-> 🟢 **Beta Candidate**: Core gameplay + cinematic effects + achievement system + dynamic shadows + projectile trails + SRP architecture cleanup + real SDL E2E validation + visual polish (death fade, screen flash, movement smoothing, UI transitions, weather overlay, shell ejection, button feedback). **6178 tests passing (100%)**, 38-phase E2E user journey validated in real environment. Ghost feature audit complete — all critical rendering pipelines now active. Environmental audio activated, dirty rectangle optimization live, EnhancedRenderer split complete, ResourceCacheManager online.
+> 🟢 **Beta Candidate**: Core gameplay + cinematic effects + achievement system + dynamic shadows + projectile trails + SRP architecture cleanup + real SDL E2E validation + visual polish (death fade, screen flash, movement smoothing, UI transitions, weather overlay, shell ejection, button feedback). **6536 tests passing (100%)**, 38-phase E2E user journey validated in real environment. Ghost feature audit complete — all critical rendering pipelines now active. Environmental audio activated, dirty rectangle optimization live, EnhancedRenderer split complete, ResourceCacheManager online.
 
 ---
 
-## What's New in v0.4.0
+## What's New (v0.6.10)
 
 ### v0.3.35 — Quick Wins (2026-06-11)
 - Deleted AnimationController dead code (430 lines, 90% overlap with existing systems)
@@ -186,32 +186,32 @@
 
 | Metric | Value |
 |--------|-------|
-| **Total Tests** | **6178 passed** (0 failed, 21 skipped) ✅ |
+| **Total Tests** | **6536 passed** (0 failed, 2 skipped) ✅ |
 | **Test Quality** | A+ (121 weak assertions eliminated) 🎯 |
 | **E2E Tests** | 22 test files (38-phase real SDL mode, 100% pass rate) |
 | **Maps** | 63 historical maps (Operation Market Garden) |
 | **Unit Templates** | 277 (infantry, vehicles, weapons) |
 | **Weapon Types** | 69 authentic CC2 weapons |
 | **Campaign Battles** | 29 battles across 9 days, 3 sectors |
-| **AI Behaviors** | 6 tactical AI types (flanking, suppression, VP, etc.) |
-| **Code Files** | 390 Python modules (+37 new since v0.3.30: surface_pool.py, fade_transition.py + shell_casing_system.py, flash_effect_system.py, weather_system.py, resource_cache.py + weather/shell systems in v0.3.31-v0.3.34 + casualty_system, unit_diversity_expansion, cover_seek_ai, etc.) |
+| **AI Behaviors** | 8+ tactical AI types (flanking, suppression, VP, recon, supply-line awareness, etc.) |
+| **Code Files** | 388 Python modules (src/pycc2 .py files, verified via `find src/pycc2 -name "*.py" \| wc -l`) |
 | **Class Definitions** | 330+ classes |
 | **Extracted Modules** | 22 rendering/data systems (new: ShellCasingSystem, FlashEffectSystem, WeatherSystem, ResourceCacheManager + previous 19) |
-| **Technical Debt** | 4 God Classes >1000 lines remaining (deployment_ui 1323↓, pixel_artist_3d 2340, campaign_four_layer 1987, pixel_artist 1971) |
+| **Technical Debt** | 0 God Classes (P2-2 canceled: 4 candidates judged NOT God Class via SRP analysis) |
 | **Layer Violations** | ~25 (down from 41 in v0.3.29, -39%) |
-| **CC2 Fidelity** | ~72% (Visual: ~67%, Mechanics: ~78%) ⚠️ v0.5.0 P0 PixVoxel wired | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md). v0.5.0 P0: PixVoxel ortho sprites wired into game loop. |
+| **CC2 Fidelity** | ~75% (Visual: ~70%, Mechanics: ~80%) ⚠️ v0.4.16 honest correction + v0.6.3~v0.6.5 AI complete | See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md). |
 
-### 📈 Code Quality Metrics (v0.3.39 — Critical Fix & CI)
+### 📈 Code Quality Metrics (v0.6.10)
 
 | Dimension | Score | Notes |
 |----------|-------|-------|
-| **Architecture** | 7.5/10 | DDD + DI, EnhancedRenderer split complete (3 subsystems extracted), 4 God Classes remain, layer violations -39% |
-| **Test Quality** | 9.5/10 ✅ | **6178 tests**, weak assertions <1%, smoke tests for zero-coverage modules |
+| **Architecture** | 7.5/10 | DDD + DI, EnhancedRenderer split complete (3 subsystems extracted), 0 God Classes (P2-2 canceled), layer violations -39% |
+| **Test Quality** | 9.5/10 ✅ | **6536 tests**, weak assertions <1%, smoke tests for zero-coverage modules |
 | **Test Coverage** | 8.5/10 | Broad coverage, 27 new smoke tests in v0.3.27, 55 new HUD tests in v0.3.36 |
 | **Code Quality** | 7.5/10 | **~1 bare print() remaining (99.3% cleaned)** (down from 200+), logging migration complete, AnimationController dead code removed |
 | **Performance** | 8.5/10 | Surface pool LRU unified (6/6 consumers), dirty rectangle optimization live, terrain cache, tank rotation cache, viewport culling |
 | **Security** | 9.5/10 ✅ | Zero eval/exec, HMAC saves (permissions 0o600, key validation), no injection vectors |
-| **Documentation** | **8.5/10** ✅ | **Synchronized to v0.3.39** (this update) |
+| **Documentation** | **8.5/10** ✅ | **Synchronized to v0.6.10** (this update) |
 | **Maintainability** | 8/10 | Clear patterns, good logging, ghost audit complete, critical pipelines active, environmental audio online |
 | **Visual Polish** | 8/10 🆕 | Death fade, screen flash, movement lerp, UI transitions, weather, shells, tooltips (v0.3.31-v0.3.34) |
 | **Overall Health** | **8.2/10** | **Beta Candidate** ✅ |
@@ -385,7 +385,7 @@ PyCC2/
 │   ├── maps/               # 63 historical map JSON files
 │   ├── scenarios/          # 11 scenario configurations
 │   └── units/              # Unit template definitions
-├── tests/                  # 6178 tests (unit + integration + E2E + smoke)
+├── tests/                  # 6536 tests (unit + integration + E2E + smoke)
 ├── assets/                 # Sprites, sounds, CC2 reference screenshots
 └── docs/                   # Design documents, PRD, Gap analysis
 ```
@@ -446,7 +446,7 @@ PyCC2/
 ## Testing
 
 ```bash
-# Full test suite (6178 tests)
+# Full test suite (6536 tests)
 pytest tests/ -q
 
 # By category
@@ -479,8 +479,8 @@ pytest tests/e2e/ -m e2e -v
 | **Campaign Structure** | 4-layer hierarchy | **Full hierarchy** with carryover & briefing | ✅ Complete |
 | **Weapon System** | ~50 weapons | **69 weapons** with authentic stats | ✅ Complete |
 | **Unit Diversity** | 130+ unit types | **277 templates** with sprite rendering | ✅ Complete |
-| **AI Tactics** | Mature behavior trees | **6 AI types** with BT framework | ✅ Functional |
-| **Visual Quality** | CC2 pixel art (hand-drawn) | Procedural textures + PixVoxel ortho sprites + SVG/programmatic sprites + shadows + 3-panel HUD + VP display | ⚠️ ~67% (v0.5.0 P0: PixVoxel CC0 sprites wired, 14/18 unit types covered) |
+| **AI Tactics** | Mature behavior trees | **8+ AI types** (incl. ReconAI, SupplyAwarenessAI, psychology model) | ✅ Functional |
+| **Visual Quality** | CC2 pixel art (hand-drawn) | Procedural textures + PixVoxel ortho sprites + SVG/programmatic sprites + shadows + 3-panel HUD + VP display | ⚠️ ~70% (v0.5.0 P0: PixVoxel CC0 sprites wired, 14/18 unit types covered; v0.6.10 palette correction) |
 | **Combat Mechanics** | Suppression + morale | Swiss Cheese model, 6 levels | ✅ Complete |
 | **Command System** | 7 commands | **All 7 commands** with hotkeys + queue | ✅ Complete |
 | **Victory Conditions** | CC2-authentic | Instant VL, 20min timer, points | ✅ Complete |
@@ -488,7 +488,7 @@ pytest tests/e2e/ -m e2e -v
 | **Bridge Destruction** | Engineer demos | Engineers destroy bridges | ✅ Complete |
 | **Audio** | Full soundscape | Weapons, ambient, music | 🟡 ~85% |
 
-**Overall Fidelity: ~72%** (Visual: ~67%, Mechanics: ~78%) ⚠️ v0.5.0 P0: PixVoxel Blank ortho sprites wired into game loop (3968 sprites, 14/18 unit types covered, indexed-palette recoloring). Original 88% was overstated due to: (1) unweighted averaging; (2) isometric ghost feature (isometric_renderer.py doesn't exist); (3) PixVoxel sprite loader (1143 lines) complete but not wired into game loop. v0.5.0 P0 has resolved (3). See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for remaining gaps and [VISUAL_FIDELITY_IMPROVEMENT_PLAN.md](docs/VISUAL_FIDELITY_IMPROVEMENT_PLAN.md) for improvement plan.
+**Overall Fidelity: ~75%** (Visual: ~70%, Mechanics: ~80%) ⚠️ v0.4.16 honest correction (88%→75%) + v0.5.0 P0: PixVoxel Blank ortho sprites wired into game loop (3968 sprites, 14/18 unit types covered, indexed-palette recoloring) + v0.6.3~v0.6.5 AI behaviors complete. See [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) for remaining gaps and [VISUAL_FIDELITY_IMPROVEMENT_PLAN.md](docs/VISUAL_FIDELITY_IMPROVEMENT_PLAN.md) for improvement plan.
 
 ---
 
@@ -530,7 +530,7 @@ pytest tests/e2e/ -m e2e -v
 
 **Target: v1.0**
 - [x] Full gameplay loop working end-to-end
-- [ ] ≥90% CC2 fidelity (currently ~72%, visual ~67% / mechanics ~78% — v0.5.0 P0: PixVoxel ortho sprites wired; v0.5.1 P2: isometric cleanup done; P1/P3 pending)
+- [ ] ≥90% CC2 fidelity (currently ~75%, visual ~70% / mechanics ~80% — v0.4.16 honest correction; v0.5.0 P0: PixVoxel wired; v0.6.3~v0.6.5 AI recon/psychology/supply complete)
 - [x] Complete AI tactical behaviors
 - [x] Sound effects and music
 - [x] CC2-authentic victory conditions

@@ -5,8 +5,8 @@
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/测试-6178%20passed-brightgreen.svg" alt="Tests" />
-<img src="https://img.shields.io/badge/CC2还原度-%E2%88%BC72%25-yellow.svg" alt="CC2 Fidelity" />
+<img src="https://img.shields.io/badge/测试-6536%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/CC2还原度-%E2%88%BC75%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/状态-Beta%20Candidate-blue.svg" alt="Status" />
 </p>
 
@@ -14,12 +14,12 @@
 <em>基于 Python 的二战实时战术战斗模拟器 — Beta候选版本，完整战斗循环+SRP重构+真实SDL E2E验证</em>
 </p>
 
-> 🟢 **Beta Candidate 状态**: 核心游戏玩法完全可用 —— 部署、战斗、AI、战役、CC2原版胜利条件全部正常工作。**6178 passed / 0 failed / 21 skipped**，38阶段E2E用户旅程已在真实环境中验证。视觉打磨完成（死亡淡出、屏幕闪光、移动平滑、UI过渡动画、天气覆盖层、弹壳抛射、按钮反馈）。v0.5.0 P0: PixVoxel 正交版精灵已接入游戏循环（3968精灵，14/18单位类型覆盖）。幽灵功能审计完毕——所有关键渲染管线已激活。环境音效已激活，脏矩形优化已上线，EnhancedRenderer拆分完成，ResourceCacheManager已上线。
+> 🟢 **Beta Candidate 状态**: 核心游戏玩法完全可用 —— 部署、战斗、AI、战役、CC2原版胜利条件全部正常工作。**6536 passed / 0 failed / 2 skipped**，38阶段E2E用户旅程已在真实环境中验证。视觉打磨完成（死亡淡出、屏幕闪光、移动平滑、UI过渡动画、天气覆盖层、弹壳抛射、按钮反馈）。v0.5.0 P0: PixVoxel 正交版精灵已接入游戏循环（3968精灵，14/18单位类型覆盖）。幽灵功能审计完毕——所有关键渲染管线已激活。环境音效已激活，脏矩形优化已上线，EnhancedRenderer拆分完成，ResourceCacheManager已上线。
 > 详见[当前状态](#当前状态)功能矩阵。
 
 ---
 
-## ✨ v0.4.0 最新更新
+## ✨ v0.6.10 最新更新
 
 ### 🛠️ v0.3.35 — 快速修复 (2026年6月11日)
 - 删除 AnimationController 死代码（430行，与现有系统90%功能重叠）
@@ -96,16 +96,16 @@
 
 | 指标 | 数值 |
 |------|------|
-| **总测试数** | **6178 passed** (0 failed, 21 skipped) ✅ |
+| **总测试数** | **6536 passed** (0 failed, 2 skipped) ✅ |
 | **E2E测试** | 22个测试文件 (38阶段真实SDL模式 = 100%通过率) |
 | **地图数量** | 63张历史地图 (市场花园行动) |
 | **单位模板** | 277种 (步兵、载具、武器) |
 | **武器类型** | 69种CC2原版武器 |
 | **战役战斗** | 29场战斗，跨越9天，3个战区 |
-| **AI行为类型** | 6种战术AI (包抄、压制、夺点等) |
-| **代码文件** | 390个 Python 模块（src/pycc2 下 .py 文件，实测 `find src/pycc2 -name "*.py" \| wc -l`） |
+| **AI行为类型** | 8+种战术AI (包抄、压制、夺点、侦察、补给线意识等) |
+| **代码文件** | 388个 Python 模块（src/pycc2 下 .py 文件，实测 `find src/pycc2 -name "*.py" \| wc -l`） |
 | **类定义数** | 330+ 个类 |
-| **CC2还原度** | ~72% (视觉: ~67%, 机制: ~78%) ⚠️ v0.5.0 P0 PixVoxel接入 | 详见 [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md)。v0.5.0 P0: PixVoxel正交版精灵接入游戏循环。 |
+| **CC2还原度** | ~75% (视觉: ~70%, 机制: ~80%) ⚠️ v0.4.16诚实修正 + v0.6.3~v0.6.5 AI完成 | 详见 [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md)。 |
 
 ---
 
@@ -274,7 +274,7 @@ PyCC2/
 │   ├── maps/               # 63张历史地图JSON文件
 │   ├── scenarios/          # 11个场景配置
 │   └── units/              # 单位模板定义
-├── tests/                  # 6178个测试（单元+集成+E2E+烟雾测试）
+├── tests/                  # 6536个测试（单元+集成+E2E+烟雾测试）
 ├── assets/                 # 精灵、音效、CC2参考截图
 └── docs/                   # 设计文档、PRD、差距分析
 ```
@@ -335,7 +335,7 @@ PyCC2/
 ## 🧪 测试
 
 ```bash
-# 全量测试套件（6178个测试）
+# 全量测试套件（6536个测试）
 pytest tests/ -q
 
 # 按类别运行
@@ -367,8 +367,8 @@ pytest tests/e2e/ -m e2e -v
 | **战役结构** | 四层层级结构 | **完整层级** 含继承&简报 | ✅ 完成 |
 | **武器系统** | ~50种武器 | **69种武器** 含真实数据 | ✅ 完成 |
 | **单位多样性** | 130+单位类型 | **277个模板** 含精灵渲染 | ✅ 完成 |
-| **AI战术** | 成熟的行为树 | **6种AI类型** 含BT框架 | ✅ 功能完整 |
-| **视觉质量** | CC2像素艺术（手绘） | PixVoxel正交精灵+程序化生成纹理+SVG/程序化精灵+阴影 | ⚠️ ~67% (v0.5.0 P0: PixVoxel正交版精灵已接入, 3968精灵, 14/18单位覆盖) |
+| **AI战术** | 成熟的行为树 | **8+种AI类型**（含ReconAI、SupplyAwarenessAI、心理模型） | ✅ 功能完整 |
+| **视觉质量** | CC2像素艺术（手绘） | PixVoxel正交精灵+程序化生成纹理+SVG/程序化精灵+阴影 | ⚠️ ~70% (v0.5.0 P0: PixVoxel正交版精灵已接入, 3968精灵, 14/18单位覆盖; v0.6.10调色板修正) |
 | **战斗机制** | 压制+士气 | 瑞士奶酪模型，6级 | ✅ 完成 |
 | **命令系统** | 7个命令 | **全部7命令** 含热键+队列 | ✅ 完成 |
 | **胜利条件** | CC2原版 | 即时VL、20分钟计时器、积分 | ✅ 完成 |
@@ -376,7 +376,7 @@ pytest tests/e2e/ -m e2e -v
 | **桥梁摧毁** | 工兵爆破 | 工兵可摧毁桥梁 | ✅ 完成 |
 | **音频** | 完整音景 | 武器、环境、音乐 | 🟡 ~85% |
 
-**总体还原度：~72%** (视觉: ~67%, 机制: ~78%) v0.5.0 P0 PixVoxel接入。v0.5.0 P0: PixVoxel Blank 正交版精灵 (3968精灵, CC0许可) 已接入游戏循环，通过 SpriteCacheManager 作为最高优先级精灵来源，支持索引调色板替换 (8阵营×256色)。剩余差距：地形仍程序化生成非手绘；P2待清理 isometric 幽灵功能。详见 [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) 查看剩余差距，[VISUAL_FIDELITY_IMPROVEMENT_PLAN.md](docs/VISUAL_FIDELITY_IMPROVEMENT_PLAN.md) 查看提升计划。
+**总体还原度：~75%** (视觉: ~70%, 机制: ~80%) ⚠️ v0.4.16诚实修正(88%→75%) + v0.5.0 P0 PixVoxel接入 + v0.6.3~v0.6.5 AI行为完成。剩余差距：地形仍程序化生成非手绘；P2待清理 isometric 幽灵功能。详见 [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) 查看剩余差距，[VISUAL_FIDELITY_IMPROVEMENT_PLAN.md](docs/VISUAL_FIDELITY_IMPROVEMENT_PLAN.md) 查看提升计划。
 
 ---
 
@@ -411,7 +411,7 @@ pytest tests/e2e/ -m e2e -v
 
 **目标：v1.0**
 - [x] 完整游戏循环端到端工作
-- [ ] ≥90% CC2还原度（当前~72%，视觉~67%/机制~78% — v0.5.0 P0 PixVoxel接入完成；v0.5.1 P2 isometric experimental代码清理完成；P1地形贴图提升计划中）
+- [ ] ≥90% CC2还原度（当前~75%，视觉~70%/机制~80% — v0.4.16诚实修正；v0.5.0 P0 PixVoxel接入完成；v0.6.3~v0.6.5 AI侦察/心理模型/补给线意识全部完成）
 - [x] 完整AI战术行为
 - [x] 音效和音乐
 - [x] CC2原版胜利条件

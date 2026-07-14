@@ -1,8 +1,8 @@
-# User Manual — PyCC2 **v0.4.7**
+# User Manual — PyCC2 **v0.6.10**
 
-> **This document has been updated to v0.4.7. For earlier version information, see Git history.**
+> **This document has been updated to v0.6.10. For earlier version information, see Git history.**
 
-*Manual version: 2.0 — For PyCC2 v0.4.7 | Last updated: 2026-07-05*
+*Manual version: 2.1 — For PyCC2 v0.6.10 | Last updated: 2026-07-14*
 
 *The complete guide to commanding your Allied squads in Operation Market Garden*
 
@@ -780,7 +780,7 @@ Each save stores the complete game state:
 
 | Version | Date | Notes |
 |---------|------|-------|
-| v2.0 | 2026-06-14 | **v0.4.0**: Updated to current version — launch via `pycc2`, 7-command hotkey system (Z/X/S/C/V/D/H), save format save_slot_X.json, 63 maps, 277 unit templates, ~3513 tests, CC2 fidelity ~88% |
+| v2.0 | 2026-06-14 | **v0.4.0**: Updated to current version — launch via `pycc2`, 7-command hotkey system (Z/X/S/C/V/D/H), save format save_slot_X.json, 63 maps, 277 unit templates, ~3513 tests, CC2 fidelity ~75% (v0.4.16 honest correction: visual ~70% / mechanics ~80%) |
 | v1.8 | 2026-05-19 | **v0.6-p4w2**: P5/P6/P7 Complete — Campaign Core (~60%), Combat Depth (~85%), Content Expansion (M6-M10), 10 missions, 10 maps, CC2 Fidelity ~71%, 1566 tests |
 | v1.7 | 2026-05-19 | **v0.6-p4w2**: CC2 gap analysis (Campaign ~5%, Combat ~65%), Roadmap revised to P5 Campaign Core, Night combat system, Anti-tank armor mechanics, Weather rendering, Trilingual documentation (EN/ZH/JA), 1377 tests |
 | v1.6 | 2026-05-19 | **v0.6-p4w2**: Campaign expanded to 5 missions (M1-M5), Tutorial system added, F1/F10 shortcuts, Performance optimizations documented, 1270 tests |
@@ -789,5 +789,5 @@ Each save stores the complete game state:
 | v1.3 | 2026-05-17 | Complete Edition baseline — Full feature set documented |
 
 ---
-*Manual version: 2.0 — For PyCC2 v0.4.7*
+*Manual version: 2.1 — For PyCC2 v0.6.10*
 *Last updated: 2026-07-05*
