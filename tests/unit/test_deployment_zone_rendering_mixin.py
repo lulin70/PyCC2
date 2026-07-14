@@ -146,7 +146,9 @@ class TestRenderDeploymentZones:
         )
 
     def test_uses_game_map_dimensions(self, facade, ui, surface):
-        facade.render_deployment_zones(surface, FakeCamera(), FakeGameMap(width=5, height=5), tile_size=16)
+        facade.render_deployment_zones(
+            surface, FakeCamera(), FakeGameMap(width=5, height=5), tile_size=16
+        )
 
 
 class TestRenderZoneOverlays:

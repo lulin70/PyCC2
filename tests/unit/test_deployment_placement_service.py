@@ -139,17 +139,13 @@ class TestPlaceUnit:
 
     def test_infantry_limit(self, service, ui):
         ui._state.max_infantry = 1
-        ui._state.placed_units = [
-            _make_unit(unit_type="infantry", is_placed=True, position=(1, 1))
-        ]
+        ui._state.placed_units = [_make_unit(unit_type="infantry", is_placed=True, position=(1, 1))]
         ui._state.available_units = [_make_unit(unit_type="infantry")]
         assert service.place_unit(0, 5, 5) is False
 
     def test_support_limit(self, service, ui):
         ui._state.max_support = 1
-        ui._state.placed_units = [
-            _make_unit(unit_type="support", is_placed=True, position=(1, 1))
-        ]
+        ui._state.placed_units = [_make_unit(unit_type="support", is_placed=True, position=(1, 1))]
         ui._state.available_units = [_make_unit(unit_type="support")]
         assert service.place_unit(0, 5, 5) is False
 
@@ -237,9 +233,7 @@ class TestCheckUnitLimits:
 
     def test_infantry_at_limit(self, service, ui):
         ui._state.max_infantry = 1
-        ui._state.placed_units = [
-            _make_unit(unit_type="infantry", is_placed=True, position=(1, 1))
-        ]
+        ui._state.placed_units = [_make_unit(unit_type="infantry", is_placed=True, position=(1, 1))]
         unit = _make_unit(unit_type="infantry")
         assert service._check_unit_limits(unit) is False
 
@@ -249,25 +243,19 @@ class TestCheckUnitLimits:
 
     def test_support_at_limit(self, service, ui):
         ui._state.max_support = 1
-        ui._state.placed_units = [
-            _make_unit(unit_type="support", is_placed=True, position=(1, 1))
-        ]
+        ui._state.placed_units = [_make_unit(unit_type="support", is_placed=True, position=(1, 1))]
         unit = _make_unit(unit_type="support")
         assert service._check_unit_limits(unit) is False
 
     def test_vehicle_counts_as_support(self, service, ui):
         ui._state.max_support = 1
-        ui._state.placed_units = [
-            _make_unit(unit_type="vehicle", is_placed=True, position=(1, 1))
-        ]
+        ui._state.placed_units = [_make_unit(unit_type="vehicle", is_placed=True, position=(1, 1))]
         unit = _make_unit(unit_type="support")
         assert service._check_unit_limits(unit) is False
 
     def test_recon_counts_as_infantry(self, service, ui):
         ui._state.max_infantry = 1
-        ui._state.placed_units = [
-            _make_unit(unit_type="recon", is_placed=True, position=(1, 1))
-        ]
+        ui._state.placed_units = [_make_unit(unit_type="recon", is_placed=True, position=(1, 1))]
         unit = _make_unit(unit_type="recon")
         assert service._check_unit_limits(unit) is False
 

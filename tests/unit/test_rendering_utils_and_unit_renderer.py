@@ -50,10 +50,7 @@ class TestDrawDashedLine:
         # Dashed line may have a gap at any specific pixel; scan along the
         # diagonal and assert at least one pixel was modified.
         draw_dashed_line(surface, (0, 0, 255), (10, 10), (100, 100))
-        modified = any(
-            surface.get_at((x, x)) != (0, 0, 0, 255)
-            for x in range(10, 101)
-        )
+        modified = any(surface.get_at((x, x)) != (0, 0, 0, 255) for x in range(10, 101))
         assert modified, "No pixel along the diagonal was modified"
 
     def test_zero_distance_no_crash(self, surface):

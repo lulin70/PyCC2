@@ -83,21 +83,24 @@ class TestVolume:
 
 @pytest.mark.unit
 class TestGenerateCC2Combat:
-    @pytest.mark.parametrize("event,duration_ms", [
-        (CombatSoundEvent.TANK_CANNON_FIRE, 800),
-        (CombatSoundEvent.AT_ROCKET_FIRE, 1200),
-        (CombatSoundEvent.MORTAR_LAUNCH, 1500),
-        (CombatSoundEvent.GRENADE_EXPLOSION_SHORT, 200),
-        (CombatSoundEvent.AIRSTRIKE_BOMB, 1500),
-        (CombatSoundEvent.VEHICLE_ENGINE_START, 2000),
-        (CombatSoundEvent.VEHICLE_ENGINE_IDLE, 1500),
-        (CombatSoundEvent.VEHICLE_MOVE, 1200),
-        (CombatSoundEvent.ARMOR_PENETRATE, 350),
-        (CombatSoundEvent.RICOCHET_BOUNCE, 450),
-        (CombatSoundEvent.NEAR_MISS_WHIZZ, 180),
-        (CombatSoundEvent.SMOKE_DEPLOY_HISS, 2000),
-        (CombatSoundEvent.SUPPRESSION_FIRE, 1500),
-    ])
+    @pytest.mark.parametrize(
+        "event,duration_ms",
+        [
+            (CombatSoundEvent.TANK_CANNON_FIRE, 800),
+            (CombatSoundEvent.AT_ROCKET_FIRE, 1200),
+            (CombatSoundEvent.MORTAR_LAUNCH, 1500),
+            (CombatSoundEvent.GRENADE_EXPLOSION_SHORT, 200),
+            (CombatSoundEvent.AIRSTRIKE_BOMB, 1500),
+            (CombatSoundEvent.VEHICLE_ENGINE_START, 2000),
+            (CombatSoundEvent.VEHICLE_ENGINE_IDLE, 1500),
+            (CombatSoundEvent.VEHICLE_MOVE, 1200),
+            (CombatSoundEvent.ARMOR_PENETRATE, 350),
+            (CombatSoundEvent.RICOCHET_BOUNCE, 450),
+            (CombatSoundEvent.NEAR_MISS_WHIZZ, 180),
+            (CombatSoundEvent.SMOKE_DEPLOY_HISS, 2000),
+            (CombatSoundEvent.SUPPRESSION_FIRE, 1500),
+        ],
+    )
     def test_generates_valid_waveform(self, synth, event, duration_ms):
         result = synth.generate_cc2_combat(event)
         _assert_valid_waveform(result, _expected_samples(duration_ms))
@@ -231,16 +234,19 @@ class TestSuppressionFire:
 
 @pytest.mark.unit
 class TestGenerateViaSoundSystem:
-    @pytest.mark.parametrize("event", [
-        CombatSoundEvent.RIFLE_FIRE,
-        CombatSoundEvent.MG_FIRE,
-        CombatSoundEvent.PISTOL_FIRE,
-        CombatSoundEvent.EXPLOSION,
-        CombatSoundEvent.HIT_CONFIRM,
-        CombatSoundEvent.HIT_CRITICAL,
-        CombatSoundEvent.UNIT_DEATH,
-        CombatSoundEvent.WEAPON_RELOAD,
-    ])
+    @pytest.mark.parametrize(
+        "event",
+        [
+            CombatSoundEvent.RIFLE_FIRE,
+            CombatSoundEvent.MG_FIRE,
+            CombatSoundEvent.PISTOL_FIRE,
+            CombatSoundEvent.EXPLOSION,
+            CombatSoundEvent.HIT_CONFIRM,
+            CombatSoundEvent.HIT_CRITICAL,
+            CombatSoundEvent.UNIT_DEATH,
+            CombatSoundEvent.WEAPON_RELOAD,
+        ],
+    )
     def test_generates_waveform(self, synth, event):
         result = synth.generate_via_sound_system(event)
         assert result is not None, f"generate_via_sound_system({event}) returned None"

@@ -165,9 +165,17 @@ class TestCreateGameObjects:
         objects = _create_game_objects(real_game_map, real_camera, screen, wm, real_event_bus)
 
         expected_keys = {
-            "state", "renderer", "event_bus", "input_handler",
-            "interaction_controller", "display_config", "hint_manager",
-            "keybind_manager", "settings_menu", "tutorial_overlay", "game_loop",
+            "state",
+            "renderer",
+            "event_bus",
+            "input_handler",
+            "interaction_controller",
+            "display_config",
+            "hint_manager",
+            "keybind_manager",
+            "settings_menu",
+            "tutorial_overlay",
+            "game_loop",
         }
         assert expected_keys.issubset(objects.keys())
 
@@ -260,9 +268,7 @@ class TestMainControlFlow:
             lambda screen, clock: ("start_campaign", _StubMenu()),
         )
         stub_loop = StubGameLoop(return_value=0)
-        monkeypatch.setattr(
-            patched_main_deps, "_start_new_game", lambda *a, **kw: stub_loop
-        )
+        monkeypatch.setattr(patched_main_deps, "_start_new_game", lambda *a, **kw: stub_loop)
         monkeypatch.setattr(
             patched_main_deps,
             "_run_game_loop",
@@ -278,9 +284,7 @@ class TestMainControlFlow:
             lambda screen, clock: ("start_skirmish", _StubMenu()),
         )
         stub_loop = StubGameLoop(return_value=0)
-        monkeypatch.setattr(
-            patched_main_deps, "_start_new_game", lambda *a, **kw: stub_loop
-        )
+        monkeypatch.setattr(patched_main_deps, "_start_new_game", lambda *a, **kw: stub_loop)
         monkeypatch.setattr(patched_main_deps, "_run_game_loop", lambda gl: gl.run())
         assert main() == 0
 
@@ -312,9 +316,7 @@ class TestMainControlFlow:
             "_show_main_menu",
             lambda screen, clock: ("load_game:1", None),
         )
-        monkeypatch.setattr(
-            patched_main_deps, "_load_saved_game", lambda slot, screen, wm: None
-        )
+        monkeypatch.setattr(patched_main_deps, "_load_saved_game", lambda slot, screen, wm: None)
         assert main() == 1
 
     def test_start_new_game_returns_none_returns_1(self, patched_main_deps, monkeypatch):
@@ -326,9 +328,7 @@ class TestMainControlFlow:
         monkeypatch.setattr(patched_main_deps, "_start_new_game", lambda *a, **kw: None)
         assert main() == 1
 
-    def test_unknown_menu_action_defaults_to_campaign(
-        self, patched_main_deps, monkeypatch
-    ):
+    def test_unknown_menu_action_defaults_to_campaign(self, patched_main_deps, monkeypatch):
         captured = {}
 
         def fake_start_new_game(menu, action, screen, wm):
