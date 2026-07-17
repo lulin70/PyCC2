@@ -1,8 +1,37 @@
 # PyCC2 v0.7.0 推进计划 — 3 点 Next-Step Plan
 
-> **版本**: v0.6.11 → v0.7.0 (规划中) | **日期**: 2026-07-17 | **状态**: 📋 计划文档 (待执行)
-> **来源**: DevSquad 7-Role 共识评估 (2026-07-17)
+> **版本**: v0.6.11 → v0.7.0 (✅ 已发布) | **日期**: 2026-07-17 | **状态**: ✅ 全部完成 — Wave 1/2/3 + TD-078 同步推进
+> **来源**: DevSquad 7-Role 共识评估 (2026-07-17) + 7-Role 实施评估 (2026-07-17 session 2) + 7-Role 实施完成 (2026-07-17 session 3)
 > **原则**: 文档先行，活文档时刻更新；P1 按项目生命周期推进，P2/P3 给方案待用户决策
+
+## ✅ 执行进度 (2026-07-17 session 3 — 全部完成)
+
+| Wave | 任务 | 状态 | 接入点 | 测试 |
+|------|------|------|--------|------|
+| Wave 1 | TD-076c weapon_jam 接入 | ✅ 完成 | `ai_service.py:tick()` 循环内调用 `WeaponJamSystem.tick(unit)` + `__init__` 实例化 + `weapon_jam_system` property | 3 E2E + off-by-one bug 修复 |
+| Wave 2 | TD-076b surrender_system 接入 | ✅ 完成 | `ai_service.py:__init__()` 注册 `SurrenderAI()` 到 TacticalOrchestrator (第 11 个 AI) + `surrender_system` property | 3 E2E + 1 测试同步 (10→11 AIs) |
+| Wave 3 | TD-076d campaign_persistence 接入 | ✅ 完成 | `game_loop.py` 新增 `_campaign_persistence` 字段 + property + save/load 方法; `game_loop_assembler.py` 接线 | 6 E2E (save/load roundtrip + 继承 + GameLoop wiring) |
+| TD-078 | deployment_manager 架构修复 | ✅ 完成 | 3 纯函数迁移到 `services/deployment_factory.py` + 4 domain 类型迁移到 `domain/value_objects/deployment_types.py` + 旧文件删除 | 8 架构守卫 + 200 deployment 测试全绿 |
+
+### 验证结果 (2026-07-17 session 3)
+
+- **全量测试**: 6509 passed / 2 skipped / 16 deselected (98.64s) — 零回归
+- **E2E 真实用户模拟测试**: 12 新增 (`tests/e2e/test_v0_7_0_ghost_integration_e2e.py`) + 2 测试同步更新
+- **ruff**: 0 errors (check + format)
+- **mypy**: 2 pre-existing errors (`config.rendering_features`, v0.6.11 commit 中就存在, 与 v0.7.0 无关)
+- **check_doc_consistency.sh**: 11/11 PASS (VERSION=0.7.0)
+- **架构守卫**: 8 tests passed (services 层不再 module-level import presentation)
+
+### 实施前评估关键发现 (2026-07-17 session 2)
+
+1. **3 个 ghost 模块代码完整存在**（非 PLANNED 占位符）：
+   - `src/pycc2/domain/ai/weapon_jam.py` (252L) — `WeaponJamSystem` 类，`check_jam_on_fire(unit)` + `tick(unit)` 完整实现
+   - `src/pycc2/domain/ai/surrender_system.py` (403L) — `SurrenderSystem` + `SurrenderAI` 类，`SurrenderAI` 已实现 `TacticalAIBase` 接口可直接注册
+   - `src/pycc2/domain/systems/campaign_persistence.py` (373L) — `CampaignPersistenceManager` 类，save/load/apply_inheritance_to_units 完整实现
+2. **3 个模块均无任何测试文件** — 必须新增 unit + integration + E2E 测试
+3. **TD-078 违规精确位置**: `deployment_manager.py:L157-L161` 运行时 import `presentation.ui.deployment_factory`，影响 11 个文件
+4. **TD-078 修复方案**: 将 `deployment_factory.py` + `deployment_models.py` 一起迁移到 `services/deployment/` 目录（DeploymentUnit 本质是业务数据，不是纯 UI 概念）
+5. **版本号决策**: v0.6.11 → v0.7.0 (MINOR 递增，3 个新功能接入；TD-078 架构修复合并不单独触发版本变更，遵循"功能没有更新时版本不变前两位"原则)
 
 ---
 

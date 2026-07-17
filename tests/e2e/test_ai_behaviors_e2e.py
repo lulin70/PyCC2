@@ -284,7 +284,12 @@ class TestWeaponJam:
         assert WEAPON_JAM_CONFIGS["piat"].jam_probability == pytest.approx(0.008)
 
     def test_weapon_jam_clear_time(self) -> None:
-        """Jammed weapons clear after specified ticks."""
+        """Jammed weapons clear after exactly jam_clear_ticks ticks.
+
+        TD-076c (v0.7.0): tick() now decrements first then checks, so
+        ``clear_ticks=N`` clears in exactly N ticks (was N+1 before the
+        off-by-one fix). This test was updated to reflect the fixed behavior.
+        """
         # Rifle: 3 ticks
         assert WEAPON_JAM_CONFIGS["rifle"].jam_clear_ticks == 3
         # Sten: 5 ticks
@@ -294,9 +299,8 @@ class TestWeaponJam:
         # PIAT: 6 ticks
         assert WEAPON_JAM_CONFIGS["piat"].jam_clear_ticks == 6
 
-        # Verify jam system clears after correct ticks
+        # Verify jam system clears after exactly jam_clear_ticks ticks
         rng = random.Random(42)
-        jam_system = WeaponJamSystem(rng=rng)
 
         unit = _make_unit(unit_id="jam_tester", weapon_id="rifle", ammo=10)
 
@@ -312,22 +316,17 @@ class TestWeaponJam:
         assert unit.weapon.state == WeaponState.JAMMED
         assert jam_system.get_jam_clear_remaining(unit.id) == 3
 
-        # Tick 1: remaining 3 → 2
+        # Tick 1: remaining 3 → 2 (still jammed)
         jam_system.tick(unit)
         assert unit.weapon.state == WeaponState.JAMMED
         assert jam_system.get_jam_clear_remaining(unit.id) == 2
 
-        # Tick 2: remaining 2 → 1
+        # Tick 2: remaining 2 → 1 (still jammed)
         jam_system.tick(unit)
         assert unit.weapon.state == WeaponState.JAMMED
         assert jam_system.get_jam_clear_remaining(unit.id) == 1
 
-        # Tick 3: remaining 1 → 0
-        jam_system.tick(unit)
-        assert unit.weapon.state == WeaponState.JAMMED
-        assert jam_system.get_jam_clear_remaining(unit.id) == 0
-
-        # Tick 4: remaining 0 detected → clear
+        # Tick 3: remaining 1 → 0, jam cleared (exactly 3 ticks, no off-by-one)
         jam_system.tick(unit)
         assert unit.weapon.state == WeaponState.READY
         assert jam_system.get_jam_clear_remaining(unit.id) == 0

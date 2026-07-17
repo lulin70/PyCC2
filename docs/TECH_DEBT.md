@@ -1,7 +1,7 @@
 # PyCC2 技术债清单
 
-> **版本**: v0.6.11 | **日期**: 2026-07-17 | **原则**: 不留技术债，发现即记录，按计划清理
-> **上次核查**: 2026-07-17 (v0.6.11 清理 TD-073/074/075/076a: 3 ghost 模块删除 + 1 type:ignore 修复 + 1 ghost 删除 (context_menu 被 radial_menu 取代)) | **P0未解决**: 0 | **P1未解决**: 3 (TD-076b/c/d 延到 v0.7.0) | **P2未解决**: 2 (TD-077/078)
+> **版本**: v0.7.0 | **日期**: 2026-07-17 | **原则**: 不留技术债，发现即记录，按计划清理
+> **上次核查**: 2026-07-17 (v0.7.0 接入 TD-076b/c/d 三个半集成模块 + TD-078 DDD 分层修复: weapon_jam/surrender_system/campaign_persistence 全部激活 + deployment_factory 从 presentation 迁移到 services) | **P0未解决**: 0 | **P1未解决**: 0 | **P2未解决**: 1 (TD-077 19 个孤立原型待 v0.7.1+ 评估)
 > **状态**: ✅ P0全部清除 | ✅ P1全部清除 | ✅ 质量冲刺 Phase 1-7 完成 | ✅ Bandit Medium 0 (Phase 4) | ✅ mypy 0 errors (385 files, check_untyped_defs=true 已启用) | ✅ ruff 0 errors | ✅ Marker 覆盖率 100% (Phase 5) | ✅ >1000L 文件全部拆分完成（D12 Phase 2，仅 pixvoxel_loader scripts-only 不拆） | ✅ unit.py God Class 拆分完成（D12 Phase 4，54→20 方法） | ✅ 14 ghost 模块清理完成（D12 Phase 3 + D14 新增 3: command_bar/visual_effects/command） | ✅ v0.6.11 新增 4 ghost 清理 (TD-073 spritesheet_parser 508L 删除 + TD-074 operation_timeline 151L 删除 + TD-076a context_menu 308L 删除 被 radial_menu 取代 + TD-075 tactical_ai_types.py type:ignore[name-defined] 修复) | ✅ 孤儿事件对齐完成（D12 Phase 5） | ✅ D13 N-4/N-5/N-6 v0.4.1 清理完成（bandit 配置 + acceptance 文档化 + 分层 conftest） | ✅ v0.4.2 God Class 拆分诚实复核（4 目标均非 God Class，取消拆分） | ✅ v0.4.3 TacticExecutor 单测补齐完成 (batch 1-4b: 19/19 handler + DEMOLISH_BRIDGE 额外, 100 tests, unit 4573 passed) | ✅ D14 CI ruff format 漂移修复 + xfail strict=False 移除 + 文档计数同步 + 版本号同步 | ✅ v0.4.4 pre-commit hooks 修复 (ruff v0.5.0→v0.15.20) | ✅ v0.4.5 God Class 评估完成 (1/5 TRUE, 4 false positive, 详见 ASSESSMENT_GODCLASS_V045.md) | ✅ v0.4.5 12 零覆盖文件补测完成 (38 smoke tests, 4611 unit passed) | ✅ v0.4.5 TacticExecutor 拆分评估 — 已在 D11-2 #3 完成 (TD-064 RESOLVED) | ✅ v0.4.5 mypy 严格化 check_untyped_defs=true (TD-071 RESOLVED, 修 9 隐藏错误) | ✅ v0.4.6 TD-072 enhanced_sound_bridge God Class 拆分完成 (949L→493L+536L+47L) | ✅ v0.4.6 TD-068 e2e skip 修复完成 (7 skip: 4 删除+1 创建数据+1 优化系统+1 保留) | ✅ v0.4.6 3 God Class 候选评估完成 (0/3 TRUE, 详见 ASSESSMENT_GODCLASS_V046.md) | ✅ v0.4.7 TD-027 RESOLVED (infra/ 已不存在，自然解决) | ✅ v0.4.7 慢测试调研完成 (16 slow tests 全部通过, 最慢 0.17s, 总 2.76s, P5-3 lru_cache 优化已生效, 无超时问题) | ✅ v0.4.7 TD-026 评估完成 (44 文件 >500L 全 FALSE, 0/44 TRUE, 详见 ASSESSMENT_TD026_V047.md) | ✅ v0.4.7 TD-038 RESOLVED (4 份核心文档批量同步: PRD 33 用户故事 + ROADMAP M3/M4 + GAP_ANALYSIS A1-A3/R8/R9/R10 + TECH_DEBT checklist) | ✅ v0.4.7 TD-036 RESOLVED (评估确认 tests/benchmark/test_performance_baseline.py 已实现 per-metric threshold 断言) | ✅ v0.4.7 P1 工程实践债评估完成 (TD-035/037/039/040 现状文档化，留待 v0.5+ 推进) | ✅ v0.4.7 P2 视觉/资源/性能/测试债评估完成 (TD-043 RESOLVED + TD-044 WONTFIX + TD-042/059/065/066 现状文档化) | ✅ v0.4.7 P3 低优先级债复核完成 (TD-033/034 checklist 修正 + v2.0 旧条目 18/20 验证通过 + D13-N8 维持待 v0.5 整理) | ✅ v0.4.7 TD-059 RESOLVED (6 模块 smoke 测试补齐: direction/damage/combat_result/stereo_sound/environmental_audio/cc2_map_parser, 58 tests, 全部使用真实组件非 Mock) | ✅ v0.4.7 TD-035 RESOLVED (4 组件接口契约测试 39 tests: HealthComponent/MoraleComponent/StateMachine/VeterancyComponent 接口冻结 + apply_inheritance_to_units 端到端消费者契约 + CampaignPersistence 序列化保真, 全部使用真实组件非 Mock) | ✅ v0.4.7 TD-037 RESOLVED (AI GameLoop 集成测试 6 tests: 真实 GameLoop + 真实 AIService + _update_logic 驱动 N ticks, 验证敌方单位自动注册 + AIService.tick 执行 + _ai_tick_counter 重置 + 多 cycle 持续 tick) | ✅ v0.4.8 TD-040 RESOLVED (运行时健康检查 preflight_check 模块 19 tests: 3 层子系统检查 critical/assembler/optional, GameLoop.run() 启动前 fail-fast) | ✅ v0.4.8 TD-039 RESOLVED (错误恢复机制 8 tests: _update_ai try/except 降级 AI tick 失败→单位静止 + _render_scene try/except 降级 render 失败→跳过本帧, 单组件异常不崩溃整个游戏) | ✅ v0.4.9 TD-041 RESOLVED (架构守卫测试 8 tests: 4 层 DDD 依赖方向自动验证 domain→services→presentation→infrastructure + CONTRIBUTING.md 变更影响分析流程 5 步) | ✅ v0.4.9 TD-061 ACCEPTED (enhanced_renderer 485L/30 方法协调者模式评估收尾: 30 方法全部薄委托到 9 子模块, 核心方法仅 4 个, 基于 D13 N-1 教训不按机械阈值拆分) | ✅ v0.4.10 TD-003 RESOLVED (campaign.py 205L 删除 + campaign_four_layer.py 完全替代 + test_campaign.py 删除 + test_content_expansion.py 移除 TestCampaignSystem 类, 5373 passed 零回归) | ✅ v0.4.10 TD-007 NEEDS RE-EVALUATION (原始 4 个问题记录已丢失, _scatter 函数潜在覆盖 bug 发现但修改需重新生成 36 个地图 JSON, 留待 v0.5 重新评估) | ✅ v0.4.11 TD-065 RESOLVED (车辆损伤视觉反馈差异化 — 最小化方案: unit.py 新增 _damage_components 字段 + unit_damage_vfx_mixin.py 新增 is_vehicle/update_vehicle_damage_components/_emit_vehicle_component_vfx, 部件损伤按 (unit.id, damage_state) 确定性分配, tracks/turret/engine 差异化 VFX, 16 新测 + 4687 unit passed 零回归) | ✅ v0.4.11 TD-066 RESOLVED (烟雾粒子效果统一 — EffectRenderer 分层集成 CC2SmokeEffect: __init__ 新增 _cc2_smoke_effects 字段 + spawn_smoke_screen 同时实例化 CC2SmokeEffect + update_effects 更新清理 + render_effects 底层渲染 CC2SmokeEffect + API 适配层 Camera→tuple 偏移, 11 新测 + 5400 全套 passed 零回归) | ✅ v0.4.12 M4 架构改进收尾评估完成 (Domain slimdown 目标已达成实测 38.5% < 50% + Unify unit definition 前提不成立实为 1 套 DDD 协作系统, 详见 ASSESSMENT_M4_V0411.md, M4 全部 9 项任务完成) | ✅ v0.4.15 ruff format 漂移修复 (v0.4.11 TD-065/TD-066 提交时未运行 ruff format 导致 7 文件格式漂移, main 分支 5 次 CI 全部失败, ruff format . 修复后 5400 passed 零回归, CI Lint 恢复绿灯, 解除 PR #13 合并阻塞) | ✅ v0.4.16 Docker Build scipy 缺失修复 (Dockerfile --no-build-isolation + python:3.12-slim 无 setuptools 导致第一次 pip install 失败, fallback 遗漏 scipy+defusedxml, v0.4.7 TD-059 以来被 Lint 失败掩盖, 修复: 先装 setuptools wheel + fallback 补全所有依赖)
 
 ---
@@ -19,8 +19,8 @@
 | 🆕 v0.3.13 批判性审核新增 | 2 | 🟢 P2 | ✅ 已解决 (TD-060/061/062 全部 RESOLVED/ACCEPTED) |
 | 🆕 v0.4.0 D8 Phase 2 新增 (TD-065~066) | 2 | 🟢 P2 | ✅ 已解决 (v0.4.11 TD-065+TD-066 RESOLVED) |
 | v2.0旧条目（声称已解决） | 20 | — | ✅ 20/20 已验证 (v0.4.10 TD-003 RESOLVED + v0.4.14 TD-007 ACCEPTED) |
-| 🆕 **D15 7维度评估新增 (TD-073~078)** | **6** | 🔴 P0×3 + 🟡 P1×1 + 🟢 P2×2 | ✅ **v0.6.11: TD-073/074/075/076a 已解决 (4/6)** — 3 ghost 删除 + 1 type:ignore 修复 + context_menu 删除; 🟡 **TD-076b/c/d 3 半集成接入延到 v0.7.0** + 2 P2 待评估 (2026-07-17) |
-| **合计（活跃）** | **3** | — | **64/64 历史 + 6 新发现 = 70 总计，3 活跃 (TD-076b/c/d 延到 v0.7.0)** |
+| 🆕 **D15 7维度评估新增 (TD-073~078)** | **6** | 🔴 P0×3 + 🟡 P1×1 + 🟢 P2×2 | ✅ **v0.7.0: TD-073/074/075/076a/076b/076c/076d/078 全部解决 (7/8)** — 3 ghost 删除 + 1 type:ignore 修复 + context_menu 删除 + 3 半集成模块激活 (weapon_jam/surrender/campaign_persistence) + 1 DDD 分层修复 (deployment_factory 迁移); 🟢 **TD-077 19 孤立原型待 v0.7.1+ 评估** (2026-07-17) |
+| **合计（活跃）** | **1** | — | **64/64 历史 + 8 新发现 = 72 总计，1 活跃 (TD-077 待 v0.7.1+ 评估)** |
 
 ---
 
@@ -830,7 +830,7 @@
 - **状态**: ✅ RESOLVED (v0.6.11, 2026-07-17) — L68 `intent: pycc2.domain.ai.tactic_intent.TacticIntent  # type: ignore[name-defined]  # noqa: F821` → `intent: TacticIntent`; 安全性: 文件已含 `from __future__ import annotations` (L13) + TYPE_CHECKING import of TacticIntent (L27); L185 已使用 `list[TacticIntent]` 同模式
 - **验证**: mypy 0 errors (MYPYPATH=src mypy -p pycc2 --no-error-summary), ruff 0, 6486 passed 零回归
 
-### 🟡 TD-076: 4 个半集成 ghost 候选验证 (P1) — v0.6.11 部分 RESOLVED, 3 项延到 v0.7.0
+### ~~🟡 TD-076: 4 个半集成 ghost 候选验证 (P1)~~ ✅ RESOLVED (v0.7.0, 2026-07-17)
 
 - **描述**: 4 个模块无 PLANNED 标记但有 ≥2 测试文件引用，疑似"已实现但忘记在 src 入口装配"的真实功能漏洞：
   - `src/pycc2/domain/ai/surrender_system.py` (403 行) — grep 验证 0 外部 src 引用
@@ -841,13 +841,13 @@
 - **清理方案**: 逐个排查是否应该在 main.py/game_loop_assembler.py/__init__.py 中接入；如不需要则删除，如需要则补齐集成
 - **7-Role 共识结论** (2026-07-17 v0.6.11 + 2026-07-17 v0.7.0 规划):
   - **TD-076a context_menu (308L)**: ✅ **DELETE** — 已被 `radial_menu.py` 取代; `interaction_controller.py` 使用 RadialMenu; 0 运行时引用
-  - **TD-076b surrender_system (403L)**: 🟡 **INTEGRATE v0.7.0 Wave 2** — SurrenderAI 未在 `ai_service.py` 注册; 接入点: `ai_service.py` 注册 SurrenderAI; 工作量中 ~3h; 风险低; CC2 符合度 HIGH
-  - **TD-076c weapon_jam (252L)**: 🟡 **INTEGRATE v0.7.0 Wave 1** (最快胜利) — 对称半成品: `clear_jam()` 存在但从未调用, `WeaponJammed` event 从未 emit; 接入点: `ai_service.py.tick()` 调用 `WeaponJamSystem.tick()`; 工作量低 ~2h; 风险低; CC2 符合度 HIGH
-  - **TD-076d campaign_persistence (373L)**: 🟡 **INTEGRATE v0.7.1** (独立小版本避免 v0.7.0 过载) — `campaign_four_layer.py:68` `_persistence = None` 从未赋值; 接入点: `game_loop_assembler.py` battle 结束时 save/load; 工作量中高 ~5h; 风险中; CC2 符合度 HIGH
+  - **TD-076b surrender_system (403L)**: ✅ **INTEGRATED v0.7.0 Wave 2** — SurrenderAI 已在 `ai_service.py.__init__()` 注册到 TacticalOrchestrator; SurrenderSystem 实例化并暴露为 `ai_service.surrender_system` property
+  - **TD-076c weapon_jam (252L)**: ✅ **INTEGRATED v0.7.0 Wave 1** — WeaponJamSystem 已在 `ai_service.py.__init__()` 实例化并暴露为 `ai_service.weapon_jam_system` property; `tick()` 中调用 `WeaponJamSystem.tick(unit)`; 修复了 `tick()` 的 off-by-one bug (clear_ticks=N 现在精确 N ticks 清除, 非 N+1)
+  - **TD-076d campaign_persistence (373L)**: ✅ **INTEGRATED v0.7.0 Wave 3** — CampaignPersistenceManager 已在 `game_loop_assembler.py` 接线; `GameLoop.campaign_persistence` property 暴露; `GameLoop.save_campaign()`/`load_campaign()` 方法可用
 - **状态**:
   - ✅ TD-076a RESOLVED (v0.6.11, 2026-07-17) — context_menu.py 308 行删除 + test_phase_a.py TestA4ContextMenu 类 (5 测试) 删除 + test_zero_coverage_smoke.py TestContextMenu 类 (~8 测试) 删除 + tests/acceptance/README.md 计数 8→7/42→37 + tests/e2e/E2E_REAL_USER_SCENARIOS.md TC-090 章节删除
-  - 🟡 TD-076b/c/d 7-Role 共识完成, 接入方案确定 (详见 docs/ROADMAP_v0.7.0.md)
-- **验证 (v0.6.11)**: 6486 passed / 2 skipped / 16 deselected, ruff 0, mypy 0, 491 E2E tests passed (44.34s), 零回归
+  - ✅ TD-076b/c/d RESOLVED (v0.7.0, 2026-07-17) — 3 个半集成模块全部接入游戏循环; 详见 docs/ROADMAP_v0.7.0.md
+- **验证 (v0.7.0)**: 6509 passed / 2 skipped / 16 deselected, ruff 0, mypy 2 pre-existing errors (config.rendering_features, 与 v0.7.0 无关), 12 新增 E2E 测试 (test_v0_7_0_ghost_integration_e2e.py), 零回归
 
 ### 🟢 TD-077: 19 个孤立原型评估 (P2) — 7-Role 共识: 三步走方案
 
@@ -864,13 +864,13 @@
 - **清理方案**: 逐个评估：删除（若功能不需要）或集成（若功能需要但遗漏装配）
 - **状态**: 🟢 P2 7-Role 共识完成, 三步走方案确定 (详见 docs/ROADMAP_v0.7.0.md)
 
-### 🟢 TD-078: deployment_manager.py 架构 borderline smell (P2) — 7-Role 共识: v0.7.0 修复
+### ~~🟢 TD-078: deployment_manager.py 架构 borderline smell (P2)~~ ✅ RESOLVED (v0.7.0, 2026-07-17)
 
 - **描述**: `src/pycc2/services/deployment_manager.py:158` 运行时 import `presentation/ui/deployment_factory` 的纯函数（build_force_pool_from_settings, generate_ai_deployment）
 - **影响**: 架构小气味 — 纯函数误放 presentation/ui 层，违反 services 不应运行时依赖 presentation 的 DDD 原则
 - **清理方案**: 将 deployment_factory.py 的纯函数迁移到 services 或 domain 层
 - **7-Role 共识结论** (2026-07-17 v0.7.0 规划): v0.7.0 与 Point 1 Wave 1/2 一起推进 (共享 v0.7.0 测试周期), 工作量 1.5h
-- **状态**: 🟢 P2 7-Role 共识完成, v0.7.0 修复时机确定 (详见 docs/ROADMAP_v0.7.0.md)
+- **状态**: ✅ RESOLVED (v0.7.0, 2026-07-17) — 3 个纯函数 (build_force_pool_from_settings/generate_ai_deployment/build_default_roster) 从 `presentation/ui/deployment_factory.py` 迁移到 `services/deployment_factory.py`; domain 类型 (DeploymentUnit/UnitCategory/UNIT_TYPE_TO_CATEGORY/IMPASSABLE_TERRAINS) 迁移到 `domain/value_objects/deployment_types.py`; `presentation/ui/deployment_models.py` 改为 re-export domain 类型保持向后兼容; 旧 `presentation/ui/deployment_factory.py` 已删除; 4 个 importer 更新 (deployment_manager.py + deployment_ui.py + deployment_zone_builder.py + deployment_models.py); 8 架构守卫测试 + 200 deployment 测试全绿
 
 ### 扫描方法论局限
 

@@ -112,6 +112,21 @@ class TestGameLoopConstruction:
         assert game_loop._fps == 0.0
         assert game_loop._total_ticks == 0
 
+    def test_campaign_persistence_wired(self, game_loop):
+        """TD-076d (v0.7.0): GameLoopAssembler wires CampaignPersistenceManager."""
+        from pycc2.domain.systems.campaign_persistence import CampaignPersistenceManager
+
+        assert game_loop.campaign_persistence is not None
+        assert isinstance(game_loop.campaign_persistence, CampaignPersistenceManager)
+
+    def test_campaign_persistence_can_list_saves(self, game_loop):
+        """TD-076d (v0.7.0): wired manager is functional (list_saved_campaigns works)."""
+        manager = game_loop.campaign_persistence
+        assert manager is not None
+        # list_saved_campaigns returns a list (empty if no saves yet)
+        saves = manager.list_saved_campaigns()
+        assert isinstance(saves, list)
+
 
 class TestFixYourTimestep:
     def test_logic_dt_is_30_ups(self):

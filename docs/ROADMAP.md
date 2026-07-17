@@ -1,6 +1,6 @@
 # PyCC2 Development Roadmap
 
-**v0.6.11 | July 17, 2026 | Based on DevSquad 7-Role Analysis**
+**v0.7.0 | July 17, 2026 | Based on DevSquad 7-Role Analysis**
 
 > **Current Version**: v0.6.11 | **Tests**: ~6486 (all passing) | **CC2 Fidelity**: ~75% (Visual ~70% / Mechanics ~80%) ⚠️ v0.5.0 P0 PixVoxel 接入 + v0.5.1 P2 isometric 清理 + v0.5.2 P1 调色板修正 + v0.5.3 P1 纹理调优 + v0.6.0 P3-1 LOS 烟雾天气 + v0.6.1 P3-2 窗户射击弧 + v0.6.2 P3-3 散兵坑战壕 + v0.6.3 P3-4 AI 侦察行为 + v0.6.4 P3-5 AI 心理模型 + v0.6.5 P3-6 AI 补给线意识 + v0.6.6 P0-P1 修复 + v0.6.7 TD-COV-BUG 9项源码bug修复 + v0.6.8 R3 评估修复 (幽灵功能接入 + flaky 测试修复 + CI 安全增强) + v0.6.10 覆盖率提升+CI增强 (文档校准 + 脚本归档 + 323 新测试 + radon 复杂度门禁) + v0.6.11 ghost 模块清理 (TD-073/074/075/076a: 3 删除 + 1 type:ignore 修复)
 > **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish Complete (TD-065 + TD-066 both resolved v0.4.11) | v0.5.0 P0: PixVoxel 正交版精灵接入 | v0.5.1 P2: isometric experimental 代码清理**

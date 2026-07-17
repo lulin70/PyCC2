@@ -365,14 +365,18 @@ class TestAIIntegrationE2E:
     # ======================================================================
 
     def test_tactical_summary_contains_all_ais(self):
-        """get_tactical_summary() returns all 10 registered AIs."""
+        """get_tactical_summary() returns all 11 registered AIs.
+
+        TD-076b (v0.7.0): SurrenderAI registered to TacticalOrchestrator,
+        increasing the count from 10 to 11.
+        """
         f = self._factory()
         f.place_n_units(3)
         f.run_ticks(10)
 
         summary = f.ai_service.get_tactical_summary()
-        assert len(summary["registered_ais"]) == 10, (
-            f"Expected 10 AIs, got {len(summary['registered_ais'])}: {summary['registered_ais']}"
+        assert len(summary["registered_ais"]) == 11, (
+            f"Expected 11 AIs, got {len(summary['registered_ais'])}: {summary['registered_ais']}"
         )
         f.shutdown()
 

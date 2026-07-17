@@ -1,15 +1,15 @@
 # PyCC2 Skill 描述
 
-> **版本**: v0.6.11
+> **版本**: v0.7.0
 > **最后更新**: 2026-07-17
 
 ## 模块统计
 
 | 类别 | 数量 | 来源 |
 |------|------|------|
-| 源码模块 | 385 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
-| 测试模块 | 210 个 `.py` 文件（unit 166 / integration 10 / e2e 27 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
-| 测试用例 | 6486 passed / 0 failed / 2 skipped | `pytest tests/ -m "not slow" --co` |
+| 源码模块 | 386 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
+| 测试模块 | 212 个 `.py` 文件（unit 167 / integration 10 / e2e 28 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
+| 测试用例 | 6509 passed / 0 failed / 2 skipped | `pytest tests/ -m "not slow" --co` |
 
 ## 项目能力
 

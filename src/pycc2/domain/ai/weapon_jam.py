@@ -180,19 +180,23 @@ class WeaponJamSystem:
 
         If the unit's weapon is JAMMED, decrement the clear timer.
         When the timer reaches zero, the jam is cleared automatically.
+        Each tick decrements first; after exactly ``clear_ticks`` ticks
+        the jam is cleared (no off-by-one).
         """
         if unit.weapon.state != WeaponState.JAMMED:
             return
 
         remaining = self._jam_clear_remaining.get(unit.id, 0)
+        # TD-076c (v0.7.0): decrement first, then check — ensures
+        # ``clear_ticks=N`` clears in exactly N ticks (was N+1 before).
+        remaining -= 1
+        self._jam_clear_remaining[unit.id] = remaining
+
         if remaining <= 0:
             # Jam cleared
             unit.weapon.clear_jam()
             self._jam_clear_remaining.pop(unit.id, None)
             logger.debug(f"Unit {unit.id} cleared weapon jam")
-            return
-
-        self._jam_clear_remaining[unit.id] = remaining - 1
 
     def get_jam_clear_remaining(self, unit_id: str) -> int:
         """Return the number of ticks remaining to clear the jam."""

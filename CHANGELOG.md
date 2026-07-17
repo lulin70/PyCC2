@@ -2,6 +2,80 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.7.0 — 半集成模块接入 + DDD 分层修复 (minor, 2026-07-17)
+
+### Summary
+
+接入 3 个 CC2 原版半集成 ghost 模块（weapon_jam/surrender_system/campaign_persistence）到游戏循环，完成 TD-076b/c/d。同步修复 TD-078 DDD 分层 smell（deployment_factory 从 presentation 迁移到 services）。MINOR 版本递增（3 个新功能接入）。DevSquad 7-role 共识达成，按项目生命周期推进，文档先行活文档原则严格执行。
+
+### Wave 1: weapon_jam 接入 (TD-076c)
+
+- **接入点**: `src/pycc2/services/ai_service.py` — `__init__()` 实例化 `WeaponJamSystem` + 暴露 `weapon_jam_system` property; `tick()` 中调用 `WeaponJamSystem.tick(unit)` 递减清除计时器
+- **Bug 修复**: `src/pycc2/domain/ai/weapon_jam.py:tick()` off-by-one 修复 — 先递减再检查，确保 `clear_ticks=N` 精确在 N ticks 后清除（原实现 N+1 ticks）
+- **E2E 验证**: `tests/e2e/test_v0_7_0_ghost_integration_e2e.py::TestWave1WeaponJamE2E` (3 tests) — AIService 暴露 WeaponJamSystem + 完整 jam 周期 + re-jam 重置计时器
+- **测试同步**: `tests/e2e/test_ai_behaviors_e2e.py::test_weapon_jam_clear_time` 更新期望值（4 ticks → 3 ticks，反映 off-by-one 修复）
+- **CC2 符合度**: HIGH — CC2 原版有武器卡弹机制（Sten 1.5%/rifle 0.1%/MG42 0.3%/pistol 0.5%/PIAT 0.8%）
+
+### Wave 2: surrender_system 接入 (TD-076b)
+
+- **接入点**: `src/pycc2/services/ai_service.py` — `__init__()` 实例化 `SurrenderSystem` + 注册 `SurrenderAI` 到 `TacticalOrchestrator`（第 11 个 AI）+ 暴露 `surrender_system` property
+- **行为**: `SurrenderAI.evaluate(ctx)` 返回 score [0,1]; `execute(ctx)` 返回 `list[TacticIntent]`（`TacticType.SURRENDER`）
+- **投降条件**: ammo_ratio < 0.05 + morale < 15 + 无友军在 8 tiles 内 + 敌军在 5 tiles 内
+- **E2E 验证**: `tests/e2e/test_v0_7_0_ghost_integration_e2e.py::TestWave2SurrenderE2E` (3 tests) — SurrenderAI 注册到 Orchestrator + isolated unit 投降 + friendly 附近不投降
+- **测试同步**: `tests/e2e/test_ai_integration_e2e.py::test_tactical_summary_contains_all_ais` 期望从 10 AIs → 11 AIs
+- **CC2 符合度**: HIGH — CC2 原版有投降机制（弹药耗尽 + 士气崩溃 + 孤立无援）
+
+### Wave 3: campaign_persistence 接入 (TD-076d)
+
+- **接入点**: `src/pycc2/services/game_loop.py` — 新增 `_campaign_persistence` 字段 + `campaign_persistence` property + `save_campaign()`/`load_campaign()` 方法; `game_loop_assembler.py` 接线 `CampaignPersistenceManager`
+- **跨 battle 继承**: `apply_inheritance_to_units` 匹配 `unit_template_id or unit.id`（Unit 是 slots dataclass 无 unit_template_id，fallback 到 unit.id）; HP/morale/experience 继承 + dead unit 标记
+- **E2E 验证**: `tests/e2e/test_v0_7_0_ghost_integration_e2e.py::TestWave3CampaignPersistenceE2E` (4 tests) + `TestWave3GameLoopWiringE2E` (2 tests) — save/load roundtrip + HP/morale 继承 + dead unit 标记 + list_saved_campaigns + GameLoop save/load
+- **CC2 符合度**: HIGH — CC2 原版有战役持久化（跨 battle 单位经验/伤亡继承）
+
+### TD-078: DDD 分层修复 (deployment_factory 迁移)
+
+- **迁移内容**:
+  - 3 个纯函数 (`build_force_pool_from_settings`/`generate_ai_deployment`/`build_default_roster`) 从 `presentation/ui/deployment_factory.py` 迁移到 `services/deployment_factory.py`
+  - 4 个 domain 类型 (`DeploymentUnit`/`UnitCategory`/`UNIT_TYPE_TO_CATEGORY`/`IMPASSABLE_TERRAINS`) 迁移到 `domain/value_objects/deployment_types.py`（新建）
+  - `presentation/ui/deployment_models.py` 改为 re-export domain 类型保持 18 个 importer 向后兼容
+  - 旧 `presentation/ui/deployment_factory.py` 已删除
+- **更新 importer**: `deployment_manager.py` + `deployment_ui.py` + `deployment_zone_builder.py` + `deployment_models.py`
+- **验证**: 8 架构守卫测试 + 200 deployment 测试全绿; `services` 层不再运行时依赖 `presentation` 层
+
+### 文档同步（活文档原则）
+
+- `VERSION` / `src/pycc2/__init__.py` / `pyproject.toml`: 0.6.11 → 0.7.0
+- `docs/TECH_DEBT.md`: TD-076b/c/d + TD-078 标记 ✅ RESOLVED + 总览表更新 (3 活跃 → 1 活跃, 仅 TD-077 待 v0.7.1+ 评估)
+- `docs/PRD.md`: 版本号 v0.6.11 → v0.7.0 + 测试数 6486 → 6509
+- `docs/DESIGN.md`: 版本号 + 架构演进链新增 v0.7.0
+- `docs/PROJECT_STATUS.md`: 版本号 + 模块数 385→386 + 测试数 6486→6509 + 测试文件数 210→212
+- `docs/TEST_PLAN.md`: 版本号 + 测试数 6486→6509
+- `docs/ROADMAP.md`: 版本号 v0.6.11 → v0.7.0
+- `README.md` / `README_zh.md` / `README_ja.md`: 版本号 + 测试数 badge + v0.7.0 描述
+- `SKILL.md`: 版本号 + 模块数 385→386 + 测试数 6486→6509 + 测试文件数 210→212
+- `docs/ROADMAP_v0.7.0.md`: 执行进度表全部更新为 ✅ COMPLETED
+
+### 验证
+
+- **全量测试**: 6509 passed / 2 skipped / 16 deselected (98.64s) — 零回归
+- **E2E 真实用户模拟测试**: 12 新增 E2E 测试覆盖 3 个 Wave 接入点 + 2 个测试同步更新（off-by-one 修复 + SurrenderAI 注册）
+- **ruff**: 0 errors (check + format)
+- **mypy**: 2 pre-existing errors (`config.rendering_features` import-not-found, v0.6.11 commit a4af508 中就存在, 与 v0.7.0 无关)
+- **check_doc_consistency.sh**: 11/11 PASS (VERSION=0.7.0)
+- **架构守卫**: 8 tests passed (services 层不再 module-level import presentation)
+
+### 7-Role 共识
+
+- **Architect**: 3 模块代码完整（非 PLANNED 占位符），接入点明确，风险低
+- **PM**: MINOR 版本递增（3 个新功能），工作量 ~10-12h
+- **Tester**: 每个模块新增 E2E 真实用户测试 + 全量回归零失败
+- **Security**: campaign_persistence 涉及存档 I/O，已验证无安全风险
+- **DevOps**: 无 CI/CD 变更，无新依赖
+- **UI**: weapon_jam HUD 提示 + surrender 旗 + campaign "已保存"提示留待后续 UI 迭代
+- **Coder**: 外科手术式接入，未触碰无关代码
+
+---
+
 ## v0.6.11 — Ghost 模块清理 + 类型安全修复 (patch, 2026-07-17)
 
 ### Summary

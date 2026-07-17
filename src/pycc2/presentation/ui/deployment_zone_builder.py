@@ -12,13 +12,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pycc2.presentation.ui.deployment_ui import DeploymentUI
 
-# Import models and constants
-from pycc2.presentation.ui.deployment_factory import build_default_roster
+# TD-078 (v0.7.0): Import from services layer (was presentation.ui.deployment_factory).
 from pycc2.presentation.ui.deployment_models import (
     DeploymentPhase,
     DeploymentUnit,
     ZoneType,
 )
+from pycc2.services.deployment_factory import build_default_roster
 
 
 class DeploymentZoneBuilder:

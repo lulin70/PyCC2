@@ -30,11 +30,6 @@ from pycc2.presentation.rendering.camera import Camera
 
 # Import extracted subsystems (SRP refactoring v0.3.31)
 from pycc2.presentation.ui.deployment_drag_drop import DeploymentDragDrop
-from pycc2.presentation.ui.deployment_factory import (
-    build_default_roster,
-    build_force_pool_from_settings,
-    generate_ai_deployment,
-)
 from pycc2.presentation.ui.deployment_input_router import DeploymentInputRouter
 from pycc2.presentation.ui.deployment_los import DeploymentLOSSystem
 
@@ -51,6 +46,13 @@ from pycc2.presentation.ui.deployment_orders import DeploymentOrders
 from pycc2.presentation.ui.deployment_placement import DeploymentPlacementService
 from pycc2.presentation.ui.deployment_renderer import DeploymentRenderer
 from pycc2.presentation.ui.deployment_zone_builder import DeploymentZoneBuilder
+
+# TD-078 (v0.7.0): Import from services layer (was presentation.ui.deployment_factory).
+from pycc2.services.deployment_factory import (
+    build_default_roster,
+    build_force_pool_from_settings,
+    generate_ai_deployment,
+)
 
 # ---------------------------------------------------------------------------
 # Pygame – imported lazily so the module can be imported in headless tests

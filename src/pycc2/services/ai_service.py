@@ -19,6 +19,7 @@ from pycc2.domain.ai.perception_system import PerceptionSystem
 from pycc2.domain.ai.recon_ai import ReconAI
 from pycc2.domain.ai.retreat_ai import RetreatDecisionAI
 from pycc2.domain.ai.supply_awareness_ai import SupplyAwarenessAI
+from pycc2.domain.ai.surrender_system import SurrenderAI, SurrenderSystem
 from pycc2.domain.ai.tactic_executor import TacticExecutor
 from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
 from pycc2.domain.ai.tactical_ai import (
@@ -30,6 +31,7 @@ from pycc2.domain.ai.tactical_ai import (
     VictoryPointAI,
 )
 from pycc2.domain.ai.tick_scheduler import AITickScheduler
+from pycc2.domain.ai.weapon_jam import WeaponJamSystem
 from pycc2.domain.entities.unit import Unit
 from pycc2.infrastructure.events.event_bus import EventBus
 
@@ -86,6 +88,13 @@ class AIService:
         self._tactical_orchestrator.register(AmbushAI())
         self._tactical_orchestrator.register(ReconAI())
         self._tactical_orchestrator.register(SupplyAwarenessAI())
+        # TD-076b (v0.7.0): Register SurrenderAI for CC2-authentic surrender behavior
+        # SurrenderAI evaluates each tick whether isolated, out-of-ammo units should surrender
+        self._surrender_system = SurrenderSystem()
+        self._tactical_orchestrator.register(SurrenderAI(self._surrender_system))
+        # TD-076c (v0.7.0): Initialize WeaponJamSystem for CC2-authentic weapon reliability
+        # WeaponJamSystem clears jams over time; check_jam_on_fire() called by combat director
+        self._weapon_jam_system = WeaponJamSystem()
         self._tick_scheduler = AITickScheduler()
         self._current_tick: int = 0
         self._logger = logging.getLogger("pycc2.ai.service")
@@ -133,6 +142,24 @@ class AIService:
     def has_commander(self) -> bool:
         """Check if a commander AI is set."""
         return self._commander is not None
+
+    @property
+    def weapon_jam_system(self) -> WeaponJamSystem:
+        """Expose WeaponJamSystem for combat director integration (TD-076c, v0.7.0)."""
+        return self._weapon_jam_system
+
+    @property
+    def surrender_system(self) -> SurrenderSystem:
+        """Expose SurrenderSystem for UI/test integration (TD-076b, v0.7.0)."""
+        return self._surrender_system
+
+    def check_jam_on_fire(self, unit: Unit) -> bool:
+        """Delegate to WeaponJamSystem.check_jam_on_fire (TD-076c, v0.7.0).
+
+        Combat director should call this immediately after a unit fires
+        to probabilistically trigger a weapon jam.
+        """
+        return self._weapon_jam_system.check_jam_on_fire(unit)
 
     def set_difficulty(self, level: DifficultyLevel) -> None:
         """Set the AI difficulty level.
@@ -299,6 +326,23 @@ class AIService:
             intents = [i for i in intents if i.unit_id not in tactical_unit_ids] + tactical_intents
             # Execute tactical intents via TacticExecutor
             self.execute_intents(tactical_intents)
+
+        # TD-076c (v0.7.0): Process weapon jam clearing for all AI units each tick.
+        # WeaponJamSystem.tick() decrements jam clear timers; when timer reaches zero
+        # the weapon is automatically unjammed. check_jam_on_fire() is called by
+        # combat director when a unit fires (separate code path).
+        if all_units:
+            for unit in all_units:
+                self._weapon_jam_system.tick(unit)
+
+        # TD-076b (v0.7.0): Evaluate surrender conditions for all AI units each tick.
+        # SurrenderSystem.evaluate_tick() checks ammo/morale/isolation/threat and
+        # probabilistically triggers surrender, dropping weapons via FallenUnitCache.
+        if all_units:
+            for unit in all_units:
+                # Only evaluate AI-controlled units (skip player-controlled units)
+                if unit.id in self._unit_entities:
+                    self._surrender_system.evaluate_tick(unit, all_units, self._current_tick)
 
         self._current_tick += 1
         return intents

@@ -140,10 +140,15 @@ class GameLoopAssembler:
         )
 
     def _init_persistence(self) -> None:
+        from pycc2.domain.systems.campaign_persistence import CampaignPersistenceManager
         from pycc2.services.save_controller import SaveController
 
         self._loop._save_controller = SaveController()
         self._loop._save_controller.initialize()
+
+        # TD-076d (v0.7.0): Wire CampaignPersistenceManager for cross-battle
+        # state inheritance (save/load campaign progress between battles).
+        self._loop._campaign_persistence = CampaignPersistenceManager()
 
     def _init_victory(self) -> None:
         from pycc2.services.victory_manager import VictoryManager

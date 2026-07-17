@@ -1,12 +1,19 @@
 """Deployment Factory — Force pool builders and AI deployment generator.
 
-Pure functions with zero dependency on DeploymentUI instance state.
-Extracted from deployment_ui.py God Class (v0.3.29 SRP refactoring).
+TD-078 (v0.7.0): Moved from ``presentation.ui.deployment_factory`` to the
+services layer to remove the services→presentation dependency that existed
+when ``deployment_manager`` imported these pure functions from presentation.
+
+These are pure functions with zero dependency on DeploymentUI instance state.
+They depend only on domain types (``DeploymentUnit``, ``IMPASSABLE_TERRAINS``).
 """
 
 from __future__ import annotations
 
-from pycc2.presentation.ui.deployment_models import IMPASSABLE_TERRAINS, DeploymentUnit
+from pycc2.domain.value_objects.deployment_types import (
+    IMPASSABLE_TERRAINS,
+    DeploymentUnit,
+)
 
 
 def build_default_roster() -> list[DeploymentUnit]:

@@ -2,12 +2,25 @@
 
 Extracted from deployment_ui.py for single responsibility.
 Contains: Enums, dataclasses, terrain constants, color definitions.
+
+TD-078 (v0.7.0): DeploymentUnit / UnitCategory / UNIT_TYPE_TO_CATEGORY /
+IMPASSABLE_TERRAINS moved to ``domain.value_objects.deployment_types`` so
+the services layer can use them without importing from presentation. This
+module re-exports them for backward compatibility with the 18+ presentation
+and test files that import from here.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum, auto
+
+# TD-078 (v0.7.0): Re-export domain types for backward compatibility.
+from pycc2.domain.value_objects.deployment_types import (
+    UNIT_TYPE_TO_CATEGORY,
+    DeploymentUnit,
+    UnitCategory,
+)
 
 
 class DeploymentPhase(Enum):
@@ -27,29 +40,12 @@ class ZoneType(Enum):
     ENEMY_CONTROLLED = auto()
 
 
-class UnitCategory(Enum):
-    """Unit category for roster grouping."""
-
-    INFANTRY = "infantry"
-    SUPPORT = "support"
-    ARMOR = "vehicle"
-    RECON = "recon"
-
-
 # Category display labels and icons
 CATEGORY_INFO: dict[UnitCategory, tuple[str, str]] = {
     UnitCategory.INFANTRY: ("INFANTRY", "♟"),
     UnitCategory.SUPPORT: ("SUPPORT (MG/AT)", "⚔"),
     UnitCategory.ARMOR: ("ARMOR", "▣"),
     UnitCategory.RECON: ("RECON", "◉"),
-}
-
-# Mapping from unit_type string to UnitCategory
-UNIT_TYPE_TO_CATEGORY: dict[str, UnitCategory] = {
-    "infantry": UnitCategory.INFANTRY,
-    "support": UnitCategory.SUPPORT,
-    "vehicle": UnitCategory.ARMOR,
-    "recon": UnitCategory.RECON,
 }
 
 # Terrain type constants (mirrors TerrainType int values for standalone use)
@@ -71,24 +67,6 @@ TERRAIN_SWAMP = 13
 BUILDING_TERRAINS = {TERRAIN_BUILDING_ENTERABLE, TERRAIN_BUILDING_SOLID}
 DEEP_WATER_TERRAINS = {TERRAIN_WATER}
 SHALLOW_WATER_TERRAINS = {TERRAIN_SHALLOW}
-IMPASSABLE_TERRAINS = {TERRAIN_BUILDING_SOLID, TERRAIN_WATER, TERRAIN_WALL}
-
-
-@dataclass
-class DeploymentUnit:
-    """A single deployable unit entry in the roster."""
-
-    unit_template_id: str
-    display_name: str
-    unit_type: str  # 'infantry', 'support', 'vehicle', 'recon'
-    deployment_cost: int
-    position: tuple[int, int] | None = None  # None = not yet placed
-    is_placed: bool = False
-
-    @property
-    def category(self) -> UnitCategory:
-        """Get the category."""
-        return UNIT_TYPE_TO_CATEGORY.get(self.unit_type, UnitCategory.INFANTRY)
 
 
 @dataclass

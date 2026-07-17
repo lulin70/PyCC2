@@ -70,6 +70,7 @@ if TYPE_CHECKING:
     )
     from pycc2.domain.interfaces.renderer_protocol import IRenderer as EnhancedRenderer
     from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
+    from pycc2.domain.systems.campaign_persistence import CampaignPersistenceManager
     from pycc2.infrastructure.events.event_bus import EventBus
     from pycc2.infrastructure.events.event_dispatcher import EventDispatcher
     from pycc2.presentation.audio.sound_system import SoundSystem
@@ -121,6 +122,8 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
     _render_pipeline: IRenderPipeline | None = field(init=False, default=None)
     _input_router: IInputRouter | None = field(init=False, default=None)
     _save_controller: ISaveController | None = field(init=False, default=None)
+    # TD-076d (v0.7.0): Campaign persistence for cross-battle state inheritance
+    _campaign_persistence: CampaignPersistenceManager | None = field(init=False, default=None)
     _ai_update_interval: int = field(init=False, default=3)
     _ai_tick_counter: int = field(init=False, default=0)
     _pause_menu: IPauseMenu | None = field(init=False, default=None)
@@ -373,6 +376,11 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
     def victory_manager(self):
         """Public access to victory manager for save/export operations."""
         return self._victory_manager
+
+    @property
+    def campaign_persistence(self) -> CampaignPersistenceManager | None:
+        """Public access to campaign persistence for cross-battle saves (TD-076d)."""
+        return self._campaign_persistence
 
     def shutdown(self) -> None:
         """Tear down all subsystems and stop the game loop."""

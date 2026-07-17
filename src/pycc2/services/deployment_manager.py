@@ -155,7 +155,9 @@ class DeploymentManager:
         """
         try:
             from pycc2.domain.systems.game_settings import SUPPLY_EFFECTS
-            from pycc2.presentation.ui.deployment_factory import (
+
+            # TD-078 (v0.7.0): Import from services layer (was presentation.ui.deployment_factory).
+            from pycc2.services.deployment_factory import (
                 build_force_pool_from_settings,
                 generate_ai_deployment,
             )
