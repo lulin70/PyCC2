@@ -1,8 +1,8 @@
 # PyCC2 Development Roadmap
 
-**v0.7.1 | July 17, 2026 | Based on DevSquad 7-Role Analysis**
+**v0.7.2 | July 17, 2026 | Based on DevSquad 7-Role Analysis**
 
-> **Current Version**: v0.6.11 | **Tests**: ~6486 (all passing) | **CC2 Fidelity**: ~75% (Visual ~70% / Mechanics ~80%) ⚠️ v0.5.0 P0 PixVoxel 接入 + v0.5.1 P2 isometric 清理 + v0.5.2 P1 调色板修正 + v0.5.3 P1 纹理调优 + v0.6.0 P3-1 LOS 烟雾天气 + v0.6.1 P3-2 窗户射击弧 + v0.6.2 P3-3 散兵坑战壕 + v0.6.3 P3-4 AI 侦察行为 + v0.6.4 P3-5 AI 心理模型 + v0.6.5 P3-6 AI 补给线意识 + v0.6.6 P0-P1 修复 + v0.6.7 TD-COV-BUG 9项源码bug修复 + v0.6.8 R3 评估修复 (幽灵功能接入 + flaky 测试修复 + CI 安全增强) + v0.6.10 覆盖率提升+CI增强 (文档校准 + 脚本归档 + 323 新测试 + radon 复杂度门禁) + v0.6.11 ghost 模块清理 (TD-073/074/075/076a: 3 删除 + 1 type:ignore 修复)
+> **Current Version**: v0.7.2 | **Tests**: ~6138 (all passing) | **CC2 Fidelity**: ~75% (Visual ~70% / Mechanics ~80%) ⚠️ v0.5.0 P0 PixVoxel 接入 + v0.5.1 P2 isometric 清理 + v0.5.2 P1 调色板修正 + v0.5.3 P1 纹理调优 + v0.6.0 P3-1 LOS 烟雾天气 + v0.6.1 P3-2 窗户射击弧 + v0.6.2 P3-3 散兵坑战壕 + v0.6.3 P3-4 AI 侦察行为 + v0.6.4 P3-5 AI 心理模型 + v0.6.5 P3-6 AI 补给线意识 + v0.6.6 P0-P1 修复 + v0.6.7 TD-COV-BUG 9项源码bug修复 + v0.6.8 R3 评估修复 (幽灵功能接入 + flaky 测试修复 + CI 安全增强) + v0.6.10 覆盖率提升+CI增强 (文档校准 + 脚本归档 + 323 新测试 + radon 复杂度门禁) + v0.6.11 ghost 模块清理 (TD-073/074/075/076a: 3 删除 + 1 type:ignore 修复) + v0.7.0 TD-076b/c/d 接入 + TD-077 三步走 (DELETE 4 + ARCHIVE 10 + ORPHAN 8) + v0.7.2 INTEGRATE 前置准备 (文档同步 + flaky benchmark 修复 + ORPHAN smoke tests)
 > **Status**: Beta Candidate — AI対戦可用、コア玩法完整 | **M3: Visual Polish Complete (TD-065 + TD-066 both resolved v0.4.11) | v0.5.0 P0: PixVoxel 正交版精灵接入 | v0.5.1 P2: isometric experimental 代码清理**
 
 ---
@@ -287,7 +287,11 @@ The project now has **~6536 passing tests**, **63 historical maps**, **277 unit 
 | **v0.6.6** | **P0-P1 Fix** | **M3** | **~75%** (P3 全完成) | **~5725** | **P3-1~P3-6 全部完成 + P0-P1 修复 (flaky 测试隔离 + CI deselect 移除 + 覆盖率评估)** | ✅ Completed |
 | **v0.6.7** | **Bug Fix** | **M3** | **~75%** | **~6178** | **TD-COV-BUG 9项源码bug修复 (阵营硬编码/WeaponState枚举/TurnEndedEvent/deploy_smoke/死代码/Vec2下标)** | ✅ Completed |
 | **v0.6.8** | **R3 Assessment Fix** | **M3** | **~75%** | **~6178** | **R3 评估修复: 幽灵功能接入(ReconAI+SupplyAwarenessAI) + flaky 测试修复(SwissCheeseEngine rng注入) + CI安全增强(pip-audit --strict + cov-fail-under 70 + codecov fail_ci_if_error) + Dockerfile非root用户 + 评估报告归档** | ✅ Completed |
-| **v0.6.10** | **Coverage+CI** | **M3** | **~75%** | **~6536** | **323新测试(覆盖率提升) + radon复杂度门禁集成CI + 文档校准 + 脚本归档。源码模块388, 测试文件210** | ✅ **Current** |
+| **v0.6.10** | **Coverage+CI** | **M3** | **~75%** | **~6536** | **323新测试(覆盖率提升) + radon复杂度门禁集成CI + 文档校准 + 脚本归档。源码模块388, 测试文件210** | ✅ Completed |
+| **v0.6.11** | **Ghost Cleanup** | **M3** | **~75%** | **~6486** | **TD-073/074/075/076a: 3 ghost 删除 (spritesheet_parser 508L + operation_timeline 151L + context_menu 308L) + 1 type:ignore 修复** | ✅ Completed |
+| **v0.7.0** | **TD-076 Activation** | **M3** | **~75%** | **~6509** | **TD-076b/c/d 接入游戏循环 (surrender_system + weapon_jam + campaign_persistence) + TD-077 19 孤立原型决策** | ✅ Completed |
+| **v0.7.1** | **TD-077 Cleanup** | **M3** | **~75%** | **~6138** | **TD-077 三步走: DELETE 4 (strategic_map_view/strategic_map/aar_panel/weather_visual_effects) + ARCHIVE 10 (ai_config/casualty_system/ammo_type_system/combat_log/cc2_hud+hud三件套/enhanced_ui_renderer/enhanced_post_processing) + ORPHAN 标记 8 (pending v0.8.0+ INTEGRATE)** | ✅ Completed |
+| **v0.7.2** | **INTEGRATE Prep** | **M3** | **~75%** | **~6138+** | **INTEGRATE 前置准备: ROADMAP.md 文档同步 + flaky benchmark threshold 修复 (100ms→130ms) + 3 ORPHAN 模块 smoke tests (squad_group_manager/path_preview/range_indicator) + variant_generator weapon_id 验证** | ✅ **Current** |
 | v0.4-alpha | Polish Complete | M3-final | ~90% | 4000 | Command queue UI + Save/Load UI ✅ / Damage visuals + Smoke deferred to v0.5 | 🟡 Partial (3/5 done, 2 deferred) |
 | v0.5-alpha | Maintainable | M4 | ~92% | 7000 | Architecture refactor + Tech debt cleanup | 🟡 Partial (7/9 M4 tasks done) |
 | v0.6-alpha | Sustainable | M5 | ~95% | 7500 | CI enhancement + Docs + E2E expansion | ⬜ Planned |
@@ -361,9 +365,9 @@ We welcome community contributions to any milestone:
 
 ---
 
-**Document Version**: 0.6.10
+**Document Version**: 0.7.2
 **Created**: 2026-05-19
-**Updated**: 2026-07-13
-**Status**: Beta Candidate — P0-P3 全部完成; v0.6.6 P0-P1 修复; v0.6.7 TD-COV-BUG 9项源码bug修复; v0.6.8 R3 评估修复 (幽灵功能接入 + flaky 测试修复 + CI 安全增强); v0.6.10 覆盖率提升+CI增强 (文档校准+脚本归档+323新测试+radon复杂度门禁)
-**Next Review**: 覆盖率提升至 70% + 大文件评估 + docs 归档
-**Related Documents**: [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) | [TECH_DEBT.md](docs/TECH_DEBT.md) | [VISUAL_FIDELITY_IMPROVEMENT_PLAN.md](VISUAL_FIDELITY_IMPROVEMENT_PLAN.md)
+**Updated**: 2026-07-17
+**Status**: Beta Candidate — P0-P3 全部完成; v0.6.10 覆盖率提升+CI增强; v0.6.11 ghost 模块清理; v0.7.0 TD-076b/c/d 接入; v0.7.1 TD-077 三步走 (DELETE 4 + ARCHIVE 10 + ORPHAN 8); v0.7.2 INTEGRATE 前置准备 (文档同步 + flaky benchmark 修复 + ORPHAN smoke tests)
+**Next Review**: v0.8.0+ INTEGRATE 8 个 ORPHAN 模块 (psychology_system + squad_group_manager → cover_seek_ai + path_preview + range_indicator → day_night_cycle + variant generators)
+**Related Documents**: [GAP_ANALYSIS.md](docs/GAP_ANALYSIS.md) | [TECH_DEBT.md](docs/TECH_DEBT.md) | [VISUAL_FIDELITY_IMPROVEMENT_PLAN.md](VISUAL_FIDELITY_IMPROVEMENT_PLAN.md) | [ROADMAP_v0.7.2.md](docs/ROADMAP_v0.7.2.md)

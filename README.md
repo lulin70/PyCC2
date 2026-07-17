@@ -1,11 +1,11 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.7.1 | Beta Candidate | July 17, 2026**
+**v0.7.2 | Beta Candidate | July 17, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-6138%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/Tests-6156%20passed-brightgreen.svg" alt="Tests" />
 <img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC75%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Beta%20Candidate-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
@@ -15,7 +15,7 @@
 <em>A Python recreation of Atomic Games' legendary WWII tactical wargame — Beta Candidate with full SRP refactoring, real-mode E2E, and mature test suite</em>
 </p>
 
-> 🟢 **Beta Candidate**: Core gameplay + cinematic effects + achievement system + dynamic shadows + projectile trails + SRP architecture cleanup + real SDL E2E validation + visual polish (death fade, screen flash, movement smoothing, UI transitions, weather overlay, shell ejection, button feedback). **6138 tests passing**, 38-phase E2E user journey validated in real environment. Ghost feature audit complete — all critical rendering pipelines now active. Environmental audio activated, dirty rectangle optimization live, EnhancedRenderer split complete, ResourceCacheManager online. v0.6.11: 4 ghost modules removed (spritesheet_parser/operation_timeline/context_menu + tactical_ai_types type:ignore fix). v0.7.0: 3 half-integrated modules activated (weapon_jam/surrender_system/campaign_persistence) + TD-078 DDD layer fix (deployment_factory migrated presentation→services). v0.7.1: 19 orphan prototype modules classified via TD-077 (4 DELETE + 10 ARCHIVE + 8 ORPHAN pending v0.8.0+ integration).
+> 🟢 **Beta Candidate**: Core gameplay + cinematic effects + achievement system + dynamic shadows + projectile trails + SRP architecture cleanup + real SDL E2E validation + visual polish (death fade, screen flash, movement smoothing, UI transitions, weather overlay, shell ejection, button feedback). **6156 tests passing**, 38-phase E2E user journey validated in real environment. Ghost feature audit complete — all critical rendering pipelines now active. Environmental audio activated, dirty rectangle optimization live, EnhancedRenderer split complete, ResourceCacheManager online. v0.6.11: 4 ghost modules removed (spritesheet_parser/operation_timeline/context_menu + tactical_ai_types type:ignore fix). v0.7.0: 3 half-integrated modules activated (weapon_jam/surrender_system/campaign_persistence) + TD-078 DDD layer fix (deployment_factory migrated presentation→services). v0.7.1: 19 orphan prototype modules classified via TD-077 (4 DELETE + 10 ARCHIVE + 8 ORPHAN pending v0.8.0+ integration). v0.7.2: INTEGRATE prep (ROADMAP doc sync + flaky benchmark threshold fix 100ms→130ms + 3 ORPHAN module smoke tests).
 
 ---
 
