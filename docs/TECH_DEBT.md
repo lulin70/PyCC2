@@ -839,30 +839,38 @@
   - `src/pycc2/domain/systems/campaign_persistence.py` (373 行) — grep 验证 0 外部 src 引用
 - **影响**: 若为真实功能漏洞，则用户无法访问这些功能（投降系统、武器卡弹、右键菜单、战役持久化）
 - **清理方案**: 逐个排查是否应该在 main.py/game_loop_assembler.py/__init__.py 中接入；如不需要则删除，如需要则补齐集成
-- **7-Role 共识结论** (2026-07-17):
+- **7-Role 共识结论** (2026-07-17 v0.6.11 + 2026-07-17 v0.7.0 规划):
   - **TD-076a context_menu (308L)**: ✅ **DELETE** — 已被 `radial_menu.py` 取代; `interaction_controller.py` 使用 RadialMenu; 0 运行时引用
-  - **TD-076b surrender_system (403L)**: 🟡 **INTEGRATE** — SurrenderAI 未在 `ai_service.py` 注册, 需 v0.7.0 接入
-  - **TD-076c weapon_jam (252L)**: 🟡 **INTEGRATE** — 对称半成品: `clear_jam()` 存在但从未调用, `WeaponJammed` event 从未 emit, 需 v0.7.0 补齐
-  - **TD-076d campaign_persistence (373L)**: 🟡 **INTEGRATE** — `campaign_four_layer.py:68` `_persistence = None` 从未赋值, 需 v0.7.0 实例化
+  - **TD-076b surrender_system (403L)**: 🟡 **INTEGRATE v0.7.0 Wave 2** — SurrenderAI 未在 `ai_service.py` 注册; 接入点: `ai_service.py` 注册 SurrenderAI; 工作量中 ~3h; 风险低; CC2 符合度 HIGH
+  - **TD-076c weapon_jam (252L)**: 🟡 **INTEGRATE v0.7.0 Wave 1** (最快胜利) — 对称半成品: `clear_jam()` 存在但从未调用, `WeaponJammed` event 从未 emit; 接入点: `ai_service.py.tick()` 调用 `WeaponJamSystem.tick()`; 工作量低 ~2h; 风险低; CC2 符合度 HIGH
+  - **TD-076d campaign_persistence (373L)**: 🟡 **INTEGRATE v0.7.1** (独立小版本避免 v0.7.0 过载) — `campaign_four_layer.py:68` `_persistence = None` 从未赋值; 接入点: `game_loop_assembler.py` battle 结束时 save/load; 工作量中高 ~5h; 风险中; CC2 符合度 HIGH
 - **状态**:
   - ✅ TD-076a RESOLVED (v0.6.11, 2026-07-17) — context_menu.py 308 行删除 + test_phase_a.py TestA4ContextMenu 类 (5 测试) 删除 + test_zero_coverage_smoke.py TestContextMenu 类 (~8 测试) 删除 + tests/acceptance/README.md 计数 8→7/42→37 + tests/e2e/E2E_REAL_USER_SCENARIOS.md TC-090 章节删除
-  - 🟡 TD-076b/c/d 延到 v0.7.0 (~12h 估算, 详见 docs/ROADMAP_TD073_078.md)
-- **验证 (v0.6.11)**: 6486 passed / 2 skipped / 16 deselected, ruff 0, mypy 0, 零回归
+  - 🟡 TD-076b/c/d 7-Role 共识完成, 接入方案确定 (详见 docs/ROADMAP_v0.7.0.md)
+- **验证 (v0.6.11)**: 6486 passed / 2 skipped / 16 deselected, ruff 0, mypy 0, 491 E2E tests passed (44.34s), 零回归
 
-### 🟢 TD-077: 19 个孤立原型评估 (P2)
+### 🟢 TD-077: 19 个孤立原型评估 (P2) — 7-Role 共识: 三步走方案
 
 - **描述**: 19 个模块无 PLANNED 标记、仅 1 测试文件引用，疑似"写了代码 + 写了对应单元测试，但从未接入主流程"的孤立原型，总计 ~5000 行：
   - `cover_seek_ai.py`(540), `casualty_system.py`(459), `cc2_hud.py`(432), `vehicle_variant_generator.py`(388), `psychology_system.py`(369), `faction_variant_generator.py`(366), `enhanced_ui_renderer.py`(346), `ammo_type_system.py`(341), `path_preview.py`(309), `combat_log.py`(284), `enhanced_post_processing.py`(267), `strategic_map_view.py`(216), `day_night_cycle.py`(214), `ai_config.py`(193), `range_indicator.py`(192), `weather_visual_effects.py`(180), `aar_panel.py`(170), `strategic_map.py`(150), `squad_group_manager.py`(149)
 - **影响**: ~5000 行未集成代码增加维护负担和认知成本
+- **7-Role 共识结论** (2026-07-17 v0.7.0 规划):
+  - **推荐方案**: 选项 C (标记 ORPHAN 注释) — 最小化变更, 留待系统性处理
+  - **三步走**:
+    - Step 1 (v0.7.0): 标记 `# STATUS: ORPHAN` 注释 (~30min)
+    - Step 2 (v0.7.1): 按 5 类分组分类决策 (AI/UI/渲染/系统/生成器, ~2h)
+    - Step 3 (v0.7.2+): 按决策执行 INTEGRATE/ARCHIVE/DELETE (~6-8h)
+  - **快速胜利候选** (低风险高价值, 需 Step 2 详细评估): `path_preview.py` / `range_indicator.py` / `combat_log.py`
 - **清理方案**: 逐个评估：删除（若功能不需要）或集成（若功能需要但遗漏装配）
-- **状态**: 🟢 P2 待评估 (2026-07-17 发现)
+- **状态**: 🟢 P2 7-Role 共识完成, 三步走方案确定 (详见 docs/ROADMAP_v0.7.0.md)
 
-### 🟢 TD-078: deployment_manager.py 架构 borderline smell (P2)
+### 🟢 TD-078: deployment_manager.py 架构 borderline smell (P2) — 7-Role 共识: v0.7.0 修复
 
 - **描述**: `src/pycc2/services/deployment_manager.py:158` 运行时 import `presentation/ui/deployment_factory` 的纯函数（build_force_pool_from_settings, generate_ai_deployment）
 - **影响**: 架构小气味 — 纯函数误放 presentation/ui 层，违反 services 不应运行时依赖 presentation 的 DDD 原则
 - **清理方案**: 将 deployment_factory.py 的纯函数迁移到 services 或 domain 层
-- **状态**: 🟢 P2 记录 (2026-07-17 发现)
+- **7-Role 共识结论** (2026-07-17 v0.7.0 规划): v0.7.0 与 Point 1 Wave 1/2 一起推进 (共享 v0.7.0 测试周期), 工作量 1.5h
+- **状态**: 🟢 P2 7-Role 共识完成, v0.7.0 修复时机确定 (详见 docs/ROADMAP_v0.7.0.md)
 
 ### 扫描方法论局限
 
