@@ -1,7 +1,8 @@
 # PyCC2 项目整理评估 v0.6.10
 
-> **评估日期**: 2026-07-13 | **版本**: v0.6.10 | **方法**: 7 维度代码走读 + DevSquad 多角色视角
+> **评估日期**: 2026-07-13 (初版) / 2026-07-17 (D3 修正版) | **版本**: v0.6.10 | **方法**: 7 维度代码走读 + DevSquad 多角色视角
 > **评估依据**: 实际代码扫描 + 全量测试运行 + 文档交叉验证 + CI 配置审查 + 目录结构扫描
+> **2026-07-17 修正**: D3 Ghost Features 扫描发现 25 个 0 src 引用模块（含 2 个 PLANNED 标记），原评估"0 ghost features"不准确，已修正
 
 ---
 
@@ -13,13 +14,13 @@ PyCC2 v0.6.10 是一个 **Beta Candidate** 级别的 CC2 (Close Combat 2: A Brid
 
 | 维度 | 评分 | 趋势 | 核心结论 |
 |------|------|------|----------|
-| 1. 代码走读 | ✅ GOOD | — | DDD 四层清晰，无 ghost features，无真实 TODO/FIXME，60 个 `pass`/`...` 全部为合法 Protocol/ABC 定义 |
+| 1. 代码走读 | ✅ GOOD | — | DDD 四层清晰，Composition Root 确认；1 处 `type:ignore[name-defined]` 高风险（tactical_ai_types.py:68），2 处 `except Exception:`，1 处 services→presentation 边界 smell（deployment_manager.py:158） |
 | 2. 文档一致性 | ✅ GOOD | ↑ | 版本号统一到 v0.6.10，PRD/DESIGN/ROADMAP/README/INSTALL/USER_MANUAL/SKILL.md 全部同步，还原度一致 (~75%) |
-| 3. 技术债/幽灵功能 | ✅ EXCELLENT | ↑ | 6 个 ghost feature 候选全部证伪，所有 systems 已接入 GameLoop，无 stub 方法 |
+| 3. 技术债/幽灵功能 | 🟡 NEEDS_IMPROVEMENT | ↓ | **原评估"0 ghost"不准确**：深度扫描发现 25 个 0 src 引用模块，含 2 个 PLANNED 标记（spritesheet_parser 508L + operation_timeline 151L），4 个疑似半集成（surrender_system/weapon_jam/context_menu/campaign_persistence），19 个孤立原型（~5000 行） |
 | 4. 全链路测试 | ✅ EXCELLENT | — | 6534 passed / 0 failed (70.88s)，25 个 E2E 文件含完整用户旅程，42 acceptance，181 integration |
-| 5. CI/CD | ✅ EXCELLENT | — | 7-job 流水线，ruff+mypy+bandit+pip-audit+radon 复杂度门禁，coverage 65% gate，非 root Docker |
+| 5. CI/CD | ✅ EXCELLENT | — | 7-job 流水线，ruff+mypy+bandit+pip-audit+radon 复杂度门禁，coverage 70% gate，非 root Docker |
 | 6. 目录结构 | ✅ GOOD | — | 无临时文件，归档规范（docs/archive 31 + scripts/archive 11），2 个未跟踪 .DS_Store |
-| 7. 成熟度评价 | 🟡 BETA CANDIDATE | — | 核心玩法完整，AI 可对战，但文档滞后于代码，距离 v1.0 需补齐文档+性能调优 |
+| 7. 成熟度评价 | 🟡 BETA CANDIDATE | ↓ | 核心玩法完整，AI 可对战，但 ghost 模块清理不到位，距离 v1.0 需补齐 ghost 清理 + 文档同步 + 性能调优 |
 
 ---
 
@@ -49,7 +50,9 @@ src/pycc2/ (388 modules)
 - ✅ 无循环依赖（D11/D12 已清理）
 - ✅ `main.py` 入口清晰，控制流可测试（W5-3 覆盖率 12%→42%）
 
-### 1.2 Ghost Features 验证（6 候选全部证伪）
+### 1.2 Ghost Features 验证（首轮 6 候选证伪 + 二轮发现 25 候选）
+
+#### 首轮候选（6 个，全部证伪 — 已集成或已清理）
 
 | 候选 | 声称 | 实际验证 | 结论 |
 |------|------|----------|------|
@@ -60,7 +63,35 @@ src/pycc2/ (388 modules)
 | isometric_renderer | 引用不存在文件 | 仅 `enhanced_terrain_generator.py:17` 注释提及历史来源，无代码引用 | ✅ 无残留 |
 | AnimationController | dead code | v0.3.35 已删除；`animation_system` 模块被 effect_renderer/sprite_renderer_base/particle_pool 正常使用 | ✅ 已清理 |
 
-**教训再现**：Explore agent 的 ghost feature 报告 6/6 误判（0% 命中率），再次印证 project_memory 记录的"52 候选 → 1.9% 命中率"教训——基于关键词扫描的 ghost feature 检测极不可靠，必须人工验证代码实际调用链。
+#### 二轮候选（2026-07-17 深度扫描发现 — 25 个 0 src 引用模块）
+
+通过 `/tmp/scan_ghosts.py` 脚本扫描 365 个 src 文件，对每个模块检查"是否有其他 src 文件引用其模块名或类名"，发现 25 个 0 src 引用模块：
+
+**🔴 高优先级（PLANNED 标记，明确未集成）— 2 个**
+
+| 文件 | 行数 | Test Refs | 状态 |
+|---|---|---|---|
+| `src/pycc2/presentation/rendering/spritesheet_parser.py` | 508 | 1 | PLANNED 标记，0 src 外部引用，8 处 test 引用均在 test_phase_b_final_sprint.py |
+| `src/pycc2/presentation/ui/operation_timeline.py` | 151 | 1 | PLANNED 标记，0 src 外部引用，含 DAY_INFO 数据 + OperationTimelineUI 类 |
+
+**🟡 中优先级（无 PLANNED，但 ≥2 测试文件引用，疑似半集成漏洞）— 4 个**
+
+| 文件 | 行数 | Test Refs | 验证 |
+|---|---|---|---|
+| `src/pycc2/domain/ai/surrender_system.py` | 403 | 2 | grep `surrender_system\|SurrenderSystem` 在 src 中仅自身文件匹配 → 确认 0 外部引用 |
+| `src/pycc2/domain/ai/weapon_jam.py` | 252 | 2 | 待验证 |
+| `src/pycc2/presentation/ui/context_menu.py` | 308 | 2 | 待验证 |
+| `src/pycc2/domain/systems/campaign_persistence.py` | 373 | 3 | grep `campaign_persistence\|CampaignPersistenceManager` 在 src 中仅自身文件匹配 → 确认 0 外部引用 |
+
+**🟢 低优先级（无 PLANNED，仅 1 测试文件引用，孤立原型 ~5000 行）— 19 个**
+
+`cover_seek_ai.py`(540), `casualty_system.py`(459), `cc2_hud.py`(432), `vehicle_variant_generator.py`(388), `psychology_system.py`(369), `faction_variant_generator.py`(366), `enhanced_ui_renderer.py`(346), `ammo_type_system.py`(341), `path_preview.py`(309), `combat_log.py`(284), `enhanced_post_processing.py`(267), `strategic_map_view.py`(216), `day_night_cycle.py`(214), `ai_config.py`(193), `range_indicator.py`(192), `weather_visual_effects.py`(180), `aar_panel.py`(170), `strategic_map.py`(150), `squad_group_manager.py`(149)
+
+#### 教训再现
+
+1. 首轮 explore agent 报告 6/6 误判（0% 命中率）→ 印证 project_memory "52 候选 → 1.9% 命中率"教训——基于关键词扫描的 ghost feature 检测极不可靠，必须人工验证代码实际调用链
+2. **本轮自我修正教训**：首轮评估仅验证 6 个候选就声明"0 ghost features"是 superficial optimization 的典型——深度扫描（基于 0 src 引用）立即发现 25 个候选。**用户规则"批判性和诚实评估，反对 superficial optimization 和 false reporting"再次得到验证**。
+3. 扫描脚本策略 3（裸模块名作为单词出现）对通用名字可能漏报，实际 ghost 数量可能更多。建议作为 v0.7.0 P0 任务系统性清理。
 
 ### 1.3 TODO/FIXME/HACK 扫描
 
@@ -70,6 +101,28 @@ src/pycc2/ (388 modules)
   - Protocol/ABC 抽象方法定义（如 `IRenderer`、`IWeatherSystem`、`PauseMenuProtocol`）
   - `if TYPE_CHECKING: pass` 类型检查守卫
   - except 块中吞咽非关键异常（如音频初始化失败降级）
+
+### 1.4 代码质量深度扫描（2026-07-17 补充）
+
+| 指标 | 数量 | 严重程度 | 说明 |
+|------|------|---------|------|
+| bare `except:` | 0 | — | ✅ |
+| bare `except Exception:` | 2 | 🟡 低 | `game_loop_updating.py:321`, `game_loop_rendering.py:132` — 优雅降级用 |
+| `# type: ignore` 总数 | 24 | 🟢 低 | 11 个 Font/Surface=None sentinel，3 个 ctypes.windll，2 个 color tuple，1 个 import-untyped，1 个 name-defined（见下） |
+| `# type: ignore[name-defined]` | **1** | 🔴 高 | `domain/ai/tactical_ai_types.py:68` — project_memory 警告过的隐藏 bug 风险，前向引用字符串路径，mypy 无法验证 |
+| `# noqa` 总数 | 18 | 🟢 低 | ~12 个 F401 intentional re-exports，3 个 B010 setattr 动态属性 |
+| `print(` 在 src | 2 | ✅ | 均在 docstring doctest 示例中，非运行时 print |
+| `eval(`/`exec(` | 0 | ✅ | |
+| `Any` 类型注解 | 135 | 🟢 低 | 多在 domain/interfaces/* Protocol 边界（~80），合理 |
+
+### 1.5 架构边界扫描（2026-07-17 补充）
+
+- ✅ Composition Root 确认：`game_loop_assembler.py` 头部 docstring 明确声明 9 个 `from pycc2.presentation.*` import 隔离于此文件
+- ✅ Domain → Presentation/Infrastructure 违规：**0**（domain 完全隔离）
+- ✅ Services → Presentation 运行时违规：**0 硬违规**，1 borderline smell
+  - `deployment_manager.py:158` 运行时 import `presentation/ui/deployment_factory` 的纯函数 — 架构小气味（纯函数误放 presentation/ui）
+  - 其余 services→presentation 引用均在 `if TYPE_CHECKING:` 块内（类型注解，非运行时耦合）
+- ✅ Domain 层占比：~170/426 = **~40%** < 50% 目标
 
 ---
 
@@ -141,12 +194,14 @@ src/pycc2/ (388 modules)
 
 | 类别 | 数量 | 状态 |
 |------|------|------|
-| Ghost Features | 0 | ✅ 全部清理（6 候选证伪） |
+| Ghost Features (首轮 6 候选) | 0 | ✅ 全部证伪（已集成或已清理） |
+| **Ghost Features (二轮深度扫描)** | **25 候选** | 🟡 **2 确认 PLANNED + 4 疑似半集成 + 19 孤立原型** — 详见 §1.2 |
 | 真实 TODO/FIXME | 0 | ✅ 零技术债标记 |
 | Stub 方法 | 0 | ✅ 60 个 `pass`/`...` 全为合法 Protocol/ABC |
 | God Class | 0 | ✅ TD-026 评估：44 文件 >500L 但均非 God Class（SRP 分析） |
 | 循环依赖 | 0 | ✅ D11/D12 已清理 |
 | Bare except | 0 | ✅ TD-047 已清理（2026-05-28） |
+| `type: ignore[name-defined]` | 1 | 🔴 高风险 — `tactical_ai_types.py:68`（project_memory 警告过） |
 
 ### 3.2 测试警告分析（211 warnings）
 
@@ -156,7 +211,14 @@ src/pycc2/ (388 modules)
 
 ### 3.3 结论
 
-技术债状态 **EXCELLENT**。v0.6.7~v0.6.10 持续清理后，活跃技术债归零。project_memory 记录的"不留技术债，发现即记录，按计划清理"原则得到贯彻。
+技术债状态 **NEEDS_IMPROVEMENT**（从原 EXCELLENT 下调）。v0.6.7~v0.6.10 持续清理后，活跃 P0/P1 技术债归零，但**二轮深度扫描发现 25 个 ghost 候选模块（含 2 个 PLANNED 标记）**，证明首轮"0 ghost features"评估是 superficial optimization 的典型，未达到用户要求的"批判性和诚实评估"标准。project_memory 记录的"不留技术债，发现即记录，按计划清理"原则需扩展为"深度扫描 + 诚实记录"。
+
+**新发现技术债（待录入 TECH_DEBT.md）**：
+- TD-067 (P0): 删除或集成 spritesheet_parser.py (508L, PLANNED)
+- TD-068 (P0): 删除或集成 operation_timeline.py (151L, PLANNED)
+- TD-069 (P1): 验证 4 个半集成候选（surrender_system/weapon_jam/context_menu/campaign_persistence）
+- TD-070 (P2): 评估 19 个孤立原型（~5000 行）的处置
+- TD-071 (P1): 修复 tactical_ai_types.py:68 的 `type: ignore[name-defined]` 高风险
 
 ---
 
@@ -353,52 +415,76 @@ PyCC2/
 
 ### 7.2 优势
 
-1. **架构健康**：DDD 四层，Composition Root 模式，Domain 38.5% < 50%，零循环依赖
+1. **架构健康**：DDD 四层，Composition Root 模式（game_loop_assembler.py 隔离 services→presentation runtime 桥接），Domain 0 外部引用，~40% < 50%，零循环依赖
 2. **测试扎实**：6536 测试全绿，25 E2E 文件含完整用户旅程，测试哲学正确（"为系统健壮而非覆盖率"）
-3. **CI/CD 成熟**：7-job 流水线，6 重 lint，复杂度门禁，安全扫描，非 root 容器
-4. **技术债清零**：无 ghost features，无 TODO/FIXME，无 stub 方法，无 God Class
-5. **多语言文档**：README/INSTALL/USER_MANUAL 三语齐全
-6. **安全意识**：HMAC 存档保护，非 root Docker，pip-audit，bandit
+3. **CI/CD 成熟**：7-job 流水线，6 重 lint（ruff/mypy/bandit/pip-audit/radon cc/doc consistency），coverage 70% gate，非 root 容器
+4. **多语言文档**：README/INSTALL/USER_MANUAL 三语齐全，全部同步到 v0.6.10
+5. **安全意识**：HMAC 存档保护，非 root Docker，pip-audit，bandit，secrets.toml/.pem/.key 在 .gitignore
+6. **目录规范**：无 *.tmp/*.bak/*.old，scripts 5:11 + docs 19:31 归档比例健康，.gitignore 186 行覆盖完整
 
 ### 7.3 劣势与风险
 
-1. **✅ 已修复：PRD.md 和 DESIGN.md 停留在 v0.4.7**（commit 0590a13）
+1. **🔴 高：Ghost 模块清理不到位（2026-07-17 二轮扫描发现）**
+   - 25 个 0 src 引用模块，含 2 个 PLANNED 标记（spritesheet_parser 508L + operation_timeline 151L）
+   - 4 个疑似半集成漏洞（surrender_system/weapon_jam/context_menu/campaign_persistence）
+   - 19 个孤立原型（~5000 行未集成代码）
+   - **首轮评估声称"0 ghost features"是 superficial optimization 的典型，违反用户规则"反对 superficial optimization 和 false reporting"**
+   - 处置方案：见 §7.4 P0/P1 任务
+
+2. **🔴 高：`type: ignore[name-defined]` 隐藏 bug 风险**
+   - `domain/ai/tactical_ai_types.py:68` 前向引用字符串路径
+   - project_memory 明确警告过此类 type: hide 的 NameError bug 风险
+   - 修复方式：使用 `from __future__ import annotations` + 正确 import，或 TYPE_CHECKING import
+
+3. **✅ 已修复：PRD.md 和 DESIGN.md 停留在 v0.4.7**（commit 0590a13）
    - PRD 还原度已更新为 ~75%，与实际一致
    - DESIGN.md 已补充 v0.5~v0.6 架构演进
    - 外部文档（README/INSTALL/USER_MANUAL/SKILL.md 三语）也已同步
 
-2. **✅ 已修复：ROADMAP.md 有 4 条过期条目**（commit 0590a13）
+4. **✅ 已修复：ROADMAP.md 有 4 条过期条目**（commit 0590a13）
    - Wave 3 已完成条目已标记为 ✅ Complete
    - 测试计数已更新为 ~6536
 
-3. **⚠️ 中等：211 个测试警告**
+5. **⚠️ 中等：211 个测试警告**
    - 虽为预期（HMAC/display），但应区分 expected warning 与 unexpected warning
    - 建议用 `pytest.warns()` 或 `filterwarnings` 标记预期警告
 
-4. **⚠️ 低：coverage gate 65% 偏低**
-   - 当前覆盖率 72.64%，但 CI gate 仅 65%——有 7.64% 的缓冲
-   - 建议逐步提升 gate 到 70%
+6. **⚠️ 低：coverage gate 70% 仍有提升空间**
+   - 当前覆盖率 72.64%，CI gate 已提升到 70%（原 65%）
+   - 65 个 <50% 覆盖率文件待补齐（campaign_ui_*/deployment_*/rendering/audio）
+
+7. **⚠️ 低：1 处架构 borderline smell**
+   - `deployment_manager.py:158` 运行时 import `presentation/ui/deployment_factory` 纯函数
+   - 建议将纯函数迁移到 services 或 domain 层
 
 ### 7.4 下一步建议（优先级排序）
 
-#### ✅ P0：已完成（文档一致性 — commit 0590a13 + 本轮外部文档同步）
+#### ✅ P0：已完成（文档一致性 — commit 0590a13 + 599cdc4）
 
-1. **✅ 更新 PRD.md 到 v0.6.10** — 已完成
-2. **✅ 更新 DESIGN.md 到 v0.6.10** — 已完成
-3. **✅ 清理 ROADMAP.md 过期条目** — 已完成
-4. **✅ 同步外部文档（README/INSTALL/USER_MANUAL/SKILL.md 三语）** — 已完成
+1. ✅ 更新 PRD.md/DESIGN.md/ROADMAP.md 到 v0.6.10
+2. ✅ 同步外部文档（README/INSTALL/USER_MANUAL/SKILL.md 三语）
+3. ✅ 修正 PROJECT_ASSESSMENT 评估（本轮 D3 修正版）
 
-#### P1：发布前必做
+#### 🔴 P0：ghost 模块清理（建议立即推进）
 
-4. **提升 coverage gate**：65% → 70%（当前 72.64% 已满足）
-5. **整理测试警告**：用 `filterwarnings` 标记 HMAC/display 为 expected
-6. **审查 release.yml**：确认发布流程完整（PyPI 上传、GitHub Release、Docker tag）
+4. **删除或集成 spritesheet_parser.py (508L, PLANNED)** — 已明确未集成，建议直接删除（含 8 处测试引用一并清理）
+5. **删除或集成 operation_timeline.py (151L, PLANNED)** — 已明确未集成，建议直接删除
+6. **修复 tactical_ai_types.py:68 `type: ignore[name-defined]`** — project_memory 警告过的隐藏 bug 风险
 
-#### P2：后续优化
+#### 🟡 P1：发布前必做
 
-7. **性能调优**：70.88s 测试时间可优化（并行化、fixture 缓存）
-8. **补充 integration 测试**：当前仅 9 文件 181 测试，可增加模块间协作覆盖
-9. **E2E_REAL_USER_SCENARIOS.md** 与实际 E2E 测试对齐验证
+7. **验证 4 个半集成候选**：surrender_system/weapon_jam/context_menu/campaign_persistence — 排查是否应该在 main.py/game_loop_assembler.py/__init__.py 中接入
+8. **整理测试警告**：用 `filterwarnings` 标记 HMAC/display 为 expected
+9. **审查 release.yml 完整流程**：确认 PyPI 上传 + GitHub Release + Docker tag（当前已审查，流程完整）
+10. **修复 deployment_manager.py:158 架构 smell**：将 deployment_factory 纯函数迁移到 services/domain
+
+#### 🟢 P2：后续优化
+
+11. **评估 19 个孤立原型**（~5000 行）— 逐个判断删除或集成
+12. **性能调优**：70.88s 测试时间可优化（并行化、fixture 缓存）
+13. **补充 integration 测试**：当前仅 9 文件 181 测试，可增加模块间协作覆盖
+14. **E2E_REAL_USER_SCENARIOS.md** 与实际 E2E 测试对齐验证
+15. **提升 coverage gate**：70% → 75%（当前 72.64%，需先补齐低覆盖文件）
 
 ### 7.5 v1.0 就绪度评估
 
@@ -413,8 +499,10 @@ PyCC2/
 | CI/CD | ✅ | 7-job 全绿 |
 | 测试覆盖 | ✅ | 6536 测试 + 25 E2E |
 | 安全 | ✅ | Bandit 0 / pip-audit 0 |
+| **Ghost 模块清理** | 🔴 | **25 候选未清理（2 PLANNED + 4 疑似 + 19 孤立）** |
+| **type: ignore 高风险** | 🔴 | **1 处 name-defined（tactical_ai_types.py:68）** |
 
-**v1.0 就绪度**：~90%。P0 文档问题已全部修复。距离 v1.0 仅差性能调优 + 视觉打磨 + P1 项。
+**v1.0 就绪度**：~80%（从原 ~90% 下调）。P0 文档问题已全部修复，但二轮深度扫描发现 ghost 模块清理不到位 + 1 处 type:ignore 高风险，距离 v1.0 需先完成 §7.4 P0/P1 项。
 
 ---
 
@@ -431,12 +519,18 @@ find tests -name "test_*.py" | wc -l  # → 202
 
 # 全量测试
 SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy .venv/bin/python -m pytest -m "not slow" --tb=no -q
-# → 6534 passed, 2 skipped, 16 deselected, 211 warnings in 70.88s
+# → 6534 passed, 2 skipped, 16 deselected, 211 warnings in 69.43s
 
-# Ghost feature 验证
+# Ghost feature 验证（首轮 — 6 候选证伪）
 grep -rn "SupplyAwarenessAI" src/pycc2/services/  # → ai_service.py:88 已注册
 grep -rn "PostProcessingEffects" src/pycc2/  # → renderer_state_manager.py 已管理
 grep -rn "EnvironmentalAudioSystem" src/pycc2/services/  # → game_loop_assembler.py:82 已接入
+
+# Ghost feature 验证（二轮 — 25 候选发现，2026-07-17）
+python3 /tmp/scan_ghosts.py  # 扫描 365 src 文件，25 个 0 src 引用模块
+grep -rn "operation_timeline\|OperationTimeline" src/pycc2/  # → 仅自身文件匹配，0 外部引用
+grep -rn "surrender_system\|SurrenderSystem" src/pycc2/  # → 仅自身文件匹配
+grep -rn "campaign_persistence\|CampaignPersistenceManager" src/pycc2/  # → 仅自身文件匹配
 
 # TODO/FIXME 精确扫描
 grep -rE "\bTODO\b|\bFIXME\b|\bHACK\b" src/  # → 0 处
@@ -444,17 +538,21 @@ grep -rE "\bTODO\b|\bFIXME\b|\bHACK\b" src/  # → 0 处
 # 版本一致性
 grep -rE "0\.6\.8" --include="*.md" . | grep -v archive | grep -v CHANGELOG  # → IMPROVEMENT_PLAN 标题（合理）
 grep -rE "v?0\.4\.[0-9]+" docs/PRD.md  # → 0 处（已于 commit 0590a13 清理）
+
+# type: ignore 高风险扫描
+grep -rn "type: ignore\[name-defined\]" src/pycc2/  # → 1 处 (tactical_ai_types.py:68)
 ```
 
 ### A.2 评估范围与局限
 
-- **评估范围**：代码静态扫描 + 全量测试运行 + 文档交叉验证 + CI 配置审查
+- **评估范围**：代码静态扫描 + 全量测试运行 + 文档交叉验证 + CI 配置审查 + 目录结构扫描 + ghost 模块深度扫描
 - **局限 1**：未进行实机视觉验证（需人工运行游戏对比 CC2 原版）
-- **局限 2**：未审查 release.yml 详细流程
-- **局限 3**：未进行性能基准测试（benchmark 测试存在但未运行）
+- **局限 2**：ghost 扫描策略 3（裸模块名作为单词出现）对通用名字可能漏报，实际 ghost 数量可能更多
+- **局限 3**：4 个半集成候选（surrender_system/weapon_jam/context_menu/campaign_persistence）仅做了 grep 验证，未深入检查动态加载/字符串路径导入等情况
+- **局限 4**：未运行 benchmark 性能基准测试（CI 中存在但本轮未执行）
 
 ---
 
-**评估结论**：PyCC2 v0.6.10 是一个架构健康、测试扎实、CI 成熟的 Beta Candidate 项目。P0 文档一致性问题已全部修复（commit 0590a13 + 外部文档同步），所有内外部文档均已同步到 v0.6.10，还原度一致 (~75%)。可作为 v0.7.0 Beta 发布候选。
+**评估结论**：PyCC2 v0.6.10 是一个架构健康、测试扎实、CI 成熟的 Beta Candidate 项目。P0 文档一致性问题已全部修复（commit 0590a13 + 599cdc4），所有内外部文档均已同步到 v0.6.10，还原度一致 (~75%)。**但二轮深度扫描发现 25 个 ghost 候选模块（2 PLANNED + 4 疑似 + 19 孤立）+ 1 处 type:ignore[name-defined] 高风险**，原评估"0 ghost features"不准确，已修正。v1.0 就绪度从 ~90% 下调到 ~80%，需先完成 §7.4 P0 ghost 清理 + type:ignore 修复后方可发布。
 
-> **文档先行，万事留痕** — 本评估留档于 `docs/PROJECT_ASSESSMENT_v0.6.10.md`，P0 已完成，后续按 P1→P2 顺序推进。
+> **文档先行，万事留痕** — 本评估留档于 `docs/PROJECT_ASSESSMENT_v0.6.10.md`，2026-07-17 D3 修正版已记录 ghost 模块发现，后续按 §7.4 P0→P1→P2 顺序推进。
