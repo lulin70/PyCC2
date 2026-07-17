@@ -1,4 +1,4 @@
-"""Psychology System — CC2-authentic order acceptance evaluation (P3-5).
+"""STATUS: ORPHAN — pending v0.8.0+ integration (TD-077). Psychology System — CC2-authentic order acceptance evaluation (P3-5).
 
 Provides fine-grained, per-tactic-type evaluation of whether a unit will
 accept, delay, or refuse an order based on its psychological state:

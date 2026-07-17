@@ -17,10 +17,6 @@ from typing import TYPE_CHECKING, Any
 logger = logging.getLogger(__name__)
 
 import pygame
-from pygame import Surface, font
-from pygame.font import Font
-
-from pycc2.presentation.rendering.minimap import Minimap
 from pycc2.presentation.ui.hud_constants import (
     AP_BAR_COLOR,
     AT_BAR_COLOR,
@@ -49,6 +45,10 @@ from pycc2.presentation.ui.hud_constants import (
 )
 from pycc2.presentation.ui.hud_input import CC2HUDInputHandler
 from pycc2.presentation.ui.hud_renderer import CC2HUDRenderer
+from pygame import Surface, font
+from pygame.font import Font
+
+from pycc2.presentation.rendering.minimap import Minimap
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap

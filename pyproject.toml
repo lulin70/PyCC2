@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pycc2"
-version = "0.7.0"
+version = "0.7.1"
 description = "PyCC2 - Python Close Combat 2: Tactical Infantry Combat Simulator"
 readme = "README.md"
 license = {text = "MIT"}
@@ -121,7 +121,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short --strict-markers --timeout=300"
+addopts = "-v --tb=short --strict-markers --timeout=300 --ignore=tests/_archive"
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",

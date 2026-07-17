@@ -1,4 +1,4 @@
-"""Cover Seeking AI — CC2-Authentic Suppressed Unit Behavior
+"""STATUS: ORPHAN — pending v0.8.0+ integration (TD-077). CC2-Authentic Suppressed Unit Behavior
 
 When units are under heavy fire (suppression > threshold), they
 automatically scan surrounding tiles to find the best available cover.

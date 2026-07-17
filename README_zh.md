@@ -1,11 +1,11 @@
 # 🎮 PyCC2 — 近距离作战2：遥远的桥梁 (Python重制版)
 
-**v0.7.0 | Beta 候选版本 | 2026年7月17日**
+**v0.7.1 | Beta 候选版本 | 2026年7月17日**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/测试-6509%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/测试-6138%20passed-brightgreen.svg" alt="Tests" />
 <img src="https://img.shields.io/badge/CC2还原度-%E2%88%BC75%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/状态-Beta%20Candidate-blue.svg" alt="Status" />
 </p>
@@ -14,7 +14,7 @@
 <em>基于 Python 的二战实时战术战斗模拟器 — Beta候选版本，完整战斗循环+SRP重构+真实SDL E2E验证</em>
 </p>
 
-> 🟢 **Beta Candidate 状态**: 核心游戏玩法完全可用 —— 部署、战斗、AI、战役、CC2原版胜利条件全部正常工作。**6509 passed / 0 failed / 2 skipped**，38阶段E2E用户旅程已在真实环境中验证。视觉打磨完成（死亡淡出、屏幕闪光、移动平滑、UI过渡动画、天气覆盖层、弹壳抛射、按钮反馈）。v0.5.0 P0: PixVoxel 正交版精灵已接入游戏循环（3968精灵，14/18单位类型覆盖）。幽灵功能审计完毕——所有关键渲染管线已激活。环境音效已激活，脏矩形优化已上线，EnhancedRenderer拆分完成，ResourceCacheManager已上线。v0.6.11: 清理 4 个 ghost 模块（spritesheet_parser/operation_timeline/context_menu 删除 + tactical_ai_types type:ignore 修复）。v0.7.0: 接入 3 个半集成模块（weapon_jam/surrender_system/campaign_persistence）+ TD-078 DDD 分层修复（deployment_factory 从 presentation 迁移到 services）。
+> 🟢 **Beta Candidate 状态**: 核心游戏玩法完全可用 —— 部署、战斗、AI、战役、CC2原版胜利条件全部正常工作。**6138 passed / 2 skipped**，38阶段E2E用户旅程已在真实环境中验证。视觉打磨完成（死亡淡出、屏幕闪光、移动平滑、UI过渡动画、天气覆盖层、弹壳抛射、按钮反馈）。v0.5.0 P0: PixVoxel 正交版精灵已接入游戏循环（3968精灵，14/18单位类型覆盖）。幽灵功能审计完毕——所有关键渲染管线已激活。环境音效已激活，脏矩形优化已上线，EnhancedRenderer拆分完成，ResourceCacheManager已上线。v0.6.11: 清理 4 个 ghost 模块（spritesheet_parser/operation_timeline/context_menu 删除 + tactical_ai_types type:ignore 修复）。v0.7.0: 接入 3 个半集成模块（weapon_jam/surrender_system/campaign_persistence）+ TD-078 DDD 分层修复（deployment_factory 从 presentation 迁移到 services）。v0.7.1: 19 个孤立原型模块分类决策（TD-077: 4 删除 + 10 归档 + 8 待 v0.8.0+ 接入）。
 > 详见[当前状态](#当前状态)功能矩阵。
 
 ---

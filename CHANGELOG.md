@@ -2,6 +2,77 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.7.1 — 孤立原型模块分类清理 (patch, 2026-07-17)
+
+### Summary
+
+TD-077 三步走方案执行完毕：19 个孤立原型模块（~5000 行）分类决策完成。PATCH 版本递增（纯清理无新功能）。4 个被活跃模块完全取代的死代码模块 DELETE；10 个实现有缺陷或耦合过紧的模块 ARCHIVE 到 `src/pycc2/_archive/`（含 cc2_hud 自闭合死代码群 4 文件连带归档）；8 个有接入价值的模块标记 ORPHAN pending v0.8.0+ INTEGRATE。
+
+### Step 1: DELETE (4 个模块)
+
+- `src/pycc2/presentation/ui/strategic_map_view.py` (216 行) — 被活跃 `campaign_ui_helpers.draw_strategic_map()` 取代
+- `src/pycc2/presentation/ui/strategic_map.py` (150 行) — 与 strategic_map_view 互相重复
+- `src/pycc2/presentation/ui/aar_panel.py` (170 行) — BattleResult 字段与活跃 report dict 接口不匹配
+- `src/pycc2/presentation/rendering/weather_visual_effects.py` (180 行) — 被活跃 `weather_effects.py` + `weather_renderer.py` 完全取代
+- 附带: 删除 `tests/unit/test_zero_coverage_smoke.py::TestWeatherVisualEffects` (7 tests)
+
+### Step 2: ARCHIVE (10 个模块 + 4 个测试文件)
+
+- `src/pycc2/_archive/ai_config.py` (193 行) — 需 AI 整体重构
+- `src/pycc2/_archive/casualty_system.py` (459 行) — 实现有缺陷 (setattr/perf_counter)
+- `src/pycc2/_archive/ammo_type_system.py` (341 行) — 实现有缺陷 (perf_counter/dict)
+- `src/pycc2/_archive/combat_log.py` (284 行) — 渲染与数据耦合
+- `src/pycc2/_archive/cc2_hud.py` (432 行) — 被 CC2BottomPanel 取代
+- `src/pycc2/_archive/enhanced_ui_renderer.py` (346 行) — UI 工具备用
+- `src/pycc2/_archive/enhanced_post_processing.py` (267 行) — 逐像素循环致性能不可用
+- `src/pycc2/_archive/hud_constants.py` (57 行) — cc2_hud 连带归档
+- `src/pycc2/_archive/hud_input.py` (110 行) — cc2_hud 连带归档
+- `src/pycc2/_archive/hud_renderer.py` (886 行) — cc2_hud 连带归档
+- 测试归档: `tests/_archive/` (test_cc2_hud/test_enhanced_ui_renderer/test_enhanced_post_processing/test_ai_config)
+- 测试分离清理: 4 文件删除归档模块测试类保留活跃模块测试 (test_aar_and_timecontrol/test_phase_b_final_sprint/test_phase_c_p1_and_d_core/test_strategic_ui)
+- pyproject.toml: addopts 添加 `--ignore=tests/_archive`
+
+### Step 3: ORPHAN 标记 (8 个 INTEGRATE 模块)
+
+8 个模块 docstring 顶部添加 `STATUS: ORPHAN — pending v0.8.0+ integration (TD-077)`:
+- `domain/ai/cover_seek_ai.py` (540 行)
+- `domain/systems/psychology_system.py` (369 行)
+- `presentation/ui/squad_group_manager.py` (149 行)
+- `domain/systems/day_night_cycle.py` (214 行) — 需先解决 IDayNightCycle 接口兼容
+- `presentation/rendering/path_preview.py` (309 行)
+- `presentation/rendering/range_indicator.py` (192 行)
+- `domain/systems/vehicle_variant_generator.py` (388 行)
+- `domain/systems/faction_variant_generator.py` (366 行)
+
+### 文档同步（活文档原则）
+
+- `VERSION` / `src/pycc2/__init__.py` / `pyproject.toml`: 0.7.0 → 0.7.1
+- `docs/TECH_DEBT.md`: TD-077 标记 ✅ RESOLVED + 总览表更新 (1 活跃 → 0 活跃)
+- `docs/PRD.md`: 版本号 v0.7.0 → v0.7.1 + 测试数 6509 → 6138
+- `docs/DESIGN.md`: 版本号 + 架构演进链新增 v0.7.1
+- `docs/PROJECT_STATUS.md`: 版本号 + 测试数 6509 → 6157 collected / 6138 passed
+- `docs/TEST_PLAN.md`: 版本号 + 测试数 6509 → 6157
+- `docs/ROADMAP.md`: 版本号 v0.7.0 → v0.7.1
+- `README.md` / `README_zh.md` / `README_ja.md`: 版本号 + 测试数 badge 6509 → 6138 + v0.7.1 描述
+- `SKILL.md`: 版本号 + 测试数 6509 → 6138
+- `docs/ROADMAP_v0.7.1.md`: 执行清单全部 ✅ 完成
+
+### 验证
+
+- **全量测试**: 6157 collected / 6138 passed / 2 skipped / 16 deselected (285.42s)
+  - 1 flaky benchmark `test_render_16x16_map_time` median 112ms > 100ms threshold (2/5 runs below 100ms — 非功能回归, 系统负载波动)
+- **ruff**: 0 errors (check + format)
+- **mypy**: v0.7.0 基线 2 pre-existing errors (无新增)
+- **check_doc_consistency.sh**: 11/11 PASS (VERSION=0.7.1)
+
+### 教训
+
+- **自闭合死代码群识别**: cc2_hud + hud_constants + hud_input + hud_renderer 4 个文件仅互相引用，应一并归档（单独归档 cc2_hud 会导致剩余 3 个文件成为新的孤立模块）
+- **测试分离清理**: 归档模块时需检查测试文件是否同时测试活跃模块，若是则分离清理（删除归档模块测试类，保留活跃模块测试）而非整个文件归档
+- **并行 Edit 同一文件风险**: Edit 工具并行执行同一文件的多个修改时，后执行的 Edit 可能基于原始文件状态，覆盖前一个 Edit 的更改。策略：同一文件的多个 Edit 必须顺序执行，不同文件的 Edit 可以并行
+
+---
+
 ## v0.7.0 — 半集成模块接入 + DDD 分层修复 (minor, 2026-07-17)
 
 ### Summary

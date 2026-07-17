@@ -17,6 +17,7 @@ from unittest.mock import MagicMock
 
 import pygame
 import pytest
+from pycc2.presentation.ui.cc2_hud import CC2HUD
 
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent
@@ -25,7 +26,6 @@ from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
-from pycc2.presentation.ui.cc2_hud import CC2HUD
 
 # ---------------------------------------------------------------------------
 # Helpers

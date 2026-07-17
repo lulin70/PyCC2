@@ -1,4 +1,4 @@
-"""Squad Group Manager - Unit grouping and quick selection system."""
+"""STATUS: ORPHAN — pending v0.8.0+ integration (TD-077). Squad Group Manager - Unit grouping and quick selection system."""
 
 from __future__ import annotations
 

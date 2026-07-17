@@ -9,7 +9,7 @@
 |------|------|------|
 | 源码模块 | 386 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
 | 测试模块 | 212 个 `.py` 文件（unit 167 / integration 10 / e2e 28 / benchmark 4 / acceptance 1） | `find tests -name "*.py" \| wc -l` |
-| 测试用例 | 6509 passed / 0 failed / 2 skipped | `pytest tests/ -m "not slow" --co` |
+| 测试用例 | 6138 passed / 2 skipped | `pytest tests/ -m "not slow" --co` |
 
 ## 项目能力
 

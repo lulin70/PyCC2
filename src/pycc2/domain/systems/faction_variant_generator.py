@@ -1,4 +1,4 @@
-"""Faction-specific variant generator — Commando/PIAT/Ranger/Fallschirmjäger etc (P5-1 batch 1).
+"""STATUS: ORPHAN — pending v0.8.0+ integration (TD-077). Faction-specific variant generator — Commando/PIAT/Ranger/Fallschirmjäger etc (P5-1 batch 1).
 
 Extracted from unit_diversity_expansion.py. Generates faction-specific variants
 (Commando, PIAT team, Recce troop, Ranger, Bazooka team, Glider infantry,

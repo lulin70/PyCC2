@@ -47,7 +47,6 @@ class TestEnhancedUIRenderer:
     def test_draw_button_normal_state(self, test_surface, test_font, pygame_display):
         """Test drawing button in normal state."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 150, 40)
@@ -65,7 +64,6 @@ class TestEnhancedUIRenderer:
     def test_draw_button_hover_state(self, test_surface, test_font, pygame_display):
         """Test drawing button in hover state."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 150, 40)
@@ -80,7 +78,6 @@ class TestEnhancedUIRenderer:
     def test_draw_button_pressed_state(self, test_surface, test_font, pygame_display):
         """Test drawing button in pressed state."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 150, 40)
@@ -94,7 +91,6 @@ class TestEnhancedUIRenderer:
     def test_draw_button_disabled_state(self, test_surface, test_font, pygame_display):
         """Test drawing button in disabled state."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 150, 40)
@@ -108,7 +104,6 @@ class TestEnhancedUIRenderer:
     def test_draw_panel_without_title(self, test_surface, pygame_display):
         """Test drawing panel without title."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(50, 50, 300, 200)
@@ -122,7 +117,6 @@ class TestEnhancedUIRenderer:
     def test_draw_panel_with_title(self, test_surface, test_font, pygame_display):
         """Test drawing panel with title."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(50, 50, 300, 200)
@@ -136,7 +130,6 @@ class TestEnhancedUIRenderer:
     def test_draw_icon_move(self, test_surface, pygame_display):
         """Test drawing move icon."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 48, 48)
@@ -150,7 +143,6 @@ class TestEnhancedUIRenderer:
     def test_draw_icon_attack(self, test_surface, pygame_display):
         """Test drawing attack icon."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 48, 48)
@@ -164,7 +156,6 @@ class TestEnhancedUIRenderer:
     def test_draw_icon_defend(self, test_surface, pygame_display):
         """Test drawing defend icon."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 48, 48)
@@ -178,7 +169,6 @@ class TestEnhancedUIRenderer:
     def test_draw_icon_info(self, test_surface, pygame_display):
         """Test drawing info icon."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 48, 48)
@@ -190,7 +180,6 @@ class TestEnhancedUIRenderer:
     def test_draw_icon_hover_state(self, test_surface, pygame_display):
         """Test drawing icon in hover state."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 48, 48)
@@ -202,7 +191,6 @@ class TestEnhancedUIRenderer:
     def test_draw_icon_disabled_state(self, test_surface, pygame_display):
         """Test drawing icon in disabled state."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 48, 48)
@@ -216,7 +204,6 @@ class TestEnhancedUIRenderer:
     def test_draw_minimap_frame(self, test_surface, pygame_display):
         """Test drawing minimap frame."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(600, 400, 180, 180)
@@ -230,7 +217,6 @@ class TestEnhancedUIRenderer:
     def test_draw_progress_bar_empty(self, test_surface, test_font, pygame_display):
         """Test drawing empty progress bar."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 200, 30)
@@ -244,7 +230,6 @@ class TestEnhancedUIRenderer:
     def test_draw_progress_bar_half(self, test_surface, test_font, pygame_display):
         """Test drawing half-filled progress bar."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 200, 30)
@@ -258,7 +243,6 @@ class TestEnhancedUIRenderer:
     def test_draw_progress_bar_full(self, test_surface, test_font, pygame_display):
         """Test drawing full progress bar."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 200, 30)
@@ -272,7 +256,6 @@ class TestEnhancedUIRenderer:
     def test_draw_progress_bar_custom_color(self, test_surface, test_font, pygame_display):
         """Test drawing progress bar with custom color."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 200, 30)
@@ -288,7 +271,6 @@ class TestEnhancedUIRenderer:
     def test_draw_button_zero_size(self, test_surface, test_font, pygame_display):
         """Test drawing button with zero size (boundary)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 0, 0)
@@ -303,7 +285,6 @@ class TestEnhancedUIRenderer:
     def test_draw_button_very_small(self, test_surface, test_font, pygame_display):
         """Test drawing very small button (boundary)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 5, 5)
@@ -315,7 +296,6 @@ class TestEnhancedUIRenderer:
     def test_draw_button_very_large(self, test_surface, test_font, pygame_display):
         """Test drawing very large button (boundary)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(0, 0, 700, 500)
@@ -329,7 +309,6 @@ class TestEnhancedUIRenderer:
     def test_draw_panel_very_small(self, test_surface, pygame_display):
         """Test drawing very small panel (boundary)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 10, 10)
@@ -341,7 +320,6 @@ class TestEnhancedUIRenderer:
     def test_draw_progress_bar_zero_progress(self, test_surface, test_font, pygame_display):
         """Test progress bar with zero progress (boundary)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 200, 30)
@@ -353,7 +331,6 @@ class TestEnhancedUIRenderer:
     def test_draw_progress_bar_over_one(self, test_surface, test_font, pygame_display):
         """Test progress bar with progress > 1.0 (boundary)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 200, 30)
@@ -366,7 +343,6 @@ class TestEnhancedUIRenderer:
     def test_draw_progress_bar_negative(self, test_surface, test_font, pygame_display):
         """Test progress bar with negative progress (boundary/error case)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 200, 30)
@@ -381,7 +357,6 @@ class TestEnhancedUIRenderer:
     def test_draw_button_invalid_state(self, test_surface, test_font, pygame_display):
         """Test drawing button with invalid state (error case)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 150, 40)
@@ -396,7 +371,6 @@ class TestEnhancedUIRenderer:
     def test_draw_icon_invalid_type(self, test_surface, pygame_display):
         """Test drawing icon with invalid type (error case)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 48, 48)
@@ -411,7 +385,6 @@ class TestEnhancedUIRenderer:
     def test_draw_button_empty_text(self, test_surface, test_font, pygame_display):
         """Test drawing button with empty text (error case)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 150, 40)
@@ -423,7 +396,6 @@ class TestEnhancedUIRenderer:
     def test_draw_panel_empty_title(self, test_surface, test_font, pygame_display):
         """Test drawing panel with empty title (should work like no title)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(50, 50, 300, 200)
@@ -435,7 +407,6 @@ class TestEnhancedUIRenderer:
     def test_draw_button_negative_position(self, test_surface, test_font, pygame_display):
         """Test drawing button at negative position (error case)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(-50, -50, 150, 40)
@@ -450,7 +421,6 @@ class TestEnhancedUIRenderer:
     def test_draw_panel_no_font_with_title(self, test_surface, pygame_display):
         """Test drawing panel with title but no font (error case)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(50, 50, 300, 200)
@@ -463,7 +433,6 @@ class TestEnhancedUIRenderer:
     def test_draw_progress_bar_no_font(self, test_surface, pygame_display):
         """Test drawing progress bar without font (error case)."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         rect = pygame.Rect(100, 100, 200, 30)
@@ -480,7 +449,6 @@ class TestEnhancedUIRenderer:
     def test_convenience_functions(self, test_surface, test_font, pygame_display):
         """Test convenience functions work correctly."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import (
             draw_button,
             draw_icon,
@@ -504,7 +472,6 @@ class TestEnhancedUIRenderer:
     def test_multiple_buttons_same_surface(self, test_surface, test_font, pygame_display):
         """Test drawing multiple buttons on same surface."""
         import pygame
-
         from pycc2.presentation.ui.enhanced_ui_renderer import EnhancedUIRenderer
 
         states = ["normal", "hover", "pressed", "disabled"]
