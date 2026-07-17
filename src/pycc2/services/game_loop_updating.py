@@ -135,7 +135,7 @@ class GameLoopUpdatingMixin:
                 if self._day_night_cycle is not None:
                     tod = self._day_night_cycle.time_of_day
                     if tod is not None:
-                        hour = int(tod * 24) % 24
+                        hour = int(tod) % 24
                         self._environmental_audio.set_time_of_day(hour)
                 elif self._day_night_time is not None:
                     hour = int(self._day_night_time * 24) % 24
@@ -243,7 +243,8 @@ class GameLoopUpdatingMixin:
                 self._dynamic_shadow_sys.set_time_of_day(self._day_night_time)
             elif self._day_night_cycle is not None:
                 tod = self._day_night_cycle.time_of_day
-                self._dynamic_shadow_sys.set_time_of_day(tod)
+                normalized = tod / 24.0
+                self._dynamic_shadow_sys.set_time_of_day(normalized)
 
     def _update_hud(self, dt: float) -> None:
         # P2-05: Update UI fade transitions (HUDManager panel/minimap fades)

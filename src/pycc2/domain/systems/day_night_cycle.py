@@ -39,7 +39,15 @@ class GameTime:
         return int((self.hours % 1) * 60)
 
     @property
-    def time_of_day(self) -> TimeOfDay:
+    def time_of_day(self) -> float:
+        """Return the current time of day as a float hour (0.0-24.0).
+
+        Implements IDayNightCycle.time_of_day protocol contract.
+        """
+        return self.hours
+
+    @property
+    def time_phase(self) -> TimeOfDay:
         """Return the discrete time-of-day phase for the current game time."""
         h = self.hours
         if 5 <= h < 7:

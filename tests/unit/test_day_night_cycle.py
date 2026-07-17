@@ -131,7 +131,7 @@ class TestGameTimePeriodDetection:
     def test_period_detection_accuracy(self, hour, expected_period):
         gt = GameTime()
         gt.set_time(hour)
-        assert gt.time_of_day == expected_period
+        assert gt.time_phase == expected_period
 
 
 class TestDayNightEffectsVisionModifiers:

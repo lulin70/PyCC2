@@ -2,6 +2,63 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.7.3 — day_night_cycle 接口兼容性修复 (patch, 2026-07-17)
+
+### Summary
+
+v0.7.2 INTEGRATE 前置评估 (Wave 4) 发现 `day_night_cycle` 模块与 `IDayNightCycle` 协议存在类型签名不兼容：接口声明 `time_of_day` 返回 `float` (0.0-24.0)，但实现返回 `TimeOfDay` enum，调用方 `game_loop_updating.py` 又期望 0.0-1.0 归一化 float — 三方不一致。由于 day_night_cycle 是 ORPHAN 模块（game_loop._day_night_cycle 默认 None），该接口不兼容是"潜伏 bug"，v0.8.2 INTEGRATE 时必然暴露。v0.7.3 作为 PATCH 修复此接口签名一致性，无新功能，遵循"功能没有更新时版本不变前两位"。DevSquad 7-Role 共识评估 (7/7 一致通过)。
+
+### Wave 1: day_night_cycle 接口兼容性修复 (Coder/Architect)
+
+- **`src/pycc2/domain/systems/day_night_cycle.py`** L41-L59:
+  - 重命名 `time_of_day` property → `time_phase`（返回 `TimeOfDay` enum，保留原 enum 消费方）
+  - 新增 `time_of_day` property 返回 `float` (0.0-24.0)，即 `hours` 的语义别名，与 `IDayNightCycle.time_of_day` 协议契约一致
+- **`tests/unit/test_day_night_cycle.py`** L134: `gt.time_of_day == expected_period` → `gt.time_phase == expected_period`（适配重命名）
+- **`src/pycc2/services/game_loop_updating.py`** L136-L139: `hour = int(tod * 24) % 24` → `hour = int(tod) % 24`（tod 现在是 0.0-24.0 float，audio sync 适配）
+- **`src/pycc2/services/game_loop_updating.py`** L244-L247: 新增 `normalized = tod / 24.0` 后传给 `set_time_of_day(normalized)`（shadow 系统期望 0.0-1.0 归一化 float）
+
+### Wave 2: 版本号更新 + 文档同步 (DevOps/Coder)
+
+- `VERSION` / `pyproject.toml` / `src/pycc2/__init__.py` / `SKILL.md` L3: 0.7.2 → 0.7.3
+- `docs/PRD.md` (6 处 replace_all) / `docs/TEST_PLAN.md` L1 / `docs/TECH_DEBT.md` L3-L4 / `docs/PROJECT_STATUS.md` L4/L11/L14: 版本号 + 描述更新
+- `README.md` / `README_zh.md` / `README_ja.md` L3 + L18/L17/L18: 版本号 + 追加 v0.7.3 描述
+- `docs/DESIGN.md` L1/L5/L6: 版本号 + 架构演进链追加 `→ v0.7.3 day_night_cycle 接口兼容性修复`
+- `docs/ROADMAP.md` L3/L5/L294-L295 (新增 v0.7.3 行) + L369-L374 (Document Version + Status + Related Documents): 全部更新
+
+### Wave 3: 验证 (Tester/DevOps)
+
+- `pytest tests/ -m "not slow"`: **6156 passed, 2 skipped, 16 deselected** (67.63s) — 与 v0.7.2 一致，零回归
+- `ruff check .`: **All checks passed** — 0 errors
+- `MYPYPATH=src mypy -p pycc2`: **7 errors in 4 files** — 全部 pre-existing (palette_generator + _archive/* + sprite_cache_manager)，v0.7.3 零回归（git stash 验证 v0.7.2 commit 6381d15 同样 7 errors）
+- `bash scripts/check_doc_consistency.sh`: **11/11 PASS** — VERSION 与所有文档一致
+
+### Wave 4: 文档收尾 + Git 推送 (DevOps)
+
+- `CHANGELOG.md` 插入 v0.7.3 完整条目
+- `docs/ROADMAP_v0.7.3.md` 状态更新为 ✅ 完成
+- Git commit + push origin/main
+- CarryMem `classify_and_remember` 记录会话总结
+
+### 修复方案: 选项 C — 重命名 + 新增 property
+
+| 选项 | 描述 | 决策 |
+|------|------|------|
+| A | 修改 day_night_cycle.py 使 `time_of_day` 返回 float (删除 enum) | ❌ 否决 (破坏 enum 消费方) |
+| B | 修改 IDayNightCycle 接口使 `time_of_day` 返回 TimeOfDay enum | ❌ 否决 (接口依赖实现层 enum，违反 DDD 分层) |
+| **C** | **重命名 `time_of_day` → `time_phase` (enum)，新增 `time_of_day` 返回 float** | **✅ 采纳** |
+
+### DevSquad 7-Role 共识投票
+
+7/7 ✅ 一致通过: Architect / PM / Security / Tester / Coder / DevOps / UI 全部支持
+
+### 教训记录
+
+1. **接口与实现签名不一致是潜伏 bug**: day_night_cycle 接口不兼容持续多个版本未发现，因为 ORPHAN 模块未接入游戏循环。INTEGRATE 前置评估 (v0.7.2 Wave 4) 是发现此类问题的关键时机
+2. **time_of_day 语义碎片化**: 代码库中存在 5 种语义 — float (0.0-24.0) / TimeOfDay enum / str / int (0-23) / float (0.0-1.0)。v0.7.3 修复 day_night_cycle 部分，其他模块的语义统一留待后续
+3. **ORPHAN 模块接口合规性应作为 INTEGRATE 前置条件**: v0.7.2 已建立 smoke tests 基线，v0.7.3 进一步修复接口签名，为 v0.8.2 INTEGRATE 扫清障碍
+
+---
+
 ## v0.7.2 — INTEGRATE 前置准备 + 文档同步 + 测试稳定 (patch, 2026-07-17)
 
 ### Summary
