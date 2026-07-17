@@ -2229,28 +2229,6 @@ assert not radial.is_visible
 
 ---
 
-### 10.12 TC-090: 上下文菜单(Context Menu) (P2)
-
-**测试目标**: 验证右键单位显示上下文操作菜单
-
-```python
-from pycc2.presentation.ui.context_menu import ContextMenu
-
-ctx_menu = ContextMenu()
-ctx_menu.show_for_unit(unit=player_units[0], position=(300, 200))
-
-items = ctx_menu.get_items()
-assert len(items) >= 3, f"上下文菜单应≥3项，实际{len(items)}项"
-
-expected_actions = ['select', 'move_to', 'attack', 'cancel']
-has_essential = any(a in [item['action'] for item in items] for a in expected_actions)
-assert has_essential, "应包含基本操作"
-```
-
-**预计执行时间**: 1分钟
-
----
-
 ## 11. 执行计划与优先级矩阵
 
 ### 11.1 推荐执行顺序

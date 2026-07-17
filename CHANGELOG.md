@@ -2,6 +2,64 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.6.11 — Ghost 模块清理 + 类型安全修复 (patch, 2026-07-17)
+
+### Summary
+
+基于 D15 7 维度项目整理评估发现的 TD-073~TD-078 技术债，本次 PATCH 版本完成 P0 清理（3 ghost 模块删除 + 1 type:ignore 修复）+ P1 部分（context_menu 删除被 radial_menu 取代）。无新功能，纯技术债清理工作。DevSquad 7-role 共识达成，按项目生命周期推进。
+
+### Wave 1: P0 Ghost 模块删除（TD-073, TD-074）
+
+- **TD-073**: 删除 `src/pycc2/presentation/rendering/spritesheet_parser.py` (508 行, PLANNED 标记, 0 src 外部引用) + 删除 `tests/unit/test_phase_b_final_sprint.py` 中 `TestSpritesheetParser` 类 (8 测试方法)
+- **TD-074**: 删除 `src/pycc2/presentation/ui/operation_timeline.py` (151 行, PLANNED 标记, 0 src 外部引用) + 删除 `tests/unit/test_strategic_ui.py` 中 6 个 `TestTimeline*` 类 + 4 个 `TestCampaignStateToTimelineIntegration` 测试 (共 26 测试) + 移除 import 和 fixture
+- **7-Role 共识**: 删除 (PLANNED + 0 src 引用 + 未来需求重新设计更优)
+
+### Wave 2: P0 类型安全修复（TD-075）
+
+- **TD-075**: 修复 `src/pycc2/domain/ai/tactical_ai_types.py:68` 的 `# type: ignore[name-defined]  # noqa: F821` 隐藏 bug 风险
+  - 修改前: `intent: pycc2.domain.ai.tactic_intent.TacticIntent  # type: ignore[name-defined]  # noqa: F821`
+  - 修改后: `intent: TacticIntent`
+  - 安全性: 文件已含 `from __future__ import annotations` (L13) + TYPE_CHECKING import of TacticIntent (L27); L185 已使用 `list[TacticIntent]` 同模式
+  - project_memory 明确警告过此类 type:ignore 的 NameError bug 风险（memory_serializer.py 案例）
+
+### Wave 3: P1 Ghost 删除（TD-076a）
+
+- **TD-076a**: 删除 `src/pycc2/presentation/ui/context_menu.py` (308 行) — 已被 `radial_menu.py` 取代, `interaction_controller.py` 使用 RadialMenu, 0 运行时引用
+- **测试清理**: 删除 `tests/acceptance/test_phase_a.py` 中 `TestA4ContextMenu` 类 (5 测试) + `tests/unit/test_zero_coverage_smoke.py` 中 `TestContextMenu` 类 (~8 测试)
+- **文档同步**: `tests/acceptance/README.md` 计数 8→7 核心功能 / 42→37 测试 + `tests/e2e/E2E_REAL_USER_SCENARIOS.md` TC-090 上下文菜单章节删除
+- **7-Role 共识**: 删除 (被 radial_menu 取代 + 持续维护死文件的沉没成本陷阱)
+
+### 文档同步（活文档原则）
+
+- `VERSION` / `src/pycc2/__init__.py` / `pyproject.toml`: 0.6.10 → 0.6.11
+- `docs/TECH_DEBT.md`: TD-073/074/075/076a 标记 ✅ RESOLVED + 总览表更新 (6 活跃 → 3 活跃, TD-076b/c/d 延到 v0.7.0)
+- `docs/PROJECT_STATUS.md`: 模块数 388→385, 测试数 6536→6486, mypy files 389→385
+- `docs/PROJECT_ASSESSMENT_v0.6.10.md`: 添加 v0.6.11 更新附录
+- `README.md` / `README_zh.md` / `README_ja.md`: 版本号 + 测试数 badge 更新
+- `SKILL.md`: 版本号 + 模块数 + 测试数 + mypy files 更新
+- `docs/ROADMAP_TD073_078.md`: 添加 v0.6.11 完成标记
+
+### 延期到 v0.7.0（TD-076b/c/d 接入）
+
+7-Role 共识确认 3 个半集成候选为真实功能漏洞，需 v0.7.0 (MINOR) 接入：
+- **TD-076b**: 接入 `surrender_system.py` (~3h) — SurrenderAI 未注册到 ai_service.py
+- **TD-076c**: 接入 `weapon_jam.py` (~4h) — 对称半成品: clear_jam() 存在但从未调用, WeaponJammed event 从未 emit
+- **TD-076d**: 接入 `campaign_persistence.py` (~5h) — campaign_four_layer.py:68 `_persistence = None` 从未赋值
+
+### Test Results
+
+- 全量测试: 6486 passed / 2 skipped / 16 deselected / 1 warning in 65.60s
+- ruff: 0 errors
+- mypy: 0 errors (MYPYPATH=src mypy -p pycc2 --no-error-summary)
+- 源码模块数: 388 → 385 (删除 3 ghost 模块)
+- 零回归
+
+### Verification
+
+- 7-Role 共识达成 (Architect + Coder + Tester + DevOps + PM + Security + UI)
+- 文档一致性: `./scripts/check_doc_consistency.sh` 11/11 通过
+- 计划文档: `docs/ROADMAP_TD073_078.md` (文档先行)
+
 ## v0.6.10 — 覆盖率提升 + CI 增强 (patch, 2026-07-13)
 
 ### Summary

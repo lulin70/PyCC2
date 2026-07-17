@@ -6,6 +6,43 @@
 
 ---
 
+## 🆕 v0.6.11 更新摘要 (2026-07-17)
+
+基于本评估发现的 TD-073~TD-078 技术债，v0.6.11 完成 P0 清理 + P1 部分：
+
+| 维度 | v0.6.10 | v0.6.11 | 变化 |
+|------|---------|---------|------|
+| 源码模块数 | 388 | 385 | -3 (删除 spritesheet_parser/operation_timeline/context_menu) |
+| 测试用例数 | 6536 | 6486 | -50 (删除 ghost 模块相关测试) |
+| Ghost 候选 | 25 | 21 | -4 (3 删除 + 1 type:ignore 修复) |
+| `type:ignore[name-defined]` | 1 (高风险) | 0 | ✅ RESOLVED |
+| 活跃技术债 | 6 (3 P0 + 1 P1 + 2 P2) | 3 (3 P1 延到 v0.7.0 + 2 P2 待评估) | -3 P0 |
+| v1.0 就绪度 | ~80% | ~85% | +5% |
+
+**已解决**:
+- ✅ TD-073: spritesheet_parser.py (508L, PLANNED) 删除
+- ✅ TD-074: operation_timeline.py (151L, PLANNED) 删除
+- ✅ TD-075: tactical_ai_types.py L68 `type:ignore[name-defined]` 修复
+- ✅ TD-076a: context_menu.py (308L, 被 radial_menu 取代) 删除
+
+**延期到 v0.7.0** (3 个半集成接入, ~12h):
+- 🟡 TD-076b: surrender_system 接入 (~3h)
+- 🟡 TD-076c: weapon_jam 接入 (~4h)
+- 🟡 TD-076d: campaign_persistence 接入 (~5h)
+
+**待用户审核** (P2):
+- 🟢 TD-077: 19 个孤立原型处置方案
+- 🟢 TD-078: deployment_manager.py 架构 smell
+
+详见:
+- [docs/ROADMAP_TD073_078.md](ROADMAP_TD073_078.md) — 7-Role 共识推进计划
+- [docs/TECH_DEBT.md](TECH_DEBT.md) — TD-073~078 状态更新
+- [CHANGELOG.md](../CHANGELOG.md) — v0.6.11 完整变更记录
+
+**验证**: 6486 passed / 2 skipped / 16 deselected, ruff 0, mypy 0, 文档一致性 11/11 通过, 零回归
+
+---
+
 ## 执行摘要
 
 PyCC2 v0.6.10 是一个 **Beta Candidate** 级别的 CC2 (Close Combat 2: A Bridge Too Far) Python 重制项目。388 个源码模块，6536 个测试用例（全绿），DDD 四层架构，CI 7/7 绿灯。**项目整体成熟度较高，可玩性完整**。核心文档（PRD/DESIGN/ROADMAP/TEST_PLAN/GAP_ANALYSIS）已于 commit `0590a13` 同步到 v0.6.10，外部文档（README/INSTALL/USER_MANUAL/SKILL.md 三语）也已同步完成。

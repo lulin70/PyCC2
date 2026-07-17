@@ -1,33 +1,33 @@
 # PyCC2 项目状态
 
-> **最后更新**: 2026-07-13
-> **版本**: v0.6.10
+> **最后更新**: 2026-07-17
+> **版本**: v0.6.11
 > **状态**: Beta Candidate — 完全可玩
 
 ## 核心指标
 
 | 指标 | 数值 | 来源 |
 |------|------|------|
-| 版本号 | 0.6.10 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
-| 源码模块数 | 388 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
+| 版本号 | 0.6.11 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
+| 源码模块数 | 385 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
 | 测试文件数 | 210 个 `.py` 文件（unit 166 / integration 10 / e2e 27 / benchmark 4 / acceptance 1 / root 2） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 6536 collected / 2 skipped (v0.6.10 覆盖率提升后，not slow 基线) | `pytest tests/ -m "not slow" --co -q` |
+| 测试用例数 | 6486 collected / 2 skipped (v0.6.11 ghost 模块清理后，not slow 基线) | `pytest tests/ -m "not slow" --co -q` |
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=70` + radon cc E+ baseline=23（v0.6.10 新增） | `.github/workflows/ci.yml` |
 | 实际覆盖率 | 72.64% (42764 stmts, 10107 missed，含 branch coverage，目标 70% 已达成) | `pytest tests/ -m "not slow" --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |
-| mypy | 0 errors (389 files, check_untyped_defs=true 已启用) | `MYPYPATH=src mypy -p pycc2` |
+| mypy | 0 errors (385 files, check_untyped_defs=true 已启用) | `MYPYPATH=src mypy -p pycc2` |
 | Bandit | 0 Medium / 0 High | `bandit -r src/ -ll --skip B101,B311,B601` |
 | Domain 层占比 | 38.5% (36966/96137 行) — ✅ M4 目标 <50% 已达成 | `find src/pycc2/domain -name "*.py" -exec wc -l {} +` |
 
 ## 架构
 
-DDD 4 层结构（domain / infrastructure / presentation / services），388 模块零循环依赖。
+DDD 4 层结构（domain / infrastructure / presentation / services），385 模块零循环依赖。
 
 | 层 | 文件数 | 行数 | 占比 | 职责 |
 |----|--------|------|------|------|
 | domain | 167 | 36966 | 38.5% | 核心游戏逻辑（纯 Python，零向上依赖） |
 | infrastructure | 19 | ~4777 | 5.0% | 事件总线/解析器/配置 |
-| presentation | 184 | ~49168 | 51.1% | 渲染/UI/输入 |
+| presentation | 181 | ~48709 | 50.7% | 渲染/UI/输入 |
 | services | 18 | ~4773 | 5.0% | 战斗/AI/补给等跨层协调 |
 
 ## 最近评估

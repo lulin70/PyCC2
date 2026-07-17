@@ -1,6 +1,6 @@
 """
-Unit tests for P5.2 Strategic Map and P5.3 Operation Timeline UI components.
-Covers: StrategicMapRenderer, OperationTimelineUI, CampaignState integration
+Unit tests for P5.2 Strategic Map.
+Covers: StrategicMapRenderer, CampaignState integration
 """
 
 from __future__ import annotations
@@ -12,12 +12,6 @@ import pytest
 
 from pycc2.domain.systems.campaign_state import (
     CampaignState,
-    OperationPhase,
-)
-from pycc2.presentation.ui.operation_timeline import (
-    DAY_INFO,
-    OperationTimelineUI,
-    TimelineConfig,
 )
 from pycc2.presentation.ui.strategic_map import (
     BRIDGE_POSITIONS,
@@ -35,16 +29,6 @@ def map_config():
 @pytest.fixture
 def renderer(map_config):
     return StrategicMapRenderer(map_config)
-
-
-@pytest.fixture
-def timeline_config():
-    return TimelineConfig(x=10, y=10, width=780, day_height=36)
-
-
-@pytest.fixture
-def timeline(timeline_config):
-    return OperationTimelineUI(timeline_config)
 
 
 @pytest.fixture
@@ -215,169 +199,6 @@ class TestStrategicMapRenderHeadless:
             renderer.render(mock_screen, campaign_state=None, font=None)
 
 
-class TestTimelineConfigDefaults:
-    def test_default_position(self):
-        cfg = TimelineConfig()
-        assert cfg.x == 10
-        assert cfg.y == 10
-
-    def test_default_dimensions(self):
-        cfg = TimelineConfig()
-        assert cfg.width == 780
-        assert cfg.day_height == 36
-
-    def test_default_colors(self):
-        cfg = TimelineConfig()
-        assert cfg.current_color == (200, 160, 50)
-        assert cfg.completed_color == (60, 150, 80)
-        assert cfg.locked_color == (80, 80, 90)
-
-
-class TestTimelineInit:
-    def test_default_init(self):
-        t = OperationTimelineUI()
-        assert t.total_days == 6
-
-    def test_custom_config(self, timeline_config):
-        t = OperationTimelineUI(timeline_config)
-        assert t.config.day_height == 36
-
-
-class TestDayInfoData:
-    def test_all_six_days_present(self):
-        expected = {
-            "DAY_1_SEPT17",
-            "DAY_2_SEPT18",
-            "DAY_3_SEPT19",
-            "DAY_4_SEPT20",
-            "DAY_5_SEPT21",
-            "DAY_6_SEPT22",
-        }
-        assert set(DAY_INFO.keys()) == expected
-
-    def test_each_day_has_required_fields(self):
-        required = {"display", "short", "desc", "historical"}
-        for key, info in DAY_INFO.items():
-            assert required.issubset(info.keys()), f"{key} missing fields"
-
-    def test_get_valid_day_info(self, timeline):
-        info = timeline.get_day_info("DAY_1_SEPT17")
-        assert info is not None
-        assert "Sept 17" in info["display"]
-
-    def test_get_invalid_day_info(self, timeline):
-        assert timeline.get_day_info("DAY_99") is None
-
-
-class TestTimelineDaysOrder:
-    def test_total_days_count(self, timeline):
-        assert timeline.total_days == 6
-
-    def test_days_order_is_list(self, timeline):
-        order = timeline.days_order
-        assert isinstance(order, list)
-        assert len(order) == 6
-
-    def test_first_day_is_sept17(self, timeline):
-        assert timeline.days_order[0] == "DAY_1_SEPT17"
-
-    def test_last_day_is_sept22(self, timeline):
-        assert timeline.days_order[-1] == "DAY_6_SEPT22"
-
-
-def _make_mock_rect(x, y, w, h):
-    rect = MagicMock()
-    rect.x = x
-    rect.y = y
-    rect.collidepoint = lambda px, py, _x=x, _y=y, _w=w, _h=h: (
-        _x <= px <= _x + _w and _y <= py <= _y + _h
-    )
-    return rect
-
-
-class TestTimelineRenderHeadless:
-    def test_render_returns_clickable_areas(self, timeline, mock_pygame_module):
-        mock_screen = MagicMock()
-        mock_pygame_module.Rect = _make_mock_rect
-        with patch.dict(sys.modules, {"pygame": mock_pygame_module}):
-            areas = timeline.render(mock_screen, campaign_state=None)
-        assert len(areas) == 6
-
-    def test_render_with_fresh_campaign(self, timeline, fresh_campaign, mock_pygame_module):
-        mock_screen = MagicMock()
-        mock_pygame_module.Rect = _make_mock_rect
-        mock_font = MagicMock()
-        with patch.dict(sys.modules, {"pygame": mock_pygame_module}):
-            areas = timeline.render(mock_screen, campaign_state=fresh_campaign, font=mock_font)
-        assert len(areas) == 6
-        current = [a for a in areas if a["is_current"]]
-        assert len(current) == 1
-        assert current[0]["day_key"] == "DAY_1_SEPT17"
-
-    def test_render_with_mid_campaign(self, timeline, mid_campaign, mock_pygame_module):
-        mock_screen = MagicMock()
-        mock_pygame_module.Rect = _make_mock_rect
-        with patch.dict(sys.modules, {"pygame": mock_pygame_module}):
-            areas = timeline.render(mock_screen, campaign_state=mid_campaign)
-        current = [a for a in areas if a["is_current"]]
-        assert current[0]["day_key"] == "DAY_3_SEPT19"
-
-    def test_render_marks_past_days_completed(self, timeline, mid_campaign, mock_pygame_module):
-        mock_screen = MagicMock()
-        mock_pygame_module.Rect = _make_mock_rect
-        with patch.dict(sys.modules, {"pygame": mock_pygame_module}):
-            areas = timeline.render(mock_screen, campaign_state=mid_campaign)
-        past = [a for a in areas if not a["is_current"] and a["clickable"]]
-        assert len(past) == 2
-
-    def test_render_future_days_locked(self, timeline, fresh_campaign, mock_pygame_module):
-        mock_screen = MagicMock()
-        mock_pygame_module.Rect = _make_mock_rect
-        with patch.dict(sys.modules, {"pygame": mock_pygame_module}):
-            areas = timeline.render(mock_screen, campaign_state=fresh_campaign)
-        locked = [a for a in areas if not a["clickable"]]
-        assert len(locked) == 5
-
-
-class TestTimelineClickHandling:
-    def test_click_on_current_day(self, timeline, fresh_campaign, mock_pygame_module):
-        mock_screen = MagicMock()
-        mock_pygame_module.Rect = _make_mock_rect
-        with patch.dict(sys.modules, {"pygame": mock_pygame_module}):
-            areas = timeline.render(mock_screen, campaign_state=fresh_campaign)
-            rect = areas[0]["rect"]
-            result = timeline.handle_click(rect.x + 10, rect.y + 10, areas)
-        assert result == "DAY_1_SEPT17"
-
-    def test_click_on_future_day_returns_none(self, timeline, fresh_campaign, mock_pygame_module):
-        mock_screen = MagicMock()
-        mock_pygame_module.Rect = _make_mock_rect
-        with patch.dict(sys.modules, {"pygame": mock_pygame_module}):
-            areas = timeline.render(mock_screen, campaign_state=fresh_campaign)
-            rect = areas[5]["rect"]
-            result = timeline.handle_click(rect.x + 10, rect.y + 10, areas)
-        assert result is None
-
-    def test_click_outside_all_areas(self, timeline, fresh_campaign, mock_pygame_module):
-        mock_screen = MagicMock()
-        mock_pygame_module.Rect = _make_mock_rect
-        with patch.dict(sys.modules, {"pygame": mock_pygame_module}):
-            areas = timeline.render(mock_screen, campaign_state=fresh_campaign)
-            result = timeline.handle_click(9999, 9999, areas)
-        assert result is None
-
-    def test_click_on_past_day_allowed(self, timeline, mid_campaign, mock_pygame_module):
-        mock_screen = MagicMock()
-        mock_pygame_module.Rect = _make_mock_rect
-        with patch.dict(sys.modules, {"pygame": mock_pygame_module}):
-            areas = timeline.render(mock_screen, campaign_state=mid_campaign)
-            past_area = areas[0]
-            result = timeline.handle_click(
-                past_area["rect"].x + 10, past_area["rect"].y + 10, areas
-            )
-        assert result == "DAY_1_SEPT17"
-
-
 class TestCampaignStateToStrategicMapIntegration:
     def test_fresh_campaign_no_bridges_captured(self, fresh_campaign, renderer):
         assert fresh_campaign.bridges_held == 0
@@ -409,21 +230,3 @@ class TestCampaignStateToStrategicMapIntegration:
         assert state.campaign_progress_pct == 1.0
         assert state.is_campaign_over is True
         assert state.campaign_outcome == "decisive_victory"
-
-
-class TestCampaignStateToTimelineIntegration:
-    def test_fresh_campaign_day_one(self, fresh_campaign, timeline):
-        assert fresh_campaign.current_day == OperationPhase.DAY_1_SEPT17
-        assert fresh_campaign.current_day.name == "DAY_1_SEPT17"
-
-    def test_mid_campaign_day_three(self, mid_campaign):
-        assert mid_campaign.current_day == OperationPhase.DAY_3_SEPT19
-
-    def test_advance_day_progresses_timeline(self, fresh_campaign):
-        assert fresh_campaign.current_day == OperationPhase.DAY_1_SEPT17
-        fresh_campaign.advance_day()
-        assert fresh_campaign.current_day == OperationPhase.DAY_2_SEPT18
-
-    def test_day_info_matches_operation_phase_names(self):
-        for day_key in DAY_INFO:
-            assert day_key in OperationPhase.__members__

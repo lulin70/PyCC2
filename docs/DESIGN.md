@@ -1,9 +1,9 @@
-# PyCC2 技术设计文档 (DESIGN) **v0.6.10**
+# PyCC2 技术设计文档 (DESIGN) **v0.6.11**
 
 > **项目**: Close Combat 2 Python 重写 | **阶段**: M5 — Beta Candidate (质量可持续)
 > **输入**: P2 ADD v1.0 (架构设计) + P1 PRD v1.0 (需求规格) + M1/M2/M3/M4/M5 修复与新增方案
-> **文档版本**: v0.6.10 | **日期**: 2026-07-13
-> **架构演进**: v0.4.x DDD四层 → v0.5.x GameLoopAssembler组合根 + Domain瘦身38.5% → v0.6.x 幽灵功能接入 + CI radon门禁 + 323新测试
+> **文档版本**: v0.6.11 | **日期**: 2026-07-17
+> **架构演进**: v0.4.x DDD四层 → v0.5.x GameLoopAssembler组合根 + Domain瘦身38.5% → v0.6.x 幽灵功能接入 + CI radon门禁 + 323新测试 → v0.6.11 ghost 模块清理 (TD-073/074/075/076a)
 
 ---
 

@@ -65,7 +65,7 @@ class TacticalContext:
 class PrioritizedIntent:
     """An intent tagged with the originating AI and a float priority [0..1]."""
 
-    intent: pycc2.domain.ai.tactic_intent.TacticIntent  # type: ignore[name-defined]  # noqa: F821
+    intent: TacticIntent
     ai_name: str
     score: float = 0.0
 
