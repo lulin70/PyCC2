@@ -247,8 +247,11 @@ class SpriteCacheManager:
                     frame=0,
                 )
 
-            logger.info(f"[SPRITE] ✅ Generated CC2 pixel art: {faction}_{unit_type}_d{direction}")
-            return cc2_sprite
+            if cc2_sprite is not None:
+                logger.info(
+                    f"[SPRITE] ✅ Generated CC2 pixel art: {faction}_{unit_type}_d{direction}"
+                )
+                return cc2_sprite
 
         except (pygame.error, ValueError, TypeError, ImportError) as e:
             logger.warning("[SPRITE] ❌ CC2 generation failed: %s, using legacy fallback", e)

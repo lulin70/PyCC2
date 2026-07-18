@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pycc2"
-version = "0.7.3"
+version = "0.7.4"
 description = "PyCC2 - Python Close Combat 2: Tactical Infantry Combat Simulator"
 readme = "README.md"
 license = {text = "MIT"}
@@ -104,6 +104,8 @@ warn_no_return = true
 strict_equality = true
 # namespace_packages removed — causes "source file found twice" error with src/ layout
 explicit_package_bases = true
+# _archive 目录是归档模块（自闭合死代码群），不应参与类型检查
+exclude = ["src/pycc2/_archive/"]
 
 [[tool.mypy.overrides]]
 module = [

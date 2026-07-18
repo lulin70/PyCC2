@@ -2,6 +2,62 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.7.4 — INTEGRATE 前置准备 + mypy 预先存在错误修复 (patch, 2026-07-18)
+
+### Summary
+
+v0.7.4 为 v0.8.0+ INTEGRATE psychology_system + squad_group_manager 做前置准备：(1) squad_group_manager 测试增强从 5 个 smoke tests 扩展到 35 个完整单元测试（6 维度覆盖 Happy/Error/Boundary/Performance/Configuration/Integration）；(2) 创建 INTEGRATE 设计文档（ROADMAP_v0.7.4.md）规划接入点；(3) 修复 v0.7.3 遗留的 7 个 mypy 预先存在错误（palette_generator 类型标注 + sprite_cache_manager None 检查 + pyproject.toml exclude _archive）。DevSquad 7-Role 共识评估 (7/7 一致通过)，定位为 PATCH（无新功能，测试增强 + 类型 bug 修复）。
+
+### Wave 1: squad_group_manager 测试增强 (Tester/Coder)
+
+- **`tests/unit/test_squad_group_manager.py`** (新增, ~370 行):
+  - 创建 `_StubPosition` + `_StubUnit` 轻量 stub（`@dataclass(eq=False)` 确保身份比较语义，匹配真实 Unit 行为）
+  - 7 个测试类, 35 个测试用例覆盖 6 维度:
+    - **Happy Path** (12 tests): create_group / select_group / add_unit / remove_unit / clear_group / clear_all
+    - **Error Case** (5 tests): 超过 MAX_GROUPS=9 / 选择不存在组 / 移除不在组中的单位 / 空管理器操作
+    - **Boundary** (6 tests): 组编号 0/MAX_GROUPS-1 / 空组 / 单元素组 / 满组
+    - **Performance** (2 tests, `@pytest.mark.slow`): 1000 单位编组 <100ms / 选择 <50ms
+    - **Configuration** (5 tests): 多组并存 / 单位在多组中 / 组间隔离
+    - **Integration** (5 tests): create→add→select→clear 完整流程 / Ctrl+1~9 模拟
+
+### Wave 2: 版本号更新 + 文档同步 (DevOps/Coder)
+
+- `VERSION` / `pyproject.toml` / `src/pycc2/__init__.py` / `SKILL.md`: 0.7.3 → 0.7.4
+- `docs/PRD.md` (replace_all) / `docs/TEST_PLAN.md` L1 / `docs/TECH_DEBT.md` L3-L4 / `docs/PROJECT_STATUS.md` L3-L4/L11/L14: 版本号 + 测试数 (6174→6209 collected / 6156→6189 passed)
+- `README.md` / `README_zh.md` / `README_ja.md` L3 + badges (6156→6189) + 描述追加 v0.7.4
+- `docs/DESIGN.md` L1/L5/L6: 版本号 + 架构演进链追加 `→ v0.7.4 INTEGRATE 前置准备`
+- `docs/ROADMAP.md` L3/L5/L295 (v0.7.3→Completed + 新增 v0.7.4 行) + L370-L375: 全部更新
+
+### Wave 3: mypy 预先存在错误修复 + 验证 (Coder/Tester/DevOps)
+
+**修复 v0.7.3 遗留的 7 个 mypy 错误**（git stash 验证 v0.7.3 commit 6dc7834 同样有 7 errors，非 v0.7.4 引入）:
+
+- **`src/pycc2/presentation/rendering/palette_generator.py`** L29: `self._rng = random.Random(seed) if seed is not None else random` → `self._rng: random.Random = ... else random.Random()`（修复 "object" has no attribute "uniform" — 原代码 `self._rng` 类型为 `random.Random | module` 联合，mypy 推断为 `object`）
+- **`src/pycc2/presentation/rendering/sprite_cache_manager.py`** L250-252: `return cc2_sprite` → `if cc2_sprite is not None: return cc2_sprite`（修复 Incompatible return value type `Surface | None` vs `Surface` — 添加 None 检查后若 cc2_sprite 为 None 会走到 fallback，行为更正确）
+- **`pyproject.toml`** `[tool.mypy]`: 新增 `exclude = ["src/pycc2/_archive/"]`（_archive 是归档模块自闭合死代码群，不应参与类型检查，消除 4 个 import-not-found 错误）
+
+**验证结果**:
+- `pytest tests/ -m "not slow"`: **6189 passed, 2 skipped, 18 deselected** (63.12s) — v0.7.3 基线 6156 + 33 新增非 slow 测试 = 6189，零回归
+- `pytest tests/unit/test_enhanced_renderer.py tests/unit/test_sprite_cache_manager.py tests/unit/test_svg_integration.py`: **46 passed** (1.57s) — 修改文件相关测试零回归
+- `ruff check .`: **All checks passed** — 0 errors
+- `ruff format --check .`: **614 files already formatted** — 0 errors
+- `MYPYPATH=src mypy -p pycc2`: **Success: no issues found in 374 source files** — 0 errors（从 v0.7.3 的 7 errors 降至 0，_archive 11 文件排除）
+- `bash scripts/check_doc_consistency.sh`: **11/11 PASS**
+
+### Wave 4: 文档收尾 + Git 推送 (DevOps)
+
+- `CHANGELOG.md` 插入 v0.7.4 完整条目
+- `docs/ROADMAP_v0.7.4.md` 状态更新为 ✅ 完成
+- Git commit + push origin/main
+- CarryMem `classify_and_remember` 记录会话总结
+
+### 教训强化
+
+- **TECH_DEBT.md "mypy 0 errors" 虚假自评**: v0.7.3 CHANGELOG L32 已记录 "7 errors pre-existing"，但 TECH_DEBT.md L5 仍写 "mypy 0 errors (385 files)"。文档间不一致 + 虚假自评。v0.7.4 修复后真正达到 0 errors (374 files)。教训：状态记录必须基于实际命令输出，跨文档一致性检查应纳入 check_doc_consistency.sh
+- **`@dataclass(eq=False)` 身份比较语义**: squad_group_manager 测试中 `_StubUnit` 默认 `@dataclass(eq=True)` 导致值相等比较，`orphan_unit` 与组内 unit 位置相同时被 `remove_unit_from_all_groups` 误删。`eq=False` 确保身份比较，匹配真实 Unit 行为（每个实例是独立实体）
+
+---
+
 ## v0.7.3 — day_night_cycle 接口兼容性修复 (patch, 2026-07-17)
 
 ### Summary
