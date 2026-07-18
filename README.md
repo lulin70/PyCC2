@@ -186,9 +186,9 @@
 
 | Metric | Value |
 |--------|-------|
-| **Total Tests** | **6536 passed** (0 failed, 2 skipped) ✅ |
+| **Total Tests** | **6291 passed** (0 failed, 2 skipped) ✅ |
 | **Test Quality** | A+ (121 weak assertions eliminated) 🎯 |
-| **E2E Tests** | 22 test files (38-phase real SDL mode, 100% pass rate) |
+| **E2E Tests** | 28 test files (38-phase real SDL mode, 100% pass rate) |
 | **Maps** | 63 historical maps (Operation Market Garden) |
 | **Unit Templates** | 277 (infantry, vehicles, weapons) |
 | **Weapon Types** | 69 authentic CC2 weapons |
