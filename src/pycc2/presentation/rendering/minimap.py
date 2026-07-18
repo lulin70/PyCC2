@@ -39,6 +39,8 @@ class Minimap:
         self._camera_viewport: tuple[float, float, float, float] | None = (
             None  # (x, y, w, h) in world coords
         )
+        # v0.7.5 INTEGRATE: Squad group manager for bounding-box rendering
+        self._squad_group_manager: object | None = None
 
         # Fade transition for smooth show/hide
         self._fade = FadeTransition(fade_duration=0.2)
@@ -77,6 +79,14 @@ class Minimap:
     def set_camera_viewport(self, viewport: tuple[float, float, float, float] | None) -> None:
         """Set camera viewport rectangle in world coordinates (x, y, width, height)."""
         self._camera_viewport = viewport
+
+    def set_squad_group_manager(self, manager: object | None) -> None:
+        """Wire a SquadGroupManager for bounding-box rendering (v0.7.5 INTEGRATE).
+
+        When set, active squad groups (1-9) are rendered as colored rectangles
+        on the minimap each frame.
+        """
+        self._squad_group_manager = manager
 
     def show(self) -> None:
         """Show the minimap with fade-in effect."""
@@ -123,6 +133,7 @@ class Minimap:
             self._draw_terrain()
 
         self._draw_units()
+        self._draw_squad_groups()
         self._draw_camera_viewport()
         draw.rect(
             self._surface, self.spec.minimap_border_color, Rect(0, 0, self.size, self.size), 1
@@ -288,6 +299,59 @@ class Minimap:
                 draw.circle(
                     self._surface, self.spec.selection_color, (dot_x, dot_y), highlight_radius, 1
                 )
+
+    # ------------------------------------------------------------------
+    # v0.7.5 INTEGRATE: Squad group bounding-box rendering
+    # ------------------------------------------------------------------
+
+    # Distinct color per group number (1-9). Palette chosen for readability
+    # against the dark minimap background (Morandi-leaning bright tones).
+    _SQUAD_GROUP_COLORS: tuple[tuple[int, int, int], ...] = (
+        (231, 111, 81),  # 1 - warm red
+        (244, 162, 97),  # 2 - orange
+        (233, 196, 106),  # 3 - yellow
+        (138, 201, 38),  # 4 - green
+        (42, 157, 143),  # 5 - teal
+        (38, 166, 208),  # 6 - cyan
+        (108, 117, 224),  # 7 - indigo
+        (177, 121, 234),  # 8 - violet
+        (236, 121, 187),  # 9 - pink
+    )
+
+    def _draw_squad_groups(self) -> None:
+        """Draw bounding boxes for active squad groups (v0.7.5 INTEGRATE).
+
+        Each active group (1-9) with at least one unit assigned is rendered
+        as a colored rectangle on the minimap, derived from the group's
+        unit bounding box (tile coordinates). Empty groups are skipped.
+        """
+        if self._squad_group_manager is None or not self._surface or not self._game_map:
+            return
+
+        # bounds are in tile coordinates (matching PositionComponent.x/y),
+        # so normalize by map tile dimensions (not pixel dimensions).
+        map_w_tiles = max(1, self._game_map.width)
+        map_h_tiles = max(1, self._game_map.height)
+
+        active_groups = getattr(self._squad_group_manager, "active_group_numbers", [])
+        get_bounds = getattr(self._squad_group_manager, "get_group_bounds", None)
+        if get_bounds is None:
+            return
+
+        for group_num in active_groups:
+            if not 1 <= group_num <= 9:
+                continue
+            bounds = get_bounds(group_num)
+            if bounds is None:
+                continue
+            min_x, min_y, max_x, max_y = bounds
+            # Convert tile-coord bounds to minimap-local pixel coordinates
+            mini_x = int((min_x / map_w_tiles) * self.size)
+            mini_y = int((min_y / map_h_tiles) * self.size)
+            mini_w = max(2, int(((max_x - min_x + 1) / map_w_tiles) * self.size))
+            mini_h = max(2, int(((max_y - min_y + 1) / map_h_tiles) * self.size))
+            color = self._SQUAD_GROUP_COLORS[group_num - 1]
+            draw.rect(self._surface, color, Rect(mini_x, mini_y, mini_w, mini_h), 1)
 
     def _draw_camera_viewport(self) -> None:
         """Draw camera viewport rectangle on minimap."""

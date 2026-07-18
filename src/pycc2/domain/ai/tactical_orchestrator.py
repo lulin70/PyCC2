@@ -21,10 +21,14 @@ Usage::
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 from pycc2.domain.ai.tactic_intent import TacticIntent
 from pycc2.domain.ai.tactical_ai_types import PrioritizedIntent, TacticalAIBase, TacticalContext
+from pycc2.domain.systems.psychology_system import PsychologySystem
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -122,5 +126,38 @@ class TacticalOrchestrator:
         final: list[TacticIntent] = [
             a.intent for a in sorted(assignments.values(), key=lambda a: -a.score)
         ]
+
+        # Phase 5: Psychology evaluation — filter orders by unit psychological state (v0.7.5)
+        final = self._evaluate_psychology(final, context)
+
         self._last_orders = final
         return final
+
+    def _evaluate_psychology(
+        self, intents: list[TacticIntent], context: TacticalContext
+    ) -> list[TacticIntent]:
+        """Filter orders by unit psychological state (v0.7.5 INTEGRATE).
+
+        Uses PsychologySystem.evaluate_order() to check whether each unit
+        will accept, delay, or refuse the order based on morale, suppression,
+        and fatigue. Rejected orders are filtered out; delayed orders are kept
+        (the delay_ticks field is preserved for the executor).
+        """
+        filtered: list[TacticIntent] = []
+        for intent in intents:
+            unit = next((u for u in context.friendly_units if u.id == intent.unit_id), None)
+            if unit is None:
+                # Unit not found in friendly_units — preserve the order
+                filtered.append(intent)
+                continue
+            acceptance = PsychologySystem.evaluate_order(unit, intent.tactic_type)
+            if acceptance.accepted:
+                filtered.append(intent)
+            else:
+                logger.debug(
+                    "Order rejected: unit=%s tactic=%s reason=%s",
+                    intent.unit_id,
+                    intent.tactic_type,
+                    acceptance.reason,
+                )
+        return filtered

@@ -1,4 +1,4 @@
-"""STATUS: ORPHAN — pending v0.8.0+ integration (TD-077). Squad Group Manager - Unit grouping and quick selection system."""
+"""STATUS: INTEGRATED v0.7.5 — wired into InputRouter (Ctrl+1~9 create / 1~9 select) and Minimap (bounding-box rendering). Squad Group Manager - Unit grouping and quick selection system."""
 
 from __future__ import annotations
 

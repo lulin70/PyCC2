@@ -147,6 +147,8 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
     _weather_effects: object | None = field(init=False, default=None)
     _day_night_cycle: IDayNightCycle | None = field(init=False, default=None)
     _dynamic_shadow_sys: IDynamicShadowSystem | None = field(init=False, default=None)
+    # v0.7.5 INTEGRATE: Squad group manager (Ctrl+1~9 create / 1~9 select)
+    _squad_group_manager: object | None = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         from pycc2.services.game_loop_assembler import GameLoopAssembler
@@ -166,6 +168,11 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
     def deployment_phase_active(self) -> bool:
         """Return whether the deployment phase is currently active."""
         return self._deployment_manager.is_active if self._deployment_manager else False
+
+    @property
+    def squad_group_manager(self) -> object | None:
+        """Return the SquadGroupManager instance (v0.7.5 INTEGRATE), or None if not wired."""
+        return self._squad_group_manager
 
     def _get_time_speed(self) -> float:
         if self.time_control is not None:

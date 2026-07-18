@@ -51,6 +51,7 @@ class GameLoopAssembler:
         self._init_sound()
         self._init_core_services()
         self._init_combat_render_input()
+        self._init_squad_groups()
         self._init_persistence()
         self._init_victory()
         self._init_ui_overlays()
@@ -139,6 +140,28 @@ class GameLoopAssembler:
             game_state=self._loop.state,
         )
 
+    def _init_squad_groups(self) -> None:
+        """v0.7.5 INTEGRATE: Wire SquadGroupManager into GameLoop + InputRouter.
+
+        Creates a single SquadGroupManager instance and injects it into:
+        - GameLoop._squad_group_manager (for property access / minimap wiring)
+        - InputRouter.squad_group_manager (for Ctrl+1~9 / 1~9 keyboard handling)
+
+        Minimap bounding-box rendering is wired lazily in _init_hud() where
+        the Minimap instance is created.
+        """
+        from pycc2.presentation.ui.squad_group_manager import SquadGroupManager
+
+        manager = SquadGroupManager()
+        self._loop._squad_group_manager = manager
+
+        input_router = self._loop._input_router
+        assert input_router is not None, (
+            "input_router must be initialized before squad_group_manager"
+        )
+        input_router.squad_group_manager = manager
+        logger.info("SquadGroupManager initialized and wired into InputRouter")
+
     def _init_persistence(self) -> None:
         from pycc2.domain.systems.campaign_persistence import CampaignPersistenceManager
         from pycc2.services.save_controller import SaveController
@@ -190,6 +213,9 @@ class GameLoopAssembler:
         # Create presentation objects here (Composition Root) and inject into service
         logger.info("[HUD] Creating Minimap...")
         minimap = Minimap(display_config=dc, size=int(140 * dc.ui_scale))
+        # v0.7.5 INTEGRATE: Wire SquadGroupManager into Minimap for bounding-box rendering
+        if self._loop._squad_group_manager is not None:
+            minimap.set_squad_group_manager(self._loop._squad_group_manager)
         logger.info("[HUD] Creating CC2BottomPanel...")
         cc2_panel = CC2BottomPanel()
         cc2_panel.initialize()

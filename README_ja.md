@@ -1,11 +1,11 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python再実装)
 
-**v0.7.4 | Beta Candidate | 2026年7月18日**
+**v0.7.5 | Beta Candidate | 2026年7月18日**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />
 <img src="https://img.shields.io/badge/Pygame-2.2+-orange.svg" alt="Pygame" />
-<img src="https://img.shields.io/badge/Tests-6189%20passed-brightgreen.svg" alt="Tests" />
+<img src="https://img.shields.io/badge/Tests-6216%20passed-brightgreen.svg" alt="Tests" />
 <img src="https://img.shields.io/badge/CC2%20Fidelity-%E2%88%BC75%25-yellow.svg" alt="CC2 Fidelity" />
 <img src="https://img.shields.io/badge/Status-Beta%20Candidate-blue.svg" alt="Status" />
 <img src="https://img.shields.io/badge/Test%20Quality-A%2B-green.svg" alt="Test Quality" />
@@ -15,7 +15,7 @@
 <em>Atomic Gamesの伝説的WWII戦術ウォーゲームをPythonで再現 — Beta Candidate。SRPリファクタリング、リアルモードE2E、成熟したテストスイート搭載</em>
 </p>
 
-> 🟢 **Beta Candidate**: コアゲームプレイ + シネマティックエフェクト + 実績システム + 動的シャドウ + 射撃軌跡 + SRPアーキテクチャ整理 + リアルSDL E2E検証 + ビジュアルポリッシュ（死亡フェード、画面フラッシュ、移動スムージング、UIトランジション、天候オーバーレイ、薬莢排出、ボタンフィードバック）。**6189テスト合格**、38フェーズE2Eユーザージャーニーが実環境で検証済み。ゴースト機能監査完了 — すべての重要レンダリングパイプラインが稼働中。環境オーディオ起動、ダーティレクタングル最適化稼働、EnhancedRenderer分割完了、ResourceCacheManagerオンライン。v0.6.11: 4つのゴーストモジュール削除（spritesheet_parser/operation_timeline/context_menu + tactical_ai_types type:ignore修正）。v0.7.0: 3つの半統合モジュール活性化（weapon_jam/surrender_system/campaign_persistence）+ TD-078 DDD階層修正（deployment_factory を presentation→services へ移行）。v0.7.1: 19個の孤立プロトタイプモジュール分類（TD-077: 4削除 + 10アーカイブ + 8件 v0.8.0+統合待ち）。v0.7.2: INTEGRATE前置準備（ROADMAPドキュメント同期 + flaky benchmark threshold修正 100ms→130ms + 3つのORPHANモジュールsmoke tests）。v0.7.3: day_night_cycle インターフェース互換性修正（time_of_day を time_phase に改名し TimeOfDay enum を返す + 新規 time_of_day は IDayNightCycle プロトコル準拠で float 0.0-24.0 を返す + game_loop_updating 呼び出し側のオーディオ・シャドウ同期を適応）。v0.7.4: INTEGRATE 前置準備（squad_group_manager テスト拡充 5→35 tests 6次元カバー + psychology_system/squad_group_manager INTEGRATE 設計ドキュメント）。
+> 🟢 **Beta Candidate**: コアゲームプレイ + シネマティックエフェクト + 実績システム + 動的シャドウ + 射撃軌跡 + SRPアーキテクチャ整理 + リアルSDL E2E検証 + ビジュアルポリッシュ（死亡フェード、画面フラッシュ、移動スムージング、UIトランジション、天候オーバーレイ、薬莢排出、ボタンフィードバック）。**6216テスト合格**、38フェーズE2Eユーザージャーニーが実環境で検証済み。ゴースト機能監査完了 — すべての重要レンダリングパイプラインが稼働中。環境オーディオ起動、ダーティレクタングル最適化稼働、EnhancedRenderer分割完了、ResourceCacheManagerオンライン。v0.6.11: 4つのゴーストモジュール削除（spritesheet_parser/operation_timeline/context_menu + tactical_ai_types type:ignore修正）。v0.7.0: 3つの半統合モジュール活性化（weapon_jam/surrender_system/campaign_persistence）+ TD-078 DDD階層修正（deployment_factory を presentation→services へ移行）。v0.7.1: 19個の孤立プロトタイプモジュール分類（TD-077: 4削除 + 10アーカイブ + 8件 v0.8.0+統合待ち）。v0.7.2: INTEGRATE前置準備（ROADMAPドキュメント同期 + flaky benchmark threshold修正 100ms→130ms + 3つのORPHANモジュールsmoke tests）。v0.7.3: day_night_cycle インターフェース互換性修正（time_of_day を time_phase に改名し TimeOfDay enum を返す + 新規 time_of_day は IDayNightCycle プロトコル準拠で float 0.0-24.0 を返す + game_loop_updating 呼び出し側のオーディオ・シャドウ同期を適応）。v0.7.4: INTEGRATE 前置準備（squad_group_manager テスト拡充 5→35 tests 6次元カバー + psychology_system/squad_group_manager INTEGRATE 設計ドキュメント）。v0.7.5: INTEGRATE 完成（psychology_system を TacticalOrchestrator.tick() Phase 5 に接続し士気/制圧/疲労に基づき拒否された命令をフィルタ + squad_group_manager を InputRouter の Ctrl+1~9 作成/1~9 クイック選択に接続 + Minimap バウンディングボックス描画、27 統合テスト）。
 
 ---
 

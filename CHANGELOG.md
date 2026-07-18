@@ -2,6 +2,81 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.7.5 — INTEGRATE psychology_system + squad_group_manager 接入游戏循环 (patch, 2026-07-18)
+
+### Summary
+
+v0.7.5 完成 v0.7.4 规划的 INTEGRATE 蓝图：将 psychology_system + squad_group_manager 两个 ORPHAN 模块真正接入游戏循环，让功能可用。(1) psychology_system 接入 TacticalOrchestrator.tick() Phase 5，按士气/压制/疲劳过滤被 AI 拒绝的命令；(2) squad_group_manager 完整接入 GameLoop 字段 + Assembler 装配 + InputRouter Ctrl+1~9 创建/1~9 快速选择 + Minimap 边界框渲染。新增 27 个集成测试（11 psychology + 16 squad_group）保障接入行为正确。DevSquad 7-Role 共识 (7/7 一致通过)，定位为 PATCH（功能逻辑已实现只是"接线"，SemVer 偏离理由见 ROADMAP_v0.7.5.md §1.3）。
+
+### Wave 1: psychology_system 接入 TacticalOrchestrator.tick() Phase 5 (Coder)
+
+- **`src/pycc2/domain/ai/tactical_orchestrator.py`**: 在 tick() Phase 4 后新增 Phase 5 Psychology 评估 — 遍历 final intents 调用 `PsychologySystem.evaluate_order(unit, tactic_type)`，acceptance.accepted=False 的命令被过滤并记日志
+- **`tests/integration/test_psychology_integration.py`** (新增, ~280 行): 11 个集成测试覆盖 5 维度
+  - **Happy Path** (3 tests): 正常命令通过 / 士气低命令被拒 / 压制高命令被拒
+  - **Boundary** (3 tests): morale=0/MAX / suppression=0/MAX 边界值
+  - **Integration** (3 tests): 多 unit 多 tactic 混合 / 全部拒收 / 全部通过
+  - **Filter Behavior** (2 tests): Phase 5 后 final 长度 ≤ Phase 4 / 被拒命令记 debug log
+
+### Wave 2: squad_group_manager 接入 GameLoop + InputRouter + Minimap (Coder)
+
+- **`src/pycc2/services/game_loop.py`** L150/L172-175: 新增 `_squad_group_manager: object | None = field(init=False, default=None)` 字段 + property
+- **`src/pycc2/services/game_loop_assembler.py`**: 在 `assemble()` 中新增 `_init_squad_groups()` 调用 + `_init_hud()` 中 `minimap.set_squad_group_manager()` 注入
+- **`src/pycc2/presentation/input/input_router.py`**:
+  - 新增 `_SQUAD_DIGIT_KEYS` 字典映射 K_1~K_9 → 1~9
+  - 新增 `squad_group_manager: SquadGroupManager | None = field(default=None)` 字段
+  - 在 `route_input()` key_down 分支中添加数字键拦截逻辑（Ctrl+digit → create, digit → select）
+  - 新增 `_create_squad_group(group_num)` 和 `_select_squad_group(group_num)` 方法
+- **`src/pycc2/presentation/rendering/minimap.py`**:
+  - `__init__`: 新增 `self._squad_group_manager: object | None = None`
+  - 新增 `set_squad_group_manager()` 方法
+  - `render()` 中新增 `self._draw_squad_groups()` 调用
+  - 新增 `_SQUAD_GROUP_COLORS` 9 色调色板（warm red → pink）
+  - 新增 `_draw_squad_groups()` 方法：遍历 active_group_numbers，绘制边界框（**关键修复**：bounds 返回 tile 坐标，归一化除以 `map_w_tiles` 而非像素宽度）
+- **`src/pycc2/domain/interfaces/input_router_protocol.py`**: IInputRouter protocol 新增 `squad_group_manager: Any | None` 属性声明
+- **`tests/integration/test_squad_group_integration.py`** (新增, ~370 行): 16 个集成测试覆盖 5 维度
+  - **TestCreateSquadGroup** (4 tests): Ctrl+digit 创建编组
+  - **TestSelectSquadGroup** (4 tests): digit 快速选择
+  - **TestNoSquadGroupManager** (1 test): manager=None 时向后兼容
+  - **TestMinimapSquadGroupRendering** (3 tests): 边界框渲染（含 show()+update() 适配 FadeTransition）
+  - **TestSquadDigitKeyMap** (4 tests): _SQUAD_DIGIT_KEYS 映射完整性
+
+### Wave 3: 版本号 0.7.4→0.7.5 + 文档同步 (DevOps)
+
+- `VERSION` / `pyproject.toml` / `src/pycc2/__init__.py` / `SKILL.md`: 0.7.4 → 0.7.5
+- `docs/PRD.md` / `docs/TEST_PLAN.md` / `docs/TECH_DEBT.md` / `docs/PROJECT_STATUS.md`: 版本号 + 测试数 (6189→6216)
+- `README.md` / `README_zh.md` / `README_ja.md` L3 + badges (6189→6216) + 描述追加 v0.7.5
+- `docs/DESIGN.md`: 架构演进链追加 `→ v0.7.5 INTEGRATE psychology_system + squad_group_manager`
+- `docs/ROADMAP.md`: 版本表新增 v0.7.5 行 + Related Documents 追加 ROADMAP_v0.7.5.md
+- `scripts/check_doc_consistency.sh`: **11/11 PASS**
+
+### Wave 4: 全量验证 (Tester/DevOps)
+
+- `pytest tests/ -m "not slow"`: **6216 passed, 2 skipped, 18 deselected** (67.06s) — v0.7.4 基线 6189 + 27 新增集成测试 = 6216，零回归
+- `ruff check .`: **All checks passed** — 0 errors
+- `ruff format --check .`: 全部文件已格式化
+- `MYPYPATH=src mypy -p pycc2`: **Success: no issues found in 374 source files** — 0 errors
+- `bash scripts/check_doc_consistency.sh`: **11/11 PASS**
+- 新增集成测试全部通过（11 psychology + 16 squad_group = 27 tests）
+
+### Wave 5: 文档收尾 + Git 推送 (DevOps)
+
+- `CHANGELOG.md` 插入 v0.7.5 完整条目（含 SemVer 偏离说明）
+- `docs/ROADMAP_v0.7.5.md` 状态更新为 ✅ 完成
+- Git commit + push origin/main
+- CarryMem `classify_and_remember` 记录会话总结
+
+### SemVer 偏离说明
+
+按用户决策，v0.7.5 定位为 PATCH（仅第三位递增）。从用户视角，Ctrl+1~9 编组 + AI 行为受 psychology 影响是"功能新增"（按严格 SemVer 应为 MINOR）。但从代码视角，psychology_system (369行) + squad_group_manager (149行) 的功能逻辑在 v0.7.4 之前已实现并有 35+93 处测试保障，v0.7.5 只是"接线"让模块接入游戏循环，非"编写新功能"。详见 ROADMAP_v0.7.5.md §1.3。
+
+### 教训强化
+
+- **坐标空间一致性**: SquadGroup.bounds 返回 tile 坐标（整数，与 PositionComponent.x/y 一致），但 Minimap 初版代码误用 `map_width * 32`（像素宽度）归一化，导致边界框位置错误。修复：除以 `map_w_tiles = max(1, self._game_map.width)`。教训：跨模块接入时必须确认数据语义（tile vs pixel 坐标）一致
+- **FadeTransition 默认隐藏**: Minimap 默认 fade-out 状态，`render()` 提前返回导致 `_surface is None`。测试中需调用 `minimap.show()` + `minimap.update(0.5)` 使 fade 动画完成。教训：接入渲染组件时必须了解其生命周期状态（默认隐藏 vs 默认可见）
+- **IInputRouter protocol 同步**: 在 InputRouter 添加 `squad_group_manager` 字段后，game_loop_assembler.py 通过 protocol 类型注解访问该属性报 mypy 错误。修复：在 IInputRouter protocol 中同步声明 `squad_group_manager: Any | None`。教训：protocol 接口与实现同步是接入新功能的必经步骤
+
+---
+
 ## v0.7.4 — INTEGRATE 前置准备 + mypy 预先存在错误修复 (patch, 2026-07-18)
 
 ### Summary

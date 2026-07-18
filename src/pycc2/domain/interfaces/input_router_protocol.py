@@ -31,4 +31,8 @@ class IInputRouter(Protocol):
 
     command_bar: Any | None
 
+    # v0.7.5 INTEGRATE: SquadGroupManager injection point (optional, None by default).
+    # Concrete InputRouter adds this field; services layer assigns via assembler.
+    squad_group_manager: Any | None
+
     def route_input(self, event: Any) -> Any: ...
