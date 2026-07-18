@@ -24,6 +24,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
+from pycc2.domain.ai.cover_seek_ai import CoverScoringSystem, CoverSeekAI
 from pycc2.domain.ai.tactic_intent import TacticIntent
 from pycc2.domain.ai.tactical_ai_types import PrioritizedIntent, TacticalAIBase, TacticalContext
 from pycc2.domain.systems.psychology_system import PsychologySystem
@@ -130,6 +131,9 @@ class TacticalOrchestrator:
         # Phase 5: Psychology evaluation — filter orders by unit psychological state (v0.7.5)
         final = self._evaluate_psychology(final, context)
 
+        # Phase 6: Cover seeking — suppressed units without orders auto-seek cover (v0.7.6)
+        final = self._seek_cover(final, context)
+
         self._last_orders = final
         return final
 
@@ -161,3 +165,32 @@ class TacticalOrchestrator:
                     acceptance.reason,
                 )
         return filtered
+
+    def _seek_cover(
+        self, intents: list[TacticIntent], context: TacticalContext
+    ) -> list[TacticIntent]:
+        """Generate cover-seeking orders for suppressed units without orders (v0.7.6 INTEGRATE).
+
+        Units whose orders were filtered out by Phase 5 (psychology rejected
+        their offensive order) but are still under heavy suppression will
+        auto-seek cover. Intents are only generated for units not already
+        present in ``intents`` to avoid overriding Phase 1-5 decisions.
+
+        Uses ``CoverSeekAI.execute(context)`` which internally checks each
+        friendly unit's suppression state via ``CoverSeekAI._evaluate_unit``
+        and generates ``TacticType.MOVE_TO`` intents targeting the best
+        available cover tile.
+        """
+        scorer = CoverScoringSystem(game_map=context.game_map)
+        cover_ai = CoverSeekAI(scoring_system=scorer)
+        cover_intents = cover_ai.execute(context)
+        if not cover_intents:
+            return intents
+
+        result = list(intents)
+        existing_unit_ids = {intent.unit_id for intent in result}
+        for cover_intent in cover_intents:
+            if cover_intent.unit_id not in existing_unit_ids:
+                result.append(cover_intent)
+                existing_unit_ids.add(cover_intent.unit_id)
+        return result

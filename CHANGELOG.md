@@ -2,6 +2,80 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.7.6 — TD-077 ORPHAN 全清: 6 个 ORPHAN 模块接入游戏循环 (patch, 2026-07-18)
+
+### Summary
+
+v0.7.6 完成 TD-077 剩余 6 个 ORPHAN 模块接入游戏循环，TD-077 全部 8 个 ORPHAN 模块接入完毕（v0.7.5 已接入 2 个，v0.7.6 接入 6 个）。新增 75 集成测试保障接入行为正确，全量 6291 passed / 2 skipped 零回归。DevSquad 7-Role 共识 (7/7 一致通过)，定位为 PATCH（功能逻辑已实现只是"接线"，SemVer 偏离理由见 ROADMAP_v0.7.6.md §1.3）。
+
+### Wave 1: path_preview + range_indicator 接入 Minimap (Coder)
+
+- **`src/pycc2/presentation/input/input_router.py`**: 新增 `path_preview: PathPreview | None = field(default=None)` 字段 + `_update_path_preview()` 方法（右键按下时计算路径预览）
+- **`src/pycc2/services/game_loop.py`**: 新增 `_path_preview: object | None` 字段 + `path_preview` property
+- **`src/pycc2/services/game_loop_assembler.py`**: 新增 `_init_path_preview()` 装配方法（从 CombatDirector.pathfinder 取真实 pathfinder 注入）+ `_init_hud()` 中注入 path_preview 到 Minimap + 实例化 RangeIndicator 并注入 Minimap
+- **`src/pycc2/presentation/rendering/minimap.py`**: 新增 `_path_preview`/`_range_indicator` 字段 + `set_path_preview()`/`set_range_indicator()` setter + 修改 `set_selected_unit()` 选中单位变化时自动调用 `range_indicator.set_unit(unit)` + 新增 `_draw_path_preview()`（tile→minimap 坐标转换 + 按 danger 颜色画虚线段）+ 新增 `_draw_range_indicator()`（tile-range→minimap-pixel-radius 转换 + 画黄/红同心圆）
+- **`src/pycc2/domain/interfaces/input_router_protocol.py`**: IInputRouter protocol 新增 `path_preview: Any | None` 属性声明
+- **`tests/integration/test_path_preview_integration.py`** (新增): 8 集成测试覆盖 Happy Path / Boundary / Integration / NoManager
+- **`tests/integration/test_range_indicator_integration.py`** (新增): 10 集成测试覆盖 Happy Path / Boundary / Integration / NoManager
+
+### Wave 2: cover_seek_ai 接入 TacticalOrchestrator.tick() Phase 6 (Coder)
+
+- **`src/pycc2/domain/ai/tactical_orchestrator.py`**: L27 新增 import + L134-135 tick() Phase 5 后新增 Phase 6 调用 `final = self._seek_cover(final, context)` + L169-196 新增 `_seek_cover(intents, context)` 方法
+- **`tests/integration/test_cover_seek_integration.py`** (新增): 9 集成测试覆盖 被压制单位生成掩体命令 / 未被压制不生成 / suppression 边界 / Phase 5+6 协同 / 去重逻辑
+- **`tests/integration/test_psychology_integration.py`** (修改): `_make_unit` helper 的 `supp_state` mock 新增 `current_suppression = 0.0` 和 `turns_since_last_hit = 0`（Phase 6 CoverSeekAI 读取这两个字段）
+
+### Wave 3: day_night_cycle 激活 GameTime 注入 (Coder)
+
+- **`src/pycc2/services/game_loop.py`**: 新增 `_game_time: GameTime | None = field(init=False, default=None)` 字段 + `game_time` property + TYPE_CHECKING import
+- **`src/pycc2/services/game_loop_assembler.py`**: 新增 `_init_day_night_cycle()` 装配方法 — 实例化 `GameTime()` 并同时注入到 `_game_time`（typed accessor）和 `_day_night_cycle`（IDayNightCycle slot，被 game_loop_updating.py 消费）
+- **`src/pycc2/domain/systems/day_night_cycle.py`**: L1 `STATUS: ORPHAN` → `STATUS: INTEGRATED v0.7.6`（未修改内部逻辑，v0.7.3 已修好接口）
+- **关键发现**: v0.7.3 已在 game_loop_updating.py 预留完整适配代码（L117-119 _update_weather / L132-142 _update_audio_sync / L240-247 _update_visual_effects），v0.7.6 只需激活 `_day_night_cycle` 从 None 变为实际 GameTime 实例
+- **`tests/integration/test_day_night_cycle_integration.py`** (新增): 34 集成测试 (7 测试类) 覆盖 GameTimeWiring / GameTimeAdvance / GameTimeBoundaries / TimePhaseBoundaries (13 参数化) / GameLoopUpdateAdvancesTime / EnvironmentalAudioSync / DynamicShadowSync
+
+### Wave 4: vehicle_variant_generator + faction_variant_generator 接入 unit_database (Coder)
+
+- **`src/pycc2/domain/systems/unit_database.py`**: 在 `build_cc2_unit_database()` 中调用 `VehicleVariantGenerator().generate()` 和 `FactionVariantGenerator().generate()`（函数内懒导入避免循环导入）+ ID 冲突防御处理（冲突项跳过并 `logger.warning`）+ 数据库从 80 → 110 个模板（+30 新变体：14 车辆 + 16 阵营）
+- **`src/pycc2/domain/systems/vehicle_variant_generator.py`**: L1 `STATUS: ORPHAN` → `STATUS: INTEGRATED v0.7.6`
+- **`src/pycc2/domain/systems/faction_variant_generator.py`**: L1 `STATUS: ORPHAN` → `STATUS: INTEGRATED v0.7.6`
+- **`tests/integration/test_variant_generators_integration.py`** (新增): 14 集成测试 (6 测试类) 覆盖 GeneratorsWiredIntoDatabase / UniquenessAndFaction / FactionFilterAndDeployment / ConflictHandling / RoleQuery
+
+### Wave 4.5: 统一验证 — 并行 Wave 测试冲突排查 (Tester)
+
+- **现象**: 3 个 Wave subagent 并行运行后，Wave 4 subagent 报告 11 个测试失败（10 psychology + 1 e2e），但 Wave 2 subagent 报告 0 失败
+- **根因**: subagent 误用 OPC-Agents venv（无 pycc2 模块），导致 `ModuleNotFoundError: No module named 'pycc2'`
+- **修复**: 用项目正确 venv `.venv/bin/python` 运行测试 → 86 新集成测试 + 503 E2E + 全量 6291 全部通过
+- **教训**: subagent 并行运行必须确认 Python 环境，避免使用其他项目的 venv
+
+### Wave 5: 版本号 0.7.5→0.7.6 + 文档同步 (DevOps)
+
+- `VERSION` / `pyproject.toml` / `src/pycc2/__init__.py` / `SKILL.md`: 0.7.5 → 0.7.6
+- `docs/PRD.md` / `docs/TEST_PLAN.md` / `docs/TECH_DEBT.md` / `docs/PROJECT_STATUS.md`: 版本号 + 测试数 (6216→6291) + TD-077 状态更新
+- `README.md` / `README_zh.md` / `README_ja.md` L3 + badges (6216→6291) + 描述追加 v0.7.6
+- `docs/DESIGN.md`: 架构演进链追加 `→ v0.7.6 TD-077 ORPHAN 全清`
+- `docs/ROADMAP.md`: 版本表新增 v0.7.6 行 + Related Documents 追加 ROADMAP_v0.7.6.md + Status/Next Review 更新
+- `tests/benchmark/.baseline_results.json`: 顶部 version 字段更新
+- `scripts/check_doc_consistency.sh`: 验证通过
+
+### Wave 6: 全量验证 (Tester/DevOps)
+
+- `pytest tests/ -m "not slow"`: **6291 passed, 2 skipped, 18 deselected** (59.16s) — v0.7.5 基线 6216 + 75 新增集成测试 = 6291，零回归
+- `pytest tests/e2e/`: **503 passed** (37.83s) — E2E 全部通过（用户规则：发布前必做模拟真实用户使用的测试）
+- `pytest tests/integration/test_*_integration.py`: **86 passed** (1.14s) — 6 个新集成测试文件全部通过
+- `ruff check .`: **All checks passed** — 0 errors
+- 新增集成测试全部通过（8 path_preview + 10 range_indicator + 9 cover_seek + 34 day_night_cycle + 14 variant_generators = 75 tests）
+
+### SemVer 偏离说明
+
+按用户决策，v0.7.6 定位为 PATCH（仅第三位递增）。从用户视角，路径预览/射程圈/掩体 AI/日夜循环/更多单位变体是"功能新增"（按严格 SemVer 应为 MINOR）。但从代码视角，6 个模块的功能逻辑在 v0.7.5 之前已实现并有对应单元测试保障，v0.7.6 只是"接线"让模块接入游戏循环，非"编写新功能"。详见 ROADMAP_v0.7.6.md §1.3。
+
+### 教训强化
+
+- **subagent venv 误用**: 并行 Wave subagent 在不同 venv 下运行导致测试结果虚假。修复：统一用 `.venv/bin/python` 运行测试。教训：subagent 并行运行必须确认 Python 环境一致性
+- **day_night_cycle v0.7.3 预留适配代码**: v0.7.3 修复 IDayNightCycle 接口时已在 game_loop_updating.py 预留完整适配代码（_update_weather / _update_audio_sync / _update_visual_effects），v0.7.6 只需激活 `_day_night_cycle` 从 None 变为实际 GameTime 实例。教训：接口修复时同步预留适配代码可大幅降低后续接入成本
+- **unit_database 模板聚合层接入**: 选择在 `build_cc2_unit_database()` 数据聚合层接入 2 个生成器（而非 GameLoopAssembler），因为生成器产出的是数据（CC2UnitTemplate）而非行为，符合"数据驱动 vs 行为驱动"的接入点决策原则
+
+---
+
 ## v0.7.5 — INTEGRATE psychology_system + squad_group_manager 接入游戏循环 (patch, 2026-07-18)
 
 ### Summary

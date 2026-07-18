@@ -1,4 +1,4 @@
-"""STATUS: ORPHAN — pending v0.8.0+ integration (TD-077). CC2-Authentic Suppressed Unit Behavior
+"""STATUS: INTEGRATED v0.7.6 — wired into TacticalOrchestrator.tick() Phase 6. CC2-Authentic Suppressed Unit Behavior
 
 When units are under heavy fire (suppression > threshold), they
 automatically scan surrounding tiles to find the best available cover.

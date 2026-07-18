@@ -1,4 +1,4 @@
-"""STATUS: ORPHAN — pending v0.8.0+ integration (TD-077). Day-Night Cycle System — game time management and temporal effects.
+"""STATUS: INTEGRATED v0.7.6 — Day-Night Cycle System — game time management and temporal effects.
 
 Provides time progression, time-of-day detection, vision/stealth modifiers,
 lighting color grading, and searchlight entity logic.

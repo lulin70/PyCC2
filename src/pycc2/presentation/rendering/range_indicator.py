@@ -1,4 +1,4 @@
-"""STATUS: ORPHAN — pending v0.8.0+ integration (TD-077). Range Indicator System - Show weapon range circles for selected unit."""
+"""STATUS: INTEGRATED v0.7.6 — Range Indicator System - Show weapon range circles for selected unit."""
 
 from __future__ import annotations
 

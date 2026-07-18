@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from pycc2.domain.interfaces.game_state_view import GameStateView
     from pycc2.domain.interfaces.input_handler_protocol import IInputHandler
     from pycc2.domain.interfaces.interaction_controller_protocol import IInteractionController
+    from pycc2.presentation.rendering.path_preview import PathPreview
     from pycc2.presentation.ui.squad_group_manager import SquadGroupManager
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,8 @@ class InputRouter:
     show_post_battle: bool = False
     # v0.7.5 INTEGRATE: Squad group manager for Ctrl+1~9 create / 1~9 select.
     squad_group_manager: SquadGroupManager | None = field(default=None)
+    # v0.7.6 INTEGRATE: Path preview for right-click movement path visualization.
+    path_preview: PathPreview | None = field(default=None)
 
     def route_input(self, event: pygame.event.EventType) -> bool:
         """Route input."""
@@ -131,6 +134,12 @@ class InputRouter:
                     f"[BATTLE RIGHT-CLICK] Right click at {input_event.position}, units count: {len(units)}"
                 )
 
+                # v0.7.6 INTEGRATE: Compute path preview for selected unit
+                # before dispatching the right-click command. The preview
+                # highlights the planned route with danger color-coding.
+                if self.path_preview is not None:
+                    self._update_path_preview(input_event.position)
+
                 if units:
                     # CC2-style: Right-click DOWN on selected unit shows radial menu
                     self.interaction_controller.handle_right_mouse_down(input_event.position, units)
@@ -217,3 +226,45 @@ class InputRouter:
         self.game_state.selected_unit_ids = {u.id for u in units}
         logger.info("Squad group %d selected: %d unit(s)", group_num, len(units))
         return True
+
+    # ------------------------------------------------------------------
+    # v0.7.6 INTEGRATE: Path preview helpers (right-click route preview)
+    # ------------------------------------------------------------------
+
+    def _update_path_preview(self, target_screen_pos: tuple[int, int]) -> None:
+        """Compute a path preview from the selected unit to ``target_screen_pos``.
+
+        Converts the screen-space click position to tile coordinates, then
+        invokes ``path_preview.calculate_path`` against the current game
+        map. The result is stored on the PathPreview instance so the
+        Minimap renderer can pick it up next frame.
+
+        No-op when there is no selected unit, no game map, or no camera —
+        matching the v0.7.5 defensive pattern for optional subsystems.
+        """
+        assert self.path_preview is not None  # narrowed by caller
+        if self.game_state is None or self.camera is None:
+            return
+        game_map = getattr(self.game_state, "game_map", None)
+        if game_map is None:
+            return
+        units = getattr(self.game_state, "units", [])
+        selected_ids: set[str] = getattr(self.game_state, "selected_unit_ids", set())
+        if not selected_ids or not units:
+            return
+        selected_unit = next((u for u in units if u.id in selected_ids), None)
+        if selected_unit is None:
+            return
+        # Convert screen → world (pixels) → tile coordinates.
+        # TILE_SIZE = 32 (matches Minimap._draw_camera_viewport convention).
+        world_pos = self.camera.screen_to_world(
+            (float(target_screen_pos[0]), float(target_screen_pos[1]))
+        )
+        target_tile = (int(world_pos.x / 32), int(world_pos.y / 32))
+        path = self.path_preview.calculate_path(
+            unit=selected_unit,
+            target_pos=target_tile,
+            game_map=game_map,
+            enemy_units=None,
+        )
+        self.path_preview.set_current_path(path)

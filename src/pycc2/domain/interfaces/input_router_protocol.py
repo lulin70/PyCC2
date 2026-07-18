@@ -35,4 +35,8 @@ class IInputRouter(Protocol):
     # Concrete InputRouter adds this field; services layer assigns via assembler.
     squad_group_manager: Any | None
 
+    # v0.7.6 INTEGRATE: PathPreview injection point (optional, None by default).
+    # Concrete InputRouter adds this field; services layer assigns via assembler.
+    path_preview: Any | None
+
     def route_input(self, event: Any) -> Any: ...

@@ -1,4 +1,4 @@
-"""STATUS: ORPHAN — pending v0.8.0+ integration (TD-077). Path Preview System - Show predicted movement path with danger assessment."""
+"""STATUS: INTEGRATED v0.7.6 — Path Preview System - Show predicted movement path with danger assessment."""
 
 from __future__ import annotations
 

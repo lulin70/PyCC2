@@ -23,13 +23,48 @@ logger = logging.getLogger(__name__)
 
 
 def build_cc2_unit_database() -> dict[str, CC2UnitTemplate]:
-    """Build the complete CC2 unit database from faction-specific modules."""
+    """Build the complete CC2 unit database from faction-specific modules.
+
+    v0.7.6 INTEGRATE (TD-077 Wave 4): also merges templates produced by
+    :class:`VehicleVariantGenerator` and :class:`FactionVariantGenerator`.
+    Template IDs that collide with an existing factory entry are skipped
+    with a warning log (defensive — current generators already avoid the
+    known factory IDs, but this guards against future drift).
+
+    The variant generators are imported lazily inside this function to
+    avoid a circular import: both generators import ``CC2UnitTemplate``
+    from :mod:`cc2_authentic_units`, which in turn re-exports from this
+    module. Function-level imports match the lazy-import pattern used by
+    ``GameLoopAssembler`` (the composition root).
+    """
+    from pycc2.domain.systems.faction_variant_generator import FactionVariantGenerator
+    from pycc2.domain.systems.vehicle_variant_generator import VehicleVariantGenerator
+
     units: dict[str, CC2UnitTemplate] = {}
     units.update(_build_american_units())
     units.update(_build_british_units())
     units.update(_build_german_units())
     units.update(_build_german_expanded_units())
     units.update(_build_polish_units())
+
+    # v0.7.6 Wave 4: merge variant generators (Sherman/Panzer/Halftrack/TD
+    # families + Commando/PIAT/Ranger/Fallschirmjäger etc).
+    for template in VehicleVariantGenerator().generate():
+        if template.template_id in units:
+            logger.warning(
+                "Template ID conflict: %s, skipping (vehicle_variant_generator)",
+                template.template_id,
+            )
+            continue
+        units[template.template_id] = template
+    for template in FactionVariantGenerator().generate():
+        if template.template_id in units:
+            logger.warning(
+                "Template ID conflict: %s, skipping (faction_variant_generator)",
+                template.template_id,
+            )
+            continue
+        units[template.template_id] = template
     return units
 
 

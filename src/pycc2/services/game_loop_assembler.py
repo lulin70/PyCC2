@@ -52,6 +52,8 @@ class GameLoopAssembler:
         self._init_core_services()
         self._init_combat_render_input()
         self._init_squad_groups()
+        self._init_path_preview()
+        self._init_day_night_cycle()
         self._init_persistence()
         self._init_victory()
         self._init_ui_overlays()
@@ -162,6 +164,52 @@ class GameLoopAssembler:
         input_router.squad_group_manager = manager
         logger.info("SquadGroupManager initialized and wired into InputRouter")
 
+    def _init_path_preview(self) -> None:
+        """v0.7.6 INTEGRATE: Wire PathPreview into GameLoop + InputRouter.
+
+        Creates a single PathPreview instance backed by the CombatDirector's
+        pathfinder and injects it into:
+        - GameLoop._path_preview (for property access / minimap wiring)
+        - InputRouter.path_preview (for right-click route preview)
+
+        Minimap path rendering is wired lazily in _init_hud() where the
+        Minimap instance is created.
+        """
+        from pycc2.presentation.rendering.path_preview import PathPreview
+
+        combat_director = self._loop._combat_director
+        assert combat_director is not None, (
+            "combat_director must be initialized before path_preview"
+        )
+        pathfinder = getattr(combat_director, "pathfinder", None)
+        assert pathfinder is not None, "CombatDirector.pathfinder must be initialized"
+        preview = PathPreview(pathfinder=pathfinder, los_system=None)
+        self._loop._path_preview = preview
+
+        input_router = self._loop._input_router
+        assert input_router is not None, "input_router must be initialized before path_preview"
+        input_router.path_preview = preview
+        logger.info("PathPreview initialized and wired into InputRouter")
+
+    def _init_day_night_cycle(self) -> None:
+        """v0.7.6 INTEGRATE (Wave 3): Wire GameTime into GameLoop as day-night cycle.
+
+        Instantiates a single ``GameTime`` and injects it into:
+        - GameLoop._game_time (typed accessor for tests/UI)
+        - GameLoop._day_night_cycle (IDayNightCycle slot consumed by
+          game_loop_updating.py for advance(dt), audio sync, and shadow sync)
+
+        GameTime already implements the IDayNightCycle protocol (advance +
+        time_of_day float 0.0-24.0) per the v0.7.3 interface fix, so no
+        adapter is required.
+        """
+        from pycc2.domain.systems.day_night_cycle import GameTime
+
+        game_time = GameTime()
+        self._loop._game_time = game_time
+        self._loop._day_night_cycle = game_time
+        logger.info("GameTime initialized and wired into GameLoop (day-night cycle)")
+
     def _init_persistence(self) -> None:
         from pycc2.domain.systems.campaign_persistence import CampaignPersistenceManager
         from pycc2.services.save_controller import SaveController
@@ -202,6 +250,7 @@ class GameLoopAssembler:
             return
         from pycc2.presentation.rendering.cc2_bottom_panel import CC2BottomPanel
         from pycc2.presentation.rendering.minimap import Minimap
+        from pycc2.presentation.rendering.range_indicator import RangeIndicator
         from pycc2.services.hud_manager import HUDManager as HM
 
         logger.info("[HUD] Creating HUDManager instance...")
@@ -216,6 +265,13 @@ class GameLoopAssembler:
         # v0.7.5 INTEGRATE: Wire SquadGroupManager into Minimap for bounding-box rendering
         if self._loop._squad_group_manager is not None:
             minimap.set_squad_group_manager(self._loop._squad_group_manager)
+        # v0.7.6 INTEGRATE: Wire PathPreview into Minimap for route rendering
+        if self._loop._path_preview is not None:
+            minimap.set_path_preview(self._loop._path_preview)
+        # v0.7.6 INTEGRATE: Instantiate RangeIndicator and wire into Minimap
+        # for weapon-range circle rendering (tracks selected_unit via set_selected_unit).
+        range_indicator = RangeIndicator()
+        minimap.set_range_indicator(range_indicator)
         logger.info("[HUD] Creating CC2BottomPanel...")
         cc2_panel = CC2BottomPanel()
         cc2_panel.initialize()

@@ -71,6 +71,7 @@ if TYPE_CHECKING:
     from pycc2.domain.interfaces.renderer_protocol import IRenderer as EnhancedRenderer
     from pycc2.domain.interfaces.window_manager_protocol import IWindowManager as WindowManager
     from pycc2.domain.systems.campaign_persistence import CampaignPersistenceManager
+    from pycc2.domain.systems.day_night_cycle import GameTime
     from pycc2.infrastructure.events.event_bus import EventBus
     from pycc2.infrastructure.events.event_dispatcher import EventDispatcher
     from pycc2.presentation.audio.sound_system import SoundSystem
@@ -149,6 +150,11 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
     _dynamic_shadow_sys: IDynamicShadowSystem | None = field(init=False, default=None)
     # v0.7.5 INTEGRATE: Squad group manager (Ctrl+1~9 create / 1~9 select)
     _squad_group_manager: object | None = field(init=False, default=None)
+    # v0.7.6 INTEGRATE: Path preview for right-click movement route visualization
+    _path_preview: object | None = field(init=False, default=None)
+    # v0.7.6 INTEGRATE (Wave 3): Day-night cycle — GameTime drives time_of_day
+    # Also assigned to _day_night_cycle (IDayNightCycle) for existing update logic.
+    _game_time: GameTime | None = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         from pycc2.services.game_loop_assembler import GameLoopAssembler
@@ -173,6 +179,16 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
     def squad_group_manager(self) -> object | None:
         """Return the SquadGroupManager instance (v0.7.5 INTEGRATE), or None if not wired."""
         return self._squad_group_manager
+
+    @property
+    def path_preview(self) -> object | None:
+        """Return the PathPreview instance (v0.7.6 INTEGRATE), or None if not wired."""
+        return self._path_preview
+
+    @property
+    def game_time(self) -> GameTime | None:
+        """Return the GameTime instance (v0.7.6 Wave 3 INTEGRATE), or None if not wired."""
+        return self._game_time
 
     def _get_time_speed(self) -> float:
         if self.time_control is not None:

@@ -41,6 +41,10 @@ class Minimap:
         )
         # v0.7.5 INTEGRATE: Squad group manager for bounding-box rendering
         self._squad_group_manager: object | None = None
+        # v0.7.6 INTEGRATE: Path preview for right-click route visualization
+        self._path_preview: object | None = None
+        # v0.7.6 INTEGRATE: Range indicator for selected unit's weapon range
+        self._range_indicator: object | None = None
 
         # Fade transition for smooth show/hide
         self._fade = FadeTransition(fade_duration=0.2)
@@ -73,8 +77,19 @@ class Minimap:
         self._units = units
 
     def set_selected_unit(self, unit_id: str | None) -> None:
-        """Set the currently selected unit ID for highlight rendering."""
+        """Set the currently selected unit ID for highlight rendering.
+
+        v0.7.6 INTEGRATE: When a RangeIndicator is wired, the active unit
+        is also pushed to it so range circles track the selection.
+        """
         self._selected_unit_id = unit_id
+        if self._range_indicator is not None:
+            unit: object | None = None
+            if unit_id is not None:
+                unit = next((u for u in self._units if u.id == unit_id), None)
+            set_unit = getattr(self._range_indicator, "set_unit", None)
+            if set_unit is not None:
+                set_unit(unit)
 
     def set_camera_viewport(self, viewport: tuple[float, float, float, float] | None) -> None:
         """Set camera viewport rectangle in world coordinates (x, y, width, height)."""
@@ -87,6 +102,23 @@ class Minimap:
         on the minimap each frame.
         """
         self._squad_group_manager = manager
+
+    def set_path_preview(self, preview: object | None) -> None:
+        """Wire a PathPreview for route visualization (v0.7.6 INTEGRATE).
+
+        When set, the current preview path's segments are rendered as
+        dashed lines on the minimap each frame.
+        """
+        self._path_preview = preview
+
+    def set_range_indicator(self, indicator: object | None) -> None:
+        """Wire a RangeIndicator for weapon-range circle rendering (v0.7.6 INTEGRATE).
+
+        When set, range circles for the currently selected unit are drawn
+        on the minimap each frame. The active unit is synced via
+        ``set_selected_unit``.
+        """
+        self._range_indicator = indicator
 
     def show(self) -> None:
         """Show the minimap with fade-in effect."""
@@ -134,6 +166,8 @@ class Minimap:
 
         self._draw_units()
         self._draw_squad_groups()
+        self._draw_path_preview()
+        self._draw_range_indicator()
         self._draw_camera_viewport()
         draw.rect(
             self._surface, self.spec.minimap_border_color, Rect(0, 0, self.size, self.size), 1
@@ -352,6 +386,112 @@ class Minimap:
             mini_h = max(2, int(((max_y - min_y + 1) / map_h_tiles) * self.size))
             color = self._SQUAD_GROUP_COLORS[group_num - 1]
             draw.rect(self._surface, color, Rect(mini_x, mini_y, mini_w, mini_h), 1)
+
+    # ------------------------------------------------------------------
+    # v0.7.6 INTEGRATE: Path preview route rendering
+    # ------------------------------------------------------------------
+
+    # Path segment colors match PathPreview's render() palette (RGB only —
+    # minimap surface does not preserve alpha for these dashes).
+    _PATH_COLOR_SAFE: tuple[int, int, int] = (0, 255, 0)
+    _PATH_COLOR_WARNING: tuple[int, int, int] = (255, 255, 0)
+    _PATH_COLOR_DANGER: tuple[int, int, int] = (255, 0, 0)
+
+    def _draw_path_preview(self) -> None:
+        """Draw the current preview path as dashed segments (v0.7.6 INTEGRATE).
+
+        Each segment is drawn as a single line on the minimap (the dash
+        cadence is handled implicitly by the minimap's small size).
+        Segments are color-coded by danger level (green/yellow/red).
+        """
+        if self._path_preview is None or not self._surface or not self._game_map:
+            return
+
+        current_path = getattr(self._path_preview, "current_path", None)
+        if current_path is None:
+            return
+        segments = getattr(current_path, "segments", None)
+        if not segments:
+            return
+
+        map_w_tiles = max(1, self._game_map.width)
+        map_h_tiles = max(1, self._game_map.height)
+
+        # Danger enum name → minimap color mapping. Using the enum name keeps
+        # the minimap decoupled from the PathDangerLevel class import.
+        color_by_name = {
+            "SAFE": self._PATH_COLOR_SAFE,
+            "WARNING": self._PATH_COLOR_WARNING,
+            "DANGER": self._PATH_COLOR_DANGER,
+        }
+
+        for segment in segments:
+            start = getattr(segment, "start", None)
+            end = getattr(segment, "end", None)
+            if start is None or end is None:
+                continue
+            sx = int((start[0] / map_w_tiles) * self.size)
+            sy = int((start[1] / map_h_tiles) * self.size)
+            ex = int((end[0] / map_w_tiles) * self.size)
+            ey = int((end[1] / map_h_tiles) * self.size)
+            danger = getattr(segment, "danger", None)
+            danger_name = getattr(danger, "name", "SAFE")
+            color = color_by_name.get(danger_name, self._PATH_COLOR_SAFE)
+            draw.line(self._surface, color, (sx, sy), (ex, ey), 1)
+
+    # ------------------------------------------------------------------
+    # v0.7.6 INTEGRATE: Range indicator circle rendering
+    # ------------------------------------------------------------------
+
+    def _draw_range_indicator(self) -> None:
+        """Draw selected unit's weapon range circles (v0.7.6 INTEGRATE).
+
+        Renders two concentric circles centered on the selected unit's
+        tile (min = yellow, max = red), scaled to minimap coordinates.
+        Skipped when no unit is active or range_indicator is unset.
+        """
+        if self._range_indicator is None or not self._surface or not self._game_map:
+            return
+
+        is_visible = getattr(self._range_indicator, "is_visible", False)
+        if not is_visible:
+            return
+
+        active_unit = getattr(self._range_indicator, "active_unit", None)
+        if active_unit is None:
+            return
+
+        ranges = getattr(self._range_indicator, "get_ranges", lambda: (0.0, 0.0))()
+        if not isinstance(ranges, tuple) or len(ranges) != 2:
+            return
+        min_range, max_range = ranges
+        if max_range <= 0:
+            return
+
+        pos_comp = getattr(active_unit, "position_component", None)
+        if pos_comp is None:
+            return
+        unit_x = getattr(pos_comp, "x", 0)
+        unit_y = getattr(pos_comp, "y", 0)
+
+        map_w_tiles = max(1, self._game_map.width)
+        map_h_tiles = max(1, self._game_map.height)
+        cx = int((unit_x / map_w_tiles) * self.size)
+        cy = int((unit_y / map_h_tiles) * self.size)
+
+        # Convert tile-space ranges to minimap pixel radii. The minimap
+        # spans `self.size` pixels for `map_w_tiles` tiles, so one tile
+        # equals `self.size / map_w_tiles` pixels.
+        px_per_tile_x = self.size / map_w_tiles
+        px_per_tile_y = self.size / map_h_tiles
+        # Use the smaller axis so circles stay proportional on non-square maps.
+        px_per_tile = min(px_per_tile_x, px_per_tile_y)
+        max_radius = max(1, int(max_range * px_per_tile))
+        min_radius = max(0, int(min_range * px_per_tile))
+
+        if min_radius > 0:
+            draw.circle(self._surface, (255, 255, 0), (cx, cy), min_radius, 1)
+        draw.circle(self._surface, (255, 0, 0), (cx, cy), max_radius, 1)
 
     def _draw_camera_viewport(self) -> None:
         """Draw camera viewport rectangle on minimap."""

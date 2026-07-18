@@ -83,8 +83,13 @@ def _make_unit(
     unit.morale = morale
 
     # suppression_state with get_current_effect()
+    # current_suppression is set to 0.0 so Phase 6 (CoverSeekAI, v0.7.6) is a
+    # no-op for psychology tests — CoverSeekAI._evaluate_unit returns 0.0 when
+    # suppression < 65, leaving Phase 5 behavior under test unchanged.
     supp_state = MagicMock()
     supp_state.get_current_effect = MagicMock(return_value=suppression)
+    supp_state.current_suppression = 0.0
+    supp_state.turns_since_last_hit = 0
     unit.suppression_state = supp_state
 
     # fatigue component

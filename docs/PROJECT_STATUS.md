@@ -1,17 +1,17 @@
 # PyCC2 项目状态
 
 > **最后更新**: 2026-07-18
-> **版本**: v0.7.5
+> **版本**: v0.7.6
 > **状态**: Beta Candidate — 完全可玩
 
 ## 核心指标
 
 | 指标 | 数值 | 来源 |
 |------|------|------|
-| 版本号 | 0.7.5 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
+| 版本号 | 0.7.6 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
 | 源码模块数 | 386 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
-| 测试文件数 | 213 个 `.py` 文件（unit 167 / integration 11 / e2e 28 / benchmark 4 / acceptance 1 / root 2） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 6236 collected / 6216 passed / 2 skipped (v0.7.5 INTEGRATE 后基线: psychology 11 + squad_group 16 + 既有 6189) | `pytest tests/ -m "not slow" --co -q` |
+| 测试文件数 | 213 个 `.py` 文件（unit 167 / integration 14 / e2e 28 / benchmark 4 / acceptance 1 / root 2） | `find tests -name "*.py" \| wc -l` |
+| 测试用例数 | 6311 collected / 6291 passed / 2 skipped (v0.7.6 INTEGRATE 后基线: v0.7.5 6216 + path_preview 8 + range_indicator 10 + cover_seek 9 + day_night_cycle 34 + variant_generators 14) | `pytest tests/ -m "not slow" --co -q` |
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=70` + radon cc E+ baseline=23（v0.6.10 新增） | `.github/workflows/ci.yml` |
 | 实际覆盖率 | 72.64% (42764 stmts, 10107 missed，含 branch coverage，目标 70% 已达成) | `pytest tests/ -m "not slow" --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |

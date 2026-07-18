@@ -1,4 +1,4 @@
-"""STATUS: ORPHAN — pending v0.8.0+ integration (TD-077). Vehicle variant generator — Sherman/Panzer/Halftrack/TD families (P5-1 batch 1).
+"""STATUS: INTEGRATED v0.7.6 — Vehicle variant generator — Sherman/Panzer/Halftrack/TD families (P5-1 batch 1).
 
 Extracted from unit_diversity_expansion.py. Generates vehicle variants
 (Sherman M4A1/Firefly/DD, Panzer IV Ausf J/III Ausf M, SdKfz 251 variants,
