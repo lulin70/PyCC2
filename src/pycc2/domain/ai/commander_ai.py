@@ -300,8 +300,6 @@ class CommanderAI:
         difficulty_config: DifficultyConfig | None = None,
     ) -> list[CommanderOrder]:
         """Generate tactical orders for managed units based on the current battlefield picture."""
-        from pycc2.domain.ai.tactic_intent import TacticType
-
         aggressiveness = 0.5
         if difficulty_config is not None:
             aggressiveness = getattr(difficulty_config, "aggressiveness", 0.5)
@@ -324,142 +322,212 @@ class CommanderAI:
         fr = pic.force_ratio
 
         if tl == ThreatLevel.CRITICAL:
-            rally = self._get_rally_point(pic)
-            if low_hp:
-                orders.append(
-                    self._make_order(
-                        [u.id for u in low_hp],
-                        TacticType.REGROUP,
-                        priority=9,
-                        target_position=rally,
-                        reasoning="Critical threat – regroup wounded units",
-                    )
-                )
-            remaining = [u for u in managed if u not in low_hp]
-            if remaining:
-                orders.append(
-                    self._make_order(
-                        [u.id for u in remaining],
-                        TacticType.DEFEND,
-                        priority=8,
-                        reasoning="Critical threat – hold defensive line",
-                    )
-                )
-
+            self._orders_for_critical(managed, mg_units, infantry, low_hp, pic, orders)
         elif tl == ThreatLevel.HIGH:
-            if fr > 0.7:
-                if mg_units:
-                    target_eid = pic.enemy_threats[0][0] if pic.enemy_threats else None
-                    orders.append(
-                        self._make_order(
-                            [u.id for u in mg_units],
-                            TacticType.SUPPRESS_FIRE,
-                            priority=7,
-                            target_unit_id=target_eid,
-                            reasoning="Suppress highest-threat enemy",
-                        )
-                    )
-                if infantry:
-                    orders.append(
-                        self._make_order(
-                            [u.id for u in infantry],
-                            TacticType.HOLD_POSITION,
-                            priority=6,
-                            reasoning="Provide covering fire while MG suppresses",
-                        )
-                    )
-                if squad_coordinator is not None and pic.weakest_enemy_pos:
-                    mobile = [u for u in managed if u not in mg_units][:2]
-                    if mobile:
-                        orders.append(
-                            self._make_order(
-                                [u.id for u in mobile],
-                                TacticType.FLANKING
-                                if hasattr(TacticType, "FLANKING")
-                                else TacticType.ATTACK,
-                                priority=5,
-                                target_position=pic.weakest_enemy_pos,
-                                reasoning="Flank weakest enemy position",
-                            )
-                        )
-            else:
-                rally = self._get_rally_point(pic)
+            self._orders_for_high(managed, mg_units, infantry, pic, orders, squad_coordinator, fr)
+        elif tl == ThreatLevel.MEDIUM:
+            self._orders_for_medium(managed, mg_units, infantry, pic, orders, aggressiveness)
+        else:
+            self._orders_for_low_or_none(managed, cmd_units, pic, orders)
+
+        self._apply_low_hp_cover_order(low_hp, orders, tl)
+
+        for o in orders:
+            o.set_created_tick(self._order_tick_counter)
+
+        self._pending_orders.extend(orders)
+        self._order_history.extend(orders)
+        return orders
+
+    def _orders_for_critical(
+        self,
+        managed: list[Unit],
+        mg_units: list[Unit],
+        infantry: list[Unit],
+        low_hp: list[Unit],
+        pic: BattlefieldPicture,
+        orders: list[CommanderOrder],
+    ) -> None:
+        """Issue orders for the CRITICAL threat level: regroup wounded and hold the line."""
+        from pycc2.domain.ai.tactic_intent import TacticType
+
+        rally = self._get_rally_point(pic)
+        if low_hp:
+            orders.append(
+                self._make_order(
+                    [u.id for u in low_hp],
+                    TacticType.REGROUP,
+                    priority=9,
+                    target_position=rally,
+                    reasoning="Critical threat – regroup wounded units",
+                )
+            )
+        remaining = [u for u in managed if u not in low_hp]
+        if remaining:
+            orders.append(
+                self._make_order(
+                    [u.id for u in remaining],
+                    TacticType.DEFEND,
+                    priority=8,
+                    reasoning="Critical threat – hold defensive line",
+                )
+            )
+
+    def _orders_for_high(
+        self,
+        managed: list[Unit],
+        mg_units: list[Unit],
+        infantry: list[Unit],
+        pic: BattlefieldPicture,
+        orders: list[CommanderOrder],
+        squad_coordinator: SquadCoordinator | None,
+        fr: float,
+    ) -> None:
+        """Issue orders for the HIGH threat level based on the force ratio."""
+        from pycc2.domain.ai.tactic_intent import TacticType
+
+        if fr > 0.7:
+            if mg_units:
+                target_eid = pic.enemy_threats[0][0] if pic.enemy_threats else None
                 orders.append(
                     self._make_order(
-                        [u.id for u in managed],
-                        TacticType.RETREAT,
-                        priority=8,
-                        target_position=rally,
-                        reasoning="Outnumbered – ordered retreat",
+                        [u.id for u in mg_units],
+                        TacticType.SUPPRESS_FIRE,
+                        priority=7,
+                        target_unit_id=target_eid,
+                        reasoning="Suppress highest-threat enemy",
                     )
                 )
-
-        elif tl == ThreatLevel.MEDIUM:
-            if aggressiveness > 0.5 and pic.weakest_enemy_pos:
-                if infantry:
-                    orders.append(
-                        self._make_order(
-                            [u.id for u in infantry[:3]],
-                            TacticType.ATTACK,
-                            priority=6,
-                            target_position=pic.weakest_enemy_pos,
-                            reasoning="Concentrate fire on weakest enemy",
-                        )
-                    )
-                if mg_units and pic.enemy_threats:
-                    orders.append(
-                        self._make_order(
-                            [u.id for u in mg_units],
-                            TacticType.SUPPRESS_FIRE,
-                            priority=5,
-                            target_unit_id=pic.enemy_threats[1][0]
-                            if len(pic.enemy_threats) > 1
-                            else pic.enemy_threats[0][0],
-                            reasoning="Suppress secondary threats",
-                        )
-                    )
-            else:
-                if pic.cover_positions:
-                    orders.append(
-                        self._make_order(
-                            [u.id for u in managed[:4]],
-                            TacticType.DEFEND,
-                            priority=6,
-                            target_position=pic.cover_positions[0],
-                            reasoning="Take up defensive positions on favorable terrain",
-                        )
-                    )
-                rest = [u for u in managed if u not in (infantry[:4] if infantry else [])]
-                if rest:
-                    orders.append(
-                        self._make_order(
-                            [u.id for u in rest],
-                            TacticType.PATROL,
-                            priority=3,
-                            reasoning="Maintain patrol while others defend",
-                        )
-                    )
-
-        else:
-            if managed:
+            if infantry:
                 orders.append(
                     self._make_order(
-                        [u.id for u in managed[: len(managed) // 2 + 1]],
+                        [u.id for u in infantry],
+                        TacticType.HOLD_POSITION,
+                        priority=6,
+                        reasoning="Provide covering fire while MG suppresses",
+                    )
+                )
+            if squad_coordinator is not None and pic.weakest_enemy_pos:
+                mobile = [u for u in managed if u not in mg_units][:2]
+                if mobile:
+                    orders.append(
+                        self._make_order(
+                            [u.id for u in mobile],
+                            TacticType.FLANKING
+                            if hasattr(TacticType, "FLANKING")
+                            else TacticType.ATTACK,
+                            priority=5,
+                            target_position=pic.weakest_enemy_pos,
+                            reasoning="Flank weakest enemy position",
+                        )
+                    )
+        else:
+            rally = self._get_rally_point(pic)
+            orders.append(
+                self._make_order(
+                    [u.id for u in managed],
+                    TacticType.RETREAT,
+                    priority=8,
+                    target_position=rally,
+                    reasoning="Outnumbered – ordered retreat",
+                )
+            )
+
+    def _orders_for_medium(
+        self,
+        managed: list[Unit],
+        mg_units: list[Unit],
+        infantry: list[Unit],
+        pic: BattlefieldPicture,
+        orders: list[CommanderOrder],
+        aggressiveness: float,
+    ) -> None:
+        """Issue orders for the MEDIUM threat level based on aggressiveness."""
+        from pycc2.domain.ai.tactic_intent import TacticType
+
+        if aggressiveness > 0.5 and pic.weakest_enemy_pos:
+            if infantry:
+                orders.append(
+                    self._make_order(
+                        [u.id for u in infantry[:3]],
+                        TacticType.ATTACK,
+                        priority=6,
+                        target_position=pic.weakest_enemy_pos,
+                        reasoning="Concentrate fire on weakest enemy",
+                    )
+                )
+            if mg_units and pic.enemy_threats:
+                orders.append(
+                    self._make_order(
+                        [u.id for u in mg_units],
+                        TacticType.SUPPRESS_FIRE,
+                        priority=5,
+                        target_unit_id=pic.enemy_threats[1][0]
+                        if len(pic.enemy_threats) > 1
+                        else pic.enemy_threats[0][0],
+                        reasoning="Suppress secondary threats",
+                    )
+                )
+        else:
+            if pic.cover_positions:
+                orders.append(
+                    self._make_order(
+                        [u.id for u in managed[:4]],
+                        TacticType.DEFEND,
+                        priority=6,
+                        target_position=pic.cover_positions[0],
+                        reasoning="Take up defensive positions on favorable terrain",
+                    )
+                )
+            rest = [u for u in managed if u not in (infantry[:4] if infantry else [])]
+            if rest:
+                orders.append(
+                    self._make_order(
+                        [u.id for u in rest],
                         TacticType.PATROL,
                         priority=3,
-                        reasoning="Advance patrol – low threat environment",
+                        reasoning="Maintain patrol while others defend",
                     )
                 )
-            if pic.key_terrain and cmd_units:
-                orders.append(
-                    self._make_order(
-                        [u.id for u in cmd_units],
-                        TacticType.HOLD_POSITION,
-                        priority=4,
-                        target_position=pic.key_terrain[0],
-                        reasoning="Secure key terrain feature",
-                    )
+
+    def _orders_for_low_or_none(
+        self,
+        managed: list[Unit],
+        cmd_units: list[Unit],
+        pic: BattlefieldPicture,
+        orders: list[CommanderOrder],
+    ) -> None:
+        """Issue orders for LOW/NONE threat levels: advance patrol and secure key terrain."""
+        from pycc2.domain.ai.tactic_intent import TacticType
+
+        if managed:
+            orders.append(
+                self._make_order(
+                    [u.id for u in managed[: len(managed) // 2 + 1]],
+                    TacticType.PATROL,
+                    priority=3,
+                    reasoning="Advance patrol – low threat environment",
                 )
+            )
+        if pic.key_terrain and cmd_units:
+            orders.append(
+                self._make_order(
+                    [u.id for u in cmd_units],
+                    TacticType.HOLD_POSITION,
+                    priority=4,
+                    target_position=pic.key_terrain[0],
+                    reasoning="Secure key terrain feature",
+                )
+            )
+
+    def _apply_low_hp_cover_order(
+        self,
+        low_hp: list[Unit],
+        orders: list[CommanderOrder],
+        tl: ThreatLevel,
+    ) -> None:
+        """Append a TAKE_COVER order for low-HP units outside CRITICAL threat."""
+        from pycc2.domain.ai.tactic_intent import TacticType
 
         if low_hp and tl not in (ThreatLevel.CRITICAL,):
             already_regroup = {
@@ -478,13 +546,6 @@ class CommanderAI:
                         reasoning="Low-health units should take cover",
                     )
                 )
-
-        for o in orders:
-            o.set_created_tick(self._order_tick_counter)
-
-        self._pending_orders.extend(orders)
-        self._order_history.extend(orders)
-        return orders
 
     def _get_rally_point(self, pic: BattlefieldPicture) -> TileCoord | None:
         if pic.cover_positions:

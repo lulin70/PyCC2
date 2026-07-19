@@ -26,6 +26,21 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# Dispatch table mapping player command names to CombatDirector handler methods.
+# Each handler has the uniform signature (data, unit_map, units, game_map) so it
+# can be invoked polymorphically from ``handle_player_command``.
+_CMD_DISPATCH: dict[str, str] = {
+    "attack": "_cmd_attack",
+    "move": "_cmd_move",
+    "take_cover": "_cmd_take_cover",
+    "stop": "_cmd_stop",
+    "defend": "_cmd_defend",
+    "fast_move": "_cmd_fast_move",
+    "sneak": "_cmd_sneak",
+    "hide": "_cmd_hide",
+    "deploy_smoke": "_cmd_deploy_smoke",
+}
+
 
 @dataclass
 class CombatDirector:
@@ -90,171 +105,242 @@ class CombatDirector:
     def handle_player_command(self, data: dict, units: list[Unit], game_map: GameMap) -> None:
         """Dispatch a player command (attack, move, defend, smoke, etc.) to units."""
         cmd = data.get("command")
-        unit_ids = data.get("unit_ids", [])
 
         # Pre-build unit lookup for O(1) access instead of O(n) linear scan
         unit_map = {u.id: u for u in units}
 
-        if cmd == "attack" and "target_id" in data:
-            target_id = data["target_id"]
-            target = unit_map.get(target_id)
+        handler_name = _CMD_DISPATCH.get(cmd) if isinstance(cmd, str) else None
+        if handler_name is None:
+            return
+        getattr(self, handler_name)(data, unit_map, units, game_map)
 
-            for uid in unit_ids:
-                attacker = unit_map.get(uid)
-                if attacker and target and attacker.faction != target.faction:
-                    self.execute_attack(attacker, target)
+    def _cmd_attack(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Process 'attack' command: dispatch attackers against a target unit."""
+        if "target_id" not in data:
+            return
+        target_id = data["target_id"]
+        target = unit_map.get(target_id)
+        unit_ids = data.get("unit_ids", [])
 
-        elif cmd == "move" and "target" in data:
-            tx, ty = data["target"]
-            from pycc2.domain.value_objects.tile_coord import TileCoord
+        for uid in unit_ids:
+            attacker = unit_map.get(uid)
+            if attacker and target and attacker.faction != target.faction:
+                self.execute_attack(attacker, target)
 
-            target_tc = TileCoord(tx, ty)
-            for uid in unit_ids:
-                unit = unit_map.get(uid)
-                if unit and self.pathfinder:
-                    path = self.pathfinder.find_path(unit.position.tile_coord, target_tc, game_map)
-                    if path:
-                        self._move_orders[uid] = {"path": deque(list(path)[1:]), "current_idx": 0}
+    def _cmd_move(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Process 'move' command: compute pathfinder path for each unit."""
+        if "target" not in data:
+            return
+        tx, ty = data["target"]
+        from pycc2.domain.value_objects.tile_coord import TileCoord
 
-        elif cmd == "take_cover":
-            for uid in unit_ids:
-                if uid in self._move_orders:
-                    del self._move_orders[uid]
+        target_tc = TileCoord(tx, ty)
+        unit_ids = data.get("unit_ids", [])
+        for uid in unit_ids:
+            unit = unit_map.get(uid)
+            if unit and self.pathfinder:
+                path = self.pathfinder.find_path(unit.position.tile_coord, target_tc, game_map)
+                if path:
+                    self._move_orders[uid] = {"path": deque(list(path)[1:]), "current_idx": 0}
 
-        elif cmd == "stop":
-            for uid in unit_ids:
-                if uid in self._move_orders:
-                    del self._move_orders[uid]
-                # Reset movement mode to normal
-                unit = unit_map.get(uid)
-                if unit and hasattr(unit, "set_movement_mode"):
-                    unit.set_movement_mode("normal")
+    def _cmd_take_cover(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Process 'take_cover' command: cancel any pending move orders."""
+        unit_ids = data.get("unit_ids", [])
+        for uid in unit_ids:
+            if uid in self._move_orders:
+                del self._move_orders[uid]
 
-        elif cmd == "defend":
-            """Defend command: Reduces mobility, improves accuracy."""
-            for uid in unit_ids:
-                unit = unit_map.get(uid)
-                if unit and hasattr(unit, "set_movement_mode"):
-                    # Toggle defend mode (or set if not already defending)
-                    if unit.movement_mode != "defend":
-                        unit.set_movement_mode("defend", duration_ticks=-1)  # Indefinite
-                        # Stop any current movement
-                        if uid in self._move_orders:
-                            del self._move_orders[uid]
-                        logger.info(
-                            "[COMMAND] %s entering DEFEND mode (+25%% accuracy, -50%% speed)",
-                            unit.name or uid,
-                        )
-                    else:
-                        # Cancel defend mode
-                        unit.set_movement_mode("normal")
-                        logger.info("[COMMAND] %s exiting DEFEND mode", unit.name or uid)
+    def _cmd_stop(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Process 'stop' command: cancel orders and reset movement mode to normal."""
+        unit_ids = data.get("unit_ids", [])
+        for uid in unit_ids:
+            if uid in self._move_orders:
+                del self._move_orders[uid]
+            # Reset movement mode to normal
+            unit = unit_map.get(uid)
+            if unit and hasattr(unit, "set_movement_mode"):
+                unit.set_movement_mode("normal")
 
-        elif cmd == "fast_move":
-            """Fast Move command: Moves faster but more visible to enemies."""
-            for uid in unit_ids:
-                unit = unit_map.get(uid)
-                if unit and hasattr(unit, "set_movement_mode"):
-                    # Toggle fast move mode
-                    if unit.movement_mode != "fast_move":
-                        unit.set_movement_mode("fast_move", duration_ticks=-1)
-                        logger.info(
-                            "[COMMAND] %s entering FAST MOVE mode (1.5x speed, +50%% detection)",
-                            unit.name or uid,
-                        )
-                    else:
-                        unit.set_movement_mode("normal")
-                        logger.info("[COMMAND] %s exiting FAST MOVE mode", unit.name or uid)
-
-        elif cmd == "sneak":
-            """Sneak Move command: Moves slower but harder to detect."""
-            for uid in unit_ids:
-                unit = unit_map.get(uid)
-                if (
-                    unit
-                    and hasattr(unit, "set_movement_mode")
-                    and getattr(unit, "can_sneak", False)
-                ):
-                    # Toggle sneak mode
-                    if unit.movement_mode != "sneak":
-                        unit.set_movement_mode("sneak", duration_ticks=-1)
-                        logger.info(
-                            "[COMMAND] %s entering SNEAK mode (0.6x speed, -50%% detection)",
-                            unit.name or uid,
-                        )
-                    else:
-                        unit.set_movement_mode("normal")
-                        logger.info("[COMMAND] %s exiting SNEAK mode", unit.name or uid)
-                elif unit:
-                    logger.warning(
-                        "[COMMAND] %s cannot use SNEAK mode (unit type not supported)",
+    def _cmd_defend(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Process 'defend' command: reduces mobility, improves accuracy."""
+        unit_ids = data.get("unit_ids", [])
+        for uid in unit_ids:
+            unit = unit_map.get(uid)
+            if unit and hasattr(unit, "set_movement_mode"):
+                # Toggle defend mode (or set if not already defending)
+                if unit.movement_mode != "defend":
+                    unit.set_movement_mode("defend", duration_ticks=-1)  # Indefinite
+                    # Stop any current movement
+                    if uid in self._move_orders:
+                        del self._move_orders[uid]
+                    logger.info(
+                        "[COMMAND] %s entering DEFEND mode (+25%% accuracy, -50%% speed)",
                         unit.name or uid,
                     )
-
-        elif cmd == "hide":
-            """Hide command: Similar to defend but with concealment bonus."""
-            for uid in unit_ids:
-                unit = unit_map.get(uid)
-                if unit and hasattr(unit, "set_movement_mode") and getattr(unit, "can_hide", False):
-                    if unit.movement_mode != "defend":
-                        unit.set_movement_mode("defend", duration_ticks=-1)
-                        # Apply concealment bonus if available
-                        if hasattr(unit, "combat_state") and unit.combat_state:
-                            unit.combat_state.concealment.special_bonus += 0.2
-                        if uid in self._move_orders:
-                            del self._move_orders[uid]
-                        logger.info("[COMMAND] %s HIDING (+concealment)", unit.name or uid)
-
-        elif cmd == "deploy_smoke":
-            """Deploy smoke grenade at unit position."""
-            for uid in unit_ids:
-                unit = unit_map.get(uid)
-
-                # Verify unit can use smoke
-                if not unit:
-                    continue
-                if not getattr(unit, "can_use_smoke", False):
-                    logger.warning(
-                        "[SMOKE] %s cannot deploy smoke (no capability)",
-                        unit.name or uid,
-                    )
-                    continue
-
-                # Check ammo
-                if hasattr(unit, "weapon") and unit.weapon:
-                    # Deploy smoke effect
-                    try:
-                        ammo_inv = getattr(unit, "ammo_inventory", None)
-                        if ammo_inv is not None and hasattr(ammo_inv, "deploy_smoke"):
-                            tc = unit.position.tile_coord
-                            success = ammo_inv.deploy_smoke((tc.x, tc.y))
-                            if not success:
-                                logger.warning(
-                                    "[SMOKE] Failed to deploy smoke for %s",
-                                    unit.name or uid,
-                                )
-                                continue
-                    except (ImportError, AttributeError, ValueError, RuntimeError) as e:
-                        logger.warning("[SMOKE] Error deploying smoke: %s", e)
-                        # Continue with visual effect even if system call fails
-
-                    # Trigger visual smoke screen effect
-                    self._pending_effects.append(
-                        {
-                            "type": "smoke",
-                            "position": unit.position.pixel_position,
-                            "radius": 144.0,
-                        }
-                    )
-
-                    # Apply smoke to concealment system if available
-                    if hasattr(unit, "combat_state") and unit.combat_state:
-                        unit.combat_state.concealment.in_smoke = True
-                        # Smoke fades after some time (handled by combat_state turn processing)
-
-                    logger.info("[SMOKE] %s deployed smoke grenade", unit.name or uid)
                 else:
-                    logger.warning("[SMOKE] %s has no weapon system", unit.name or uid)
+                    # Cancel defend mode
+                    unit.set_movement_mode("normal")
+                    logger.info("[COMMAND] %s exiting DEFEND mode", unit.name or uid)
+
+    def _cmd_fast_move(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Process 'fast_move' command: faster movement but more visible to enemies."""
+        unit_ids = data.get("unit_ids", [])
+        for uid in unit_ids:
+            unit = unit_map.get(uid)
+            if unit and hasattr(unit, "set_movement_mode"):
+                # Toggle fast move mode
+                if unit.movement_mode != "fast_move":
+                    unit.set_movement_mode("fast_move", duration_ticks=-1)
+                    logger.info(
+                        "[COMMAND] %s entering FAST MOVE mode (1.5x speed, +50%% detection)",
+                        unit.name or uid,
+                    )
+                else:
+                    unit.set_movement_mode("normal")
+                    logger.info("[COMMAND] %s exiting FAST MOVE mode", unit.name or uid)
+
+    def _cmd_sneak(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Process 'sneak' command: slower movement but harder to detect."""
+        unit_ids = data.get("unit_ids", [])
+        for uid in unit_ids:
+            unit = unit_map.get(uid)
+            if unit and hasattr(unit, "set_movement_mode") and getattr(unit, "can_sneak", False):
+                # Toggle sneak mode
+                if unit.movement_mode != "sneak":
+                    unit.set_movement_mode("sneak", duration_ticks=-1)
+                    logger.info(
+                        "[COMMAND] %s entering SNEAK mode (0.6x speed, -50%% detection)",
+                        unit.name or uid,
+                    )
+                else:
+                    unit.set_movement_mode("normal")
+                    logger.info("[COMMAND] %s exiting SNEAK mode", unit.name or uid)
+            elif unit:
+                logger.warning(
+                    "[COMMAND] %s cannot use SNEAK mode (unit type not supported)",
+                    unit.name or uid,
+                )
+
+    def _cmd_hide(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Process 'hide' command: similar to defend but with concealment bonus."""
+        unit_ids = data.get("unit_ids", [])
+        for uid in unit_ids:
+            unit = unit_map.get(uid)
+            if unit and hasattr(unit, "set_movement_mode") and getattr(unit, "can_hide", False):
+                if unit.movement_mode != "defend":
+                    unit.set_movement_mode("defend", duration_ticks=-1)
+                    # Apply concealment bonus if available
+                    if hasattr(unit, "combat_state") and unit.combat_state:
+                        unit.combat_state.concealment.special_bonus += 0.2
+                    if uid in self._move_orders:
+                        del self._move_orders[uid]
+                    logger.info("[COMMAND] %s HIDING (+concealment)", unit.name or uid)
+
+    def _cmd_deploy_smoke(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Process 'deploy_smoke' command: deploy a smoke grenade at unit position."""
+        unit_ids = data.get("unit_ids", [])
+        for uid in unit_ids:
+            unit = unit_map.get(uid)
+
+            # Verify unit can use smoke
+            if not unit:
+                continue
+            if not getattr(unit, "can_use_smoke", False):
+                logger.warning(
+                    "[SMOKE] %s cannot deploy smoke (no capability)",
+                    unit.name or uid,
+                )
+                continue
+
+            # Check ammo
+            if hasattr(unit, "weapon") and unit.weapon:
+                # Deploy smoke effect
+                try:
+                    ammo_inv = getattr(unit, "ammo_inventory", None)
+                    if ammo_inv is not None and hasattr(ammo_inv, "deploy_smoke"):
+                        tc = unit.position.tile_coord
+                        success = ammo_inv.deploy_smoke((tc.x, tc.y))
+                        if not success:
+                            logger.warning(
+                                "[SMOKE] Failed to deploy smoke for %s",
+                                unit.name or uid,
+                            )
+                            continue
+                except (ImportError, AttributeError, ValueError, RuntimeError) as e:
+                    logger.warning("[SMOKE] Error deploying smoke: %s", e)
+                    # Continue with visual effect even if system call fails
+
+                # Trigger visual smoke screen effect
+                self._pending_effects.append(
+                    {
+                        "type": "smoke",
+                        "position": unit.position.pixel_position,
+                        "radius": 144.0,
+                    }
+                )
+
+                # Apply smoke to concealment system if available
+                if hasattr(unit, "combat_state") and unit.combat_state:
+                    unit.combat_state.concealment.in_smoke = True
+                    # Smoke fades after some time (handled by combat_state turn processing)
+
+                logger.info("[SMOKE] %s deployed smoke grenade", unit.name or uid)
+            else:
+                logger.warning("[SMOKE] %s has no weapon system", unit.name or uid)
 
     def execute_attack(self, attacker, target) -> None:
         """Resolve an attack: fire weapon, apply damage, and emit combat events."""
