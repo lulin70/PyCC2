@@ -2,6 +2,48 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.7.7 — P2 技术债清理: 4 个 F 级函数重构 + radon baseline 配置化 (patch, 2026-07-18)
+
+### Summary
+
+v0.7.7 完成 P2 技术债清理: 重构 4 个高复杂度函数 (cc 降幅 72-95%) + radon baseline 从 CI 硬编码迁移至 pyproject.toml 配置化。定位为 PATCH (纯重构无新功能，行为不变，有测试保障)。DevSquad 7-Role 共识 (7/7 通过)。全量 6291 passed 零回归，性能基准 21 passed 无回归。
+
+### Wave C: P2-1 重构 4 个高复杂度函数 (Coder)
+
+- **C1 `generate_road` (cc=115→6, -94.8%)**: `src/pycc2/presentation/rendering/terrain_tiles_road.py` — 提取 6 个辅助函数 (`_generate_horizontal_road`/`_generate_vertical_road`/`_draw_curbs`/`_draw_edge_fade`/`_draw_tire_tracks`/`_draw_single_tire_track`)；保留随机种子 `random.Random(7777)` (horizontal) 和 `random.Random(7778)` (vertical)，72 个配置像素级验证全部一致
+- **C2 `handle_player_command` (cc=73→4, -94.5%)**: `src/pycc2/services/combat_director.py` — 模块级 `_CMD_DISPATCH` 字典 + 9 个统一签名私有方法 (`_cmd_attack`/`_cmd_move`/`_cmd_take_cover`/`_cmd_stop`/`_cmd_defend`/`_cmd_fast_move`/`_cmd_sneak`/`_cmd_hide`/`_cmd_deploy_smoke`)
+- **C3 `generate_orders` (cc=68→19, -72%)**: `src/pycc2/domain/ai/commander_ai.py` — 按 threat level 提取 5 个私有方法 (`_orders_for_critical`/`_orders_for_high`/`_orders_for_medium`/`_orders_for_low_or_none`/`_apply_low_hp_cover_order`)
+- **C4 `draw_units` (cc=63→14, -78%)**: `src/pycc2/presentation/rendering/unit_renderer.py` — 提取 8 个私有方法 (`_compute_unit_screen_position`/`_compute_unit_position_from_pixel`/`_compute_unit_position_from_tile`/`_compute_unit_position_from_grid`/`_compute_unit_metadata`/`_compute_faction_color`/`_draw_unit_shape`/`_draw_unit_label`/`_draw_unit_selection_overlay`)
+
+### Wave D: P2-2 radon baseline 配置化 (DevOps)
+
+- **`pyproject.toml`**: 新增 `[tool.radon]` 段，`cc_baseline = 18` + `min_grade = "C"` (v0.7.7: 22→18 after 4 F-level refactors)
+- **`.github/workflows/ci.yml` L61**: 从硬编码 `BASELINE=23` 改为从 pyproject.toml 读取: `BASELINE=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['tool']['radon']['cc_baseline'])")`
+- **效果**: radon E+ violations 从 22 降至 18 (减少 4 个正好是重构的函数)，CI baseline 可通过 pyproject.toml 单点维护
+
+### Wave F: 全量验证 (Tester/DevOps)
+
+- `pytest tests/ -m "not slow"`: **6291 passed, 2 skipped, 18 deselected** (60.01s) — 零回归，与 v0.7.6 基线一致
+- `pytest` 4 重构文件相关测试 + E2E: **697 passed** (38.56s) — 重构模块行为保持一致
+- `pytest tests/benchmark/`: **21 passed** (7.92s) — 性能无回归
+- `ruff check .`: **All checks passed**
+- `ruff format --check .`: 4 重构文件 reformat 后通过
+- `mypy -p pycc2`: **Success: no issues found in 374 source files** (清理 .mypy_cache 后真实结果)
+- `radon cc src/ -n E`: **18 E+ violations** (匹配 pyproject.toml cc_baseline=18)
+- `check_doc_consistency.sh`: 11/11 PASS
+
+### SemVer 偏离说明
+
+按用户决策，v0.7.7 定位为 PATCH (仅第三位递增)。理由: 纯重构无新功能，行为不变，有测试保障。dispatch 字典路由 + 私有方法提取符合 SRP，不破坏 DDD 4 层架构。
+
+### 教训强化
+
+- **mypy 增量缓存陷阱**: v0.7.5 报告 "0 errors" 是虚假结果 (实际 20 个 pre-existing unused-ignore 错误被缓存掩盖)；v0.7.6 修复后必须 `rm -rf .mypy_cache` 才能获得真实 0 errors。v0.7.7 沿用此教训，强制清理缓存后验证
+- **subagent 并行重构**: 4 个 F 级函数通过 4 个 subagent 并行重构不同文件，合并后全量 6291 passed 验证零回归。教训: subagent 并行修改不同文件是安全的，但必须用 `.venv/bin/python` 运行测试 (避免误用其他项目 venv)
+- **radon baseline 配置化**: CI 硬编码 `BASELINE=23` 每次重构后需手动改 ci.yml，现迁移至 pyproject.toml `[tool.radon] cc_baseline` 单点维护，降低 CI 维护成本
+
+---
+
 ## v0.7.6 — TD-077 ORPHAN 全清: 6 个 ORPHAN 模块接入游戏循环 (patch, 2026-07-18)
 
 ### Summary

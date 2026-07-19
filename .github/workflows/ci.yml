@@ -58,14 +58,14 @@ jobs:
         run: |
           radon cc src/ -n E -s | tee complexity-report.txt
           current_count=$(radon cc src/ -n E -j | python3 -c "import json,sys; data=json.load(sys.stdin); print(sum(len(blocks) for blocks in data.values()))")
-          BASELINE=23
+          BASELINE=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['tool']['radon']['cc_baseline'])")
           if [ "$current_count" -gt "$BASELINE" ]; then
-            echo "::error::Complexity regression: $current_count E+ violations (baseline: $BASELINE). New complex functions introduced."
+            echo "::error::Complexity regression: $current_count E+ violations (baseline: $BASELINE from pyproject.toml [tool.radon]). New complex functions introduced."
             exit 1
           elif [ "$current_count" -lt "$BASELINE" ]; then
-            echo "::notice::Complexity improvement: $current_count E+ violations (baseline: $BASELINE). Update BASELINE in ci.yml."
+            echo "::notice::Complexity improvement: $current_count E+ violations (baseline: $BASELINE). Update cc_baseline in pyproject.toml [tool.radon]."
           else
-            echo "Complexity stable: $current_count E+ violations (baseline: $BASELINE)"
+            echo "Complexity stable: $current_count E+ violations (baseline: $BASELINE from pyproject.toml)"
           fi
 
       - name: Document version consistency check
