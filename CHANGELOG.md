@@ -2,6 +2,45 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.8.0 — P3-3 难度曲线: AI 难度缩放全覆盖 + 新手引导增强 (minor, 2026-07-18)
+
+v0.8.0 完成 P3-3 难度曲线推进: AI 难度缩放覆盖率从 7/9 提升到 9/9 模块 (recon_ai + supply_awareness_ai 接入 DifficultyConfig) + TutorialStep 从 6 步扩展到 10 步 (新增 4 步战术教学: USE_COVER/SMOKE_GRENADE/FLANKING/SUPPRESSION) + 新增 10 个难度缩放测试用例。定位为 MINOR (有用户可见新功能: 战术教学引导 + AI 行为差异化)。DevSquad 7-Role 共识 (7/7 通过)。全量 6301 passed 零回归。
+
+### Wave C: AI 难度缩放全覆盖
+
+- **`src/pycc2/domain/ai/recon_ai.py`**: 新增 `ReconParams` dataclass + `_get_recon_params()` 方法; `_MIN_EXPECTED_ENEMY_FACTOR` 根据 `perception_accuracy` 动态化; `_MAX_RECON_PER_TICK` 根据 `tactical_variety` 动态化; 评分权重根据 `aggressiveness` 动态化; fallback 到硬编码值保持向后兼容
+- **`src/pycc2/domain/ai/supply_awareness_ai.py`**: 新增 `SupplyParams` dataclass + `_get_supply_params()` 方法; `_THREAT_THRESHOLD` 根据 `perception_accuracy` 动态化; `_ATTACK_ADVANTAGE_THRESHOLD` 根据 `aggressiveness` 动态化; `_SUPPLY_SCAN_RADIUS` 根据 `vision_range_multiplier` 动态化; `_MAX_SUPPLY_ORDERS_PER_TICK` 根据 `tactical_variety` 动态化; fallback 到硬编码值保持向后兼容
+
+### Wave D: 新手引导系统增强
+
+- **`src/pycc2/presentation/ui/tutorial_system.py`**: `TutorialStep` 枚举新增 4 步战术教学 (USE_COVER/SMOKE_GRENADE/FLANKING/SUPPRESSION); `STEPS` 字典新增 4 步详细教学内容 (掩体使用/烟雾弹部署/侧翼包抄/压制火力)
+
+### Wave E: AI 难度缩放测试套件
+
+- **`tests/unit/ai/test_difficulty_scaling.py`** (新增): 10 个测试用例验证 AI 难度缩放
+  - `TestReconAiDifficultyScaling`: 3 测试 (perception_accuracy 响应 + recon 频率 + fallback)
+  - `TestSupplyAwarenessAiDifficultyScaling`: 5 测试 (threat threshold + attack threshold + scan radius + vision range + fallback)
+  - `TestDifficultyProgression`: 2 测试 (4 级参数递进 + scan radius 递进)
+
+### Wave F: 全量验证
+
+- `pytest tests/ -m "not slow"`: 6301 passed, 2 skipped, 18 deselected (108.72s) 零回归
+- `ruff check .` + `ruff format --check .`: All checks passed (623 files formatted)
+- `mypy -p pycc2`: Success: no issues found in 374 source files
+- `radon cc src/ -n E`: 18 E+ violations (与 baseline=18 一致，无新增)
+- `check_doc_consistency.sh`: 11/11 PASS
+- 版本号 0.7.7 → 0.8.0 + 文档同步 (16+ 文件)
+
+### SemVer 说明
+
+v0.8.0 定位为 MINOR（第二位递增）。理由: (1) 新增 TutorialStep 4 步战术教学引导 (用户可见新功能); (2) 新增 AI 难度缩放覆盖 (影响游戏行为); (3) 向后兼容: 现有 savegame/API 不受影响，仅参数化扩展。
+
+### 教训强化
+
+- **subagent 报告必须验证**: search subagent 报告 tactical_suppression 未接入 DifficultySystem 是错误的 (实际已接入); 直接 Grep 验证显示 9 个 AI 文件已接入
+- **测试 API 签名变更需同步**: 修改 `_area_threat()` / `_area_advantage()` 签名后，6 处测试调用需更新; 这是合理的测试维护 (非"修改测试适应 bug")
+- **难度缩放设计原则**: 低难度 → 反应慢/保守/视野窄; 高难度 → 反应快/激进/视野宽; 参数递进遵循感知先行 → 战斗递进 → 战术解锁 → 资源管理 → 士气平衡
+
 ## v0.7.7 — P2 技术债清理: 4 个 F 级函数重构 + radon baseline 配置化 (patch, 2026-07-18)
 
 ### Summary
