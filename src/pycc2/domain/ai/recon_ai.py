@@ -26,6 +26,7 @@ Reconnaissance execution:
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
@@ -65,6 +66,25 @@ BB_RECON_TARGETS: str = "recon_target_positions"
 
 
 # ---------------------------------------------------------------------------
+# Difficulty-scaled parameters (v0.8.0)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(slots=True, frozen=True)
+class ReconParams:
+    """Difficulty-scaled recon parameters computed per evaluation.
+
+    Falls back to hardcoded constants when difficulty_config is None.
+    """
+
+    min_expected_enemy_factor: float
+    max_recon_per_tick: int
+    intel_weight: float
+    available_weight: float
+    defensive_weight: float
+
+
+# ---------------------------------------------------------------------------
 # ReconAI
 # ---------------------------------------------------------------------------
 
@@ -90,14 +110,23 @@ class ReconAI(TacticalAIBase):
         if not recon_units:
             return 0.0
 
-        intel_need = self._intel_need(context)
+        params = self._get_recon_params(context)
+
+        intel_need = self._intel_need(context, params.min_expected_enemy_factor)
         if intel_need <= 0.0:
             return 0.0
 
         available_ratio = self._available_ratio(context, recon_units)
         defensive_stance = self._defensive_stance(context)
 
-        score = 0.5 * intel_need + 0.3 * available_ratio + 0.2 * defensive_stance
+        # Difficulty-scaled scoring weights (v0.8.0):
+        # - Low aggressiveness → more defensive weighting
+        # - High aggressiveness → more intel weighting
+        score = (
+            params.intel_weight * intel_need
+            + params.available_weight * available_ratio
+            + params.defensive_weight * defensive_stance
+        )
         return max(0.0, min(score, 1.0))
 
     def execute(self, context: TacticalContext) -> list[TacticIntent]:
@@ -113,9 +142,12 @@ class ReconAI(TacticalAIBase):
         assigned_ids: set[str] = self._load_assigned(context)
         assigned_targets: set[tuple[int, int]] = self._load_assigned_targets(context)
 
+        params = self._get_recon_params(context)
+        max_recon_per_tick = params.max_recon_per_tick
+
         intents: list[TacticIntent] = []
         for unit in recon_units:
-            if len(intents) >= _MAX_RECON_PER_TICK:
+            if len(intents) >= max_recon_per_tick:
                 break
             if unit.id in assigned_ids:
                 continue
@@ -142,6 +174,40 @@ class ReconAI(TacticalAIBase):
     # -- helpers --
 
     @staticmethod
+    def _get_recon_params(context: TacticalContext) -> ReconParams:
+        """Compute difficulty-scaled recon parameters (v0.8.0).
+
+        Falls back to original hardcoded values when difficulty_config is None,
+        preserving backward compatibility with pre-v0.8.0 behavior.
+        """
+        cfg = context.difficulty_config
+        if cfg is None:
+            return ReconParams(
+                min_expected_enemy_factor=_MIN_EXPECTED_ENEMY_FACTOR,
+                max_recon_per_tick=_MAX_RECON_PER_TICK,
+                intel_weight=0.5,
+                available_weight=0.3,
+                defensive_weight=0.2,
+            )
+
+        # Low perception_accuracy → fewer expected enemies → less recon urgency
+        min_expected_enemy = _MIN_EXPECTED_ENEMY_FACTOR * cfg.perception_accuracy
+        # Low tactical_variety (VETERAN) → fewer, more focused recon missions
+        max_recon_per_tick = max(1, int(_MAX_RECON_PER_TICK * cfg.tactical_variety))
+        # Low aggressiveness → more defensive weighting
+        intel_weight = 0.5 * (1.0 - cfg.aggressiveness * 0.3)
+        defensive_weight = 0.2 + cfg.aggressiveness * 0.3
+        available_weight = max(0.0, 1.0 - intel_weight - defensive_weight)
+
+        return ReconParams(
+            min_expected_enemy_factor=min_expected_enemy,
+            max_recon_per_tick=max_recon_per_tick,
+            intel_weight=intel_weight,
+            available_weight=available_weight,
+            defensive_weight=defensive_weight,
+        )
+
+    @staticmethod
     def _recon_candidates(context: TacticalContext) -> list[Unit]:
         """Find units suitable for reconnaissance, ordered by type priority."""
         candidates = [
@@ -158,8 +224,15 @@ class ReconAI(TacticalAIBase):
         return candidates
 
     @staticmethod
-    def _intel_need(context: TacticalContext) -> float:
-        """Measure intelligence gap (0.0 = full intel, 1.0 = no intel)."""
+    def _intel_need(context: TacticalContext, min_expected_enemy_factor: float) -> float:
+        """Measure intelligence gap (0.0 = full intel, 1.0 = no intel).
+
+        Args:
+            context: Tactical context.
+            min_expected_enemy_factor: Difficulty-scaled factor (v0.8.0).
+                Lower factor (low perception_accuracy) → fewer expected enemies
+                → less recon urgency.
+        """
         alive_enemies = [e for e in context.enemy_units if e.is_alive]
         alive_friendlies = [u for u in context.friendly_units if u.is_alive]
         if not alive_friendlies:
@@ -169,7 +242,7 @@ class ReconAI(TacticalAIBase):
         if context.enemy_units and not alive_enemies:
             return 0.0
 
-        expected_enemies = max(int(len(alive_friendlies) * _MIN_EXPECTED_ENEMY_FACTOR), 1)
+        expected_enemies = max(int(len(alive_friendlies) * min_expected_enemy_factor), 1)
         spotted = len(alive_enemies)
         if spotted >= expected_enemies:
             return 0.0

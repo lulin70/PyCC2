@@ -23,6 +23,7 @@ CC2 authentic behaviour:
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from pycc2.domain.ai.tactic_intent import TacticIntent, TacticType
@@ -77,6 +78,24 @@ BB_SUPPLY_ATTACK_ASSIGNED: str = "supply_attack_assigned_unit_ids"
 
 
 # ---------------------------------------------------------------------------
+# Difficulty-scaled parameters (v0.8.0)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(slots=True, frozen=True)
+class SupplyParams:
+    """Difficulty-scaled supply-awareness parameters computed per evaluation.
+
+    Falls back to hardcoded constants when difficulty_config is None.
+    """
+
+    threat_threshold: float
+    attack_advantage_threshold: float
+    scan_radius: int
+    max_orders_per_tick: int
+
+
+# ---------------------------------------------------------------------------
 # SupplyAwarenessAI
 # ---------------------------------------------------------------------------
 
@@ -108,8 +127,10 @@ class SupplyAwarenessAI(TacticalAIBase):
         if not available_units:
             return 0.0
 
-        defend_need = self._defend_need(context, supply_points)
-        attack_opportunity = self._attack_opportunity(context, supply_points)
+        params = self._get_supply_params(context)
+
+        defend_need = self._defend_need(context, supply_points, params)
+        attack_opportunity = self._attack_opportunity(context, supply_points, params)
 
         score = 0.5 * defend_need + 0.5 * attack_opportunity
         return max(0.0, min(score, 1.0))
@@ -127,12 +148,15 @@ class SupplyAwarenessAI(TacticalAIBase):
         defend_assigned: set[str] = self._load_assigned(context, BB_SUPPLY_DEFEND_ASSIGNED)
         attack_assigned: set[str] = self._load_assigned(context, BB_SUPPLY_ATTACK_ASSIGNED)
 
+        params = self._get_supply_params(context)
+        max_orders = params.max_orders_per_tick
+
         intents: list[TacticIntent] = []
         all_assigned = defend_assigned | attack_assigned
 
         # Generate DEFEND intents for threatened friendly supply points
-        for point in self._threatened_friendly_points(context, supply_points):
-            if len(intents) >= _MAX_SUPPLY_ORDERS_PER_TICK:
+        for point in self._threatened_friendly_points(context, supply_points, params):
+            if len(intents) >= max_orders:
                 break
             unit = self._nearest_available_unit(
                 point, available_units, all_assigned, _SUPPLY_DEFEND_TYPES
@@ -151,8 +175,8 @@ class SupplyAwarenessAI(TacticalAIBase):
             defend_assigned.add(unit.id)
 
         # Generate ATTACK intents for vulnerable enemy supply points
-        for point in self._vulnerable_enemy_points(context, supply_points):
-            if len(intents) >= _MAX_SUPPLY_ORDERS_PER_TICK:
+        for point in self._vulnerable_enemy_points(context, supply_points, params):
+            if len(intents) >= max_orders:
                 break
             unit = self._nearest_available_unit(
                 point, available_units, all_assigned, _SUPPLY_ATTACK_TYPES
@@ -175,6 +199,38 @@ class SupplyAwarenessAI(TacticalAIBase):
     # ------------------------------------------------------------------
     # Supply point identification
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _get_supply_params(context: TacticalContext) -> SupplyParams:
+        """Compute difficulty-scaled supply parameters (v0.8.0).
+
+        Falls back to original hardcoded values when difficulty_config is None,
+        preserving backward compatibility with pre-v0.8.0 behavior.
+        """
+        cfg = context.difficulty_config
+        if cfg is None:
+            return SupplyParams(
+                threat_threshold=_THREAT_THRESHOLD,
+                attack_advantage_threshold=_ATTACK_ADVANTAGE_THRESHOLD,
+                scan_radius=_SUPPLY_SCAN_RADIUS,
+                max_orders_per_tick=_MAX_SUPPLY_ORDERS_PER_TICK,
+            )
+
+        # Low perception_accuracy → higher threat threshold (slower to react)
+        threat_threshold = _THREAT_THRESHOLD / max(cfg.perception_accuracy, 0.1)
+        # Low aggressiveness → higher attack threshold (more conservative)
+        attack_threshold = _ATTACK_ADVANTAGE_THRESHOLD * (1.5 - cfg.aggressiveness)
+        # Vision range determines scan radius
+        scan_radius = max(3, int(_SUPPLY_SCAN_RADIUS * cfg.vision_range_multiplier))
+        # Tactical variety determines max orders
+        max_orders = max(1, int(_MAX_SUPPLY_ORDERS_PER_TICK * cfg.tactical_variety))
+
+        return SupplyParams(
+            threat_threshold=threat_threshold,
+            attack_advantage_threshold=attack_threshold,
+            scan_radius=scan_radius,
+            max_orders_per_tick=max_orders,
+        )
 
     @staticmethod
     def _identify_supply_points(context: TacticalContext) -> list[TileCoord]:
@@ -208,7 +264,11 @@ class SupplyAwarenessAI(TacticalAIBase):
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _defend_need(context: TacticalContext, supply_points: list[TileCoord]) -> float:
+    def _defend_need(
+        context: TacticalContext,
+        supply_points: list[TileCoord],
+        params: SupplyParams,
+    ) -> float:
         """Assess how many friendly supply points are under threat.
 
         Returns a ratio [0.0, 1.0] of threatened un-defended points.
@@ -219,8 +279,8 @@ class SupplyAwarenessAI(TacticalAIBase):
         threatened = 0
         for point in supply_points:
             if SupplyAwarenessAI._is_friendly_point(context, point):
-                threat = SupplyAwarenessAI._area_threat(context, point)
-                if threat > _THREAT_THRESHOLD:
+                threat = SupplyAwarenessAI._area_threat(context, point, params.scan_radius)
+                if threat > params.threat_threshold:
                     threatened += 1
 
         friendly_points = SupplyAwarenessAI._friendly_point_count(context, supply_points)
@@ -229,7 +289,11 @@ class SupplyAwarenessAI(TacticalAIBase):
         return min(threatened / friendly_points, 1.0)
 
     @staticmethod
-    def _attack_opportunity(context: TacticalContext, supply_points: list[TileCoord]) -> float:
+    def _attack_opportunity(
+        context: TacticalContext,
+        supply_points: list[TileCoord],
+        params: SupplyParams,
+    ) -> float:
         """Assess how many enemy supply points are vulnerable to attack.
 
         Returns a ratio [0.0, 1.0] of vulnerable enemy points.
@@ -240,8 +304,8 @@ class SupplyAwarenessAI(TacticalAIBase):
         vulnerable = 0
         for point in supply_points:
             if SupplyAwarenessAI._is_enemy_point(context, point):
-                advantage = SupplyAwarenessAI._area_advantage(context, point)
-                if advantage > _ATTACK_ADVANTAGE_THRESHOLD:
+                advantage = SupplyAwarenessAI._area_advantage(context, point, params.scan_radius)
+                if advantage > params.attack_advantage_threshold:
                     vulnerable += 1
 
         enemy_points = SupplyAwarenessAI._enemy_point_count(context, supply_points)
@@ -251,27 +315,31 @@ class SupplyAwarenessAI(TacticalAIBase):
 
     @staticmethod
     def _threatened_friendly_points(
-        context: TacticalContext, supply_points: list[TileCoord]
+        context: TacticalContext,
+        supply_points: list[TileCoord],
+        params: SupplyParams,
     ) -> list[TileCoord]:
         """Return friendly supply points that are under threat."""
         result: list[TileCoord] = []
         for point in supply_points:
             if SupplyAwarenessAI._is_friendly_point(context, point):
-                threat = SupplyAwarenessAI._area_threat(context, point)
-                if threat > _THREAT_THRESHOLD:
+                threat = SupplyAwarenessAI._area_threat(context, point, params.scan_radius)
+                if threat > params.threat_threshold:
                     result.append(point)
         return result
 
     @staticmethod
     def _vulnerable_enemy_points(
-        context: TacticalContext, supply_points: list[TileCoord]
+        context: TacticalContext,
+        supply_points: list[TileCoord],
+        params: SupplyParams,
     ) -> list[TileCoord]:
         """Return enemy supply points that are vulnerable to attack."""
         result: list[TileCoord] = []
         for point in supply_points:
             if SupplyAwarenessAI._is_enemy_point(context, point):
-                advantage = SupplyAwarenessAI._area_advantage(context, point)
-                if advantage > _ATTACK_ADVANTAGE_THRESHOLD:
+                advantage = SupplyAwarenessAI._area_advantage(context, point, params.scan_radius)
+                if advantage > params.attack_advantage_threshold:
                     result.append(point)
         return result
 
@@ -280,19 +348,19 @@ class SupplyAwarenessAI(TacticalAIBase):
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _area_threat(context: TacticalContext, point: TileCoord) -> float:
+    def _area_threat(context: TacticalContext, point: TileCoord, scan_radius: int) -> float:
         """Sum enemy threat scores within scan radius of *point*."""
         total = 0.0
         for enemy in context.enemy_units:
             if not enemy.is_alive:
                 continue
             dist = enemy.position.tile_coord.chebyshev_distance(point)
-            if dist <= _SUPPLY_SCAN_RADIUS:
+            if dist <= scan_radius:
                 total += _threat_score(enemy, point)
         return total
 
     @staticmethod
-    def _area_advantage(context: TacticalContext, point: TileCoord) -> float:
+    def _area_advantage(context: TacticalContext, point: TileCoord, scan_radius: int) -> float:
         """Compute friendly-to-enemy advantage ratio around *point*.
 
         Returns (friendly_strength / max(enemy_strength, 1.0)).
@@ -305,14 +373,14 @@ class SupplyAwarenessAI(TacticalAIBase):
             if not unit.is_alive:
                 continue
             dist = unit.position.tile_coord.chebyshev_distance(point)
-            if dist <= _SUPPLY_SCAN_RADIUS:
+            if dist <= scan_radius:
                 friendly_strength += 1.0 * (0.5 + 0.5 * unit.health.hp_ratio)
 
         for enemy in context.enemy_units:
             if not enemy.is_alive:
                 continue
             dist = enemy.position.tile_coord.chebyshev_distance(point)
-            if dist <= _SUPPLY_SCAN_RADIUS:
+            if dist <= scan_radius:
                 enemy_strength += 1.0 * (0.5 + 0.5 * enemy.health.hp_ratio)
 
         return friendly_strength / max(enemy_strength, 1.0)

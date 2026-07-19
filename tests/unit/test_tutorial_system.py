@@ -70,19 +70,25 @@ class TestTutorialStateDefaults:
 
 class TestTutorialStepEnum:
     def test_all_steps_defined(self):
+        # v0.8.0: Added 4 tactical teaching steps (USE_COVER, SMOKE_GRENADE, FLANKING, SUPPRESSION)
         expected = {
             "WELCOME",
             "SELECT_UNIT",
             "MOVE_UNIT",
             "ATTACK_ENEMY",
+            "USE_COVER",
+            "SMOKE_GRENADE",
+            "FLANKING",
+            "SUPPRESSION",
             "VICTORY_CONDITIONS",
             "COMPLETE",
         }
         actual = {s.name for s in TutorialStep}
         assert actual == expected
 
-    def test_step_count_is_six(self):
-        assert len(TutorialStep) == 6
+    def test_step_count_is_ten(self):
+        # v0.8.0: Expanded from 6 to 10 steps (added 4 tactical teaching steps)
+        assert len(TutorialStep) == 10
 
 
 class TestTutorialOverlayShowHideToggle:

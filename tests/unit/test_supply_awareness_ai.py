@@ -437,7 +437,7 @@ class TestBoundaryConditions:
         enemy = _make_unit(uid="e1", faction=Faction.GERMAN, x=enemy_x, y=10)
         vl = (vl_pos, "ALLIES", 3)
         ctx = _make_context(friendly=[friendly], enemy=[enemy], vl_positions=[vl])
-        threat = ai._area_threat(ctx, vl_pos)
+        threat = ai._area_threat(ctx, vl_pos, _SUPPLY_SCAN_RADIUS)
         assert threat > 0.0
 
     def test_enemy_beyond_scan_radius(self):
@@ -451,7 +451,7 @@ class TestBoundaryConditions:
         enemy = _make_unit(uid="e1", faction=Faction.GERMAN, x=enemy_x, y=10)
         vl = (vl_pos, "ALLIES", 3)
         ctx = _make_context(friendly=[friendly], enemy=[enemy], vl_positions=[vl])
-        threat = ai._area_threat(ctx, vl_pos)
+        threat = ai._area_threat(ctx, vl_pos, _SUPPLY_SCAN_RADIUS)
         assert threat == 0.0
 
     def test_neutral_vl_not_friendly_not_enemy(self):
@@ -645,8 +645,10 @@ class TestIntegration:
         ctx_tank = _make_context(friendly=[_make_unit()], enemy=[tank_enemy], vl_positions=[vl])
         ctx_inf = _make_context(friendly=[_make_unit()], enemy=[infantry_enemy], vl_positions=[vl])
 
-        tank_threat = ai._area_threat(ctx_tank, vl_pos)
-        inf_threat = ai._area_threat(ctx_inf, vl_pos)
+        from pycc2.domain.ai.supply_awareness_ai import _SUPPLY_SCAN_RADIUS
+
+        tank_threat = ai._area_threat(ctx_tank, vl_pos, _SUPPLY_SCAN_RADIUS)
+        inf_threat = ai._area_threat(ctx_inf, vl_pos, _SUPPLY_SCAN_RADIUS)
         assert tank_threat > inf_threat  # Tank should have higher threat
 
     def test_full_scenario_friendly_defense(self):
@@ -715,19 +717,23 @@ class TestIntegration:
     def test_area_advantage_ratio(self):
         """_area_advantage returns correct friendly/enemy ratio."""
         ai = SupplyAwarenessAI()
+        from pycc2.domain.ai.supply_awareness_ai import _SUPPLY_SCAN_RADIUS
+
         point = TileCoord(15, 15)
         # 3 friendlies vs 1 enemy → advantage = 3.0
         units = [_make_unit(uid=f"f{i}", x=15 + i, y=15) for i in range(3)]
         enemy = _make_unit(uid="e1", faction=Faction.GERMAN, x=16, y=16)
         ctx = _make_context(friendly=units, enemy=[enemy])
-        advantage = ai._area_advantage(ctx, point)
+        advantage = ai._area_advantage(ctx, point, _SUPPLY_SCAN_RADIUS)
         assert advantage > 1.0  # Friendlies outnumber enemy
 
     def test_area_advantage_no_enemies(self):
         """_area_advantage with no enemies → high ratio (max(enemy, 1.0) = 1.0)."""
         ai = SupplyAwarenessAI()
+        from pycc2.domain.ai.supply_awareness_ai import _SUPPLY_SCAN_RADIUS
+
         point = TileCoord(15, 15)
         units = [_make_unit(uid=f"f{i}", x=15 + i, y=15) for i in range(3)]
         ctx = _make_context(friendly=units)
-        advantage = ai._area_advantage(ctx, point)
+        advantage = ai._area_advantage(ctx, point, _SUPPLY_SCAN_RADIUS)
         assert advantage >= 3.0  # 3 friendlies / 1.0 = 3.0

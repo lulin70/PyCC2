@@ -13,6 +13,11 @@ class TutorialStep(Enum):
     SELECT_UNIT = auto()
     MOVE_UNIT = auto()
     ATTACK_ENEMY = auto()
+    # v0.8.0: Tactical teaching steps (inserted between ATTACK_ENEMY and VICTORY_CONDITIONS)
+    USE_COVER = auto()
+    SMOKE_GRENADE = auto()
+    FLANKING = auto()
+    SUPPRESSION = auto()
     VICTORY_CONDITIONS = auto()
     COMPLETE = auto()
 
@@ -79,6 +84,66 @@ class TutorialOverlay:
                 "   or destroy all enemy forces to win!",
             ],
             "highlight_ui": ["health"],
+        },
+        # v0.8.0: Tactical teaching steps
+        TutorialStep.USE_COVER: {
+            "title": "Use Cover",
+            "lines": [
+                "Woods and buildings provide cover from enemy fire.",
+                "Units in cover take less damage but move slower.",
+                "",
+                "TIP: Move through cover when advancing under fire.",
+                "      Woods reduce visibility — enemies may not see you!",
+                "",
+                "Try moving a unit into the trees (dark green tiles).",
+            ],
+            "highlight_ui": ["minimap"],
+        },
+        TutorialStep.SMOKE_GRENADE: {
+            "title": "Deploy Smoke",
+            "lines": [
+                "Press G to deploy a smoke screen at the cursor.",
+                "Smoke blocks line of sight — enemies can't shoot through it.",
+                "",
+                "Use smoke to:",
+                "  • Cover retreating units",
+                "  • Screen flanking maneuvers",
+                "  • Cross open ground safely",
+                "",
+                "TIP: Smoke lasts several turns. Plan your advance!",
+            ],
+            "highlight_keys": ["G"],
+            "highlight_ui": ["command_bar"],
+        },
+        TutorialStep.FLANKING: {
+            "title": "Flank the Enemy",
+            "lines": [
+                "Attacking from the side (flank) is more effective!",
+                "Flanked enemies fight at reduced effectiveness.",
+                "",
+                "To flank:",
+                "  1. Pin the enemy with frontal fire",
+                "  2. Move another unit around the side",
+                "  3. Attack from the flank",
+                "",
+                "⚔ Coordinated attacks break enemy morale faster!",
+            ],
+            "highlight_ui": ["minimap"],
+        },
+        TutorialStep.SUPPRESSION: {
+            "title": "Suppressive Fire",
+            "lines": [
+                "Machine Gun (MG) units can suppress enemies!",
+                "Suppressed units have reduced accuracy and morale.",
+                "",
+                "To suppress:",
+                "  • Select an MG unit",
+                "  • Right-click on enemy without 'A' attack mode",
+                "  • MG will lay down suppressive fire",
+                "",
+                "⚔ Suppress then maneuver — classic infantry tactics!",
+            ],
+            "highlight_ui": ["unit_panel"],
         },
         TutorialStep.VICTORY_CONDITIONS: {
             "title": "Victory Conditions",

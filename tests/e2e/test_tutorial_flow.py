@@ -73,11 +73,16 @@ class TestAdvanceThroughAllSteps:
 
     def test_step_order_is_correct(self, tutorial_overlay):
         tutorial_overlay.show(step=TutorialStep.WELCOME)
+        # v0.8.0: Added 4 tactical teaching steps (USE_COVER, SMOKE_GRENADE, FLANKING, SUPPRESSION)
         expected_order = [
             TutorialStep.WELCOME,
             TutorialStep.SELECT_UNIT,
             TutorialStep.MOVE_UNIT,
             TutorialStep.ATTACK_ENEMY,
+            TutorialStep.USE_COVER,
+            TutorialStep.SMOKE_GRENADE,
+            TutorialStep.FLANKING,
+            TutorialStep.SUPPRESSION,
             TutorialStep.VICTORY_CONDITIONS,
             TutorialStep.COMPLETE,
         ]
