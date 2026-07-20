@@ -281,6 +281,8 @@ V-01 原列 "9 个文件", 实际迁移 6 个文件 (详见 [ROADMAP_v0.9.0.md](
 
 ### V-03 战后报告与伤亡统计可视化
 
+**状态**: ✅ Wave C5 完成 (2026-07-20, PostBattleReportRenderer 4 渲染方法 + calculate_mvp + BattleEvent @dataclass + 62 测试 + factory pattern)
+
 **目标**: 增强战后报告, 添加伤亡统计图表、关键事件回放、MVP 单位展示。
 
 **当前状态**:

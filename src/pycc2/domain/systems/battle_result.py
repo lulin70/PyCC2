@@ -62,6 +62,23 @@ class UnitBattleRecord:
         return self.shots_hit / self.shots_fired
 
 
+@dataclass(frozen=True, slots=True)
+class BattleEvent:
+    """V-03 (Wave C5): Strongly-typed battle event for post-battle timeline.
+
+    Replaces loose dict usage in BattleEventTracker.get_narrative_data().
+    Used by PostBattleReportRenderer._render_event_timeline().
+
+    Reference: docs/VISUAL_POLISH_PLAN.md V-03 章节 (v2.1, Wave B-rev)
+    """
+
+    event_type: str  # "unit_killed" / "building_destroyed" / "bridge_destroyed" / "morale_break" / "vl_capture"
+    timestamp: float  # seconds since battle start
+    unit_id: str | None = None
+    faction: str | None = None
+    description: str = ""
+
+
 @dataclass
 class BattleResult:
     """Aggregated statistics and outcome of a completed battle."""
@@ -90,6 +107,12 @@ class BattleResult:
     unit_records: list[UnitBattleRecord] = field(default_factory=list)
 
     victory_points: int = 0
+
+    # V-03 (Wave C5): Enhanced post-battle report fields.
+    # Both fields default to empty/None for backward compatibility with
+    # existing save files (from_dict handles missing keys gracefully).
+    events: list[BattleEvent] = field(default_factory=list)
+    mvp_unit_id: str | None = None
 
     @property
     def allies_accuracy(self) -> float:
@@ -143,9 +166,14 @@ class BattleResult:
         return self.victory_points
 
     def to_dict(self) -> dict:
-        """Serialize the battle result into a plain dictionary for persistence."""
+        """Serialize the battle result into a plain dictionary for persistence.
+
+        V-03 (Wave C5): Includes events and mvp_unit_id for enhanced report.
+        Backward compatible: old readers ignore extra keys.
+        """
         return {
             "mission_id": self.mission_id,
+            "mission_name": self.mission_name,
             "outcome": self.outcome.name,
             "ticks_elapsed": self.ticks_elapsed,
             "date_in_campaign": self.date_in_campaign,
@@ -153,14 +181,48 @@ class BattleResult:
             "axis_killed": self.axis_killed,
             "allies_routed": self.allies_routed,
             "axis_routed": self.axis_routed,
+            "total_shots_fired_allies": self.total_shots_fired_allies,
+            "total_shots_hit_allies": self.total_shots_hit_allies,
+            "total_shots_fired_axis": self.total_shots_fired_axis,
+            "total_shots_hit_axis": self.total_shots_hit_axis,
+            "total_damage_dealt_allies": self.total_damage_dealt_allies,
+            "total_damage_dealt_axis": self.total_damage_dealt_axis,
+            "objectives_completed": self.objectives_completed,
+            "objectives_total": self.objectives_total,
             "victory_points": self.victory_points,
             "unit_records": [r.__dict__ for r in self.unit_records],
+            # V-03 (Wave C5): new fields
+            "events": [
+                {
+                    "event_type": e.event_type,
+                    "timestamp": e.timestamp,
+                    "unit_id": e.unit_id,
+                    "faction": e.faction,
+                    "description": e.description,
+                }
+                for e in self.events
+            ],
+            "mvp_unit_id": self.mvp_unit_id,
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> BattleResult:
-        """Reconstruct a BattleResult instance from a serialized dictionary."""
+        """Reconstruct a BattleResult instance from a serialized dictionary.
+
+        V-03 (Wave C5): Backward compatible — old save files without
+        events/mvp_unit_id keys will use defaults (empty list / None).
+        """
         records = [UnitBattleRecord(**r) for r in data.get("unit_records", [])]
+        events = [
+            BattleEvent(
+                event_type=e.get("event_type", "unknown"),
+                timestamp=float(e.get("timestamp", 0.0)),
+                unit_id=e.get("unit_id"),
+                faction=e.get("faction"),
+                description=e.get("description", ""),
+            )
+            for e in data.get("events", [])
+        ]
         return cls(
             mission_id=data["mission_id"],
             mission_name=data.get("mission_name", ""),
@@ -171,8 +233,18 @@ class BattleResult:
             axis_killed=data.get("axis_killed", 0),
             allies_routed=data.get("allies_routed", 0),
             axis_routed=data.get("axis_routed", 0),
+            total_shots_fired_allies=data.get("total_shots_fired_allies", 0),
+            total_shots_hit_allies=data.get("total_shots_hit_allies", 0),
+            total_shots_fired_axis=data.get("total_shots_fired_axis", 0),
+            total_shots_hit_axis=data.get("total_shots_hit_axis", 0),
+            total_damage_dealt_allies=data.get("total_damage_dealt_allies", 0.0),
+            total_damage_dealt_axis=data.get("total_damage_dealt_axis", 0.0),
+            objectives_completed=data.get("objectives_completed", 0),
+            objectives_total=data.get("objectives_total", 0),
             victory_points=data.get("victory_points", 0),
             unit_records=records,
+            events=events,
+            mvp_unit_id=data.get("mvp_unit_id"),
         )
 
 
