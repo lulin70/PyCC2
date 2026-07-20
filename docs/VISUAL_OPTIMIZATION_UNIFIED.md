@@ -503,7 +503,7 @@ Phase E (外部资源) ───────────────────
 | **V-01** | 视觉参数集中配置化 | P0 | 10-12h | visual_config.py (新建) + 6 个渲染器迁移 + 接口冻结 12 测试 + UI e2e 33 测试 | ✅ Wave C3d 完成 (C3a/C3b/C3c/C3d 全完成, 86 测试通过) |
 | **V-02** | VISUAL_OPTIMIZATION_UNIFIED.md 文档同步 | P0 | 3h | 本文档 | ✅ 完成 (本章节) |
 | **V-03** | 战后报告与伤亡统计可视化 | P0 | 8-10h | post_battle_report.py (新建) + campaign_ui_report_mixin.py | ⏳ Wave C5 |
-| **V-04** | FPS 性能基准测试 | P0 | 4h | tests/benchmark/ + ci.yml + scripts/update_perf_baseline.py | ⏳ Wave C4 |
+| **V-04** | FPS 性能基准测试 | P0 | 4h | tests/benchmark/ + ci.yml + scripts/update_perf_baseline.py | ✅ Wave C4 完成 (test_fps_baseline.py 8 测试 + 相对基线 15% 回归阈值 + CI 集成) |
 | **V-05** | 现代屏幕响应式布局 | P1 | 8h | camera.py / cc2_bottom_panel.py / squad_panel.py | ⏳ Wave D1 |
 | **V-06** | 操作反馈微动画 | P1 | 6h | button.py / selection_system.py + easing.py (新建) | ⏳ Wave D2 |
 | **V-07** | 视觉回归测试基线 | P1 | 10h (基线 4h + CI 6h) | tests/visual_regression/ + ci.yml | ⏳ Wave C2 (基线前移) + Wave D5 (CI) |
@@ -539,7 +539,7 @@ Phase E (外部资源) ───────────────────
 |------|------|--------|------|
 | A | 文档先行 (ROADMAP/VISUAL_POLISH_PLAN/GodClass 评估) | — | ✅ 完成 |
 | B | 7-Role 首轮共识 + Wave B-rev 二次共识 | — | ✅ 完成 (7/7 + 7/7) |
-| C | P0 实施 (V-01/V-02/V-03/V-04 + V-07 基线前移) | ~25-29h | 🚧 进行中 (V-02 完成) |
+| C | P0 实施 (V-01/V-02/V-03/V-04 + V-07 基线前移) | ~25-29h | 🚧 进行中 (V-01/V-02/V-04 完成, V-03 待开始) |
 | D | P1 实施 (V-05/V-06/V-07 CI/V-08/V-09 + V-13/V-14) | ~39h | ⏳ 待开始 |
 | E | P2 实施 (V-10/V-11/V-12) | ~20-22h | ⏳ 待开始 |
 | F | 验证与发布 (5 道 CI 质量门 + 版本同步 + Git push) | — | ⏳ 待开始 |

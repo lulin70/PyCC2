@@ -260,8 +260,20 @@ jobs:
       - name: Run performance benchmarks
         env:
           SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
         run: |
           pytest tests/benchmark/ -v --junitxml=junit.xml
+
+      - name: Run FPS baseline (V-04 relative regression)
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+        run: |
+          pytest tests/benchmark/test_fps_baseline.py -v --benchmark-only
+
+      # Note: To update perf_baseline.json, run locally:
+      #   python scripts/update_perf_baseline.py --commit
+      # Then push the commit. Do NOT auto-update in CI (prevents baseline drift).
 
       - name: Upload test results
         if: always()

@@ -409,6 +409,8 @@ def calculate_mvp(unit_stats: dict[str, UnitBattleStats]) -> str | None:
 
 ### V-04 FPS 性能基准测试
 
+**状态**: ✅ Wave C4 完成 (2026-07-20, test_fps_baseline.py 8 测试 + 相对基线 15% 回归阈值 + CI 集成 + scripts/update_perf_baseline.py)
+
 **目标**: 在 `tests/benchmark/test_performance_baseline.py` 添加 FPS 实测, CI 集成性能回归告警。
 
 **Wave B-rev 修正 (DevOps P0-3)**:

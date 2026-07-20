@@ -172,6 +172,9 @@ saves/*.json
 # Benchmark baseline (auto-generated)
 tests/benchmark/.baseline_results.json
 
+# pytest-benchmark JSON output (V-04)
+.benchmarks/
+
 # Generated screenshots
 screenshots/
 

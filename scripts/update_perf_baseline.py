@@ -28,6 +28,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 BASELINE_FILE = REPO_ROOT / "tests" / "benchmark" / "perf_baseline.json"
 BENCHMARK_TEST = "tests/benchmark/test_fps_baseline.py"
 DEFAULT_BENCHMARK_DIR = REPO_ROOT / ".benchmarks"
+# Must match tests/benchmark/test_fps_baseline.py::FRAMES_PER_ROUND
+FRAMES_PER_ROUND = 600
 
 
 def run_fps_benchmark() -> Path:
@@ -61,9 +63,14 @@ def run_fps_benchmark() -> Path:
 def extract_fps_values(benchmark_json: Path) -> dict[str, float]:
     """Extract FPS values from pytest-benchmark JSON output.
 
+    pytest-benchmark stores TIME (seconds) per round, not FPS. We convert:
+        FPS = FRAMES_PER_ROUND / time
+
     Maps test names to baseline keys:
-        test_fps_normal_load -> normal_load
-        test_fps_heavy_load -> heavy_load_worst
+        test_fps_normal_load -> normal_load (median FPS = frames / median_time)
+        test_fps_heavy_load -> heavy_load_worst (worst FPS = frames / max_time)
+
+    Note: max_time corresponds to min FPS (worst case), since FPS = frames / time.
     """
     data = json.loads(benchmark_json.read_text())
     benchmarks = data.get("benchmarks", [])
@@ -74,15 +81,20 @@ def extract_fps_values(benchmark_json: Path) -> dict[str, float]:
     for bench in benchmarks:
         name = bench.get("name", "")
         stats = bench.get("stats", {})
-        # pytest-benchmark provides min/median/max/mean
-        min_value = stats.get("min", 0.0)
-        median_value = stats.get("median", 0.0)
+        # pytest-benchmark provides min/median/max/mean (all in seconds)
+        median_time = stats.get("median", 0.0)
+        max_time = stats.get("max", 0.0)
 
-        # Map test names to baseline keys (must match test_fps_baseline.py)
+        # Convert time → FPS and map test names to baseline keys
+        # (must match test_fps_baseline.py)
         if "test_fps_normal_load" in name:
-            baseline["normal_load"] = float(median_value)
+            # median FPS = frames / median_time
+            if median_time > 0:
+                baseline["normal_load"] = FRAMES_PER_ROUND / float(median_time)
         elif "test_fps_heavy_load" in name:
-            baseline["heavy_load_worst"] = float(min_value)
+            # worst FPS = frames / max_time (max time = min FPS = worst case)
+            if max_time > 0:
+                baseline["heavy_load_worst"] = FRAMES_PER_ROUND / float(max_time)
         # Add more mappings as needed
 
     if not baseline:
@@ -112,7 +124,7 @@ def update_baseline_file(new_values: dict[str, float]) -> bool:
         BASELINE_FILE.write_text(json.dumps(existing, indent=2, sort_keys=True))
         print(f"[update_perf_baseline] Baseline saved to {BASELINE_FILE}")
     else:
-        print(f"[update_perf_baseline] No changes (values identical to existing baseline)")
+        print("[update_perf_baseline] No changes (values identical to existing baseline)")
     return changed
 
 
@@ -121,7 +133,7 @@ def git_commit_baseline() -> bool:
     cmd = ["git", "add", str(BASELINE_FILE)]
     result = subprocess.run(cmd, cwd=REPO_ROOT, check=False)
     if result.returncode != 0:
-        print(f"[update_perf_baseline] git add failed", file=sys.stderr)
+        print("[update_perf_baseline] git add failed", file=sys.stderr)
         return False
 
     # Check if there's anything to commit
@@ -130,7 +142,7 @@ def git_commit_baseline() -> bool:
         cwd=REPO_ROOT, capture_output=True, text=True, check=False
     )
     if not status.stdout.strip():
-        print(f"[update_perf_baseline] Nothing to commit (baseline unchanged)")
+        print("[update_perf_baseline] Nothing to commit (baseline unchanged)")
         return False
 
     commit_msg = (
@@ -143,10 +155,10 @@ def git_commit_baseline() -> bool:
         cwd=REPO_ROOT, check=False
     )
     if result.returncode == 0:
-        print(f"[update_perf_baseline] Committed baseline update")
+        print("[update_perf_baseline] Committed baseline update")
         return True
     else:
-        print(f"[update_perf_baseline] git commit failed", file=sys.stderr)
+        print("[update_perf_baseline] git commit failed", file=sys.stderr)
         return False
 
 
@@ -163,10 +175,7 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        if args.input:
-            benchmark_json = args.input
-        else:
-            benchmark_json = run_fps_benchmark()
+        benchmark_json = args.input or run_fps_benchmark()
 
         new_values = extract_fps_values(benchmark_json)
         changed = update_baseline_file(new_values)

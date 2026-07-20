@@ -54,6 +54,8 @@ pluggy==1.6.0
     #   pytest-cov
 pre-commit==4.6.0
     # via pycc2 (pyproject.toml)
+py-cpuinfo==9.0.0
+    # via pytest-benchmark
 pydantic==2.13.4
     # via pycc2 (pyproject.toml)
 pydantic-core==2.46.4
@@ -65,9 +67,12 @@ pygments==2.20.0
 pytest==9.1.1
     # via
     #   pycc2 (pyproject.toml)
+    #   pytest-benchmark
     #   pytest-cov
     #   pytest-mock
     #   pytest-randomly
+pytest-benchmark==5.2.3
+    # via pycc2 (pyproject.toml)
 pytest-cov==7.1.0
     # via pycc2 (pyproject.toml)
 pytest-mock==3.15.1
