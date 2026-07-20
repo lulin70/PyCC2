@@ -500,7 +500,7 @@ Phase E (外部资源) ───────────────────
 
 | # | 项目 | 优先级 | 工作量 | 关联文件 | 状态 |
 |---|------|--------|--------|----------|------|
-| **V-01** | 视觉参数集中配置化 | P0 | 10-12h | visual_config.py (新建) + 6 个渲染器迁移 (原 9, 调整说明见 ROADMAP Wave C3b) | 🚧 Wave C3b 完成 (C3c/C3d 待开始) |
+| **V-01** | 视觉参数集中配置化 | P0 | 10-12h | visual_config.py (新建) + 6 个渲染器迁移 + 接口冻结 12 测试 + UI e2e 33 测试 | ✅ Wave C3d 完成 (C3a/C3b/C3c/C3d 全完成, 86 测试通过) |
 | **V-02** | VISUAL_OPTIMIZATION_UNIFIED.md 文档同步 | P0 | 3h | 本文档 | ✅ 完成 (本章节) |
 | **V-03** | 战后报告与伤亡统计可视化 | P0 | 8-10h | post_battle_report.py (新建) + campaign_ui_report_mixin.py | ⏳ Wave C5 |
 | **V-04** | FPS 性能基准测试 | P0 | 4h | tests/benchmark/ + ci.yml + scripts/update_perf_baseline.py | ⏳ Wave C4 |

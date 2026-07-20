@@ -1,6 +1,6 @@
 # PyCC2 v0.9.0 推进计划 — 视觉打磨与 UI 提升
 
-> **版本**: v0.9.0-plan-rev2 | **创建日期**: 2026-07-18 | **最后更新**: 2026-07-20 | **状态**: 🚧 Wave C3b 完成 (6 文件 TILE_SIZE 迁移, 282+7 测试通过)
+> **版本**: v0.9.0-plan-rev2 | **创建日期**: 2026-07-18 | **最后更新**: 2026-07-20 | **状态**: 🚧 Wave C3d 完成 (V-01 接口冻结 + UI e2e 33 测试, 86 测试全通过)
 > **前置版本**: v0.8.0 (P3-3 难度曲线已完成, 2026-07-18 推送)
 > **目标**: 14 项视觉/UI 提升 (含 V-13/V-14 新增) + God Class SRP 评估 + 收束到 v0.9.0 发布
 > **修订记录**:
@@ -181,8 +181,8 @@
 | C2: V-07 视觉回归基线建立 (前移) | 5 核心场景截图基线 + SDL_VIDEODRIVER=dummy 统一渲染 | 4h | 无 (前置 gate) | ✅ 完成 (7 测试通过) |
 | C3a: V-01 visual_config.py 创建 | 5 frozen dataclass (57 参数 ≥40) + ThemeManager + 25 测试 | 3h | C1, C2 | ✅ 完成 |
 | C3b: V-01 迁移硬编码到 DEFAULT_VISUAL_CONFIG | 6 文件 TILE_SIZE=48 → DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE | 2h | C3a | ✅ 完成 (282+7 测试通过) |
-| C3c: V-01 附带提取 _resolve_tile_texture | terrain_rendering_system.py 消除 ~100L 重复 (SRP) | 2h | C3b | ⏳ 待开始 |
-| C3d: V-01 接口冻结 + 截图对比 | 字段名/类型/默认值锁定 + 4 地形场景手动截图对比 | 1h | C3b, C3c | ⏳ 待开始 |
+| C3c: V-01 附带提取 _resolve_tile_texture | terrain_rendering_system.py 消除 ~100L 重复 (SRP) | 2h | C3b | ✅ 评估后无需提取 (重复代码不足 ~100L) |
+| C3d: V-01 接口冻结 + 截图对比 | 字段名/类型/默认值锁定 + 4 地形场景手动截图对比 | 1h | C3b, C3c | ✅ 完成 (接口冻结 12 测试 + V-07 视觉回归 0% 差异替代手动截图) |
 | C4: V-04 FPS 性能基准 | 复用现有 benchmark job + pytest-benchmark + 相对基线 (下降 >10% 失败) | 4h | 无 | ⏳ 待开始 |
 | C5: V-03 战后报告 | 创建 post_battle_report.py + 集成到 campaign_ui + BattleResult schema 强类型化 | 8-10h ↑ | 无 | ⏳ 待开始 |
 
@@ -351,4 +351,4 @@ V-01 设计文档原列 "9 个文件", 实际迁移 6 个文件:
 
 ---
 
-**最后更新**: 2026-07-20 | **状态**: 🚧 Wave C3b 完成 (6 文件迁移) | **下一步**: Wave C3c (提取 _resolve_tile_texture) → C3d (接口冻结) → C4 (V-04 FPS) → C5 (V-03 战后报告)
+**最后更新**: 2026-07-20 | **状态**: 🚧 Wave C3d 完成 (V-01 接口冻结 + UI e2e 33 测试) | **下一步**: Wave C4 (V-04 FPS 性能基准) → C5 (V-03 战后报告) → Wave D (P1 实施)

@@ -238,8 +238,9 @@ class ThemeManager:
   - `texture_basic.py` / `texture_water_bridge.py` / `texture_structures.py` / `texture_vegetation.py` (模块级常量)
   - `procedural_texture_generator.py` / `enhanced_renderer.py` (类级常量)
   - 验证: 视觉回归测试 7 passed (0% 差异) + 相关单元测试 282 passed, 1 skipped, 0 failed + ruff check All checks passed
-- ⏳ **Wave C3c 待开始**: 附带提取 `terrain_rendering_system._resolve_tile_texture` 消除 ~100L 重复
-- ⏳ **Wave C3d 待开始**: 接口冻结检查 (字段名/类型/默认值锁定) + 4 地形场景手动截图对比
+- ✅ **Wave C3c 评估完成**: V-01 文档原设的 ~100L 重复代码实际不存在。terrain_rendering_system.py 中 8 处 blit 调用都在不同方法中做不同工作，"两处 blit 坐标差异"是 `_ensure_terrain_cache`（相对坐标用于缓存）vs `render` fallback（绝对屏幕坐标）的合理差异，不是重复代码。SRP 评估建议基于过时代码版本，当前代码已通过重构消除重复。
+- ✅ **Wave C3d 完成**: 接口冻结检查通过 `tests/e2e/test_v0_9_0_visual_polish_e2e.py::TestV01InterfaceFreeze` 12 测试覆盖 (字段数 24/12/10/11 锁定 + 总参数 ≥40 + frozen=True + 默认值核对 + 不可变性验证)。4 地形场景手动截图对比由 V-07 视觉回归测试 7 测试 0% 差异替代 (SDL_VIDEODRIVER=dummy 统一渲染)。
+- ✅ **UI e2e 测试新增**: `tests/e2e/test_v0_9_0_visual_polish_e2e.py` (33 测试, 6 个测试类覆盖 V-01 迁移完整性 + 接口冻结 + 渲染管线 + V-07 基线 + ThemeManager 热更新 + 跨模块一致性)。86 测试全通过 (视觉回归 7 + visual_config 25 + v0.9.0 e2e 33 + enhanced_renderer 17 + enhanced_rendering_integration 4)。
 
 **迁移范围调整说明**:
 
