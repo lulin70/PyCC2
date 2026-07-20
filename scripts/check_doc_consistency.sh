@@ -10,6 +10,7 @@ VERSION=$(cat VERSION)
 ERRORS=0
 
 # Documents that MUST reference the current version
+# Wave B-rev P0-4 (2026-07-20): 追加 v0.9.0 视觉打磨 3 项文档
 REQUIRED_DOCS=(
     "docs/PRD.md"
     "docs/DESIGN.md"
@@ -20,6 +21,9 @@ REQUIRED_DOCS=(
     "README.md"
     "README_zh.md"
     "README_ja.md"
+    "docs/VISUAL_POLISH_PLAN.md"
+    "docs/ROADMAP_v0.9.0.md"
+    "docs/VISUAL_OPTIMIZATION_UNIFIED.md"
 )
 
 echo "Checking document version consistency (VERSION=${VERSION})..."
