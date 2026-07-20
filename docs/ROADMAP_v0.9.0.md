@@ -1,6 +1,6 @@
 # PyCC2 v0.9.0 推进计划 — 视觉打磨与 UI 提升
 
-> **版本**: v0.9.0-plan-rev2 | **创建日期**: 2026-07-18 | **最后更新**: 2026-07-20 | **状态**: ✅ Wave B-rev 二次共识达成 (7/7 APPROVE_WITH_CONCERNS)
+> **版本**: v0.9.0-plan-rev2 | **创建日期**: 2026-07-18 | **最后更新**: 2026-07-20 | **状态**: 🚧 Wave C3b 完成 (6 文件 TILE_SIZE 迁移, 282+7 测试通过)
 > **前置版本**: v0.8.0 (P3-3 难度曲线已完成, 2026-07-18 推送)
 > **目标**: 14 项视觉/UI 提升 (含 V-13/V-14 新增) + God Class SRP 评估 + 收束到 v0.9.0 发布
 > **修订记录**:
@@ -175,13 +175,25 @@
 
 ### Wave C: P0 实施 (4 项, ~25-29h, 含 V-07 基线前移)
 
-| 子项 | 项目 | 工作量 | 依赖 |
-|------|------|--------|------|
-| C1: V-02 文档同步 | VISUAL_OPTIMIZATION_UNIFIED.md 更新到 v0.9.0 现状 | 3h | 无 |
-| C2: V-07 视觉回归基线建立 (前移) | 4 核心场景截图基线 + SDL_VIDEODRIVER=dummy 统一渲染 | 4h | 无 (前置 gate) |
-| C3: V-01 视觉参数配置化 | 创建 visual_config.py + 迁移硬编码 + terrain_rendering 提取 _resolve_tile_texture | 10-12h ↑ | C1, C2 |
-| C4: V-04 FPS 性能基准 | 复用现有 benchmark job + pytest-benchmark + 相对基线 (下降 >10% 失败) | 4h | 无 |
-| C5: V-03 战后报告 | 创建 post_battle_report.py + 集成到 campaign_ui + BattleResult schema 强类型化 | 8-10h ↑ | 无 |
+| 子项 | 项目 | 工作量 | 依赖 | 状态 |
+|------|------|--------|------|------|
+| C1: V-02 文档同步 | VISUAL_OPTIMIZATION_UNIFIED.md 更新到 v0.9.0 现状 | 3h | 无 | ✅ 完成 (1.0→2.0) |
+| C2: V-07 视觉回归基线建立 (前移) | 5 核心场景截图基线 + SDL_VIDEODRIVER=dummy 统一渲染 | 4h | 无 (前置 gate) | ✅ 完成 (7 测试通过) |
+| C3a: V-01 visual_config.py 创建 | 5 frozen dataclass (57 参数 ≥40) + ThemeManager + 25 测试 | 3h | C1, C2 | ✅ 完成 |
+| C3b: V-01 迁移硬编码到 DEFAULT_VISUAL_CONFIG | 6 文件 TILE_SIZE=48 → DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE | 2h | C3a | ✅ 完成 (282+7 测试通过) |
+| C3c: V-01 附带提取 _resolve_tile_texture | terrain_rendering_system.py 消除 ~100L 重复 (SRP) | 2h | C3b | ⏳ 待开始 |
+| C3d: V-01 接口冻结 + 截图对比 | 字段名/类型/默认值锁定 + 4 地形场景手动截图对比 | 1h | C3b, C3c | ⏳ 待开始 |
+| C4: V-04 FPS 性能基准 | 复用现有 benchmark job + pytest-benchmark + 相对基线 (下降 >10% 失败) | 4h | 无 | ⏳ 待开始 |
+| C5: V-03 战后报告 | 创建 post_battle_report.py + 集成到 campaign_ui + BattleResult schema 强类型化 | 8-10h ↑ | 无 | ⏳ 待开始 |
+
+**Wave C3b 迁移范围调整说明 (2026-07-20)**:
+
+V-01 设计文档原列 "9 个文件", 实际迁移 6 个文件:
+- ✅ 迁移: texture_basic / texture_water_bridge / texture_structures / texture_vegetation / procedural_texture_generator / enhanced_renderer (共 6 个, 均为 `TILE_SIZE = 48` 硬编码)
+- ❌ 不迁移: `sprite_generator.py` — `TILE_SIZE = 32` 是该模块的 icon canvas 设计尺寸 (注释明确 "icons at small sizes (up to 32x32 pixels)"), 不是地形 TILE_SIZE, 修改会破坏所有 icon 绘图函数
+- ❌ 不迁移: `input_router.py` — 经 Grep 搜索确认无视觉硬编码 (仅按键映射 `_SQUAD_DIGIT_KEYS`), V-01 文档列入是错误
+- ⏳ 推迟: `cc2_combat_effects.py` / `terrain_renderer.py` / `unit_renderer.py` — Grep 搜索未发现明确的 EXPLOSION/MUZZLE/UNIT_SIZE 等硬编码常量, 推迟到 Wave C3d 接口冻结检查时再评估
+- ⏳ 推迟: `CC2_TERRAIN_PALETTE` 颜色字典 (terrain_tile_cache.py) — 与 ColorPalette 默认值不一致 (grass_base=(64,96,32) vs GRASS_PRIMARY=Color(76,124,35)), 迁移会破坏视觉等价, 推迟到 V-10 Morandi skin 实施时统一处理
 
 ### Wave D: P1 实施 (7 项, ~39h, 含 V-13/V-14)
 
@@ -339,4 +351,4 @@
 
 ---
 
-**最后更新**: 2026-07-20 | **状态**: 🚧 Wave B-rev 推进中 | **下一步**: Wave B-rev 完成 → Wave C P0 实施
+**最后更新**: 2026-07-20 | **状态**: 🚧 Wave C3b 完成 (6 文件迁移) | **下一步**: Wave C3c (提取 _resolve_tile_texture) → C3d (接口冻结) → C4 (V-04 FPS) → C5 (V-03 战后报告)

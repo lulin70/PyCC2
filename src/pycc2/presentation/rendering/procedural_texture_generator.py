@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import pygame
 
+from ..visual_config import DEFAULT_VISUAL_CONFIG
 from .palette_generator import PaletteGenerator
 from .texture_basic import (
     _texture_default,
@@ -54,7 +55,8 @@ class ProceduralTextureGenerator:
     with subtle per-tile variation to avoid repetitive patterns.
     """
 
-    TILE_SIZE = 48  # CC2 authentic: 48×48 pixel tiles
+    # V-01 (Wave C3b): TILE_SIZE migrated to DEFAULT_VISUAL_CONFIG for theme hot-reload.
+    TILE_SIZE = DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE  # CC2 authentic: 48×48 pixel tiles
 
     @classmethod
     def generate_terrain_texture(

@@ -84,6 +84,7 @@ from pycc2.presentation.rendering.unit_position_interpolator import UnitPosition
 from pycc2.presentation.rendering.unit_renderer import UnitRenderer
 from pycc2.presentation.rendering.world_renderer import WorldRenderer
 from pycc2.presentation.ui.theme import ThemeManager
+from pycc2.presentation.visual_config import DEFAULT_VISUAL_CONFIG
 
 
 class EnhancedRenderer(EnhancedRendererDelegateMixin):
@@ -96,7 +97,8 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
     - Orthographic top-down projection (CC2-style)
     """
 
-    TILE_SIZE = 48  # CC2 authentic: 48×48 pixel tiles
+    # V-01 (Wave C3b): TILE_SIZE migrated to DEFAULT_VISUAL_CONFIG for theme hot-reload.
+    TILE_SIZE = DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE  # CC2 authentic: 48×48 pixel tiles
 
     @property
     def _screen(self) -> pygame.Surface | None:

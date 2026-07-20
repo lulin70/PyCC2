@@ -7,9 +7,11 @@ import random
 
 import pygame
 
+from ..visual_config import DEFAULT_VISUAL_CONFIG
 from .terrain_tile_cache import CC2_TERRAIN_PALETTE
 
-TILE_SIZE = 48
+# V-01 (Wave C3b): TILE_SIZE migrated to DEFAULT_VISUAL_CONFIG for theme hot-reload.
+TILE_SIZE = DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE
 
 
 def _texture_water(surface: pygame.Surface, tid: int, var: int, pal, bitmask: int = 0) -> None:

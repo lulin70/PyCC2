@@ -231,6 +231,24 @@ class ThemeManager:
 
 **风险**: 中 (迁移可能引入视觉差异, Wave B-rev 缓解: V-07 基线前移 Wave C + 迁移前后手动截图对比)
 
+**实施进度 (2026-07-20)**:
+
+- ✅ **Wave C3a 完成**: 创建 `src/pycc2/presentation/visual_config.py` (274 行) — 5 frozen dataclass (ColorPalette 24 + VisualDimensions 12 + AnimationTimings 10 + VisualEffects 11 = 57 参数 ≥40) + DEFAULT_VISUAL_CONFIG singleton + ThemeManager (register/unregister/notify_theme_change/listener_count/_reset)。25 单元测试全部通过, radon cc 全 A 级 (最高 3)。
+- ✅ **Wave C3b 完成**: 迁移 6 个文件的 `TILE_SIZE = 48` 硬编码到 `DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE`:
+  - `texture_basic.py` / `texture_water_bridge.py` / `texture_structures.py` / `texture_vegetation.py` (模块级常量)
+  - `procedural_texture_generator.py` / `enhanced_renderer.py` (类级常量)
+  - 验证: 视觉回归测试 7 passed (0% 差异) + 相关单元测试 282 passed, 1 skipped, 0 failed + ruff check All checks passed
+- ⏳ **Wave C3c 待开始**: 附带提取 `terrain_rendering_system._resolve_tile_texture` 消除 ~100L 重复
+- ⏳ **Wave C3d 待开始**: 接口冻结检查 (字段名/类型/默认值锁定) + 4 地形场景手动截图对比
+
+**迁移范围调整说明**:
+
+V-01 原列 "9 个文件", 实际迁移 6 个文件 (详见 [ROADMAP_v0.9.0.md](ROADMAP_v0.9.0.md) Wave C3b 迁移范围调整说明):
+- ✅ 迁移 6 个: texture_basic / texture_water_bridge / texture_structures / texture_vegetation / procedural_texture_generator / enhanced_renderer
+- ❌ 不迁移 `sprite_generator.py`: `TILE_SIZE = 32` 是 icon canvas 设计尺寸, 非地形 TILE_SIZE
+- ❌ 不迁移 `input_router.py`: 无视觉硬编码 (V-01 文档列入错误)
+- ⏳ 推迟 `CC2_TERRAIN_PALETTE` 颜色字典: 与 ColorPalette 默认值不一致, 迁移会破坏视觉等价, 推迟到 V-10 Morandi skin 实施时统一处理
+
 ---
 
 ### V-02 VISUAL_OPTIMIZATION_UNIFIED.md 文档同步
