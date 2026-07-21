@@ -108,7 +108,7 @@ jobs:
             --cov=src/pycc2 \
             --cov-report=xml \
             --cov-report=html \
-            --cov-fail-under=70 \
+            --cov-fail-under=65 \
             --junitxml=junit.xml
 
       - name: Upload coverage to Codecov

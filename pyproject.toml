@@ -154,7 +154,7 @@ exclude_lines = [
     "raise NotImplementedError",
     "@abstractmethod",
 ]
-fail_under = 60
+fail_under = 65
 
 [tool.radon]
 # Cyclomatic complexity baseline for CI gate (v0.7.7: 22→18 after 4 F-level refactors)
