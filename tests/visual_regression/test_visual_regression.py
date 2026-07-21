@@ -30,6 +30,11 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
+# Skip entire module if Pillow is not installed (CI slow-tests env may lack PIL).
+# Visual regression baselines are platform-specific; without PIL the diff
+# computation cannot run.
+pytest.importorskip("PIL")
+
 from PIL import Image, ImageChops  # noqa: E402
 
 from tests.visual_regression.conftest import (  # noqa: E402

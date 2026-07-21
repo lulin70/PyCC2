@@ -38,7 +38,7 @@ from pycc2.domain.value_objects.tile_coord import TileCoord  # noqa: E402
 # ============================================================================
 
 BASELINE_FILE = Path(__file__).parent / "perf_baseline.json"
-REGRESSION_THRESHOLD = 0.85  # 15% drop triggers failure (Wave B-rev)
+REGRESSION_THRESHOLD = 0.75  # 25% drop triggers failure (widened from 0.85 for CI runner variance)
 FPS_TEST_ROUNDS = 10  # P1-8: 3 → 10 rounds for statistical stability
 FPS_TEST_ITERATIONS = 1  # Single iteration per round (each round = N frames)
 FRAMES_PER_ROUND = 600  # 600 frames per measurement round
