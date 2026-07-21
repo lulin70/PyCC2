@@ -536,13 +536,38 @@ git commit -m "chore(deps): add pytest-benchmark to requirements-dev.lock (V-04 
 
 **目标**: 引入 `scale_factor` 自适应, 1280×720 设计基准 → 1920×1080+ 屏幕。
 
-**设计**:
-- `display_config.py` 添加 `scale_factor: float` 字段
-- `camera.py` 渲染时按 scale_factor 放大 viewport
-- UI 组件 (cc2_bottom_panel / squad_panel / command_bar) 按 scale_factor 缩放
-- 字体大小: `font_size_scaled = base_size * scale_factor`
+**Wave D 实施前代码现状核对 (2026-07-21, 解决 P0-NEW 类似问题)**:
+- ⚠️ Wave B-rev 设计的 "`display_config.py` 添加 `scale_factor: float` 字段" — **字段已存在**!
+- ✅ 实际代码: `domain/interfaces/display_config.py:33` 已有 `ui_scale` property:
+  ```python
+  @property
+  def ui_scale(self) -> float:
+      return max(self.dpi_scale, self.window_width / 1280)
+  ```
+- ✅ `ui_scale` 已在 30+ 处使用 (hud.py / unit_panel.py / minimap.py / render_pipeline.py / unit_overlay_rendering_mixin.py / game_loop_assembler.py)
+- ✅ `DisplayConfig` 还提供 `font_size_small/normal/large/title` 4 档字体 (均基于 `ui_scale`)
+- ⚠️ 真实差距 1: `Camera` 类 (rendering/camera.py) **未使用** `ui_scale` — `viewport_width/viewport_height` 默认 1280×720, 不随屏幕尺寸缩放
+- ⚠️ 真实差距 2: `ui_scale` property 无独立测试 (仅通过 font_size 间接覆盖)
+- ⚠️ 真实差距 3: 无独立 helper 函数供无 DisplayConfig 访问的场景使用
+- ✅ 决策: V-05 重新定位为 "scale_factor API 明示 + Camera 接入 + 测试补全"
+  1. 添加 `scale_factor` 别名 property (返回 `ui_scale`) — 匹配设计文档命名, 提升 API 可读性
+  2. 添加 `compute_scale_factor()` 模块级 helper — 供独立测试和无 DisplayConfig 场景使用
+  3. `Camera` 添加 `apply_scale_factor()` 方法 — 按 scale_factor 缩放 viewport
+  4. 不再扩展到 cc2_bottom_panel / squad_panel / command_bar — 它们已通过 `DisplayConfig` 间接使用 `ui_scale`, 修改将违反 "Surgical Changes" 原则
 
-**风险**: 中 (布局重计算可能引入元素重叠, 需视觉回归测试)
+**修订设计 (基于代码现状)**:
+- `domain/interfaces/display_config.py`:
+  - 添加 `scale_factor` property (别名, 返回 `ui_scale`) — API 明示
+  - 添加模块级 `compute_scale_factor(screen_width, base_width=1280, dpi_scale=1.0) -> float` helper
+- `presentation/rendering/camera.py`:
+  - 添加 `apply_scale_factor(scale_factor: float) -> None` 方法
+  - 按 scale_factor 缩放 `viewport_width/viewport_height` (基准 1280×720)
+  - 不修改 `world_to_screen/screen_to_world` — 这些方法已通过 `zoom` 处理坐标变换
+- `tests/unit/test_responsive_layout.py` (新增):
+  - 覆盖 6 维度: Happy/Error/Boundary/Perf/Config/Integration
+  - 测试 `ui_scale` / `scale_factor` / `compute_scale_factor` / `Camera.apply_scale_factor`
+
+**风险**: 低 (原"中"风险降级 — ui_scale 已在 30+ 处稳定使用, V-05 仅添加别名 + Camera 接入 + 测试, 无破坏性变更)
 
 ---
 
@@ -560,7 +585,9 @@ git commit -m "chore(deps): add pytest-benchmark to requirements-dev.lock (V-04 
 - `button.py`: hover 时背景色渐变 (200ms, ease_in_out), click 时缩放 0.94→1.0 (120-150ms, ease_out_cubic)
 - `selection_system.py`: 选中框脉冲动画 (alpha 100→200→100, 1s 周期, ease_in_out_sine)
 - `attack_line.py`: 错误目标时红色闪烁 (300ms × 2 次, ease_out_cubic)
-- 新增 `animation_system.py` 微动画调度器, 含缓动函数库:
+- 新增 `micro_animation.py` 微动画调度器 (V-06 Wave D2 实施时按 SRP 拆分为独立模块, 含缓动函数库):
+
+> **Wave D2 文件拆分说明 (2026-07-21)**: 原设计写为 "新增 `animation_system.py`", 但该文件已存在 (含 legacy UnitAnimator/ScreenShake/ParticleEmitter API, 被 effect_renderer.py / sprite_renderer_base.py / particle_pool.py 3 个文件依赖)。Wave D2 V-06 实施初版直接重写 `animation_system.py` 导致 11 个 mypy 错误。按 SRP 原则修正: V-06 微动画子系统独立为 `micro_animation.py`, `animation_system.py` 恢复为 legacy 单位动画 API。
 
 ```python
 # src/pycc2/presentation/rendering/easing.py (新增)
@@ -670,6 +697,18 @@ def test_visual_baseline(scenario, render_snapshot):
 - ❌ 原方案: 未说明关闭方式 → 玩家可能找不到关闭键
 - ✅ 修正: **任意键关闭** (除了 `?` 自身, 防止 toggle 闪烁)
 
+**Wave D 实施前代码现状核对 (2026-07-21, 解决 P0-NEW-C)**:
+- ⚠️ `GameLoop` 类**没有** `pause()` / `resume()` 方法 (Wave B-rev P0-NEW-C 已识别)
+- ✅ 现有暂停机制: `game_loop.state.paused: bool` 字段 (game_loop_types.py:35)
+- ✅ 适配方案: `KeybindingsOverlay.show()` 设置 `game_loop.state.paused = True`, `hide()` 设置 `False`
+- ✅ 替代方案对比:
+  - 方案 A (推荐): 直接操作 `state.paused` — 最小侵入, 不改 GameLoop 类
+  - 方案 B: 给 GameLoop 添加 `pause()/resume()` 方法 — 封装更好, 但需要修改核心类
+- ✅ 决策: 采用方案 A (直接操作 `state.paused`), 理由:
+  1. 已有代码用 `self.state.paused = True` 实现暂停 (game_loop.py:232)
+  2. 不修改 GameLoop 核心, 符合 "Surgical Changes" 原则
+  3. KeybindingsOverlay 作为 UI 层组件, 直接读写 state 字段即可
+
 **设计**:
 - 新增 `keybindings_overlay.py`: 按 `?` 键显示快捷键面板
   - 透明度: 面板背景 alpha=180 (70%), 文字底色 alpha=153 (60%)
@@ -729,6 +768,13 @@ class KeybindingsOverlay:
 - ❌ 原方案: "显示加载进度条" → 进度条是表现层, 不应阻塞启动; 玩家看到进度条反而感知"卡"
 - ✅ 修正: **`logger.info` 替代进度条** (后台静默预热, 仅日志可见; 100ms 级别用户无感知)
 - ⚠️ 仅当预热 > 500ms 时才显示进度条 (异常情况提示用户)
+
+**Wave D 实施前代码现状核对 (2026-07-21, 解决 P0-NEW-D)**:
+- ⚠️ Wave B-rev 设计的 API (`_factions`/`_unit_types`/`_generate_sprite`) 不存在 (P0-NEW-D 已识别)
+- ✅ 实际代码: `SpriteCacheManager.__init__` 已在构造时自动调用 `_generate_all_sprites()` + `_generate_terrain_tiles()`
+- ✅ 实际预热清单: 3 阵营 (allies/axis/polish) × 11 单位类型 × 8 方向 = **264 精灵** (含 INFANTRY_SQUAD/MACHINE_GUN_SQUAD/COMMANDER/TANK/HALFTRACK/JEEP/SCOUT_CAR/SNIPER_TEAM/MEDIC_TEAM/AT_GUN_TEAM/MORTAR_TEAM)
+- ✅ V-09 实际工作: 添加 `prewarm()` 公开 API + 计时日志 (包装现有 `_generate_all_sprites()` 调用, 不重复生成)
+- ✅ 决策: `prewarm()` 方法仅记录耗时 + 输出 logger.info, 不重复执行已完成的预热 (避免双重生成 264 精灵)
 
 **设计**:
 - `sprite_cache_manager.py` 新增 `prewarm()` 方法

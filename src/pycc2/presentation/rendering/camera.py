@@ -177,3 +177,42 @@ class Camera:
 
         self.position = Vec2(0.0, 0.0)
         self.zoom = 1.0
+
+    def apply_scale_factor(self, scale_factor: float) -> None:
+        """Scale viewport dimensions by ``scale_factor`` (V-05 Wave D1).
+
+        Base design resolution is 1280×720 (``BASE_DESIGN_WIDTH`` ×
+        ``BASE_DESIGN_HEIGHT`` from ``display_config.py``). After calling
+        this method:
+
+        - ``viewport_width = int(1280 * scale_factor)``
+        - ``viewport_height = int(720 * scale_factor)``
+
+        This is the presentation-layer hook for responsive layout. The
+        caller (typically ``game_loop_assembler`` or ``render_pipeline``)
+        reads ``DisplayConfig.scale_factor`` and passes it here so the
+        camera's viewport matches the actual window dimensions.
+
+        Note: this method only updates viewport dimensions; it does NOT
+        modify ``zoom``. The ``zoom`` field controls world-to-screen
+        coordinate scaling and is orthogonal to viewport size.
+
+        Args:
+            scale_factor: Responsive scale factor (typically from
+                ``DisplayConfig.scale_factor`` or
+                ``compute_scale_factor()``). Must be > 0.
+
+        Raises:
+            ValueError: If ``scale_factor <= 0``.
+
+        """
+        if scale_factor <= 0:
+            raise ValueError(f"scale_factor must be > 0, got {scale_factor}")
+        # Import here to avoid circular import at module load time.
+        from pycc2.domain.interfaces.display_config import (
+            BASE_DESIGN_HEIGHT,
+            BASE_DESIGN_WIDTH,
+        )
+
+        self.viewport_width = int(BASE_DESIGN_WIDTH * scale_factor)
+        self.viewport_height = int(BASE_DESIGN_HEIGHT * scale_factor)

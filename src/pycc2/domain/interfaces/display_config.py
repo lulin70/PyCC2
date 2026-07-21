@@ -3,6 +3,57 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum, auto
 
+# V-05 Wave D1: Base design resolution for responsive layout scaling.
+# 1280×720 is the canonical "1.0x" baseline; wider screens scale up.
+BASE_DESIGN_WIDTH: int = 1280
+BASE_DESIGN_HEIGHT: int = 720
+
+
+def compute_scale_factor(
+    screen_width: int,
+    base_width: int = BASE_DESIGN_WIDTH,
+    dpi_scale: float = 1.0,
+) -> float:
+    """Compute responsive layout scale factor (V-05 Wave D1).
+
+    Returns the maximum of:
+    - ``dpi_scale`` (HiDPI/Retina compensation, e.g. 2.0 on macOS Retina)
+    - ``screen_width / base_width`` ( widescreen compensation, e.g. 1.5 at 1920px )
+
+    This is the standalone helper form of ``DisplayConfig.ui_scale`` /
+    ``DisplayConfig.scale_factor``. Use this when you need the scale factor
+    without constructing a full ``DisplayConfig`` instance (e.g. in tests
+    or in presentation-layer components that receive screen_width only).
+
+    Args:
+        screen_width: Actual screen / window width in pixels.
+        base_width: Design baseline width (default 1280 per V-05 spec).
+        dpi_scale: HiDPI backing scale factor (default 1.0).
+
+    Returns:
+        Scale factor ≥ 1.0 (never shrinks below 1.0 unless dpi_scale < 1.0,
+        which only happens on misconfigured systems).
+
+    Examples:
+        >>> compute_scale_factor(1280)
+        1.0
+        >>> compute_scale_factor(1920)
+        1.5
+        >>> compute_scale_factor(1280, dpi_scale=2.0)
+        2.0
+        >>> compute_scale_factor(2560)
+        2.0
+
+    """
+    if base_width <= 0:
+        raise ValueError(f"base_width must be > 0, got {base_width}")
+    if screen_width < 0:
+        raise ValueError(f"screen_width must be >= 0, got {screen_width}")
+    if dpi_scale < 0:
+        raise ValueError(f"dpi_scale must be >= 0, got {dpi_scale}")
+    width_scale = screen_width / base_width if screen_width > 0 else 1.0
+    return max(dpi_scale, width_scale)
+
 
 class QualityPreset(Enum):
     LOW = auto()
@@ -32,6 +83,23 @@ class DisplayConfig:
     @property
     def ui_scale(self) -> float:
         return max(self.dpi_scale, self.window_width / 1280)
+
+    @property
+    def scale_factor(self) -> float:
+        """Responsive layout scale factor (V-05 Wave D1 alias for ui_scale).
+
+        Returns the same value as ``ui_scale``. This alias exists for API
+        clarity: ``scale_factor`` matches the V-05 design doc naming, while
+        ``ui_scale`` is the legacy name preserved for backward compatibility
+        with the 30+ existing call sites (hud.py / unit_panel.py / minimap.py
+        / render_pipeline.py / unit_overlay_rendering_mixin.py /
+        game_loop_assembler.py).
+
+        Callers writing new code should prefer ``scale_factor``. Existing
+        code does NOT need to migrate — both properties return identical
+        values by design.
+        """
+        return self.ui_scale
 
     @property
     def font_size_small(self) -> int:

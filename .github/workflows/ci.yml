@@ -5,6 +5,10 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
+  schedule:
+    # V-07 Wave D5: Weekly visual regression run (Monday 06:00 UTC)
+    # Non-blocking for PRs; runs separately to detect visual drift over time.
+    - cron: '0 6 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -296,3 +300,53 @@ jobs:
 
       - name: Run tests in Docker
         run: docker run --rm pycc2-test
+
+  visual-regression:
+    # V-07 Wave D5: Visual regression baseline comparison.
+    # Runs weekly (Monday 06:00 UTC via schedule trigger) or on manual dispatch.
+    # NOT triggered on every PR (per Wave B-rev design — visual tests are
+    # slow and may have platform-specific rendering differences).
+    name: Visual Regression (V-07)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    env:
+      SDL_VIDEODRIVER: dummy
+      SDL_AUDIODRIVER: dummy
+      SDL_JOYSTICK_DRIVER: dummy
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install dependencies (pinned via requirements-dev.lock)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.lock
+          pip install -e . --no-deps
+
+      - name: Run visual regression tests
+        run: |
+          pytest tests/visual_regression/ \
+            -v \
+            --timeout=120 \
+            --junitxml=junit.xml
+
+      - name: Upload diff images on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-regression-diffs
+          path: tests/visual_regression/.diff/
+          if-no-files-found: ignore
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-regression-results
+          path: junit.xml

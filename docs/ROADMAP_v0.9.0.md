@@ -87,7 +87,7 @@
 | # | 项目 | 影响 | 工作量 | ROI | 关联文件 |
 |---|------|------|--------|-----|----------|
 | **V-05** | 现代屏幕响应式布局 | 玩家体验 | 8h | 6 | camera.py / cc2_bottom_panel.py / squad_panel.py |
-| **V-06** | 操作反馈微动画 | 玩家体验 | 6h | 7 | button.py / selection_system.py / animation_system.py |
+| **V-06** | 操作反馈微动画 | 玩家体验 | 6h | 7 | button.py / selection_system.py / micro_animation.py (新建, 从 animation_system.py 按 SRP 拆分) |
 | **V-07** | 视觉回归测试基线 | 质量保障 | 10h (基线 4h 前移 Wave C + CI 6h Wave D) | 6 | 新建 tests/visual_regression/ + ci.yml |
 | **V-08** | 快捷键完整性与 in-game 提示 | 玩家体验 | 4h | 8 | command_bar.py / hud.py / 新增 keybindings_overlay.py |
 | **V-09** | SpriteCacheManager 预热策略 | 性能 | 5h | 6 | sprite_cache_manager.py / game_loop_assembler.py |
@@ -199,13 +199,40 @@ V-01 设计文档原列 "9 个文件", 实际迁移 6 个文件:
 
 | 子项 | 项目 | 工作量 | 依赖 |
 |------|------|--------|------|
-| D1: V-05 响应式布局 | scale_factor 自适应 + 三栏比例调整 + pygame.transform.scale 最近邻 | 8h | C3 |
+| D1: V-05 响应式布局 | scale_factor API 明示 (ui_scale 别名) + Camera.apply_scale_factor() + compute_scale_factor() helper + 6 维度测试 | 4h ↓ | C3 |
 | D2: V-06 操作反馈微动画 | hover/click(120-150ms)/选中/错误 4 类微动画 + ease_out_cubic | 6h | C3 |
 | D3: V-08 快捷键提示 | keybindings_overlay.py (透明度 60-70% + 联动暂停 + 任意键关闭) + 命令栏完善 | 4h | 无 |
 | D4: V-09 SpriteCache 预热 | 启动时预加载常用精灵 (logger.info 替代进度条) | 5h | 无 |
 | D5: V-07 视觉回归 CI 集成 | Pillow ImageChops 阈值 3-5% + 平台差异化基线目录 + 每周 schedule 触发 | 6h | C2 |
 | D6: V-13 伤害飘字扩展 | combat_popup.py 新增 add_damage_number() + 数字飘字动画 | 6h | C3 |
 | D7: V-14 士气视觉化 | morale_indicator.py (5 状态色彩 + 图标 + 选中详情) | 6h | C3 |
+
+**Wave D 实施顺序 (2026-07-21 文档先行评估)**:
+
+按 "无依赖优先 + 风险递增" 原则排序:
+
+```
+D3 (V-08, 4h, 无依赖, 低风险) ──┐
+                                 ├──► D6 (V-13, 6h, C3 依赖已满足) ──┐
+D4 (V-09, 5h, 部分已完成)    ──┘                                     │
+                                                                      ├──► D2 (V-06, 6h, easing 新建)
+D7 (V-14, 6h, C3 依赖已满足) ────────────────────────────────────────┘
+                                                                              │
+                                                                              ▼
+                                                                       D5 (V-07 CI, 6h, 基线已就绪)
+                                                                              │
+                                                                              ▼
+                                                                       D1 (V-05, 8h, 中风险, 最后做)
+```
+
+**代码现状核对 (2026-07-21, 解决 P0-NEW-C/D)**:
+- **D3 V-08**: `GameLoop` 无 `pause()/resume()` 方法, 采用方案 A 直接操作 `state.paused: bool` 字段 (game_loop_types.py:35, game_loop.py:232 已有先例)
+- **D4 V-09**: `SpriteCacheManager.__init__` 已自动调用 `_generate_all_sprites()` (3 阵营 × 11 类型 × 8 方向 = 264 精灵), 仅需补 `prewarm()` 公开 API + 计时日志 (避免双重生成)
+- **D6 V-13**: `Damage` @dataclass(frozen=True) 位于 `domain/value_objects/damage.py`, 已含 `amount` + `damage_type` + `is_critical` (amount >= 75.0) 属性; `CombatPopupManager.add_popup(text, world_x, world_y, color)` 签名清晰可扩展
+- **D7 V-14**: `MoraleState` 枚举位于 `domain/systems/morale_types.py`, 5 状态 (RALLYED/WAVERING/PINNED/BROKEN/ROUTING) 完整; 新建 `morale_indicator.py` 仅在 presentation 层
+- **D2 V-06**: 新建 `src/pycc2/presentation/rendering/easing.py` 含 3 个缓动函数 (ease_out_cubic/ease_in_out_sine/ease_in_out_cubic)
+- **D5 V-07 CI**: V-07 基线已在 Wave C2 完成 (5 场景), CI 集成仅需添加 `.github/workflows/visual_regression.yml` + 每周 schedule
+- **D1 V-05**: 重新定位 (2026-07-21 代码现状核对) — `DisplayConfig.ui_scale` property 已存在 (`max(dpi_scale, window_width / 1280)`), 已在 30+ 处使用 (hud/unit_panel/minimap/render_pipeline 等); V-05 工作量从 8h 降至 4h, 仅需: ① `scale_factor` 别名 property + ② `compute_scale_factor()` helper + ③ `Camera.apply_scale_factor()` + ④ 6 维度测试; 风险从中降至低 (无破坏性变更)
 
 ### Wave E: P2 实施 (3 项, ~20-22h)
 

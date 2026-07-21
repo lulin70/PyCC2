@@ -12,6 +12,8 @@ Created: Refactoring — SpriteRenderer responsibility separation
 from __future__ import annotations
 
 import logging
+import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -23,6 +25,31 @@ logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from pycc2.domain.interfaces.display_config import DisplayConfig
     from pycc2.presentation.rendering.svg_sprite_loader import SVGSpriteLoader
+
+
+# V-09 (Wave D4): Threshold for slow prewarm warning (ms).
+# If prewarming exceeds this, we log a warning suggesting lazy-load fallback.
+PREWARM_SLOW_THRESHOLD_MS: int = 500
+
+
+@dataclass(frozen=True, slots=True)
+class PrewarmResult:
+    """V-09 (Wave D4): Result of SpriteCacheManager.prewarm().
+
+    Captures timing and counts for the prewarm operation, useful for
+    startup diagnostics and CI regressions detection.
+
+    Attributes:
+        elapsed_ms: Wall-clock time spent in prewarm, in milliseconds.
+        sprite_count: Number of unit sprites in cache after prewarm.
+        terrain_count: Number of terrain tiles in cache after prewarm.
+        already_prewarmed: True if prewarm was a no-op (cache already populated).
+    """
+
+    elapsed_ms: float
+    sprite_count: int
+    terrain_count: int
+    already_prewarmed: bool
 
 
 class SpriteCacheManager:
@@ -50,6 +77,10 @@ class SpriteCacheManager:
         self._terrain_cache: dict[int, Surface] = {}
         self._tile_cache: TileCache = TileCache()
         self._asset_loader: AssetLoader = AssetLoader()
+
+        # V-09 (Wave D4): Track prewarm state for idempotent prewarm() calls
+        self._prewarmed: bool = False
+        self._last_prewarm_result: PrewarmResult | None = None
 
         # CC2 Original Sprite Loader (NEW: 2026-06-16)
         assets_root = Path(__file__).parent.parent.parent.parent.parent / "assets"
@@ -93,10 +124,75 @@ class SpriteCacheManager:
             self._svg_cache = {}
             logger.info("ℹ️ SVG sprites not found - falling back to PNG/procedural")
 
-        self._generate_all_sprites()
-        self._generate_terrain_tiles()
+        # V-09 (Wave D4): Trigger prewarm via public API for timing visibility.
+        # Previously __init__ called _generate_all_sprites() + _generate_terrain_tiles()
+        # directly with no timing. Now prewarm() wraps both with logger.info + threshold.
+        self.prewarm()
 
     # ====== Public API ======
+
+    def prewarm(
+        self,
+        slow_threshold_ms: int = PREWARM_SLOW_THRESHOLD_MS,
+    ) -> PrewarmResult:
+        """Preload all unit sprites and terrain tiles (V-09 Wave D4).
+
+        Idempotent: if already prewarmed, returns the cached result without
+        re-generating sprites. This is safe to call multiple times.
+
+        Logs ``logger.info`` with elapsed time and sprite counts. If
+        prewarming exceeds ``slow_threshold_ms``, also logs a warning
+        suggesting lazy-load fallback (per Wave B-rev UX P1).
+
+        Args:
+            slow_threshold_ms: Threshold in milliseconds above which a slow
+                prewarm warning is logged. Defaults to PREWARM_SLOW_THRESHOLD_MS (500ms).
+
+        Returns:
+            PrewarmResult dataclass with elapsed_ms, sprite_count, terrain_count,
+            and already_prewarmed flag.
+        """
+        if self._prewarmed and self._last_prewarm_result is not None:
+            # Idempotent: return cached result without re-running generation
+            return self._last_prewarm_result
+
+        start = time.perf_counter()
+        self._generate_all_sprites()
+        self._generate_terrain_tiles()
+        elapsed_ms = (time.perf_counter() - start) * 1000.0
+
+        sprite_count = len(self._sprite_cache)
+        terrain_count = len(self._terrain_cache)
+
+        logger.info(
+            "SpriteCache prewarm completed: %.1fms (%d sprites, %d terrain tiles)",
+            elapsed_ms,
+            sprite_count,
+            terrain_count,
+        )
+
+        if elapsed_ms > slow_threshold_ms:
+            logger.warning(
+                "SpriteCache prewarm exceeded %dms threshold (%.1fms); "
+                "consider lazy-load fallback",
+                slow_threshold_ms,
+                elapsed_ms,
+            )
+
+        result = PrewarmResult(
+            elapsed_ms=elapsed_ms,
+            sprite_count=sprite_count,
+            terrain_count=terrain_count,
+            already_prewarmed=False,
+        )
+        self._prewarmed = True
+        self._last_prewarm_result = result
+        return result
+
+    @property
+    def last_prewarm_result(self) -> PrewarmResult | None:
+        """V-09 (Wave D4): Return the last prewarm result, or None if not prewarmed."""
+        return self._last_prewarm_result
 
     def get_unit_sprite(
         self,
