@@ -348,9 +348,7 @@ class KeybindingsOverlay:
 
         # --- Footer ---
         footer_y = panel_y + panel_h - ROW_HEIGHT - PANEL_PADDING // 2
-        footer_text = font_key.render(
-            "Press any key to close (? to toggle)", True, LABEL_COLOR
-        )
+        footer_text = font_key.render("Press any key to close (? to toggle)", True, LABEL_COLOR)
         surface.blit(
             footer_text,
             (panel_x + (panel_w - footer_text.get_width()) // 2, footer_y),

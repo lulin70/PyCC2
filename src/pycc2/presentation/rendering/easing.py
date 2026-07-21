@@ -65,7 +65,7 @@ def ease_in_cubic(t: float) -> float:
         Eased progress in [0, 1].
     """
     t = _clamp(t)
-    return t ** 3
+    return t**3
 
 
 def ease_in_out_cubic(t: float) -> float:
@@ -89,7 +89,7 @@ def ease_in_out_cubic(t: float) -> float:
     """
     t = _clamp(t)
     if t < 0.5:
-        return 4.0 * t ** 3
+        return 4.0 * t**3
     return 1.0 - ((-2.0 * t + 2.0) ** 3) / 2.0
 
 

@@ -284,6 +284,7 @@ def make_full_battle_result() -> BattleResult:
     result.events = make_typical_event_list()
     # Pre-calculate MVP for testing
     from pycc2.presentation.ui.post_battle_report import calculate_mvp
+
     result.mvp_unit_id = calculate_mvp(result.unit_records)
     return result
 

@@ -31,9 +31,9 @@ os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
 # Constants
 BASELINE_ROOT = Path(__file__).parent / "baselines"
-DEFAULT_THRESHOLD = 0.03   # 3.0% pixel diff
-STRICT_THRESHOLD = 0.01    # 1.0% pixel diff (UI)
-LOOSE_THRESHOLD = 0.05     # 5.0% pixel diff (terrain with noise)
+DEFAULT_THRESHOLD = 0.03  # 3.0% pixel diff
+STRICT_THRESHOLD = 0.01  # 1.0% pixel diff (UI)
+LOOSE_THRESHOLD = 0.05  # 5.0% pixel diff (terrain with noise)
 
 # Core scenarios (V-07 Wave B-rev design — 5 scenarios)
 SCENARIOS = (

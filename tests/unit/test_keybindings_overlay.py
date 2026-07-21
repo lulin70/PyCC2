@@ -274,31 +274,23 @@ class TestShowHideToggle:
         assert overlay.visible is True
         assert game_state.paused == paused_after_first_show
 
-    def test_toggle_with_question_key_shows(
-        self, overlay: KeybindingsOverlay
-    ) -> None:
+    def test_toggle_with_question_key_shows(self, overlay: KeybindingsOverlay) -> None:
         """Verify: toggle(? key) shows the overlay when hidden."""
         overlay.toggle(key=pygame.K_QUESTION, mod=0)
         assert overlay.visible is True
 
-    def test_toggle_with_question_key_hides(
-        self, overlay: KeybindingsOverlay
-    ) -> None:
+    def test_toggle_with_question_key_hides(self, overlay: KeybindingsOverlay) -> None:
         """Verify: toggle(? key) hides the overlay when visible."""
         overlay.show()
         overlay.toggle(key=pygame.K_QUESTION, mod=0)
         assert overlay.visible is False
 
-    def test_toggle_with_slash_shift_shows(
-        self, overlay: KeybindingsOverlay
-    ) -> None:
+    def test_toggle_with_slash_shift_shows(self, overlay: KeybindingsOverlay) -> None:
         """Verify: toggle(Shift+/) shows the overlay."""
         overlay.toggle(key=pygame.K_SLASH, mod=pygame.KMOD_LSHIFT)
         assert overlay.visible is True
 
-    def test_toggle_with_non_toggle_key_is_noop(
-        self, overlay: KeybindingsOverlay
-    ) -> None:
+    def test_toggle_with_non_toggle_key_is_noop(self, overlay: KeybindingsOverlay) -> None:
         """Verify: toggle() with non-? key does nothing."""
         overlay.toggle(key=pygame.K_m, mod=0)
         assert overlay.visible is False
@@ -328,9 +320,7 @@ class TestPauseResumeIntegration:
         overlay.hide()
         assert game_state.paused is False
 
-    def test_show_remembers_prior_paused_state(
-        self, game_state: _FakeGameState
-    ) -> None:
+    def test_show_remembers_prior_paused_state(self, game_state: _FakeGameState) -> None:
         """Verify: when game was already paused, hide() keeps it paused.
 
         This is the critical edge case: if the player paused for another
@@ -484,15 +474,11 @@ class TestRender:
 class TestConfiguration:
     """Verify custom configuration (V-08 Wave D3)."""
 
-    def test_default_panel_alpha_is_180(
-        self, overlay: KeybindingsOverlay
-    ) -> None:
+    def test_default_panel_alpha_is_180(self, overlay: KeybindingsOverlay) -> None:
         """Verify: default panel_alpha is 180 (Wave B-rev spec)."""
         assert overlay.panel_alpha == PANEL_ALPHA == 180
 
-    def test_default_text_bg_alpha_is_153(
-        self, overlay: KeybindingsOverlay
-    ) -> None:
+    def test_default_text_bg_alpha_is_153(self, overlay: KeybindingsOverlay) -> None:
         """Verify: default text_bg_alpha is 153 (Wave B-rev spec)."""
         assert overlay.text_bg_alpha == TEXT_BG_ALPHA == 153
 
@@ -573,9 +559,7 @@ class TestPerformance:
             overlay.render(screen, *fonts)
         elapsed_ms = (time.perf_counter() - start) * 1000
         per_render_ms = elapsed_ms / 10
-        assert per_render_ms < 50, (
-            f"Render too slow: {per_render_ms:.1f}ms/render (threshold 50ms)"
-        )
+        assert per_render_ms < 50, f"Render too slow: {per_render_ms:.1f}ms/render (threshold 50ms)"
 
 
 # ============================================================================
@@ -608,15 +592,11 @@ class TestConstants:
         bg = PANEL_BG_COLOR
         border = PANEL_BORDER_COLOR
         # Border should be brighter than bg
-        assert sum(border) > sum(bg), (
-            f"Border {border} not brighter than bg {bg}"
-        )
+        assert sum(border) > sum(bg), f"Border {border} not brighter than bg {bg}"
 
     def test_row_height_reasonable(self) -> None:
         """Verify: ROW_HEIGHT is in a reasonable range for text rows."""
-        assert 16 <= ROW_HEIGHT <= 32, (
-            f"ROW_HEIGHT {ROW_HEIGHT} out of reasonable range [16, 32]"
-        )
+        assert 16 <= ROW_HEIGHT <= 32, f"ROW_HEIGHT {ROW_HEIGHT} out of reasonable range [16, 32]"
 
     def test_default_category_order_has_expected_entries(self) -> None:
         """Verify: DEFAULT_CATEGORY_ORDER contains the expected categories."""

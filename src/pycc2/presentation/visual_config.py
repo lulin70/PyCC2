@@ -47,34 +47,36 @@ class ColorPalette:
     """
 
     # --- Terrain colors (10) ---
-    GRASS_PRIMARY: Color = field(default_factory=lambda: Color(76, 124, 35))       # #4C7C23
-    GRASS_HIGHLIGHT: Color = field(default_factory=lambda: Color(90, 142, 43))     # #5A8E2B
-    GRASS_SHADOW: Color = field(default_factory=lambda: Color(58, 100, 24))        # #3A6418
-    DIRT_PRIMARY: Color = field(default_factory=lambda: Color(101, 67, 33))        # #654321
-    SAND_PRIMARY: Color = field(default_factory=lambda: Color(194, 178, 128))      # #C2B280
-    SNOW_PRIMARY: Color = field(default_factory=lambda: Color(240, 240, 245))      # #F0F0F5
-    WATER_PRIMARY: Color = field(default_factory=lambda: Color(60, 100, 140))      # #3C648C
-    FOREST_PRIMARY: Color = field(default_factory=lambda: Color(34, 80, 26))       # #22501A
-    URBAN_PRIMARY: Color = field(default_factory=lambda: Color(120, 120, 125))     # #78787D
-    ROAD_PRIMARY: Color = field(default_factory=lambda: Color(140, 130, 110))      # #8C826E
+    GRASS_PRIMARY: Color = field(default_factory=lambda: Color(76, 124, 35))  # #4C7C23
+    GRASS_HIGHLIGHT: Color = field(default_factory=lambda: Color(90, 142, 43))  # #5A8E2B
+    GRASS_SHADOW: Color = field(default_factory=lambda: Color(58, 100, 24))  # #3A6418
+    DIRT_PRIMARY: Color = field(default_factory=lambda: Color(101, 67, 33))  # #654321
+    SAND_PRIMARY: Color = field(default_factory=lambda: Color(194, 178, 128))  # #C2B280
+    SNOW_PRIMARY: Color = field(default_factory=lambda: Color(240, 240, 245))  # #F0F0F5
+    WATER_PRIMARY: Color = field(default_factory=lambda: Color(60, 100, 140))  # #3C648C
+    FOREST_PRIMARY: Color = field(default_factory=lambda: Color(34, 80, 26))  # #22501A
+    URBAN_PRIMARY: Color = field(default_factory=lambda: Color(120, 120, 125))  # #78787D
+    ROAD_PRIMARY: Color = field(default_factory=lambda: Color(140, 130, 110))  # #8C826E
 
     # --- Faction colors (8) ---
-    ALLIES_PRIMARY: Color = field(default_factory=lambda: Color(76, 124, 35))      # #4C7C23 (olive drab)
-    AMERICAN_PRIMARY: Color = field(default_factory=lambda: Color(60, 110, 30))    # #3C6E1E
-    BRITISH_PRIMARY: Color = field(default_factory=lambda: Color(80, 100, 40))     # #506428
-    POLISH_PRIMARY: Color = field(default_factory=lambda: Color(120, 80, 30))      # #78501E
-    AXIS_PRIMARY: Color = field(default_factory=lambda: Color(120, 100, 60))       # #78643C (field gray)
-    GERMAN_PRIMARY: Color = field(default_factory=lambda: Color(100, 90, 50))      # #645A32
-    HIGHLIGHT_ALLIES: Color = field(default_factory=lambda: Color(100, 160, 60))   # selection tint
-    HIGHLIGHT_AXIS: Color = field(default_factory=lambda: Color(160, 120, 80))     # selection tint
+    ALLIES_PRIMARY: Color = field(
+        default_factory=lambda: Color(76, 124, 35)
+    )  # #4C7C23 (olive drab)
+    AMERICAN_PRIMARY: Color = field(default_factory=lambda: Color(60, 110, 30))  # #3C6E1E
+    BRITISH_PRIMARY: Color = field(default_factory=lambda: Color(80, 100, 40))  # #506428
+    POLISH_PRIMARY: Color = field(default_factory=lambda: Color(120, 80, 30))  # #78501E
+    AXIS_PRIMARY: Color = field(default_factory=lambda: Color(120, 100, 60))  # #78643C (field gray)
+    GERMAN_PRIMARY: Color = field(default_factory=lambda: Color(100, 90, 50))  # #645A32
+    HIGHLIGHT_ALLIES: Color = field(default_factory=lambda: Color(100, 160, 60))  # selection tint
+    HIGHLIGHT_AXIS: Color = field(default_factory=lambda: Color(160, 120, 80))  # selection tint
 
     # --- UI colors (6) ---
-    UI_PANEL: Color = field(default_factory=lambda: Color(40, 40, 50))             # #282832
-    UI_BORDER: Color = field(default_factory=lambda: Color(80, 80, 90))            # #50505A
-    UI_TEXT: Color = field(default_factory=lambda: Color(220, 220, 220))           # #DCDCDC
-    UI_HIGHLIGHT: Color = field(default_factory=lambda: Color(255, 200, 100))      # #FFC864
-    UI_VICTORY: Color = field(default_factory=lambda: Color(100, 200, 100))        # #64C864
-    UI_DEFEAT: Color = field(default_factory=lambda: Color(200, 80, 80))           # #C85050
+    UI_PANEL: Color = field(default_factory=lambda: Color(40, 40, 50))  # #282832
+    UI_BORDER: Color = field(default_factory=lambda: Color(80, 80, 90))  # #50505A
+    UI_TEXT: Color = field(default_factory=lambda: Color(220, 220, 220))  # #DCDCDC
+    UI_HIGHLIGHT: Color = field(default_factory=lambda: Color(255, 200, 100))  # #FFC864
+    UI_VICTORY: Color = field(default_factory=lambda: Color(100, 200, 100))  # #64C864
+    UI_DEFEAT: Color = field(default_factory=lambda: Color(200, 80, 80))  # #C85050
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -90,8 +92,8 @@ class VisualDimensions:
     """
 
     # --- Tile / sprite base ---
-    TILE_SIZE: int = 48                  # P0-4: 32 → 48 in v0.7.x
-    SPRITE_SIZE: int = 48                # sprite canvas size
+    TILE_SIZE: int = 48  # P0-4: 32 → 48 in v0.7.x
+    SPRITE_SIZE: int = 48  # sprite canvas size
 
     # --- Unit sprite sizes (per unit type) ---
     UNIT_SIZE_INFANTRY: tuple[int, int] = (18, 22)
@@ -127,14 +129,14 @@ class AnimationTimings:
 
     EXPLOSION_DURATION: float = 0.3
     MUZZLE_FLASH_DURATION: float = 0.05
-    SMOKE_GRENADE_DURATION: float = 45.0     # in-game seconds
+    SMOKE_GRENADE_DURATION: float = 45.0  # in-game seconds
     BLOOD_HIT_DURATION: float = 0.4
     DEATH_ANIMATION_DURATION: float = 0.6
-    HOVER_TRANSITION: float = 0.2            # 200ms
-    CLICK_TRANSITION: float = 0.13           # 130ms (Wave B: 100ms→120-150ms)
+    HOVER_TRANSITION: float = 0.2  # 200ms
+    CLICK_TRANSITION: float = 0.13  # 130ms (Wave B: 100ms→120-150ms)
     SELECTION_PULSE_PERIOD: float = 1.0
     ERROR_FLASH_DURATION: float = 0.3
-    EASING_CURVE: str = "ease_out_cubic"     # Wave B: unified easing
+    EASING_CURVE: str = "ease_out_cubic"  # Wave B: unified easing
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -151,7 +153,7 @@ class VisualEffects:
 
     # --- Shadows ---
     SHADOW_ALPHA: int = 128
-    SHADOW_OFFSET: tuple[int, int] = (4, 4)   # (+x, +y) — SE direction
+    SHADOW_OFFSET: tuple[int, int] = (4, 4)  # (+x, +y) — SE direction
 
     # --- Particle counts ---
     PARTICLE_COUNT_EXPLOSION: int = 40
@@ -260,9 +262,7 @@ class ThemeManager:
             try:
                 listener()
             except Exception as exc:  # noqa: BLE001
-                logger.warning(
-                    "Theme change listener %r raised: %s", listener, exc
-                )
+                logger.warning("Theme change listener %r raised: %s", listener, exc)
 
     @classmethod
     def listener_count(cls) -> int:

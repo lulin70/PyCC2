@@ -362,9 +362,7 @@ class TestCriticalOverride:
 
     def test_explicit_critical_true_overrides_non_critical_damage(self, manager, kinetic_damage):
         """is_critical=True overrides damage.is_critical=False."""
-        result = manager.add_damage_number(
-            (100, 200), kinetic_damage, is_critical=True
-        )
+        result = manager.add_damage_number((100, 200), kinetic_damage, is_critical=True)
         assert result is True
         popup = manager._popups[-1]
         assert popup.color == DAMAGE_COLOR_CRITICAL
@@ -373,9 +371,7 @@ class TestCriticalOverride:
 
     def test_explicit_critical_false_overrides_critical_damage(self, manager, critical_damage):
         """is_critical=False overrides damage.is_critical=True."""
-        result = manager.add_damage_number(
-            (100, 200), critical_damage, is_critical=False
-        )
+        result = manager.add_damage_number((100, 200), critical_damage, is_critical=False)
         assert result is True
         popup = manager._popups[-1]
         # Should use kinetic color (white), not critical red
@@ -385,9 +381,7 @@ class TestCriticalOverride:
 
     def test_explicit_none_uses_damage_property(self, manager, kinetic_damage):
         """is_critical=None (default) uses damage.is_critical property."""
-        result = manager.add_damage_number(
-            (100, 200), kinetic_damage, is_critical=None
-        )
+        result = manager.add_damage_number((100, 200), kinetic_damage, is_critical=None)
         assert result is True
         popup = manager._popups[-1]
         # kinetic_damage.amount=25, is_critical=False (amount < 75)
@@ -574,9 +568,7 @@ class TestCoexistenceWithRegularPopups:
             mgr.add_popup(f"Popup {i}", 100 + i * 10, 200)
         for i in range(3):
             damage = Damage(amount=10.0 + i, damage_type=DamageType.KINETIC)
-            mgr.add_damage_number(
-                (100 + i * 10, 200), damage, unit_id=f"unit_{i}"
-            )
+            mgr.add_damage_number((100 + i * 10, 200), damage, unit_id=f"unit_{i}")
         assert len(mgr._popups) <= 5
 
     def test_damage_popup_does_not_crash_regular_render(self, manager, kinetic_damage):
@@ -607,9 +599,7 @@ class TestPerformance:
 
         start = time.perf_counter()
         for i in range(1000):
-            mgr.add_damage_number(
-                (100.0, 200.0), damage, unit_id=f"unit_{i}"
-            )
+            mgr.add_damage_number((100.0, 200.0), damage, unit_id=f"unit_{i}")
         elapsed_ms = (time.perf_counter() - start) * 1000.0
         assert elapsed_ms < 100.0, f"1000 calls took {elapsed_ms:.1f}ms"
 
@@ -618,9 +608,7 @@ class TestPerformance:
         mgr = CombatPopupManager(max_popups=50)
         for i in range(50):
             damage = Damage(amount=10.0 + i, damage_type=DamageType.KINETIC)
-            mgr.add_damage_number(
-                (100.0 + i, 200.0 + i), damage, unit_id=f"unit_{i}"
-            )
+            mgr.add_damage_number((100.0 + i, 200.0 + i), damage, unit_id=f"unit_{i}")
 
         class FakeCamera:
             offset_x = 0

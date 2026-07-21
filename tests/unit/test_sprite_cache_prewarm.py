@@ -111,47 +111,33 @@ class TestPrewarmResult:
 class TestPrewarmAPI:
     """Verify prewarm() method behavior (V-09 Wave D4)."""
 
-    def test_prewarm_returns_prewarm_result(
-        self, cache_manager: SpriteCacheManager
-    ) -> None:
+    def test_prewarm_returns_prewarm_result(self, cache_manager: SpriteCacheManager) -> None:
         """Verify: prewarm() returns a PrewarmResult instance."""
         result = cache_manager.prewarm()
         assert isinstance(result, PrewarmResult)
 
-    def test_prewarm_returns_positive_elapsed_ms(
-        self, cache_manager: SpriteCacheManager
-    ) -> None:
+    def test_prewarm_returns_positive_elapsed_ms(self, cache_manager: SpriteCacheManager) -> None:
         """Verify: prewarm() reports non-negative elapsed_ms."""
         result = cache_manager.prewarm()
         # Idempotent call returns cached result with original timing
         assert result.elapsed_ms >= 0.0
 
-    def test_prewarm_populates_sprite_cache(
-        self, cache_manager: SpriteCacheManager
-    ) -> None:
+    def test_prewarm_populates_sprite_cache(self, cache_manager: SpriteCacheManager) -> None:
         """Verify: prewarm() populates sprite_cache with at least 264 entries.
 
         264 = 3 factions (allies/axis/polish) × 11 unit types × 8 directions.
         """
         result = cache_manager.prewarm()
-        assert result.sprite_count >= 264, (
-            f"Expected ≥264 sprites, got {result.sprite_count}"
-        )
+        assert result.sprite_count >= 264, f"Expected ≥264 sprites, got {result.sprite_count}"
         assert len(cache_manager.sprite_cache) >= 264
 
-    def test_prewarm_populates_terrain_cache(
-        self, cache_manager: SpriteCacheManager
-    ) -> None:
+    def test_prewarm_populates_terrain_cache(self, cache_manager: SpriteCacheManager) -> None:
         """Verify: prewarm() populates terrain_cache with 22 entries."""
         result = cache_manager.prewarm()
-        assert result.terrain_count == 22, (
-            f"Expected 22 terrain tiles, got {result.terrain_count}"
-        )
+        assert result.terrain_count == 22, f"Expected 22 terrain tiles, got {result.terrain_count}"
         assert len(cache_manager.terrain_cache) == 22
 
-    def test_prewarm_is_idempotent(
-        self, cache_manager: SpriteCacheManager
-    ) -> None:
+    def test_prewarm_is_idempotent(self, cache_manager: SpriteCacheManager) -> None:
         """Verify: calling prewarm() twice returns the same cached result.
 
         Idempotency is critical to prevent double-generation of 264+22 entries
@@ -173,9 +159,7 @@ class TestPrewarmAPI:
 class TestPrewarmIdempotency:
     """Verify prewarm() idempotency edge cases (V-09 Wave D4)."""
 
-    def test_prewarm_does_not_regenerate_sprites(
-        self, cache_manager: SpriteCacheManager
-    ) -> None:
+    def test_prewarm_does_not_regenerate_sprites(self, cache_manager: SpriteCacheManager) -> None:
         """Verify: repeat prewarm() call doesn't regenerate sprites.
 
         We verify this by checking that the sprite count is stable
@@ -195,9 +179,7 @@ class TestPrewarmIdempotency:
             f"prewarm() changed sprite count: {count_before} → {len(cache_after)}"
         )
 
-    def test_prewarm_returns_cached_timing(
-        self, cache_manager: SpriteCacheManager
-    ) -> None:
+    def test_prewarm_returns_cached_timing(self, cache_manager: SpriteCacheManager) -> None:
         """Verify: repeat prewarm() returns the original timing (not 0.0)."""
         result1 = cache_manager.prewarm()
         # Sleep a tiny bit to ensure a different timestamp would be measurable
@@ -236,7 +218,9 @@ class TestPrewarmLogging:
         # The cache_manager fixture was constructed with prewarm() in __init__.
         # caplog at module level may not capture that, so we look for any
         # "prewarm" log in the logger history.
-        with caplog.at_level(logging.INFO, logger="pycc2.presentation.rendering.sprite_cache_manager"):
+        with caplog.at_level(
+            logging.INFO, logger="pycc2.presentation.rendering.sprite_cache_manager"
+        ):
             # Force a no-op call — won't log because already prewarmed
             cache_manager.prewarm()
 
@@ -245,9 +229,7 @@ class TestPrewarmLogging:
         logger = logging.getLogger("pycc2.presentation.rendering.sprite_cache_manager")
         assert logger.name == "pycc2.presentation.rendering.sprite_cache_manager"
 
-    def test_prewarm_logs_warning_when_slow(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_prewarm_logs_warning_when_slow(self, caplog: pytest.LogCaptureFixture) -> None:
         """Verify: prewarm() logs WARNING when exceeding threshold.
 
         Uses a fresh SpriteCacheManager with threshold=0 to force the warning.
@@ -285,9 +267,7 @@ class TestPrewarmConfiguration:
         """Verify: PREWARM_SLOW_THRESHOLD_MS default is 500ms (Wave B-rev spec)."""
         assert PREWARM_SLOW_THRESHOLD_MS == 500
 
-    def test_custom_threshold_zero_forces_warning(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_custom_threshold_zero_forces_warning(self, caplog: pytest.LogCaptureFixture) -> None:
         """Verify: slow_threshold_ms=0 forces warning on any prewarm.
 
         Resets ``_prewarmed`` to force a re-run (otherwise idempotent no-op
@@ -354,9 +334,7 @@ class TestConstructionIntegration:
         assert len(manager.sprite_cache) >= 264
         assert len(manager.terrain_cache) == 22
 
-    def test_prewarm_after_construction_returns_cached(
-        self
-    ) -> None:
+    def test_prewarm_after_construction_returns_cached(self) -> None:
         """Verify: explicit prewarm() after construction returns cached result.
 
         This is the idempotency guarantee: external code calling prewarm()
@@ -393,9 +371,7 @@ class TestPerformance:
             f"prewarm elapsed_ms out of range: {result.elapsed_ms}ms"
         )
 
-    def test_prewarm_does_not_measure_zero_when_first_run(
-        self
-    ) -> None:
+    def test_prewarm_does_not_measure_zero_when_first_run(self) -> None:
         """Verify: first prewarm measures non-zero time.
 
         A 0.0ms measurement would indicate the timer is broken or the

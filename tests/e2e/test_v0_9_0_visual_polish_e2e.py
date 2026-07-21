@@ -75,28 +75,19 @@ class TestV01MigrationIntegrity:
         """Verify: texture_water_bridge.TILE_SIZE sourced from DEFAULT_VISUAL_CONFIG."""
         from pycc2.presentation.rendering import texture_water_bridge
 
-        assert (
-            texture_water_bridge.TILE_SIZE
-            == DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE
-        )
+        assert texture_water_bridge.TILE_SIZE == DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE
 
     def test_texture_structures_tile_size_matches_visual_config(self):
         """Verify: texture_structures.TILE_SIZE sourced from DEFAULT_VISUAL_CONFIG."""
         from pycc2.presentation.rendering import texture_structures
 
-        assert (
-            texture_structures.TILE_SIZE
-            == DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE
-        )
+        assert texture_structures.TILE_SIZE == DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE
 
     def test_texture_vegetation_tile_size_matches_visual_config(self):
         """Verify: texture_vegetation.TILE_SIZE sourced from DEFAULT_VISUAL_CONFIG."""
         from pycc2.presentation.rendering import texture_vegetation
 
-        assert (
-            texture_vegetation.TILE_SIZE
-            == DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE
-        )
+        assert texture_vegetation.TILE_SIZE == DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE
 
     def test_procedural_texture_generator_tile_size_matches_visual_config(self):
         """Verify: ProceduralTextureGenerator.TILE_SIZE sourced from DEFAULT_VISUAL_CONFIG."""
@@ -104,10 +95,7 @@ class TestV01MigrationIntegrity:
             ProceduralTextureGenerator,
         )
 
-        assert (
-            ProceduralTextureGenerator.TILE_SIZE
-            == DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE
-        )
+        assert ProceduralTextureGenerator.TILE_SIZE == DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE
 
     def test_enhanced_renderer_tile_size_matches_visual_config(self):
         """Verify: EnhancedRenderer.TILE_SIZE sourced from DEFAULT_VISUAL_CONFIG."""
@@ -204,9 +192,7 @@ class TestV01InterfaceFreeze:
             VisualEffects,
             VisualConfig,
         ):
-            assert cls.__dataclass_params__.frozen is True, (
-                f"{cls.__name__} must be frozen=True"
-            )
+            assert cls.__dataclass_params__.frozen is True, f"{cls.__name__} must be frozen=True"
 
     def test_default_visual_config_is_singleton_instance(self):
         """Verify: DEFAULT_VISUAL_CONFIG is a VisualConfig instance."""
@@ -216,8 +202,16 @@ class TestV01InterfaceFreeze:
         """Verify: key ColorPalette defaults match V-01 design (Wave C3d freeze)."""
         palette = DEFAULT_VISUAL_CONFIG.palette
         # Spot-check a few critical colors that renderers depend on
-        assert (palette.GRASS_PRIMARY.r, palette.GRASS_PRIMARY.g, palette.GRASS_PRIMARY.b) == (76, 124, 35)
-        assert (palette.AXIS_PRIMARY.r, palette.AXIS_PRIMARY.g, palette.AXIS_PRIMARY.b) == (120, 100, 60)
+        assert (palette.GRASS_PRIMARY.r, palette.GRASS_PRIMARY.g, palette.GRASS_PRIMARY.b) == (
+            76,
+            124,
+            35,
+        )
+        assert (palette.AXIS_PRIMARY.r, palette.AXIS_PRIMARY.g, palette.AXIS_PRIMARY.b) == (
+            120,
+            100,
+            60,
+        )
         assert (palette.UI_VICTORY.r, palette.UI_VICTORY.g, palette.UI_VICTORY.b) == (100, 200, 100)
 
     def test_visual_dimensions_tile_size_is_48(self):
@@ -227,9 +221,7 @@ class TestV01InterfaceFreeze:
     def test_animation_timings_click_transition_in_wave_b_range(self):
         """Verify: CLICK_TRANSITION in 0.12-0.15s range (Wave B P1 target)."""
         ct = DEFAULT_VISUAL_CONFIG.timings.CLICK_TRANSITION
-        assert 0.12 <= ct <= 0.15, (
-            f"CLICK_TRANSITION drift: {ct}s not in Wave B range [0.12, 0.15]"
-        )
+        assert 0.12 <= ct <= 0.15, f"CLICK_TRANSITION drift: {ct}s not in Wave B range [0.12, 0.15]"
 
     def test_visual_effects_shadow_alpha_in_design_range(self):
         """Verify: SHADOW_ALPHA in [100, 200] (visible but not opaque)."""
@@ -264,9 +256,7 @@ def _make_unit(unit_id: str = "u1"):
         unit_type=UnitType.INFANTRY_SQUAD,
         health=HealthComponent(hp=100, max_hp=100),
         morale=MoraleComponent(value=80),
-        weapon=WeaponComponent(
-            primary_weapon_id="rifle", ammo_remaining=10, max_ammo=10
-        ),
+        weapon=WeaponComponent(primary_weapon_id="rifle", ammo_remaining=10, max_ammo=10),
         position=PositionComponent(tile_coord=TileCoord(8, 8)),
         vision=VisionComponent(range_tiles=5),
     )
@@ -343,9 +333,7 @@ class TestV07BaselineIntegrity:
     """Verify V-07 visual regression baselines exist for the current platform
     and that thresholds are within design limits."""
 
-    BASELINES_DIR = (
-        Path(__file__).parent.parent / "visual_regression" / "baselines"
-    )
+    BASELINES_DIR = Path(__file__).parent.parent / "visual_regression" / "baselines"
 
     EXPECTED_SCENARIOS = (
         "main_menu",
@@ -368,9 +356,7 @@ class TestV07BaselineIntegrity:
         )
         for scenario in self.EXPECTED_SCENARIOS:
             png_path = platform_dir / f"{scenario}.png"
-            assert png_path.exists(), (
-                f"Baseline PNG missing: {png_path}"
-            )
+            assert png_path.exists(), f"Baseline PNG missing: {png_path}"
 
     def test_baseline_pngs_are_valid_images(self):
         """Verify: each baseline PNG is a valid image file (non-zero size, loadable)."""
@@ -401,15 +387,9 @@ class TestV07BaselineIntegrity:
             STRICT_THRESHOLD,
         )
 
-        assert STRICT_THRESHOLD == 0.01, (
-            f"STRICT_THRESHOLD drift: {STRICT_THRESHOLD} != 0.01"
-        )
-        assert DEFAULT_THRESHOLD == 0.03, (
-            f"DEFAULT_THRESHOLD drift: {DEFAULT_THRESHOLD} != 0.03"
-        )
-        assert LOOSE_THRESHOLD == 0.05, (
-            f"LOOSE_THRESHOLD drift: {LOOSE_THRESHOLD} != 0.05"
-        )
+        assert STRICT_THRESHOLD == 0.01, f"STRICT_THRESHOLD drift: {STRICT_THRESHOLD} != 0.01"
+        assert DEFAULT_THRESHOLD == 0.03, f"DEFAULT_THRESHOLD drift: {DEFAULT_THRESHOLD} != 0.03"
+        assert LOOSE_THRESHOLD == 0.05, f"LOOSE_THRESHOLD drift: {LOOSE_THRESHOLD} != 0.05"
 
 
 # ──────────────────────────────────────────────────────────────────────

@@ -77,11 +77,7 @@ def _pixel_diff_ratio(baseline_path: Path, current_png_path: Path) -> float:
     if total == 0:
         return 0.0
 
-    diff_pixels = sum(
-        1
-        for r, g, b in diff_data
-        if r > 8 or g > 8 or b > 8
-    )
+    diff_pixels = sum(1 for r, g, b in diff_data if r > 8 or g > 8 or b > 8)
     return diff_pixels / total
 
 
@@ -172,11 +168,7 @@ def test_visual_regression_baseline(
 def test_baseline_coverage(current_platform: str) -> None:
     """Smoke test: ensure all 5 baselines exist for the current platform."""
     baseline_dir = get_baseline_dir(current_platform)
-    missing = [
-        s
-        for s in SCENARIO_RENDERERS
-        if not (baseline_dir / f"{s}.png").exists()
-    ]
+    missing = [s for s in SCENARIO_RENDERERS if not (baseline_dir / f"{s}.png").exists()]
     if missing:
         pytest.fail(
             f"Missing baselines for platform '{current_platform}': {missing}. "
@@ -192,11 +184,8 @@ def test_thresholds_are_within_design_limits() -> None:
 
     # All scenarios must have a threshold assigned.
     for scenario in SCENARIO_RENDERERS:
-        assert scenario in SCENARIO_THRESHOLDS, (
-            f"Missing threshold for scenario '{scenario}'"
-        )
+        assert scenario in SCENARIO_THRESHOLDS, f"Missing threshold for scenario '{scenario}'"
         # Thresholds must be in [0.01, 0.05] range per Wave B-rev design.
         assert 0.01 <= SCENARIO_THRESHOLDS[scenario] <= 0.05, (
-            f"Threshold for '{scenario}' out of design range: "
-            f"{SCENARIO_THRESHOLDS[scenario]}"
+            f"Threshold for '{scenario}' out of design range: {SCENARIO_THRESHOLDS[scenario]}"
         )

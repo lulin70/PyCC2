@@ -173,8 +173,7 @@ class SpriteCacheManager:
 
         if elapsed_ms > slow_threshold_ms:
             logger.warning(
-                "SpriteCache prewarm exceeded %dms threshold (%.1fms); "
-                "consider lazy-load fallback",
+                "SpriteCache prewarm exceeded %dms threshold (%.1fms); consider lazy-load fallback",
                 slow_threshold_ms,
                 elapsed_ms,
             )

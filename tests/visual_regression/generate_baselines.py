@@ -123,9 +123,9 @@ def _make_urban_map() -> GameMap:
 def _make_mixed_map() -> GameMap:
     """Create a 16x16 mixed terrain map (for minimap scenario)."""
     grid = np.zeros((16, 16), dtype=np.int8)
-    grid[0:4, :] = 0    # grass
-    grid[4:8, :] = 1    # road
-    grid[8:12, :] = 3   # woods
+    grid[0:4, :] = 0  # grass
+    grid[4:8, :] = 1  # road
+    grid[8:12, :] = 3  # woods
     grid[12:16, :] = 6  # water
     return GameMap(id="mixed", name="Mixed Map", width=16, height=16, tile_grid=grid)
 
@@ -140,9 +140,7 @@ def _make_ally_unit(tile_x: int = 5, tile_y: int = 5) -> Unit:
         position=PositionComponent(tile_coord=TileCoord(tile_x, tile_y)),
         vision=VisionComponent(),
         health=HealthComponent(hp=100, max_hp=100),
-        weapon=WeaponComponent(
-            primary_weapon_id="rifle", max_ammo=120, ammo_remaining=120
-        ),
+        weapon=WeaponComponent(primary_weapon_id="rifle", max_ammo=120, ammo_remaining=120),
         morale=MoraleComponent(value=75),
     )
 
@@ -166,9 +164,7 @@ def render_main_menu(screen: pygame.Surface) -> None:
     title = font_title.render("PyCC2", True, (240, 200, 80))
     screen.blit(title, (SCREEN_W // 2 - title.get_width() // 2, 180))
 
-    subtitle = font_normal.render(
-        "Close Combat 2 — Python Tribute", True, (200, 200, 220)
-    )
+    subtitle = font_normal.render("Close Combat 2 — Python Tribute", True, (200, 200, 220))
     screen.blit(subtitle, (SCREEN_W // 2 - subtitle.get_width() // 2, 250))
 
     version = font_small.render("v0.8.0 — Test Baseline", True, (140, 140, 160))
@@ -307,18 +303,14 @@ def main() -> int:
     parser.add_argument(
         "--scenario",
         action="append",
-        help="Specific scenario to regenerate (can be repeated). "
-        "Defaults to all 5 scenarios.",
+        help="Specific scenario to regenerate (can be repeated). Defaults to all 5 scenarios.",
     )
     parser.add_argument(
         "--output-root",
         default=None,
-        help="Override baseline root directory. "
-        "Defaults to tests/visual_regression/baselines/.",
+        help="Override baseline root directory. Defaults to tests/visual_regression/baselines/.",
     )
-    parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Enable debug logging."
-    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable debug logging.")
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -327,8 +319,8 @@ def main() -> int:
     )
 
     platform = args.platform or _detect_platform()
-    output_root = Path(args.output_root) if args.output_root else (
-        Path(__file__).parent / "baselines"
+    output_root = (
+        Path(args.output_root) if args.output_root else (Path(__file__).parent / "baselines")
     )
     output_dir = output_root / platform
     scenarios = args.scenario if args.scenario else list(SCENARIO_NAMES)
