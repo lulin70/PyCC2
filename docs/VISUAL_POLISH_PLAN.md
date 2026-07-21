@@ -1103,6 +1103,17 @@ class ThemeSwitcher:
 
 **风险**: 低 (可选 skin 不影响默认体验; 战斗中禁用 + 确认弹窗 + 淡入淡出避免误操作和视觉跳变)
 
+**实施确认 (Wave E2, 2026-07-21)**:
+- ✅ `palette_morandi.py` (250 行): 40+ Morandi 颜色常量 (低饱和度 ≤ 30% HSL), `apply_morandi_palette(spec)` 函数,
+  `is_morandi_applied(spec)` 检查, `morandi_color_palette()` 适配 ColorPalette (visual_config.py)
+- ✅ `theme_switcher.py` (362 行): `ThemeSwitcher` 类 + `ThemeSwitchState` 枚举 (IDLE/CONFIRMING/FADING_OUT/REBUILDING/FADING_IN) +
+  `SwitchResult` dataclass, 战斗中禁用 (`can_switch()`), 确认弹窗 (`request_switch/confirm/cancel`),
+  淡入淡出 (100ms) + 进度条 (>200ms 阈值), `force_complete()` 用于测试
+- ✅ `GameState` 新增 `in_combat: bool = False` 字段 (game_loop_types.py)
+- ✅ Wave B-rev 修正全部实施: 战斗中禁用 + 确认弹窗 + 进度条 + 淡入淡出
+- ✅ 验证全绿: 38 tests passed (`test_theme_switcher_v10.py`),
+  ruff 0 errors, mypy 0 errors in 382 files, radon cc 全 A/B 级 (update B, 其他 A)
+
 ---
 
 ### V-11 小地图地形细节
@@ -1164,6 +1175,17 @@ class MinimapLegend:
 ```
 
 **风险**: 低 (朝向仅选中减少视觉噪音; 阵亡 5 秒避免信息丢失; legend toggle 平衡空间与可读性)
+
+**实施确认 (Wave E1, 2026-07-21)**:
+- ✅ 实施方式: _CasualtyMarker dataclass + casualty/legend 方法直接嵌入 `Minimap` 类
+  (不另建 `minimap_legend.py`, 避免过度拆分单职责小模块 — 与 V-06 拆分 `micro_animation.py` 决策相反但同源 SRP 原则)
+- ✅ 阵亡标记: `_CasualtyMarker` dataclass(slots=True), 5 秒过期 (`_CASUALTY_MARKER_DURATION_S=5.0`),
+  灰色 X (`_CASUALTY_MARKER_COLOR=(128,128,128)`), `add_casualty()` / `update_casualties()` / `_draw_casualties()`
+- ✅ Legend toggle: `toggle_legend()` / `legend_visible` property / `_draw_legend()`,
+  L 键切换 (默认隐藏), 半透明背景 + 边框 + 阵营/地形色块图例
+- ✅ 朝向仅选中单位: `_draw_units()` 中 `if self._selected_unit_id and unit.id == self._selected_unit_id` 守卫
+- ✅ 验证全绿: 27 tests passed (`test_minimap_v11.py`),
+  ruff 0 errors, mypy 0 errors in 380 files, radon cc 全 A 级
 
 ---
 
@@ -1241,6 +1263,15 @@ class AccessibilityManager:
 ```
 
 **风险**: 低 → 中 (色盲仅 UI+地形 避免战术可读性风险; 字体 4 档覆盖更大范围; 实时预览避免反复切换)
+
+**实施进度 (2026-07-21)**:
+
+- ✅ **Wave E3 完成**: 创建 `src/pycc2/presentation/ui/accessibility.py` (331 行) — `ColorBlindMode` 枚举 (NONE/PROTANOPIA/DEUTERANOPIA/TRITANOPIA) + `AccessibilityState` dataclass(slots=True) + `AccessibilityManager` 类 (色盲模式 + 字体 4 档 + 层级限制 + listener 通知)。
+- ✅ **Machado et al. 2009 daltonism 矩阵**: 3×3 RGB 变换矩阵 (Protanopia/Deuteranopia/Tritanopia), `transform_color(rgb)` + `transform_color_batch(colors)` + clamp 0-255。
+- ✅ **Wave B-rev 层级限制落地**: `APPLICABLE_LAYERS=("ui","terrain")`, `EXCLUDED_LAYERS=("units",)`, `is_layer_affected(layer)` 严格判断, 单位精灵保持阵营原色。
+- ✅ **字体 4 档**: `FONT_SCALE_FACTORS=(0.85, 1.0, 1.25, 1.5)`, `FONT_SCALE_LABELS=("小","中","大","特大")`, `set_font_scale_by_factor(factor)` 最近匹配 + `restore_state(state)` + `reset()`。
+- ✅ **测试覆盖**: `tests/unit/test_accessibility_v12.py` (467 行, 44 测试, 6 个测试类) — TestColorBlindModeSetting (6) / TestFontScaleSetting (12) / TestColorTransformation (7) / TestLayerScoping (6) / TestListenerNotification (7) / TestStatePersistence (6)。
+- ✅ **全量验证**: pytest 44/44 passed (0.53s) + ruff 0 errors + mypy 0 errors in 383 source files + radon cc 全 A 级 (平均 1.45, 最高 3)。
 
 ---
 

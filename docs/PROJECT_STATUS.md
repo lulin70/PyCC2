@@ -1,14 +1,14 @@
 # PyCC2 项目状态
 
-> **最后更新**: 2026-07-18
-> **版本**: v0.8.0
-> **状态**: Beta Candidate — 完全可玩
+> **最后更新**: 2026-07-21
+> **版本**: v0.9.0
+> **状态**: Beta Candidate — 完全可玩 (v0.9.0 视觉打磨完成)
 
 ## 核心指标
 
 | 指标 | 数值 | 来源 |
 |------|------|------|
-| 版本号 | 0.8.0 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
+| 版本号 | 0.9.0 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
 | 源码模块数 | 386 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
 | 测试文件数 | 213 个 `.py` 文件（unit 167 / integration 14 / e2e 28 / benchmark 4 / acceptance 1 / root 2） | `find tests -name "*.py" \| wc -l` |
 | 测试用例数 | 6311 collected / 6291 passed / 2 skipped (v0.7.6 INTEGRATE 后基线: v0.7.5 6216 + path_preview 8 + range_indicator 10 + cover_seek 9 + day_night_cycle 34 + variant_generators 14) | `pytest tests/ -m "not slow" --co -q` |
