@@ -11,6 +11,7 @@ ERRORS=0
 
 # Documents that MUST reference the current version
 # Wave B-rev P0-4 (2026-07-20): 追加 v0.9.0 视觉打磨 3 项文档
+# v0.9.1 (2026-07-24): 追加 INSTALL 三语文档 (D13-N8 修复)
 REQUIRED_DOCS=(
     "docs/PRD.md"
     "docs/DESIGN.md"
@@ -24,6 +25,9 @@ REQUIRED_DOCS=(
     "docs/VISUAL_POLISH_PLAN.md"
     "docs/ROADMAP_v0.9.0.md"
     "docs/VISUAL_OPTIMIZATION_UNIFIED.md"
+    "INSTALL.md"
+    "INSTALL_zh.md"
+    "INSTALL_ja.md"
 )
 
 echo "Checking document version consistency (VERSION=${VERSION})..."

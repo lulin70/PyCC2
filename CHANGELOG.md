@@ -2,6 +2,29 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## Post-v0.9.0 fixes (2026-07-24) — 风险点改进 (DevSquad 7-Role 共识)
+
+基于 [PROJECT_ASSESSMENT_v0.9.0.md](docs/archive/PROJECT_ASSESSMENT_v0.9.0.md) 维度 7 诚实评价识别的 4 个风险点改进 (视觉回归 baselines 仅 macOS 用户接受现状,不纳入本次改进)。详见 [RISK_MITIGATION_PLAN_v0.9.1.md](docs/RISK_MITIGATION_PLAN_v0.9.1.md)。
+
+### Changed
+- **CI 覆盖率门禁恢复 70%**: `ci.yml` `--cov-fail-under=65` → `--cov-fail-under=70` + `pyproject.toml` `[tool.coverage.report] fail_under=70` (v0.9.0 视觉打磨期临时调整,实际覆盖率 72.64% 已达 70% 目标)
+- **dependabot 配置对齐 Hard Constraint**: pip schedule weekly → daily (security updates) + 添加 `ignore` 段排除 15 个 dev dependencies 的 patch/minor updates (ruff/mypy/black/pytest*/pre-commit/coverage/radon/bandit/pip-audit/hypothesis/freezegun)
+- **mypy 版本上限约束**: `pyproject.toml` `mypy>=1.7` → `mypy>=1.7,<1.12` (Hard Constraint: pin upper limit 防止新检查破坏构建)
+
+### Fixed
+- **D13-N8 INSTALL 三语文档版本号滞后**: INSTALL.md/INSTALL_zh.md/INSTALL_ja.md 标题 v0.6.10 → v0.9.0 (严重文档 bug,check_doc_consistency.sh 未覆盖 INSTALL 文件)
+- **INSTALL_zh.md/INSTALL_ja.md 移除"版本历史"表**: 版本历史应由 CHANGELOG 管理,INSTALL 不应维护 (统一三语结构)
+- **check_doc_consistency.sh 覆盖缺口**: REQUIRED_DOCS 添加 INSTALL.md/INSTALL_zh.md/INSTALL_ja.md (15→15 文档,防回归)
+
+### Decisions
+- **TD-007 地图边界 `_scatter` 维持 ACCEPTED**: 高风险低收益 (修改需重新生成 64 个地图 JSON + 影响 7 个测试文件),基于 Simplicity First + Surgical Changes 原则维持现状
+
+### Verified
+- `./scripts/check_doc_consistency.sh` 15/15 PASS (含新增 INSTALL 三语)
+- `ruff check .` 0 errors
+- `ruff format --check .` 0 errors
+- `mypy -p pycc2` 0 errors (383 files)
+
 ## v0.9.0 — 视觉打磨与 UI 提升 (minor, 2026-07-21)
 
 v0.9.0 完成 14 项视觉/UI 提升 (V-01 ~ V-14) 基于 DevSquad 7-Role Wave B-rev 二次共识 (7/7 APPROVE_WITH_CONCERNS)。定位为 MINOR (14 项用户可见新功能: 视觉参数集中配置化 + 战后报告可视化 + FPS 性能基准 + 响应式布局 + 微动画 + 快捷键 + SpriteCache 预热 + 视觉回归基线 + Morandi 皮肤 + 小地图地形细节 + 可访问性 + 伤害飘字 + 士气视觉化 + 文档同步)。全量 6839 passed 零回归 (v0.8.0 基线 6301 + 538 新增)。

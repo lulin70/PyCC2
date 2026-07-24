@@ -663,10 +663,12 @@
 - **评估**: ASSESSMENT_D1x_MATURITY.md 系列文档是项目成熟度演进的历史记录
 - **状态**: 🟢 保留 (历史记录，非技术债)
 
-### 🟢 D13-N8: INSTALL 三语结构略有差异 (P3) — 待 v0.5 整理
+### ~~🟢 D13-N8: INSTALL 三语结构略有差异 (P3)~~ ✅ RESOLVED (v0.9.1, 2026-07-24)
 
 - **评估**: INSTALL.md / INSTALL_zh.md / INSTALL_ja.md 结构略有差异
-- **状态**: 🟢 低优先级 (待 v0.5 文档整理批次统一)
+- **根因发现 (v0.9.1)**: 三语标题均为 v0.6.10 但项目已 v0.9.0,check_doc_consistency.sh 未覆盖 INSTALL 文件
+- **解决方案**: 1) 三语标题 v0.6.10 → v0.9.0; 2) 移除 INSTALL_zh.md/INSTALL_ja.md "版本历史"表 (应由 CHANGELOG 管理); 3) check_doc_consistency.sh REQUIRED_DOCS 添加 INSTALL 三语 (防回归)
+- **状态**: ✅ RESOLVED (v0.9.1, 2026-07-24) — 详见 [RISK_MITIGATION_PLAN_v0.9.1.md](RISK_MITIGATION_PLAN_v0.9.1.md)
 
 ---
 
