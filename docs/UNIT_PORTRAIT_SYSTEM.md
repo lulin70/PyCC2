@@ -111,17 +111,17 @@ Portraits are rendered in these sequential layers:
 ```python
 class PortraitPalette(Enum):
     """Military color palettes matching CC2 screenshots."""
-    
+
     # Allies
-    ALLIES_HELMET = (89, 107, 53)      # Olive green
-    ALLIES_UNIFORM = (80, 86, 38)      # Olive drab
-    ALLIES_INSIGNIA = (218, 165, 32)   # Gold
-    
+    ALLIES_HELMET = (89, 107, 53)  # Olive green
+    ALLIES_UNIFORM = (80, 86, 38)  # Olive drab
+    ALLIES_INSIGNIA = (218, 165, 32)  # Gold
+
     # Axis
-    AXIS_HELMET = (60, 62, 56)         # Field grey
-    AXIS_UNIFORM = (89, 95, 84)        # Field grey
-    AXIS_INSIGNIA = (192, 192, 192)    # Silver
-    
+    AXIS_HELMET = (60, 62, 56)  # Field grey
+    AXIS_UNIFORM = (89, 95, 84)  # Field grey
+    AXIS_INSIGNIA = (192, 192, 192)  # Silver
+
     # ... (see source code for complete palette)
 ```
 
@@ -178,20 +178,20 @@ Cache keys: `{faction}_{unit_type}_{unit_id}`
 ```python
 from pycc2.presentation.ui import UnitPortraitRenderer
 
+
 class UnitSelectionPanel:
     def __init__(self):
         self.portrait_renderer = UnitPortraitRenderer()
-    
+
     def render_unit_entry(self, surface, unit, x, y):
         """Render unit list entry with portrait."""
         # Get portrait (cached if already generated)
         portrait = self.portrait_renderer.generate_portrait(unit)
-        
+
         # Draw portrait with border
         surface.blit(portrait, (x, y))
-        pygame.draw.rect(surface, (100, 100, 95), 
-                        (x-2, y-2, 100, 100), 2)
-        
+        pygame.draw.rect(surface, (100, 100, 95), (x - 2, y - 2, 100, 100), 2)
+
         # Draw unit name next to portrait
         name_surf = self.font.render(unit.name, True, (200, 200, 190))
         surface.blit(name_surf, (x + 106, y + 20))
@@ -253,14 +253,13 @@ def render_selected_unit_detail(surface, unit):
 def generate_portrait_gallery():
     """Generate grid of all faction/unit combinations."""
     renderer = UnitPortraitRenderer()
-    
+
     factions = ["ALLIES", "BRITISH", "AXIS"]
-    unit_types = ["INFANTRY_SQUAD", "COMMANDER", "TANK", 
-                  "SNIPER_TEAM", "MEDIC_TEAM"]
-    
+    unit_types = ["INFANTRY_SQUAD", "COMMANDER", "TANK", "SNIPER_TEAM", "MEDIC_TEAM"]
+
     # Generate grid surface
     grid = renderer.generate_portrait_grid(factions, unit_types)
-    
+
     # Save to file
     pygame.image.save(grid, "portrait_gallery.png")
 ```
@@ -298,20 +297,21 @@ class CC2HUD:
 # In unit_panel.py
 from pycc2.presentation.ui import generate_unit_portrait
 
+
 class UnitPanel:
     def render(self, surface: Surface) -> None:
         """Render unit panel with portrait."""
         if not self._visible or not self._selected_unit:
             return
-        
+
         # Generate portrait
         portrait = generate_unit_portrait(self._selected_unit)
-        
+
         # Render at top of panel
         portrait_x = self._position[0] + 10
         portrait_y = self._position[1] + 10
         surface.blit(portrait, (portrait_x, portrait_y))
-        
+
         # ... rest of panel rendering ...
 ```
 

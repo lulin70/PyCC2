@@ -68,7 +68,7 @@ if is_hover:
     # 外发光（4px模糊）
     glow_surf = pygame.Surface((68, 68), pygame.SRCALPHA)
     pygame.draw.rect(glow_surf, (255, 215, 0, 100), (0, 0, 68, 68), 4)
-    surface.blit(glow_surf, (x-2, y-2))
+    surface.blit(glow_surf, (x - 2, y - 2))
 ```
 
 ### 2.2 选中效果
@@ -78,7 +78,7 @@ if is_selected:
     # 金色粗边框+阴影
     shadow = pygame.Surface((96, 96), pygame.SRCALPHA)
     pygame.draw.rect(shadow, (0, 0, 0, 150), (0, 0, 96, 96), 4)
-    surface.blit(shadow, (x+2, y+2))  # 阴影偏移
+    surface.blit(shadow, (x + 2, y + 2))  # 阴影偏移
     pygame.draw.rect(surface, (255, 215, 0), rect, 3)  # 3px金边
 ```
 
@@ -152,22 +152,22 @@ if health_percent < 0.2:
 
 # 1. __init__() +2行
 from .unit_portrait_renderer import UnitPortraitRenderer
+
 self.portrait_renderer = UnitPortraitRenderer()
 
 # 2. _render_left_panel() ~15行修改
 for i, unit in enumerate(selected_units):
     portrait = self.portrait_renderer.render_portrait_scaled(
-        unit.unit_type, unit.faction, 64,
-        unit.health / unit.max_health
+        unit.unit_type, unit.faction, 64, unit.health / unit.max_health
     )
     surface.blit(portrait, (10, 50 + i * 70))
-    
+
 # 3. _render_center_panel() ~10行修改
 if selected_unit:
     portrait = self.portrait_renderer.render_portrait(
         selected_unit.unit_type,
         selected_unit.faction,
-        selected_unit.health / selected_unit.max_health
+        selected_unit.health / selected_unit.max_health,
     )
     surface.blit(portrait, (center_x, 20))
 ```

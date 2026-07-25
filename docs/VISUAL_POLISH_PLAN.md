@@ -95,6 +95,7 @@ Theme hot-reload: When V-10 Morandi skin is toggled, call
 `ThemeManager.notify_theme_change()` to broadcast to all renderers to
 re-read DEFAULT_VISUAL_CONFIG and invalidate sprite caches.
 """
+
 from __future__ import annotations
 from dataclasses import dataclass, field
 from pygame import Color
@@ -107,17 +108,18 @@ class ColorPalette:
     ⚠️ Color fields are internally mutable (pygame.Color). Callers must
     NOT modify .r/.g/.b/.a of any Color instance retrieved from this palette.
     """
+
     # Terrain colors (≥10)
-    GRASS_PRIMARY: Color = Color(76, 124, 35)       # #4C7C23
-    GRASS_HIGHLIGHT: Color = Color(90, 142, 43)     # #5A8E2B
-    GRASS_SHADOW: Color = Color(58, 100, 24)        # #3A6418
-    DIRT_PRIMARY: Color = Color(101, 67, 33)        # #654321
-    SAND_PRIMARY: Color = Color(194, 178, 128)      # #C2B280
-    SNOW_PRIMARY: Color = Color(240, 240, 245)      # #F0F0F5
-    WATER_PRIMARY: Color = Color(60, 100, 140)      # #3C648C
-    FOREST_PRIMARY: Color = Color(34, 80, 26)       # #22501A
-    URBAN_PRIMARY: Color = Color(120, 120, 125)     # #78787D
-    ROAD_PRIMARY: Color = Color(140, 130, 110)      # #8C826E
+    GRASS_PRIMARY: Color = Color(76, 124, 35)  # #4C7C23
+    GRASS_HIGHLIGHT: Color = Color(90, 142, 43)  # #5A8E2B
+    GRASS_SHADOW: Color = Color(58, 100, 24)  # #3A6418
+    DIRT_PRIMARY: Color = Color(101, 67, 33)  # #654321
+    SAND_PRIMARY: Color = Color(194, 178, 128)  # #C2B280
+    SNOW_PRIMARY: Color = Color(240, 240, 245)  # #F0F0F5
+    WATER_PRIMARY: Color = Color(60, 100, 140)  # #3C648C
+    FOREST_PRIMARY: Color = Color(34, 80, 26)  # #22501A
+    URBAN_PRIMARY: Color = Color(120, 120, 125)  # #78787D
+    ROAD_PRIMARY: Color = Color(140, 130, 110)  # #8C826E
     # Faction colors (≥8)
     ALLIES_PRIMARY: Color = Color(76, 124, 35)
     AMERICAN_PRIMARY: Color = Color(60, 110, 30)
@@ -137,6 +139,7 @@ class ColorPalette:
 @dataclass(frozen=True, slots=True)
 class VisualDimensions:
     """Visual size/dimension constants (≥10)."""
+
     TILE_SIZE: int = 48
     SPRITE_SIZE: int = 48
     UNIT_SIZE_INFANTRY: tuple[int, int] = (18, 22)
@@ -154,6 +157,7 @@ class VisualDimensions:
 @dataclass(frozen=True, slots=True)
 class AnimationTimings:
     """Animation duration constants in seconds (≥10)."""
+
     EXPLOSION_DURATION: float = 0.3
     MUZZLE_FLASH_DURATION: float = 0.05
     SMOKE_GRENADE_DURATION: float = 45.0
@@ -169,6 +173,7 @@ class AnimationTimings:
 @dataclass(frozen=True, slots=True)
 class VisualEffects:
     """Visual effect parameters (≥10)."""
+
     SHADOW_ALPHA: int = 128
     SHADOW_OFFSET: tuple[int, int] = (4, 4)
     PARTICLE_COUNT_EXPLOSION: int = 40
@@ -185,6 +190,7 @@ class VisualEffects:
 @dataclass(frozen=True, slots=True)
 class VisualConfig:
     """Single source of truth for all visual parameters (≥40 params total)."""
+
     palette: ColorPalette = field(default_factory=ColorPalette)
     dimensions: VisualDimensions = field(default_factory=VisualDimensions)
     timings: AnimationTimings = field(default_factory=AnimationTimings)
@@ -316,19 +322,19 @@ class PostBattleReportRenderer:
     def render_enhanced_report(self, surface: Surface, battle_result: BattleResult) -> None:
         """Render enhanced post-battle report.
 
-        Layout (1280×720):
-        ┌─────────────────────────────────────────┐
-        │ TOP: Victory/Defeat banner (height=80)  │  字号 32pt
-        ├──────────────┬──────────────────────────┤
-│ LEFT:        │ RIGHT:                   │
-        │ Casualty     │ Key events timeline      │  段标题 18pt
-        │ statistics   │ (5-10 critical events)   │  正文 14pt
-        │ (bar chart)  │ tab 切换 (Wave B-rev)    │
-        │ (height=300) │ (height=300)             │
-        ├──────────────┴──────────────────────────┤
-        │ BOTTOM: MVP unit showcase (height=200)  │
-        │ [Unit icon] [Name] [Stats] [Achievements]│  横向滚动 (多候选)
-        └─────────────────────────────────────────┘
+                Layout (1280×720):
+                ┌─────────────────────────────────────────┐
+                │ TOP: Victory/Defeat banner (height=80)  │  字号 32pt
+                ├──────────────┬──────────────────────────┤
+        │ LEFT:        │ RIGHT:                   │
+                │ Casualty     │ Key events timeline      │  段标题 18pt
+                │ statistics   │ (5-10 critical events)   │  正文 14pt
+                │ (bar chart)  │ tab 切换 (Wave B-rev)    │
+                │ (height=300) │ (height=300)             │
+                ├──────────────┴──────────────────────────┤
+                │ BOTTOM: MVP unit showcase (height=200)  │
+                │ [Unit icon] [Name] [Stats] [Achievements]│  横向滚动 (多候选)
+                └─────────────────────────────────────────┘
         """
         self._render_banner(surface, battle_result)
         # Wave B-rev: tab 切换而非并排, 降低单屏信息密度
@@ -342,6 +348,7 @@ class PostBattleReportRenderer:
 @dataclass(frozen=True, slots=True)
 class BattleEvent:
     """Wave B-rev Security: 强类型化避免裸 dict 丢失 mypy 检查."""
+
     event_type: str  # "unit_killed" / "building_destroyed" / "bridge_destroyed"
     timestamp: float
     unit_id: str | None = None
@@ -352,6 +359,7 @@ class BattleEvent:
 @dataclass(frozen=True, slots=True)
 class UnitBattleStats:
     """Per-unit battle statistics for MVP calculation."""
+
     unit_id: str
     shots_fired: int = 0
     hits: int = 0
@@ -439,6 +447,7 @@ def calculate_mvp(unit_stats: dict[str, UnitBattleStats]) -> str | None:
 Uses RELATIVE baseline (perf_baseline.json) to avoid false positives
 from GitHub Actions runner hardware variance.
 """
+
 import json
 import statistics
 from pathlib import Path
@@ -452,10 +461,12 @@ class TestFPSBaseline:
 
     def test_fps_normal_load(self, benchmark, real_game_loop):
         """Benchmark average FPS under normal load (50 units, 20x20 map)."""
+
         def run_600_ticks():
             for _ in range(600):
                 real_game_loop.tick()
             return real_game_loop.current_fps
+
         fps = benchmark.pedantic(run_600_ticks, iterations=1, rounds=3)
         self._check_regression("normal_load", fps)
 
@@ -592,6 +603,7 @@ git commit -m "chore(deps): add pytest-benchmark to requirements-dev.lock (V-04 
 ```python
 # src/pycc2/presentation/rendering/easing.py (新增)
 """Easing functions for micro-animations (V-06 Wave B-rev)."""
+
 import math
 
 
@@ -607,7 +619,7 @@ def ease_in_out_sine(t: float) -> float:
 
 def ease_in_out_cubic(t: float) -> float:
     """Accelerating then decelerating (button hover)."""
-    return 4 * t ** 3 if t < 0.5 else 1 - ((-2 * t + 2) ** 3) / 2
+    return 4 * t**3 if t < 0.5 else 1 - ((-2 * t + 2) ** 3) / 2
 ```
 
 **风险**: 低 (仅表现层, 不影响逻辑; ease_out_cubic 是 UI 行业标准)
@@ -647,6 +659,7 @@ def ease_in_out_cubic(t: float) -> float:
 ```python
 # tests/visual_regression/test_baseline.py
 import os
+
 os.environ["SDL_VIDEODRIVER"] = "dummy"  # 必须在 import pygame 前
 os.environ["SDL_AUDIODRIVER"] = "dummy"
 
@@ -657,10 +670,16 @@ BASELINE_DIR = Path("tests/visual_regression/baselines")
 DIFF_THRESHOLD = 0.05  # 5% pixel difference allowed
 
 
-@pytest.mark.parametrize("scenario", [
-    "main_menu", "battle_grassland", "battle_urban",
-    "post_battle_report", "minimap_full",
-])
+@pytest.mark.parametrize(
+    "scenario",
+    [
+        "main_menu",
+        "battle_grassland",
+        "battle_urban",
+        "post_battle_report",
+        "minimap_full",
+    ],
+)
 def test_visual_baseline(scenario, render_snapshot):
     """Compare current render against baseline (V-07 Wave B-rev)."""
     current = render_snapshot(scenario)
@@ -806,14 +825,15 @@ class SpriteCacheManager:
                 for direction in range(8):
                     self._generate_sprite(faction, unit_type, direction)
         elapsed_ms = (time.perf_counter() - start) * 1000
-        logger.info("SpriteCache prewarm completed: %.1fms (%d sprites)",
-                    elapsed_ms, len(self._cache))
+        logger.info(
+            "SpriteCache prewarm completed: %.1fms (%d sprites)", elapsed_ms, len(self._cache)
+        )
         # 异常情况 (> 500ms) 才考虑 UI 反馈
         if elapsed_ms > show_progress_threshold_ms:
             logger.warning(
-                "SpriteCache prewarm exceeded %dms threshold (%.1fms); "
-                "consider lazy-load fallback",
-                show_progress_threshold_ms, elapsed_ms
+                "SpriteCache prewarm exceeded %dms threshold (%.1fms); consider lazy-load fallback",
+                show_progress_threshold_ms,
+                elapsed_ms,
             )
 ```
 
@@ -846,7 +866,7 @@ from pycc2.domain.value_objects.damage import Damage, DamageType
 class CombatPopup:
     # ... existing fields (text, color, lifetime, etc.) ...
     is_damage_number: bool = False  # V-13: 标记为伤害飘字
-    damage_amount: float = 0.0      # V-13: 具体数值
+    damage_amount: float = 0.0  # V-13: 具体数值
     damage_type: DamageType | None = None  # V-13: 用于颜色区分
 
 
@@ -947,6 +967,7 @@ States (from morale_types.py):
   BROKEN   (<20)   → Red badge
   ROUTING  (active fleeing) → Red badge + flashing
 """
+
 from dataclasses import dataclass
 from enum import Enum
 from pygame import Color, Surface, draw
@@ -956,11 +977,11 @@ from pycc2.domain.systems.morale_types import MoraleState
 
 # Morale 状态到视觉色彩映射 (符合用户偏好: 避免刺眼色, 用莫兰迪化暖色系)
 MORALE_BADGE_COLORS: dict[MoraleState, Color] = {
-    MoraleState.RALLYED: Color(76, 175, 80),    # 莫兰迪绿
-    MoraleState.WAVERING: Color(255, 193, 7),   # 莫兰迪黄
-    MoraleState.PINNED: Color(255, 152, 0),     # 莫兰迪橙
-    MoraleState.BROKEN: Color(244, 67, 54),     # 莫兰迪红
-    MoraleState.ROUTING: Color(244, 67, 54),    # 莫兰迪红 + 闪烁
+    MoraleState.RALLYED: Color(76, 175, 80),  # 莫兰迪绿
+    MoraleState.WAVERING: Color(255, 193, 7),  # 莫兰迪黄
+    MoraleState.PINNED: Color(255, 152, 0),  # 莫兰迪橙
+    MoraleState.BROKEN: Color(244, 67, 54),  # 莫兰迪红
+    MoraleState.ROUTING: Color(244, 67, 54),  # 莫兰迪红 + 闪烁
 }
 
 
@@ -1007,6 +1028,7 @@ class MoraleIndicatorRenderer:
 @dataclass
 class MoraleIndicatorConfig:
     """Configuration for morale indicator (V-14 Wave B-rev)."""
+
     show_rallied: bool = False  # RALLYED 不显示 (减少噪音)
     show_wavering: bool = True
     show_pinned: bool = True
@@ -1090,7 +1112,7 @@ class ThemeSwitcher:
         self._show_confirm_dialog(
             title="切换视觉风格",
             message=f"切换到 {new_theme} 将重新生成精灵缓存 (~200ms), 是否继续?",
-            on_confirm=lambda: self._execute_switch(new_theme)
+            on_confirm=lambda: self._execute_switch(new_theme),
         )
 
     def _execute_switch(self, new_theme: str) -> None:
@@ -1164,9 +1186,7 @@ class MinimapLegend:
 
     def render(self, surface: Surface, current_time: float) -> None:
         # 始终渲染阵亡标记 (5 秒内)
-        self._casualty_markers = [
-            m for m in self._casualty_markers if m.expire_at > current_time
-        ]
+        self._casualty_markers = [m for m in self._casualty_markers if m.expire_at > current_time]
         for marker in self._casualty_markers:
             self._draw_x(surface, marker.position)
         # 图例按需显示
@@ -1224,9 +1244,9 @@ from enum import Enum
 
 class ColorBlindMode(Enum):
     NONE = "none"
-    PROTANOPIA = "protanopia"      # 红色盲
+    PROTANOPIA = "protanopia"  # 红色盲
     DEUTERANOPIA = "deuteranopia"  # 绿色盲
-    TRITANOPIA = "tritanopia"       # 蓝色盲
+    TRITANOPIA = "tritanopia"  # 蓝色盲
 
 
 # 字体 4 档 (Wave B-rev: 3 → 4)
@@ -1258,7 +1278,7 @@ class AccessibilityManager:
 
     def set_font_scale(self, index: int) -> None:
         if not 0 <= index < len(FONT_SCALE_FACTORS):
-            raise ValueError(f"Font scale index must be 0-{len(FONT_SCALE_FACTORS)-1}")
+            raise ValueError(f"Font scale index must be 0-{len(FONT_SCALE_FACTORS) - 1}")
         self._font_scale_index = index
 ```
 

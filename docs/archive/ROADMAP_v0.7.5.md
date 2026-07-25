@@ -83,7 +83,9 @@ for intent in final:
     else:
         logger.debug(
             "Order rejected: unit=%s tactic=%s reason=%s",
-            intent.unit_id, intent.tactic_type, acceptance.reason
+            intent.unit_id,
+            intent.tactic_type,
+            acceptance.reason,
         )
 final = filtered
 ```

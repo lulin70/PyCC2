@@ -109,7 +109,7 @@ class TestCombatIntegration:
         self.game.execute_command(cmd)
 
         # 验证弹药减少
-        assert self.attacker.ammo['m1_garand'] == 7  # 8 - 1
+        assert self.attacker.ammo["m1_garand"] == 7  # 8 - 1
 
         # 验证目标受伤或死亡
         assert self.target.hp < 100 or not self.target.is_alive
@@ -208,8 +208,8 @@ import pytest
 from pycc2.combat.ballistic import BallisticEngine
 from pycc2.core.random import RandomContext
 
-class TestBasicHit:
 
+class TestBasicHit:
     def test_hit_within_effective_range(self):
         """BE-HIT-01: 有效范围内应有较高命中率"""
         rng = RandomContext(seed=42)
@@ -219,10 +219,7 @@ class TestBasicHit:
         target_pos = Vec2(300, 0)  # 300米距离
         cover_value = 0.0
 
-        hits = sum(
-            engine.calculate_hit(weapon, target_pos, cover_value)
-            for _ in range(100)
-        )
+        hits = sum(engine.calculate_hit(weapon, target_pos, cover_value) for _ in range(100))
         hit_rate = hits / 100
         assert hit_rate > 0.6, f"Hit rate {hit_rate:.2f} too low"
 
@@ -234,10 +231,7 @@ class TestBasicHit:
         weapon = create_test_weapon(range_max=550, range_effective=400, accuracy_base=0.75)
         target_pos = Vec2(550, 0)
 
-        hits = sum(
-            engine.calculate_hit(weapon, target_pos, cover=0.0)
-            for _ in range(200)
-        )
+        hits = sum(engine.calculate_hit(weapon, target_pos, cover=0.0) for _ in range(200))
         hit_rate = hits / 200
         assert hit_rate < 0.3, f"Hit rate at max range {hit_rate:.2f} too high"
 
@@ -339,8 +333,8 @@ $$
 from scipy import stats
 import numpy as np
 
-class TestStatisticalValidation:
 
+class TestStatisticalValidation:
     def test_hit_rate_converges_to_theoretical(self):
         """BE-STAT-01: 大数定律验证命中率"""
         engine = BallisticEngine(RandomContext(seed=999))
@@ -419,29 +413,28 @@ MoraleCalculator 管理单位士气系统，包括事件响应、状态转换、
 
 ```python
 class TestMoraleEvents:
-
     def test_ally_killed_reduces_morale(self):
         """MC-EVT-01: 友军阵亡降低士气"""
         calc = MoraleCalculator(initial_morale=100)
-        calc.apply_event('ally_killed')
+        calc.apply_event("ally_killed")
         assert calc.current_morale == 85
 
     def test_leader_killed_bigger_penalty(self):
         """MC-EVT-02: 指挥官阵亡惩罚更大"""
         calc = MoraleCalculator(initial_morale=100)
-        calc.apply_event('leader_killed')
+        calc.apply_event("leader_killed")
         assert calc.current_morale == 75  # -25 > -15
 
     def test_kill_confirmed_increases_morale(self):
         """MC-EVT-05: 确认击杀提升士气"""
         calc = MoraleCalculator(initial_morale=70)
-        calc.apply_event('kill_confirmed')
+        calc.apply_event("kill_confirmed")
         assert calc.current_morale == 78  # +8
 
     def test_unknown_event_no_change(self):
         """MC-EVT-10: 未知事件不影响士气"""
         calc = MoraleCalculator(initial_morale=80)
-        calc.apply_event('nonexistent_event')
+        calc.apply_event("nonexistent_event")
         assert calc.current_morale == 80
 ```
 
@@ -641,7 +634,6 @@ PathFinder 基于A*算法，支持地形代价、动态障碍物等。
 ```python
 # tests/integration/test_combat_scenario.py
 class TestCombatScenario:
-
     @pytest.fixture
     def combat_setup(self):
         """创建一个标准的战斗测试场景"""
@@ -650,15 +642,11 @@ class TestCombatScenario:
         allies_squad = game.spawn_squad("rifle_squad_us", pos=(3, 3), faction="allies")
         axis_squad = game.spawn_squad("rifle_squad_ge", pos=(12, 8), faction="axis")
 
-        return {
-            'game': game,
-            'allies': allies_squad,
-            'axis': axis_squad
-        }
+        return {"game": game, "allies": allies_squad, "axis": axis_squad}
 
     def test_full_engagement_until_victory(self, combat_setup):
         """完整交战直到一方获胜"""
-        game = combat_setup['game']
+        game = combat_setup["game"]
 
         # 盟军进攻
         game.issue_command(MoveCommand(allies_squad.id, target=(10, 8)))
@@ -679,8 +667,8 @@ class TestCombatScenario:
 
     def test_suppression_leading_to_panic(self, combat_setup):
         """验证压制导致恐慌的完整链条"""
-        game = combat_setup['game']
-        target = combat_setup['axis'].units[0]
+        game = combat_setup["game"]
+        target = combat_setup["axis"].units[0]
 
         # 用机枪组持续压制
         mg_squad = game.spawn_squad("mg_squad_us", pos=(10, 8), faction="allies")
@@ -690,7 +678,7 @@ class TestCombatScenario:
             game.tick()
 
         # 验证目标进入panic状态
-        assert target.morale_state == 'panic', f"Expected panic, got {target.morale_state}"
+        assert target.morale_state == "panic", f"Expected panic, got {target.morale_state}"
         assert target.morale <= 20
 ```
 
@@ -1620,21 +1608,25 @@ source = [
 from unittest.mock import patch, MagicMock
 import pytest
 
+
 @pytest.fixture
 def mock_secure_io():
     """Mock SecureIO避免真正的HMAC/PBKDF2"""
-    with patch('pycc2.core.secure_io.SecureIO._derive_key') as mock_key:
-        mock_key.return_value = b'test_key_32bytes_long!!!!'  # 固定测试密钥
+    with patch("pycc2.core.secure_io.SecureIO._derive_key") as mock_key:
+        mock_key.return_value = b"test_key_32bytes_long!!!!"  # 固定测试密钥
         yield
+
 
 @pytest.fixture
 def headless_pygame():
     """Headless Pygame (无需显示器)"""
     import os
-    os.environ['SDL_VIDEODRIVER'] = 'dummy'
-    os.environ['SDL_AUDIODRIVER'] = 'dummy'
+
+    os.environ["SDL_VIDEODRIVER"] = "dummy"
+    os.environ["SDL_AUDIODRIVER"] = "dummy"
 
     import pygame
+
     pygame.init()
     yield pygame
     pygame.quit()
@@ -1675,6 +1667,7 @@ tests/
 import pytest
 from pathlib import Path
 
+
 @pytest.fixture
 def sample_weapon_config():
     """返回标准测试武器配置"""
@@ -1689,14 +1682,16 @@ def sample_weapon_config():
         "damage_base": 35,
         "rof": 40,
         "magazine_size": 8,
-        "reload_time_ticks": 20
+        "reload_time_ticks": 20,
     }
+
 
 @pytest.fixture
 def small_test_map():
     """加载16x16测试地图"""
     map_path = Path(__file__).parent / "fixtures/maps/test_small_16x16.json"
     return load_tile_map_config(map_path)
+
 
 @pytest.fixture
 def deterministic_rng():

@@ -56,14 +56,15 @@ import hmac
 import hashlib
 import json
 
+
 def sign_save_data(data: dict, key: bytes) -> tuple:
     """
     对存档数据进行HMAC-SHA256签名。
 
     返回: (payload_json, signature_hex)
     """
-    payload = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
-    signature = hmac.new(key, payload.encode('utf-8'), hashlib.sha256).hexdigest()
+    payload = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+    signature = hmac.new(key, payload.encode("utf-8"), hashlib.sha256).hexdigest()
     return payload, signature
 ```
 
@@ -100,14 +101,15 @@ def sign_save_data(data: dict, key: bytes) -> tuple:
 ```python
 from pydantic import BaseModel, Field, validator
 
+
 class UnitSaveData(BaseModel):
     current_hp: int = Field(..., ge=0)
 
-    @validator('current_hp')
+    @validator("current_hp")
     def validate_hp_not_excessive(cls, v, values):
-        base_hp = values.get('base_hp', 100)
+        base_hp = values.get("base_hp", 100)
         if v > base_hp * 1.5:  # 允许50%缓冲（buff等）
-            raise ValueError(f'HP {v} exceeds reasonable maximum {base_hp * 1.5}')
+            raise ValueError(f"HP {v} exceeds reasonable maximum {base_hp * 1.5}")
         return v
 ```
 
@@ -156,15 +158,16 @@ class UnitSaveData(BaseModel):
 ```python
 import os
 
+
 def sanitize_path(path: str) -> str:
     """将绝对路径转换为相对路径或脱敏"""
-    home = os.path.expanduser('~')
+    home = os.path.expanduser("~")
     if path.startswith(home):
-        return path.replace(home, '~')
+        return path.replace(home, "~")
     # 或者只显示最后两级目录
     parts = os.path.normpath(path).split(os.sep)
     if len(parts) > 3:
-        return os.path.join('...', *parts[-3:])
+        return os.path.join("...", *parts[-3:])
     return path
 ```
 
@@ -203,17 +206,18 @@ def sanitize_path(path: str) -> str:
 ```python
 from pydantic import BaseModel, field_validator
 
+
 class TileMapConfig(BaseModel):
     width: int = Field(..., ge=16, le=256)
     height: int = Field(..., ge=16, le=256)
 
-    @field_validator('width', 'height')
+    @field_validator("width", "height")
     @classmethod
     def check_map_size(cls, v):
         total_tiles = v * v  # 假设正方形简化计算
         max_tiles = 256 * 256  # 65536 tiles
         if total_tiles > max_tiles:
-            raise ValueError(f'Map too large: {total_tiles} tiles exceeds limit {max_tiles}')
+            raise ValueError(f"Map too large: {total_tiles} tiles exceeds limit {max_tiles}")
         return v
 ```
 
@@ -251,24 +255,21 @@ class TileMapConfig(BaseModel):
 # v2.0 计划功能
 class ModSandbox:
     ALLOWED_APIS = {
-        'register_unit_template',
-        'register_weapon_config',
-        'register_terrain_type',
-        'register_objective_type'
+        "register_unit_template",
+        "register_weapon_config",
+        "register_terrain_type",
+        "register_objective_type",
     }
 
-    FORBIDDEN_MODULES = {
-        'os', 'sys', 'subprocess', 'socket',
-        'importlib', 'builtins', '__import__'
-    }
+    FORBIDDEN_MODULES = {"os", "sys", "subprocess", "socket", "importlib", "builtins", "__import__"}
 
     def execute_mod_script(self, script_path: str):
         restricted_globals = {
-            '__builtins__': self._safe_builtins(),
-            'api': self._create_api_proxy()
+            "__builtins__": self._safe_builtins(),
+            "api": self._create_api_proxy(),
         }
         with open(script_path) as f:
-            code = compile(f.read(), script_path, 'exec')
+            code = compile(f.read(), script_path, "exec")
         exec(code, restricted_globals)  # 受限环境
 ```
 
@@ -342,6 +343,7 @@ import subprocess
 import functools
 from typing import Optional
 
+
 class SecureIO:
     _derived_key: Optional[bytes] = None
     _KEY_SALT: Optional[bytes] = None
@@ -354,6 +356,7 @@ class SecureIO:
         if cls._KEY_SALT is not None:
             return cls._KEY_SALT
         import os, secrets
+
         salt_path = os.path.join(os.path.expanduser("~"), ".pycc2", "salt.bin")
         os.makedirs(os.path.dirname(salt_path), exist_ok=True)
         if os.path.exists(salt_path):
@@ -371,13 +374,13 @@ class SecureIO:
         """获取macOS设备的唯一标识符 (ioreg UUID)"""
         try:
             result = subprocess.run(
-                ['ioreg', '-rd1', '-c', 'IOPlatformExpertDevice'],
+                ["ioreg", "-rd1", "-c", "IOPlatformExpertDevice"],
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
             )
-            for line in result.stdout.split('\n'):
-                if 'UUID' in line and '"' in line:
+            for line in result.stdout.split("\n"):
+                if "UUID" in line and '"' in line:
                     uuid = line.split('"')[-2]
                     if len(uuid) >= 16:
                         return uuid
@@ -386,6 +389,7 @@ class SecureIO:
 
         # Fallback: 使用machine-id或随机生成
         import platform
+
         fallback = f"{platform.node()}-{platform.machine()}"
         return hashlib.sha256(fallback.encode()).hexdigest()
 
@@ -398,15 +402,11 @@ class SecureIO:
         if cls._derived_key is not None:
             return cls._derived_key
 
-        device_uuid = cls._get_device_uuid().encode('utf-8')
+        device_uuid = cls._get_device_uuid().encode("utf-8")
         salt = cls._init_salt()
 
         key = hashlib.pbkdf2_hmac(
-            'sha256',
-            device_uuid,
-            salt,
-            cls._PBKDF2_ITERATIONS,
-            dklen=cls._KEY_LENGTH
+            "sha256", device_uuid, salt, cls._PBKDF2_ITERATIONS, dklen=cls._KEY_LENGTH
         )
 
         cls._derived_key = key
@@ -460,24 +460,21 @@ from pathlib import Path
 from datetime import datetime
 from typing import Any, Dict
 
+
 class SaveCorruptedError(Exception):
     pass
 
+
 class SaveVersionError(Exception):
     pass
+
 
 class SecureIO:
     SIG_PREFIX = "#SIG:"
     SAVE_VERSION = "1.0.0"
 
     @classmethod
-    def write_save(
-        cls,
-        save_path: Path,
-        data: Dict[str, Any],
-        *,
-        dev_mode: bool = False
-    ) -> bool:
+    def write_save(cls, save_path: Path, data: Dict[str, Any], *, dev_mode: bool = False) -> bool:
         """
         安全写入存档文件。
 
@@ -497,10 +494,10 @@ class SecureIO:
         try:
             payload = json.dumps(
                 data,
-                separators=(',', ':'),
+                separators=(",", ":"),
                 ensure_ascii=False,
                 sort_keys=True,
-                default=str  # 处理datetime等非标准类型
+                default=str,  # 处理datetime等非标准类型
             )
         except (TypeError, ValueError) as e:
             raise ValueError(f"Serialization failed: {e}")
@@ -508,11 +505,7 @@ class SecureIO:
         # Step 2: 生成HMAC签名 (除非dev_mode)
         if not dev_mode:
             key = cls._derive_key()
-            signature = hmac.new(
-                key,
-                payload.encode('utf-8'),
-                hashlib.sha256
-            ).hexdigest()
+            signature = hmac.new(key, payload.encode("utf-8"), hashlib.sha256).hexdigest()
 
             file_content = f"{payload}\n{cls.SIG_PREFIX}{signature}"
         else:
@@ -522,13 +515,10 @@ class SecureIO:
         save_path = Path(save_path)
         save_path.parent.mkdir(parents=True, exist_ok=True)
 
-        fd, tmp_path = tempfile.mkstemp(
-            dir=save_path.parent,
-            suffix='.tmp'
-        )
+        fd, tmp_path = tempfile.mkstemp(dir=save_path.parent, suffix=".tmp")
 
         try:
-            with os.fdopen(fd, 'w', encoding='utf-8') as f:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
                 f.write(file_content)
                 f.flush()
                 os.fsync(f.fileno())
@@ -724,7 +714,6 @@ Exception
 
 ```python
 class SecureIO:
-
     @classmethod
     def verify_save_integrity(cls, save_path: Path) -> tuple[bool, str]:
         """
@@ -753,11 +742,11 @@ class SecureIO:
         """
         data = cls.read_save(save_path)
         return {
-            'version': data.get('version'),
-            'timestamp': data.get('timestamp'),
-            'mission_index': data.get('campaign_state', {}).get('mission_index'),
-            'squad_count': len(data.get('squads', {})),
-            'file_size': save_path.stat().st_size
+            "version": data.get("version"),
+            "timestamp": data.get("timestamp"),
+            "mission_index": data.get("campaign_state", {}).get("mission_index"),
+            "squad_count": len(data.get("squads", {})),
+            "file_size": save_path.stat().st_size,
         }
 
     @classmethod
@@ -765,9 +754,10 @@ class SecureIO:
         """
         创建存档备份 (带时间戳)。
         """
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        backup_path = save_path.with_suffix(f'.sav.bak_{timestamp}')
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_path = save_path.with_suffix(f".sav.bak_{timestamp}")
         import shutil
+
         shutil.copy2(save_path, backup_path)
         return backup_path
 
@@ -777,19 +767,21 @@ class SecureIO:
         列出目录下所有有效存档及其元数据。
         """
         saves = []
-        for save_file in sorted(saves_dir.glob('*.sav')):
+        for save_file in sorted(saves_dir.glob("*.sav")):
             try:
                 metadata = cls.get_save_metadata(save_file)
-                metadata['path'] = str(save_file)
-                metadata['filename'] = save_file.name
+                metadata["path"] = str(save_file)
+                metadata["filename"] = save_file.name
                 saves.append(metadata)
             except Exception:
-                saves.append({
-                    'path': str(save_file),
-                    'filename': save_file.name,
-                    'valid': False,
-                    'error': 'Cannot read'
-                })
+                saves.append(
+                    {
+                        "path": str(save_file),
+                        "filename": save_file.name,
+                        "valid": False,
+                        "error": "Cannot read",
+                    }
+                )
         return saves
 ```
 
@@ -895,7 +887,7 @@ class TileMapConfig(BaseModel):
     spawn_points: List[SpawnPoint]
     objectives: List[Objective]
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_consistency(self):
         grid_h = len(self.terrain_grid)
         grid_w = len(self.terrain_grid[0]) if grid_h > 0 else 0
@@ -907,8 +899,7 @@ class TileMapConfig(BaseModel):
             )
 
         for sp in self.spawn_points:
-            if not (0 <= sp.position_x < self.width and
-                    0 <= sp.position_y < self.height):
+            if not (0 <= sp.position_x < self.width and 0 <= sp.position_y < self.height):
                 raise ValueError(f"Spawn point {sp.id} out of bounds")
 
         return self
@@ -922,21 +913,26 @@ class TileMapConfig(BaseModel):
 
 ```python
 class UnitTemplate(BaseModel):
-    id: str = Field(..., pattern=r'^[a-z][a-z0-9_]*$')  # ID格式约束
+    id: str = Field(..., pattern=r"^[a-z][a-z0-9_]*$")  # ID格式约束
     name: str = Field(..., min_length=1, max_length=64)
     faction: Literal["allies", "axis"]
     unit_type: Literal[
-        "infantry_rifle", "infantry_mg", "infantry_at",
-        "infantry_commander", "vehicle_light", "vehicle_medium",
-        "support_mortar"
+        "infantry_rifle",
+        "infantry_mg",
+        "infantry_at",
+        "infantry_commander",
+        "vehicle_light",
+        "vehicle_medium",
+        "support_mortar",
     ]
     staff_count_default: int = Field(default=10, ge=1, le=100)
     move_speed: float = Field(default=3.0, ge=0.5, le=20.0)
     base_hp: int = Field(..., gt=0, le=1000)
     weapons: List[str] = Field(..., min_length=1, max_length=10)
 
+
 class WeaponConfig(BaseModel):
-    id: str = Field(..., pattern=r'^[a-z][a-z0-9_]*$')
+    id: str = Field(..., pattern=r"^[a-z][a-z0-9_]*$")
     caliber: str = Field(..., min_length=1, max_length=32)
     range_max: int = Field(..., gt=0, le=10000)
     range_effective: int = Field(..., gt=0, le="range_max")
@@ -944,7 +940,7 @@ class WeaponConfig(BaseModel):
     rof: int = Field(..., gt=0, le=5000)
     magazine_size: int = Field(..., gt=0, le=1000)
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_range_logic(self):
         if self.range_effective > self.range_max:
             raise ValueError(
@@ -962,7 +958,7 @@ class WeaponConfig(BaseModel):
 
 ```python
 try:
-    config = EngineConfig.model_validate(toml.load('engine.toml'))
+    config = EngineConfig.model_validate(toml.load("engine.toml"))
 except ValidationError as e:
     logger.warning(f"Config validation error: {e}")
     config = EngineConfig()  # 回退到默认值
@@ -1012,31 +1008,20 @@ except ValidationError as e:
 ```python
 import argparse
 
+
 def parse_args():
-    parser = argparse.ArgumentParser(description='PyCC2 - WWII Tactical Combat Game')
+    parser = argparse.ArgumentParser(description="PyCC2 - WWII Tactical Combat Game")
 
     parser.add_argument(
-        '--map', type=str,
-        help='Path to map JSON file',
-        default='data/maps/tutorial.json'
+        "--map", type=str, help="Path to map JSON file", default="data/maps/tutorial.json"
+    )
+    parser.add_argument("--save", type=str, help="Path to save file to load", default=None)
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument(
+        "--dev-mode", action="store_true", help="Developer mode (skip security checks)"
     )
     parser.add_argument(
-        '--save', type=str,
-        help='Path to save file to load',
-        default=None
-    )
-    parser.add_argument(
-        '--debug', action='store_true',
-        help='Enable debug mode'
-    )
-    parser.add_argument(
-        '--dev-mode', action='store_true',
-        help='Developer mode (skip security checks)'
-    )
-    parser.add_argument(
-        '--resolution', type=str,
-        help='Window resolution (WIDTHxHEIGHT)',
-        default='1280x720'
+        "--resolution", type=str, help="Window resolution (WIDTHxHEIGHT)", default="1280x720"
     )
 
     args = parser.parse_args()
@@ -1044,7 +1029,7 @@ def parse_args():
     # 额外校验分辨率格式
     if args.resolution:
         try:
-            w, h = map(int, args.resolution.split('x'))
+            w, h = map(int, args.resolution.split("x"))
             assert 640 <= w <= 4096 and 480 <= h <= 2160
         except (ValueError, AssertionError):
             parser.error(f"Invalid resolution: {args.resolution}")
@@ -1083,10 +1068,22 @@ class InputHandler:
 
             # 只接受已知键位
             VALID_KEYS = {
-                K_UP, K_DOWN, K_LEFT, K_RIGHT,
-                K_w, K_a, K_s, K_d,
-                K_SPACE, K_ESCAPE, K_RETURN,
-                K_F11, K_HOME, K_END, K_f, K_m
+                K_UP,
+                K_DOWN,
+                K_LEFT,
+                K_RIGHT,
+                K_w,
+                K_a,
+                K_s,
+                K_d,
+                K_SPACE,
+                K_ESCAPE,
+                K_RETURN,
+                K_F11,
+                K_HOME,
+                K_END,
+                K_f,
+                K_m,
             }
             if key not in VALID_KEYS and not self.debug_mode:
                 return  # 忽略未知按键
@@ -1113,29 +1110,26 @@ class InputHandler:
 ```python
 MOD_ALLOWED_APIS = {
     # === 注册类API (安全, 只写) ===
-    'register_unit_template',     # 注册新单位模板
-    'register_weapon_config',     # 注册新武器配置
-    'register_terrain_type',      # 注册自定义地形属性
-    'register_objective_type',    # 注册目标类型
-    'register_mission',           # 注册自定义任务
-
+    "register_unit_template",  # 注册新单位模板
+    "register_weapon_config",  # 注册新武器配置
+    "register_terrain_type",  # 注册自定义地形属性
+    "register_objective_type",  # 注册目标类型
+    "register_mission",  # 注册自定义任务
     # === 查询类API (只读) ===
-    'get_terrain_at',             # 查询地形类型
-    'get_distance',               # 计算两点距离
-    'get_units_in_radius',        # 获取范围内单位列表
-    'get_game_tick',              # 获取当前tick
-    'get_difficulty',             # 获取难度设置
-
+    "get_terrain_at",  # 查询地形类型
+    "get_distance",  # 计算两点距离
+    "get_units_in_radius",  # 获取范围内单位列表
+    "get_game_tick",  # 获取当前tick
+    "get_difficulty",  # 获取难度设置
     # === 事件订阅 (受控) ===
-    'on_unit_killed',             # 单位死亡回调
-    'on_objective_captured',      # 目标占领回调
-    'on_mission_start',           # 任务开始回调
-    'on_mission_end',             # 任务结束回调
-
+    "on_unit_killed",  # 单位死亡回调
+    "on_objective_captured",  # 目标占领回调
+    "on_mission_start",  # 任务开始回调
+    "on_mission_end",  # 任务结束回调
     # === UI扩展 (受限) ===
-    'add_context_menu_item',      # 添加右键菜单项
-    'show_notification',          # 显示通知横幅
-    'log_to_console',             # 输出到控制台 (限速)
+    "add_context_menu_item",  # 添加右键菜单项
+    "show_notification",  # 显示通知横幅
+    "log_to_console",  # 输出到控制台 (限速)
 }
 ```
 
@@ -1156,40 +1150,36 @@ MOD_ALLOWED_APIS = {
 ```python
 MOD_FORBIDDEN_MODULES = {
     # === 系统交互 ===
-    'os',           # 文件系统/进程操作
-    'sys',          # 系统参数/路径
-    'subprocess',   # 子进程执行
-    'shutil',       # 高级文件操作
-
+    "os",  # 文件系统/进程操作
+    "sys",  # 系统参数/路径
+    "subprocess",  # 子进程执行
+    "shutil",  # 高级文件操作
     # === 网络 ===
-    'socket',       # 网络通信
-    'urllib',       # HTTP请求
-    'requests',     # HTTP客户端
-    'http',         # HTTP服务器/客户端
-    'ftplib',       # FTP
-    'telnetlib',    # Telnet
-
+    "socket",  # 网络通信
+    "urllib",  # HTTP请求
+    "requests",  # HTTP客户端
+    "http",  # HTTP服务器/客户端
+    "ftplib",  # FTP
+    "telnetlib",  # Telnet
     # === 代码执行 ===
-    'importlib',    # 动态导入
-    'importlib.util',
-    '__import__',   # 内置导入
-    'compile',      # 代码编译
-    'exec',         # 代码执行
-    'eval',         # 表达式求值
-    'types',        # 动态类型创建
-
+    "importlib",  # 动态导入
+    "importlib.util",
+    "__import__",  # 内置导入
+    "compile",  # 代码编译
+    "exec",  # 代码执行
+    "eval",  # 表达式求值
+    "types",  # 动态类型创建
     # === 序列化安全 ===
-    'pickle',       # 反序列化RCE风险
-    'marshal',      # 二进制码执行
-    'shelve',       # 持久化对象
-    'yaml',         # YAML可执行任意Python (!python/tag)
-
+    "pickle",  # 反序列化RCE风险
+    "marshal",  # 二进制码执行
+    "shelve",  # 持久化对象
+    "yaml",  # YAML可执行任意Python (!python/tag)
     # === 其他危险 ===
-    'ctypes',       # C库调用
-    'multiprocessing',  # 多进程逃逸
-    'threading',    # 线程 (可能导致死锁/竞态)
-    'signal',       # 信号处理
-    'pty',          # 终端模拟
+    "ctypes",  # C库调用
+    "multiprocessing",  # 多进程逃逸
+    "threading",  # 线程 (可能导致死锁/竞态)
+    "signal",  # 信号处理
+    "pty",  # 终端模拟
 }
 ```
 
@@ -1199,26 +1189,52 @@ MOD_FORBIDDEN_MODULES = {
 import builtins
 import sys
 
+
 class SafeBuiltins(dict):
     """安全的内置命名空间"""
 
     _ALLOWED_BUILTINS = {
-        'True', 'False', 'None',
-        'int', 'float', 'str', 'bool', 'list', 'dict', 'tuple', 'set',
-        'len', 'range', 'enumerate', 'zip', 'map', 'filter',
-        'min', 'max', 'sum', 'abs', 'round',
-        'print',  # 允许但重定向到安全logger
-        'isinstance', 'issubclass',
-        'type', 'hasattr', 'getattr', 'setattr',  # 受限版
-        'Exception', 'ValueError', 'TypeError', 'RuntimeError',
-        '__name__', '__doc__'
+        "True",
+        "False",
+        "None",
+        "int",
+        "float",
+        "str",
+        "bool",
+        "list",
+        "dict",
+        "tuple",
+        "set",
+        "len",
+        "range",
+        "enumerate",
+        "zip",
+        "map",
+        "filter",
+        "min",
+        "max",
+        "sum",
+        "abs",
+        "round",
+        "print",  # 允许但重定向到安全logger
+        "isinstance",
+        "issubclass",
+        "type",
+        "hasattr",
+        "getattr",
+        "setattr",  # 受限版
+        "Exception",
+        "ValueError",
+        "TypeError",
+        "RuntimeError",
+        "__name__",
+        "__doc__",
     }
 
     def __missing__(self, key):
         if key not in self._ALLOWED_BUILTINS:
             raise SecurityError(
-                f"Forbidden builtin: '{key}'. "
-                f"This operation is not allowed in mod sandbox."
+                f"Forbidden builtin: '{key}'. This operation is not allowed in mod sandbox."
             )
         return builtins.__dict__[key]
 ```
@@ -1246,6 +1262,7 @@ import resource
 import time
 import tracemalloc
 
+
 class ResourceMonitor:
     MAX_CPU_SECONDS = 5.0
     MAX_MEMORY_MB = 100
@@ -1269,8 +1286,7 @@ class ResourceMonitor:
         elapsed = time.monotonic() - self.start_time
         if elapsed > self.MAX_CPU_SECONDS:
             raise TimeoutError(
-                f"Mod execution exceeded CPU time limit "
-                f"({elapsed:.1f}s > {self.MAX_CPU_SECONDS}s)"
+                f"Mod execution exceeded CPU time limit ({elapsed:.1f}s > {self.MAX_CPU_SECONDS}s)"
             )
 
     def check_memory(self):
@@ -1278,8 +1294,7 @@ class ResourceMonitor:
         current_mb = current / (1024 * 1024)
         if current_mb > self.MAX_MEMORY_MB:
             raise MemoryError(
-                f"Mod memory usage exceeded limit "
-                f"({current_mb:.1f}MB > {self.MAX_MEMORY_MB}MB)"
+                f"Mod memory usage exceeded limit ({current_mb:.1f}MB > {self.MAX_MEMORY_MB}MB)"
             )
 
     def increment_instruction(self):
@@ -1403,12 +1418,13 @@ ruff check src/pycc2/models/
 ```python
 import os
 
+
 def is_dev_mode() -> bool:
     """检查是否处于开发者模式"""
-    return (
-        os.environ.get('PYCC2_DEV_MODE', '').lower() in ('1', 'true', 'yes') or
-        getattr(get_engine_config().debug, 'dev_mode', False)
+    return os.environ.get("PYCC2_DEV_MODE", "").lower() in ("1", "true", "yes") or getattr(
+        get_engine_config().debug, "dev_mode", False
     )
+
 
 # 在关键安全位置使用
 if not is_dev_mode():
@@ -1508,9 +1524,10 @@ echo "Check .gitignore effectiveness"
 
 ```python
 MIGRATORS = {
-    ('1.0', '1.1'): migrate_v1_to_v1_1,
-    ('1.1', '1.2'): migrate_v1_1_to_v1_2,
+    ("1.0", "1.1"): migrate_v1_to_v1_1,
+    ("1.1", "1.2"): migrate_v1_1_to_v1_2,
 }
+
 
 def migrate_save(data: dict, from_ver: str, to_ver: str) -> dict:
     key = (from_ver, to_ver)
@@ -1576,20 +1593,22 @@ pip-audit -r requirements.txt --dry-run  # 仅查看, 不阻断
 import traceback
 import os
 
+
 def safe_format_exception(e: Exception) -> str:
     """格式化异常信息, 脱敏敏感路径"""
     msg = str(e)
 
     # 脱敏绝对路径
-    home = os.path.expanduser('~')
-    msg = msg.replace(home, '~')
-    msg = msg.replace(os.getcwd(), '.')
+    home = os.path.expanduser("~")
+    msg = msg.replace(home, "~")
+    msg = msg.replace(os.getcwd(), ".")
 
     # 限制长度 (防止信息泄漏过多)
     if len(msg) > 500:
         msg = msg[:500] + "... (truncated)"
 
     return msg
+
 
 # 在顶层异常处理器中使用
 try:

@@ -163,9 +163,12 @@ border_width = max(2, int(3 * camera.zoom))
 ```python
 # 预缓存6种常用单位×4方向×2阵营 = 48个sprite
 COMMON_UNITS = [
-    ("allies", "infantry_squad"), ("axis", "infantry_squad"),
-    ("allies", "machine_gun_squad"), ("axis", "machine_gun_squad"),
-    ("allies", "tank"), ("axis", "tank"),
+    ("allies", "infantry_squad"),
+    ("axis", "infantry_squad"),
+    ("allies", "machine_gun_squad"),
+    ("axis", "machine_gun_squad"),
+    ("allies", "tank"),
+    ("axis", "tank"),
 ]
 for faction, utype in COMMON_UNITS:
     for dir_idx in range(4):
@@ -231,6 +234,7 @@ logger.debug("Right-click at %s, mode=%s", pos, self._mode)
 
 # radial_menu.py - handle_input
 logger.debug("Radial menu selection: %s", selected_cmd)
+
 
 # hud_manager.py - _bind_command_callbacks
 def on_move():

@@ -122,8 +122,10 @@ D11-2 SRP 拆分产物，明确设计为 **Base/Facade 协调器**。继承自 4
 def _sprite_cache(self) -> dict[str, Surface]:
     return self._cache_manager._sprite_cache
 
+
 def spawn_hit_flash(self, unit_id: str) -> None:
     self._effect_renderer.spawn_hit_flash(unit_id)
+
 
 def spawn_damage_number(self, position: Vec2, damage: int, is_kill: bool = False) -> None:
     self._effect_renderer.spawn_damage_number(position, damage, is_kill)

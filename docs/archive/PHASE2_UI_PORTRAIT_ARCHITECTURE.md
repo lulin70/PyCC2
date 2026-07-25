@@ -183,7 +183,7 @@ def _render_left_panel(self):
             unit.unit_type,
             unit.faction,
             health_pct=unit.health / unit.max_health,
-            size=64  # 64x64 for list view
+            size=64,  # 64x64 for list view
         )
         screen.blit(portrait, (x, y))
 ```
@@ -197,7 +197,7 @@ def _render_center_panel(self):
         portrait = self.portrait_renderer.render_portrait(
             selected_unit.unit_type,
             selected_unit.faction,
-            health_pct=selected_unit.health / selected_unit.max_health
+            health_pct=selected_unit.health / selected_unit.max_health,
         )
         screen.blit(portrait, (panel_center_x, 20))  # 顶部居中
 ```
@@ -216,12 +216,8 @@ def _render_center_panel(self):
 # 第89行附近
 # OLD: pygame.draw.rect(minimap, color, (x, y, 2, 2))
 # NEW: 32x32缩略头像
-mini_portrait = self.portrait_renderer.render_portrait_scaled(
-    unit.unit_type,
-    unit.faction,
-    size=32
-)
-minimap.blit(mini_portrait, (x-16, y-16))
+mini_portrait = self.portrait_renderer.render_portrait_scaled(unit.unit_type, unit.faction, size=32)
+minimap.blit(mini_portrait, (x - 16, y - 16))
 ```
 
 **影响评估**:
@@ -238,40 +234,41 @@ minimap.blit(mini_portrait, (x-16, y-16))
 ```python
 from functools import lru_cache
 
+
 class UnitPortraitRenderer:
     def __init__(self, max_cache_size: int = 100):
         self._cache: Dict[str, Surface] = {}
         self._max_cache_size = max_cache_size
         self._cache_hits = 0
         self._cache_misses = 0
-    
+
     def _get_cache_key(self, unit_type, faction, health_pct) -> str:
         """生成缓存键
-        
+
         health_pct量化为5档（0%, 25%, 50%, 75%, 100%）
         减少缓存项数量：10类型×2派系×5健康=100项
         """
         health_level = int(health_pct * 4) * 25  # 0,25,50,75,100
         return f"{unit_type.value}_{faction.value}_{health_level}"
-    
+
     def render_portrait(self, unit_type, faction, health_pct):
         key = self._get_cache_key(unit_type, faction, health_pct)
-        
+
         if key in self._cache:
             self._cache_hits += 1
             return self._cache[key]  # 1ms
-        
+
         self._cache_misses += 1
         surface = self._render_portrait_uncached(...)  # 4.5ms
-        
+
         # LRU淘汰
         if len(self._cache) >= self._max_cache_size:
             oldest_key = next(iter(self._cache))
             del self._cache[oldest_key]
-        
+
         self._cache[key] = surface
         return surface
-    
+
     def get_cache_stats(self) -> Dict[str, Any]:
         """缓存统计（用于性能监控）"""
         total = self._cache_hits + self._cache_misses
@@ -341,22 +338,18 @@ def prewarm_cache(self):
 # tests/performance/test_portrait_performance.py
 def test_portrait_rendering_performance():
     renderer = UnitPortraitRenderer()
-    
+
     # 首次渲染
     start = time.perf_counter()
-    portrait = renderer.render_portrait(
-        UnitType.INFANTRY, Faction.ALLIES, 1.0
-    )
+    portrait = renderer.render_portrait(UnitType.INFANTRY, Faction.ALLIES, 1.0)
     first_render_time = time.perf_counter() - start
-    assert first_render_time < 0.005, f"首次渲染过慢: {first_render_time*1000:.2f}ms"
-    
+    assert first_render_time < 0.005, f"首次渲染过慢: {first_render_time * 1000:.2f}ms"
+
     # 缓存命中
     start = time.perf_counter()
-    portrait = renderer.render_portrait(
-        UnitType.INFANTRY, Faction.ALLIES, 1.0
-    )
+    portrait = renderer.render_portrait(UnitType.INFANTRY, Faction.ALLIES, 1.0)
     cached_render_time = time.perf_counter() - start
-    assert cached_render_time < 0.001, f"缓存命中过慢: {cached_render_time*1000:.2f}ms"
+    assert cached_render_time < 0.001, f"缓存命中过慢: {cached_render_time * 1000:.2f}ms"
 ```
 
 ---
@@ -381,11 +374,11 @@ def test_portrait_rendering_performance():
 ENABLE_UNIT_PORTRAITS = False  # 关闭新功能
 
 # cc2_hud.py
-if ENABLE_UNIT_PORTRAITS and hasattr(self, 'portrait_renderer'):
+if ENABLE_UNIT_PORTRAITS and hasattr(self, "portrait_renderer"):
     portrait = self.portrait_renderer.render_portrait(...)
 else:
     # 回退到旧版简单图标
-    pygame.draw.circle(icon, (0,255,0), (8,8), 6)
+    pygame.draw.circle(icon, (0, 255, 0), (8, 8), 6)
 ```
 
 ---
@@ -418,10 +411,10 @@ class UnitPortraitRenderer:
         unit_type: UnitType,
         faction: Faction,
         health_percent: float = 1.0,  # 默认100%健康
-        **kwargs  # 未来扩展参数
+        **kwargs,  # 未来扩展参数
     ) -> Surface:
         """向后兼容设计
-        
+
         kwargs可接受未来参数：
         - animation_frame: int = 0 (动画帧)
         - custom_texture: str = None (自定义纹理)

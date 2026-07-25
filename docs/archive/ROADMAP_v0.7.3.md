@@ -94,6 +94,7 @@ def time_of_day(self) -> TimeOfDay:
         return TimeOfDay.DAWN
     ...
 
+
 # 修改后:
 @property
 def time_of_day(self) -> float:
@@ -102,6 +103,7 @@ def time_of_day(self) -> float:
     Implements IDayNightCycle.time_of_day protocol contract.
     """
     return self.hours
+
 
 @property
 def time_phase(self) -> TimeOfDay:

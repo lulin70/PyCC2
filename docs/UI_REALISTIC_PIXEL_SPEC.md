@@ -751,30 +751,27 @@ Z轴: 垂直向上 (高度)
 ```python
 CC2_COLOR_PALETTE = {
     # 地形
-    'grass_base':      ( 56, 104,  36),  # 深草绿 (主色调)
-    'grass_light':     ( 76, 132,  52),  # 浅草 (高光)
-    'grass_dark':      ( 40,  80,  28),  # 暗草 (阴影)
-    'dirt_road':       (140, 110,  60),  # 土路 (黄棕)
-    'tree_crown':      ( 34,  72,  30),  # 树冠 (深绿)
-    'tree_shadow':     ( 20,  48,  18),  # 树影
-
+    "grass_base": (56, 104, 36),  # 深草绿 (主色调)
+    "grass_light": (76, 132, 52),  # 浅草 (高光)
+    "grass_dark": (40, 80, 28),  # 暗草 (阴影)
+    "dirt_road": (140, 110, 60),  # 土路 (黄棕)
+    "tree_crown": (34, 72, 30),  # 树冠 (深绿)
+    "tree_shadow": (20, 48, 18),  # 树影
     # 建筑
-    'roof_red':        (160,  50,  40),  # 红屋顶
-    'roof_brown':      (140,  90,  50),  # 棕屋顶
-    'roof_gray':       (100, 100, 100),  # 灰屋顶
-    'wall_light':      (180, 170, 155),  # 浅墙
-    'wall_dark':       (120, 115, 105),  # 深墙
-
+    "roof_red": (160, 50, 40),  # 红屋顶
+    "roof_brown": (140, 90, 50),  # 棕屋顶
+    "roof_gray": (100, 100, 100),  # 灰屋顶
+    "wall_light": (180, 170, 155),  # 浅墙
+    "wall_dark": (120, 115, 105),  # 深墙
     # 单位
-    'allies_uniform':  ( 58,  82,  44),  # 盟军OD绿 (偏暗)
-    'axis_uniform':    ( 70,  72,  62),  # 轴心Field灰
-    'skin_tone':       (200, 170, 140),  # 肤色 (面部/手部)
-    'helmet':          ( 80,  82,  78),  # 钢盔 (金属灰绿)
-    'weapon_metal':    ( 60,  60,  60),  # 武器金属 (深灰)
-
+    "allies_uniform": (58, 82, 44),  # 盟军OD绿 (偏暗)
+    "axis_uniform": (70, 72, 62),  # 轴心Field灰
+    "skin_tone": (200, 170, 140),  # 肤色 (面部/手部)
+    "helmet": (80, 82, 78),  # 钢盔 (金属灰绿)
+    "weapon_metal": (60, 60, 60),  # 武器金属 (深灰)
     # UI
-    'selection_yellow':(240, 220,  40),  # 选中高亮 (暗黄, 非亮黄)
-    'enemy_indicator': (200,  40,  40),  # 敌方标记 (暗红)
+    "selection_yellow": (240, 220, 40),  # 选中高亮 (暗黄, 非亮黄)
+    "enemy_indicator": (200, 40, 40),  # 敌方标记 (暗红)
 }
 ```
 
@@ -834,6 +831,7 @@ def test_defend_with_nearby_tree():
     assert unit.cover_bonus >= 0.30  # 获得树木掩护加成
     assert unit.state == State.DEFENDING
 
+
 def test_defend_no_cover_digs():
     """Defend: 无掩体→自动挖战壕"""
     unit = create_unit(pos=(10, 10))
@@ -842,15 +840,16 @@ def test_defend_no_cover_digs():
     unit.execute_command("defend")
 
     assert unit.state == State.DIGGING  # 开始挖掘
-    assert unit.dig_progress == 0      # 进度0%
+    assert unit.dig_progress == 0  # 进度0%
 
     # 模拟3回合后
     for _ in range(90):
-        unit.update(1/30)
+        unit.update(1 / 30)
 
-    assert unit.dig_progress >= 1.0    # 完成
-    assert unit.cover_bonus >= 0.50    # 战壕加成
+    assert unit.dig_progress >= 1.0  # 完成
+    assert unit.cover_bonus >= 0.50  # 战壕加成
     assert has_trench_marker(unit.position)  # 地面有战壕标记
+
 
 def test_manual_dig_command():
     """手动Dig: 强制原地挖壕(即使有掩体)"""
@@ -859,7 +858,7 @@ def test_manual_dig_command():
 
     unit.execute_command("dig")  # 手动dig, 非defend
 
-    assert unit.position == (10, 10)   # 不移动
+    assert unit.position == (10, 10)  # 不移动
     assert unit.state == State.DIGGING  # 直接挖
 ```
 

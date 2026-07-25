@@ -14,6 +14,7 @@
 @dataclass(frozen=True, slots=True)
 class Vec2:
     """二维向量值对象。不可变，支持运算符重载。"""
+
     x: float
     y: float
     # 工厂方法: zero(), from_tile()
@@ -29,6 +30,7 @@ class Vec2:
 @dataclass(frozen=True, slots=True)
 class TileCoord:
     """瓦片网格坐标值对象。不可变。"""
+
     x: int
     y: int
     # DIRECTIONS_8: 8方向邻居偏移 (N/NE/E/SE/S/SW/W/NW)
@@ -41,18 +43,18 @@ class TileCoord:
 ### 1.3 TerrainType 枚举 (12种地形)
 ```python
 class TerrainType(Enum):
-    OPEN             # 移动1.0   掩体0.0   LOS:否
-    ROAD             # 移动0.8   掩体0.0   LOS:否
-    GRASS            # 移动1.2   掩体0.05  LOS:否
-    WOODS            # 移动2.0   掩体0.30  LOS:稀疏阻挡
-    BUILDING_ENTERABLE # 移动1.5   掩体0.50  LOS:否
-    BUILDING_SOLID   # 移动INF   掩体1.00  LOS:是
-    WATER            # 移动INF   掩体0.0   LOS:是
-    HEDGE            # 移动2.5   掩体0.20  LOS:部分
-    WALL             # 移动INF   掩体1.00  LOS:是
-    ROUGH            # 移动1.8   掩体0.08  LOS:否
-    SHALLOW          # 移动3.0   掩体0.02  LOS:否
-    BRIDGE           # 移动0.9   掩体0.0   LOS:否
+    OPEN  # 移动1.0   掩体0.0   LOS:否
+    ROAD  # 移动0.8   掩体0.0   LOS:否
+    GRASS  # 移动1.2   掩体0.05  LOS:否
+    WOODS  # 移动2.0   掩体0.30  LOS:稀疏阻挡
+    BUILDING_ENTERABLE  # 移动1.5   掩体0.50  LOS:否
+    BUILDING_SOLID  # 移动INF   掩体1.00  LOS:是
+    WATER  # 移动INF   掩体0.0   LOS:是
+    HEDGE  # 移动2.5   掩体0.20  LOS:部分
+    WALL  # 移动INF   掩体1.00  LOS:是
+    ROUGH  # 移动1.8   掩体0.08  LOS:否
+    SHALLOW  # 移动3.0   掩体0.02  LOS:否
+    BRIDGE  # 移动0.9   掩体0.0   LOS:否
 ```
 每种地形有 movement_cost, blocks_movement, blocks_line_of_sight, cover_modifier, concealment_modifier 属性。
 
@@ -190,8 +192,9 @@ EventBus: subscribe/publish/unsubscribe/enqueue/process_queue/clear + EVENT_SCHE
 ```python
 class AIBehaviorModule(ABC):
     """P0 AI行为模块基类"""
-    priority: int          # 行为优先级 (0=最高)
-    cooldown_ticks: int    # 冷却时间
+
+    priority: int  # 行为优先级 (0=最高)
+    cooldown_ticks: int  # 冷却时间
 
     @abstractmethod
     def evaluate(self, unit: Unit, context: TacticalContext) -> float:
@@ -201,48 +204,64 @@ class AIBehaviorModule(ABC):
     def execute(self, unit: Unit, context: TacticalContext) -> BehaviorResult:
         """执行行为，返回结果"""
 
+
 class AmmoPickupBehavior(AIBehaviorModule):
     """AI-P0-01: 弹药拾取"""
+
     priority = 10
     cooldown_ticks = 60
 
     def evaluate(self, unit, context):
-        if unit.weapon.ammo_remaining > 0: return 0.0
-        if not context.nearby_ammo_sources: return 0.0
+        if unit.weapon.ammo_remaining > 0:
+            return 0.0
+        if not context.nearby_ammo_sources:
+            return 0.0
         return 0.9  # 弹药耗尽时高优先级
 
     def execute(self, unit, context):
         source = context.nearest_ammo_source
         return MoveAndInteractResult(target=source, action="pickup_ammo")
 
+
 class WeaponScavengingBehavior(AIBehaviorModule):
     """AI-P0-02: 武器搜刮"""
+
     priority = 15
     cooldown_ticks = 90
 
     def evaluate(self, unit, context):
-        if unit.weapon.state not in (JAMMED, OUT_OF_AMMO): return 0.0
-        if not context.nearby_dead_units: return 0.0
+        if unit.weapon.state not in (JAMMED, OUT_OF_AMMO):
+            return 0.0
+        if not context.nearby_dead_units:
+            return 0.0
         return 0.8
+
 
 class SurrenderBehavior(AIBehaviorModule):
     """AI-P0-03: 投降"""
+
     priority = 5  # 最高优先级(生存)
     cooldown_ticks = 0  # 不可逆，无冷却
 
     def evaluate(self, unit, context):
-        if unit.morale.value >= 5: return 0.0
-        if context.friendly_units_within_range(5): return 0.0
-        if not context.is_surrounded: return 0.0
+        if unit.morale.value >= 5:
+            return 0.0
+        if context.friendly_units_within_range(5):
+            return 0.0
+        if not context.is_surrounded:
+            return 0.0
         return 1.0  # 确定投降
+
 
 class WeaponJamBehavior(AIBehaviorModule):
     """AI-P0-04: 武器卡壳"""
+
     priority = 8
     cooldown_ticks = 0  # 被动触发
 
     def evaluate(self, unit, context):
-        if unit.weapon.state != JAMMED: return 0.0
+        if unit.weapon.state != JAMMED:
+            return 0.0
         return 0.85
 
     def execute(self, unit, context):
@@ -251,36 +270,41 @@ class WeaponJamBehavior(AIBehaviorModule):
             return ScavengeOrClearJamResult(prefer_scavenge=True)
         return ClearJamResult(clear_ticks=unit.weapon.jam_clear_time)
 
+
 class SmokeDeploymentBehavior(AIBehaviorModule):
     """AI-P0-05: 烟雾部署"""
+
     priority = 12
     cooldown_ticks = 120
 
     def evaluate(self, unit, context):
-        if unit.suppression < 50: return 0.0
-        if not unit.has_smoke_grenades: return 0.0
+        if unit.suppression < 50:
+            return 0.0
+        if not unit.has_smoke_grenades:
+            return 0.0
         return 0.75
 
     def execute(self, unit, context):
         return DeploySmokeResult(position=unit.position, radius=3, duration_ticks=300)
 
+
 class SquadDegradationBehavior(AIBehaviorModule):
     """AI-P0-06: 班降解"""
+
     priority = 20  # 持续性效果，低优先级
     cooldown_ticks = 0  # 持续评估
 
     def evaluate(self, unit, context):
         survival_rate = context.squad_survival_rate
-        if survival_rate >= 0.5: return 0.0
+        if survival_rate >= 0.5:
+            return 0.0
         return 1.0 - survival_rate  # 伤亡越重分数越高
 
     def execute(self, unit, context):
         survival_rate = context.squad_survival_rate
         penalty = self._calculate_nonlinear_penalty(survival_rate)
         return ApplyDegradationResult(
-            accuracy_modifier=penalty,
-            morale_modifier=penalty * 0.8,
-            speed_modifier=penalty * 0.5
+            accuracy_modifier=penalty, morale_modifier=penalty * 0.8, speed_modifier=penalty * 0.5
         )
 
     def _calculate_nonlinear_penalty(self, survival_rate: float) -> float:
@@ -288,23 +312,22 @@ class SquadDegradationBehavior(AIBehaviorModule):
         # 使用二次函数: penalty = (1 - survival_rate)^2
         return (1.0 - survival_rate) ** 2
 
+
 class NCORallyBehavior(AIBehaviorModule):
     """AI-P0-07: NCO集结"""
+
     priority = 7
     cooldown_ticks = 30
 
     def evaluate(self, unit, context):
-        if not unit.is_nco: return 0.0
-        if not context.nearby_panic_units: return 0.0
+        if not unit.is_nco:
+            return 0.0
+        if not context.nearby_panic_units:
+            return 0.0
         return 0.8
 
     def execute(self, unit, context):
-        return RallyResult(
-            center=unit.position,
-            radius=5,
-            morale_boost=15,
-            clear_panic=True
-        )
+        return RallyResult(center=unit.position, radius=5, morale_boost=15, clear_panic=True)
 ```
 
 ### 5.3 Ammo Pickup / Weapon Scavenging 数据流
@@ -466,22 +489,26 @@ class DifficultyPreset(Enum):
     HARD = "hard"
     VETERAN = "veteran"
 
+
 class ExperienceLevel(Enum):
-    GREEN = "green"        # 命中率-15%, 士气恢复-20%
-    VETERAN = "veteran"    # 基准值
-    ELITE = "elite"        # 命中率+15%, 士气恢复+20%
-    CRACK = "crack"        # 命中率+25%, 士气恢复+30%, 压制抗性+40%
+    GREEN = "green"  # 命中率-15%, 士气恢复-20%
+    VETERAN = "veteran"  # 基准值
+    ELITE = "elite"  # 命中率+15%, 士气恢复+20%
+    CRACK = "crack"  # 命中率+25%, 士气恢复+30%, 压制抗性+40%
+
 
 class SupplyLevel(Enum):
-    SCARCE = "scarce"      # 弹药-40%, 无增援
-    LIMITED = "limited"    # 弹药-20%, 有限增援
-    NORMAL = "normal"      # 基准值
+    SCARCE = "scarce"  # 弹药-40%, 无增援
+    LIMITED = "limited"  # 弹药-20%, 有限增援
+    NORMAL = "normal"  # 基准值
     ABUNDANT = "abundant"  # 弹药+20%, 额外增援波次
+
 
 @dataclass
 class SideSettings:
     experience: ExperienceLevel
     supply: SupplyLevel
+
 
 @dataclass
 class GameSettings:
@@ -494,7 +521,7 @@ class GameSettings:
     def from_preset(cls, preset: DifficultyPreset) -> "GameSettings":
         """从预设创建设置"""
         PRESET_MAP = {
-            DifficultyPreset.RECRUIT:  SideSettings(ExperienceLevel.GREEN, SupplyLevel.ABUNDANT),
+            DifficultyPreset.RECRUIT: SideSettings(ExperienceLevel.GREEN, SupplyLevel.ABUNDANT),
             # allies_side / axis_side per PRD preset table
         }
         ...
@@ -548,26 +575,29 @@ class GrandCampaign:
     supply_system: SupplySystem
     timeline: OperationTimeline
 
+
 @dataclass
 class Sector:
     id: str
-    name: str                    # "Allied Airborne" / "XXX Corps" / "German Defense"
+    name: str  # "Allied Airborne" / "XXX Corps" / "German Defense"
     operations: list[Operation]
-    side: Faction                # 主要阵营
+    side: Faction  # 主要阵营
+
 
 @dataclass
 class Operation:
     id: str
-    name: str                    # "Son Bridge" / "Waal Crossing" etc.
-    day: int                     # Day 1-6
+    name: str  # "Son Bridge" / "Waal Crossing" etc.
+    day: int  # Day 1-6
     battles: list[Battle]
     reinforcements: list[ReinforcementEvent]
     supply_level: SupplyLevel
 
+
 @dataclass
 class Battle:
     id: str
-    map_file: str                # 引用28张地图之一
+    map_file: str  # 引用28张地图之一
     objectives: list[Objective]
     oob_allies: OrderOfBattle
     oob_axis: OrderOfBattle
@@ -602,8 +632,8 @@ class Battle:
 ```python
 class WeaponComponent:
     # 新增属性
-    jam_chance: float = 0.02       # 每次射击卡壳概率 (默认2%)
-    jam_clear_time: int = 30       # 清除故障所需ticks
+    jam_chance: float = 0.02  # 每次射击卡壳概率 (默认2%)
+    jam_clear_time: int = 30  # 清除故障所需ticks
     has_smoke_grenades: bool = False
     smoke_grenade_count: int = 0
 
@@ -631,7 +661,7 @@ class UnitState(Enum):
     SUPPRESSED = "suppressed"
     PANIC = "panic"
     ROUTING = "routing"
-    SURRENDERED = "surrendered"    # P9 新增
+    SURRENDERED = "surrendered"  # P9 新增
     DEAD = "dead"
 ```
 
@@ -724,23 +754,25 @@ CC2原版采用三重胜利条件机制，PyCC2现已完整实现：
 
 ```python
 class VictoryConditionType(Enum):
-    INSTANT_VL_CAPTURE = "instant_vl_capture"    # 即时VL占领
-    TIMER_EXPIRY = "timer_expiry"                # 计时器到期
-    POINT_SCORING = "point_scoring"              # 积分制
+    INSTANT_VL_CAPTURE = "instant_vl_capture"  # 即时VL占领
+    TIMER_EXPIRY = "timer_expiry"  # 计时器到期
+    POINT_SCORING = "point_scoring"  # 积分制
+
 
 @dataclass
 class VictoryLocation:
     id: str
     position: TileCoord
-    value: int                    # 10-40分
-    owner: Faction | None         # None=中立
-    vl_type: VLType               # BRIDGE/ROAD/LZ/REGULAR
+    value: int  # 10-40分
+    owner: Faction | None  # None=中立
+    vl_type: VLType  # BRIDGE/ROAD/LZ/REGULAR
+
 
 @dataclass
 class BattleResult:
-    winner: Faction | None        # None=平局
+    winner: Faction | None  # None=平局
     victory_type: VictoryConditionType
-    margin: str                   # "decisive" / "moderate" / "marginal"
+    margin: str  # "decisive" / "moderate" / "marginal"
     allied_score: int
     axis_score: int
     battle_duration_ticks: int
@@ -790,9 +822,9 @@ class BattleResult:
 ```python
 @dataclass
 class BuildingWindow:
-    position: TileCoord           # 窗户所在瓦片
-    facing: Direction             # 窗户朝向 (N/NE/E/SE/S/SW/W/NW)
-    arc_degrees: float = 90.0    # 射击弧度
+    position: TileCoord  # 窗户所在瓦片
+    facing: Direction  # 窗户朝向 (N/NE/E/SE/S/SW/W/NW)
+    arc_degrees: float = 90.0  # 射击弧度
 
     def is_in_firing_arc(self, target: Vec2) -> bool:
         """检查目标是否在窗户射击弧度内"""
@@ -801,11 +833,12 @@ class BuildingWindow:
         angle = direction_to_target.angle_to(facing_vec)
         return abs(angle) <= self.arc_degrees / 2
 
+
 @dataclass
 class GarrisonState:
     building_tile: TileCoord
-    units: list[Unit]             # 当前驻守单位 (max 2-4)
-    windows: list[BuildingWindow] # 建筑窗户列表
+    units: list[Unit]  # 当前驻守单位 (max 2-4)
+    windows: list[BuildingWindow]  # 建筑窗户列表
     is_enterable: bool = True
 ```
 
@@ -910,20 +943,21 @@ class UnitCarryoverState:
     unit_id: str
     template_id: str
     faction: Faction
-    health_ratio: float          # 当前HP/最大HP
-    morale_value: int            # 当前士气值
-    ammo_remaining: int          # 剩余弹药
+    health_ratio: float  # 当前HP/最大HP
+    morale_value: int  # 当前士气值
+    ammo_remaining: int  # 剩余弹药
     experience: ExperienceLevel  # 经验等级
-    kills: int                   # 累计击杀
-    battles_survived: int        # 存活战斗数
+    kills: int  # 累计击杀
+    battles_survived: int  # 存活战斗数
+
 
 @dataclass
 class CampaignState:
-    current_day: int             # 当前战役日 (1-9)
-    current_battle_index: int    # 当前战斗索引
+    current_day: int  # 当前战役日 (1-9)
+    current_battle_index: int  # 当前战斗索引
     surviving_units: dict[str, UnitCarryoverState]  # 存活单位
-    total_casualties: int        # 总伤亡
-    total_kills: int             # 总击杀
+    total_casualties: int  # 总伤亡
+    total_kills: int  # 总击杀
     victory_locations_held: list[str]  # 已占领VL
 
     def apply_battle_result(self, result: BattleResult) -> None:
@@ -948,7 +982,7 @@ class CampaignResult:
     total_kills: int
     victory_locations_captured: int
     units_survived: int
-    campaign_rating: str          # "Historic Victory" / "Marginal Victory" / etc.
+    campaign_rating: str  # "Historic Victory" / "Marginal Victory" / etc.
 ```
 
 ---

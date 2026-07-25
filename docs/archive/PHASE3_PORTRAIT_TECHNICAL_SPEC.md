@@ -14,60 +14,53 @@
 ```python
 class UnitPortraitRenderer:
     """军事风格单位头像渲染器"""
-    
+
     def __init__(self, max_cache_size: int = 100):
         """初始化渲染器
-        
+
         Args:
             max_cache_size: 缓存容量，默认100个头像
         """
-        
+
     def render_portrait(
-        self,
-        unit_type: UnitType,
-        faction: Faction,
-        health_percent: float = 1.0
+        self, unit_type: UnitType, faction: Faction, health_percent: float = 1.0
     ) -> pygame.Surface:
         """生成96x96头像
-        
+
         Args:
             unit_type: 单位类型枚举
             faction: 派系枚举（ALLIES/AXIS）
             health_percent: 健康值0.0-1.0
-            
+
         Returns:
             96x96 pygame Surface
-            
+
         Raises:
             ValueError: unit_type不在枚举中
             ValueError: health_percent不在0.0-1.0范围
         """
-        
+
     def render_portrait_scaled(
-        self,
-        unit_type: UnitType,
-        faction: Faction,
-        size: int,
-        health_percent: float = 1.0
+        self, unit_type: UnitType, faction: Faction, size: int, health_percent: float = 1.0
     ) -> pygame.Surface:
         """生成指定尺寸头像
-        
+
         Args:
             size: 目标尺寸（32/64/96）
-            
+
         Returns:
             size×size pygame Surface
-            
+
         Raises:
             ValueError: size不在[16, 256]范围
         """
-        
+
     def clear_cache(self) -> None:
         """清空缓存"""
-        
+
     def get_cache_stats(self) -> Dict[str, Any]:
         """获取缓存统计
-        
+
         Returns:
             {"size": int, "hits": int, "misses": int, "hit_rate": float}
         """
@@ -145,14 +138,19 @@ elif size > 96:
 ```python
 class PortraitRendererError(Exception):
     """基础异常"""
+
     pass
+
 
 class InvalidInputError(PortraitRendererError):
     """输入验证失败"""
+
     pass
+
 
 class RenderingError(PortraitRendererError):
     """渲染过程失败"""
+
     pass
 ```
 
@@ -170,6 +168,7 @@ def render_portrait(self, unit_type, faction, health_percent=1.0):
         logger.error(f"Rendering failed: {e}")
         # 降级：返回简单占位图标
         return self._render_fallback_portrait(unit_type, faction)
+
 
 def _render_fallback_portrait(self, unit_type, faction):
     """降级方案：简单彩色方块"""
@@ -205,16 +204,17 @@ def test_performance_first_render():
     start = time.perf_counter()
     portrait = renderer.render_portrait(UnitType.INFANTRY, Faction.ALLIES, 1.0)
     elapsed = time.perf_counter() - start
-    assert elapsed < 0.005, f"First render too slow: {elapsed*1000:.2f}ms"
+    assert elapsed < 0.005, f"First render too slow: {elapsed * 1000:.2f}ms"
+
 
 def test_performance_cached_render():
     renderer = UnitPortraitRenderer()
     renderer.render_portrait(UnitType.INFANTRY, Faction.ALLIES, 1.0)  # 预热
-    
+
     start = time.perf_counter()
     portrait = renderer.render_portrait(UnitType.INFANTRY, Faction.ALLIES, 1.0)
     elapsed = time.perf_counter() - start
-    assert elapsed < 0.001, f"Cached render too slow: {elapsed*1000:.2f}ms"
+    assert elapsed < 0.001, f"Cached render too slow: {elapsed * 1000:.2f}ms"
 ```
 
 ---
@@ -291,7 +291,7 @@ def render_portrait(
     unit_type: UnitType,
     faction: Faction,
     health_percent: float = 1.0,
-    **kwargs  # 预留扩展参数
+    **kwargs,  # 预留扩展参数
 ) -> pygame.Surface:
     # kwargs可接受：
     # - animation_frame: int = 0 (未来动画)

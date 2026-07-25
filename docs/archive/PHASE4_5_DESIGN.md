@@ -459,12 +459,15 @@ class MoraleSystem:
     @staticmethod
     def get_state(morale_value: int) -> MoraleState:
         return MoraleStateResolver.resolve(morale_value)  # 或直接内联
+
     @staticmethod
     def apply_suppression(unit: Unit, amount: float, dt: float) -> dict:
         return MoraleEffects.apply_suppression(unit, amount, dt)
+
     @staticmethod
     def check_routing_behavior(unit: Unit, game_map=None) -> tuple[bool, object]:
         return MoraleRouting.check_routing_behavior(unit, game_map)
+
     # ...
 ```
 

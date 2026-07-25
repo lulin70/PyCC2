@@ -230,9 +230,13 @@ def add_popup(self, text: str, world_x: float, world_y: float,
 文档调用 (VISUAL_POLISH_PLAN.md:759-768):
 ```python
 self.add_popup(
-    text=text, position=target_position, color=color,
-    lifetime_ms=1200, font_size=font_size,
-    is_damage_number=True, damage_amount=damage.amount,
+    text=text,
+    position=target_position,
+    color=color,
+    lifetime_ms=1200,
+    font_size=font_size,
+    is_damage_number=True,
+    damage_amount=damage.amount,
     damage_type=damage.damage_type,
 )
 ```
@@ -244,13 +248,13 @@ self.add_popup(
 `resolve_morale_state()` (morale_types.py:71-80):
 ```python
 def resolve_morale_state(morale_value: int) -> MoraleState:
-    if morale_value > RALLYED_THRESHOLD:   # >70
+    if morale_value > RALLYED_THRESHOLD:  # >70
         return MoraleState.RALLYED
     elif morale_value > WAVERING_THRESHOLD:  # >40
         return MoraleState.WAVERING
-    elif morale_value > PINNED_THRESHOLD:    # >20
+    elif morale_value > PINNED_THRESHOLD:  # >20
         return MoraleState.PINNED
-    else:                                    # ≤20
+    else:  # ≤20
         return MoraleState.BROKEN
     # 永远不返回 MoraleState.ROUTING
 ```
