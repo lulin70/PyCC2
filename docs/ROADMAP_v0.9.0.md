@@ -268,7 +268,7 @@ D7 (V-14, 6h, C3 依赖已满足) ───────────────�
 | P8 | 实施 | Coder | ✅ 完成 | Wave C/D/E 全部完成 (V-01~V-14) |
 | P9 | 测试执行 | Tester | ✅ 完成 | Wave F1-F2: 6839 passed 零回归 + e2e 10 tests |
 | P10 | 部署发布 | DevOps | ✅ 完成 | Wave F3-F4: 版本号 0.9.0 + Git push origin/main |
-| P11 | 运维保障 | DevOps+Sec | ✅ 完成 | Wave F5: CarryMem 记录 + Post-v0.9.0 fixes (RISK_MITIGATION_PLAN_v0.9.1) |
+| P11 | 运维保障 | DevOps+Sec | ✅ 完成 | Wave F5: CarryMem 记录 + Post-v0.9.0 fixes (RISK_MITIGATION_PLAN_post_v0.9.0) |
 
 ---
 

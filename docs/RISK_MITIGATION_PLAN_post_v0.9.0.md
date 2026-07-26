@@ -1,4 +1,4 @@
-# PyCC2 v0.9.1 风险点改进方案
+# PyCC2 Post-v0.9.0 风险点改进方案
 
 > **日期**: 2026-07-24
 > **来源**: [PROJECT_ASSESSMENT_v0.9.0.md](archive/PROJECT_ASSESSMENT_v0.9.0.md) 维度 7 诚实评价

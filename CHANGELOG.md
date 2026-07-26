@@ -4,7 +4,7 @@ All notable changes to PyCC2 will be documented in this file.
 
 ## Post-v0.9.0 fixes (2026-07-24) — 风险点改进 (DevSquad 7-Role 共识)
 
-基于 [PROJECT_ASSESSMENT_v0.9.0.md](docs/archive/PROJECT_ASSESSMENT_v0.9.0.md) 维度 7 诚实评价识别的 4 个风险点改进 (视觉回归 baselines 仅 macOS 用户接受现状,不纳入本次改进)。详见 [RISK_MITIGATION_PLAN_v0.9.1.md](docs/RISK_MITIGATION_PLAN_v0.9.1.md)。
+基于 [PROJECT_ASSESSMENT_v0.9.0.md](docs/archive/PROJECT_ASSESSMENT_v0.9.0.md) 维度 7 诚实评价识别的 4 个风险点改进 (视觉回归 baselines 仅 macOS 用户接受现状,不纳入本次改进)。详见 [RISK_MITIGATION_PLAN_post_v0.9.0.md](docs/RISK_MITIGATION_PLAN_post_v0.9.0.md)。
 
 ### Changed
 - **CI 覆盖率门禁恢复 70%**: `ci.yml` `--cov-fail-under=65` → `--cov-fail-under=70` + `pyproject.toml` `[tool.coverage.report] fail_under=70` (v0.9.0 视觉打磨期临时调整,实际覆盖率 72.64% 已达 70% 目标)
