@@ -3,6 +3,7 @@
 # Usage: ./scripts/check_doc_consistency.sh
 # Exit 0 if all docs are consistent, exit 1 otherwise.
 # Created: 2026-07-13 (root cause fix for PRD/DESIGN lagging at v0.4.7)
+# Enhanced: 2026-07-25 (P3-1: PROJECT_STATUS.md key fields existence + date format check)
 
 set -euo pipefail
 
@@ -58,6 +59,38 @@ if ! grep -q "version = \"${VERSION}\"" pyproject.toml 2>/dev/null; then
     ERRORS=$((ERRORS+1))
 else
     echo "OK: pyproject.toml version matches ${VERSION}"
+fi
+
+# P3-1 Enhancement (2026-07-25): PROJECT_STATUS.md key fields existence + date format check
+# Root cause: PROJECT_STATUS.md L14 test count lagged 528 (v0.7.6 6291 → v0.9.0 6819) across
+# 2 versions undetected. Version-only check cannot catch numeric lag.
+# Solution: verify key fields exist + date format valid (no numeric value comparison
+# to avoid false positives when numbers legitimately change).
+PROJECT_STATUS="docs/PROJECT_STATUS.md"
+if [ -f "$PROJECT_STATUS" ]; then
+    # Check 1: "最后更新" date exists and matches YYYY-MM-DD format
+    if ! grep -qE "^> \*\*最后更新\*\*: [0-9]{4}-[0-9]{2}-[0-9]{2}" "$PROJECT_STATUS"; then
+        echo "ERROR: $PROJECT_STATUS missing or malformed '最后更新' date (expected YYYY-MM-DD)"
+        ERRORS=$((ERRORS+1))
+    else
+        echo "OK: $PROJECT_STATUS has valid '最后更新' date"
+    fi
+    # Check 2: "测试用例数" row exists (ensures field not deleted)
+    if ! grep -q "测试用例数" "$PROJECT_STATUS"; then
+        echo "ERROR: $PROJECT_STATUS missing '测试用例数' row"
+        ERRORS=$((ERRORS+1))
+    else
+        echo "OK: $PROJECT_STATUS has '测试用例数' row"
+    fi
+    # Check 3: "实际覆盖率" row exists (ensures field not deleted)
+    if ! grep -q "实际覆盖率" "$PROJECT_STATUS"; then
+        echo "ERROR: $PROJECT_STATUS missing '实际覆盖率' row"
+        ERRORS=$((ERRORS+1))
+    else
+        echo "OK: $PROJECT_STATUS has '实际覆盖率' row"
+    fi
+else
+    echo "WARN: $PROJECT_STATUS does not exist (skipped)"
 fi
 
 echo ""
