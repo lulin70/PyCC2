@@ -14,8 +14,8 @@
 | 测试用例数 | 6819 passed / 2 skipped / 23 deselected (v0.9.0 实测: v0.7.6 INTEGRATE 6291 → v0.8.0 P3-3 难度曲线 +10 → v0.9.0 视觉打磨 +518) | `pytest tests/ -m "not slow" --co -q` |
 
 > **测试数差异说明**: v0.9.0 发布时 CHANGELOG L60 记录为 6839 passed（v0.8.0 基线 6301 + 538 新增）。Post-v0.9.0 fixes 阶段 commit d1dfdb5 将 3 个 portrait renderer perf 测试标记为 `@pytest.mark.slow`（在 `not slow` 模式下被 deselected），加上其他 CI 环境修复调整，当前实测为 6819 passed。差异属于预期行为（@slow 测试移到 Slow Tests job），非测试删除或回归。详见 [CHANGELOG.md](CHANGELOG.md#L60) 与 commit d1dfdb5。
-| 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=70` + radon cc E+ baseline=18（v0.7.7 配置化至 pyproject.toml [tool.radon]，v0.7.6 前 23 硬编码在 ci.yml） | `.github/workflows/ci.yml` + `pyproject.toml` |
-| 实际覆盖率 | 72.64% (42764 stmts, 10107 missed，含 branch coverage，目标 70% 已达成) | `pytest tests/ -m "not slow" --cov=src/pycc2 --cov-report=term` |
+| 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=65` (unit tests only) + radon cc E+ baseline=18（v0.7.7 配置化至 pyproject.toml [tool.radon]，v0.7.6 前 23 硬编码在 ci.yml） | `.github/workflows/ci.yml` + `pyproject.toml` |
+| 实际覆盖率 | 完整测试 72.64% (42764 stmts, 10107 missed，含 branch coverage) / Unit tests only 67.46% (43526 stmts, 12582 missed) | `pytest tests/ -m "not slow" --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |
 | mypy | 0 errors (374 files, _archive excluded + 3 type bugs fixed in v0.7.4) | `MYPYPATH=src mypy -p pycc2` |
 | Bandit | 0 Medium / 0 High | `bandit -r src/ -ll --skip B101,B311,B601` |
