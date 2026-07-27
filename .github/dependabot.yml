@@ -23,7 +23,10 @@ updates:
       - dependency-name: "ruff"
         update-types: ["version-update:semver-patch", "version-update:semver-minor"]
       - dependency-name: "mypy"
-        update-types: ["version-update:semver-patch", "version-update:semver-minor"]
+        # Hard Constraint: mypy must be pinned with upper limit <1.12
+        # Ignore all update types (patch/minor/major) to prevent auto-PRs
+        # that would relax the version constraint and break builds.
+        update-types: ["version-update:semver-patch", "version-update:semver-minor", "version-update:semver-major"]
       - dependency-name: "black"
         update-types: ["version-update:semver-patch", "version-update:semver-minor"]
       - dependency-name: "pytest"
