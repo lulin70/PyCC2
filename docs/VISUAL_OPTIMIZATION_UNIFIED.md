@@ -279,19 +279,19 @@ TILE_SIZE = 48
 ```python
 class ShadowRenderer:
     """全局SE方向阴影渲染器"""
-    
+
     DIRECTION = "SE"  # 固定右下方向
-    OFFSET = (3, 2)   # 每24px单位的偏移量(dx, dy)
-    
+    OFFSET = (3, 2)  # 每24px单位的偏移量(dx, dy)
+
     def render_se_shadow(self, surface, obj_rect, obj_height):
         """
         渲染SE方向椭圆形阴影
-        
+
         Args:
             surface: 目标surface
             obj_rect: 对象矩形 (x, y, w, h)
             obj_height: 对象高度(影响阴影大小和alpha)
-            
+
         Returns:
             offset ellipse shadow with alpha=60-100 depending on height
         """

@@ -226,9 +226,7 @@ class MoraleIndicatorRenderer:
             alpha = self._compute_routing_alpha()
             if alpha < ROUTING_FLASH_BRIGHT_ALPHA:
                 # Dim phase: overlay a semi-transparent dark circle to dim the badge
-                flash_surf = pygame.Surface(
-                    (radius * 2 + 2, radius * 2 + 2), pygame.SRCALPHA
-                )
+                flash_surf = pygame.Surface((radius * 2 + 2, radius * 2 + 2), pygame.SRCALPHA)
                 dim_strength = 255 - alpha
                 pygame.draw.circle(
                     flash_surf,
@@ -250,9 +248,7 @@ class MoraleIndicatorRenderer:
         Returns:
             (R, G, B) tuple in 0-255 range.
         """
-        return MORALE_BADGE_COLORS.get(
-            morale_state, MORALE_BADGE_COLORS[MoraleState.BROKEN]
-        )
+        return MORALE_BADGE_COLORS.get(morale_state, MORALE_BADGE_COLORS[MoraleState.BROKEN])
 
     def _compute_routing_alpha(self) -> int:
         """Compute current flash alpha for ROUTING state.
@@ -287,9 +283,7 @@ def get_morale_badge_color(morale_state: MoraleState) -> tuple[int, int, int]:
     Returns:
         (R, G, B) color tuple. Falls back to BROKEN color for unknown states.
     """
-    return MORALE_BADGE_COLORS.get(
-        morale_state, MORALE_BADGE_COLORS[MoraleState.BROKEN]
-    )
+    return MORALE_BADGE_COLORS.get(morale_state, MORALE_BADGE_COLORS[MoraleState.BROKEN])
 
 
 def is_routing_flash_bright(timer_ms: int, period_ms: int = ROUTING_FLASH_PERIOD_MS) -> bool:

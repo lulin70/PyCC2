@@ -398,16 +398,20 @@ TutorialSystem (新增)
 ```python
 # tutorial_system.py 扩展示例
 
+
 @dataclass
 class TutorialMission:
     id: str
     title: str
     description: str
-    condition_type: MissionConditionType  # SELECT_UNIT / MOVE_UNIT / ATTACK_ENEMY / WAIT_FOR_VICTORY
+    condition_type: (
+        MissionConditionType  # SELECT_UNIT / MOVE_UNIT / ATTACK_ENEMY / WAIT_FOR_VICTORY
+    )
     target_params: dict
     hint_text: str
     timeout_ticks: int = 6000  # 100秒 @60fps
     required: bool = True
+
 
 class TutorialController:
     def __init__(self, overlay: TutorialOverlay, event_bus: EventBus):
@@ -463,6 +467,7 @@ class TutorialController:
 
 ```python
 # test_tutorial_system_extended.py
+
 
 class TestTutorialController:
     def test_mission_sequence_flow(self):
@@ -617,6 +622,7 @@ class Camera:
 ```python
 # combat_service.py 或 event_handler.py 中绑定
 
+
 def _on_explosion(event: ExplosionEvent) -> None:
     """爆炸事件触发相机震动"""
     camera = self._game_state.camera
@@ -624,6 +630,7 @@ def _on_explosion(event: ExplosionEvent) -> None:
     intensity = max(1.0, 8.0 - distance / 100.0)  # 越近越强
     camera.shake(intensity=intensity, duration=0.25)
     camera.apply_zoom_impact(zoom_factor=0.92, duration=0.2)
+
 
 def _on_sniper_kill(event: KillEvent) -> None:
     """狙击击杀触发慢动作+聚焦"""
@@ -637,6 +644,7 @@ def _on_sniper_kill(event: KillEvent) -> None:
 
 ```python
 # test_camera_effects.py
+
 
 class TestCameraEffects:
     def test_shake_effect_decay(self):
@@ -672,7 +680,7 @@ class TestCameraEffects:
 
         assert stack._effects[0].priority == 15  # Slow motion first
         assert stack._effects[1].priority == 10  # Zoom second
-        assert stack._effects[2].priority == 1   # Shake last
+        assert stack._effects[2].priority == 1  # Shake last
 ```
 
 **4. 验收标准**
@@ -700,11 +708,13 @@ class TestCameraEffects:
 ```python
 # sound_system.py 扩展
 
+
 @dataclass
 class AudioListener:
     position: Vec2
     velocity: Vec2 = Vec2(0, 0)
     facing: float = 0.0  # 弧度
+
 
 class SoundEmitter:
     def __init__(self, source_id: str, position: Vec2, sound_type: SoundType):
@@ -713,6 +723,7 @@ class SoundEmitter:
         self.sound_type = sound_type
         self.last_play_time: float = 0.0
         self.min_interval: float = 0.1  # 最小播放间隔（防重叠）
+
 
 class SpatialAudioManager:
     def __init__(self, sound_system: SoundSystem):
@@ -767,9 +778,7 @@ class SpatialAudioManager:
 
         # 简化的射线检测（检查是否穿过建筑）
         for building in buildings:
-            if self._line_intersects_building(
-                self._listener.position, position, building
-            ):
+            if self._line_intersects_building(self._listener.position, position, building):
                 base_volume *= 0.5  # 遮挡衰减
                 break  # 只检测第一个遮挡物
 
@@ -781,13 +790,16 @@ class SpatialAudioManager:
 ```python
 # game_loop.py 的 update 方法中
 
+
 def _update_audio(self) -> None:
     # 更新音频监听器位置（跟随相机）
     camera_pos = self.state.camera.position
     camera_facing = 0.0  # 俯视游戏暂无朝向概念
     self._spatial_audio.update_listener(camera_pos, camera_facing)
 
+
 # combat_resolver.py 中射击时
+
 
 def resolve_shot(self, shooter, target) -> CombatResult:
     # ... 伤害计算 ...
@@ -811,6 +823,7 @@ def resolve_shot(self, shooter, target) -> CombatResult:
 
 ```python
 # test_spatial_audio.py
+
 
 class TestSpatialAudioManager:
     def test_stereo_pan_left_source(self):
@@ -895,46 +908,51 @@ from enum import Enum, auto
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
+
 class AchievementCategory(Enum):
-    COMBAT = auto()        # 战斗相关
-    CAMPAIGN = auto()      # 战役相关
-    TUTORIAL = auto()      # 教程相关
-    SPECIAL = auto()       # 特殊成就（隐藏）
-    MASTERY = auto()       # 精通成就（高难度）
+    COMBAT = auto()  # 战斗相关
+    CAMPAIGN = auto()  # 战役相关
+    TUTORIAL = auto()  # 教程相关
+    SPECIAL = auto()  # 特殊成就（隐藏）
+    MASTERY = auto()  # 精通成就（高难度）
+
 
 @dataclass(frozen=True)
 class AchievementDefinition:
-    id: str                           # "first_victory", "zero_casualties"
-    name: str                         # "初次胜利"
-    description: str                  # "赢得第一场战斗"
-    category: AchievementCategory     # 成就类别
-    icon: str                         # 图标标识（emoji或sprite名）
-    hidden: bool = False              # 是否隐藏（达成前不显示）
-    secret: bool = False              # 是否秘密成就
+    id: str  # "first_victory", "zero_casualties"
+    name: str  # "初次胜利"
+    description: str  # "赢得第一场战斗"
+    category: AchievementCategory  # 成就类别
+    icon: str  # 图标标识（emoji或sprite名）
+    hidden: bool = False  # 是否隐藏（达成前不显示）
+    secret: bool = False  # 是否秘密成就
     conditions: list[AchievementCondition]  # 解锁条件（支持AND/OR）
-    reward_points: int = 10           # 奖励积分
-    rarity: str = "common"            # common / uncommon / rare / legendary
+    reward_points: int = 10  # 奖励积分
+    rarity: str = "common"  # common / uncommon / rare / legendary
+
 
 class AchievementCondition(Enum):
     WIN_BATTLE = auto()
-    KILL_COUNT = auto()               # param: min_kills
+    KILL_COUNT = auto()  # param: min_kills
     ZERO_CASUALTIES = auto()
-    SPEED_RUN = auto()                # param: max_seconds
+    SPEED_RUN = auto()  # param: max_seconds
     COMPLETE_TUTORIAL = auto()
     WIN_CAMPAIGN = auto()
-    PERFECT_BATTLE = auto()           # 零伤亡 + 快速胜利
+    PERFECT_BATTLE = auto()  # 零伤亡 + 快速胜利
     KILL_COMMANDER = auto()
-    SURVIVE_WAVE = auto()             # param: wave_number
-    MAX_MORALE = auto()               # 保持士气满值获胜
+    SURVIVE_WAVE = auto()  # param: wave_number
+    MAX_MORALE = auto()  # 保持士气满值获胜
+
 
 @dataclass
 class AchievementProgress:
     achievement_id: str
     unlocked: bool = False
-    unlocked_at: str = ""             # ISO timestamp
-    progress_value: float = 0.0       # 当前进度（如击杀数）
-    progress_target: float = 1.0      # 目标值
-    notified: bool = False            # 是否已弹出通知
+    unlocked_at: str = ""  # ISO timestamp
+    progress_value: float = 0.0  # 当前进度（如击杀数）
+    progress_target: float = 1.0  # 目标值
+    notified: bool = False  # 是否已弹出通知
+
 
 @dataclass
 class AchievementStorage:
@@ -1075,6 +1093,7 @@ class AchievementEngine:
 ```python
 # achievement_ui.py
 
+
 class AchievementPopup:
     """成就解锁弹窗"""
 
@@ -1119,6 +1138,7 @@ class AchievementPopup:
             return
 
         import pygame
+
         dc = self._display_config
         sw, sh = screen.get_size()
 
@@ -1128,8 +1148,13 @@ class AchievementPopup:
 
         surf = pygame.Surface((popup_w, popup_h), pygame.SRCALPHA)
         surf.fill((30, 35, 50, int(self._alpha * 230)))
-        pygame.draw.rect(surf, (200, 170, 50, int(self._alpha * 255)),
-                        (0, 0, popup_w, popup_h), 2, border_radius=10)
+        pygame.draw.rect(
+            surf,
+            (200, 170, 50, int(self._alpha * 255)),
+            (0, 0, popup_w, popup_h),
+            2,
+            border_radius=10,
+        )
 
         # 图标
         font_icon = pygame.font.Font(None, 36)
@@ -1175,6 +1200,7 @@ class AchievementListPanel:
 ```python
 # test_achievement_system.py
 
+
 class TestAchievementEngine:
     def setup_method(self):
         self.engine = AchievementEngine(storage_path=Path("/tmp/test_achievements.json"))
@@ -1182,9 +1208,7 @@ class TestAchievementEngine:
     def test_first_victory_unlock(self):
         """测试首次胜利成就解锁"""
         context = {"result": "victory"}
-        unlocked = self.engine.check_conditions(
-            AchievementCondition.WIN_BATTLE, context
-        )
+        unlocked = self.engine.check_conditions(AchievementCondition.WIN_BATTLE, context)
         assert len(unlocked) == 1
         assert unlocked[0].id == "first_victory"
 
@@ -1194,9 +1218,7 @@ class TestAchievementEngine:
             "result": "victory",
             "allies_deaths": 0,
         }
-        unlocked = self.engine.check_conditions(
-            AchievementCondition.ZERO_CASUALTIES, context
-        )
+        unlocked = self.engine.check_conditions(AchievementCondition.ZERO_CASUALTIES, context)
         assert any(a.id == "zero_casualties" for a in unlocked)
 
     def test_no_double_unlock(self):
@@ -1229,6 +1251,7 @@ class TestAchievementEngine:
         """测试稀有度分布"""
         rarities = [a.rarity for a in self.engine.DEFINITIONS.values()]
         from collections import Counter
+
         counts = Counter(rarities)
         assert counts.get("common", 0) >= 2  # 至少2个普通成就
         assert counts.get("legendary", 0) >= 1  # 至少1个传说成就
@@ -1285,12 +1308,14 @@ from dataclasses import dataclass
 from enum import Enum, auto
 import numpy as np
 
+
 class BattleIntensity(Enum):
-    CALM = auto()        # 无战斗，探索阶段
-    LIGHT = auto()       # 小规模交火
-    MODERATE = auto()    # 中等强度战斗
-    INTENSE = auto()     # 激烈战斗
-    CRITICAL = auto()    # 关键时刻（低血量/胜负未分）
+    CALM = auto()  # 无战斗，探索阶段
+    LIGHT = auto()  # 小规模交火
+    MODERATE = auto()  # 中等强度战斗
+    INTENSE = auto()  # 激烈战斗
+    CRITICAL = auto()  # 关键时刻（低血量/胜负未分）
+
 
 @dataclass
 class IntensityMetrics:
@@ -1301,6 +1326,7 @@ class IntensityMetrics:
     axis_health_ratio: float = 1.0
     distance_to_enemy_commander: float = 9999.0
     time_since_last_combat: float = 9999.0
+
 
 class BattleIntensityTracker:
     SAMPLE_WINDOW = 30.0  # 秒
@@ -1371,10 +1397,11 @@ class BattleIntensityTracker:
 
         return BattleIntensity.LIGHT
 
+
 class MusicTransitionManager:
     CROSSFADE_DURATION = 3.0  # 秒
 
-    def __init__(self, bgm_generator: 'BGMGenerator'):
+    def __init__(self, bgm_generator: "BGMGenerator"):
         self._bgm = bgm_generator
         self._current_mood: MusicMood = MusicMood.AMBIENT
         self._target_mood: MusicMood | None = None
@@ -1413,6 +1440,7 @@ class MusicTransitionManager:
     @property
     def transition_percentage(self) -> float:
         return self._transition_progress
+
 
 # 映射表：BattleIntensity → MusicMood
 INTENSITY_TO_MOOD: dict[BattleIntensity, MusicMood] = {

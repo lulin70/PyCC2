@@ -1,9 +1,15 @@
 """Minimap Component
 
 Renders a tactical minimap showing unit positions and terrain overview.
+
+V-11 (Wave E1) enhancements:
+  - Casualty markers: gray X at death position, persists 5s (Wave B-rev: 3s → 5s)
+  - Legend toggle: press 'L' to show/hide legend (default hidden)
+  - Facing indicator: only for selected unit (Wave B-rev: was all units)
 """
 
 import math
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import pygame
@@ -19,6 +25,38 @@ from pycc2.presentation.rendering.visual_spec import VisualSpec
 
 if TYPE_CHECKING:
     from pycc2.presentation.rendering.camera import Camera
+
+
+# ---------------------------------------------------------------------------
+# V-11 (Wave E1) constants
+# ---------------------------------------------------------------------------
+
+_CASUALTY_MARKER_DURATION_S: float = 5.0  # Wave B-rev: 3s → 5s
+_CASUALTY_MARKER_COLOR: tuple[int, int, int] = (128, 128, 128)  # Gray X
+_CASUALTY_MARKER_SIZE: int = 4  # Half-size of X marker in pixels
+_LEGEND_BG_COLOR: tuple[int, int, int, int] = (20, 22, 28, 200)
+_LEGEND_TEXT_COLOR: tuple[int, int, int] = (220, 220, 220)
+_LEGEND_BORDER_COLOR: tuple[int, int, int] = (80, 84, 92)
+
+
+@dataclass(slots=True)
+class _CasualtyMarker:
+    """Casualty marker on minimap (V-11 Wave E1).
+
+    Persists for ``_CASUALTY_MARKER_DURATION_S`` seconds then auto-removed
+    by ``update_casualties()``.
+
+    Attributes:
+        tile_x: Death position tile X coordinate.
+        tile_y: Death position tile Y coordinate.
+        faction: Faction of the fallen unit (for marker color, currently gray).
+        age_seconds: Elapsed seconds since death.
+    """
+
+    tile_x: int
+    tile_y: int
+    faction: Faction
+    age_seconds: float = 0.0
 
 
 class Minimap:
@@ -56,6 +94,10 @@ class Minimap:
         # Reusable viewport surface (avoids per-frame allocation)
         self._viewport_surface: Surface | None = None
         self._viewport_size: tuple[int, int] = (0, 0)
+
+        # V-11 (Wave E1): Casualty markers + legend toggle
+        self._casualty_markers: list[_CasualtyMarker] = []
+        self._legend_visible: bool = False  # Default hidden; toggle with 'L'
 
     def set_map(self, game_map: GameMap) -> None:
         """Set the game map for rendering."""
@@ -133,9 +175,139 @@ class Minimap:
 
         Args:
             dt: Delta time in seconds since last frame.
-
         """
         self._fade.update(dt)
+        self.update_casualties(dt)  # V-11 (Wave E1): expire old casualty markers
+
+    # ------------------------------------------------------------------
+    # V-11 (Wave E1): Casualty markers + legend toggle
+    # ------------------------------------------------------------------
+
+    def add_casualty(self, tile_x: int, tile_y: int, faction: Faction) -> None:
+        """Register a casualty marker on the minimap (V-11 Wave E1).
+
+        The marker persists for ``_CASUALTY_MARKER_DURATION_S`` seconds
+        (5s per Wave B-rev spec) and is drawn as a gray X.
+
+        Args:
+            tile_x: Death position tile X coordinate.
+            tile_y: Death position tile Y coordinate.
+            faction: Faction of the fallen unit.
+        """
+        self._casualty_markers.append(
+            _CasualtyMarker(tile_x=tile_x, tile_y=tile_y, faction=faction)
+        )
+
+    def update_casualties(self, dt: float) -> None:
+        """Advance casualty marker ages and remove expired ones (V-11 Wave E1).
+
+        Args:
+            dt: Delta time in seconds since last frame.
+        """
+        if not self._casualty_markers:
+            return
+        for marker in self._casualty_markers:
+            marker.age_seconds += dt
+        self._casualty_markers = [
+            m for m in self._casualty_markers if m.age_seconds < _CASUALTY_MARKER_DURATION_S
+        ]
+
+    def toggle_legend(self) -> bool:
+        """Toggle legend visibility (V-11 Wave E1, press 'L').
+
+        Returns:
+            New visibility state (True if visible).
+        """
+        self._legend_visible = not self._legend_visible
+        return self._legend_visible
+
+    @property
+    def legend_visible(self) -> bool:
+        """Whether the legend overlay is currently visible (V-11 Wave E1)."""
+        return self._legend_visible
+
+    @property
+    def casualty_count(self) -> int:
+        """Number of active casualty markers (V-11 Wave E1)."""
+        return len(self._casualty_markers)
+
+    def _draw_casualties(self) -> None:
+        """Draw casualty markers as gray X on minimap (V-11 Wave E1)."""
+        if not self._game_map or not self._surface or not self._casualty_markers:
+            return
+        map_w = max(1, self._game_map.width)
+        map_h = max(1, self._game_map.height)
+        for marker in self._casualty_markers:
+            norm_x = marker.tile_x / map_w
+            norm_y = marker.tile_y / map_h
+            cx = int(norm_x * self.size)
+            cy = int(norm_y * self.size)
+            # Draw gray X marker
+            s = _CASUALTY_MARKER_SIZE
+            draw.line(self._surface, _CASUALTY_MARKER_COLOR, (cx - s, cy - s), (cx + s, cy + s), 1)
+            draw.line(self._surface, _CASUALTY_MARKER_COLOR, (cx - s, cy + s), (cx + s, cy - s), 1)
+
+    def _draw_legend(self, surface: Surface, x: int, y: int) -> None:
+        """Draw legend overlay next to minimap (V-11 Wave E1).
+
+        Legend shows: allied color, axis color, selection marker,
+        casualty marker, and key terrain colors.
+
+        Args:
+            surface: Target screen surface to draw on.
+            x: Minimap top-left X position.
+            y: Minimap top-left Y position.
+        """
+        # Legend positioned to the right of minimap
+        legend_x = x + self.size + 4
+        legend_y = y
+        legend_w = 110
+        legend_h = 130
+
+        # Draw semi-transparent background
+        legend_surface = Surface((legend_w, legend_h), pygame.SRCALPHA)
+        legend_surface.fill(_LEGEND_BG_COLOR)
+        surface.blit(legend_surface, (legend_x, legend_y))
+
+        # Draw border
+        draw.rect(
+            surface,
+            _LEGEND_BORDER_COLOR,
+            Rect(legend_x, legend_y, legend_w, legend_h),
+            1,
+        )
+
+        # Draw legend entries (color swatch + label)
+        try:
+            font_obj = pygame.font.Font(None, 14)
+        except Exception:
+            font_obj = pygame.font.SysFont(None, 14)
+
+        entries: list[tuple[tuple[int, int, int], str]] = [
+            (self.spec.allied_unit_color, "Allies"),
+            (self.spec.axis_unit_color, "Axis"),
+            (self.spec.selection_color, "Selected"),
+            (_CASUALTY_MARKER_COLOR, "Casualty"),
+        ]
+
+        # Add key terrain colors
+        for terrain_type, color in self.spec.terrain_colors.items():
+            entries.append((color, terrain_type.name.title()))
+
+        entry_y = legend_y + 6
+        for color, label in entries:
+            # Draw color swatch
+            draw.rect(
+                surface,
+                color,
+                Rect(legend_x + 6, entry_y, 12, 12),
+            )
+            # Draw label
+            text_surf = font_obj.render(label, True, _LEGEND_TEXT_COLOR)
+            surface.blit(text_surf, (legend_x + 22, entry_y - 1))
+            entry_y += 15
+            if entry_y > legend_y + legend_h - 15:
+                break  # Prevent overflow
 
     @property
     def is_visible(self) -> bool:
@@ -165,6 +337,7 @@ class Minimap:
             self._draw_terrain()
 
         self._draw_units()
+        self._draw_casualties()  # V-11 (Wave E1): casualty markers
         self._draw_squad_groups()
         self._draw_path_preview()
         self._draw_range_indicator()
@@ -180,6 +353,10 @@ class Minimap:
         else:
             self._surface.set_alpha(255)
         surface.blit(self._surface, (x, y))
+
+        # V-11 (Wave E1): Draw legend overlay on target surface if visible
+        if self._legend_visible:
+            self._draw_legend(surface, x, y)
 
     def _draw_terrain(self) -> None:
         """Draw simplified terrain on minimap (with caching)."""
@@ -318,12 +495,14 @@ class Minimap:
             # Draw unit dot
             draw.circle(self._surface, color, (dot_x, dot_y), dot_radius)
 
-            # R9: Draw unit facing direction indicator
-            facing_rad = math.radians(getattr(unit, "facing", 0.0))
-            dir_len = dot_radius + 3
-            end_x = int(dot_x + math.cos(facing_rad) * dir_len)
-            end_y = int(dot_y + math.sin(facing_rad) * dir_len)
-            draw.line(self._surface, color, (dot_x, dot_y), (end_x, end_y), 1)
+            # V-11 (Wave E1): Draw unit facing direction indicator ONLY for
+            # selected unit (Wave B-rev: was all units, caused clutter).
+            if self._selected_unit_id and unit.id == self._selected_unit_id:
+                facing_rad = math.radians(getattr(unit, "facing", 0.0))
+                dir_len = dot_radius + 3
+                end_x = int(dot_x + math.cos(facing_rad) * dir_len)
+                end_y = int(dot_y + math.sin(facing_rad) * dir_len)
+                draw.line(self._surface, color, (dot_x, dot_y), (end_x, end_y), 1)
 
             # Draw selection highlight ring for selected unit
             if (

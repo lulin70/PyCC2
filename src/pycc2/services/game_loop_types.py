@@ -37,6 +37,7 @@ class GameState:
     side_turn: str = "allies"
     time_speed: float = 1.0
     current_weather: object | None = None  # WeatherType enum
+    in_combat: bool = False  # V-10 Wave E2: combat lock for theme switching
 
 
 __all__ = [

@@ -134,6 +134,7 @@ intent: pycc2.domain.ai.tactic_intent.TacticIntent  # type: ignore[name-defined]
 ```python
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from pycc2.domain.ai.tactic_intent import TacticIntent
 

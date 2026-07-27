@@ -12,20 +12,24 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
+
 class DisplayConfig(BaseModel):
     logical_w: int = Field(default=1280, ge=640, le=4096)
     logical_h: int = Field(default=720, ge=480, le=2160)
     fullscreen: bool = False
     target_fps: int = Field(default=60, ge=30, le=144)
 
+
 class GameplayConfig(BaseModel):
     logic_ups: int = Field(default=30, ge=10, le=60)
     game_speed: float = Field(default=1.0, ge=0.25, le=4.0)
+
 
 class AudioConfig(BaseModel):
     enabled: bool = True
     master_vol: float = Field(default=0.8, ge=0.0, le=1.0)
     music_vol: float = Field(default=0.6, ge=0.0, le=1.0)
+
 
 class DebugConfig(BaseModel):
     show_fps: bool = False
@@ -33,10 +37,12 @@ class DebugConfig(BaseModel):
     god_mode: bool = False
     dev_mode: bool = False
 
+
 class PathConfig(BaseModel):
     data_dir: str = "data"
     save_dir: str = "saves"
     log_dir: str = "logs"
+
 
 class EngineConfig(BaseModel):
     display: DisplayConfig = Field(default_factory=DisplayConfig)
@@ -77,19 +83,21 @@ class EngineConfig(BaseModel):
 from enum import IntEnum
 from pydantic import BaseModel, Field
 
+
 class TerrainType(IntEnum):
-    OPEN = 0                # 开阔地
-    ROAD = 1                # 道路
-    GRASS = 2               # 草地
-    WOODS = 3               # 林地
+    OPEN = 0  # 开阔地
+    ROAD = 1  # 道路
+    GRASS = 2  # 草地
+    WOODS = 3  # 林地
     BUILDING_ENTERABLE = 4  # 可进入建筑
-    BUILDING_SOLID = 5      # 实心建筑
-    WATER = 6               # 水域
-    HEDGE = 7               # 树篱
-    WALL = 8                # 墙壁
-    ROUGH = 9               # 粗糙地形
-    SHALLOW = 10            # 浅水
-    BRIDGE = 11             # 桥梁
+    BUILDING_SOLID = 5  # 实心建筑
+    WATER = 6  # 水域
+    HEDGE = 7  # 树篱
+    WALL = 8  # 墙壁
+    ROUGH = 9  # 粗糙地形
+    SHALLOW = 10  # 浅水
+    BRIDGE = 11  # 桥梁
+
 
 class TerrainProps(BaseModel):
     movement_cost: float = Field(default=1.0, ge=0.5, le=10.0)
@@ -126,6 +134,7 @@ class TerrainProps(BaseModel):
 ```python
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
+
 
 class WeaponConfig(BaseModel):
     id: str
@@ -169,6 +178,7 @@ class WeaponConfig(BaseModel):
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 
+
 class UnitTemplate(BaseModel):
     id: str
     name: str
@@ -180,7 +190,7 @@ class UnitTemplate(BaseModel):
         "infantry_commander",
         "vehicle_light",
         "vehicle_medium",
-        "support_mortar"
+        "support_mortar",
     ]
     staff_count_default: int = Field(default=10, ge=1, le=100)
     move_speed: float = Field(default=3.0, ge=0.5, le=20.0)
@@ -213,6 +223,7 @@ class UnitTemplate(BaseModel):
 from pydantic import BaseModel, Field
 from typing import Literal
 
+
 class SpawnPoint(BaseModel):
     id: str
     position_x: int = Field(..., ge=0)
@@ -231,11 +242,13 @@ class SpawnPoint(BaseModel):
 from enum import Enum
 from pydantic import BaseModel, Field
 
+
 class ObjectiveType(str, Enum):
-    CAPTURE = "capture"       # 占领
-    DEFEND = "defend"         # 防守
-    REACH = "reach"           # 到达
-    DESTROY = "destroy"       # 摧毁
+    CAPTURE = "capture"  # 占领
+    DEFEND = "defend"  # 防守
+    REACH = "reach"  # 到达
+    DESTROY = "destroy"  # 摧毁
+
 
 class Objective(BaseModel):
     id: str
@@ -257,6 +270,7 @@ class Objective(BaseModel):
 from pydantic import BaseModel, Field, field_validator, ValidationInfo
 from typing import List
 import numpy as np
+
 
 class TileMapConfig(BaseModel):
     width: int = Field(..., ge=16, le=256)
@@ -314,6 +328,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 
+
 class UnitSaveData(BaseModel):
     unit_id: str
     template_id: str
@@ -325,12 +340,14 @@ class UnitSaveData(BaseModel):
     status_effects: List[str] = Field(default_factory=list)
     is_alive: bool = True
 
+
 class SquadSaveData(BaseModel):
     squad_id: str
     units: List[UnitSaveData]
     selected_weapon_index: int = 0
     current_order: str = "idle"
     formation: str = "line"
+
 
 class CampaignState(BaseModel):
     mission_index: int
@@ -339,6 +356,7 @@ class CampaignState(BaseModel):
     casualties_allies: int = 0
     casualties_axis: int = 0
     difficulty: str = "normal"
+
 
 class SaveGameData(BaseModel):
     version: str = "1.0.0"

@@ -100,7 +100,9 @@ def calculate_mvp(
         kills_normalized = min(record.kills * MVP_KILL_NORMALIZATION, 1.0)
         # Survival time approximation: if survived, full duration; else, half
         # (UnitBattleRecord doesn't track exact death time, so we approximate)
-        survival_time = battle_duration_seconds if record.survived else battle_duration_seconds * 0.5
+        survival_time = (
+            battle_duration_seconds if record.survived else battle_duration_seconds * 0.5
+        )
         survival_normalized = min(survival_time / battle_duration_seconds, 1.0)
 
         score = (
@@ -256,21 +258,23 @@ class PostBattleReportRenderer:
         allies_total = sum(1 for r in battle_result.unit_records if r.faction == "allies")
         axis_total = sum(1 for r in battle_result.unit_records if r.faction == "axis")
         allies_survived = sum(
-            1 for r in battle_result.unit_records
-            if r.faction == "allies" and r.survived
+            1 for r in battle_result.unit_records if r.faction == "allies" and r.survived
         )
         axis_survived = sum(
-            1 for r in battle_result.unit_records
-            if r.faction == "axis" and r.survived
+            1 for r in battle_result.unit_records if r.faction == "axis" and r.survived
         )
 
         # Fallback to aggregated counts if unit_records is empty
         if allies_total == 0:
             allies_total = battle_result.allies_killed + battle_result.allies_routed + 1
-            allies_survived = max(0, allies_total - battle_result.allies_killed - battle_result.allies_routed)
+            allies_survived = max(
+                0, allies_total - battle_result.allies_killed - battle_result.allies_routed
+            )
         if axis_total == 0:
             axis_total = battle_result.axis_killed + battle_result.axis_routed + 1
-            axis_survived = max(0, axis_total - battle_result.axis_killed - battle_result.axis_routed)
+            axis_survived = max(
+                0, axis_total - battle_result.axis_killed - battle_result.axis_routed
+            )
 
         # Section title
         title_surf = self._font_normal.render("CASUALTIES", True, HIGHLIGHT_COLOR)
@@ -380,7 +384,9 @@ class PostBattleReportRenderer:
         # Survived (green)
         survived_x = routed_x + bar_width + bar_gap
         survived_h = int(bar_h_max * survived / max_value) if max_value > 0 else 0
-        survived_rect = Rect(survived_x, bar_y_start + bar_h_max - survived_h, bar_width, survived_h)
+        survived_rect = Rect(
+            survived_x, bar_y_start + bar_h_max - survived_h, bar_width, survived_h
+        )
         draw.rect(surface, COMPLETED_COLOR, survived_rect)
         survived_label = self._font_small.render(str(survived), True, TEXT_COLOR)
         surface.blit(survived_label, (survived_x, bar_y_start + bar_h_max + 4))

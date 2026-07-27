@@ -176,9 +176,7 @@ class CombatPopupManager:
         # Get color + font size
         color = _get_damage_color(damage.damage_type, is_critical)
         font_size = (
-            DAMAGE_NUMBER_FONT_SIZE_CRITICAL
-            if is_critical
-            else DAMAGE_NUMBER_FONT_SIZE_NORMAL
+            DAMAGE_NUMBER_FONT_SIZE_CRITICAL if is_critical else DAMAGE_NUMBER_FONT_SIZE_NORMAL
         )
 
         # Format text: "-25" for normal, "-25!" for critical
@@ -277,7 +275,9 @@ class CombatPopupManager:
         if size not in self._damage_fonts:
             from pycc2.presentation.ui.font_helper import safe_init_font
 
-            self._damage_fonts[size] = safe_init_font(size, bold=True) or pygame.font.Font(None, size)
+            self._damage_fonts[size] = safe_init_font(size, bold=True) or pygame.font.Font(
+                None, size
+            )
         return self._damage_fonts[size]
 
 

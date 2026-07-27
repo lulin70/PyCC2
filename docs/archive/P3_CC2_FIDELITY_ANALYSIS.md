@@ -42,6 +42,7 @@ CC2 LOS Rules:
 - Walls and hedges block infantry LOS
 - Units on higher elevation have +range bonus
 """
+
 HEIGHT_BLOCK_THRESHOLD: float = 1.5  # height diff to block
 ELEVATION_BONUS_PER_LEVEL: float = 2.0  # extra range per elevation level
 ```

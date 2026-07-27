@@ -114,7 +114,7 @@ def test_animation_timings_defaults() -> None:
     """AnimationTimings defaults match Wave B-rev values (CLICK=130ms)."""
     timings = AnimationTimings()
     assert timings.EXPLOSION_DURATION == 0.3
-    assert timings.CLICK_TRANSITION == 0.13   # Wave B-rev: 100ms → 130ms
+    assert timings.CLICK_TRANSITION == 0.13  # Wave B-rev: 100ms → 130ms
     assert timings.HOVER_TRANSITION == 0.2
     assert timings.EASING_CURVE == "ease_out_cubic"
     assert timings.SMOKE_GRENADE_DURATION == 45.0
@@ -226,6 +226,7 @@ def test_theme_manager_unregister() -> None:
 
 def test_theme_manager_unregister_unknown_safe() -> None:
     """unregister() on an unknown listener is safe (no error)."""
+
     def listener() -> None:
         pass
 

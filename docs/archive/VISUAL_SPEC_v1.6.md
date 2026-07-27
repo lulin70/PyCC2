@@ -255,14 +255,15 @@ def draw_infantry_squad(screen, pos, faction):
     pygame.draw.circle(screen, color, pos, radius=12)
     pygame.draw.circle(screen, WHITE, pos, radius=12, width=2)
 
+
 # 指挥官绘制
 def draw_commander(screen, pos, faction):
     color = COMMANDER_COLOR if faction == "allies" else AXIS_COMMANDER_COLOR
     points = [
-        (pos[0], pos[1] - 10),      # 上顶点
-        (pos[0] + 10, pos[1]),       # 右顶点
-        (pos[0], pos[1] + 10),      # 下顶点
-        (pos[0] - 10, pos[1])       # 左顶点
+        (pos[0], pos[1] - 10),  # 上顶点
+        (pos[0] + 10, pos[1]),  # 右顶点
+        (pos[0], pos[1] + 10),  # 下顶点
+        (pos[0] - 10, pos[1]),  # 左顶点
     ]
     pygame.draw.polygon(screen, color, points)
     pygame.draw.polygon(screen, BLACK, points, width=2)
@@ -394,20 +395,20 @@ TERRAIN_TEXTURES = {
         "base_color": "#8BC34A",
         "pattern": "noise_grass",
         "variation": 0.1,  # 颜色随机变化范围
-        "detail": None
+        "detail": None,
     },
     TerrainType.WOODS: {
         "base_color": "#2E7D32",
         "pattern": "tree_scatter",
         "density": 0.3,  # 树木密度
-        "detail": "tree_icons_8x8"
+        "detail": "tree_icons_8x8",
     },
     TerrainType.BUILDING_SOLID: {
         "base_color": "#424242",
         "pattern": "brick_grid",
         "outline": True,
-        "roof_color": "#616161"
-    }
+        "roof_color": "#616161",
+    },
 }
 ```
 
@@ -857,7 +858,7 @@ def render_debug_level1(screen, font, game_state):
         f"Tile: ({game_state.hover_tile.x}, {game_state.hover_tile.y})",
         f"Allies: {game_state.allies_alive} | Axis: {game_state.axis_alive}",
         f"Tick: {game_state.tick}",
-        f"Mem: {get_memory_usage()}MB"
+        f"Mem: {get_memory_usage()}MB",
     ]
 
     for i, line in enumerate(lines):
@@ -892,8 +893,9 @@ def render_debug_level2(screen, font, units, pathfinder):
     # 单位状态标签
     for unit in units:
         label = f"{unit.id[:4]} HP:{unit.hp} M:{unit.morale}"
-        draw_text_with_bg(screen, unit.screen_pos + (0, -20),
-                         label, font, (0, 255, 0), (0, 0, 0, 180))
+        draw_text_with_bg(
+            screen, unit.screen_pos + (0, -20), label, font, (0, 255, 0), (0, 0, 0, 180)
+        )
 
     # 网格线
     for x in range(0, map_width, tile_size):
@@ -937,6 +939,7 @@ def render_debug_level2(screen, font, units, pathfinder):
 ```python
 import pygame.gfxdraw
 
+
 def render_performance_bars(screen, subsystem_times, x, y, width=300, max_height=100):
     subsystems = list(subsystems_times.keys())
     max_time = max(subsystem_times.values()) if subsystems_times else 1.0
@@ -952,19 +955,20 @@ def render_performance_bars(screen, subsystem_times, x, y, width=300, max_height
         pygame.draw.rect(screen, (255, 255, 255), (bar_x, bar_y, bar_width, bar_height), 1)
 
         # 标签
-        font_small = pygame.font.SysFont('consolas', 10)
+        font_small = pygame.font.SysFont("consolas", 10)
         label = font_small.render(f"{name[:4]}:{time_ms:.1f}ms", True, (255, 255, 255))
         screen.blit(label, (bar_x, bar_y - 15))
 
+
 # 子系统颜色映射
 SUBSYSTEM_COLORS = {
-    'input': (255, 100, 100),      # 红 - 输入处理
-    'update': (100, 255, 100),      # 绿 - 逻辑更新
-    'pathfinding': (100, 100, 255), # 蓝 - 寻路
-    'combat': (255, 255, 100),      # 黄 - 战斗
-    'render': (255, 100, 255),      # 品红 - 渲染
-    'ai': (100, 255, 255),          # 青 - AI决策
-    'fog': (255, 180, 100),         # 橙 - 迷雾
+    "input": (255, 100, 100),  # 红 - 输入处理
+    "update": (100, 255, 100),  # 绿 - 逻辑更新
+    "pathfinding": (100, 100, 255),  # 蓝 - 寻路
+    "combat": (255, 255, 100),  # 黄 - 战斗
+    "render": (255, 100, 255),  # 品红 - 渲染
+    "ai": (100, 255, 255),  # 青 - AI决策
+    "fog": (255, 180, 100),  # 橙 - 迷雾
 }
 ```
 
@@ -980,9 +984,14 @@ def render_memory_pie(screen, memory_breakdown, center, radius=80):
         end_angle = start_angle + angle_span
         color = get_module_color(module)
 
-        pygame.draw.arc(screen, color,
-                       (center[0]-radius, center[1]-radius, radius*2, radius*2),
-                       math.radians(start_angle), math.radians(end_angle), 3)
+        pygame.draw.arc(
+            screen,
+            color,
+            (center[0] - radius, center[1] - radius, radius * 2, radius * 2),
+            math.radians(start_angle),
+            math.radians(end_angle),
+            3,
+        )
 
         # 标签 (在扇区中间角度)
         mid_angle = math.radians(start_angle + angle_span / 2)
@@ -990,7 +999,7 @@ def render_memory_pie(screen, memory_breakdown, center, radius=80):
         label_x = center[0] + int(label_radius * math.cos(mid_angle))
         label_y = center[1] + int(label_radius * math.sin(mid_angle))
 
-        font_tiny = pygame.font.SysFont('consolas', 9)
+        font_tiny = pygame.font.SysFont("consolas", 9)
         label = font_tiny.render(f"{module[:6]}:{mem_mb}MB", True, (255, 255, 255))
         screen.blit(label, (label_x - 20, label_y - 5))
 
@@ -1025,11 +1034,11 @@ class DebugOverlayManager:
             return
 
         if self.level >= 1:
-            self._render_level1(screen, fonts['mono'], game_state)
+            self._render_level1(screen, fonts["mono"], game_state)
         if self.level >= 2:
-            self._render_level2(screen, fonts['mono'], game_state)
+            self._render_level2(screen, fonts["mono"], game_state)
         if self.level >= 3:
-            self._render_level3(screen, fonts['mono'], game_state)
+            self._render_level3(screen, fonts["mono"], game_state)
 ```
 
 ---
@@ -1103,10 +1112,7 @@ keyboard_diagonal_factor = 0.707  # 对角线归一化因子 (√2/2)
 
 ```python
 def reset_camera(camera, map_config, duration_ticks=10):
-    target_position = Vec2(
-        (map_config.width * TILE_SIZE) / 2,
-        (map_config.height * TILE_SIZE) / 2
-    )
+    target_position = Vec2((map_config.width * TILE_SIZE) / 2, (map_config.height * TILE_SIZE) / 2)
     target_zoom = 1.0
 
     start_pos = camera.position.copy()

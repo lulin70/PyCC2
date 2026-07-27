@@ -283,7 +283,10 @@ class TestRenderHappyPath:
         before = surface.copy()
         renderer.render(surface, (100, 100), MoraleState.RALLYED)
         # Surface should be unchanged
-        assert pygame.surfarray.array2d(surface).tobytes() == pygame.surfarray.array2d(before).tobytes()
+        assert (
+            pygame.surfarray.array2d(surface).tobytes()
+            == pygame.surfarray.array2d(before).tobytes()
+        )
 
     def test_render_wavering_no_crash(self, renderer, surface):
         """render() for WAVERING does not crash."""
@@ -310,7 +313,10 @@ class TestRenderHappyPath:
         before = surface.copy()
         renderer.render(surface, (100, 100), MoraleState.WAVERING)
         # Surface should be different (badge pixels added)
-        assert pygame.surfarray.array2d(surface).tobytes() != pygame.surfarray.array2d(before).tobytes()
+        assert (
+            pygame.surfarray.array2d(surface).tobytes()
+            != pygame.surfarray.array2d(before).tobytes()
+        )
 
     def test_render_at_origin_no_crash(self, renderer, surface):
         """render() at (0, 0) does not crash (boundary)."""

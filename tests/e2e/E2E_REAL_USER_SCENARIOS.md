@@ -166,18 +166,18 @@ import importlib.metadata
 import sys
 
 required_packages = {
-    'pygame': '>=2.2',
-    'numpy': '>=1.26',
-    'pydantic': '>=2.0',
+    "pygame": ">=2.2",
+    "numpy": ">=1.26",
+    "pydantic": ">=2.0",
 }
 
 results = {}
 for package, version_constraint in required_packages.items():
     try:
         version = importlib.metadata.version(package)
-        results[package] = {'installed': True, 'version': version}
+        results[package] = {"installed": True, "version": version}
     except ImportError:
-        results[package] = {'installed': False, 'version': None}
+        results[package] = {"installed": False, "version": None}
 
 python_ok = sys.version_info >= (3, 11)
 ```
@@ -203,9 +203,11 @@ python_ok = sys.version_info >= (3, 11)
 
 ```python
 import os
-os.environ['SDL_VIDEODRIVER'] = 'dummy'
+
+os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 import pygame
+
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 
@@ -214,11 +216,11 @@ from pycc2.presentation.ui.new_game_menu import NewGameMenu
 menu = NewGameMenu(screen_width=1280, screen_height=720)
 menu.render(screen)
 
-assert 'new_campaign' in menu._buttons, "缺少'New Campaign'按钮"
-assert 'start_skirmish' in menu._buttons, "缺少'Skirmish'按钮"
-assert 'quit' in menu._buttons, "缺少'Quit'按钮"
+assert "new_campaign" in menu._buttons, "缺少'New Campaign'按钮"
+assert "start_skirmish" in menu._buttons, "缺少'Skirmish'按钮"
+assert "quit" in menu._buttons, "缺少'Quit'按钮"
 
-pygame.image.save(screen, 'screenshots/menu_main.png')
+pygame.image.save(screen, "screenshots/menu_main.png")
 ```
 
 **预期结果**:
@@ -238,11 +240,11 @@ pygame.image.save(screen, 'screenshots/menu_main.png')
 **操作步骤**:
 
 ```python
-new_campaign_rect = menu._buttons['new_campaign']
+new_campaign_rect = menu._buttons["new_campaign"]
 action = menu.handle_click(new_campaign_rect.center)
 assert menu.current_screen == MenuScreen.CAMPAIGN
 menu.render(screen)
-pygame.image.save(screen, 'screenshots/menu_campaign.png')
+pygame.image.save(screen, "screenshots/menu_campaign.png")
 ```
 
 **预期结果**:
@@ -262,8 +264,8 @@ pygame.image.save(screen, 'screenshots/menu_campaign.png')
 import shutil
 from pathlib import Path
 
-config_path = Path('config/engine.toml')
-backup_path = config_path.with_suffix('.toml.bak')
+config_path = Path("config/engine.toml")
+backup_path = config_path.with_suffix(".toml.bak")
 
 if config_path.exists():
     shutil.copy(config_path, backup_path)
@@ -271,6 +273,7 @@ if config_path.exists():
 
 try:
     from pycc2.infrastructure.config import ConfigManager
+
     config = ConfigManager()
     assert config is not None
 finally:
@@ -296,11 +299,11 @@ finally:
 from pycc2.domain.entities.game_map import GameMap
 
 try:
-    game_map = GameMap.from_json(Path('data/maps/nonexistent_map.json'))
+    game_map = GameMap.from_json(Path("data/maps/nonexistent_map.json"))
     assert False, "应该抛出异常"
 except FileNotFoundError as e:
     error_msg = str(e)
-    assert 'nonexistent_map' in error_msg or 'not found' in error_msg.lower()
+    assert "nonexistent_map" in error_msg or "not found" in error_msg.lower()
 ```
 
 **预计执行时间**: 30秒
@@ -314,14 +317,17 @@ except FileNotFoundError as e:
 ```python
 import time
 import os
-os.environ['SDL_VIDEODRIVER'] = 'dummy'
-os.environ['SDL_AUDIODRIVER'] = 'dummy'
+
+os.environ["SDL_VIDEODRIVER"] = "dummy"
+os.environ["SDL_AUDIODRIVER"] = "dummy"
 
 start_time = time.perf_counter()
 
 import pygame
+
 pygame.init()
 from pycc2.presentation.ui.new_game_menu import NewGameMenu
+
 menu = NewGameMenu(screen_width=1280, screen_height=720)
 menu.render(pygame.display.set_mode((1280, 720)))
 
@@ -353,12 +359,12 @@ from pycc2.domain.systems.campaign_four_layer import create_market_garden_campai
 
 campaign = create_market_garden_campaign()
 
-assert campaign.campaign_id == 'market_garden'
-assert campaign.name == 'Operation Market Garden'
+assert campaign.campaign_id == "market_garden"
+assert campaign.name == "Operation Market Garden"
 assert len(campaign.sectors) == 3
 
 sector_ids = {s.sector_id for s in campaign.sectors}
-assert sector_ids == {'arnhem', 'nijmegen', 'eindhoven'}
+assert sector_ids == {"arnhem", "nijmegen", "eindhoven"}
 
 total_battles = sum(len(op.battles) for s in campaign.sectors for op in s.operations)
 assert total_battles == 29, f"应有29场战斗，实际{total_battles}场"
@@ -379,18 +385,15 @@ assert total_battles == 29, f"应有29场战斗，实际{total_battles}场"
 
 ```python
 day1_battles = [
-    b for s in campaign.sectors 
-    for op in s.operations 
-    for b in op.battles 
-    if b.day == 1
+    b for s in campaign.sectors for op in s.operations for b in op.battles if b.day == 1
 ]
 
 assert len(day1_battles) >= 3, "Day 1至少有3场战斗"
 
 sample = day1_battles[0]
 assert len(sample.victory_locations) > 0
-assert sample.time_of_day in ['dawn', 'day', 'dusk', 'night']
-assert sample.weather in ['clear', 'overcast', 'rain', 'fog']
+assert sample.time_of_day in ["dawn", "day", "dusk", "night"]
+assert sample.weather in ["clear", "overcast", "rain", "fog"]
 ```
 
 **预计执行时间**: 1分钟
@@ -406,7 +409,7 @@ from pathlib import Path
 from pycc2.domain.entities.game_map import GameMap
 
 target_battle = day1_battles[0]
-map_path = Path(f'data/maps/{target_battle.map_id}.json')
+map_path = Path(f"data/maps/{target_battle.map_id}.json")
 assert map_path.exists()
 
 game_map = GameMap.from_json(map_path)
@@ -481,18 +484,15 @@ for tick in range(30):
 ```python
 from pycc2.services.victory_manager import VictoryManager
 
-victory_mgr = VictoryManager(
-    game_map=game_loop.state.game_map,
-    event_bus=game_loop.event_bus
-)
+victory_mgr = VictoryManager(game_map=game_loop.state.game_map, event_bus=game_loop.event_bus)
 
 for tick in range(100):
     game_loop._update_logic(dt)
     game_loop.state.tick += 1
-    
+
     if victory_mgr.check_victory_condition(game_loop.state):
         result = victory_mgr.get_battle_result()
-        assert result in ['allied_victory', 'axis_victory', 'draw']
+        assert result in ["allied_victory", "axis_victory", "draw"]
         print(f"✓ 战斗结束: {result}")
         break
 ```
@@ -511,21 +511,23 @@ from pycc2.domain.systems.campaign_persistence import CampaignPersistence
 persistence = CampaignPersistence()
 post_battle_units = [
     {
-        'id': u.id, 'name': u.name,
-        'hp_ratio': u.health.hp / u.health.max_hp,
-        'ammo_ratio': u.weapon.ammo_remaining / u.weapon.max_ammo,
+        "id": u.id,
+        "name": u.name,
+        "hp_ratio": u.health.hp / u.health.max_hp,
+        "ammo_ratio": u.weapon.ammo_remaining / u.weapon.max_ammo,
     }
-    for u in player_units[:3] if u.is_alive
+    for u in player_units[:3]
+    if u.is_alive
 ]
 
 persistence.persist_battle_result(
-    operation_id='arnhem_landing',
-    battle_id='arnhem_d1_oosterbeek_lz',
+    operation_id="arnhem_landing",
+    battle_id="arnhem_d1_oosterbeek_lz",
     surviving_units=post_battle_units,
-    casualties={'allies': {'kia': 1, 'wounded': 2}},
+    casualties={"allies": {"kia": 1, "wounded": 2}},
 )
 
-restored_units = persistence.load_surviving_units('arnhem_landing')
+restored_units = persistence.load_surviving_units("arnhem_landing")
 assert len(restored_units) == len(post_battle_units)
 ```
 
@@ -548,19 +550,20 @@ for sector in campaign.sectors:
 success_count = 0
 for battle in day1_scenarios:
     try:
-        map_path = Path(f'data/maps/{battle.map_id}.json')
+        map_path = Path(f"data/maps/{battle.map_id}.json")
         gm = GameMap.from_json(map_path)
-        
+
         for vl in battle.victory_locations:
             x, y = vl.position
             assert 0 <= x < gm.width and 0 <= y < gm.height
-        
+
         success_count += 1
     except Exception as e:
         print(f"✗ {battle.battle_id}: {e}")
 
-assert success_count == len(day1_scenarios), \
+assert success_count == len(day1_scenarios), (
     f"Day 1应有{len(day1_scenarios)}场全部通过，实际{success_count}场"
+)
 ```
 
 **预计执行时间**: 5分钟
@@ -576,11 +579,11 @@ from pycc2.domain.systems.supply_line import SupplyLineSystem
 
 supply_system = SupplyLineSystem(campaign_state=grand_campaign_state)
 
-supply_system.update_lz_control('oosterbeek_lz', Faction.ALLIES)
+supply_system.update_lz_control("oosterbeek_lz", Faction.ALLIES)
 allied_supply = supply_system.calculate_supply(Faction.ALLIES)
 assert allied_supply > 0
 
-supply_system.update_lz_control('oosterbeek_lz', Faction.GERMAN)
+supply_system.update_lz_control("oosterbeek_lz", Faction.GERMAN)
 blocked_supply = supply_system.calculate_supply(Faction.ALLIES)
 assert blocked_supply < allied_supply
 ```
@@ -608,8 +611,9 @@ from pycc2.domain.systems.campaign_four_layer import GrandCampaignState
 
 state = GrandCampaignState()
 state.advance_day()
-state.record_battle_result(sector='arnhem', battle_id='test', result='allied_victory',
-                           casualties={'BRITISH': {'kia': 3}})
+state.record_battle_result(
+    sector="arnhem", battle_id="test", result="allied_victory", casualties={"BRITISH": {"kia": 3}}
+)
 
 assert state.current_day == 2
 assert len(state.sectors) > 0
@@ -625,12 +629,13 @@ assert len(state.sectors) > 0
 
 ```python
 def calculate_xxx_corps_progress(state):
-    eindhoven_sector = state.sectors.get('eindhoven')
+    eindhoven_sector = state.sectors.get("eindhoven")
     if not eindhoven_sector:
         return 0.0
-    completed = sum(1 for op in eindhoven_sector.operations if op.status == 'complete')
+    completed = sum(1 for op in eindhoven_sector.operations if op.status == "complete")
     total = len(eindhoven_sector.operations)
     return completed / total if total > 0 else 0
+
 
 progress = calculate_xxx_corps_progress(state)
 assert 0.0 <= progress <= 1.0
@@ -780,8 +785,8 @@ assert game_loop.interaction_controller.mode == InteractionMode.TAKE_COVER
 
 ```python
 commands = [
-    ('move', TileCoord(unit.position.tile_coord.x + 3, unit.position.tile_coord.y)),
-    ('attack', ai_units[0].id),
+    ("move", TileCoord(unit.position.tile_coord.x + 3, unit.position.tile_coord.y)),
+    ("attack", ai_units[0].id),
 ]
 
 for cmd_type, cmd_target in commands:
@@ -835,7 +840,7 @@ from pycc2.domain.systems.combat_resolver import CombatResolver
 resolver = CombatResolver(event_bus=game_loop.event_bus)
 melee_result = resolver.resolve_melee_combat(attacker=player_units[0], defender=ai_units[0])
 assert melee_result is not None
-assert 'damage' in melee_result
+assert "damage" in melee_result
 ```
 
 **预计执行时间**: 1分钟
@@ -873,11 +878,12 @@ unit.morale.value = 0.05
 unit.health.hp = 1
 
 from pycc2.domain.systems.morale_system import MoraleSystem
+
 morale_sys = MoraleSystem()
 event = morale_sys.check_morale_state(unit)
 
 if event:
-    assert event.event_type in ['panic', 'surrender', 'rally']
+    assert event.event_type in ["panic", "surrender", "rally"]
 ```
 
 **预计执行时间**: 1分钟
@@ -892,7 +898,7 @@ if event:
 from pycc2.domain.components.fatigue_component import FatigueComponent
 
 fatigue = FatigueComponent()
-for action in ['move'] * 10 + ['attack'] * 5:
+for action in ["move"] * 10 + ["attack"] * 5:
     fatigue.accumulate(action)
 
 assert fatigue.get_speed_penalty() < 1.0
@@ -932,13 +938,16 @@ if len(player_units) >= 3:
 **测试目标**: 验证坦克/半履带车等载具的操作与步兵不同
 
 ```python
-vehicles = [u for u in game_loop.state.units 
-            if 'tank' in u.unit_type.name.lower() or 'vehicle' in u.unit_type.name.lower()]
+vehicles = [
+    u
+    for u in game_loop.state.units
+    if "tank" in u.unit_type.name.lower() or "vehicle" in u.unit_type.name.lower()
+]
 
 if vehicles:
     tank = vehicles[0]
     assert tank.health.max_hp > 100  # 载具有更高HP
-    assert hasattr(tank, 'armor_value') or tank.unit_type.name != 'infantry'
+    assert hasattr(tank, "armor_value") or tank.unit_type.name != "infantry"
 ```
 
 **预计执行时间**: 1分钟
@@ -979,8 +988,18 @@ assert game_loop.state.paused == False
 ```python
 from pycc2.domain.value_objects.terrain_type import TerrainType
 
-expected_terrains = ['grass', 'road', 'forest', 'water', 'swamp', 
-                     'building', 'bridge', 'hedgerow', 'trench', 'hill']
+expected_terrains = [
+    "grass",
+    "road",
+    "forest",
+    "water",
+    "swamp",
+    "building",
+    "bridge",
+    "hedgerow",
+    "trench",
+    "hill",
+]
 
 renderer = EnhancedRenderer()
 renderer.initialize(screen)
@@ -1008,12 +1027,12 @@ assert renderable_count >= 8, f"至少8种地形应可渲染，实际{renderable
 **测试目标**: 验证步兵单位在8个朝向上都有对应的精灵图
 
 ```python
-directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 loaded_count = 0
 
 for direction in directions:
     try:
-        sprite = sprite_loader.load_sprite('infantry', 'allies', direction)
+        sprite = sprite_loader.load_sprite("infantry", "allies", direction)
         if sprite is not None:
             loaded_count += 1
     except Exception:
@@ -1062,10 +1081,10 @@ from pycc2.domain.systems.day_night_cycle import DayNightCycle
 dnc = DayNightCycle()
 
 time_checks = [
-    (6.0, 0.4),   # dawn
-    (12.0, 1.0),  # noon  
+    (6.0, 0.4),  # dawn
+    (12.0, 1.0),  # noon
     (18.0, 0.5),  # dusk
-    (23.0, 0.15), # night
+    (23.0, 0.15),  # night
 ]
 
 brightnesses = []
@@ -1089,7 +1108,7 @@ assert max(brightnesses) > 3 * min(brightnesses), "昼夜亮度差应超过3倍"
 from pycc2.domain.systems.weather_effects import WeatherEffects
 
 weather = WeatherEffects()
-weather.set_weather('rain', intensity=0.7)
+weather.set_weather("rain", intensity=0.7)
 
 vis_mod = weather.get_visibility_modifier()
 mov_mod = weather.get_movement_modifier()
@@ -1109,7 +1128,7 @@ assert acc_mod < 1.0, "雨应降低精度"
 **测试目标**: 验证雾天天气的视觉和游戏性影响
 
 ```python
-weather.set_weather('fog', intensity=0.8)
+weather.set_weather("fog", intensity=0.8)
 fog_vis = weather.get_visibility_modifier()
 
 assert fog_vis < 0.5, "雾应大幅降低能见度(<50%)"
@@ -1124,12 +1143,15 @@ assert fog_vis < 0.5, "雾应大幅降低能见度(<50%)"
 **测试目标**: 验证爆炸时的视觉特效
 
 ```python
-from pycc2.presentation.rendering.cc2_combat_effects import CC2ExplosionEffect, EnhancedParticleSystem
+from pycc2.presentation.rendering.cc2_combat_effects import (
+    CC2ExplosionEffect,
+    EnhancedParticleSystem,
+)
 
 particles = EnhancedParticleSystem(max_particles=500)
 vfx = CC2ExplosionEffect(particle_system=particles)
 
-vfx.create_explosion(position=(SCREEN_W//2, SCREEN_H//2), size='medium', duration=30)
+vfx.create_explosion(position=(SCREEN_W // 2, SCREEN_H // 2), size="medium", duration=30)
 
 active_frames = 0
 for tick in range(60):
@@ -1149,7 +1171,7 @@ assert active_frames > 10, "爆炸应至少持续10帧"
 **测试目标**: 验证烟雾弹/引擎烟雾的持续性特效
 
 ```python
-vfx.create_smoke(position=(SCREEN_W//2, SCREEN_H//2), radius=50, duration=180)
+vfx.create_smoke(position=(SCREEN_W // 2, SCREEN_H // 2), radius=50, duration=180)
 
 smoke_active = 0
 for tick in range(200):
@@ -1172,7 +1194,7 @@ assert smoke_active >= 150, "烟雾应持续约5秒以上"
 from pycc2.presentation.rendering.animation_system import AnimationSystem
 
 anim_system = AnimationSystem()
-anim_system.play_animation(unit_id=unit.id, animation_type='death', loop=False, duration=45)
+anim_system.play_animation(unit_id=unit.id, animation_type="death", loop=False, duration=45)
 
 complete = False
 for tick in range(60):
@@ -1261,12 +1283,14 @@ assert shadow_pixels > 0
 ```python
 import hashlib
 
+
 def image_hash(surface):
-    data = pygame.image.tostring(surface, 'RGB')
+    data = pygame.image.tostring(surface, "RGB")
     return hashlib.md5(data).hexdigest()
 
+
 current_hash = image_hash(screen)
-baseline_path = Path('screenshots/baseline_standard_scene.png')
+baseline_path = Path("screenshots/baseline_standard_scene.png")
 
 if baseline_path.exists():
     baseline = pygame.image.load(str(baseline_path))
@@ -1325,23 +1349,23 @@ save_ctrl = SaveController()
 save_ctrl.initialize()
 
 snapshot_before = {
-    'tick': game_loop.state.tick,
-    'unit_count': len(game_loop.state.units),
+    "tick": game_loop.state.tick,
+    "unit_count": len(game_loop.state.units),
 }
 
 state_dict = save_mgr.export_state_from_game_loop(game_loop)
-meta = SaveMetaData(mission_id='quick_test')
+meta = SaveMetaData(mission_id="quick_test")
 
 save_success = save_mgr.save_game(slot=0, state_dict=state_dict, meta=meta)
 assert save_success
 
 loaded_state, loaded_meta, status = save_mgr.load_game(slot=0)
-assert status.name == 'OK'
+assert status.name == "OK"
 
 restore_success = save_ctrl.restore_state(loaded_state, game_loop)
 assert restore_success
 
-assert game_loop.state.tick == snapshot_before['tick']
+assert game_loop.state.tick == snapshot_before["tick"]
 ```
 
 **预计执行时间**: 2分钟
@@ -1355,22 +1379,22 @@ assert game_loop.state.tick == snapshot_before['tick']
 ```python
 import json
 
-test_state = {'test': 'data', 'version': '0.1.1'}
+test_state = {"test": "data", "version": "0.1.1"}
 save_mgr.save_game(slot=1, state_dict=test_state, meta=SaveMetaData())
 
 slot_path = save_mgr._slot_path(1)
-with open(slot_path, 'r') as f:
+with open(slot_path, "r") as f:
     original = json.load(f)
 
 tampered = original.copy()
-tampered['state']['test'] = 'HACKED'
-with open(slot_path, 'w') as f:
+tampered["state"]["test"] = "HACKED"
+with open(slot_path, "w") as f:
     json.dump(tampered, f)
 
 _, _, status = save_mgr.load_game(slot=1)
 assert status == SaveSlotStatus.CORRUPTED, "篡改应被检测"
 
-with open(slot_path, 'w') as f:
+with open(slot_path, "w") as f:
     json.dump(original, f)  # 恢复
 ```
 
@@ -1387,8 +1411,8 @@ MAX_SLOTS = SecureSaveManager.MAX_SLOTS
 assert MAX_SLOTS == 8
 
 for slot in range(MAX_SLOTS):
-    meta = SaveMetaData(mission=f'test_slot_{slot}')
-    assert save_mgr.save_game(slot=slot, state_dict={'slot': slot}, meta=meta)
+    meta = SaveMetaData(mission=f"test_slot_{slot}")
+    assert save_mgr.save_game(slot=slot, state_dict={"slot": slot}, meta=meta)
 
 all_slots = save_mgr.list_all_slots()
 assert len(all_slots) == MAX_SLOTS
@@ -1415,14 +1439,17 @@ assert del_status == SaveSlotStatus.EMPTY
 ```python
 CURRENT = SecureSaveManager.CURRENT_VERSION
 
-same_ver = {'version': CURRENT, 'data': 'ok'}
+same_ver = {"version": CURRENT, "data": "ok"}
 save_mgr.save_game(slot=2, state_dict=same_ver, meta=SaveMetaData(version=CURRENT))
 _, _, same_status = save_mgr.load_game(slot=2)
 assert same_status == SaveSlotStatus.OK
 
-old_ver_data = {'meta': {'version': '0.0.1'}, 'state': {'version': '0.0.1'},
-                'hmac': save_mgr._compute_hmac(b'{"meta":{"version":"0.0.1"},"state":{"version":"0.0.1"}}')}
-with open(save_mgr._slot_path(3), 'w') as f:
+old_ver_data = {
+    "meta": {"version": "0.0.1"},
+    "state": {"version": "0.0.1"},
+    "hmac": save_mgr._compute_hmac(b'{"meta":{"version":"0.0.1"},"state":{"version":"0.0.1"}}'),
+}
+with open(save_mgr._slot_path(3), "w") as f:
     json.dump(old_ver_data, f)
 
 _, _, old_status = save_mgr.load_game(3)
@@ -1441,16 +1468,23 @@ assert old_status == SaveSlotStatus.INCOMPATIBLE
 import time
 
 large_state = {
-    'version': '0.1.1',
-    'tick': 10000,
-    'units': [{'id': f'u{i}', 'name': f'Unit_{i}', 'faction': 'allies' if i%2==0 else 'axis',
-               'health': {'hp': 80, 'max_hp': 100}, 'position': {'tile_coord': {'x': i%50, 'y': i//50}}}
-              for i in range(60)],
-    'camera': {'position': {'x': 1000, 'y': 1000}}
+    "version": "0.1.1",
+    "tick": 10000,
+    "units": [
+        {
+            "id": f"u{i}",
+            "name": f"Unit_{i}",
+            "faction": "allies" if i % 2 == 0 else "axis",
+            "health": {"hp": 80, "max_hp": 100},
+            "position": {"tile_coord": {"x": i % 50, "y": i // 50}},
+        }
+        for i in range(60)
+    ],
+    "camera": {"position": {"x": 1000, "y": 1000}},
 }
 
 start = time.perf_counter()
-save_mgr.save_game(slot=4, state_dict=large_state, meta=SaveMetaData(mission='perf_test'))
+save_mgr.save_game(slot=4, state_dict=large_state, meta=SaveMetaData(mission="perf_test"))
 save_time = time.perf_counter() - start
 
 start = time.perf_counter()
@@ -1476,15 +1510,17 @@ import threading
 results = [None] * 5
 errors = []
 
+
 def save_thread(idx):
     try:
         results[idx] = save_mgr.save_game(
-            slot=idx % 5, 
-            state_dict={'thread': idx, 'tick': idx * 100},
-            meta=SaveMetaData(mission=f'concurrent_{idx}')
+            slot=idx % 5,
+            state_dict={"thread": idx, "tick": idx * 100},
+            meta=SaveMetaData(mission=f"concurrent_{idx}"),
         )
     except Exception as e:
         errors.append(e)
+
 
 threads = [threading.Thread(target=save_thread, args=(i,)) for i in range(5)]
 for t in threads:
@@ -1507,16 +1543,16 @@ assert all(results), "部分并发存档失败"
 ```python
 # 尝试路径遍历
 traversal_names = [
-    '../../../etc/passwd',
-    '..\\..\\..\\windows\\system32\\config',
-    '/etc/shadow',
+    "../../../etc/passwd",
+    "..\\..\\..\\windows\\system32\\config",
+    "/etc/shadow",
 ]
 
 for name in traversal_names:
     safe_name = SecureSaveManager._sanitize_filename(name)
-    assert '/' not in safe_name, f"路径遍历未被过滤: {safe_name}"
-    assert '\\' not in safe_name, f"路径遍历未被过滤: {safe_name}"
-    assert not safe_name.startswith('.'), f"相对路径未被过滤: {safe_name}"
+    assert "/" not in safe_name, f"路径遍历未被过滤: {safe_name}"
+    assert "\\" not in safe_name, f"路径遍历未被过滤: {safe_name}"
+    assert not safe_name.startswith("."), f"相对路径未被过滤: {safe_name}"
 ```
 
 **预计执行时间**: 30秒
@@ -1540,10 +1576,10 @@ audio = WeaponSoundSystem()
 audio.initialize()
 
 weapon_sounds = [
-    ('rifle', 'm1_garand'),
-    ('mg', 'mg42'),
-    ('tank_gun', 'sherman_75mm'),
-    ('explosion', 'grenade'),
+    ("rifle", "m1_garand"),
+    ("mg", "mg42"),
+    ("tank_gun", "sherman_75mm"),
+    ("explosion", "grenade"),
 ]
 
 played = []
@@ -1572,7 +1608,7 @@ from pycc2.infrastructure.audio.environmental_audio import EnvironmentalAudio
 env_audio = EnvironmentalAudio()
 env_audio.initialize()
 
-env_sounds = ['wind', 'rain', 'thunder', 'birds']
+env_sounds = ["wind", "rain", "thunder", "birds"]
 played_env = []
 
 for sound_name in env_sounds:
@@ -1600,10 +1636,10 @@ bgm = BGMSystem()
 bgm.initialize()
 
 bgm_tracks = {
-    'menu': 'main_theme.ogg',
-    'battle': 'combat.ogg',
-    'victory': 'victory_fanfare.ogg',
-    'defeat': 'defeat_somber.ogg',
+    "menu": "main_theme.ogg",
+    "battle": "combat.ogg",
+    "victory": "victory_fanfare.ogg",
+    "defeat": "defeat_somber.ogg",
 }
 
 for scene, track in bgm_tracks.items():
@@ -1650,7 +1686,7 @@ audio.shutdown()
 audio.initialize()  # 重新初始化
 
 try:
-    audio.play_weapon_sound('m1_garand')
+    audio.play_weapon_sound("m1_garand")
     print("  ✓ 重新初始化后音频正常")
 except Exception as e:
     print(f"  ⚠ 重启后异常: {e}")
@@ -1697,12 +1733,12 @@ from pycc2.infrastructure.audio.voice_command_system import VoiceCommandSystem
 voice = VoiceCommandSystem()
 voice.initialize()
 
-commands = ['moving', 'contact', 'taking_fire', 'enemy_spotted']
+commands = ["moving", "contact", "taking_fire", "enemy_spotted"]
 voice_played = []
 
 for cmd in commands:
     try:
-        voice.play_voice(cmd, faction='allies')
+        voice.play_voice(cmd, faction="allies")
         voice_played.append(cmd)
     except Exception:
         pass
@@ -1720,13 +1756,12 @@ print(f"语音命令可用: {len(voice_played)}/{len(commands)}")
 
 ```python
 try:
-    audio.play_weapon_sound('nonexistent_weapon_xyz')
+    audio.play_weapon_sound("nonexistent_weapon_xyz")
     print("  ✓ 缺失音效静默处理")
 except FileNotFoundError:
     print("  ✓ 缺失音效抛出可捕获异常")
 except Exception as e:
-    assert 'not found' in str(e).lower() or 'missing' in str(e).lower(), \
-        f"错误信息不够友好: {e}"
+    assert "not found" in str(e).lower() or "missing" in str(e).lower(), f"错误信息不够友好: {e}"
 ```
 
 **预计执行时间**: 30秒
@@ -1757,8 +1792,7 @@ for tick in range(120):  # 4秒
     game_loop.state.tick += 1
 
 moved_count = sum(
-    1 for i, u in enumerate(ai_units[:3]) 
-    if u.position.tile_coord != initial_positions[i]
+    1 for i, u in enumerate(ai_units[:3]) if u.position.tile_coord != initial_positions[i]
 )
 
 assert moved_count >= 1, f"至少1个AI单位应移动，实际{moved_count}个"
@@ -1783,7 +1817,7 @@ intent = TacticIntent(
     unit_id=ai_units[0].id,
     tactic_type=TacticType.ATTACK,
     target_unit_id=player_units[0].id,
-    priority=10
+    priority=10,
 )
 
 modified = diff_system.modify_ai_decision(intent, blackboard, rng=random.Random(42))
@@ -1805,12 +1839,13 @@ suppress_intent = TacticIntent(
     unit_id=ai_units[0].id,
     tactic_type=TacticType.SUPPRESS_FIRE,
     target_unit_id=player_units[0].id,
-    priority=8
+    priority=8,
 )
 
 modified_suppress = diff_system.modify_ai_decision(suppress_intent, blackboard)
-assert modified_suppress is not None or random.Random(42).random() > 0.3, \
+assert modified_suppress is not None or random.Random(42).random() > 0.3, (
     "压制决策可能因弹药节约而被跳过"
+)
 ```
 
 **预计执行时间**: 1分钟
@@ -1827,8 +1862,9 @@ vl_positions = [TileCoord(*vl.position) for vl in sample_battle.victory_distance
 ai_near_vl = 0
 for ai_unit in ai_units:
     for vl_pos in vl_positions:
-        distance = abs(ai_unit.position.tile_coord.x - vl_pos.x) + \
-                   abs(ai_unit.position.tile_coord.y - vl_pos.y)
+        distance = abs(ai_unit.position.tile_coord.x - vl_pos.x) + abs(
+            ai_unit.position.tile_coord.y - vl_pos.y
+        )
         if distance <= 5:
             ai_near_vl += 1
             break
@@ -1889,7 +1925,7 @@ should_retreat = retreat_ai.should_retreat(
     unit=ai_units[0],
     health_ratio=0.2,  # 重伤
     enemy_superiority=3.0,  # 敌人3倍优势
-    near_cover=True
+    near_cover=True,
 )
 
 assert should_retreat == True, "重伤+劣势时应撤退"
@@ -1908,9 +1944,7 @@ from pycc2.domain.ai.squad_coordinator import SquadCoordinator
 
 coordinator = SquadCoordinator()
 targets = coordinator.coordinate_attack(
-    squad_units=ai_units[:3],
-    enemy_units=player_units[:2],
-    difficulty_config=veteran_cfg
+    squad_units=ai_units[:3], enemy_units=player_units[:2], difficulty_config=veteran_cfg
 )
 
 assert targets is not None, "应返回协同攻击计划"
@@ -1952,7 +1986,7 @@ print(f"AI单位{ai_units[0].id}听到声音: {len(heard_positions)}处")
 unit_types = set(u.unit_type.name for u in ai_units)
 print(f"AI单位类型: {unit_types}")
 
-expected_types = {'infantry', 'mg_team', 'officer'}
+expected_types = {"infantry", "mg_team", "officer"}
 has_diversity = len(unit_types.intersection(expected_types)) >= 2
 assert has_diversity, f"AI应有至少2种单位类型，实际{unit_types}"
 ```
@@ -1978,8 +2012,12 @@ panel = CC2BottomPanel(width=SCREEN_W, height=120)
 panel_surface = pygame.Surface((SCREEN_W, 120))
 
 game_loop.state.selected_unit_ids = {player_units[0].id}
-panel.render(surface=panel_surface, selected_unit=player_units[0], 
-             game_state=game_loop.state, tick=game_loop.state.tick)
+panel.render(
+    surface=panel_surface,
+    selected_unit=player_units[0],
+    game_state=game_loop.state,
+    tick=game_loop.state.tick,
+)
 
 filled_ratio = (pygame.surfarray.array3d(panel_surface).sum(axis=2) > 0).mean()
 assert filled_ratio > 0.5, "面板应有内容显示"
@@ -2021,8 +2059,9 @@ game_loop.interaction_controller.handle_mouse_wheel(delta=1)  # 放大
 assert game_loop.state.camera.zoom > initial_zoom, "滚轮上应放大"
 
 game_loop.interaction_controller.handle_mouse_wheel(delta=-1)  # 缩小
-assert game_loop.state.camera.zoom < game_loop.state.camera.zoom or \
-       game_loop.state.camera.zoom >= 0.5, "滚轮下应缩小或在最小值"
+assert (
+    game_loop.state.camera.zoom < game_loop.state.camera.zoom or game_loop.state.camera.zoom >= 0.5
+), "滚轮下应缩小或在最小值"
 ```
 
 **预计执行时间**: 1分钟
@@ -2057,12 +2096,12 @@ from pycc2.presentation.ui.tutorial_system import TutorialOverlay
 tutorial = TutorialOverlay(display_config=DisplayConfig())
 
 assert tutorial.is_active == False, "初始不应激活"
-tutorial.start_tutorial('basic_controls')
+tutorial.start_tutorial("basic_controls")
 assert tutorial.is_active == True, "启动后应激活"
 
 step = tutorial.get_current_step()
 assert step is not None, "应有当前步骤"
-assert 'text' in step or 'highlight' in step, "步骤应有内容"
+assert "text" in step or "highlight" in step, "步骤应有内容"
 
 tutorial.advance_to_next_step()
 assert tutorial.step_index == 1, "应进入下一步"
@@ -2085,7 +2124,7 @@ from pycc2.presentation.ui.keybind_manager import KeybindManager
 kb_manager = KeybindManager()
 keybinds = kb_manager.get_visible_keybinds()
 
-essential_keys = ['move', 'attack', 'defend', 'stealth']
+essential_keys = ["move", "attack", "defend", "stealth"]
 displayed = [k for k in essential_keys if k in keybinds]
 
 assert len(displayed) >= 3, f"应显示至少3个快捷键，实际{len(displayed)}个"
@@ -2107,14 +2146,14 @@ from pycc2.domain.interfaces.display_config import DisplayConfig
 dc = DisplayConfig()
 settings = SettingsMenu(dc, keybind_manager=KeybindManager())
 
-settings.set_option('music_volume', 0.8)
+settings.set_option("music_volume", 0.8)
 assert dc.music_volume == 0.8
 
-settings.set_option('show_fps', True)
+settings.set_option("show_fps", True)
 assert dc.show_fps == True
 
-settings.set_option('difficulty', 'veteran')
-assert dc.difficulty == 'veteran'
+settings.set_option("difficulty", "veteran")
+assert dc.difficulty == "veteran"
 
 settings.apply_and_save()
 print("✓ 设置应用成功")
@@ -2133,14 +2172,13 @@ game_loop._pause_menu.toggle()
 assert game_loop._pause_menu.is_active
 
 pause_buttons = list(game_loop._pause_menu._buttons.keys())
-essential_pause_btns = ['resume', 'quit_to_menu', 'settings']
-assert all(btn in pause_buttons for btn in essential_pause_btns), \
+essential_pause_btns = ["resume", "quit_to_menu", "settings"]
+assert all(btn in pause_buttons for btn in essential_pause_btns), (
     f"暂停菜单缺少必要按钮，现有: {pause_buttons}"
-
-action = game_loop._pause_menu.handle_click(
-    game_loop._pause_menu._buttons['resume'].center
 )
-assert action == 'resume'
+
+action = game_loop._pause_menu.handle_click(game_loop._pause_menu._buttons["resume"].center)
+assert action == "resume"
 game_loop._pause_menu.deactivate()
 assert not game_loop._pause_menu.is_active
 ```
@@ -2158,11 +2196,7 @@ from pycc2.presentation.ui.tooltip import TooltipManager
 
 tooltip = TooltipManager(font=None)
 
-tooltip.show_tooltip(
-    text="步兵班\nHP: 80/100\n武器: M1 Garand",
-    position=(200, 200),
-    max_width=200
-)
+tooltip.show_tooltip(text="步兵班\nHP: 80/100\n武器: M1 Garand", position=(200, 200), max_width=200)
 
 assert tooltip.is_visible == True
 tooltip_surface = tooltip.render()
@@ -2194,7 +2228,7 @@ entries = log.get_recent_entries(count=10)
 assert len(entries) == 3, f"应有3条日志，实际{len(entries)}条"
 
 last_entry = entries[-1]
-assert '摧毁' in last_entry['text'], "最后一条应包含摧毁信息"
+assert "摧毁" in last_entry["text"], "最后一条应包含摧毁信息"
 ```
 
 **预计执行时间**: 1分钟
@@ -2208,18 +2242,21 @@ assert '摧毁' in last_entry['text'], "最后一条应包含摧毁信息"
 ```python
 from pycc2.presentation.ui.radial_menu import RadialMenu
 
-radial = RadialMenu(radius=60, items=[
-    ('move', 'Z'),
-    ('attack', 'S'),
-    ('defend', 'D'),
-    ('smoke', 'C'),
-])
+radial = RadialMenu(
+    radius=60,
+    items=[
+        ("move", "Z"),
+        ("attack", "S"),
+        ("defend", "D"),
+        ("smoke", "C"),
+    ],
+)
 
 radial.show_at(position=(400, 300))
 assert radial.is_visible
 
 selected = radial.handle_click(pos=(430, 270))  # 点击Move扇区
-assert selected == 'move', f"应选中move，实际{selected}"
+assert selected == "move", f"应选中move，实际{selected}"
 
 radial.hide()
 assert not radial.is_visible
@@ -2361,29 +2398,32 @@ import os
 import pytest
 import pygame
 
-os.environ.setdefault('SDL_VIDEODRIVER', 'dummy')
-os.environ.setdefault('SDL_AUDIODRIVER', 'dummy')
+os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
-@pytest.fixture(scope='session')
+
+@pytest.fixture(scope="session")
 def pygame_display():
     pygame.init()
     screen = pygame.display.set_mode((1280, 720))
     yield screen
     pygame.quit()
 
+
 @pytest.fixture
 def game_session(pygame_display):
     """完整的游戏会话: 菜单→战役→部署→战斗"""
-    from tests.e2e.test_full_user_journey import (
-        _init_game, _build_game_loop, _start_deployment
-    )
+    from tests.e2e.test_full_user_journey import _init_game, _build_game_loop, _start_deployment
+
     wm, screen, menu = _init_game()
     # ... 复用现有test_full_user_journey的逻辑
-    yield {'game_loop': game_loop, 'screen': screen, 'menu': menu}
+    yield {"game_loop": game_loop, "screen": screen, "menu": menu}
+
 
 @pytest.fixture
 def campaign_data():
     from pycc2.domain.systems.campaign_four_layer import create_market_garden_campaign
+
     return create_market_garden_campaign()
 ```
 
