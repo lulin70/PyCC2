@@ -30,12 +30,31 @@ from pycc2.infrastructure.events.event_dispatcher import EventDispatcher  # noqa
 
 # Ensure pygame is initialized so pygame.event.Event construction and the
 # event queue (post/get) work in the headless environment.
+# Fix: e2e tests calling pygame.quit() can deinitialize display subsystem
+# between unit tests. Check display.get_init() to re-init when needed.
 if not pygame.get_init():
     pygame.init()
-try:
-    pygame.display.set_mode((1, 1))
-except Exception:
-    pass
+if not pygame.display.get_init():
+    try:
+        pygame.display.set_mode((1, 1))
+    except Exception:
+        pass
+
+
+@pytest.fixture(autouse=True)
+def _ensure_display_init():
+    """Ensure pygame display subsystem is initialized before each test.
+
+    E2e tests calling pygame.quit() can deinitialize the display subsystem
+    between unit tests. This fixture re-initializes display if needed so
+    pygame.mouse.get_pos() works in headless environment.
+    """
+    if not pygame.display.get_init():
+        try:
+            pygame.display.set_mode((1, 1))
+        except Exception:
+            pass
+    yield
 
 
 # ===========================================================================
