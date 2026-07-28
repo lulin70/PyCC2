@@ -589,8 +589,14 @@ class TestCoexistenceWithRegularPopups:
 # ============================================================================
 
 
+@pytest.mark.slow
 class TestPerformance:
-    """Performance benchmarks for damage number display."""
+    """Performance benchmarks for damage number display.
+
+    Marked @slow to avoid CI runner performance fluctuation (GitHub Actions
+    hosted runners are 5-10x slower than local). See project_memory lesson:
+    'CI runner 性能波动: 性能测试阈值需留 10x 余量或标记 @slow 移出 Unit Tests job'.
+    """
 
     def test_1000_add_calls_under_100ms(self):
         """1000 add_damage_number calls should complete under 100ms."""
