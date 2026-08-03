@@ -2,6 +2,51 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## E2E 测试体系完善 (2026-08-01) — 盲区补齐 + 结构性修复
+
+基于 E2E 测试覆盖分析（546 测试 / 8 大功能域），补齐 12 个 P0/P1/P2 盲区 + 4 项结构性修复。E2E 546→621（+75 测试），总计 6819→6894。
+
+### Added — 12 个新 E2E 测试文件（75 测试）
+
+**P0 盲区（19 测试）**:
+- `test_audio_e2e.py` (8) — TC-060~068 音频系统：武器音效/环境音/BGM/音量/资源缺失降级/立体声/语音命令（发现 2 个预存 bug 已记录）
+- `test_campaign_multiday_e2e.py` (6) — TC-015 战役多天推进：HP 持久化/幸存单位恢复/死亡标记/伤亡累积/roundtrip/战役列表
+- `test_save_security_e2e.py` (5) — TC-054/059 存档安全：HMAC 签名/篡改拒绝/路径遍历防护/文件名校验/roundtrip 完整性
+
+**P1 盲区（26 测试）**:
+- `test_installation_startup_e2e.py` (6) — TC-001~007 安装启动：主菜单渲染/子系统初始化/配置缺失降级/资源缺失/存档目录/headless 模式
+- `test_combat_special_commands_e2e.py` (6) — TC-028~034 战斗特殊命令：命令队列/建筑驻守/桥梁炸毁/近战/弹药耗尽/士气崩溃投降
+- `test_ai_advanced_tactics_e2e.py` (7) — TC-070~078 AI 高级战术：包抄/压制射击/VP 占领/难度差异/撤退/感知/单位多样性
+- `test_ui_details_e2e.py` (7+1 skip) — TC-080~089 UI 细节：小地图导航/摄像机缩放/径向菜单/Tooltip/战斗日志(归档skip)/快捷键提示/暂停菜单
+
+**P2 盲区（30 测试）**:
+- `test_visual_basics_e2e.py` (9) — TC-038~043 视觉基础：22 种地形/8 方向精灵/战争迷雾/昼夜光照/雨雾天气/爆炸烟雾死亡动画
+- `test_multi_map_gameplay_e2e.py` (6+2 xfail) — 多地图玩法：63 张地图全量加载/桥梁/城市/树篱/夜战/全量部署（发现 decoration_renderer.py:60 dict 属性访问 bug，xfail 文档化）
+- `test_long_run_stability_e2e.py` (5) — 长时稳定性：5min 运行/内存增长/tick 推进/渲染稳定/无错误累积
+- `test_error_recovery_e2e.py` (5) — 错误恢复：AI tick 失败降级/渲染失败隔离/单位组件异常隔离/事件总线溢出/存档损坏恢复
+- `test_cross_scenario_continuity_e2e.py` (5) — 跨场景连续性：菜单→战斗/战斗中存档读档/读档继续战斗/战后报告/战役推进
+
+### Changed — 结构性修复
+- **conftest 公共 factory 提取**: `tests/e2e/conftest.py` 新增 `GameLoopFactory` / `EventInjector` / `find_map_path` 公共类，消除 `test_e2e_full_coverage.py` / `test_ai_integration_e2e.py` 的 factory 重复定义
+- **文件重命名（版本驱动→功能域）**: `test_v0_7_0_ghost_integration_e2e.py` → `test_ghost_module_integration_e2e.py` / `test_v0_9_0_visual_polish_e2e.py` → `test_visual_polish_e2e.py` / `test_v090_visual_journey_e2e.py` → `test_visual_journey_e2e.py`（git mv 保留 history）
+- **pyproject.toml**: 添加 `pythonpath = ["tests/e2e"]` 确保 `from conftest import` 可解析
+- **文档引用更新**: VISUAL_POLISH_PLAN.md / TECH_DEBT.md / ROADMAP_v0.9.0.md 文件名引用同步
+
+### Added — 文档
+- **`tests/e2e/TC_MAPPING.md`**: E2E_REAL_USER_SCENARIOS.md 的 88 个 TC 编号 ↔ 实际测试文件映射表 + 覆盖率汇总
+- **TEST_PLAN.md 数据同步**: E2E 491→621，总计 6819→6894，占比 7.5%→9.0%
+
+### Verified
+- `pytest tests/e2e/` 618 passed / 1 skipped / 2 xfailed in 56.22s（零回归）
+- `ruff check tests/e2e/` 0 errors / `ruff format --check` 0 errors
+- `./scripts/check_doc_consistency.sh` PASS（15/15 文档版本一致）
+
+### Known Issues（预存 bug，记录在测试注释中，未在本次修复）
+- `voice_command_system.py:56` VoiceCommandSystem + SoundSystem API 不匹配（AttributeError 未捕获）
+- `environmental_audio.py:578` EnvironmentalAudioSystem + stereo mixer 不兼容（mono array vs 2D）
+- `decoration_renderer.py:60` dict 属性访问（enhanced_tile 是 dict 非 object，影响 9 张地图渲染）
+- `tooltip.py` HIDE_DELAY 死代码（else 分支不可达）
+
 ## Post-v0.9.0 fixes (2026-07-24) — 风险点改进 (DevSquad 7-Role 共识)
 
 基于 [PROJECT_ASSESSMENT_v0.9.0.md](docs/archive/PROJECT_ASSESSMENT_v0.9.0.md) 维度 7 诚实评价识别的 4 个风险点改进 (视觉回归 baselines 仅 macOS 用户接受现状,不纳入本次改进)。详见 [RISK_MITIGATION_PLAN_post_v0.9.0.md](docs/RISK_MITIGATION_PLAN_post_v0.9.0.md)。

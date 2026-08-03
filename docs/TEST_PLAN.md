@@ -1,4 +1,4 @@
-# PyCC2 测试计划 v0.9.0 — 全量测试套件 (6839 tests)
+# PyCC2 测试计划 v0.9.0 — 全量测试套件 (6894 tests)
 
 ## 1. 测试金字塔
 
@@ -8,33 +8,33 @@ PyCC2 采用经典的测试金字塔策略，强调**底层单元测试为主，
 
 ```
         ╱╲
-       ╱E2E╲          7.9%  (491 tests)
+       ╱E2E╲          9.0%  (621 tests)
       ╱──────╲
-     ╱ 集成测试 ╲        2.9%  (181 tests)
+     ╱ 集成测试 ╲        2.6%  (181 tests)
     ╱──────────╲
    ╱            ╲
-  ╱   单元测试   ╲      88.2%  (5494 tests)
+  ╱   单元测试   ╲      87.5%  (6029 tests)
  ╱──────────────╲
 ```
 
 ### 1.2 测试分布详情
 
-> 数据来源：`pytest --collect-only` 实测（2026-07-13，v0.6.10）。
+> 数据来源：`pytest --collect-only` 实测（2026-08-01，v0.9.0）。
 > Marker 通过 `conftest.py` 的 `pytest_collection_modifyitems` 钩子按目录自动推断，
 > 显式 `@pytest.mark.slow` 等正交标记保留不覆盖。
 
 | 层级 | 数量 | 占比 | 执行时间 | 负责人 | 频率 | Marker |
 |------|------|------|----------|--------|------|--------|
-| **单元测试 (Unit)** | 5817 | 88.8% | ~4min | 核心开发 | 每次commit | `@pytest.mark.unit`（路径自动） |
-| **集成测试 (Integration)** | 181 | 2.8% | < 3min | 核心开发 | 每次PR | `@pytest.mark.integration`（路径自动） |
-| **端到端测试 (E2E)** | 491 | 7.5% | < 10min | QA团队 | 每日构建 | `@pytest.mark.e2e`（路径自动） |
+| **单元测试 (Unit)** | 6029 | 87.5% | ~4min | 核心开发 | 每次commit | `@pytest.mark.unit`（路径自动） |
+| **集成测试 (Integration)** | 181 | 2.6% | < 3min | 核心开发 | 每次PR | `@pytest.mark.integration`（路径自动） |
+| **端到端测试 (E2E)** | 621 | 9.0% | < 10min | QA团队 | 每日构建 | `@pytest.mark.e2e`（路径自动） |
 | **性能基准 (Benchmark)** | 21 | 0.3% | < 2min | 核心开发 | 每日构建 | `@pytest.mark.benchmark`（路径自动） |
 | **验收测试 (Acceptance)** | 42 | 0.6% | < 2min | QA团队 | 每次发布 | `@pytest.mark.acceptance`（路径自动） |
 | **慢测试 (Slow，正交)** | 16 | 0.2% | ~3min | 核心开发 | CI slow job | `@pytest.mark.slow`（显式） |
 
-**总计: 6552 个测试用例（v0.6.10 全量，含 slow 16 个；`pytest -m "not slow"` 基线 6536 collected / 2 skipped）**
+**总计: 6894 个测试用例（v0.9.0 全量，含 slow 16 个；`pytest -m "not slow"` 基线 6891 passed / 3 skipped / 2 xfailed / 23 deselected，参考 PROJECT_STATUS.md）**
 
-> **数据校准说明**: 2026-07-14 通过 `pytest tests/{unit,integration,e2e,benchmark,acceptance}/ --co -q` 逐目录实测验证。单元测试数从原 5494 更新为 5817（v0.6.10 覆盖率提升新增 323 测试主要落入 unit 目录）。
+> **数据校准说明**: 2026-07-14 通过 `pytest tests/{unit,integration,e2e,benchmark,acceptance}/ --co -q` 逐目录实测验证。单元测试数从原 5494 更新为 5817（v0.6.10 覆盖率提升新增 323 测试主要落入 unit 目录）。v0.9.0 校准（2026-08-01）：总计 6552→6819（+267 = unit +212 / e2e +55），E2E 491→546，单元 5817→6029，数据来源 PROJECT_STATUS.md 实测 `pytest -m "not slow"` 6819 passed。E2E 盲区补齐（2026-08-01）：E2E 546→621（+75），总计 6819→6894（+75），新增 12 个 E2E 文件覆盖音频/战役多天/存档安全/安装启动/战斗特殊命令/AI高级战术/UI细节/视觉基础/多地图/长时稳定性/错误恢复/跨场景连续性。
 
 **Marker 策略**（Phase 5 新增）：
 - 路径自动标记：`tests/unit/` → `unit`，`tests/integration/` → `integration`，`tests/e2e/` → `e2e`，`tests/benchmark/` → `benchmark`
@@ -46,7 +46,7 @@ PyCC2 采用经典的测试金字塔策略，强调**底层单元测试为主，
 
 ### 1.3 各层职责定义
 
-#### 单元测试 (Unit Tests) - 88.8%
+#### 单元测试 (Unit Tests) - 88.4%
 
 **目标：** 验证单个函数/类的正确性
 
@@ -84,7 +84,7 @@ class TestVec2Addition:
 
 ---
 
-#### 集成测试 (Integration Tests) - 2.8%
+#### 集成测试 (Integration Tests) - 2.7%
 
 **目标：** 验证模块间协作的正确性
 
@@ -126,7 +126,7 @@ class TestCombatIntegration:
 
 ---
 
-#### 端到端测试 (E2E Tests) - 5%
+#### 端到端测试 (E2E Tests) - 8.0%
 
 **目标：** 验证完整的用户场景
 

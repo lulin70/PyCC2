@@ -849,7 +849,7 @@
 - **状态**:
   - ✅ TD-076a RESOLVED (v0.6.11, 2026-07-17) — context_menu.py 308 行删除 + test_phase_a.py TestA4ContextMenu 类 (5 测试) 删除 + test_zero_coverage_smoke.py TestContextMenu 类 (~8 测试) 删除 + tests/acceptance/README.md 计数 8→7/42→37 + tests/e2e/E2E_REAL_USER_SCENARIOS.md TC-090 章节删除
   - ✅ TD-076b/c/d RESOLVED (v0.7.0, 2026-07-17) — 3 个半集成模块全部接入游戏循环; 详见 docs/ROADMAP_v0.7.0.md
-- **验证 (v0.7.0)**: 6509 passed / 2 skipped / 16 deselected, ruff 0, mypy 2 pre-existing errors (config.rendering_features, 与 v0.7.0 无关), 12 新增 E2E 测试 (test_v0_7_0_ghost_integration_e2e.py), 零回归
+- **验证 (v0.7.0)**: 6509 passed / 2 skipped / 16 deselected, ruff 0, mypy 2 pre-existing errors (config.rendering_features, 与 v0.7.0 无关), 12 新增 E2E 测试 (test_ghost_module_integration_e2e.py), 零回归
 
 ### ~~🟢 TD-077: 19 个孤立原型评估 (P2)~~ ✅ RESOLVED (v0.7.1, 2026-07-17) + ✅ INTEGRATE COMPLETE (v0.7.6, 2026-07-18)
 

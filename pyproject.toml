@@ -121,6 +121,10 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# tests/e2e/conftest.py exposes shared GameLoopFactory / EventInjector / find_map_path.
+# Required so e2e test modules can `from conftest import ...` despite the
+# tests/e2e/__init__.py package layout (D13-N5 structural fix, v0.9.x).
+pythonpath = ["tests/e2e"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

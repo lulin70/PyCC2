@@ -1,6 +1,6 @@
 # PyCC2 项目状态
 
-> **最后更新**: 2026-07-25
+> **最后更新**: 2026-08-01
 > **版本**: v0.9.0
 > **状态**: Beta Candidate — 完全可玩 (v0.9.0 视觉打磨完成)
 
@@ -10,8 +10,8 @@
 |------|------|------|
 | 版本号 | 0.9.0 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
 | 源码模块数 | 386 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
-| 测试文件数 | 213 个 `.py` 文件（unit 167 / integration 14 / e2e 28 / benchmark 4 / acceptance 1 / root 2） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 6819 passed / 2 skipped / 23 deselected (v0.9.0 实测: v0.7.6 INTEGRATE 6291 → v0.8.0 P3-3 难度曲线 +10 → v0.9.0 视觉打磨 +518) | `pytest tests/ -m "not slow" --co -q` |
+| 测试文件数 | 225 个 `.py` 文件（unit 167 / integration 14 / e2e 40 / benchmark 4 / acceptance 1 / root 2） | `find tests -name "*.py" \| wc -l` |
+| 测试用例数 | 6891 passed / 3 skipped / 2 xfailed / 23 deselected (v0.9.0 实测: v0.7.6 INTEGRATE 6291 → v0.8.0 P3-3 难度曲线 +10 → v0.9.0 视觉打磨 +518 → E2E 盲区补齐 +75) | `pytest tests/ -m "not slow" --co -q` |
 
 > **测试数差异说明**: v0.9.0 发布时 CHANGELOG L60 记录为 6839 passed（v0.8.0 基线 6301 + 538 新增）。Post-v0.9.0 fixes 阶段 commit d1dfdb5 将 3 个 portrait renderer perf 测试标记为 `@pytest.mark.slow`（在 `not slow` 模式下被 deselected），加上其他 CI 环境修复调整，当前实测为 6819 passed。差异属于预期行为（@slow 测试移到 Slow Tests job），非测试删除或回归。详见 [CHANGELOG.md](CHANGELOG.md#L60) 与 commit d1dfdb5。
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=65` (unit tests only) + radon cc E+ baseline=18（v0.7.7 配置化至 pyproject.toml [tool.radon]，v0.7.6 前 23 硬编码在 ci.yml） | `.github/workflows/ci.yml` + `pyproject.toml` |

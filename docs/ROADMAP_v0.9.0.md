@@ -247,7 +247,7 @@ D7 (V-14, 6h, C3 依赖已满足) ───────────────�
 | 子项 | 状态 | 说明 |
 |------|------|------|
 | F1: ruff + mypy + radon + check_doc_consistency (扩展 REQUIRED_DOCS) | ✅ 完成 | ruff 0 errors / mypy 0 errors (383 files) / radon 18 E+ = baseline 18 / doc_consistency 14/14 PASS |
-| F2: 全量 pytest 零回归 + e2e 真实用户旅程扩展 | ✅ 完成 | 6839 passed (v0.8.0 基线 6301 + 538 新增) + test_v090_visual_journey_e2e.py 10 tests (4 条旅程 V-05/V-06/V-09/V-11) |
+| F2: 全量 pytest 零回归 + e2e 真实用户旅程扩展 | ✅ 完成 | 6839 passed (v0.8.0 基线 6301 + 538 新增) + test_visual_journey_e2e.py 10 tests (4 条旅程 V-05/V-06/V-09/V-11) |
 | F3: 版本号 0.8.0 → 0.9.0 + 文档同步 (MINOR) | ✅ 完成 | SemVer MINOR: 14 项用户可见新功能 + 14 文档同步 |
 | F4: Git commit + push (拆分多个 commit) | ✅ 完成 | feat + chore 模式, 已推送 origin/main |
 | F5: CarryMem 记录 v0.9.0 完成 + playtest_v090_accessibility.md | ✅ 完成 | 教训强化 4 条 + V-12 playtest 记录 |
@@ -299,7 +299,7 @@ D7 (V-14, 6h, C3 依赖已满足) ───────────────�
 - [x] check_doc_consistency.sh: 17/17 PASS (REQUIRED_DOCS 扩展含 v0.9.0 文档 + INSTALL 三语, 版本号 0.9.0 一致)
 - [x] bandit.yaml: exclude_dirs 含 src/pycc2/_archive/
 - [x] pytest: 6819 passed / 2 skipped / 23 deselected 零回归 (v0.8.0 基线 6301 + 518 新增, 实测 2026-07-25)
-- [x] e2e: 全部通过 (含 test_v090_visual_journey_e2e.py 10 tests + 4 条真实玩家旅程 V-05/V-06/V-09/V-11)
+- [x] e2e: 全部通过 (含 test_visual_journey_e2e.py 10 tests + 4 条真实玩家旅程 V-05/V-06/V-09/V-11)
 - [x] V-12 playtest: playtest_v090_accessibility.md 已产出
 - [x] verify_d14_candidates.py: 全部路径验证通过
 
