@@ -242,27 +242,27 @@ class GameLoopAssembler:
 
         self._loop.time_control = TimeControlUI()
         self._loop._popup_manager = CombatPopupManager()
-        
+
         # Bug 2 修复：初始化 CombatLog 系统
         self._init_combat_log()
-    
+
     def _init_combat_log(self) -> None:
         """初始化战斗日志系统（Bug 2 修复）。"""
-        from pycc2.services.combat_log_collector import CombatLogCollector
         from pycc2.presentation.ui.combat_log_panel import CombatLogPanel
-        
+        from pycc2.services.combat_log_collector import CombatLogCollector
+
         # 创建 CombatLogCollector（订阅 EventBus）
         self._loop.combat_log_collector = CombatLogCollector(
             event_bus=self._loop.event_bus,
             max_events=100
         )
-        
+
         # 创建 CombatLogPanel（UI 渲染）
         dc = self._loop.display_config
         if dc:
             self._loop.combat_log_panel = CombatLogPanel(
-                screen_width=dc.screen_width,
-                screen_height=dc.screen_height
+                screen_width=dc.window_width,
+                screen_height=dc.window_height
             )
         else:
             # fallback: 默认分辨率
@@ -270,7 +270,7 @@ class GameLoopAssembler:
                 screen_width=1280,
                 screen_height=720
             )
-        
+
         logger.info("CombatLog system initialized (collector + panel)")
 
     def _init_hud(self) -> None:
