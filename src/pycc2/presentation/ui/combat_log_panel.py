@@ -120,16 +120,18 @@ class CombatLogPanel:
         )
         
         # 绘制标题
-        header_text = self._header_font.render("COMBAT LOG", True, self.HEADER_COLOR)
-        screen.blit(header_text, (self.x + self.PANEL_PADDING, self.y + 5))
+        if self._header_font is not None:
+            header_text = self._header_font.render("COMBAT LOG", True, self.HEADER_COLOR)
+            screen.blit(header_text, (self.x + self.PANEL_PADDING, self.y + 5))
         
         # 绘制事件列表（从下往上，最新的在最下面）
         if not events:
-            no_events_text = self._font.render("No combat events yet", True, (150, 150, 150))
-            screen.blit(
-                no_events_text,
-                (self.x + self.PANEL_PADDING, self.y + self.PANEL_PADDING + 25)
-            )
+            if self._font is not None:
+                no_events_text = self._font.render("No combat events yet", True, (150, 150, 150))
+                screen.blit(
+                    no_events_text,
+                    (self.x + self.PANEL_PADDING, self.y + self.PANEL_PADDING + 25)
+                )
             return
         
         # 计算可见事件范围（考虑滚动）
@@ -153,8 +155,9 @@ class CombatLogPanel:
                 text = text[:max_chars - 3] + "..."
             
             # 渲染文本
-            text_surf = self._font.render(text, True, event_color)
-            screen.blit(text_surf, (self.x + self.PANEL_PADDING, y_offset))
+            if self._font is not None:
+                text_surf = self._font.render(text, True, event_color)
+                screen.blit(text_surf, (self.x + self.PANEL_PADDING, y_offset))
             
             y_offset += self.LINE_HEIGHT
             

@@ -155,6 +155,9 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
     # v0.7.6 INTEGRATE (Wave 3): Day-night cycle — GameTime drives time_of_day
     # Also assigned to _day_night_cycle (IDayNightCycle) for existing update logic.
     _game_time: GameTime | None = field(init=False, default=None)
+    # v0.9.1: CombatLog system (Bug 2 fix)
+    combat_log_collector: object | None = field(init=False, default=None)
+    combat_log_panel: object | None = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         from pycc2.services.game_loop_assembler import GameLoopAssembler
@@ -291,8 +294,8 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
             
             # Bug 2 修复：渲染 CombatLog 面板
             if hasattr(self, 'combat_log_panel') and hasattr(self, 'combat_log_collector') and screen:
-                recent_events = self.combat_log_collector.get_recent_events(20)
-                self.combat_log_panel.render(screen, recent_events)
+                recent_events = self.combat_log_collector.get_recent_events(20)  # type: ignore[attr-defined]
+                self.combat_log_panel.render(screen, recent_events)  # type: ignore[attr-defined]
 
             # Render interaction overlays (radial menu, LOS)
             if self.interaction_controller and screen:

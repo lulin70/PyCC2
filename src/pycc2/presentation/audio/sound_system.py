@@ -393,17 +393,15 @@ class SoundSystem(SoundEffectsMixin):
         if isinstance(sound_type, str):
             # 尝试转换为 SoundType 枚举
             try:
-                sound_type = SoundType[sound_type.upper().replace("VOICE_", "")]
+                sound_type_enum = SoundType[sound_type.upper().replace("VOICE_", "")]
+                name = sound_type_enum.name
             except KeyError:
                 # 如果不是枚举成员，直接用字符串作为 cache key
                 name = sound_type
-                sound_type = None  # 标记为字符串模式
         else:
             name = sound_type.name
 
-        if sound_type is not None:
-            name = sound_type.name
-        sound = self._cache.get(name)
+        sound = self._cache.get(name, None)  # type: ignore[arg-type]
         if sound is None:
             generators = {
                 SoundType.UI_CANCEL: lambda: ProceduralSoundGenerator.generate_click(frequency=400),
@@ -433,7 +431,7 @@ class SoundSystem(SoundEffectsMixin):
                 SoundType.SMG: lambda: ProceduralSoundGenerator.generate_smg(),
                 SoundType.SNIPER: lambda: ProceduralSoundGenerator.generate_sniper(),
             }
-            gen = generators.get(sound_type)
+            gen = generators.get(sound_type, None)  # type: ignore[arg-type]
             if gen:
                 raw = gen()
                 sound = self._make_sound(raw)

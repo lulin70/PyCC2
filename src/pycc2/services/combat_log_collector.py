@@ -11,11 +11,12 @@ from collections import deque
 from typing import TYPE_CHECKING
 
 from pycc2._archive.combat_log import CombatEvent, CombatEventType
+from pycc2.infrastructure.events.event_bus import EventBus
 
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from pycc2.infrastructure.event_bus import EventBus
+    pass  # EventBus now imported at runtime
 
 
 class CombatLogCollector:
@@ -46,20 +47,20 @@ class CombatLogCollector:
     def _subscribe_events(self):
         """Subscribe to EventBus events."""
         # 攻击相关
-        self._event_bus.subscribe("UnitAttacked", self._on_unit_attacked)
-        self._event_bus.subscribe("UnitDestroyed", self._on_unit_destroyed)
-        self._event_bus.subscribe("UnitDamaged", self._on_unit_damaged)
+        self._event_bus.subscribe("UnitAttacked", self._on_unit_attacked)  # type: ignore[arg-type]
+        self._event_bus.subscribe("UnitDestroyed", self._on_unit_destroyed)  # type: ignore[arg-type]
+        self._event_bus.subscribe("UnitDamaged", self._on_unit_damaged)  # type: ignore[arg-type]
 
         # 命令相关
-        self._event_bus.subscribe("CommandIssued", self._on_command_issued)
-        self._event_bus.subscribe("UnitMoved", self._on_unit_moved)
+        self._event_bus.subscribe("CommandIssued", self._on_command_issued)  # type: ignore[arg-type]
+        self._event_bus.subscribe("UnitMoved", self._on_unit_moved)  # type: ignore[arg-type]
 
         # 士气相关
-        self._event_bus.subscribe("MoraleChanged", self._on_morale_changed)
-        self._event_bus.subscribe("UnitSurrendered", self._on_unit_surrendered)
+        self._event_bus.subscribe("MoraleChanged", self._on_morale_changed)  # type: ignore[arg-type]
+        self._event_bus.subscribe("UnitSurrendered", self._on_unit_surrendered)  # type: ignore[arg-type]
 
         # 状态相关
-        self._event_bus.subscribe("UnitSuppressed", self._on_unit_suppressed)
+        self._event_bus.subscribe("UnitSuppressed", self._on_unit_suppressed)  # type: ignore[arg-type]
 
     def _on_unit_attacked(self, event_data: dict):
         """Handle UnitAttacked event."""
