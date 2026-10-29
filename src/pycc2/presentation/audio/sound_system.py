@@ -401,7 +401,7 @@ class SoundSystem(SoundEffectsMixin):
         else:
             name = sound_type.name
 
-        sound = self._cache.get(name, None)  # type: ignore[arg-type]
+        sound = self._cache.get(name, None)
         if sound is None:
             generators = {
                 SoundType.UI_CANCEL: lambda: ProceduralSoundGenerator.generate_click(frequency=400),
