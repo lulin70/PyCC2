@@ -384,12 +384,25 @@ class SoundSystem(SoundEffectsMixin):
             sound.set_volume(self._config.sfx_volume)
             self._cache[sound_type.name] = sound
 
-    def play(self, sound_type: SoundType, volume: float | None = None) -> bool:
-        """Play a sound."""
+    def play(self, sound_type: SoundType | str, volume: float | None = None) -> bool:
+        """Play a sound (Bug 3.1 修复：兼容字符串参数)."""
         if not self._available or not self._config.enabled:
             return False
 
-        name = sound_type.name
+        # 兼容字符串输入（VoiceCommandSystem 传字符串）
+        if isinstance(sound_type, str):
+            # 尝试转换为 SoundType 枚举
+            try:
+                sound_type = SoundType[sound_type.upper().replace("VOICE_", "")]
+            except KeyError:
+                # 如果不是枚举成员，直接用字符串作为 cache key
+                name = sound_type
+                sound_type = None  # 标记为字符串模式
+        else:
+            name = sound_type.name
+
+        if sound_type is not None:
+            name = sound_type.name
         sound = self._cache.get(name)
         if sound is None:
             generators = {

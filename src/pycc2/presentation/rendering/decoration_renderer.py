@@ -58,18 +58,43 @@ class DecorationRenderer:
             for tx in range(start_x, end_x):
                 enhanced_tile = get_enhanced_tile(game_map, tx, ty)
 
-                if not enhanced_tile or not enhanced_tile.decorations:
+                if not enhanced_tile:
                     continue
 
-                for deco in enhanced_tile.decorations:
-                    sprite = self.cache_sprite(deco.decoration_type.name, deco.variant)
+                # 兼容 dict 和对象两种返回类型（Bug 1 修复）
+                decorations = (
+                    enhanced_tile.get("decorations")
+                    if isinstance(enhanced_tile, dict)
+                    else getattr(enhanced_tile, "decorations", None)
+                )
+                if not decorations:
+                    continue
+
+                for deco in decorations:
+                    # 兼容 dict 和对象访问
+                    if isinstance(deco, dict):
+                        deco_type_name = deco.get("decoration_type", {}).get("name", "UNKNOWN")
+                        variant = deco.get("variant", 0)
+                        offset_x_val = deco.get("offset_x", 0.0)
+                        offset_y_val = deco.get("offset_y", 0.0)
+                        scale_val = deco.get("scale", 1.0)
+                        rotation_val = deco.get("rotation", 0)
+                    else:
+                        deco_type_name = deco.decoration_type.name
+                        variant = deco.variant
+                        offset_x_val = deco.offset_x
+                        offset_y_val = deco.offset_y
+                        scale_val = deco.scale
+                        rotation_val = deco.rotation
+
+                    sprite = self.cache_sprite(deco_type_name, variant)
 
                     # Calculate position with sub-tile offset
                     base_x = tx * tile_size
                     base_y = ty * tile_size
 
-                    offset_x = int(deco.offset_x * tile_size)
-                    offset_y = int(deco.offset_y * tile_size)
+                    offset_x = int(offset_x_val * tile_size)
+                    offset_y = int(offset_y_val * tile_size)
 
                     world_x = base_x + offset_x
                     world_y = base_y + offset_y
@@ -79,13 +104,13 @@ class DecorationRenderer:
                     screen_pos = camera.world_to_screen(Vec2(world_x, world_y))
 
                     # Scale sprite
-                    sprite_size = int(tile_size * camera.zoom * deco.scale)
+                    sprite_size = int(tile_size * camera.zoom * scale_val)
                     if sprite_size != 32:
                         sprite = pygame.transform.scale(sprite, (sprite_size, sprite_size))
 
                     # Rotate if needed
-                    if deco.rotation != 0:
-                        sprite = pygame.transform.rotate(sprite, -deco.rotation)
+                    if rotation_val != 0:
+                        sprite = pygame.transform.rotate(sprite, -rotation_val)
 
                     rect = sprite.get_rect()
                     rect.center = (int(screen_pos[0]), int(screen_pos[1]))

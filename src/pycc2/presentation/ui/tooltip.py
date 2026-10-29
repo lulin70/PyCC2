@@ -44,7 +44,7 @@ class Tooltip:
     """
 
     SHOW_DELAY: float = 0.5  # seconds before showing
-    HIDE_DELAY: float = 0.1  # seconds before hiding
+    # Bug 3.3 修复：删除 HIDE_DELAY（死代码，切换时立即隐藏）
     MAX_WIDTH: int = 220
     PADDING: int = 8
     FONT_SIZE: int = 12
@@ -54,7 +54,7 @@ class Tooltip:
         """Initialize the Tooltip."""
         self.target_unit: Unit | None = None
         self._show_timer: float = 0.0
-        self._hide_timer: float = 0.0
+        # Bug 3.3 修复：删除 _hide_timer（死代码）
         self._visible: bool = False
         self._data: TooltipData = TooltipData()
         self._was_hovering: bool = False
@@ -87,11 +87,10 @@ class Tooltip:
                     self._visible = True
                     self._update_data(unit)
             else:
+                # Bug 3.3 修复：unit=None 时立即隐藏（删除 HIDE_DELAY 死代码分支）
                 if self._was_hovering:
-                    self._hide_timer += dt
-                    if self._hide_timer >= self.HIDE_DELAY:
-                        self._visible = False
-                        self._was_hovering = False
+                    self._visible = False
+                    self._was_hovering = False
 
     def _update_data(self, unit: Unit) -> None:
         """Extract display data from unit."""
