@@ -1,23 +1,23 @@
 # PyCC2 项目状态
 
 > **最后更新**: 2026-08-01
-> **版本**: v0.9.0
-> **状态**: Beta Candidate — 完全可玩 (v0.9.0 视觉打磨完成)
+> **版本**: v0.9.1
+> **状态**: Beta Candidate — Tier 1 缺陷已修复 (v0.9.1 紧急修复完成)
 
 ## 核心指标
 
 | 指标 | 数值 | 来源 |
 |------|------|------|
-| 版本号 | 0.9.0 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
-| 源码模块数 | 386 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
-| 测试文件数 | 225 个 `.py` 文件（unit 167 / integration 14 / e2e 40 / benchmark 4 / acceptance 1 / root 2） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 6891 passed / 3 skipped / 2 xfailed / 23 deselected (v0.9.0 实测: v0.7.6 INTEGRATE 6291 → v0.8.0 P3-3 难度曲线 +10 → v0.9.0 视觉打磨 +518 → E2E 盲区补齐 +75) | `pytest tests/ -m "not slow" --co -q` |
+| 版本号 | 0.9.1 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
+| 源码模块数 | 388 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
+| 测试文件数 | 227 个 `.py` 文件（unit 167 / integration 14 / e2e 42 / benchmark 4 / acceptance 1 / root 2） | `find tests -name "*.py" \| wc -l` |
+| 测试用例数 | 6894 passed / 3 skipped / 23 deselected (v0.9.1: v0.9.0 6819 passed + E2E 盲区补齐 +75) | `pytest tests/ -m "not slow" --co -q` |
 
-> **测试数差异说明**: v0.9.0 发布时 CHANGELOG L60 记录为 6839 passed（v0.8.0 基线 6301 + 538 新增）。Post-v0.9.0 fixes 阶段 commit d1dfdb5 将 3 个 portrait renderer perf 测试标记为 `@pytest.mark.slow`（在 `not slow` 模式下被 deselected），加上其他 CI 环境修复调整，当前实测为 6819 passed。差异属于预期行为（@slow 测试移到 Slow Tests job），非测试删除或回归。详见 [CHANGELOG.md](CHANGELOG.md#L60) 与 commit d1dfdb5。
+> **测试数增长**: v0.9.0 6819 passed → v0.9.1 6894 passed（+75 E2E，12 个新文件补齐音频/战役多天/存档安全/安装启动/战斗特殊命令/AI 高级战术/UI 细节/视觉基础/多地图/长时稳定性/错误恢复/跨场景连续性盲区）。
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=65` (unit tests only) + radon cc E+ baseline=18（v0.7.7 配置化至 pyproject.toml [tool.radon]，v0.7.6 前 23 硬编码在 ci.yml） | `.github/workflows/ci.yml` + `pyproject.toml` |
-| 实际覆盖率 | 完整测试 72.64% (42764 stmts, 10107 missed，含 branch coverage) / Unit tests only 67.46% (43526 stmts, 12582 missed) | `pytest tests/ -m "not slow" --cov=src/pycc2 --cov-report=term` |
+| 实际覆盖率 | 完整测试 72.84% (42876 stmts, 10008 missed，含 branch coverage) / Unit tests only 67.56% | `pytest tests/ -m "not slow" --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |
-| mypy | 0 errors (374 files, _archive excluded + 3 type bugs fixed in v0.7.4) | `MYPYPATH=src mypy -p pycc2` |
+| mypy | 0 errors (376 files, _archive excluded) | `MYPYPATH=src mypy -p pycc2` |
 | Bandit | 0 Medium / 0 High | `bandit -r src/ -ll --skip B101,B311,B601` |
 | Domain 层占比 | 38.5% (36966/96137 行) — ✅ M4 目标 <50% 已达成 | `find src/pycc2/domain -name "*.py" -exec wc -l {} +` |
 
