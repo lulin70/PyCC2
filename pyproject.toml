@@ -46,6 +46,8 @@ dev = [
     "Pillow>=10.0",
     "radon>=6.0",
     "pytest-benchmark>=4.0.0",  # V-04: FPS regression tests
+    "filelock>=4.2.1",  # Security: CVE-2026-112940
+    "virtualenv>=21.14.9",  # Security: CVE-2026-113714, CVE-2026-113720
 ]
 docs = [
     "sphinx>=7.2",
