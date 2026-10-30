@@ -431,7 +431,7 @@ class SoundSystem(SoundEffectsMixin):
                 SoundType.SMG: lambda: ProceduralSoundGenerator.generate_smg(),
                 SoundType.SNIPER: lambda: ProceduralSoundGenerator.generate_sniper(),
             }
-            gen = generators.get(sound_type, None)  # type: ignore[arg-type]
+            gen = generators.get(sound_type)  # type: ignore[arg-type]
             if gen:
                 raw = gen()
                 sound = self._make_sound(raw)

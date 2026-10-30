@@ -575,7 +575,7 @@ class EnvironmentalAudioSystem:
         if self._mixer is None:
             return None
         raw_audio = generator()
-        
+
         # Bug 3.2 修复：mono→stereo 转换（mixer 是 stereo 时）
         try:
             # 检测 mixer 声道数（通过 get_init 返回值）
@@ -586,7 +586,7 @@ class EnvironmentalAudioSystem:
                 raw_audio = np.column_stack([raw_audio, raw_audio])
         except Exception:
             pass  # fallback: 保持原样
-        
+
         sound = self._mixer.Sound(array=raw_audio)
         sound.set_volume(self._volume)
         self._sound_cache[sound_type] = sound

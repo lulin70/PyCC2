@@ -291,7 +291,7 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
             # Render combat popups (CC2-style floating text)
             if self._popup_manager and screen:
                 self._popup_manager.render(screen, self.state.camera)
-            
+
             # Bug 2 修复：渲染 CombatLog 面板
             if hasattr(self, 'combat_log_panel') and hasattr(self, 'combat_log_collector') and screen:
                 recent_events = self.combat_log_collector.get_recent_events(20)  # type: ignore[attr-defined]
