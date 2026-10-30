@@ -47,15 +47,15 @@ class CombatLogPanel:
 
     # 事件类型颜色
     EVENT_COLORS = {
-        "ATTACK": (255, 150, 0),    # 橙色
-        "HIT": (255, 255, 100),     # 黄色
-        "KILL": (255, 50, 50),      # 红色
-        "MISS": (150, 150, 150),    # 灰色
+        "ATTACK": (255, 150, 0),  # 橙色
+        "HIT": (255, 255, 100),  # 黄色
+        "KILL": (255, 50, 50),  # 红色
+        "MISS": (150, 150, 150),  # 灰色
         "SUPPRESSION": (200, 100, 200),  # 紫色
         "MORALE_CHANGE": (100, 200, 255),  # 蓝色
         "MOVEMENT": (100, 255, 100),  # 绿色
         "STATUS_CHANGE": (255, 255, 255),  # 白色
-        "SPECIAL": (255, 200, 0),   # 金色
+        "SPECIAL": (255, 200, 0),  # 金色
     }
 
     def __init__(self, screen_width: int, screen_height: int):
@@ -74,7 +74,9 @@ class CombatLogPanel:
 
         # 滚动状态
         self._scroll_offset = 0  # 向上滚动的行数
-        self._max_visible_lines = (self.PANEL_HEIGHT - 2 * self.PANEL_PADDING - 20) // self.LINE_HEIGHT
+        self._max_visible_lines = (
+            self.PANEL_HEIGHT - 2 * self.PANEL_PADDING - 20
+        ) // self.LINE_HEIGHT
 
         # 字体（lazy init）
         self._font: pygame.font.Font | None = None
@@ -113,10 +115,7 @@ class CombatLogPanel:
 
         # 绘制边框
         pygame.draw.rect(
-            screen,
-            (100, 100, 100),
-            (self.x, self.y, self.PANEL_WIDTH, self.PANEL_HEIGHT),
-            2
+            screen, (100, 100, 100), (self.x, self.y, self.PANEL_WIDTH, self.PANEL_HEIGHT), 2
         )
 
         # 绘制标题
@@ -129,8 +128,7 @@ class CombatLogPanel:
             if self._font is not None:
                 no_events_text = self._font.render("No combat events yet", True, (150, 150, 150))
                 screen.blit(
-                    no_events_text,
-                    (self.x + self.PANEL_PADDING, self.y + self.PANEL_PADDING + 25)
+                    no_events_text, (self.x + self.PANEL_PADDING, self.y + self.PANEL_PADDING + 25)
                 )
             return
 
@@ -152,7 +150,7 @@ class CombatLogPanel:
             # 裁剪超长文本
             max_chars = (self.PANEL_WIDTH - 2 * self.PANEL_PADDING) // 7  # 估算字符宽度
             if len(text) > max_chars:
-                text = text[:max_chars - 3] + "..."
+                text = text[: max_chars - 3] + "..."
 
             # 渲染文本
             if self._font is not None:
@@ -169,10 +167,7 @@ class CombatLogPanel:
         if total_events > self._max_visible_lines and self._font is not None:
             scroll_text = f"↑{self._scroll_offset}/{total_events - self._max_visible_lines}↓"
             scroll_surf = self._font.render(scroll_text, True, (200, 200, 200))
-            screen.blit(
-                scroll_surf,
-                (self.x + self.PANEL_WIDTH - 60, self.y + 5)
-            )
+            screen.blit(scroll_surf, (self.x + self.PANEL_WIDTH - 60, self.y + 5))
 
     def handle_scroll(self, delta: int):
         """Handle mouse scroll wheel.
@@ -202,6 +197,5 @@ class CombatLogPanel:
         """
         mx, my = mouse_pos
         return (
-            self.x <= mx <= self.x + self.PANEL_WIDTH
-            and self.y <= my <= self.y + self.PANEL_HEIGHT
+            self.x <= mx <= self.x + self.PANEL_WIDTH and self.y <= my <= self.y + self.PANEL_HEIGHT
         )

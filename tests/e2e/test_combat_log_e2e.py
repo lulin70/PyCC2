@@ -19,8 +19,8 @@ class TestCombatLogE2E:
         game_loop = init_game_with_units  # fixture 直接返回 game_loop
 
         # 验证 CombatLogPanel 已初始化
-        assert hasattr(game_loop, 'combat_log_panel'), "CombatLogPanel not initialized"
-        assert hasattr(game_loop, 'combat_log_collector'), "CombatLogCollector not initialized"
+        assert hasattr(game_loop, "combat_log_panel"), "CombatLogPanel not initialized"
+        assert hasattr(game_loop, "combat_log_collector"), "CombatLogCollector not initialized"
 
         panel = game_loop.combat_log_panel
 
@@ -39,11 +39,10 @@ class TestCombatLogE2E:
         collector.clear()
 
         # 模拟攻击事件
-        game_loop.event_bus.publish_named("UnitAttacked", {
-            "attacker_name": "US Infantry",
-            "target_name": "German MG",
-            "damage": 15
-        })
+        game_loop.event_bus.publish_named(
+            "UnitAttacked",
+            {"attacker_name": "US Infantry", "target_name": "German MG", "damage": 15},
+        )
 
         time.sleep(0.1)  # 等待事件处理
 
@@ -65,11 +64,10 @@ class TestCombatLogE2E:
         collector.clear()
 
         # 模拟击杀事件
-        game_loop.event_bus.publish_named("UnitDestroyed", {
-            "killer_name": "US Sniper",
-            "victim_name": "German Officer",
-            "final_damage": 100
-        })
+        game_loop.event_bus.publish_named(
+            "UnitDestroyed",
+            {"killer_name": "US Sniper", "victim_name": "German Officer", "final_damage": 100},
+        )
 
         time.sleep(0.1)
 
@@ -131,11 +129,22 @@ class TestCombatLogE2E:
 
         # 验证事件类型覆盖
         event_types = {e.event_type.name for e in events}
-        expected_types = {"ATTACK", "KILL", "HIT", "MOVEMENT", "MORALE_CHANGE", "SPECIAL", "SUPPRESSION"}
-        assert expected_types.issubset(event_types), f"Missing event types: {expected_types - event_types}"
+        expected_types = {
+            "ATTACK",
+            "KILL",
+            "HIT",
+            "MOVEMENT",
+            "MORALE_CHANGE",
+            "SPECIAL",
+            "SUPPRESSION",
+        }
+        assert expected_types.issubset(event_types), (
+            f"Missing event types: {expected_types - event_types}"
+        )
 
 
 # Fixtures（需要在 conftest.py 中定义或内联定义）
+
 
 @pytest.fixture
 def init_game_with_units():

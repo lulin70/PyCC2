@@ -64,34 +64,40 @@ class CombatLogCollector:
 
     def _on_unit_attacked(self, event_data: dict):
         """Handle UnitAttacked event."""
-        self._events.append(CombatEvent(
-            timestamp=time.time(),
-            event_type=CombatEventType.ATTACK,
-            source_name=event_data.get("attacker_name", "Unknown"),
-            target_name=event_data.get("target_name", "Unknown"),
-            damage=event_data.get("damage", 0),
-        ))
+        self._events.append(
+            CombatEvent(
+                timestamp=time.time(),
+                event_type=CombatEventType.ATTACK,
+                source_name=event_data.get("attacker_name", "Unknown"),
+                target_name=event_data.get("target_name", "Unknown"),
+                damage=event_data.get("damage", 0),
+            )
+        )
 
     def _on_unit_destroyed(self, event_data: dict):
         """Handle UnitDestroyed event."""
-        self._events.append(CombatEvent(
-            timestamp=time.time(),
-            event_type=CombatEventType.KILL,
-            source_name=event_data.get("killer_name", "Unknown"),
-            target_name=event_data.get("victim_name", "Unknown"),
-            damage=event_data.get("final_damage", 0),
-        ))
+        self._events.append(
+            CombatEvent(
+                timestamp=time.time(),
+                event_type=CombatEventType.KILL,
+                source_name=event_data.get("killer_name", "Unknown"),
+                target_name=event_data.get("victim_name", "Unknown"),
+                damage=event_data.get("final_damage", 0),
+            )
+        )
 
     def _on_unit_damaged(self, event_data: dict):
         """Handle UnitDamaged event."""
         hit = event_data.get("hit", True)
-        self._events.append(CombatEvent(
-            timestamp=time.time(),
-            event_type=CombatEventType.HIT if hit else CombatEventType.MISS,
-            source_name=event_data.get("attacker_name", "Unknown"),
-            target_name=event_data.get("target_name", "Unknown"),
-            damage=event_data.get("damage", 0) if hit else 0,
-        ))
+        self._events.append(
+            CombatEvent(
+                timestamp=time.time(),
+                event_type=CombatEventType.HIT if hit else CombatEventType.MISS,
+                source_name=event_data.get("attacker_name", "Unknown"),
+                target_name=event_data.get("target_name", "Unknown"),
+                damage=event_data.get("damage", 0) if hit else 0,
+            )
+        )
 
     def _on_command_issued(self, event_data: dict):
         """Handle CommandIssued event (攻击/移动命令)."""
@@ -100,12 +106,14 @@ class CombatLogCollector:
 
         # 只记录移动命令（攻击命令已在 UnitAttacked 记录）
         if cmd_type.upper() == "MOVE":
-            self._events.append(CombatEvent(
-                timestamp=time.time(),
-                event_type=CombatEventType.MOVEMENT,
-                source_name=unit_name,
-                details=f"{unit_name} moving to {event_data.get('target_pos', '?')}",
-            ))
+            self._events.append(
+                CombatEvent(
+                    timestamp=time.time(),
+                    event_type=CombatEventType.MOVEMENT,
+                    source_name=unit_name,
+                    details=f"{unit_name} moving to {event_data.get('target_pos', '?')}",
+                )
+            )
 
     def _on_unit_moved(self, event_data: dict):
         """Handle UnitMoved event."""
@@ -116,31 +124,37 @@ class CombatLogCollector:
         """Handle MoraleChanged event."""
         change = event_data.get("change", 0.0)
         if abs(change) >= 5.0:  # 只记录显著变化
-            self._events.append(CombatEvent(
-                timestamp=time.time(),
-                event_type=CombatEventType.MORALE_CHANGE,
-                source_name=event_data.get("unit_name", "Unknown"),
-                details=f"Morale {'+' if change > 0 else ''}{change:.1f}",
-                morale_change=change,
-            ))
+            self._events.append(
+                CombatEvent(
+                    timestamp=time.time(),
+                    event_type=CombatEventType.MORALE_CHANGE,
+                    source_name=event_data.get("unit_name", "Unknown"),
+                    details=f"Morale {'+' if change > 0 else ''}{change:.1f}",
+                    morale_change=change,
+                )
+            )
 
     def _on_unit_surrendered(self, event_data: dict):
         """Handle UnitSurrendered event."""
-        self._events.append(CombatEvent(
-            timestamp=time.time(),
-            event_type=CombatEventType.SPECIAL,
-            source_name=event_data.get("unit_name", "Unknown"),
-            details=f"{event_data.get('unit_name', 'Unknown')} surrendered!",
-        ))
+        self._events.append(
+            CombatEvent(
+                timestamp=time.time(),
+                event_type=CombatEventType.SPECIAL,
+                source_name=event_data.get("unit_name", "Unknown"),
+                details=f"{event_data.get('unit_name', 'Unknown')} surrendered!",
+            )
+        )
 
     def _on_unit_suppressed(self, event_data: dict):
         """Handle UnitSuppressed event."""
-        self._events.append(CombatEvent(
-            timestamp=time.time(),
-            event_type=CombatEventType.SUPPRESSION,
-            target_name=event_data.get("unit_name", "Unknown"),
-            details=f"{event_data.get('unit_name', 'Unknown')} is suppressed",
-        ))
+        self._events.append(
+            CombatEvent(
+                timestamp=time.time(),
+                event_type=CombatEventType.SUPPRESSION,
+                target_name=event_data.get("unit_name", "Unknown"),
+                details=f"{event_data.get('unit_name', 'Unknown')} is suppressed",
+            )
+        )
 
     def get_recent_events(self, count: int = 20) -> list[CombatEvent]:
         """Get most recent N events.
