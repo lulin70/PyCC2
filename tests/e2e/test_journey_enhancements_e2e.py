@@ -287,7 +287,7 @@ assert factory.game_loop is not None, "GameLoop not initialized"
 assert factory.renderer is not None, "Renderer not initialized"
 assert factory.ai_service is not None, "AI service not initialized"
 assert factory.event_bus is not None, "Event bus not initialized"
-assert factory.sound_system is not None, "Sound system not initialized"
+assert factory.game_loop.sound_system is not None, "Sound system not initialized"
 
 # Run game loop
 factory.run_ticks(10)
