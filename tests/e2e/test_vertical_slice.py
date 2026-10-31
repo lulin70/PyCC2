@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pygame
@@ -93,10 +93,11 @@ def sample_units() -> list[Unit]:
 @pytest.fixture
 def full_system(pygame_env, tutorial_map, sample_units, monkeypatch):
     wm = WindowManager()
-    mock_screen = Mock()
-    mock_screen.get_size.return_value = (1280, 720)
-    monkeypatch.setattr(wm, "initialize", lambda: mock_screen)
-    monkeypatch.setattr(wm, "get_screen", lambda: mock_screen)
+    # Real Surface: game_loop.run() passes the screen to pygame APIs that
+    # reject Mock objects ("argument 1 must be pygame.surface.Surface").
+    screen = pygame.Surface((1280, 720))
+    monkeypatch.setattr(wm, "initialize", lambda: screen)
+    monkeypatch.setattr(wm, "get_screen", lambda: screen)
     screen = wm.initialize()
     camera = Camera(
         position=Vec2(256.0, 256.0),

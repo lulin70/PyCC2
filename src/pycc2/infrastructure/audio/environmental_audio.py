@@ -584,8 +584,6 @@ class EnvironmentalAudioSystem:
             )
             if channels == 2 and raw_audio.ndim == 1:
                 # mono → stereo: 复制到两个声道
-                import numpy as np
-
                 raw_audio = np.column_stack([raw_audio, raw_audio])
         except Exception:
             pass  # fallback: 保持原样
