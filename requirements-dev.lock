@@ -12,7 +12,7 @@ brotli==1.2.0
 build==1.5.0
 CacheControl==0.14.4
 cachetools==7.1.2
--e git+https://github.com/lulin70/carrymem.git@79684083a7ffb0cb9fc6aea722e23fce355f41a6#egg=carrymem
+git+https://github.com/lulin70/carrymem.git@79684083a7ffb0cb9fc6aea722e23fce355f41a6#egg=carrymem
 certifi==2026.4.22
 cffi==2.0.0
 cfgv==3.5.0
