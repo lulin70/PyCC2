@@ -430,7 +430,8 @@ class TestTooltip:
         assert tooltip.target_unit is None
         assert tooltip._visible is False
         assert tooltip.SHOW_DELAY == 0.5
-        assert tooltip.HIDE_DELAY == 0.1
+        # Bug 3.3: HIDE_DELAY was removed as dead code; the constant must not reappear.
+        assert not hasattr(tooltip, "HIDE_DELAY")
 
     def test_hover_delay_not_yet_visible(self, mock_unit):
         """Test that tooltip doesn't appear immediately."""

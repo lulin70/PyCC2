@@ -268,6 +268,5 @@ class Tooltip:
         """Immediately hide tooltip."""
         self._visible = False
         self._show_timer = 0.0
-        self._hide_timer = 0.0
         self.target_unit = None
         self._was_hovering = False
