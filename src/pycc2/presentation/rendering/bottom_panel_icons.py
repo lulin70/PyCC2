@@ -157,6 +157,19 @@ def create_command_icons(bg_color: tuple[int, int, int]) -> dict[str, Surface]:
     draw.line(s, (255, 60, 60), (4, 4), (20, 20), 2)
     icons["hide"] = s
 
+    # Fire mode (F): Two bullets (AP / HE)
+    s = Surface((24, 24))
+    s.fill(bg)
+    # AP round (yellow) - left
+    draw.rect(s, (220, 180, 60), Rect(4, 10, 5, 11))
+    draw.polygon(s, (240, 210, 90), [(4, 10), (9, 10), (6, 3)])
+    # HE round (red) - right
+    draw.rect(s, (190, 70, 60), Rect(14, 10, 5, 11))
+    draw.polygon(s, (230, 100, 80), [(14, 10), (19, 10), (16, 3)])
+    # Firing line under the rounds
+    draw.line(s, (120, 120, 120), (2, 22), (21, 22), 1)
+    icons["fire_mode"] = s
+
     return icons
 
 

@@ -69,19 +69,20 @@ class ShadowRenderingSystem:
             return 0
 
         try:
+            tile_grid = game_map.tile_grid
+            world_to_screen = camera.world_to_screen
+            start_x, end_x, start_y, end_y = self._visible_tile_bounds(game_map, camera)
             buildings_found = 0
-            for y in range(game_map.height):
-                for x in range(game_map.width):
-                    terrain_int = int(game_map.tile_grid[y, x])
+            for y in range(start_y, end_y):
+                for x in range(start_x, end_x):
+                    terrain_int = int(tile_grid[y, x])
 
                     # TerrainType: 4=BUILDING_ENTERABLE, 5=BUILDING_SOLID
                     has_building = terrain_int in (4, 5)
 
                     if has_building:
-                        from pycc2.domain.value_objects.vec2 import Vec2
-
                         world_pos = Vec2(x * self.TILE_SIZE, y * self.TILE_SIZE)
-                        screen_pos = camera.world_to_screen(world_pos)
+                        screen_pos = world_to_screen(world_pos)
                         sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
                         self._shadow_renderer.render_building_shadow(
@@ -115,19 +116,20 @@ class ShadowRenderingSystem:
             return 0
 
         try:
+            tile_grid = game_map.tile_grid
+            world_to_screen = camera.world_to_screen
+            start_x, end_x, start_y, end_y = self._visible_tile_bounds(game_map, camera)
             trees_found = 0
-            for y in range(game_map.height):
-                for x in range(game_map.width):
-                    terrain_int = int(game_map.tile_grid[y, x])
+            for y in range(start_y, end_y):
+                for x in range(start_x, end_x):
+                    terrain_int = int(tile_grid[y, x])
 
                     # TerrainType: 3=WOODS, 7=HEDGE
                     is_tree = terrain_int in (3, 7)
 
                     if is_tree:
-                        from pycc2.domain.value_objects.vec2 import Vec2
-
                         world_pos = Vec2(x * self.TILE_SIZE, y * self.TILE_SIZE)
-                        screen_pos = camera.world_to_screen(world_pos)
+                        screen_pos = world_to_screen(world_pos)
                         sx, sy = int(screen_pos[0]), int(screen_pos[1])
 
                         # 根据地形类型确定树木大小
@@ -176,11 +178,14 @@ class ShadowRenderingSystem:
 
         try:
             units_rendered = 0
+            screen_rect = surface.get_rect().inflate(128, 128)
             for unit in units:
                 cx, cy = self._get_unit_screen_position(unit, camera)
 
                 if cx is None or cy is None:
                     continue
+                if not screen_rect.collidepoint(cx, cy):
+                    continue  # PF-01: skip off-screen shadows
 
                 unit_type_str = self._get_unit_type_string(unit)
                 is_hidden = self._check_unit_hidden(unit)
@@ -273,6 +278,24 @@ class ShadowRenderingSystem:
 
         except (pygame.error, ValueError, TypeError) as e:
             logger.debug("Debug shadow bounds rendering failed: %s", e)
+
+    def _visible_tile_bounds(
+        self, game_map: "GameMap", camera: "Camera"
+    ) -> tuple[int, int, int, int]:
+        """Return the tile range that can appear on screen.
+
+        PF-01: previously both shadow passes scanned the whole map. Culling to
+        the viewport removes most of the work on large maps.
+        """
+        try:
+            bounds = camera.view_bounds
+            start_x = max(0, int(bounds[0].x // self.TILE_SIZE) - 1)
+            end_x = min(game_map.width, int(bounds[1].x // self.TILE_SIZE) + 2)
+            start_y = max(0, int(bounds[0].y // self.TILE_SIZE) - 1)
+            end_y = min(game_map.height, int(bounds[1].y // self.TILE_SIZE) + 2)
+            return start_x, end_x, start_y, end_y
+        except (AttributeError, TypeError, ValueError):
+            return 0, game_map.width, 0, game_map.height
 
     def _get_unit_screen_position(
         self, unit: "Unit", camera: "Camera"

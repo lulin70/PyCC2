@@ -127,12 +127,12 @@ def units_8():
 @pytest.mark.unit
 class TestPanelLayout:
     def test_panel_constants_are_consistent(self):
-        assert CC2BottomPanel.PANEL_HEIGHT == 130  # Updated to match CC2 original (~120-130px)
-        assert CC2BottomPanel.ROSTER_WIDTH == 170
+        assert CC2BottomPanel.PANEL_HEIGHT == 160  # Fits the 148px minimap block
+        assert CC2BottomPanel.ROSTER_WIDTH == 200
         assert CC2BottomPanel.DETAIL_WIDTH == 240
-        assert CC2BottomPanel.COMMAND_WIDTH == 180
+        assert CC2BottomPanel.COMMAND_WIDTH == 240
         assert CC2BottomPanel.URGENCY_WIDTH == 60
-        assert CC2BottomPanel.MINIMAP_SIZE == 120
+        assert CC2BottomPanel.MINIMAP_SIZE == 148
 
     def test_panel_sections_dont_overlap(self, panel, surface, camera, game_map):
         panel.set_friendly_units([make_unit()])
@@ -141,10 +141,10 @@ class TestPanelLayout:
 
         # Section x-starts derived from render logic:
         #   Roster: 5
-        #   Details: ROSTER_WIDTH + 10 = 180
-        #   Commands: 180 + DETAIL_WIDTH + 10 = 430
-        #   Urgency: 430 + COMMAND_WIDTH + 5 = 615
-        #   Minimap: 615 + URGENCY_WIDTH + 5 = 680
+        #   Details: ROSTER_WIDTH + 10 = 210
+        #   Commands: 210 + DETAIL_WIDTH + 10 = 460
+        #   Urgency: 460 + COMMAND_WIDTH + 5 = 705
+        #   Minimap: 705 + URGENCY_WIDTH + 5 = 770
         roster_x = 5
         detail_x = CC2BottomPanel.ROSTER_WIDTH + 10
         cmd_x = detail_x + CC2BottomPanel.DETAIL_WIDTH + 10
@@ -152,10 +152,10 @@ class TestPanelLayout:
         minimap_x = urgency_x + CC2BottomPanel.URGENCY_WIDTH + 5
 
         assert roster_x == 5
-        assert detail_x == 180
-        assert cmd_x == 430
-        assert urgency_x == 615
-        assert minimap_x == 680
+        assert detail_x == 210
+        assert cmd_x == 460
+        assert urgency_x == 705
+        assert minimap_x == 770
 
         # Ensure no horizontal overlap between adjacent sections
         assert roster_x + CC2BottomPanel.ROSTER_WIDTH <= detail_x
@@ -182,6 +182,7 @@ class TestCommandButtons:
         "smoke",
         "defend",
         "hide",
+        "fire_mode",
         "cancel",
         "end_battle",
     ]

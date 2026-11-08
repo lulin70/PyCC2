@@ -50,7 +50,9 @@ class GameLoopAssembler:
         """Full initialization: sound, combat, rendering, input, UI, events, FX."""
         self._init_sound()
         self._init_core_services()
+        self._init_weather()
         self._init_combat_render_input()
+        self._init_fog_of_war()
         self._init_squad_groups()
         self._init_path_preview()
         self._init_day_night_cycle()
@@ -112,6 +114,13 @@ class GameLoopAssembler:
 
         self._loop._pause_menu = PauseMenuController()
 
+    def _init_weather(self) -> None:
+        """Create the mechanical weather state and effect tables."""
+        from pycc2.domain.systems.weather_effects import WeatherEffects, WeatherState
+
+        self._loop._weather_effects = WeatherEffects()
+        self._loop._weather_state = WeatherState()
+
     def _init_combat_render_input(self) -> None:
         from pycc2.presentation.input.input_router import InputRouter
         from pycc2.presentation.rendering.render_pipeline import RenderPipeline
@@ -127,6 +136,15 @@ class GameLoopAssembler:
         )
         self._loop._combat_director.initialize()
 
+        from pycc2.domain.systems.los_system import LOSSystem
+
+        los_system = LOSSystem(
+            self._loop.state.game_map,
+            weather_effects=getattr(self._loop, "_weather_effects", None),
+        )
+        self._loop._los_system = los_system
+        self._loop._combat_director.set_los_system(los_system)
+
         self._loop._render_pipeline = RenderPipeline(
             renderer=self._loop.renderer,
             window_manager=self._loop.window_manager,
@@ -141,6 +159,17 @@ class GameLoopAssembler:
             camera=self._loop.state.camera,
             game_state=self._loop.state,
         )
+
+    def _init_fog_of_war(self) -> None:
+        """Create the fog-of-war service and hand its grid to the renderer."""
+        from pycc2.services.fog_of_war_service import FogOfWarService
+
+        game_map = self._loop.state.game_map
+        service = FogOfWarService(game_map.width, game_map.height)
+        self._loop._fog_of_war_service = service
+        if hasattr(self._loop.renderer, "set_fog_of_war"):
+            self._loop.renderer.set_fog_of_war(service.fog)
+        logger.info("FogOfWarService initialized and wired into GameLoop")
 
     def _init_squad_groups(self) -> None:
         """v0.7.5 INTEGRATE: Wire SquadGroupManager into GameLoop + InputRouter.
@@ -183,7 +212,10 @@ class GameLoopAssembler:
         )
         pathfinder = getattr(combat_director, "pathfinder", None)
         assert pathfinder is not None, "CombatDirector.pathfinder must be initialized"
-        preview = PathPreview(pathfinder=pathfinder, los_system=None)
+        preview = PathPreview(
+            pathfinder=pathfinder,
+            los_system=getattr(self._loop, "_los_system", None),
+        )
         self._loop._path_preview = preview
 
         input_router = self._loop._input_router

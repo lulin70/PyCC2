@@ -93,6 +93,17 @@ class RendererStateManager:
                 self._check_fps_adaptive()
         self._last_render_time = now
 
+    def get_fps(self) -> float:
+        """Get current average FPS from recent samples.
+        
+        Returns:
+            Average FPS from rolling window, or 60.0 if insufficient samples.
+        """
+        if len(self._fps_samples) < 2:
+            return 60.0
+        avg_dt = sum(self._fps_samples) / len(self._fps_samples)
+        return 1.0 / avg_dt if avg_dt > 0 else 60.0
+
     def _check_fps_adaptive(self) -> None:
         """Auto-disable/re-enable post-processing based on rolling FPS average."""
         if len(self._fps_samples) < self.FPS_SAMPLE_SIZE:

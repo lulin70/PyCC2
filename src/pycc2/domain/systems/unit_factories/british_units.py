@@ -201,7 +201,88 @@ def _build_british_units() -> dict[str, CC2UnitTemplate]:
         max_per_battle=1,
         historical_notes="Amphibious Sherman variant with duplex drive, used during river crossings",
     )
+
+    units["uk_sherman_v"] = CC2UnitTemplate(
+        template_id="uk_sherman_v",
+        display_name="Sherman V (Guards Armoured)",
+        faction=Faction.BRITISH,
+        role=VehicleType.TANK_MEDIUM,
+        squad_size=1,
+        weapon_primary_id="qv_75mm",
+        weapon_secondary_id="coax_besa",
+        vehicle_armor=64,
+        vehicle_speed=40,
+        vehicle_crew=5,
+        experience_level=2,
+        morale_initial=85.0,
+        stealth_rating=0.15,
+        vision_range=7,
+        can_deploy_in_building=False,
+        deployment_cost=340,
+        historical_notes=(
+            "M4A4 Sherman V of the Guards Armoured Division, XXX Corps spearhead "
+            "on Hell's Highway and at the Nijmegen bridges"
+        ),
+    )
     # --- BRITISH PARA UNITS ---
+
+    units["uk_para_rifle_squad"] = CC2UnitTemplate(
+        template_id="uk_para_rifle_squad",
+        display_name="British Para Rifle Section",
+        faction=Faction.BRITISH,
+        role=InfantryRole.RIFLE,
+        squad_size=10,
+        weapon_primary_id="uk_enfield_no4",
+        weapon_secondary_id="uk_sten",
+        experience_level=2,
+        morale_initial=88.0,
+        stealth_rating=0.34,
+        vision_range=6,
+        deployment_cost=120,
+        historical_notes=(
+            "1st Airborne Division parachute rifle section: 10 men, Lee-Enfield No.4 "
+            "rifles plus Sten guns for the section commander and Bren gunner"
+        ),
+    )
+
+    units["uk_para_mg_bren"] = CC2UnitTemplate(
+        template_id="uk_para_mg_bren",
+        display_name="British Para Bren Team",
+        faction=Faction.BRITISH,
+        role=InfantryRole.MACHINE_GUN,
+        squad_size=4,
+        weapon_primary_id="uk_bren",
+        weapon_secondary_id="uk_sten",
+        experience_level=2,
+        morale_initial=85.0,
+        stealth_rating=0.28,
+        vision_range=5,
+        deployment_cost=155,
+        historical_notes=(
+            "Airborne Bren gun team: 4 men, .303 Bren LMG stripped from the rifle "
+            "section and grouped as a base-of-fire team at Arnhem"
+        ),
+    )
+
+    units["uk_para_at_piat"] = CC2UnitTemplate(
+        template_id="uk_para_at_piat",
+        display_name="British Para PIAT Team",
+        faction=Faction.BRITISH,
+        role=InfantryRole.ANTI_TANK,
+        squad_size=3,
+        weapon_primary_id="uk_piat",
+        weapon_secondary_id="uk_sten",
+        experience_level=2,
+        morale_initial=80.0,
+        stealth_rating=0.36,
+        vision_range=6,
+        has_demolitions=True,
+        deployment_cost=150,
+        historical_notes=(
+            "Airborne PIAT team: 3 men, Projector Infantry Anti-Tank plus Sten guns; "
+            "issued to airborne battalions with no divisional anti-tank artillery"
+        ),
+    )
 
     units["uk_para_mortar_squad"] = CC2UnitTemplate(
         template_id="uk_para_mortar_squad",

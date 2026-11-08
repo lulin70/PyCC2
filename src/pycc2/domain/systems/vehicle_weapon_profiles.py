@@ -295,6 +295,30 @@ def build_vehicle_weapons() -> dict[str, WeaponProfile]:
         notes="German 75mm AT gun, devastating vs all Allied armor",
     )
 
+    weapons["flak36_88mm"] = WeaponProfile(
+        id="flak36_88mm",
+        name="8.8cm Flak 36 L/56",
+        weapon_type=WeaponType.ANTI_TANK_GUN,
+        users=[Faction.GERMAN],
+        range_short=6,
+        range_medium=12,
+        range_long=18,
+        range_max=24,
+        accuracy_short=0.75,
+        accuracy_medium=0.62,
+        accuracy_long=0.40,
+        damage_vs_infantry=45.0,
+        damage_vs_light_armor=90.0,
+        damage_vs_heavy_armor=70.0,
+        rpm=10,
+        burst_size=1,
+        suppress_power=0.55,
+        can_penetrate=True,
+        ammo_capacity=40,
+        year_introduced=1936,
+        notes="8.8cm Flak 36 dual-purpose AA/AT gun, high muzzle velocity",
+    )
+
     weapons["us_m1_57mm"] = WeaponProfile(
         id="us_m1_57mm",
         name="M1 57mm AT Gun",

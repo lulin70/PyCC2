@@ -29,7 +29,7 @@ from __future__ import annotations
 import os
 import sys
 
-# Ensure tests/e2e/ is in sys.path so `from conftest import GameLoopFactory`
+# Ensure tests/e2e/ is in sys.path so `from tests.e2e.conftest import GameLoopFactory`
 # works when running this file individually. With `tests/__init__.py` and
 # `tests/e2e/__init__.py` present, pytest uses package-style imports and does
 # not add tests/e2e/ to sys.path for single-file runs.
@@ -40,7 +40,7 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
 import pytest
-from conftest import GameLoopFactory
+from tests.e2e.conftest import GameLoopFactory
 
 from pycc2.domain.value_objects.audio_enums import SoundType
 from pycc2.domain.value_objects.vec2 import Vec2

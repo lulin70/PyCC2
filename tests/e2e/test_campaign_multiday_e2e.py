@@ -24,7 +24,7 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
 import pygame
 import pytest
-from conftest import GameLoopFactory
+from tests.e2e.conftest import GameLoopFactory
 
 from pycc2.domain.systems.campaign_persistence import (
     BattleOutcome,

@@ -103,20 +103,22 @@ class AssetLoader:
         unit_type: str,
         direction: int,
         size: int = 128,
+        state: str = "idle",
     ) -> Surface | None:
-        """加载单位精灵
+        """加载单位精灵（支持方向+动画状态）
 
         Args:
             faction: "allies" 或 "axis"
             unit_type: 单位类型名称（如 "INFANTRY_SQUAD"）
             direction: 方向索引 0-7 (N, NE, E, SE, S, SW, W, NW)
             size: 目标尺寸
+            state: 动画状态 "idle", "walk", "attack"
 
         Returns:
             Surface 或 None（需要fallback到程序化生成）
 
         """
-        cache_key = f"{faction}_{unit_type}_d{direction}_{size}"
+        cache_key = f"{faction}_{unit_type}_d{direction}_{state}_{size}"
 
         # 检查缓存
         if cache_key in self._sprite_cache:
@@ -125,18 +127,37 @@ class AssetLoader:
         # 映射单位类型到精灵文件名
         sprite_name = self.UNIT_TYPE_MAP.get(unit_type, "rifleman")
 
-        # 尝试多种路径格式
+        # 映射direction索引到NSEW字符（我们的精灵只有4个主方向）
+        # 0=N, 1=NE→N, 2=E, 3=SE→E, 4=S, 5=SW→S, 6=W, 7=NW→W
+        dir_char_map = {0: "N", 1: "N", 2: "E", 3: "E", 4: "S", 5: "S", 6: "W", 7: "W"}
+        dir_char = dir_char_map.get(direction, "N")
+
+        # 尝试多种路径格式（按优先级排序）
         possible_paths = [
-            # 格式1: 带方向的精灵 (infantry_squad_d0.png)
+            # 格式0A: 动画精灵 {unit}_{N|S|E|W}_{idle|walk|attack}.png (HIGHEST PRIORITY)
+            self.assets_dir
+            / "sprites"
+            / "minimal_test"
+            / "generated_animated"
+            / f"{sprite_name}_{dir_char}_{state}.png",
+            # 格式0B: 4方向精灵 {unit}_{N|S|E|W}.png (fallback for unsupported state)
+            self.assets_dir / "sprites" / "minimal_test" / "generated_4dir" / f"{sprite_name}_{dir_char}.png",
+            # 格式0C: Enhanced sprites (static, no direction/state)
+            self.assets_dir
+            / "sprites"
+            / "minimal_test"
+            / "generated_enhanced"
+            / f"{sprite_name}_enhanced.png",
+            # 格式0D: Basic cartoon sprites (static fallback)
+            self.assets_dir / "sprites" / "minimal_test" / "generated" / f"{sprite_name}.png",
+            # 格式1: 带方向的精灵 (legacy format)
             self.assets_dir
             / "sprites"
             / "units"
             / faction
             / f"{unit_type.lower()}_d{direction}.png",
-            # 格式2: 简单命名 (rifleman.png) - 我们生成的格式
+            # 格式2: 简单命名 (legacy fallback)
             self.assets_dir / "sprites" / "units" / faction / f"{sprite_name}.png",
-            # 格式3: 映射名称带方向
-            self.assets_dir / "sprites" / "units" / faction / f"{sprite_name}_d{direction}.png",
         ]
 
         for sprite_path in possible_paths:
@@ -144,24 +165,23 @@ class AssetLoader:
                 try:
                     # 加载图像 - 不使用convert_alpha()以避免需要display初始化
                     surface = pygame.image.load(str(sprite_path))
-                    logger.debug("Loaded PNG: %s", sprite_path.name)
+                    logger.debug("Loaded sprite: %s", sprite_path.name)
 
                     # 缩放到目标尺寸
                     if surface.get_width() != size or surface.get_height() != size:
                         surface = pygame.transform.scale(surface, (size, size))
 
-                    # 注意：我们的PNG已经是朝北的，所有方向使用同一个PNG
-                    # 旋转由SpriteRenderer在渲染时处理
-
                     self._sprite_cache[cache_key] = surface
-                    logger.debug("Cached PNG: %s", cache_key)
+                    logger.debug("Cached sprite: %s (dir=%s, state=%s)", cache_key, dir_char, state)
                     return surface
                 except (pygame.error, ValueError, OSError) as e:
-                    logger.debug("Failed to load PNG %s: %s", sprite_path, e)
+                    logger.debug("Failed to load sprite %s: %s", sprite_path, e)
                     continue
 
         # 所有路径都不存在，返回None让调用者使用程序化生成
-        logger.debug("No PNG found: %s/%s/d%d", faction, unit_type, direction)
+        logger.debug(
+            "No sprite found: %s/%s/dir=%s/state=%s", faction, unit_type, dir_char, state
+        )
         return None
 
     def load_cc2_sprite(
@@ -169,6 +189,8 @@ class AssetLoader:
         unit_type: str,
         direction: int = 0,
         faction: str = "allies",
+        state: str = "idle",
+        frame: int = 0,
     ) -> pygame.Surface | None:
         """加载单位精灵 - 优先使用CC2写实像素艺术生成器
 
@@ -176,12 +198,14 @@ class AssetLoader:
             unit_type: 单位类型名称（如 "INFANTRY_SQUAD"）
             direction: 方向索引 0-7 (N, NE, E, SE, S, SW, W, NW)
             faction: "allies" 或 "axis"
+            state: 动画状态 "idle", "walk", "attack"
+            frame: 动画帧索引
 
         Returns:
             pygame.Surface 或 None
 
         """
-        cache_key = f"cc2_{faction}_{unit_type}_d{direction}"
+        cache_key = f"cc2_{faction}_{unit_type}_d{direction}_{state}_f{frame}"
 
         if cache_key in self._sprite_cache:
             return self._sprite_cache[cache_key]
@@ -195,11 +219,11 @@ class AssetLoader:
             fac_enum = Faction(faction)
 
             sprite = PixelArtist3D.create_infantry_sprite(
-                direction=dir_enum, faction=fac_enum, state="idle", frame=0
+                direction=dir_enum, faction=fac_enum, state=state, frame=frame
             )
 
             self._sprite_cache[cache_key] = sprite
-            logger.debug("Generated CC2 sprite: %s", cache_key)
+            logger.debug("Generated CC2 sprite: %s (state=%s, frame=%d)", cache_key, state, frame)
             return sprite
 
         except (pygame.error, ValueError, TypeError, ImportError) as e:

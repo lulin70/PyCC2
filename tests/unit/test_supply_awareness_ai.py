@@ -15,6 +15,7 @@ from __future__ import annotations
 import time
 
 import numpy as np
+import pytest
 
 from pycc2.domain.ai.blackboard import Blackboard
 from pycc2.domain.ai.supply_awareness_ai import (
@@ -472,6 +473,7 @@ class TestBoundaryConditions:
 class TestPerformance:
     """Verify evaluate+execute meets performance targets."""
 
+    @pytest.mark.timing
     def test_evaluate_execute_1000_times_under_300ms(self):
         """1000 evaluate+execute cycles must complete in < 300ms.
 

@@ -23,13 +23,13 @@ def build_default_roster() -> list[DeploymentUnit]:
         DeploymentUnit("us_rifle_squad", "Rifle Squad", "infantry", 120),
         DeploymentUnit("us_rifle_squad", "Rifle Squad", "infantry", 120),
         DeploymentUnit("us_rifle_squad", "Rifle Squad", "infantry", 120),
-        DeploymentUnit("us_assault_squad", "Assault Squad", "infantry", 145),
+        DeploymentUnit("us_heavy_assault", "Assault Squad", "infantry", 145),
         DeploymentUnit("us_engineer_team", "Engineer Squad", "infantry", 140),
         # Support (MG/AT)
-        DeploymentUnit("us_machine_gun_team", "MG Team (M1919A4)", "support", 160),
+        DeploymentUnit("us_machine_gun_team_a4", "MG Team (M1919A4)", "support", 160),
         DeploymentUnit("us_at_team", "AT Team (Bazooka)", "support", 150),
-        DeploymentUnit("us_mortar_light", "Light Mortar (60mm)", "support", 140),
-        DeploymentUnit("us_mortar_heavy", "Heavy Mortar (81mm)", "support", 175),
+        DeploymentUnit("us_mortar_light_team", "Light Mortar (60mm)", "support", 140),
+        DeploymentUnit("us_mortar_heavy_team", "Heavy Mortar (81mm)", "support", 175),
         DeploymentUnit("us_officer", "Officer / Commander", "support", 180),
         # Armor
         DeploymentUnit("us_sherman_m4", "M4 Sherman", "vehicle", 350),
@@ -56,13 +56,13 @@ def build_force_pool_from_settings(
             DeploymentUnit("us_rifle_squad", "Rifle Squad", "infantry", 120),
             DeploymentUnit("us_rifle_squad", "Rifle Squad", "infantry", 120),
             DeploymentUnit("us_rifle_squad", "Rifle Squad", "infantry", 120),
-            DeploymentUnit("us_assault_squad", "Assault Squad", "infantry", 145),
+            DeploymentUnit("us_heavy_assault", "Assault Squad", "infantry", 145),
             DeploymentUnit("us_engineer_team", "Engineer Squad", "infantry", 140),
             # Support (MG/AT)
-            DeploymentUnit("us_machine_gun_team", "MG Team (M1919A4)", "support", 160),
+            DeploymentUnit("us_machine_gun_team_a4", "MG Team (M1919A4)", "support", 160),
             DeploymentUnit("us_at_team", "AT Team (Bazooka)", "support", 150),
-            DeploymentUnit("us_mortar_light", "Light Mortar (60mm)", "support", 140),
-            DeploymentUnit("us_mortar_heavy", "Heavy Mortar (81mm)", "support", 175),
+            DeploymentUnit("us_mortar_light_team", "Light Mortar (60mm)", "support", 140),
+            DeploymentUnit("us_mortar_heavy_team", "Heavy Mortar (81mm)", "support", 175),
             DeploymentUnit("us_officer", "Officer / Commander", "support", 180),
             # Armor
             DeploymentUnit("us_sherman_m4", "M4 Sherman", "vehicle", 350),
@@ -74,23 +74,23 @@ def build_force_pool_from_settings(
     else:
         return [
             # Infantry
-            DeploymentUnit("ger_rifle_squad", "Rifle Squad", "infantry", 120),
-            DeploymentUnit("ger_rifle_squad", "Rifle Squad", "infantry", 120),
-            DeploymentUnit("ger_rifle_squad", "Rifle Squad", "infantry", 120),
-            DeploymentUnit("ger_assault_squad", "Sturm Squad", "infantry", 145),
-            DeploymentUnit("ger_pioneer_team", "Pioneer Squad", "infantry", 140),
+            DeploymentUnit("de_rifle_squad", "Rifle Squad", "infantry", 120),
+            DeploymentUnit("de_rifle_squad", "Rifle Squad", "infantry", 120),
+            DeploymentUnit("de_rifle_squad", "Rifle Squad", "infantry", 120),
+            DeploymentUnit("de_panzergrenadier_squad", "Sturm Squad", "infantry", 145),
+            DeploymentUnit("de_assault_pioneer", "Pioneer Squad", "infantry", 140),
             # Support (MG/AT)
-            DeploymentUnit("ger_mg42_team", "MG42 Team", "support", 170),
-            DeploymentUnit("ger_at_team", "AT Team (Panzerschreck)", "support", 155),
-            DeploymentUnit("ger_mortar_light", "Light Mortar (50mm)", "support", 130),
-            DeploymentUnit("ger_mortar_heavy", "Heavy Mortar (81mm)", "support", 175),
-            DeploymentUnit("ger_officer", "Officer / Commander", "support", 180),
+            DeploymentUnit("de_mg42_team", "MG42 Team", "support", 170),
+            DeploymentUnit("de_panzerschreck_team", "AT Team (Panzerschreck)", "support", 155),
+            DeploymentUnit("de_grw50_team", "Light Mortar (50mm)", "support", 130),
+            DeploymentUnit("de_grw81_team", "Heavy Mortar (81mm)", "support", 175),
+            DeploymentUnit("de_officer", "Officer / Commander", "support", 180),
             # Armor
-            DeploymentUnit("ger_panther", "Panther", "vehicle", 400),
-            DeploymentUnit("ger_stug", "StuG III", "vehicle", 280),
+            DeploymentUnit("de_panther", "Panther", "vehicle", 400),
+            DeploymentUnit("de_stug_iii", "StuG III", "vehicle", 280),
             # Recon
-            DeploymentUnit("ger_scout_team", "Scout Team", "recon", 110),
-            DeploymentUnit("ger_sniper_team", "Sniper Team", "recon", 140),
+            DeploymentUnit("de_recon_team", "Scout Team", "recon", 110),
+            DeploymentUnit("de_sniper_team", "Sniper Team", "recon", 140),
         ]
 
 
@@ -145,23 +145,23 @@ def generate_ai_deployment(
     # Build AI force pool
     if faction in ("axis",):
         ai_units = [
-            ("ger_rifle_squad", "Rifle Squad", "infantry", 120),
-            ("ger_rifle_squad", "Rifle Squad", "infantry", 120),
-            ("ger_rifle_squad", "Rifle Squad", "infantry", 120),
-            ("ger_mg42_team", "MG42 Team", "support", 170),
-            ("ger_at_team", "AT Team (Panzerschreck)", "support", 155),
-            ("ger_mortar_heavy", "Heavy Mortar (81mm)", "support", 175),
-            ("ger_officer", "Officer / Commander", "support", 180),
-            ("ger_panther", "Panther", "vehicle", 400),
+            ("de_rifle_squad", "Rifle Squad", "infantry", 120),
+            ("de_rifle_squad", "Rifle Squad", "infantry", 120),
+            ("de_rifle_squad", "Rifle Squad", "infantry", 120),
+            ("de_mg42_team", "MG42 Team", "support", 170),
+            ("de_panzerschreck_team", "AT Team (Panzerschreck)", "support", 155),
+            ("de_grw81_team", "Heavy Mortar (81mm)", "support", 175),
+            ("de_officer", "Officer / Commander", "support", 180),
+            ("de_panther", "Panther", "vehicle", 400),
         ]
     else:
         ai_units = [
             ("us_rifle_squad", "Rifle Squad", "infantry", 120),
             ("us_rifle_squad", "Rifle Squad", "infantry", 120),
             ("us_rifle_squad", "Rifle Squad", "infantry", 120),
-            ("us_machine_gun_team", "MG Team (M1919A4)", "support", 160),
+            ("us_machine_gun_team_a4", "MG Team (M1919A4)", "support", 160),
             ("us_at_team", "AT Team (Bazooka)", "support", 150),
-            ("us_mortar_heavy", "Heavy Mortar (81mm)", "support", 175),
+            ("us_mortar_heavy_team", "Heavy Mortar (81mm)", "support", 175),
             ("us_officer", "Officer / Commander", "support", 180),
             ("us_sherman_m4", "M4 Sherman", "vehicle", 350),
         ]

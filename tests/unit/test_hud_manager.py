@@ -281,13 +281,22 @@ class TestInitialize:
         hud.initialize(**deps)
         assert deps["input_router"].command_bar is None
 
-    def test_initialize_registers_seven_command_callbacks(self, deps):
+    def test_initialize_registers_command_callbacks(self, deps):
         hud = HUDManager()
         hud.initialize(**deps)
         callbacks: dict = deps["cc2_panel"]._captured_callbacks
-        expected_commands = {"move", "fast", "sneak", "attack", "smoke", "defend", "cancel"}
+        expected_commands = {
+            "move",
+            "fast",
+            "sneak",
+            "attack",
+            "smoke",
+            "defend",
+            "fire_mode",
+            "cancel",
+        }
         assert expected_commands.issubset(callbacks.keys())
-        assert len(callbacks) == 7
+        assert len(callbacks) == 8
 
     def test_initialize_sets_on_unit_select_and_on_zoom_change(self, deps):
         hud = HUDManager()

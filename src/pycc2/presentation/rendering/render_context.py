@@ -16,6 +16,7 @@ from pycc2.presentation.rendering.palette_generator import PaletteGenerator
 from pycc2.presentation.rendering.terrain_tile_cache import TerrainTileCache
 
 if TYPE_CHECKING:
+    from pycc2.presentation.rendering.animation_controller import AnimationController
     from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
 
@@ -31,6 +32,7 @@ class RenderContext:
         "screen",
         "offscreen",
         "sprite_renderer",
+        "animation_controller",
         "palette_gen",
         "texture_cache",
         "scaled_texture_cache",
@@ -58,6 +60,7 @@ class RenderContext:
         screen: pygame.Surface | None = None,
         offscreen: pygame.Surface | None = None,
         sprite_renderer: SpriteRenderer | None = None,
+        animation_controller: AnimationController | None = None,
         palette_gen: PaletteGenerator | None = None,
         texture_cache: dict | None = None,
         scaled_texture_cache: dict | None = None,
@@ -83,6 +86,7 @@ class RenderContext:
         self.screen = screen
         self.offscreen = offscreen
         self.sprite_renderer = sprite_renderer
+        self.animation_controller = animation_controller
         self.palette_gen = palette_gen
         self.texture_cache = texture_cache or {}
         self.scaled_texture_cache = scaled_texture_cache or {}

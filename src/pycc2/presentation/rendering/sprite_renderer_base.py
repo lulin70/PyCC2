@@ -67,6 +67,9 @@ class SpriteRendererBase:
         # Delegated components
         self._cache_manager = SpriteCacheManager(display_config)
         self._effect_renderer = EffectRenderer(display_config)
+        # PF-01: scaled-sprite cache. Scaling every unit every frame cost
+        # ~1.2 ms per frame at 200 units.
+        self._scaled_sprite_cache: dict[tuple[int, int], Surface] = {}
 
     # ====== Backward-compatible property accessors ======
     # These properties preserve the old API so existing tests and callers

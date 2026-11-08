@@ -19,6 +19,7 @@ from pycc2.domain.systems.unit_database import (
     get_units_for_faction,
 )
 from pycc2.domain.systems.unit_templates import CC2UnitTemplate
+from pycc2.domain.systems.weapon_type_defs import WeaponType
 
 
 @pytest.fixture(autouse=True)
@@ -66,6 +67,15 @@ class TestUnitTemplate:
         weapon = unit.get_weapon()
         assert weapon is not None
         assert weapon.id == "de_mg42"
+
+    def test_flak36_uses_dedicated_anti_tank_gun_profile(self):
+        """GAP-16: the Flak 36 must not reuse the Tiger tank gun profile."""
+        db = build_cc2_unit_database()
+        weapon = db["de_flak36_88"].get_weapon()
+        assert weapon is not None
+        assert weapon.id == "flak36_88mm"
+        assert weapon.weapon_type == WeaponType.ANTI_TANK_GUN
+        assert weapon.can_penetrate is True
 
     def test_get_secondary_weapon_returns_none_when_absent(self):
         unit = CC2UnitTemplate(

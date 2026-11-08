@@ -164,6 +164,26 @@ class TestCheckLos:
         los.clear_cache()
         assert len(los._cache) == 0
 
+    def test_cache_separates_results_by_max_range(self):
+        """GAP-12: a short-range query must not poison the cache for a later
+        default-range query on the same tile pair."""
+        game_map = _make_game_map()
+        los = LOSSystem(game_map)
+        can_see_near, near = los.check_los(TileCoord(0, 0), TileCoord(5, 5), max_range=2)
+        assert can_see_near is False
+        assert near.status == LosStatus.OUT_OF_RANGE
+
+        can_see_far, far = los.check_los(TileCoord(0, 0), TileCoord(5, 5))
+        assert can_see_far is True
+        assert far.status == LosStatus.CLEAR
+
+        # A repeated short-range query still returns the short-range result.
+        can_see_near_again, near_again = los.check_los(
+            TileCoord(0, 0), TileCoord(5, 5), max_range=2
+        )
+        assert can_see_near_again is False
+        assert near_again.status == LosStatus.OUT_OF_RANGE
+
 
 # ===========================================================================
 # Tests — Height Blocking

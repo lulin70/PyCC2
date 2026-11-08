@@ -45,6 +45,7 @@ dev = [
     "hypothesis>=6.100",
     "Pillow>=10.0",
     "radon>=6.0",
+    "import-linter>=2.0",
     "pytest-benchmark>=4.0.0",  # V-04: FPS regression tests
     "filelock>=4.2.1",  # Security: CVE-2026-112940
     "virtualenv>=21.14.9",  # Security: CVE-2026-113714, CVE-2026-113720
@@ -144,6 +145,7 @@ markers = [
     "integration: marks tests as integration tests",
     "e2e: marks tests as end-to-end tests",
     "benchmark: marks performance benchmark tests",
+    "timing: wall-clock threshold tests; deselect with '-m \"not timing\"' when profiling or measuring coverage",
 ]
 log_cli = false
 log_cli_level = "INFO"
@@ -151,6 +153,8 @@ log_cli_level = "INFO"
 [tool.coverage.run]
 source = ["src/pycc2"]
 branch = true
+# _archive 是归档死代码（mypy exclude、pytest --ignore 均排除），覆盖率口径保持一致
+omit = ["src/pycc2/_archive/*"]
 
 [tool.coverage.report]
 exclude_lines = [
@@ -169,3 +173,26 @@ cc_baseline = 18
 min_grade = "C"
 # v0.7.7 changelog: 4 F-level refactors (generate_road 115→6, handle_player_command 73→4,
 # generate_orders 68→19, draw_units 63→14) — total E+ violations 22→18.
+
+[tool.importlinter]
+root_package = "pycc2"
+
+[[tool.importlinter.contracts]]
+name = "DDD layer boundaries"
+type = "layers"
+layers = [
+    "pycc2.presentation",
+    "pycc2.services",
+    "pycc2.infrastructure",
+    "pycc2.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "Domain must not import UI or IO implementations"
+type = "forbidden"
+source_modules = ["pycc2.domain"]
+forbidden_modules = [
+    "pycc2.presentation",
+    "pycc2.infrastructure",
+]
+

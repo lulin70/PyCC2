@@ -97,6 +97,7 @@ class DeploymentUI:
         self._tile_grid: list[list[int]] | None = None
         self._zone_map: list[list[ZoneType]] | None = None
         self._faction: str = "ally"
+        self._airdrop_deployment: bool = False
 
         # Victory locations for LOS preview (G5)
         self._victory_locations: list[dict] = []  # [{"id": str, "position": (x,y), "value": int}]
@@ -239,7 +240,16 @@ class DeploymentUI:
 
         Delegates to DeploymentZoneBuilder.
         """
+        self._apply_scenario_rules(map_data)
         self._zone_builder.start_deployment(map_data, faction)
+
+    def _apply_scenario_rules(self, map_data: dict) -> None:
+        """Enable scenario deployment rules such as airborne deployment."""
+        from pycc2.domain.value_objects.scenario_rules import ScenarioRules
+
+        self._airdrop_deployment = ScenarioRules.from_map_data(map_data).has(
+            "airdrop_deployment"
+        )
 
     def start_deployment_with_settings(
         self,
@@ -254,6 +264,7 @@ class DeploymentUI:
 
         Delegates to DeploymentZoneBuilder.
         """
+        self._apply_scenario_rules(map_data)
         self._zone_builder.start_deployment_with_settings(
             map_data, faction, requisition_points, max_infantry, max_support, force_pool
         )

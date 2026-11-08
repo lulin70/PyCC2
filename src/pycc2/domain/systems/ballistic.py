@@ -167,6 +167,17 @@ class BallisticEngine:
         weapon_id = attacker.weapon.primary_weapon_id
         wstats = self._weapon_stats.get(weapon_id, self._weapon_stats["rifle"])
 
+        # CC2 parity: AP/HE selection changes damage and armor penetration.
+        ammo_type = getattr(attacker.weapon, "ammo_type", None)
+        target_is_vehicle = bool(getattr(target, "is_vehicle", False))
+        damage_multiplier = 1.0
+        penetration_multiplier = 1.0
+        if ammo_type is not None:
+            damage_multiplier = ammo_type.damage_multiplier(target_is_vehicle)
+            penetration_multiplier = ammo_type.penetration_multiplier(target_is_vehicle)
+        base_damage = wstats["base_damage"] * damage_multiplier
+        penetration = wstats["penetration"] * penetration_multiplier
+
         if dist > wstats["effective_range"] * 2.5:
             return ShotResult(
                 hit=False,
@@ -206,8 +217,11 @@ class BallisticEngine:
         attacker_floor = getattr(attacker, "building_floor", 0)
         if attacker_floor > 0:
             accuracy *= 1.0 + attacker_floor * 0.08  # +8% per floor above ground
-        morale_mod = max(0.3, target.morale.accuracy_modifier)
+        morale_mod = max(0.3, attacker.morale.accuracy_modifier)
         accuracy *= morale_mod
+        # CC2 parity: fewer effective squad members mean less firepower.
+        squad_mod = getattr(attacker, "squad_effectiveness", 1.0)
+        accuracy *= max(0.2, squad_mod)
         if environment is not None:
             accuracy *= environment.get_accuracy_modifier()
         # R4: Weather accuracy modifier (rain reduces accuracy, fog reduces less)
@@ -228,11 +242,11 @@ class BallisticEngine:
             spread_angle = self._calc_spread(wstats["spread"], dist, self.rng)
 
             dist_factor = max(0.3, 1.0 - (dist / (wstats["effective_range"] * 1.5)) * 0.4)
-            armor_factor = self._calc_armor_factor(attacker, target, wstats.get("penetration", 1.0))
+            armor_factor = self._calc_armor_factor(attacker, target, penetration)
             damage, is_killing = self._calc_damage(
-                wstats["base_damage"],
+                base_damage,
                 dist_factor,
-                wstats["penetration"],
+                penetration,
                 target.health.hp,
                 self.rng,
                 armor_factor=armor_factor,

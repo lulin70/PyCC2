@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
+from pycc2.domain.value_objects.ammo_type import AmmoType
+
 
 class WeaponState(Enum):
     """Operational states for a weapon component."""
@@ -39,6 +41,12 @@ class WeaponComponent:
     is_captured: bool = False
     captured_accuracy_penalty: float = 0.0
     captured_reload_penalty: float = 0.0
+    # -2 = legacy (reload refills freely), -1 = unlimited reserve, >=0 = finite reserve.
+    reserve_ammo: int = -2
+    # None = weapon has no selectable ammo (no AP/HE modifiers).
+    ammo_type: AmmoType | None = None
+    # Selectable ammo types; fewer than two means the player cannot switch.
+    available_ammo_types: tuple[AmmoType, ...] = ()
     state: WeaponState = field(init=False)
 
     def __post_init__(self) -> None:
@@ -60,6 +68,22 @@ class WeaponComponent:
     def is_reloading(self) -> bool:
         """Return whether the weapon is currently reloading."""
         return self.state == WeaponState.RELOADING
+
+    @property
+    def can_switch_ammo(self) -> bool:
+        """Return whether the weapon offers more than one ammo type."""
+        return len(self.available_ammo_types) > 1
+
+    def cycle_ammo(self) -> AmmoType | None:
+        """Select the next ammo type and return it, or None if not available."""
+        if not self.can_switch_ammo:
+            return None
+        try:
+            index = self.available_ammo_types.index(self.ammo_type)
+        except ValueError:
+            index = -1
+        self.ammo_type = self.available_ammo_types[(index + 1) % len(self.available_ammo_types)]
+        return self.ammo_type
 
     @property
     def accuracy_modifier(self) -> float:
@@ -90,8 +114,15 @@ class WeaponComponent:
         if self.state == WeaponState.RELOADING and self.reload_ticks_left > 0:
             self.reload_ticks_left -= 1
             if self.reload_ticks_left == 0:
-                self.ammo_remaining = self.max_ammo
-                self.state = WeaponState.READY
+                if self.reserve_ammo == -2 or self.reserve_ammo == -1:
+                    self.ammo_remaining = self.max_ammo
+                else:
+                    load = min(self.max_ammo, self.reserve_ammo)
+                    self.ammo_remaining = load
+                    self.reserve_ammo -= load
+                self.state = (
+                    WeaponState.READY if self.ammo_remaining > 0 else WeaponState.OUT_OF_AMMO
+                )
 
     def clear_jam(self) -> None:
         """Clear a jammed state, returning to ready or out-of-ammo as appropriate."""

@@ -59,6 +59,7 @@ class DeploymentManager:
     _ai_deployments: list[dict] = field(init=False, default_factory=list)
     _ai_units: list = field(init=False, default_factory=list)
     _pending_orders: dict[str, tuple[int, int]] = field(init=False, default_factory=dict)
+    _map_data: dict = field(init=False, default_factory=dict)
 
     # ------------------------------------------------------------------
     # Class constants — asymmetric RP allocation (G6)
@@ -79,14 +80,28 @@ class DeploymentManager:
     }
 
     _TEMPLATE_TYPE_MAP: ClassVar[dict[str, str]] = {
+        # Anti-tank teams resolve to the AT gun unit type.
         "us_at_team": "AT_GUN_TEAM",
-        "ger_at_team": "AT_GUN_TEAM",
-        "us_mortar_light": "MORTAR_TEAM",
-        "us_mortar_heavy": "MORTAR_TEAM",
-        "ger_mortar_light": "MORTAR_TEAM",
-        "ger_mortar_heavy": "MORTAR_TEAM",
+        "us_m1_57mm_at_gun": "AT_GUN_TEAM",
+        "de_pak40_at_gun": "AT_GUN_TEAM",
+        "de_panzerschreck_team": "AT_GUN_TEAM",
+        "de_panzerfaust_team": "AT_GUN_TEAM",
+        "de_panzerfaust60_team": "AT_GUN_TEAM",
+        "uk_6pdr_at_gun": "AT_GUN_TEAM",
+        "uk_piat_team": "AT_GUN_TEAM",
+        "uk_para_at_piat": "AT_GUN_TEAM",
+        # Mortar teams.
+        "us_mortar_light_team": "MORTAR_TEAM",
+        "us_mortar_heavy_team": "MORTAR_TEAM",
+        "us_mortar_squad": "MORTAR_TEAM",
+        "de_grw50_team": "MORTAR_TEAM",
+        "de_grw81_team": "MORTAR_TEAM",
+        "de_mortar_squad": "MORTAR_TEAM",
+        "uk_para_mortar_squad": "MORTAR_TEAM",
+        # Officers and commanders.
         "us_officer": "COMMANDER",
-        "ger_officer": "COMMANDER",
+        "de_officer": "COMMANDER",
+        "uk_para_officer": "COMMANDER",
     }
 
     _WEAPON_MAP: ClassVar[dict[str, tuple[str, int]]] = {
@@ -98,13 +113,24 @@ class DeploymentManager:
 
     _TEMPLATE_WEAPON_MAP: ClassVar[dict[str, tuple[str, int]]] = {
         "us_at_team": ("at_gun", 8),
-        "ger_at_team": ("at_gun", 8),
-        "us_mortar_light": ("mortar", 6),
-        "us_mortar_heavy": ("mortar", 6),
-        "ger_mortar_light": ("mortar", 6),
-        "ger_mortar_heavy": ("mortar", 6),
+        "us_m1_57mm_at_gun": ("at_gun", 8),
+        "de_pak40_at_gun": ("at_gun", 8),
+        "de_panzerschreck_team": ("at_gun", 8),
+        "de_panzerfaust_team": ("at_gun", 8),
+        "de_panzerfaust60_team": ("at_gun", 8),
+        "uk_6pdr_at_gun": ("at_gun", 8),
+        "uk_piat_team": ("at_gun", 8),
+        "uk_para_at_piat": ("at_gun", 8),
+        "us_mortar_light_team": ("mortar", 6),
+        "us_mortar_heavy_team": ("mortar", 6),
+        "us_mortar_squad": ("mortar", 6),
+        "de_grw50_team": ("mortar", 6),
+        "de_grw81_team": ("mortar", 6),
+        "de_mortar_squad": ("mortar", 6),
+        "uk_para_mortar_squad": ("mortar", 6),
         "us_officer": ("pistol", 14),
-        "ger_officer": ("pistol", 14),
+        "de_officer": ("pistol", 14),
+        "uk_para_officer": ("pistol", 14),
     }
 
     _HP_MAP: ClassVar[dict[str, int]] = {
@@ -171,6 +197,7 @@ class DeploymentManager:
                 )
 
             # Determine attacker faction from scenario data (G6)
+            self._map_data = map_data
             self.attacker_faction = self._detect_attacker_faction(map_data, faction)
             self.player_faction = faction
 
@@ -503,6 +530,16 @@ class DeploymentManager:
             )
             max_hp = self._HP_MAP.get(unit_type_str, 100)
 
+            # CC2 parity: tank guns and bazookas can switch between AP and HE.
+            ammo_options = {}
+            if weapon_id in ("tank_cannon", "bazooka"):
+                from pycc2.domain.value_objects.ammo_type import AmmoType
+
+                ammo_options = {
+                    "ammo_type": AmmoType.AP,
+                    "available_ammo_types": (AmmoType.AP, AmmoType.HE),
+                }
+
             unit = Unit(
                 id=f"{id_prefix}_{counter}",
                 name=display_name,
@@ -515,14 +552,93 @@ class DeploymentManager:
                     primary_weapon_id=weapon_id,
                     max_ammo=max_ammo,
                     ammo_remaining=max_ammo,
+                    reserve_ammo=max_ammo * 2,
+                    **ammo_options,
                 ),
                 morale=MoraleComponent(value=75),
             )
+            self._attach_squad(unit, template_id, unit_type, faction)
             return unit
 
         except (RuntimeError, ValueError, AttributeError) as e:
             logger.error("Failed to create unit from placement: %s", e)
             return None
+
+    @staticmethod
+    def _attach_squad(unit, template_id: str, unit_type, faction) -> None:
+        """Attach a CC2 multi-member squad to an infantry-style unit."""
+        from pycc2.domain.entities.squad import Squad, SquadType
+        from pycc2.domain.systems.unit_database import get_cc2_units
+
+        squad_type_map = {
+            "INFANTRY_SQUAD": SquadType.RIFLE_SQUAD,
+            "MACHINE_GUN_SQUAD": SquadType.MG_TEAM,
+            "AT_GUN_TEAM": SquadType.AT_TEAM,
+            "MORTAR_TEAM": SquadType.MORTAR_TEAM,
+            "SNIPER_TEAM": SquadType.SNIPER_TEAM,
+            "COMMANDER": SquadType.OFFICER_TEAM,
+            "MEDIC_TEAM": SquadType.OFFICER_TEAM,
+        }
+        unit.template_id = template_id
+        template = get_cc2_units().get(template_id)
+        if template is not None:
+            unit.has_demolitions = bool(getattr(template, "has_demolitions", False))
+
+        squad_type = squad_type_map.get(getattr(unit_type, "name", ""))
+        if squad_type is None:
+            return
+
+        size = template.squad_size if template is not None else None
+        faction_name = getattr(getattr(unit, "faction", None), "name", "")
+        squad_faction = "axis" if faction_name in ("AXIS", "GERMAN") else "allies"
+        unit.squad_ref = Squad(
+            squad_id=unit.id,
+            squad_type=squad_type,
+            faction=squad_faction,
+            name=unit.name,
+            initial_size=size,
+        )
+
+    def create_reinforcement_unit(
+        self,
+        template_id: str,
+        faction,
+        position: tuple[int, int],
+        counter: int,
+    ) -> object | None:
+        """Create one reinforcement unit from a scenario template id."""
+        from pycc2.domain.entities.unit import UnitType
+        from pycc2.domain.systems.unit_database import get_cc2_units
+
+        template = get_cc2_units().get(template_id)
+        role_name = getattr(getattr(template, "role", None), "name", "")
+        if template is not None and getattr(template, "vehicle_armor", 0) > 0:
+            unit_type_str = "vehicle"
+        elif role_name in ("SNIPER", "SCOUT"):
+            unit_type_str = "recon"
+        elif role_name in ("MACHINE_GUN", "MORTAR"):
+            unit_type_str = "support"
+        else:
+            unit_type_str = "infantry"
+
+        placement = {
+            "unit_template_id": template_id,
+            "display_name": getattr(template, "display_name", template_id),
+            "unit_type": unit_type_str,
+            "position": position,
+        }
+        type_map = {k: getattr(UnitType, v) for k, v in self._TYPE_MAP.items()}
+        template_type_map = {
+            k: getattr(UnitType, v) for k, v in self._TEMPLATE_TYPE_MAP.items()
+        }
+        return self._create_unit_from_placement(
+            placement=placement,
+            faction=faction,
+            id_prefix="reinforcement",
+            counter=counter,
+            type_map=type_map,
+            template_type_map=template_type_map,
+        )
 
     def _create_ai_units(
         self,

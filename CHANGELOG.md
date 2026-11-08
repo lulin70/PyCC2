@@ -2,6 +2,28 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## Unreleased (2026-11-08) — W5 CC2 机制复刻缺陷修复
+
+**目标**: 修复运行时机制缺陷，使系统行为更接近 Close Combat 2。
+
+**相关文档**: [W5_CC2机制补全计划.md](docs/W5_CC2机制补全计划.md) / [RELEASE_GATE_W5.md](docs/RELEASE_GATE_W5.md)
+
+### Fixed
+- **GAP-11**: 确认攻击线记录攻击者坐标。修复前读取从未赋值的 `_active_source`，线长恒为零。
+- **GAP-12**: `LOSSystem` 缓存键加入 `max_range`。短射程查询不再覆盖默认射程结果。
+- **GAP-14**: 新增 `scenario_validation.py`。场景加载前校验必需字段、枚举、部署区、胜利点。坏数据不再进入游戏循环。
+- **GAP-15**: 部署工厂与模板映射改用数据库 ID。未知模板不再静默回退为步枪班。
+- **GAP-16**: 新增 `flak36_88mm` 专属反坦克炮档案，不再复用虎式坦克炮弹道。
+- **地形缓存**: 修正 `TerrainTileCache.get_tile` 参数。地面纹理恢复，每帧约 432 次异常消失。
+- **炮塔 / 乘员 / 迫击炮**: 炮塔独立朝向、乘员全灭弃车、迫击炮经观察员间瞄。
+
+### Performance
+- heavy_load 中位 76.4 FPS，最差 63.5 FPS；normal_load 中位 102.3 FPS。
+
+### Verification
+- 全量回归 7481 passed / 4 skipped / 0 failed。
+- 验收 25 passed；UAT 69 个端到端用例通过；视觉回归 7 passed。
+
 ## v0.9.1 (2026-08-01) — Tier 1 Critical Bugfix Release
 
 **目标**: 修复 3 个 Tier 1 破坏性缺陷（地图装饰渲染/CombatLog 缺失/音频 3 处错误），还原度 75%→78%。

@@ -565,9 +565,9 @@ class PostBattleReportRenderer:
             f"Hits: {record.shots_hit}",
         ]
         if record.survived:
-            stats.append("Survived ✓")
+            stats.append("Survived")
         else:
-            stats.append("KIA ✗")
+            stats.append("KIA")
 
         stat_x = MARGIN + 10
         for stat in stats:
@@ -582,7 +582,7 @@ class PostBattleReportRenderer:
         achievements = self._compute_achievements(record)
         if achievements:
             for i, ach in enumerate(achievements):
-                ach_surf = self._font_small.render(f"★ {ach}", True, COMPLETED_COLOR)
+                ach_surf = self._font_small.render(f"* {ach}", True, COMPLETED_COLOR)
                 surface.blit(ach_surf, (MARGIN + 10 + i * 200, ach_y))
 
     @staticmethod

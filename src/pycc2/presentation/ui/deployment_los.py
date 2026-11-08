@@ -66,18 +66,14 @@ class DeploymentLOSSystem:
         state = self._get_state()
         selected_idx = self._get_selected_index()
 
-        # Collect units to show LOS for
+        # Preview the selected unit only; fall back to all placed units when nothing is selected
         units_to_preview: list[DeploymentUnit] = []
-        for pu in state.placed_units:
-            if pu.position is not None:
-                units_to_preview.append(pu)
-
-        # Also add currently selected unit if placed
         if selected_idx is not None:
             sel_unit = state.available_units[selected_idx]
             if getattr(sel_unit, "is_placed", False) and sel_unit.position is not None:
-                if sel_unit not in units_to_preview:
-                    units_to_preview.append(sel_unit)
+                units_to_preview.append(sel_unit)
+        if not units_to_preview:
+            units_to_preview = [pu for pu in state.placed_units if pu.position is not None]
 
         if not units_to_preview:
             return
@@ -116,6 +112,10 @@ class DeploymentLOSSystem:
                 )
 
                 line_color = self.hit_probability_to_color(hit_prob)
+
+                # Skip near-impossible shots — drawing them adds black noise over the map
+                if hit_prob < 0.10:
+                    continue
 
                 dx_screen = ox + dst_x * ts + ts // 2
                 dy_screen = oy + dst_y * ts + ts // 2

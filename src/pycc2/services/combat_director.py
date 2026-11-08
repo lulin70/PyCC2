@@ -19,12 +19,15 @@ if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Unit
     from pycc2.domain.interfaces import DisplayConfig
     from pycc2.domain.systems.ballistic import BallisticEngine
+    from pycc2.domain.systems.los_system import LOSSystem
     from pycc2.domain.systems.pathfinder import PathFinder
     from pycc2.domain.systems.victory_conditions import BattleStats
     from pycc2.infrastructure.events.event_bus import EventBus
     from pycc2.presentation.rendering.camera import Camera
 
 logger = logging.getLogger(__name__)
+
+RELOAD_TICKS: int = 90  # 3 seconds at 30 Hz
 
 # Dispatch table mapping player command names to CombatDirector handler methods.
 # Each handler has the uniform signature (data, unit_map, units, game_map) so it
@@ -39,6 +42,9 @@ _CMD_DISPATCH: dict[str, str] = {
     "sneak": "_cmd_sneak",
     "hide": "_cmd_hide",
     "deploy_smoke": "_cmd_deploy_smoke",
+    "demolish": "_cmd_demolish",
+    "switch_ammo": "_cmd_switch_ammo",
+    "set_fire_mode": "_cmd_set_fire_mode",
 }
 
 
@@ -51,14 +57,21 @@ class CombatDirector:
     sound_system: ISoundSystem | None = None
     ballistic_engine: BallisticEngine | None = None
     pathfinder: PathFinder | None = None
+    bridge_destructible: bool = True
 
     _units: list[Unit] = field(init=False, default_factory=list)
     _game_map: GameMap | None = field(init=False, default=None)
+    _los_system: LOSSystem | None = field(init=False, default=None)
     _pending_effects: list[dict] = field(init=False, default_factory=list)
     _move_orders: dict[str, dict] = field(init=False, default_factory=dict)
     _camera_position: Any | None = field(
         init=False, default=None
     )  # R10: Camera position for sound falloff
+    _pinned_recovery_counter: int = field(init=False, default=0)
+
+    def set_los_system(self, los_system: LOSSystem | None) -> None:
+        """Inject the LOS system used to gate shots on line of sight."""
+        self._los_system = los_system
 
     def initialize(self) -> None:
         """Initialize ballistic engine, pathfinder, and event subscriptions."""
@@ -89,8 +102,21 @@ class CombatDirector:
         self.set_context(units, game_map)
 
         for unit in units:
-            if unit.weapon.state.name == "RELOADING":
-                unit.weapon.tick()
+            weapon = unit.weapon
+            if weapon.state.name == "RELOADING":
+                weapon.tick()
+            elif weapon.state.name == "OUT_OF_AMMO" and (
+                weapon.reserve_ammo == -1 or weapon.reserve_ammo > 0
+            ):
+                weapon.start_reload(RELOAD_TICKS)
+
+        # CC2 parity: pinned squad members recover over time (every ~5 s).
+        self._pinned_recovery_counter += 1
+        if self._pinned_recovery_counter >= 150:
+            self._pinned_recovery_counter = 0
+            for unit in units:
+                if unit.squad_ref is not None and unit.is_alive:
+                    unit.squad_ref.recover_pinned()
 
         self.process_movements(units, game_map)
         self.process_deaths(units, battle_stats)
@@ -342,6 +368,108 @@ class CombatDirector:
             else:
                 logger.warning("[SMOKE] %s has no weapon system", unit.name or uid)
 
+    def _cmd_demolish(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Process 'demolish' command: engineers destroy an adjacent bridge."""
+        if not self.bridge_destructible:
+            logger.info("[DEMOLISH] Scenario does not allow bridge demolition")
+            return
+
+        from pycc2.domain.value_objects.terrain_type import TerrainType
+        from pycc2.domain.value_objects.tile_coord import TileCoord
+
+        for uid in data.get("unit_ids", []):
+            unit = unit_map.get(uid)
+            if unit is None or not getattr(unit, "is_alive", False):
+                continue
+            if not getattr(unit, "has_demolitions", False):
+                logger.warning("[DEMOLISH] %s has no demolition equipment", unit.name or uid)
+                continue
+
+            origin = unit.position.tile_coord
+            for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+                coord = TileCoord(origin.x + dx, origin.y + dy)
+                if not game_map.is_within_bounds(coord):
+                    continue
+                if game_map.get_terrain(coord) != TerrainType.BRIDGE:
+                    continue
+                game_map.set_terrain(coord, TerrainType.BRIDGE_DESTROYED)
+                logger.info(
+                    "[DEMOLISH] %s destroyed bridge at (%d, %d)",
+                    unit.name or uid,
+                    coord.x,
+                    coord.y,
+                )
+                break
+
+    def _cmd_switch_ammo(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Process 'switch_ammo' command: cycle AP/HE on each selected unit."""
+        for uid in data.get("unit_ids", []):
+            unit = unit_map.get(uid)
+            weapon = getattr(unit, "weapon", None) if unit is not None else None
+            if weapon is None:
+                continue
+            new_type = weapon.cycle_ammo()
+            if new_type is not None:
+                logger.info("[AMMO] %s switched to %s", unit.name or uid, new_type.display_name)
+
+    def _cmd_set_fire_mode(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Process 'set_fire_mode': set or cycle fire discipline per unit."""
+        requested = data.get("fire_mode")
+        for uid in data.get("unit_ids", []):
+            unit = unit_map.get(uid)
+            if unit is None or not hasattr(unit, "fire_mode"):
+                continue
+            if requested in ("free", "return", "hold"):
+                unit.fire_mode = requested
+            elif hasattr(unit, "cycle_fire_mode"):
+                unit.cycle_fire_mode()
+            logger.info("[FIRE MODE] %s -> %s", unit.name or uid, unit.fire_mode)
+
+    @staticmethod
+    def _is_mortar_weapon(unit) -> bool:
+        """Return True when the unit's primary weapon is indirect-fire."""
+        weapon_id = (unit.weapon.primary_weapon_id or "").lower()
+        return any(k in weapon_id for k in ("mortar", "howitzer", "artillery"))
+
+    def _has_indirect_observer(self, attacker, target) -> bool:
+        """CC2 parity: an indirect-fire unit needs a friendly observer.
+
+        The observer must be alive, share the attacker's faction, be within
+        vision range of the target, and have line of sight to the target.
+        """
+        if self._los_system is None:
+            return False
+        for observer in self._units:
+            if observer.id == attacker.id or observer.faction != attacker.faction:
+                continue
+            if not observer.is_alive:
+                continue
+            dist = observer.position.tile_coord.chebyshev_distance(target.position.tile_coord)
+            if dist > observer.vision.range_tiles:
+                continue
+            can_see, _ = self._los_system.can_see(observer, target)
+            if can_see:
+                return True
+        return False
+
     def execute_attack(self, attacker, target) -> None:
         """Resolve an attack: fire weapon, apply damage, and emit combat events."""
         from pycc2.infrastructure.events.event_protocol import UnitAttacked, UnitKilled
@@ -350,10 +478,34 @@ class CombatDirector:
             return
         if attacker.weapon.state.name not in ("READY",):
             return
+        # CC2 parity: fire discipline gates all shots.
+        fire_mode = getattr(attacker, "fire_mode", "free")
+        if fire_mode == "hold":
+            logger.debug("[FIRE MODE] %s holds fire", attacker.id)
+            return
+        if fire_mode == "return":
+            recently_attacked = getattr(attacker, "was_recently_attacked", None)
+            if callable(recently_attacked) and not recently_attacked():
+                logger.debug("[FIRE MODE] %s waits to return fire", attacker.id)
+                return
         dist = attacker.position.tile_coord.chebyshev_distance(target.position.tile_coord)
         max_range = 15
         if dist > max_range:
             return
+
+        # CC2 parity: the turret turns toward the target. The hull stays put.
+        if getattr(attacker, "is_vehicle", False) and hasattr(attacker, "aim_turret_at"):
+            attacker.aim_turret_at(target.position.tile_coord)
+
+        is_mortar = self._is_mortar_weapon(attacker)
+        if self._los_system is not None:
+            can_see, _ = self._los_system.can_see(attacker, target)
+            if not can_see:
+                # CC2 parity: mortars fire indirectly. A friendly observer must
+                # see the target. Direct-fire weapons still need own LOS.
+                if not (is_mortar and self._has_indirect_observer(attacker, target)):
+                    logger.debug("[LOS] %s cannot see %s, shot cancelled", attacker.id, target.id)
+                    return
 
         result = self.ballistic_engine.calculate_shot(
             attacker=attacker,
@@ -400,7 +552,7 @@ class CombatDirector:
             weapon_type = "shell"
         elif any(k in weapon_id.lower() for k in ("bazooka", "piat", "panzer", "rocket")):
             weapon_type = "rocket"
-        elif any(k in weapon_id.lower() for k in ("mortar", "howitzer", "artillery")):
+        elif is_mortar:
             weapon_type = "mortar"
 
         attacker_pos = attacker.position.pixel_position
@@ -419,6 +571,11 @@ class CombatDirector:
                 "is_hit": result.hit if result else False,
             },
         )
+
+        suppression = getattr(result, "suppression_dealt", 0) if result is not None else 0
+        if isinstance(suppression, (int, float)) and suppression > 0:
+            # CC2 parity: incoming fire pins individual squad members.
+            target.apply_squad_suppression(min(1.0, float(suppression) / 50.0))
 
         if result and result.hit:
             target.take_damage(int(result.damage_dealt))
@@ -510,6 +667,9 @@ class CombatDirector:
                 battle_stats.record_kill(faction)
                 target_faction = "axis" if target.faction.name == "AXIS" else "allies"
                 battle_stats.record_unit_lost(target_faction)
+                # CC2 parity: the killer earns experience.
+                if getattr(attacker, "veterancy", None) is not None:
+                    attacker.veterancy.record_kill()
 
     def process_effects(self, renderer: Any | None = None, camera: Camera | None = None) -> None:
         """Flush pending visual effects to the renderer and clear the queue."""

@@ -303,8 +303,8 @@ class TestStageADisplayAndInitialization:
         # Verify it's a dark/olive tone (all values in reasonable range for panel background)
         assert all(30 <= c <= 120 for c in bg), f"Expected olive/dark tones, got {bg}"
 
-    def test_a07_panel_height_is_approximately_130px(self):
-        assert CC2BottomPanel.PANEL_HEIGHT == 130
+    def test_a07_panel_height_fits_minimap_block(self):
+        assert CC2BottomPanel.PANEL_HEIGHT == 160
 
     def test_a08_minimap_appears_in_bottom_right(self, screen, minimap_instance):
         minimap_instance.render(screen, 1130, 560)
@@ -629,6 +629,7 @@ class TestStageDSevenCommands:
             "smoke",
             "defend",
             "hide",
+            "fire_mode",
             "cancel",
             "end_battle",
         }
@@ -1128,10 +1129,10 @@ class TestStageIUIDetailCheck:
             assert bottom_panel._current_zoom_index == initial_idx - 1
 
     def test_i11_panel_dimensions_match_spec(self):
-        assert CC2BottomPanel.PANEL_HEIGHT == 130
-        assert CC2BottomPanel.ROSTER_WIDTH == 170
+        assert CC2BottomPanel.PANEL_HEIGHT == 160
+        assert CC2BottomPanel.ROSTER_WIDTH == 200
         assert CC2BottomPanel.DETAIL_WIDTH == 240
-        assert CC2BottomPanel.MINIMAP_SIZE == 120
+        assert CC2BottomPanel.MINIMAP_SIZE == 148
 
     def test_i12_panel_has_all_sections(self, bottom_panel):
         # After CC2BottomPanel refactoring, inline _render_* methods were split into
@@ -1153,6 +1154,7 @@ class TestStageIUIDetailCheck:
             "smoke": "V",
             "defend": "D",
             "hide": "H",
+            "fire_mode": "F",
             "cancel": "ESC",
             "end_battle": "E",
         }

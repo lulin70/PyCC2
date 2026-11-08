@@ -121,9 +121,10 @@ class DeploymentPlacementService:
         - ONLY block deep water and solid buildings (truly impassable)
         - ALL other terrains are allowed (roads, bridges, rough, hedges, etc.)
         """
-        # Check 1: Must be in friendly zone
-        if not self._is_in_friendly_zone(map_x, map_y):
-            return False
+        # Check 1: Must be in friendly zone (airborne scenarios may deploy anywhere)
+        if not getattr(self._ui, "_airdrop_deployment", False):
+            if not self._is_in_friendly_zone(map_x, map_y):
+                return False
 
         # Check 2: Only truly impassable terrains are blocked
         # Check 3: Everything else is ALLOWED!

@@ -560,6 +560,14 @@ class InteractionController:
                     "unit_ids": list(self._selected_ids),
                 }
             )
+        elif action == "fire_mode" or (not action and key == pygame.K_f):
+            # Fire discipline: F cycles free -> return -> hold
+            self._event_bus.publish(
+                {
+                    "command": "set_fire_mode",
+                    "unit_ids": list(self._selected_ids),
+                }
+            )
 
     def register_on_selected(self, callback: Callable[[set[str]], None]) -> None:
         """Register on selected."""

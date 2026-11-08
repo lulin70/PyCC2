@@ -1,0 +1,49 @@
+{
+  "scenario_id": "hell_highway_ambush",
+  "name": "Hell's Highway Ambush",
+  "description": "German infantry and anti-tank guns ambush a Guards Armoured column on the exposed stretch of Hell's Highway near Veghel",
+  "map_id": "hell_highway",
+  "time_of_day": "day",
+  "weather": "rain",
+  "day": 5,
+  "sector": "eindhoven",
+  "operation_id": "eindhoven_hells_highway",
+  "forces": {
+    "allies": {
+      "faction": "BRITISH",
+      "deployment_zone": {"x_min": 0, "x_max": 4, "y_min": 0, "y_max": 19},
+      "units": [
+        {"template_id": "uk_sherman_v", "count": 2, "deployment_cost": 340},
+        {"template_id": "uk_rifle_section", "count": 2, "deployment_cost": 115},
+        {"template_id": "uk_bren_team", "count": 1, "deployment_cost": 155}
+      ],
+      "reinforcements": [
+        {"template_id": "uk_rifle_section", "arrival_turn": 4, "from_direction": "south"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    },
+    "axis": {
+      "faction": "GERMAN",
+      "deployment_zone": {"x_min": 15, "x_max": 19, "y_min": 0, "y_max": 19},
+      "units": [
+        {"template_id": "de_rifle_squad", "count": 3, "deployment_cost": 125},
+        {"template_id": "de_mg42_team", "count": 2, "deployment_cost": 175},
+        {"template_id": "de_pak40_at_gun", "count": 1, "deployment_cost": 280},
+        {"template_id": "de_panzerfaust60_team", "count": 1, "deployment_cost": 170}
+      ],
+      "reinforcements": [
+        {"template_id": "de_rifle_squad", "arrival_turn": 5, "from_direction": "east"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    }
+  },
+  "victory_locations": [
+    {"id": "vl_highway_north", "position": [10, 3], "value": 30, "type": "road_junction"},
+    {"id": "vl_highway_center", "position": [10, 10], "value": 40, "type": "road_junction"},
+    {"id": "vl_highway_south", "position": [10, 17], "value": 30, "type": "road_junction"}
+  ],
+  "special_rules": ["corridor_must_remain_open", "limited_air_support"],
+  "attacker_faction": "allied"
+}

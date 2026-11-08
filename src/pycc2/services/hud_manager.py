@@ -230,6 +230,17 @@ class HUDManager:
             )
             logger.info(f"[COMMAND] Defend issued to {state.selected_unit_ids}")
 
+        def on_fire_mode():
+            if sound_system:
+                sound_system.play_ui_command()
+            event_bus.publish(
+                PlayerCommand(
+                    command="set_fire_mode",
+                    unit_ids=list(state.selected_unit_ids),
+                )
+            )
+            logger.info(f"[COMMAND] Fire mode cycled for {state.selected_unit_ids}")
+
         # Unit selection from roster
         def on_roster_select(unit_id: str | None):
             if unit_id:
@@ -247,6 +258,7 @@ class HUDManager:
         self._cc2_panel.register_callback("attack", on_attack)
         self._cc2_panel.register_callback("smoke", on_smoke)
         self._cc2_panel.register_callback("defend", on_defend)
+        self._cc2_panel.register_callback("fire_mode", on_fire_mode)
         self._cc2_panel.register_callback("cancel", on_cancel)
 
         # Zoom callback

@@ -19,7 +19,6 @@ Import from this package or directly from submodules as needed.
 from pycc2.presentation.rendering.camera import Camera
 from pycc2.presentation.rendering.decoration_renderer import DecorationRenderer
 from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
-from pycc2.presentation.rendering.hud import HUDManager
 from pycc2.presentation.rendering.lighting_system import (
     LightingSystem,
 )
@@ -57,7 +56,6 @@ __all__ = [
     "Camera",
     "VisualSpec",
     # UI Components
-    "HUDManager",
     "Minimap",
     # Refactored sub-modules (new architecture)
     "SpriteGenerator",

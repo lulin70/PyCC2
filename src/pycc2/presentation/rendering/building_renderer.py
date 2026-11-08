@@ -46,6 +46,37 @@ class BuildingRenderer:
     def __init__(self, ctx: RenderContext):
         """Initialize the BuildingRenderer."""
         self._ctx = ctx
+        # PF-01: roof art is deterministic. Cache it to avoid per-frame
+        # stipple/window drawing for every visible building.
+        self._roof_cache: dict[tuple, pygame.Surface] = {}
+
+    def _get_roof_surface(
+        self,
+        building_type,
+        tile_size: int,
+        zoom: float,
+    ) -> pygame.Surface:
+        """Return a cached roof surface for the given type and zoom."""
+        key = (building_type.name, tile_size, round(zoom, 2))
+        cached = self._roof_cache.get(key)
+        if cached is not None:
+            return cached
+
+        surface = render_cc2_building(
+            building_type=building_type,
+            damage=DamageLevel.INTACT,
+            tile_size=tile_size,
+            interior_mode=False,
+        )
+        tile_screen_size = int(tile_size * zoom)
+        if tile_screen_size != tile_size:
+            tw, th = surface.get_size()
+            target_w = int(tw * zoom)
+            target_h = int(th * zoom)
+            if target_w > 0 and target_h > 0:
+                surface = pygame.transform.scale(surface, (target_w, target_h))
+        self._roof_cache[key] = surface
+        return surface
 
     def draw_building_roofs(self, game_map: GameMap, camera: Camera) -> None:
         """Draw building roofs."""
@@ -80,23 +111,7 @@ class BuildingRenderer:
 
                 building_type = floors_to_building_type(floors)
 
-                roof_surface = render_cc2_building(
-                    building_type=building_type,
-                    damage=DamageLevel.INTACT,
-                    tile_size=tile_size,
-                    interior_mode=False,
-                )
-
-                tile_screen_size = int(tile_size * camera.zoom)
-                if tile_screen_size != tile_size:
-                    tw, th = roof_surface.get_size()
-                    target_w = int(tw * camera.zoom)
-                    target_h = int(th * camera.zoom)
-                    if target_w > 0 and target_h > 0:
-                        roof_surface = pygame.transform.scale(
-                            roof_surface,
-                            (target_w, target_h),
-                        )
+                roof_surface = self._get_roof_surface(building_type, tile_size, camera.zoom)
 
                 world_x = tx * tile_size
                 world_y = ty * tile_size

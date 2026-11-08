@@ -1,0 +1,48 @@
+{
+  "scenario_id": "koevering_corridor_defense",
+  "name": "Koevering Corridor Defense",
+  "description": "German battle groups strike at the Koevering crossroads to cut Hell's Highway between Veghel and St Oedenrode",
+  "map_id": "koevering_crossroads",
+  "time_of_day": "day",
+  "weather": "rain",
+  "day": 5,
+  "sector": "eindhoven",
+  "operation_id": "eindhoven_corridor_defense",
+  "forces": {
+    "allies": {
+      "faction": "BRITISH",
+      "deployment_zone": {"x_min": 0, "x_max": 7, "y_min": 0, "y_max": 19},
+      "units": [
+        {"template_id": "uk_rifle_section", "count": 3, "deployment_cost": 115},
+        {"template_id": "uk_bren_team", "count": 1, "deployment_cost": 155},
+        {"template_id": "uk_sherman_v", "count": 1, "deployment_cost": 340}
+      ],
+      "reinforcements": [
+        {"template_id": "us_rifle_squad", "arrival_turn": 5, "from_direction": "north"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    },
+    "axis": {
+      "faction": "GERMAN",
+      "deployment_zone": {"x_min": 13, "x_max": 19, "y_min": 0, "y_max": 19},
+      "units": [
+        {"template_id": "de_rifle_squad", "count": 4, "deployment_cost": 125},
+        {"template_id": "de_mg42_team", "count": 2, "deployment_cost": 175},
+        {"template_id": "de_panzerfaust_team", "count": 1, "deployment_cost": 150}
+      ],
+      "reinforcements": [
+        {"template_id": "de_rifle_squad", "arrival_turn": 4, "from_direction": "east"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    }
+  },
+  "victory_locations": [
+    {"id": "vl_koevering_junction", "position": [10, 10], "value": 40, "type": "road_junction"},
+    {"id": "vl_koevering_farm", "position": [6, 14], "value": 20, "type": "building"},
+    {"id": "vl_koevering_road", "position": [10, 3], "value": 30, "type": "road_junction"}
+  ],
+  "special_rules": ["corridor_must_remain_open", "defender_advantage", "limited_air_support", "fortified_positions"],
+  "attacker_faction": "axis"
+}

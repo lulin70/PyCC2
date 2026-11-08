@@ -268,7 +268,9 @@ class SettingsMenu:
                     )
                 else:
                     hint = self._font_sm.render(
-                        "← → to change | Enter to toggle | ↑↓ to select", True, (120, 120, 130)
+                        "LEFT/RIGHT to change | Enter to toggle | UP/DOWN to select",
+                        True,
+                        (120, 120, 130),
                     )
                 screen.blit(hint, (px + 20, oy + 18))
 
@@ -333,7 +335,7 @@ class SettingsMenu:
 
     def _format_value(self, value, opt_type: str) -> str:
         if opt_type == "bool":
-            return "✓ ON" if value else "✗ OFF"
+            return "ON" if value else "OFF"
         return str(value)
 
     def _adjust_selection(self, direction: int) -> None:

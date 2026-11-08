@@ -237,7 +237,10 @@ class GameMap:
         """Return True if a unit can enter the tile at the given coordinate."""
         if not self.is_within_bounds(coord):
             return False
-        return self.get_terrain(coord).is_passable
+        terrain = self.get_terrain(coord)
+        if terrain == TerrainType.WATER and getattr(self, "amphibious_passable", False):
+            return True
+        return terrain.is_passable
 
     def is_within_bounds(self, coord: TileCoord) -> bool:
         """Return True if the coordinate lies inside the map extents."""

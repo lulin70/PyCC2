@@ -24,7 +24,7 @@ os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
 import pygame
 import pytest
-from conftest import GameLoopFactory
+from tests.e2e.conftest import GameLoopFactory
 
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent

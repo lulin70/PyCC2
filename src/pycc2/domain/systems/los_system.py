@@ -83,7 +83,7 @@ class LOSSystem:
         self._weather_effects = weather_effects
         self._smoke_manager = smoke_manager
         self._current_weather: WeatherType = WeatherType.CLEAR
-        self._cache: dict[tuple[int, int, int, int, int], LosResult] = {}
+        self._cache: dict[tuple[int, int, int, int, int, int], LosResult] = {}
         self._cache_max_size: int = 1000
 
     def set_weather(self, weather_type: WeatherType) -> None:
@@ -149,14 +149,16 @@ class LOSSystem:
             self._smoke_manager is not None and bool(self._smoke_manager.active_deployments)
         )
 
-        cache_key: tuple[int, int, int, int, int] | None = None
+        cache_key: tuple[int, int, int, int, int, int] | None = None
         if use_cache:
+            # GAP-12: max_range changes the result, so it must be part of the key.
             cache_key = (
                 from_coord.x,
                 from_coord.y,
                 to_coord.x,
                 to_coord.y,
                 self._current_weather.value,
+                -1 if max_range is None else int(max_range),
             )
             cached = self._cache.get(cache_key)
             if cached:

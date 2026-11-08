@@ -21,6 +21,18 @@ class WeatherType(Enum):
     OVERCAST = auto()
 
 
+def weather_type_from_name(name: object) -> WeatherType:
+    """Map a scenario weather string to a WeatherType (defaults to CLEAR)."""
+    mapping = {
+        "clear": WeatherType.CLEAR,
+        "rain": WeatherType.RAIN,
+        "fog": WeatherType.FOG,
+        "snow": WeatherType.SNOW,
+        "overcast": WeatherType.OVERCAST,
+    }
+    return mapping.get(str(name).strip().lower(), WeatherType.CLEAR)
+
+
 @dataclass
 class WeatherState:
     """Runtime state of the current weather including intensity and duration."""

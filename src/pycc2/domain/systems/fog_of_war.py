@@ -39,6 +39,9 @@ class FogOfWar:
         self.visibility_grid: list[list[int]] = [
             [TileVisibility.HIDDEN] * map_width for _ in range(map_height)
         ]
+        # False until the first reveal pass, so renderers can skip an
+        # uninitialized (fully hidden) grid instead of blacking out the screen.
+        self.has_updated = False
 
     def update_visibility(
         self,
@@ -51,6 +54,60 @@ class FogOfWar:
         environment=None,
     ) -> set[TileCoord]:
         """Recalculate visible tiles from the observer and return newly revealed tiles."""
+        cleared = self.clear_current_visibility()
+        self.has_updated = True
+        return self._reveal_from(
+            observer_pos,
+            vision_range,
+            vision_angle,
+            facing_direction,
+            game_map,
+            cleared,
+            environment,
+        )
+
+    def reveal_from_observers(
+        self,
+        observers,
+        game_map: GameMap,
+        current_tick: int = 0,
+    ) -> set[TileCoord]:
+        """Reveal tiles from many observers in one pass.
+
+        ``observers`` is an iterable of
+        ``(TileCoord, vision_range: int, vision_angle: float, facing: float)``.
+        Clears the current visible layer once, then accumulates the union of all
+        observer cones. Returns the full set of newly revealed tiles.
+        """
+        cleared = self.clear_current_visibility()
+        self.has_updated = True
+        newly_revealed: set[TileCoord] = set()
+        for observer_pos, vision_range, vision_angle, facing_direction in observers:
+            newly_revealed |= self._reveal_from(
+                observer_pos,
+                vision_range,
+                vision_angle,
+                facing_direction,
+                game_map,
+                cleared,
+            )
+        return newly_revealed
+
+    def _reveal_from(
+        self,
+        observer_pos: TileCoord,
+        vision_range: int,
+        vision_angle: float,
+        facing_direction: float,
+        game_map: GameMap,
+        cleared: set[TileCoord],
+        environment=None,
+    ) -> set[TileCoord]:
+        """Cast the observer's vision cone and return newly revealed tiles.
+
+        ``cleared`` holds the tiles demoted from visible in this update; tiles
+        outside it are newly revealed. The visible layer is not cleared here.
+        """
         effective_range = vision_range
         if environment is not None:
             effective_range = max(1, int(vision_range * environment.get_vision_multiplier()))
@@ -58,7 +115,6 @@ class FogOfWar:
             if environment.is_tile_illuminated(ox, oy):
                 effective_range = max(effective_range, vision_range)
 
-        cleared = self.clear_current_visibility()
         newly_revealed: set[TileCoord] = set()
 
         if effective_range <= 0:

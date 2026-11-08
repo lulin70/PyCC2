@@ -165,7 +165,7 @@ class CombatLogPanel:
 
         # 绘制滚动指示器（如果有更多事件）
         if total_events > self._max_visible_lines and self._font is not None:
-            scroll_text = f"↑{self._scroll_offset}/{total_events - self._max_visible_lines}↓"
+            scroll_text = f"{self._scroll_offset}/{total_events - self._max_visible_lines}"
             scroll_surf = self._font.render(scroll_text, True, (200, 200, 200))
             screen.blit(scroll_surf, (self.x + self.PANEL_WIDTH - 60, self.y + 5))
 

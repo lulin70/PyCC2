@@ -1,0 +1,49 @@
+{
+  "scenario_id": "eindhoven_suburbs_clearance",
+  "name": "Eindhoven Suburbs Clearance",
+  "description": "101st Airborne clears the northern suburbs of Eindhoven so that XXX Corps armour can pass through the city without delay",
+  "map_id": "eindhoven_suburbs",
+  "time_of_day": "day",
+  "weather": "overcast",
+  "day": 2,
+  "sector": "eindhoven",
+  "operation_id": "eindhoven_corridor",
+  "forces": {
+    "allies": {
+      "faction": "AMERICAN",
+      "deployment_zone": {"x_min": 0, "x_max": 5, "y_min": 0, "y_max": 19},
+      "units": [
+        {"template_id": "us_rifle_squad", "count": 4, "deployment_cost": 120},
+        {"template_id": "us_machine_gun_team_a4", "count": 2, "deployment_cost": 160},
+        {"template_id": "us_mortar_light_team", "count": 1, "deployment_cost": 140},
+        {"template_id": "us_at_team", "count": 1, "deployment_cost": 150}
+      ],
+      "reinforcements": [
+        {"template_id": "us_rifle_squad", "arrival_turn": 4, "from_direction": "south"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    },
+    "axis": {
+      "faction": "GERMAN",
+      "deployment_zone": {"x_min": 14, "x_max": 19, "y_min": 0, "y_max": 19},
+      "units": [
+        {"template_id": "de_rifle_squad", "count": 3, "deployment_cost": 125},
+        {"template_id": "de_mg42_team", "count": 1, "deployment_cost": 175},
+        {"template_id": "de_pak40_at_gun", "count": 1, "deployment_cost": 280}
+      ],
+      "reinforcements": [
+        {"template_id": "de_rifle_squad", "arrival_turn": 5, "from_direction": "east"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    }
+  },
+  "victory_locations": [
+    {"id": "vl_suburb_north", "position": [10, 4], "value": 30, "type": "road_junction"},
+    {"id": "vl_suburb_center", "position": [10, 10], "value": 40, "type": "building"},
+    {"id": "vl_suburb_south", "position": [10, 16], "value": 30, "type": "road_junction"}
+  ],
+  "special_rules": ["corridor_must_remain_open", "xxx_corps_linkup", "limited_air_support"],
+  "attacker_faction": "allied"
+}

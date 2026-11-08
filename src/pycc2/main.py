@@ -333,12 +333,22 @@ def _start_new_game(menu, menu_action, screen, wm):
         try:
             with open(scenario_path) as f:
                 scenario_data = json.load(f)
-            # Include scenario-level data in map_data for deployment
-            map_data["victory_locations"] = scenario_data.get("victory_locations", [])
-            map_data["forces"] = scenario_data.get("forces", {})
-            map_data["special_rules"] = scenario_data.get("special_rules", [])
-            map_data["scenario_id"] = scenario_data.get("scenario_id", "")
-            logger.info("Loaded scenario data from %s", scenario_path.stem)
+            from pycc2.domain.value_objects.scenario_validation import validate_scenario
+
+            validation_errors = validate_scenario(scenario_data)
+            if validation_errors:
+                logger.warning(
+                    "Invalid scenario %s: %s",
+                    scenario_path,
+                    "; ".join(validation_errors[:5]),
+                )
+            else:
+                # Include scenario-level data in map_data for deployment
+                map_data["victory_locations"] = scenario_data.get("victory_locations", [])
+                map_data["forces"] = scenario_data.get("forces", {})
+                map_data["special_rules"] = scenario_data.get("special_rules", [])
+                map_data["scenario_id"] = scenario_data.get("scenario_id", "")
+                logger.info("Loaded scenario data from %s", scenario_path.stem)
         except (json.JSONDecodeError, OSError, ValueError, KeyError) as e:
             logger.warning("Failed to load scenario data from %s: %s", scenario_path, e)
 

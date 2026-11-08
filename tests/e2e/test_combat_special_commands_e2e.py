@@ -20,7 +20,7 @@ import random
 import numpy as np
 import pygame
 import pytest
-from conftest import GameLoopFactory
+from tests.e2e.conftest import GameLoopFactory
 
 from pycc2.domain.ai.engineer_assault import EngineerAssaultAI
 from pycc2.domain.ai.melee_combat import (

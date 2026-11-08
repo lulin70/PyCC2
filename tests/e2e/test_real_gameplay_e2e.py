@@ -695,9 +695,15 @@ class TestRealGameplayOperations:
         loop = game_env["loop"]
         screen = game_env["screen"]
 
-        # Render
+        # Render. Terrain-palette brightness must be measured without the
+        # fog-of-war overlay, which intentionally darkens unexplored tiles.
+        fog = getattr(loop.renderer, "_fog_of_war", None)
+        loop.renderer.set_fog_of_war(None)
         screen.fill((28, 32, 24))
-        loop._render_scene(screen, 1.0)
+        try:
+            loop._render_scene(screen, 1.0)
+        finally:
+            loop.renderer.set_fog_of_war(fog)
 
         # Sample multiple areas to find terrain (avoid UI/HUD areas)
         bg_fill = (28, 32, 24)

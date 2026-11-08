@@ -77,6 +77,9 @@ class GameLoopUpdatingMixin:
     _projectile_trail_sys: IProjectileTrailSystem | None
     _dynamic_shadow_sys: IDynamicShadowSystem | None
     _hud_manager: IHUDManager | None
+    _fog_of_war_service: object | None
+    _reinforcement_service: object | None
+    _logistics_counter: int
     _ai_tick_counter: int
     _ai_update_interval: int
 
@@ -92,6 +95,9 @@ class GameLoopUpdatingMixin:
             return
 
         self._update_weather(dt)
+        self._update_fog_of_war()
+        self._update_reinforcements()
+        self._update_logistics()
         self._update_audio_sync(dt)
         self._update_unit_movement(dt)
         self._update_fatigue(dt)
@@ -110,13 +116,85 @@ class GameLoopUpdatingMixin:
 
         # Apply weather effects to game state
         if self._weather_effects is not None and self._weather_state is not None:
-            # Weather modifiers are read by Unit.get_accuracy_modifier() etc.
-            # Store current weather type for unit queries
-            self.state.current_weather = self._weather_state.weather_type
+            weather_type = self._weather_state.weather_type
+            changed = self.state.current_weather != weather_type
+            self.state.current_weather = weather_type
+            if self.state.game_map is not None:
+                self.state.game_map.weather_state = self._weather_state
+            if changed and getattr(self, "_los_system", None) is not None:
+                self._los_system.set_weather(weather_type)
 
         # Update day-night cycle
         if self._day_night_cycle is not None:
             self._day_night_cycle.advance(dt)
+
+    def _update_reinforcements(self) -> None:
+        """Spawn scenario reinforcements when their arrival turn is reached."""
+        service = self._reinforcement_service
+        manager = getattr(self, "_deployment_manager", None)
+        if service is None or manager is None:
+            return
+        if self.state.game_map is None:
+            return
+        try:
+            spawned = service.update(
+                tick=self.state.tick,
+                units=self.state.units,
+                game_map=self.state.game_map,
+                factory=manager.create_reinforcement_unit,
+            )
+        except Exception:
+            logger.warning("Reinforcement update failed", exc_info=True)
+            return
+        for unit, side in spawned:
+            logger.info("Reinforcement joined battle: %s (%s)", unit.id, side)
+
+    def _update_logistics(self) -> None:
+        """Resupply nearby friendly units from their rear spawn area every ~2 s."""
+        self._logistics_counter += 1
+        if self._logistics_counter < 60:
+            return
+        self._logistics_counter = 0
+
+        spawn_points = self._scenario_data.get("spawn_points", []) if self._scenario_data else []
+        if not spawn_points:
+            return
+
+        for unit in self.state.units:
+            if not getattr(unit, "is_alive", False):
+                continue
+            weapon = getattr(unit, "weapon", None)
+            reserve = getattr(weapon, "reserve_ammo", -2)
+            if weapon is None or reserve < 0:
+                continue
+
+            faction_name = getattr(getattr(unit, "faction", None), "name", "")
+            unit_side = "allies" if faction_name in ("ALLIES", "AMERICAN", "BRITISH", "POLISH") else "axis"
+            pos = unit.position.tile_coord
+            near = any(
+                sp.get("side") == unit_side
+                and abs(int(sp.get("position", [0, 0])[0]) - pos.x)
+                + abs(int(sp.get("position", [0, 0])[1]) - pos.y)
+                <= 3
+                for sp in spawn_points
+                if isinstance(sp, dict)
+            )
+            if not near:
+                continue
+
+            cap = weapon.max_ammo * 2
+            if weapon.reserve_ammo < cap:
+                weapon.reserve_ammo = min(cap, weapon.reserve_ammo + max(1, weapon.max_ammo // 10))
+
+    def _update_fog_of_war(self) -> None:
+        # Recompute per-faction visibility (5-tick interval handled by service).
+        # A fog failure must never break the main loop.
+        if self._fog_of_war_service is None:
+            return
+        try:
+            self._fog_of_war_service.update(self.state.units, self.state.game_map, self.state.tick)
+        except Exception:
+            logger.warning("Fog-of-war update failed, keeping last grid", exc_info=True)
 
     def _update_audio_sync(self, dt: float) -> None:
         # Process audio event queue

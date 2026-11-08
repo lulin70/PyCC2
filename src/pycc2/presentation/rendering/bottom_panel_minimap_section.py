@@ -43,12 +43,11 @@ class MinimapSectionRenderer:
         draw.rect(surface, (30, 33, 38), Rect(x, minimap_y, size, minimap_size))
         draw.rect(surface, self._panel.BORDER_COLOR, Rect(x, minimap_y, size, minimap_size), 1)
 
-        # Minimap title label
-        title = self._panel._font_small.render("MAP", True, (150, 150, 150))
-        surface.blit(title, (x + 4, minimap_y + 2))
-
-        # Render minimap if available
+        # Render minimap if available (size follows the panel slot to avoid overflow)
         if minimap:
+            inner_size = max(32, minimap_size - 4)
+            if minimap.size != inner_size:
+                minimap.size = inner_size
             minimap.render(surface, x + 2, minimap_y + 2)
 
         # Zoom controls (+/- buttons)
@@ -110,20 +109,21 @@ class MinimapSectionRenderer:
             width: Total width available for buttons
 
         """
-        # Button configuration
+        # Button configuration — width follows label text so buttons never overlap
         modes = ["ALL", "STYLE", "OUTLINE"]
-        btn_width = 35
         btn_height = 20
         spacing = 3
-
-        # Calculate total width and center the buttons
-        total_width = len(modes) * btn_width + (len(modes) - 1) * spacing
-        start_x = x + (width - total_width) // 2
+        label_widths = [self._panel._font_small.size(mode)[0] + 10 for mode in modes]
+        total_width = sum(label_widths) + (len(modes) - 1) * spacing
+        start_x = x + max(0, (width - total_width) // 2)
 
         self._panel._info_button_rects = {}
 
+        running_x = start_x
         for i, mode in enumerate(modes):
-            btn_x = start_x + i * (btn_width + spacing)
+            btn_width = label_widths[i]
+            btn_x = running_x
+            running_x += btn_width + spacing
             btn_rect = Rect(btn_x, y + 2, btn_width, btn_height)
 
             # Store rect for click detection

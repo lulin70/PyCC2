@@ -41,8 +41,12 @@ class CommandBarRenderer:
         cmd_h = h - timer_height - (4 if timer_height > 0 else 0)
 
         num_cmds = len(self._panel._commands)
-        btn_height = (cmd_h - (num_cmds - 1) * 4) // num_cmds if num_cmds > 0 else 0
-        btn_width = w - 10
+        # 两列网格：9 个命令排成 5 行，避免单列时按钮被压到 9px 高
+        cols = 2 if num_cmds > 5 else 1
+        rows = (num_cmds + cols - 1) // cols if num_cmds else 0
+        gap = 3
+        btn_width = (w - 10 - gap * (cols - 1)) // cols if cols else 0
+        btn_height = (cmd_h - (rows - 1) * gap) // rows if rows > 0 else 0
 
         self._panel._button_rects = {}
 
@@ -61,8 +65,9 @@ class CommandBarRenderer:
             )
 
         for i, cmd in enumerate(self._panel._commands):
-            btn_y = cmd_y + i * (btn_height + 4)
-            btn_rect = Rect(x + 5, btn_y, btn_width, btn_height)
+            btn_x = x + 5 + (i % cols) * (btn_width + gap)
+            btn_y = cmd_y + (i // cols) * (btn_height + gap)
+            btn_rect = Rect(btn_x, btn_y, btn_width, btn_height)
 
             # Determine if this command should be enabled
             cmd_enabled = True
@@ -191,25 +196,32 @@ class CommandBarRenderer:
             else:
                 draw.rect(surface, (45, 48, 53), btn_rect, 1)
 
-            # Command icon (24x24, drawn left of text)
+            # Command icon (scaled to button height, drawn left of text)
             icon = self._panel._command_icons.get(cmd["id"])
+            icon_size = max(0, min(16, btn_height - 4))
             icon_x = btn_rect.left + 4
-            icon_y = btn_y + (btn_height - 24) // 2
-            if icon:
+            icon_y = btn_y + (btn_height - icon_size) // 2
+            if icon and icon_size >= 8:
+                icon_scaled = pygame.transform.smoothscale(icon, (icon_size, icon_size))
                 if not cmd_enabled:
                     # Dim the icon for disabled state
-                    dimmed = icon.copy()
-                    dimmed.set_alpha(80)
-                    surface.blit(dimmed, (icon_x, icon_y))
-                else:
-                    surface.blit(icon, (icon_x, icon_y))
+                    icon_scaled.set_alpha(80)
+                surface.blit(icon_scaled, (icon_x, icon_y))
 
             # Label with key binding (shifted right to make room for icon)
+            text_x = icon_x + icon_size + 4 if icon_size >= 8 else btn_rect.left + 4
+            available_width = btn_rect.right - 3 - text_x
             label = f"{cmd['label']} [{cmd['key']}]"
             text_surf = self._panel._font_small.render(label, True, text_color)
-            text_x = icon_x + 26
+            if text_surf.get_width() > available_width:
+                # 空间不足时去掉快捷键提示，避免文字压到相邻按钮
+                text_surf = self._panel._font_small.render(cmd["label"], True, text_color)
             text_y = btn_y + (btn_height - text_surf.get_height()) // 2
+            # 裁剪到按钮内，保证任何字号下都不越界
+            previous_clip = surface.get_clip()
+            surface.set_clip(btn_rect)
             surface.blit(text_surf, (text_x, text_y))
+            surface.set_clip(previous_clip)
 
             # Trigger tooltip on hovered enabled button
             if is_hovered and cmd_enabled and self._panel._mouse_pos is not None:

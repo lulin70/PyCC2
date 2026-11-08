@@ -61,19 +61,27 @@ class RosterRenderer:
             if roster_icon:
                 surface.blit(roster_icon, (x + 5, item_y + 5))
 
-            # Unit name (truncated) — Unit uses .name, not .display_name
-            name = unit.name
-            name = str(name)[:12]
-            text_color = self._panel.HIGHLIGHT_COLOR if is_selected else self._panel.TEXT_COLOR
-            name_surf = self._panel._font_small.render(name, True, text_color)
-            surface.blit(name_surf, (x + 23, item_y + 5))
-
             # Health bar with 1px dark border — HealthComponent uses .hp/.max_hp
             hp_current = unit.health.hp
             hp_max = unit.health.max_hp
             hp_ratio = hp_current / max(hp_max, 1)
-            bar_width = 50
-            bar_x = x + w - bar_width - 45  # P2-A: Shifted left to make room for HP text
+            hp_text = f"{hp_current}/{hp_max}"
+            hp_text_width = self._panel._font_small.size(hp_text)[0]
+            # 右对齐到面板边缘，确保数值永不被裁切
+            hp_text_x = x + w - 4 - hp_text_width
+            bar_width = 44
+            bar_x = max(x + 23, hp_text_x - 4 - bar_width)
+
+            # Unit name truncated to the space left of the health bar — Unit uses .name
+            name_color = self._panel.HIGHLIGHT_COLOR if is_selected else self._panel.TEXT_COLOR
+            name_left = x + 23
+            name_space = max(0, bar_x - 6 - name_left)
+            name = str(unit.name)
+            while name and self._panel._font_small.size(name)[0] > name_space:
+                name = name[:-1]
+            name_surf = self._panel._font_small.render(name, True, name_color)
+            surface.blit(name_surf, (name_left, item_y + 5))
+
             # Dark border around health bar
             draw.rect(surface, (40, 42, 48), Rect(bar_x - 1, item_y + 8, bar_width + 2, 10))
             draw.rect(surface, (60, 60, 60), Rect(bar_x, item_y + 9, bar_width, 8))
@@ -86,10 +94,9 @@ class RosterRenderer:
             )
             draw.rect(surface, hp_color, Rect(bar_x, item_y + 9, int(bar_width * hp_ratio), 8))
 
-            # P2-A: HP numeric value next to bar for better readability
-            hp_text = f"{hp_current}/{hp_max}"
+            # HP numeric value, right-aligned next to the bar
             hp_text_surf = self._panel._font_small.render(hp_text, True, hp_color)
-            surface.blit(hp_text_surf, (bar_x + bar_width + 3, item_y + 7))
+            surface.blit(hp_text_surf, (hp_text_x, item_y + 7))
 
             # P2-A: Morale status indicator (small colored dot after name)
             if hasattr(unit, "morale") and unit.morale is not None:
@@ -100,7 +107,7 @@ class RosterRenderer:
                     morale_dot_color = (220, 200, 80)  # Yellow - caution
                 else:
                     morale_dot_color = (255, 100, 100)  # Red - low morale
-                dot_x = x + 23 + name_surf.get_width() + 4
+                dot_x = min(x + 23 + name_surf.get_width() + 4, bar_x - 6)
                 draw.circle(surface, morale_dot_color, (dot_x, item_y + 13), 3)
 
             self._panel._roster_item_rects.append((item_rect, unit.id))

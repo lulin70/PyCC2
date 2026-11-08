@@ -20,6 +20,8 @@ from typing import TYPE_CHECKING
 import pygame
 from pygame import Surface
 
+from pycc2.presentation.rendering.pixel_artist_enums import InfantryType
+
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -64,6 +66,15 @@ class SpriteCacheManager:
 
     TILE_SIZE: int = 48
     SPRITE_SIZE: int = 48  # Match TILE_SIZE for larger, clearer units
+
+    # UnitType 名称 → 步兵细分画法。未列出的类型使用步枪兵画法。
+    _UNIT_TYPE_INFANTRY: dict[str, InfantryType] = {
+        "INFANTRY_SQUAD": InfantryType.RIFLEMAN,
+        "MACHINE_GUN_SQUAD": InfantryType.MG,
+        "SNIPER_TEAM": InfantryType.SNIPER,
+        "COMMANDER": InfantryType.OFFICER,
+        "MEDIC_TEAM": InfantryType.MEDIC,
+    }
 
     def __init__(self, display_config: DisplayConfig | None = None):
         """Initialize the SpriteCacheManager."""
@@ -235,6 +246,7 @@ class SpriteCacheManager:
         sprite_size: int | None = None,
     ) -> Surface:
         """Create a unit sprite — priority: PixVoxel > SVG > CC2Original > AssetLoader > PixelArtist3D > legacy."""
+        unit_type = unit_type.name if hasattr(unit_type, "name") else str(unit_type).upper()
         # 0. Try PixVoxel sprites (HIGHEST PRIORITY — P0: 2026-07-10)
         if self._use_pixvoxel_sprites:
             pv_sprite = self._try_pixvoxel_sprite(faction, unit_type, direction, state)
@@ -267,15 +279,16 @@ class SpriteCacheManager:
                 logger.info(f"[SPRITE] ✅✅ CC2 Original: {unit_type}_d{direction}")
                 return cc2_sprite
 
-        # 2. Try loading from assets
+        # 2. Try loading from assets (Phase 2 upgrade: direction + state support)
         loaded_sprite = self._asset_loader.load_unit_sprite(
             faction=faction,
             unit_type=unit_type,
             direction=direction,
             size=self.SPRITE_SIZE,
+            state=state,
         )
         if loaded_sprite is not None:
-            logger.info(f"[SPRITE] ✅ Loaded PNG: {faction}_{unit_type}_d{direction}")
+            logger.info(f"[SPRITE] ✅ Loaded PNG: {faction}_{unit_type}_d{direction}_{state}")
             return loaded_sprite
 
         # Try CC2 pixel art generator
@@ -340,6 +353,9 @@ class SpriteCacheManager:
                     faction=fac_enum,
                     state=state,
                     frame=0,
+                    infantry_type=self._UNIT_TYPE_INFANTRY.get(
+                        unit_type, InfantryType.RIFLEMAN
+                    ),
                 )
 
             if cc2_sprite is not None:

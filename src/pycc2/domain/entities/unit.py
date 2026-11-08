@@ -35,6 +35,8 @@ squad-reference properties, life-state queries, and core life-cycle
 from __future__ import annotations
 
 import logging
+import math
+import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum, auto
@@ -55,6 +57,9 @@ from pycc2.domain.entities.unit_damage_vfx_mixin import UnitDamageVfxMixin
 from pycc2.domain.entities.unit_morale_mixin import UnitMoraleMixin
 from pycc2.domain.entities.unit_movement_mixin import UnitMovementMixin
 from pycc2.domain.value_objects.tile_coord import TileCoord
+
+# CC2 parity: turret traverse speed in degrees per second.
+TURRET_TRAVERSE_DEG_PER_SEC: float = 180.0
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.squad import Squad
@@ -98,6 +103,7 @@ class UnitState(Enum):
     RELOADING = auto()
     SURRENDERED = auto()
     DEAD = auto()
+    COLLECTING = auto()  # FUNC-04: Harvesting resources (gold/wood)
 
 
 @dataclass(slots=True)
@@ -133,6 +139,10 @@ class Unit(
     veterancy: VeterancyComponent | None = None
     crew: VehicleCrew | None = None  # Only for vehicle units
     squad_ref: Squad | None = None  # Direct reference replaces squad_id
+    template_id: str = ""  # Scenario template id (engineer/demolition checks)
+    has_demolitions: bool = False  # Engineer capability from unit template
+    fire_mode: str = "free"  # CC2 fire discipline: "free", "return", "hold"
+    _last_attacked_tick: int = field(init=False, default=0)  # Estimated 30 Hz tick of last damage
     state_machine: StateMachine = field(init=False)
     armor_front: float = 1.0
     armor_side: float = 0.65
@@ -141,6 +151,9 @@ class Unit(
     combat_state: CombatState | None = None
     move_target: TileCoord | None = field(default=None, init=False)  # Movement destination
     facing: float = 0.0  # Facing direction in degrees (0=East, 90=South, 180=West, 270=North)
+    # CC2 parity: the turret turns toward the target independently of the hull.
+    turret_facing: float | None = None  # Degrees; None = aligned with hull
+    crew_abandoned: bool = False  # True after all crew are lost (vehicle abandoned)
     current_building_pos: tuple[int, int] | None = (
         None  # None = not in building; set when on BUILDING_ENTERABLE tile
     )
@@ -150,6 +163,14 @@ class Unit(
     fuel: float = -1.0  # -1 = not a vehicle (infantry); vehicles start with max_fuel
     max_fuel: float = 100.0
     fuel_per_tile: float = 1.0  # Fuel consumed per tile moved
+
+    # FUNC-04: Resource collection (Sprint 2 Day 8)
+    is_harvester: bool = False  # Can collect resources
+    carrying_resource_amount: float = 0.0  # Current resource carried
+    max_resource_capacity: float = 100.0  # Max carrying capacity
+    resource_type: str | None = None  # "gold" or "wood" (None = not carrying)
+    resource_source_pos: TileCoord | None = None  # Mine/lumber yard position
+    base_drop_off_pos: TileCoord | None = None  # Base position for drop-off
 
     # Movement mode system (for Fast Move, Sneak, Defend commands)
     _movement_mode: str = field(init=False, default="normal")  # normal, fast_move, sneak, defend
@@ -334,6 +355,116 @@ class Unit(
         return self.squad_ref
 
     @property
+    def squad_effectiveness(self) -> float:
+        """Combat effectiveness ratio (0..1) derived from living squad members."""
+        if self.squad_ref is None:
+            return 1.0
+        return max(0.0, min(1.0, self.squad_ref.combat_effectiveness))
+
+    @property
+    def is_vehicle(self) -> bool:
+        """Return True when this unit is an armored vehicle."""
+        return self.unit_type == UnitType.TANK or self.crew is not None
+
+    @property
+    def is_abandoned(self) -> bool:
+        """Return True when the vehicle lost all crew and was abandoned."""
+        return self.crew_abandoned
+
+    @property
+    def turret_facing_rad(self) -> float:
+        """Turret angle in radians. Falls back to the hull when not aimed."""
+        if self.turret_facing is None:
+            return self.position.facing_rad
+        return math.radians(self.turret_facing)
+
+    def aim_turret_at(self, target: TileCoord, dt: float = 1.0) -> float:
+        """Turn the turret toward *target*. The hull does not rotate.
+
+        The turret turns at ``TURRET_TRAVERSE_DEG_PER_SEC``. This method returns
+        the new turret angle in degrees.
+
+        Args:
+            target: Tile to aim at.
+            dt: Elapsed seconds since the last turn.
+
+        """
+        dx = target.x - self.position.tile_coord.x
+        dy = target.y - self.position.tile_coord.y
+        if dx == 0 and dy == 0:
+            return self.turret_facing if self.turret_facing is not None else 0.0
+
+        # Math convention: 0 deg = East, 90 deg = North (screen up).
+        desired = math.degrees(math.atan2(-dy, dx)) % 360.0
+        current = (
+            self.turret_facing
+            if self.turret_facing is not None
+            else math.degrees(self.position.facing_rad) % 360.0
+        )
+        delta = ((desired - current + 180.0) % 360.0) - 180.0
+        max_step = TURRET_TRAVERSE_DEG_PER_SEC * max(0.0, dt)
+        step = max(-max_step, min(max_step, delta))
+        self.turret_facing = (current + step) % 360.0
+        return self.turret_facing
+
+    def cycle_fire_mode(self) -> str:
+        """Rotate fire discipline free -> return -> hold and return the new mode."""
+        order = ("free", "return", "hold")
+        index = order.index(self.fire_mode) if self.fire_mode in order else 0
+        self.fire_mode = order[(index + 1) % len(order)]
+        return self.fire_mode
+
+    def was_recently_attacked(self, window_ticks: int = 150) -> bool:
+        """Return True if the unit took damage within the last *window_ticks*."""
+        if self._last_attacked_tick <= 0:
+            return False
+        return (self._estimated_tick() - self._last_attacked_tick) <= window_ticks
+
+    @property
+    def squad_alive_count(self) -> int:
+        """Number of squad members still alive (healthy, wounded, or pinned)."""
+        if self.squad_ref is None:
+            return 1
+        return self.squad_ref.alive_count
+
+    @property
+    def squad_total_count(self) -> int:
+        """Total squad size including dead members."""
+        if self.squad_ref is None:
+            return 1
+        return self.squad_ref.size
+
+    def apply_squad_suppression(self, level: float) -> int:
+        """Pin squad members from incoming fire. Returns newly pinned count."""
+        if self.squad_ref is None:
+            return 0
+        return self.squad_ref.apply_suppression(max(0.0, min(1.0, level)))
+
+    def _sync_squad_casualties(self) -> None:
+        """Map unit HP loss onto individual squad casualties.
+
+        CC2 parity: a squad loses men as its health drops. The mapping is
+        proportional, and only the shortfall is applied so repeated hits do
+        not double-count casualties.
+        """
+        squad = self.squad_ref
+        if squad is None or squad.is_destroyed:
+            return
+        max_hp = max(1, self.health.max_hp)
+        loss_ratio = 1.0 - (max(0, self.health.hp) / max_hp)
+        loss_ratio = max(0.0, min(1.0, loss_ratio))
+        target_casualties = int(round(loss_ratio * squad.size))
+        current_casualties = squad.wounded_count + squad.dead_count
+        missing = target_casualties - current_casualties
+        if missing > 0:
+            squad.apply_casualties(missing)
+
+    @staticmethod
+    def _estimated_tick() -> int:
+        """Best-effort 30 Hz tick estimate for damage timestamps."""
+        return int(time.monotonic() * 30)
+
+    @property
     def is_alive(self) -> bool:
         """Return True if the unit still has health remaining."""
         return self.health.is_alive
@@ -348,12 +479,65 @@ class Unit(
     def take_damage(self, amount: int) -> int:
         """Apply damage to the unit and return the actual amount dealt."""
         actual = self.health.take_damage(amount)
+        self._last_attacked_tick = self._estimated_tick()
+        if actual > 0:
+            self._sync_squad_casualties()
+            self._sync_crew_casualties(actual)
         if not self.is_alive:
             self.die()
         return actual
 
+    def _sync_crew_casualties(self, damage: int) -> None:
+        """CC2 parity: penetrating hits can kill crew members.
+
+        A vehicle that loses all crew is abandoned. The hull stops working
+        even when the armor has hit points left.
+        """
+        crew = self.crew
+        if crew is None or self.crew_abandoned:
+            return
+        if not crew.is_crew_alive:
+            self.abandon_vehicle()
+            return
+        self.apply_crew_damage(max(1, int(round(damage * 0.25))))
+
+    def apply_crew_damage(self, damage: int, role: str | None = None) -> dict:
+        """Route damage to the crew. A crew wipe abandons the vehicle.
+
+        ``role`` accepts a CrewRole value such as ``"gunner"`` or ``"driver"``.
+        """
+        crew = self.crew
+        if crew is None or self.crew_abandoned:
+            return {"damage_dealt": 0, "crew_destroyed": False}
+        role_target = None
+        if role is not None:
+            from pycc2.domain.systems.vehicle_crew_system import CrewRole
+
+            role_target = CrewRole(role)
+        result = crew.apply_damage(damage, role_target=role_target)
+        if result.get("crew_destroyed"):
+            self.abandon_vehicle()
+        return result
+
+    def abandon_vehicle(self) -> None:
+        """Mark the vehicle abandoned and stop it. Called after a crew wipe."""
+        if self.crew_abandoned:
+            return
+        self.crew_abandoned = True
+        self.turret_facing = None
+        # Zero the hull HP through the component so its state becomes DEAD.
+        self.health.take_damage(max(1, self.health.hp))
+        logger.warning("[CREW] %s abandoned: no crew left", self.name or self.id)
+        self.die()
+
     def die(self) -> None:
         """Force the unit into the DEAD state."""
+        # CC2 parity: surviving crew bail out of a knocked-out vehicle.
+        if self.crew is not None and not self.crew_abandoned:
+            self.crew_abandoned = True
+            self.crew.evacuate_crew()
+        if self.squad_ref is not None:
+            self.squad_ref.destroy()
         self.state_machine.force_transition(UnitState.DEAD)
 
 

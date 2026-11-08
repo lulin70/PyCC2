@@ -145,16 +145,10 @@ class DeploymentRosterRenderingMixin:
             width=1,
         )
 
-        # Title
-        if ui._font_normal:
-            title = ui._font_normal.render("FORCE POOL", True, _ROSTER_TEXT)
-            panel_surf.blit(title, (ui._roster_padding, 8))
+        # Title removed: the requisition bar at the top of the screen replaces it
 
-        # DISABLED: RP header moved to TOP of screen (more prominent)
-        # self._render_rp_header(panel_surf)
-
-        # Scrollable unit list with category headers (start right after title)
-        y_offset = 30  # Start early, no RP header taking space
+        # Scrollable unit list with category headers (start below the requisition bar)
+        y_offset = 62
         for entry_type, entry_data in ui._roster_layout:
             if entry_type == "category":
                 assert isinstance(entry_data, UnitCategory)
@@ -198,7 +192,7 @@ class DeploymentRosterRenderingMixin:
                 # Text
                 if ui._font_small:
                     name_color = _ROSTER_TEXT if not unit.is_placed else _ROSTER_TEXT_DIM
-                    prefix = "✓ " if unit.is_placed else "  "
+                    prefix = "* " if unit.is_placed else "  "
                     text = f"{prefix}{unit.display_name}"
                     label = ui._font_small.render(text, True, name_color)
                     panel_surf.blit(label, (item_rect.x + 4, item_rect.y + 6))
@@ -354,11 +348,9 @@ class DeploymentRosterRenderingMixin:
         bar_height = 50
         bar_y = 5  # Near top of screen
 
-        # Background panel
-        panel_w = min(350, ui._roster_width + 20)
-        panel_x = (ui._roster_width - panel_w) // 2 + 5
-        if panel_x < 0:
-            panel_x = 5
+        # Background panel (opaque, inside the roster column)
+        panel_w = max(120, ui._roster_width - 10)
+        panel_x = 5
 
         # Semi-transparent background – reuse cached surface
         bg_size = (panel_w, bar_height)
@@ -367,18 +359,18 @@ class DeploymentRosterRenderingMixin:
             self._rp_bg_cache_size = bg_size
         bg_surf = self._rp_bg_cache
         bg_surf.fill((0, 0, 0, 0))
-        pygame.draw.rect(bg_surf, (30, 35, 45, 230), (0, 0, panel_w, bar_height), border_radius=8)
+        pygame.draw.rect(bg_surf, (30, 35, 45, 255), (0, 0, panel_w, bar_height), border_radius=8)
         pygame.draw.rect(
             bg_surf, (80, 85, 100), (0, 0, panel_w, bar_height), width=2, border_radius=8
         )
 
         # "REQUISITION POINTS" label (small, top)
         if ui._font_small:
-            label = ui._font_small.render("◆ REQUISITION POINTS", True, (200, 190, 140))
+            label = ui._font_small.render("REQUISITION POINTS", True, (200, 190, 140))
             bg_surf.blit(label, ((panel_w - label.get_width()) // 2, 6))
 
         # Large RP value: "850 / 1200"
-        rp_text = f"⬢ {remaining} / {total}"
+        rp_text = f"{remaining} / {total}"
 
         # Color based on remaining percentage
         ratio = remaining / total if total > 0 else 0
@@ -484,7 +476,7 @@ class DeploymentRosterRenderingMixin:
                 logging.debug(f"Battle font fallback: {e}")
                 battle_font = ui._font_normal
 
-            label = battle_font.render("⚔ START BATTLE", True, text_color)
+            label = battle_font.render("START BATTLE", True, text_color)
 
             # Center text
             text_x = btn_x + (btn_w - label.get_width()) // 2

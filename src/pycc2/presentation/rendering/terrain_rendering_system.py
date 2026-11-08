@@ -218,10 +218,13 @@ class TerrainRenderingSystem:
                     if self._terrain_tile_cache is not None:
                         texture = self._terrain_tile_cache.get_tile(
                             terrain_type=terrain_val,
+                            autotile_mask=bitmask if is_autotile_terrain(terrain_val) else 0,
                             variation=(tx * 7919 + ty * 104729 + terrain_val * 17) % 8,
                             height=height,
-                            size=tile_screen_size,
-                            bitmask=bitmask if is_autotile_terrain(terrain_val) else None,
+                            tile_screen_size=tile_screen_size,
+                            renderer=self._renderer,
+                            tile_x=tx,
+                            tile_y=ty,
                         )
 
                     if texture is None:
@@ -493,10 +496,13 @@ class TerrainRenderingSystem:
                     if self._terrain_tile_cache is not None:
                         texture = self._terrain_tile_cache.get_tile(
                             terrain_type=terrain_val,
+                            autotile_mask=bitmask if is_autotile_terrain(terrain_val) else 0,
                             variation=(tx * 7919 + ty * 104729 + terrain_val * 17) % 8,
                             height=height,
-                            size=tile_screen_size,
-                            bitmask=bitmask if is_autotile_terrain(terrain_val) else None,
+                            tile_screen_size=tile_screen_size,
+                            renderer=self._renderer,
+                            tile_x=tx,
+                            tile_y=ty,
                         )
 
                     if texture is None:

@@ -91,9 +91,7 @@ class Minimap:
         self._terrain_cache: Surface | None = None
         self._terrain_cache_map_id: int = 0
 
-        # Reusable viewport surface (avoids per-frame allocation)
-        self._viewport_surface: Surface | None = None
-        self._viewport_size: tuple[int, int] = (0, 0)
+        # Reusable viewport surface removed — viewport is drawn as an outline only
 
         # V-11 (Wave E1): Casualty markers + legend toggle
         self._casualty_markers: list[_CasualtyMarker] = []
@@ -687,20 +685,7 @@ class Minimap:
         mini_w = int((vp_w / max(1, map_width)) * self.size)
         mini_h = int((vp_h / max(1, map_height)) * self.size)
 
-        # Draw semi-transparent viewport rectangle (reuse surface to avoid allocation)
-        viewport_color = (255, 255, 255, 40)
-        vp_size = (mini_w, mini_h)
-        if self._viewport_surface is None or self._viewport_size != vp_size:
-            self._viewport_surface = Surface(vp_size, pygame.SRCALPHA)
-            self._viewport_size = vp_size
-        else:
-            self._viewport_surface.fill((0, 0, 0, 0))  # Clear without realloc
-        self._viewport_surface.fill(viewport_color)
-        self._surface.blit(
-            self._viewport_surface, (mini_x, mini_y), special_flags=pygame.BLEND_RGBA_ADD
-        )
-
-        # Draw viewport border
+        # Draw viewport as an outline only — a filled overlay would wash out terrain
         draw.rect(self._surface, (255, 255, 255), Rect(mini_x, mini_y, mini_w, mini_h), 1)
 
     def contains_point(self, screen_pos: tuple[int, int]) -> bool:

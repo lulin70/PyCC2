@@ -58,7 +58,9 @@ class TankPixelRenderer:
 
     # ===== Rotation Pre-cache (P0-4) =====
     _MAX_CACHE_SIZE = 200
-    _rotation_cache: OrderedDict[tuple, pygame.Surface] = OrderedDict()
+    # 键包含表面身份，避免不同坦克同尺寸时互相命中。
+    # 值同时保存 base 引用，防止 id 被回收复用后产生错误命中。
+    _rotation_cache: OrderedDict[tuple, tuple[pygame.Surface, pygame.Surface]] = OrderedDict()
     _PRECACHE_ANGLES = [i * 15 for i in range(24)]  # 0, 15, 30, ..., 345
 
     # ------------------------------------------------------------------ #
@@ -77,40 +79,39 @@ class TankPixelRenderer:
             Rotated surface (from cache or newly computed).
 
         """
-        cache_key = (base.get_width(), base.get_height(), round(angle, 1))
-        if cache_key in cls._rotation_cache:
+        cache_key = (id(base), base.get_width(), base.get_height(), round(angle, 1))
+        entry = cls._rotation_cache.get(cache_key)
+        if entry is not None:
             cls._rotation_cache.move_to_end(cache_key)  # LRU: mark as recently used
-            return cls._rotation_cache[cache_key]
+            return entry[1]
         import pygame
 
-        cls._rotation_cache[cache_key] = pygame.transform.rotate(base, angle)
+        rotated = pygame.transform.rotate(base, angle)
+        cls._rotation_cache[cache_key] = (base, rotated)
         # Evict oldest if over limit
         while len(cls._rotation_cache) > cls._MAX_CACHE_SIZE:
             cls._rotation_cache.popitem(last=False)
-        return cls._rotation_cache[cache_key]
+        return rotated
 
     @classmethod
     def precache_tank_rotations(cls):
-        """Pre-cache common rotation angles for all tank types.
+        """Pre-render every tank type in all 8 directions.
 
-        Call once during game initialization to generate 24-direction
-        rotation results ahead of time.
+        Only real sprites are generated. Blank placeholder surfaces must not
+        enter the cache: they would be returned for any same-sized tank hull.
         """
-        import pygame
-
-        from pycc2.presentation.rendering.pixel_artist_color_palette import TANK_SIZES
-        from pycc2.presentation.rendering.pixel_artist_enums import TankType
-
         for tank_type in TankType:
-            tank_w, tank_h = TANK_SIZES[tank_type]
-            size = max(tank_w, tank_h)
-
-            dummy = pygame.Surface((size, size), pygame.SRCALPHA)
-            dummy.fill((0, 0, 0, 0))
-
-            for angle in cls._PRECACHE_ANGLES:
-                if angle != 0:
-                    cls.get_rotated_surface(dummy, angle)
+            faction = (
+                Faction.ALLIES
+                if tank_type == TankType.SHERMAN_M4
+                else Faction.AXIS
+            )
+            for direction in Direction:
+                cls.create_tank_sprite(
+                    direction=direction,
+                    faction=faction,
+                    tank_type=tank_type,
+                )
 
     @classmethod
     def clear_rotation_cache(cls):

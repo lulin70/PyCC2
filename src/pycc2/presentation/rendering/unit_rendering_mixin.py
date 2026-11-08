@@ -111,6 +111,13 @@ class UnitRenderingMixin:
             pos = Vec2(ox, oy)
         sp = camera.world_to_screen(pos)
 
+        # PF-01: cull off-screen units. Units outside the viewport still paid
+        # for sprite blits, flags, bars, and indicators on every frame.
+        width, height = surface.get_size()
+        margin = self.SPRITE_SIZE + 48
+        if sp[0] < -margin or sp[0] > width + margin or sp[1] < -margin or sp[1] > height + margin:
+            return
+
         dir_idx = self._facing_to_direction_index(unit.position.facing_rad)
 
         faction = unit.faction.name.lower()
@@ -190,7 +197,16 @@ class UnitRenderingMixin:
         zoom = camera.zoom
         sz = int(self.SPRITE_SIZE * zoom)
         if sz > 0:
-            scaled = transform.scale(sprite, (sz, sz))
+            if sz == sprite.get_width():
+                scaled = sprite
+            else:
+                key = (id(sprite), sz)
+                scaled = self._scaled_sprite_cache.get(key)
+                if scaled is None:
+                    scaled = transform.scale(sprite, (sz, sz))
+                    if len(self._scaled_sprite_cache) > 512:
+                        self._scaled_sprite_cache.clear()
+                    self._scaled_sprite_cache[key] = scaled
             offset = sz // 2
 
             animators = self._effect_renderer.unit_animators
@@ -240,7 +256,9 @@ class UnitRenderingMixin:
             self._draw_selection_ring(sp, int(16 * zoom))
 
         self._draw_faction_flag(unit, sp, zoom)
-        self._draw_unit_label(unit, sp, zoom)
+        if is_selected:
+            # 名称标签只在选中时显示，避免全屏单位标签互相压盖
+            self._draw_unit_label(unit, sp, zoom)
         self._draw_health_bar(unit, sp, zoom)
 
         self._draw_enhanced_morale_indicator(unit, sp, zoom)
@@ -283,7 +301,8 @@ class UnitRenderingMixin:
                 return
             turret_scaled = transform.scale(turret_base, (sz, sz))
 
-            facing_rad = unit.position.facing_rad
+            # CC2 parity: the turret aims independently of the hull.
+            facing_rad = getattr(unit, "turret_facing_rad", unit.position.facing_rad)
             rotate_angle = math.degrees(facing_rad)
 
             turret_rotated = pygame.transform.rotate(turret_scaled, rotate_angle)

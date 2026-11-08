@@ -248,6 +248,7 @@ class Squad:
     members: list[SquadMember] = field(default_factory=list)
     name: str = ""
     total_experience_earned: int = 0  # Track cumulative XP for stats
+    initial_size: int | None = None  # Template-driven size override (None = type default)
 
     # === Initial size configuration (based on historical TO&E) ===
     INITIAL_SIZES = {
@@ -277,6 +278,8 @@ class Squad:
         base_size = self.INITIAL_SIZES.get(self.squad_type, {"allies": 8, "axis": 8}).get(
             self.faction, 8
         )
+        if self.initial_size is not None and self.initial_size > 0:
+            base_size = self.initial_size
 
         # XP range based on difficulty
         xp_ranges = {
@@ -542,6 +545,13 @@ class Squad:
         self.members = [m for m in self.members if m.state != MemberState.DEAD]
         return dead
 
+    def destroy(self) -> None:
+        """Mark every remaining member as dead (unit destroyed or abandoned)."""
+        for member in self.members:
+            if member.state not in (MemberState.DEAD, MemberState.SURRENDERED):
+                member.state = MemberState.DEAD
+                member.hp = 0
+
     # === Serialization ===
 
     def to_dict(self) -> dict:
@@ -551,6 +561,7 @@ class Squad:
             "squad_type": self.squad_type.value,
             "faction": self.faction,
             "name": self.name,
+            "initial_size": self.initial_size,
             "members": [
                 {
                     "member_id": m.member_id,
@@ -574,6 +585,7 @@ class Squad:
             faction=data["faction"],
             name=data.get("name", ""),
             total_experience_earned=data.get("total_experience_earned", 0),
+            initial_size=data.get("initial_size"),
         )
         squad.members = [
             SquadMember(

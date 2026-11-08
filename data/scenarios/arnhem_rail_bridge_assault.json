@@ -1,0 +1,49 @@
+{
+  "scenario_id": "arnhem_rail_bridge_assault",
+  "name": "Arnhem Rail Bridge Assault",
+  "description": "1st Airborne Division pushes through Arnhem's eastern suburbs to seize the railway bridge before German blocking groups close the approaches",
+  "map_id": "arnhem_rail_bridge",
+  "time_of_day": "dawn",
+  "weather": "clear",
+  "day": 2,
+  "sector": "arnhem",
+  "operation_id": "arnhem_rail_bridge",
+  "forces": {
+    "allies": {
+      "faction": "BRITISH",
+      "deployment_zone": {"x_min": 0, "x_max": 12, "y_min": 0, "y_max": 31},
+      "units": [
+        {"template_id": "uk_para_rifle_squad", "count": 3, "deployment_cost": 120},
+        {"template_id": "uk_para_mg_bren", "count": 2, "deployment_cost": 155},
+        {"template_id": "uk_para_at_piat", "count": 1, "deployment_cost": 150},
+        {"template_id": "uk_para_engineer_squad", "count": 1, "deployment_cost": 180}
+      ],
+      "reinforcements": [
+        {"template_id": "uk_para_rifle_squad", "arrival_turn": 5, "from_direction": "west"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    },
+    "axis": {
+      "faction": "GERMAN",
+      "deployment_zone": {"x_min": 26, "x_max": 37, "y_min": 0, "y_max": 31},
+      "units": [
+        {"template_id": "de_rifle_squad", "count": 3, "deployment_cost": 125},
+        {"template_id": "de_mg42_team", "count": 2, "deployment_cost": 175},
+        {"template_id": "de_flak36_88", "count": 1, "deployment_cost": 300}
+      ],
+      "reinforcements": [
+        {"template_id": "de_rifle_squad", "arrival_turn": 4, "from_direction": "east"}
+      ],
+      "max_infantry": 9,
+      "max_support": 6
+    }
+  },
+  "victory_locations": [
+    {"id": "vl_rail_bridge_north", "position": [19, 10], "value": 40, "type": "bridge"},
+    {"id": "vl_rail_bridge_south", "position": [19, 22], "value": 30, "type": "bridge"},
+    {"id": "vl_rail_yard", "position": [12, 16], "value": 20, "type": "road_junction"}
+  ],
+  "special_rules": ["bridge_destructible", "no_air_support", "initial_scatter"],
+  "attacker_faction": "allied"
+}

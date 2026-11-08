@@ -28,7 +28,7 @@ os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 import numpy as np
 import pygame
 import pytest
-from conftest import GameLoopFactory
+from tests.e2e.conftest import GameLoopFactory
 
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.systems.day_night_cycle import DayNightEffects, GameTime, TimeOfDay

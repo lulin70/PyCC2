@@ -130,6 +130,11 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
         self._attack_line_system = attack_line_system
         self._particle_system = TopDownParticleSystem()
 
+        # Phase 2.3: Animation controller for sprite state management
+        from pycc2.presentation.rendering.animation_controller import AnimationController
+
+        self._animation_controller = AnimationController()
+
         self._lighting_config = lighting_config or TopDownLightingConfig()
         self._lighting_effects_sys = LightingEffectsSystem(
             self._lighting_config, self.TILE_SIZE, max_dynamic_lights=8
@@ -143,6 +148,7 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
             screen=self._state_manager.screen,
             offscreen=self._state_manager.offscreen,
             sprite_renderer=self._sprite_renderer,
+            animation_controller=self._animation_controller,
             palette_gen=self._palette_gen,
             texture_cache=self._texture_cache,
             scaled_texture_cache=self._scaled_texture_cache,
@@ -174,10 +180,16 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
 
         self._particle_effects = ParticleEffectsRenderer()
         self._environment = EnvironmentRenderer()
+        # 世界层覆盖：VL 旗帜/网格/攻击线/命令线/LOS（屏幕层 HUD 由 HUDRenderer 负责）
         self._ui_overlay = UIOverlayRenderer(self._render_ctx)
+        self._fog_of_war = None
 
         self._enable_cc2_color_grading: bool = True
-        self._hud = None
+
+        # HUD 渲染器（屏幕空间：状态栏/小地图/快捷键提示）
+        from pycc2.presentation.rendering.hud_renderer import HUDRenderer
+
+        self._hud = HUDRenderer()
         self._hud_enabled: bool = True
 
         # Extracted SRP modules
@@ -268,6 +280,10 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
         self._dynamic_shadow_sys = shadow_system
         if self._world_renderer is not None:
             self._world_renderer._dynamic_shadow_sys = shadow_system
+
+    def set_fog_of_war(self, fog) -> None:
+        """Set the fog-of-war grid rendered as a darkness overlay."""
+        self._fog_of_war = fog
 
     def set_time_of_day(self, tod: str) -> None:
         """Set time of day for color grading."""
@@ -406,6 +422,9 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
                 self._attack_line_system,
             )
 
+        if self._fog_of_war is not None:
+            self._ui_overlay.draw_fog_of_war(offscreen, self._fog_of_war, camera)
+
         self._environment.render_weather_and_lighting(
             offscreen,
             camera,
@@ -415,7 +434,31 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
             self._state_manager.dirty_tracker,
         )
 
-        self._ui_overlay.render_hud(self._hud, self._hud_enabled, self._state_manager.dirty_tracker)
+        # P0-2 Phase 1: 渲染HUD（Status Bar + Minimap + Shortcuts Help）
+        if self._hud and self._hud_enabled:
+            # 获取选中单位（如果有）
+            selected_unit = None
+            if selected_unit_ids and units:
+                for unit in units:
+                    if unit.id in selected_unit_ids:
+                        selected_unit = unit
+                        break
+
+            # 获取FPS和回合数
+            fps = self._state_manager.get_fps()
+            current_turn = 0  # TODO: 从GameState获取
+            game_paused = False  # TODO: 从GameState获取
+
+            self._hud.render(
+                screen=screen,  # HUD直接绘制到主屏幕（在post-processing之前）
+                camera=camera,
+                units=units,
+                selected_unit=selected_unit,
+                fps=fps,
+                game_paused=game_paused,
+                current_turn=current_turn,
+                game_map=game_map,  # P0-2 Phase 2: 传递game_map用于Minimap
+            )
 
         self._screen_effects.render_effects(
             offscreen,
@@ -434,7 +477,7 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
         ):
             try:
                 processed = post_processing.apply_all(screen, color_style="war")
-                if processed is not None:
+                if processed is not None and processed is not screen:
                     screen.blit(processed, (0, 0))
             except (pygame.error, ValueError, TypeError) as exc:
                 logger.debug("Post-processing skipped: %s", exc)

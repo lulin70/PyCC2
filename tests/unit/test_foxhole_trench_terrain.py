@@ -197,6 +197,7 @@ class TestBoundaryConditions:
 class TestPerformance:
     """Verify terrain property access performance."""
 
+    @pytest.mark.timing
     def test_10000_property_lookups_under_150ms(self) -> None:
         """Verify: 10000 property lookups complete in under 150ms.
 

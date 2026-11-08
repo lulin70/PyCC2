@@ -146,12 +146,11 @@ class VlFlagRenderingMixin:
             pygame.draw.circle(glow_surf, (255, 255, 100, alpha // 3), (12, 12), 12)
             surface.blit(glow_surf, (x - 12, y - 22))
 
-        # VP value numeral (CC2-authentic: large gold number with black outline)
-        # Restored from ui_overlay_renderer fallback path; font enlarged from
-        # 38 -> 52 to match CC2 building-roof numeral proportions.
+        # VP value numeral (CC2-authentic: gold number with black outline).
+        # 28px 与 32px 地块比例匹配；52px 会盖住两格范围。
         if points is not None and isinstance(points, (int, float)) and points > 0:
             try:
-                vp_font = pygame.font.Font(None, 52)
+                vp_font = pygame.font.Font(None, 28)
                 vp_text = str(int(points))
                 pulse_scale = math.sin(time.time() * 3.0) * 0.05 + 1.0
                 pulse_alpha = int(
@@ -160,7 +159,7 @@ class VlFlagRenderingMixin:
                 )
                 text_color = (255, 220, 100)
                 base_x = x - vp_font.size(vp_text)[0] // 2
-                base_y = y - 48
+                base_y = y - 30
 
                 # 4-direction 1px black outline for legibility over any terrain
                 for dx, dy in ((-1, -1), (1, -1), (-1, 1), (1, 1)):

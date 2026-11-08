@@ -1,6 +1,9 @@
 """UI Overlay Renderer Sub-Module for CC2-Style Games
 
-Handles all UI overlay rendering on top of the game world:
+Handles world-space overlay rendering on top of the game map.
+Screen-space HUD (status bar / minimap / shortcuts) is owned by HUDRenderer.
+
+Includes:
 - Victory Location flags and edge arrows (with VP pulse animation)
 - Attack lines (CC2-style color-coded: green/red/orange)
 - Queued command lines (Shift+right-click waypoints)
@@ -18,6 +21,8 @@ from typing import TYPE_CHECKING
 
 import pygame
 
+from pycc2.domain.systems.fog_of_war import TileVisibility
+from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.domain.value_objects.vec2 import Vec2
 from pycc2.presentation.rendering.render_context import RenderContext
 from pycc2.presentation.rendering.rendering_utils import draw_dashed_line
@@ -291,11 +296,11 @@ class UIOverlayRenderer:
             if not confirmed_target.unit_id:
                 continue
 
-            source_pos = getattr(attack_line, "_active_source", None)
-            if source_pos is not None:
-                source_screen = camera.world_to_screen(source_pos)
-            else:
-                source_screen = camera.world_to_screen(confirmed_target.position)
+            source_pos = attack_line.get_confirmed_source(_unit_id)
+            if source_pos is None:
+                # GAP-11: skip instead of drawing a zero-length line on the target.
+                continue
+            source_screen = camera.world_to_screen(source_pos)
             target_screen = camera.world_to_screen(confirmed_target.position)
 
             pg.draw.line(
@@ -338,7 +343,7 @@ class UIOverlayRenderer:
             for idx, cmd in enumerate(unit._command_queue, start=1):
                 tx = cmd.get("target_x", 0)
                 ty = cmd.get("target_y", 0)
-                target_world = Vec2(tx * 32, ty * 32)
+                target_world = Vec2(tx * self._ctx.tile_size, ty * self._ctx.tile_size)
                 target_screen = camera.world_to_screen(target_world)
 
                 start_pos = (int(prev_screen[0]), int(prev_screen[1]))
@@ -441,10 +446,69 @@ class UIOverlayRenderer:
                         (screen_x, screen_y, tile_size, tile_size),
                     )
 
-        # Blit overlay offset by camera
-        cam_x = int(camera.offset_x) if hasattr(camera, "offset_x") else 0
-        cam_y = int(camera.offset_y) if hasattr(camera, "offset_y") else 0
-        surface.blit(self._los_overlay, (-cam_x, -cam_y))
+        # Blit overlay in screen space: apply the camera transform
+        # (world pixel space → screen) and the current zoom.
+        overlay = self._los_overlay
+        if camera.zoom != 1.0:
+            overlay = pygame.transform.smoothscale(
+                overlay,
+                (
+                    int(overlay.get_width() * camera.zoom),
+                    int(overlay.get_height() * camera.zoom),
+                ),
+            )
+        origin_x = -camera.position.x * camera.zoom + camera.viewport_width / 2
+        origin_y = -camera.position.y * camera.zoom + camera.viewport_height / 2
+        surface.blit(overlay, (int(origin_x), int(origin_y)))
+
+    # ------------------------------------------------------------------ #
+    #  Fog of War
+    # ------------------------------------------------------------------ #
+
+    def draw_fog_of_war(
+        self, surface: pygame.Surface, fog, camera: Camera, tile_size: int | None = None
+    ) -> None:
+        """Darken tiles by visibility state: explored dim, hidden near-black.
+
+        Only on-screen tiles are visited. One SRCALPHA layer accumulates all
+        rectangles so a single blit reaches the target surface.
+        """
+        if fog is None or surface is None:
+            return
+        # An uninitialized grid is fully hidden; drawing it would black out the
+        # first frame before any visibility pass has run.
+        if not getattr(fog, "has_updated", True):
+            return
+        if tile_size is None:
+            tile_size = self._ctx.tile_size
+
+        zoom = camera.zoom
+        half_w = camera.viewport_width / (2 * zoom)
+        half_h = camera.viewport_height / (2 * zoom)
+        start_x = max(0, int((camera.position.x - half_w) // tile_size))
+        end_x = min(fog.width - 1, int((camera.position.x + half_w) // tile_size))
+        start_y = max(0, int((camera.position.y - half_h) // tile_size))
+        end_y = min(fog.height - 1, int((camera.position.y + half_h) // tile_size))
+        if start_x > end_x or start_y > end_y:
+            return
+
+        overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+        origin_x = -camera.position.x * zoom + camera.viewport_width / 2
+        origin_y = -camera.position.y * zoom + camera.viewport_height / 2
+        screen_tile = tile_size * zoom
+        size = max(1, int(math.ceil(screen_tile)))
+
+        for ty in range(start_y, end_y + 1):
+            for tx in range(start_x, end_x + 1):
+                visibility = fog.get_visibility(TileCoord(tx, ty))
+                if visibility == TileVisibility.VISIBLE:
+                    continue
+                alpha = 110 if visibility == TileVisibility.EXPLORED else 235
+                sx = int(tx * screen_tile + origin_x)
+                sy = int(ty * screen_tile + origin_y)
+                pygame.draw.rect(overlay, (0, 0, 0, alpha), (sx, sy, size, size))
+
+        surface.blit(overlay, (0, 0))
 
     # ------------------------------------------------------------------ #
     #  Internal Utilities
@@ -467,17 +531,6 @@ class UIOverlayRenderer:
     # ------------------------------------------------------------------ #
     #  HUD & Debug Grid
     # ------------------------------------------------------------------ #
-
-    def render_hud(self, hud, hud_enabled: bool, dirty_tracker) -> None:
-        """Render HUD overlay."""
-        if not hud_enabled or hud is None or self._ctx.offscreen is None:
-            return
-        hud.render(self._ctx.offscreen)
-        # PERF: HUD updates every frame (selection, health bars, etc.)
-        if dirty_tracker is not None and not dirty_tracker._full_redraw:
-            # Mark bottom HUD area as dirty (CC2 three-panel layout at bottom)
-            sw, sh = self._ctx.offscreen.get_size()
-            dirty_tracker.mark_dirty(pygame.Rect(0, sh - 120, sw, 120))
 
     def draw_grid(self, game_map: GameMap, camera: Camera) -> None:
         """Draw grid overlay for debugging.

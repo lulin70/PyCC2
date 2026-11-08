@@ -129,6 +129,9 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
     _ai_tick_counter: int = field(init=False, default=0)
     _pause_menu: IPauseMenu | None = field(init=False, default=None)
     _deployment_manager: IDeploymentManager | None = field(init=False, default=None)
+    _scenario_data: dict = field(init=False, default_factory=dict)
+    _reinforcement_service: Any = field(init=False, default=None)
+    _logistics_counter: int = field(init=False, default=0)
     _deployment_ui_factory: Callable[[int, int], Any] | None = None
     _event_dispatcher: EventDispatcher | None = field(init=False, default=None)
     _campaign_ui: ICampaignUI | None = field(init=False, default=None)
@@ -158,6 +161,10 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
     # v0.9.1: CombatLog system (Bug 2 fix)
     combat_log_collector: object | None = field(init=False, default=None)
     combat_log_panel: object | None = field(init=False, default=None)
+    # W1: Shared LOS system gating shots and path preview danger assessment
+    _los_system: Any = field(init=False, default=None)
+    # W1: Fog-of-war service recomputing per-faction tile visibility
+    _fog_of_war_service: Any = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         from pycc2.services.game_loop_assembler import GameLoopAssembler
@@ -344,6 +351,46 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
             self._input_router.input_handler = self.input_handler
         self._input_router.route_input(event)
 
+    def _apply_scenario_rules(self, map_data: dict) -> None:
+        """Apply scenario special rules to runtime systems."""
+        from pycc2.domain.value_objects.scenario_rules import ScenarioRules
+
+        rules = ScenarioRules.from_map_data(map_data)
+        if rules.has("night_fighting") and self._game_time is not None:
+            self._game_time.set_time(22.0)
+        if rules.has("amphibious") and self.state.game_map is not None:
+            self.state.game_map.amphibious_passable = True
+        director = getattr(self, "_combat_director", None)
+        if director is not None:
+            director.bridge_destructible = rules.has("bridge_destructible")
+
+    def _apply_scenario_weather(self, map_data: dict) -> None:
+        """Apply scenario weather to LOS and ballistic mechanics."""
+        from pycc2.domain.systems.weather_effects import WeatherType, weather_type_from_name
+
+        weather_state = getattr(self, "_weather_state", None)
+        if weather_state is None:
+            return
+        weather_type = weather_type_from_name(map_data.get("weather", "clear"))
+        weather_state.set_weather(weather_type)
+        self.state.current_weather = weather_type
+        if self.state.game_map is not None:
+            self.state.game_map.weather_state = weather_state
+        los_system = getattr(self, "_los_system", None)
+        if los_system is not None:
+            los_system.set_weather(weather_type)
+
+        renderer = getattr(self, "renderer", None)
+        visual_mode = {
+            WeatherType.FOG: "light_fog",
+            WeatherType.RAIN: "light_fog",
+            WeatherType.SNOW: "light_fog",
+            WeatherType.OVERCAST: "clear",
+            WeatherType.CLEAR: "clear",
+        }[weather_type]
+        if renderer is not None and hasattr(renderer, "set_weather"):
+            renderer.set_weather(visual_mode)
+
     def start_deployment(
         self,
         map_data: dict,
@@ -356,6 +403,10 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
         """
         if self._deployment_manager is None:
             raise RuntimeError("DeploymentManager not initialized")
+
+        self._scenario_data = map_data
+        self._apply_scenario_weather(map_data)
+        self._apply_scenario_rules(map_data)
 
         dc = self.display_config
         width = dc.window_width if dc else 800
@@ -384,10 +435,15 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
         """
         if self._deployment_manager is None:
             return None
-        return self._deployment_manager.complete(
+        result = self._deployment_manager.complete(
             ai_service=self.ai_service,
             state=self.state,
         )
+        if result is not None:
+            from pycc2.services.reinforcement_service import ReinforcementService
+
+            self._reinforcement_service = ReinforcementService.from_scenario(self._scenario_data)
+        return result
 
     def get_deployment_state(self) -> object | None:
         """Return the current deployment state, or None if not in deployment."""

@@ -164,14 +164,14 @@ class TestClassConstants:
     def test_template_type_map(self):
         m = DeploymentManager._TEMPLATE_TYPE_MAP
         assert m["us_at_team"] == "AT_GUN_TEAM"
-        assert m["ger_at_team"] == "AT_GUN_TEAM"
-        assert m["us_mortar_light"] == "MORTAR_TEAM"
-        assert m["us_mortar_heavy"] == "MORTAR_TEAM"
-        assert m["ger_mortar_light"] == "MORTAR_TEAM"
-        assert m["ger_mortar_heavy"] == "MORTAR_TEAM"
+        assert m["de_panzerschreck_team"] == "AT_GUN_TEAM"
+        assert m["de_pak40_at_gun"] == "AT_GUN_TEAM"
+        assert m["us_mortar_light_team"] == "MORTAR_TEAM"
+        assert m["us_mortar_heavy_team"] == "MORTAR_TEAM"
+        assert m["de_grw50_team"] == "MORTAR_TEAM"
+        assert m["de_grw81_team"] == "MORTAR_TEAM"
         assert m["us_officer"] == "COMMANDER"
-        assert m["ger_officer"] == "COMMANDER"
-        assert len(m) == 8
+        assert m["de_officer"] == "COMMANDER"
 
     def test_weapon_map(self):
         assert DeploymentManager._WEAPON_MAP["infantry"] == ("rifle", 120)
@@ -182,13 +182,14 @@ class TestClassConstants:
     def test_template_weapon_map(self):
         m = DeploymentManager._TEMPLATE_WEAPON_MAP
         assert m["us_at_team"] == ("at_gun", 8)
-        assert m["ger_at_team"] == ("at_gun", 8)
-        assert m["us_mortar_light"] == ("mortar", 6)
-        assert m["us_mortar_heavy"] == ("mortar", 6)
-        assert m["ger_mortar_light"] == ("mortar", 6)
-        assert m["ger_mortar_heavy"] == ("mortar", 6)
+        assert m["de_panzerschreck_team"] == ("at_gun", 8)
+        assert m["de_pak40_at_gun"] == ("at_gun", 8)
+        assert m["us_mortar_light_team"] == ("mortar", 6)
+        assert m["us_mortar_heavy_team"] == ("mortar", 6)
+        assert m["de_grw50_team"] == ("mortar", 6)
+        assert m["de_grw81_team"] == ("mortar", 6)
         assert m["us_officer"] == ("pistol", 14)
-        assert m["ger_officer"] == ("pistol", 14)
+        assert m["de_officer"] == ("pistol", 14)
 
     def test_hp_map(self):
         assert DeploymentManager._HP_MAP == {

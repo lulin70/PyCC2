@@ -87,7 +87,8 @@ class AttackLineSystem:
         # R8: Attack line fade-out animation
         self._fading_lines: list[dict] = []  # [{source, target, color, alpha, start_tick}]
         self._fade_duration_ms: int = 1500  # 1.5 seconds fade
-        self._active_source = None
+        # GAP-11: remember the attacker position for each confirmed attack.
+        self._confirmed_sources: dict[str, Vec2] = {}
 
     def begin_attack(self, unit_id: str, source_pos: Vec2) -> None:
         """Start drawing attack line from this unit."""
@@ -154,6 +155,8 @@ class AttackLineSystem:
         """Lock in the attack target."""
         if self.state.source_unit_id:
             self._confirmed_attacks[self.state.source_unit_id] = target
+            if self.state.source_position is not None:
+                self._confirmed_sources[self.state.source_unit_id] = self.state.source_position
             self.state.confirmed_target = target
         self.cancel()
 
@@ -170,6 +173,10 @@ class AttackLineSystem:
         """Get confirmed attack target for a unit."""
         return self._confirmed_attacks.get(unit_id)
 
+    def get_confirmed_source(self, unit_id: str) -> Vec2 | None:
+        """Get the attacker world position for a confirmed attack (GAP-11)."""
+        return self._confirmed_sources.get(unit_id)
+
     def update_tracking(self, units: list[Unit]) -> None:
         """Update tracking positions for unit targets."""
         for unit_id, target in list(self._confirmed_attacks.items()):
@@ -182,6 +189,13 @@ class AttackLineSystem:
                 else:
                     # Target unit eliminated, remove attack
                     del self._confirmed_attacks[unit_id]
+                    self._confirmed_sources.pop(unit_id, None)
+                    continue
+            if target.unit_id:
+                for unit in units:
+                    if unit.id == unit_id and unit.is_alive:
+                        self._confirmed_sources[unit_id] = unit.position.pixel_position
+                        break
 
     def evaluate_attack(
         self,
@@ -349,7 +363,7 @@ class AttackLineSystem:
         target = self._confirmed_attacks.get(unit_id)
         if target is not None:
             # R8: Start fade-out animation instead of instant removal
-            source_pos = self._active_source
+            source_pos = self._confirmed_sources.get(unit_id)
             if source_pos is not None:
                 import time
 
@@ -363,6 +377,7 @@ class AttackLineSystem:
                     }
                 )
         self._confirmed_attacks.pop(unit_id, None)
+        self._confirmed_sources.pop(unit_id, None)
 
     def update_fading(self) -> list[dict]:
         """R8: Update fading attack lines. Returns list of still-visible fading lines."""
@@ -381,4 +396,5 @@ class AttackLineSystem:
     def clear_all(self) -> None:
         """Clear all attacks."""
         self._confirmed_attacks.clear()
+        self._confirmed_sources.clear()
         self.cancel()

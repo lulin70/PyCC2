@@ -358,4 +358,26 @@ def _build_german_units() -> dict[str, CC2UnitTemplate]:
         deployment_cost=280,
         max_per_battle=2,
     )
+
+    units["de_flak36_88"] = CC2UnitTemplate(
+        template_id="de_flak36_88",
+        display_name="8.8cm Flak 36",
+        faction=Faction.GERMAN,
+        role=InfantryRole.ANTI_TANK,
+        squad_size=6,
+        weapon_primary_id="flak36_88mm",  # Dedicated Flak 36 AT profile, not the Tiger tank gun
+        weapon_secondary_id=None,
+        experience_level=2,
+        morale_initial=84.0,
+        stealth_rating=0.16,
+        vision_range=8,
+        can_deploy_in_building=False,
+        can_deploy_in_open=True,
+        deployment_cost=300,
+        max_per_battle=1,
+        historical_notes=(
+            "8.8cm Flak 36 dual-purpose gun: 6-man crew, high-velocity 88mm; "
+            "used at Arnhem and Nijmegen against ground targets"
+        ),
+    )
     return units

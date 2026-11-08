@@ -57,12 +57,12 @@ class CC2BottomPanel:
     """
 
     # Dimensions (scaled to screen)
-    PANEL_HEIGHT: int = 130  # Total height of bottom panel (CC2 original: ~120-130px)
-    ROSTER_WIDTH: int = 170  # Left unit list width
+    PANEL_HEIGHT: int = 160  # Total panel height: fits the 148px minimap block
+    ROSTER_WIDTH: int = 200  # Left unit list width (wide enough for name + HP text)
     DETAIL_WIDTH: int = 240  # Center detail panel width
-    COMMAND_WIDTH: int = 180  # Command bar width (next to details)
+    COMMAND_WIDTH: int = 240  # Command bar width (fits 9 two-column buttons)
     URGENCY_WIDTH: int = 60  # Urgency indicator width
-    MINIMAP_SIZE: int = 120  # Minimap square size
+    MINIMAP_SIZE: int = 148  # Minimap square size (wider so ALL/STYLE/OUTLINE fit)
     COMMAND_BAR_HEIGHT: int = 40  # Command button row height
 
     # Colors (CC2 military style - Deep Olive Green)
@@ -157,6 +157,12 @@ class CC2BottomPanel:
             {"id": "defend", "label": "Defend", "key": "D", "enabled_when_selected": True},
             {"id": "hide", "label": "Hide", "key": "H", "enabled_when_selected": True},
             {
+                "id": "fire_mode",
+                "label": "FIRE: FREE",
+                "key": "F",
+                "enabled_when_selected": True,
+            },
+            {
                 "id": "cancel",
                 "label": "Cancel",
                 "key": "ESC",
@@ -211,6 +217,7 @@ class CC2BottomPanel:
             "smoke": "Deploy smoke grenade for cover [V]",
             "defend": "Defend / Take cover position [D]",
             "hide": "Hide unit from enemy view [H]",
+            "fire_mode": "Fire discipline: free / return / hold [F]",
             "cancel": "Cancel current selection [ESC]",
             "end_battle": "End battle and retreat [E]",
         }
@@ -307,10 +314,12 @@ class CC2BottomPanel:
     def set_friendly_units(self, units: list[Unit]) -> None:
         """Set the list of friendly units for the roster."""
         self._friendly_units = sorted(units, key=lambda u: (u.unit_type.value, u.name))
+        self._sync_fire_mode_label(self._selected_unit_id)
 
     def set_selected_unit(self, unit_id: str | None) -> None:
         """Set selected unit ID."""
         self._selected_unit_id = unit_id
+        self._sync_fire_mode_label(unit_id)
         # Auto-scroll roster to show selected unit
         if unit_id:
             for i, unit in enumerate(self._friendly_units):
@@ -320,6 +329,19 @@ class CC2BottomPanel:
                     elif i >= self._roster_scroll_offset + self._visible_roster_items:
                         self._roster_scroll_offset = i - self._visible_roster_items + 1
                     break
+
+    def _sync_fire_mode_label(self, unit_id: str | None) -> None:
+        """Show the selected unit's fire discipline on the command button."""
+        mode = "free"
+        if unit_id:
+            for unit in self._friendly_units:
+                if unit.id == unit_id:
+                    mode = getattr(unit, "fire_mode", "free")
+                    break
+        for command in self._commands:
+            if command["id"] == "fire_mode":
+                command["label"] = f"FIRE: {str(mode).upper()}"
+                break
 
     def register_callback(self, command_id: str, callback: Callable[..., Any]) -> None:
         """Register command callback."""
@@ -476,7 +498,13 @@ class CC2BottomPanel:
         # === SECTION 5: Minimap (Far Right) ===
         minimap_x = urgency_x + self.URGENCY_WIDTH + 5
         self._minimap_section_renderer.render(
-            target, minimap_x, section_y, self.MINIMAP_SIZE, minimap, camera, game_map
+            target,
+            minimap_x,
+            section_y,
+            min(self.MINIMAP_SIZE, content_height),
+            minimap,
+            camera,
+            game_map,
         )
 
         # Blit the faded panel surface onto the target surface with alpha

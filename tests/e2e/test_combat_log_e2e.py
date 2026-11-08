@@ -152,7 +152,7 @@ def init_game_with_units():
     from pathlib import Path
 
     import pygame
-    from conftest import GameLoopFactory
+    from tests.e2e.conftest import GameLoopFactory
 
     pygame.init()
     screen = pygame.display.set_mode((1280, 720))

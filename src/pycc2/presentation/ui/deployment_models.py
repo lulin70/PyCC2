@@ -42,10 +42,10 @@ class ZoneType(Enum):
 
 # Category display labels and icons
 CATEGORY_INFO: dict[UnitCategory, tuple[str, str]] = {
-    UnitCategory.INFANTRY: ("INFANTRY", "♟"),
-    UnitCategory.SUPPORT: ("SUPPORT (MG/AT)", "⚔"),
-    UnitCategory.ARMOR: ("ARMOR", "▣"),
-    UnitCategory.RECON: ("RECON", "◉"),
+    UnitCategory.INFANTRY: ("INFANTRY", "I"),
+    UnitCategory.SUPPORT: ("SUPPORT (MG/AT)", "S"),
+    UnitCategory.ARMOR: ("ARMOR", "A"),
+    UnitCategory.RECON: ("RECON", "R"),
 }
 
 # Terrain type constants (mirrors TerrainType int values for standalone use)

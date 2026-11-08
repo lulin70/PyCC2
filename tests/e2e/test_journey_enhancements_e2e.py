@@ -98,7 +98,7 @@ import pygame
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 
-from conftest import GameLoopFactory
+from tests.e2e.conftest import GameLoopFactory
 from pycc2.infrastructure.save_system import SecureSaveManager
 
 factory = GameLoopFactory(screen)
@@ -159,7 +159,7 @@ pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 
 import json
-from conftest import GameLoopFactory
+from tests.e2e.conftest import GameLoopFactory
 from pycc2.infrastructure.save_system import SecureSaveManager
 
 factory = GameLoopFactory(screen)
@@ -277,7 +277,7 @@ import pygame
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 
-from conftest import GameLoopFactory
+from tests.e2e.conftest import GameLoopFactory
 
 # Initialize game in clean environment
 factory = GameLoopFactory(screen)
@@ -370,7 +370,7 @@ class TestAdvancedCommandIntegrationE2E:
 
         All 3 features must work together without conflicts.
         """
-        from conftest import GameLoopFactory
+        from tests.e2e.conftest import GameLoopFactory
 
         factory = GameLoopFactory(self.screen)
         factory.place_n_units(3)
@@ -484,7 +484,7 @@ class TestErrorRecoveryJourneyE2E:
         Simulates an AI tick error, saves game state during the error, loads
         the save, and verifies game continues.
         """
-        from conftest import GameLoopFactory
+        from tests.e2e.conftest import GameLoopFactory
 
         save_dir = tmp_path / "saves"
         save_dir.mkdir(parents=True, exist_ok=True)
