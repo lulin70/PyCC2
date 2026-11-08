@@ -23,6 +23,12 @@ All notable changes to PyCC2 will be documented in this file.
 ### Verification
 - 全量回归 7481 passed / 4 skipped / 0 failed。
 - 验收 25 passed；UAT 69 个端到端用例通过；视觉回归 7 passed。
+- 真实窗口点击链路 UAT 11/11 通过（`scripts/uat_real_window.py`，cocoa 1280×720）。
+- 真实窗口性能（`scripts/real_window_perf.py`）：normal 中位 60.2 FPS；heavy 中位 56.6 / 最差 52.1 FPS。heavy 未达 60 FPS，登记 PF-04。
+
+### Added
+- `scripts/uat_real_window.py`：真实窗口点击链路 UAT，输出截图到 `docs/assets/uat_pf02/`。
+- `scripts/real_window_perf.py`：真实窗口 FPS 测量，使用与游戏相同的 `WindowManager` 配置。
 
 ## v0.9.1 (2026-08-01) — Tier 1 Critical Bugfix Release
 

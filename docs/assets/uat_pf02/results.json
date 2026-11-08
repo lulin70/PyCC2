@@ -1,0 +1,57 @@
+[
+  {
+    "step": "T1.1 click Skirmish",
+    "status": "PASS",
+    "detail": "skirmish setup screen shown"
+  },
+  {
+    "step": "T1.2 click Start Skirmish",
+    "status": "PASS",
+    "detail": "action=start_skirmish"
+  },
+  {
+    "step": "T2.1 roster select",
+    "status": "PASS",
+    "detail": "select_unit:0"
+  },
+  {
+    "step": "T2.2 map place",
+    "status": "PASS",
+    "detail": "place_unit:None"
+  },
+  {
+    "step": "T2.3 click Begin Battle",
+    "status": "PASS",
+    "detail": "action=begin_battle"
+  },
+  {
+    "step": "T3.1 left click select",
+    "status": "PASS",
+    "detail": "selected=['uk_1']"
+  },
+  {
+    "step": "T3.2 right click move",
+    "status": "PASS",
+    "detail": "1 move order(s)"
+  },
+  {
+    "step": "T3.3 hotkeys F/D",
+    "status": "PASS",
+    "detail": "fire_mode=free interaction_mode=InteractionMode.SELECT"
+  },
+  {
+    "step": "T3.4 right click attack",
+    "status": "PASS",
+    "detail": "targets=['de_1']"
+  },
+  {
+    "step": "T4 combat damage",
+    "status": "PASS",
+    "detail": "enemy hp 100 -> 79"
+  },
+  {
+    "step": "T5 save/load",
+    "status": "PASS",
+    "detail": "saved=True status=SaveSlotStatus.OK hp=88"
+  }
+]

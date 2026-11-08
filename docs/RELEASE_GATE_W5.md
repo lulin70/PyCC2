@@ -62,6 +62,22 @@
 - 数据来自无窗口 SDL 驱动。真实窗口模式需要用户复测。
 - 推送前复测：`tests/benchmark` 47 passed；`test_fps_normal_load` 首次 75.9 FPS，低于阈值 76.7。当时系统负载高（WebKit + IDE 占约 2.4 个核心，load average 5.67）。隔离重跑通过（中位 6.17 ms/帧）。判定为环境噪声，不改基线。
 
+### 3.1 真实窗口性能（PF-03，2026-11-08）
+
+测量对象：`scripts/real_window_perf.py`。窗口由 `WindowManager` 创建：cocoa 驱动，SCALED + DOUBLEBUF + vsync，1280×720。10 轮 × 600 帧。
+
+| 场景 | 中位 FPS | 最差 FPS | 最好 FPS | 判定 |
+|------|---------|---------|---------|------|
+| normal_load（50 单位） | 60.2 | 59.6 | 72.5 | 通过（vsync 上限 60） |
+| heavy_load（200 单位） | 56.6 | 52.1 | 59.4 | 未达 60（PF-04） |
+
+说明：
+1. normal_load 受 vsync 限制，帧率稳定在 60。不能与无窗口基线 102.3 直接比较。
+2. heavy_load 中位 56.6 FPS，比无窗口结果低 19.8 FPS。
+3. cProfile 显示重载帧的主要成本：blit 约 8.7 ms/帧（约 735 次/帧），smoothscale 约 2.6 ms/帧。
+4. **测量环境有干扰**：当时系统负载 12.3（另一项目的 pytest 全量测试 + WebKit + IDE 共占约 3 个核心）。因此 heavy 数据偏低，是下界，不是稳态值。
+5. 结论：normal 达标；heavy 需在空闲机器复测后判定。登记 PF-04。
+
 ## 4. 真实运行证据
 
 | 截图 | 内容 | 路径 |
@@ -69,6 +85,28 @@
 | 01 | 步兵班伤亡 4 人；HUD 显示 HP 60/100；FIRE: HOLD；工兵炸桥后地面单位可通行 | `docs/assets/w5_parity/01_battle_squad_fire_mode.png` |
 | 02 | 西侧增援进入战场；部队列表出现新单位 | `docs/assets/w5_parity/02_reinforcement_arrived.png` |
 | 03 | 坦克炮塔朝北、车体朝东；迫击炮在观察员支援下开火；墙体阻挡直射视线 | `docs/assets/w5_parity/03_turret_mortar.png` |
+| 04 | 真实窗口主菜单（PF-02） | `docs/assets/uat_pf02/T1_main_menu.png` |
+| 05 | 真实窗口遭遇战设置（PF-02） | `docs/assets/uat_pf02/T1_skirmish_setup.png` |
+| 06 | 真实窗口部署界面（PF-02） | `docs/assets/uat_pf02/T2_deployment_placed.png` |
+| 07 | 真实窗口战斗点击结果（PF-02） | `docs/assets/uat_pf02/T3_T4_battle_clicks.png` |
+
+PF-02 点击链路 UAT（`scripts/uat_real_window.py`，cocoa 1280×720）：
+
+| 步骤 | 结果 |
+|------|------|
+| T1.1 点击 Skirmish | PASS：进入遭遇战设置 |
+| T1.2 点击 Start Skirmish | PASS：返回 `start_skirmish` |
+| T2.1 点击名册 | PASS：`select_unit:0` |
+| T2.2 点击地图 | PASS：`place_unit` |
+| T2.3 点击 Begin Battle | PASS：`begin_battle` |
+| T3.1 左键选中 | PASS：`uk_1` |
+| T3.2 右键移动 | PASS：1 条移动命令 |
+| T3.3 热键 F/D | PASS：`fire_mode=free` |
+| T3.4 右键攻击 | PASS：目标 `de_1` |
+| T4 战斗伤害 | PASS：HP 100 → 82 |
+| T5 存档读取 | PASS：HP 88 读回一致 |
+
+限制：无 macOS 辅助功能权限，`CGEventPost` 被系统丢弃。点击事件进入真实 pygame 事件队列，走同一条处理链路，但不是物理鼠标点击。画质与手感仍需人工确认。
 
 运行时验证值：
 - `bridge: BRIDGE_DESTROYED`
@@ -83,11 +121,13 @@
 
 | ID | 级别 | 描述 | 处理建议 |
 |----|------|------|---------|
-| PF-02 | P2 | UAT 为自动化执行，缺人工点击验证 | 发布正式版前由用户执行人工 UAT |
-| PF-03 | P3 | 真实窗口模式性能未复测 | 用户在有显示器环境复测 |
+| PF-02 | P2 | UAT 缺人工点击验证。已补真实窗口点击链路 UAT，11/11 通过。 | 仅剩画面观感需人工确认 |
+| PF-03 | P3 | 真实窗口性能未复测。已执行，见 §3.1。 | 关闭 |
+| PF-04 | P2 | 真实窗口 heavy 场景中位 56.6 FPS、最差 52.1 FPS，低于 60 FPS 目标。测量时系统负载 12.3，数据偏低。 | 在空闲机器复跑 `scripts/real_window_perf.py` 后判定 |
 
 已关闭：
 - PF-01：heavy_load 中位 76.4 FPS，最差 63.5 FPS；normal_load 中位 102.3 FPS。
+- PF-03：真实窗口复测完成。
 - GAP-08：基准运行稳定，未再超时。
 - GAP-11：攻击线记录攻击者坐标。
 - GAP-12：LOS 缓存键加入 `max_range`。
@@ -105,9 +145,11 @@
 |------|------|
 | 功能与机制 | 放行 |
 | 回归与验收 | 放行 |
-| 性能 | 放行（heavy_load 中位与最差均 ≥60） |
+| 性能（无窗口） | 放行（heavy_load 中位与最差均 ≥60） |
+| 性能（真实窗口） | 有条件放行（heavy 56.6 FPS，PF-04 待优化） |
+| 点击链路 UAT | 通过（11/11，真实窗口） |
 | 发布范围 | 内部里程碑版本；不作为正式对外发布 |
-| 正式发布前置条件 | 完成人工 UAT；真实窗口性能复测 |
+| 正式发布前置条件 | 人工确认画面与手感；PF-04 优化 |
 
 ## 7. 签署
 
