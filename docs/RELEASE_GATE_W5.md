@@ -2,7 +2,7 @@
 
 - 日期：2026-11-08
 - 版本：W5（CC2 机制补全 + W4 验证发布合并）
-- 代码基线：commit `3bdbd7b` + 本轮未提交改动
+- 代码基线：commit `3bdbd7b` + 本轮改动；已提交并推送为 `4eaa123`
 - 环境：macOS 26.6.2 / Apple M1 / Python 3.12.13 / SDL dummy 驱动
 - 关联文档：`docs/W5_CC2机制补全计划.md`、`docs/test/UAT_W5_20261108.md`、`docs/CC2_PARITY_ROADMAP.md`
 
@@ -60,6 +60,7 @@
 - 同时修复地形缓存参数错误。修复前地面无纹理，且每帧抛出约 432 次异常。
 - 地形修复改变了画面。已重建 macOS 视觉基线，7 个场景全部通过。
 - 数据来自无窗口 SDL 驱动。真实窗口模式需要用户复测。
+- 推送前复测：`tests/benchmark` 47 passed；`test_fps_normal_load` 首次 75.9 FPS，低于阈值 76.7。当时系统负载高（WebKit + IDE 占约 2.4 个核心，load average 5.67）。隔离重跑通过（中位 6.17 ms/帧）。判定为环境噪声，不改基线。
 
 ## 4. 真实运行证据
 
@@ -114,3 +115,14 @@
 |------|------|------|------|
 | 开发（AI 代理） | Trae | 2026-11-08 | 提交门禁 |
 | 产品负责人 | 待填 | 待填 | 待审批 |
+
+## 8. 推送记录
+
+| 项目 | 值 |
+|------|-----|
+| 分支 | `main` |
+| 远端 | `origin`（`git@github.com:lulin70/PyCC2.git`） |
+| 提交 | `4eaa123` feat(cc2): complete W1-W5 parity work and fix runtime mechanism defects |
+| 范围 | 912 个文件（源码、测试、场景、文档、基线、素材） |
+| 排除 | 仓库根目录临时脚本与生成物（`test_sprint*.py`、`coverage_audit.json`、`*.diff/`、对比截图） |
+
