@@ -19,6 +19,7 @@ All notable changes to PyCC2 will be documented in this file.
 - ruff check / format / mypy 全绿。
 - 全量回归：7549 passed / 4 skipped / 0 failed（与 T3/T4 前完全一致，证明 T3 确为死代码、T4 行为等价）。
 - 活跃代码 TODO 4→2（剩余 T1/T2 按 TD-079 跟踪）。
+- 远端 CI：run 43009475321（238e738，含 FPS 基线重采修复）lint / unit / integration / e2e / slow / benchmark / docker 全绿。
 
 ## v0.9.2 (2026-11-11) — 项目整理与门禁固化发布
 
