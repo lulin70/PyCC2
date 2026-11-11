@@ -276,10 +276,12 @@ jobs:
           pytest tests/benchmark/test_fps_baseline.py -v --benchmark-only
 
       # Note: perf_baseline.json is sourced from CI hardware (recollected via
-      # workflow_dispatch `perf-baseline-recollect`, 2026-11-11: dev-machine
-      # baseline measured 31% above CI runners and exhausted the 0.70 margin,
-      # run 43005896487). Do NOT update from a dev machine — it re-opens the
-      # margin gap. Do NOT auto-update in CI (prevents baseline drift).
+      # workflow_dispatch `perf-baseline-recollect`, 2026-11-11). Four runs
+      # (43007616493 / 43008249403 / 43008256537 / 43008268853) showed 2x
+      # spread across runner instances (normal 66.6-127.0, heavy 49.5-89.1),
+      # so the baseline is the MINIMUM observed sample — it must absorb
+      # worst-case runner contention, not a median machine. Do NOT update
+      # from a dev machine. Do NOT auto-update in CI (prevents baseline drift).
 
       - name: Upload test results
         if: always()

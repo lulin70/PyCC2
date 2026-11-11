@@ -6,6 +6,9 @@ All notable changes to PyCC2 will be documented in this file.
 
 **目标**: 执行 [TODO_TRIAGE_20261111.md](docs/TODO_TRIAGE_20261111.md) 中判定为「删」「修」的两项。
 
+### Fixed
+- **FPS 门禁基线迁移至 CI 硬件（第六层）**: T3/T4 提交（d904ddc）的 run 43005896487 中 normal_load FPS 实测 69.0/70.2，低于阈值 71.6（旧基线 102.3×0.70）——而该提交仅删死代码与接常量，行为等价，证明是 runner 机况噪声而非代码回归。处置按 ci.yml 既定规则重采基线而非继续放宽阈值：新增手动工作流 `perf-baseline-recollect`，4 次采样（run 43007616493 / 43008249403 / 43008256537 / 43008268853）显示共享 runner 机况差 2 倍（normal 66.6–127.0 / heavy 49.5–89.1），故基线取最差采样（normal 66.63 / heavy 49.46）以吸收最差机况；`REGRESSION_THRESHOLD` 保持 0.70 不变。重采后阈值 normal 46.6 / heavy 34.6，全部实测样本余量充足。代价：CI 门禁只能捕捉 >50% 的真实性能回归（共享 runner 的固有限制，如实登记）。
+
 ### Removed
 - **T3**: 删除 `hud_renderer._render_minimap` 死代码（37 行占位方法，无调用点；真实小地图由 `MinimapRenderer` 提供）。连带清理仅该方法使用的 `Camera` 类型导入。
 
