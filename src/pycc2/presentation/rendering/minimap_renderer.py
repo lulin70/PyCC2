@@ -60,7 +60,7 @@ class MinimapRenderer:
 
         # 地形缓存
         self._terrain_cache: pygame.Surface | None = None
-        self._cached_map_id: str | None = None
+        self._cached_map_id: int | None = None
 
         # P1-1优化：单位渲染缓存（减少每帧绘制）
         self._unit_render_interval = 2  # 每2帧更新一次单位

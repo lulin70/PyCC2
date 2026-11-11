@@ -198,7 +198,7 @@ class UnitAvoidanceSystem:
         # For now, we temporarily store in a separate field or apply with damping
 
     def apply_velocity(
-        self, unit: SimpleUnit, delta_time: float, avoidance_vel: Vec2Simple = None
+        self, unit: SimpleUnit, delta_time: float, avoidance_vel: Vec2Simple | None = None
     ) -> None:
         """Apply velocity to unit position with optional avoidance blend.
 

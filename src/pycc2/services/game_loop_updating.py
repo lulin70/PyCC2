@@ -51,6 +51,8 @@ if TYPE_CHECKING:
     from pycc2.infrastructure.events.event_bus import EventBus
     from pycc2.presentation.audio.sound_system import SoundSystem
     from pycc2.services.ai_service import AIService
+    from pycc2.services.fog_of_war_service import FogOfWarService
+    from pycc2.services.reinforcement_service import ReinforcementService
 
 logger = logging.getLogger(__name__)
 
@@ -88,8 +90,9 @@ class GameLoopUpdatingMixin:
     _projectile_trail_sys: IProjectileTrailSystem | None
     _dynamic_shadow_sys: IDynamicShadowSystem | None
     _hud_manager: IHUDManager | None
-    _fog_of_war_service: object | None
-    _reinforcement_service: object | None
+    _fog_of_war_service: FogOfWarService | None
+    _reinforcement_service: ReinforcementService | None
+    _scenario_data: dict
     _logistics_counter: int
     _ai_tick_counter: int
     _ai_update_interval: int
@@ -133,8 +136,10 @@ class GameLoopUpdatingMixin:
             self.state.current_weather = weather_type
             if self.state.game_map is not None:
                 self.state.game_map.weather_state = self._weather_state
-            if changed and getattr(self, "_los_system", None) is not None:
-                self._los_system.set_weather(weather_type)
+            if changed:
+                los_system = getattr(self, "_los_system", None)
+                if los_system is not None:
+                    los_system.set_weather(weather_type)
 
         # Update day-night cycle
         if self._day_night_cycle is not None:

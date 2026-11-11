@@ -82,7 +82,7 @@ class AStarPathfinder:
             return [(start_x, start_y)]
 
         # 初始化
-        open_set = []
+        open_set: list[PathNode] = []
         closed_set = set()
 
         start_node = PathNode(
@@ -214,7 +214,7 @@ class AStarPathfinder:
     def _reconstruct_path(self, node: PathNode) -> list[tuple[int, int]]:
         """重建路径（从终点回溯到起点）"""
         path = []
-        current = node
+        current: PathNode | None = node
         while current is not None:
             path.append((current.x, current.y))
             current = current.parent
@@ -248,16 +248,27 @@ class TacticalAI:
             return {"type": "hold"}
 
         # 找最近的敌人
-        closest_enemy = min(enemies, key=lambda e: abs(e.x - unit.x) + abs(e.y - unit.y))
+        closest_enemy = min(
+            enemies,
+            key=lambda e: abs(e.position.x - unit.position.x) + abs(e.position.y - unit.position.y),
+        )
 
-        distance = abs(closest_enemy.x - unit.x) + abs(closest_enemy.y - unit.y)
+        distance = abs(closest_enemy.position.x - unit.position.x) + abs(
+            closest_enemy.position.y - unit.position.y
+        )
 
         # 决策逻辑
         if distance <= 1:
             return {"type": "attack", "target": closest_enemy}
         elif distance <= 5:
             # 靠近敌人
-            path = self.pathfinder.find_path(unit.x, unit.y, closest_enemy.x, closest_enemy.y, unit)
+            path = self.pathfinder.find_path(
+                unit.position.x,
+                unit.position.y,
+                closest_enemy.position.x,
+                closest_enemy.position.y,
+                unit,
+            )
             if len(path) > 1:
                 return {"type": "move", "target": path[1]}
 

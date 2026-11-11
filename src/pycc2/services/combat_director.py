@@ -425,7 +425,7 @@ class CombatDirector:
         for uid in data.get("unit_ids", []):
             unit = unit_map.get(uid)
             weapon = getattr(unit, "weapon", None) if unit is not None else None
-            if weapon is None:
+            if unit is None or weapon is None:
                 continue
             new_type = weapon.cycle_ammo()
             if new_type is not None:
@@ -775,8 +775,9 @@ class CombatDirector:
                 target_faction = "axis" if target.faction.name == "AXIS" else "allies"
                 battle_stats.record_unit_lost(target_faction)
                 # CC2 parity: the killer earns experience.
-                if getattr(attacker, "veterancy", None) is not None:
-                    attacker.veterancy.record_kill()
+                attacker_veterancy = attacker.veterancy
+                if attacker_veterancy is not None:
+                    attacker_veterancy.record_kill()
 
     def process_effects(self, renderer: Any | None = None, camera: Camera | None = None) -> None:
         """Flush pending visual effects to the renderer and clear the queue."""

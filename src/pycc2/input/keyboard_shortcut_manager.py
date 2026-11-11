@@ -78,7 +78,8 @@ class KeyModifier(Enum):
 class KeyboardShortcutManager:
     """键盘快捷键管理器 - 单例模式"""
 
-    _instance = None
+    _instance: KeyboardShortcutManager | None = None
+    _initialized: bool = False
 
     def __new__(cls):
         if cls._instance is None:
@@ -311,7 +312,7 @@ class KeyboardShortcutManager:
         """
         import pygame
 
-        result = {}
+        result: dict[str, list[str]] = {}
         for (key_code, modifier), action in self._shortcuts.items():
             # 转换按键码为可读字符串
             key_name = pygame.key.name(key_code).upper()

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from typing import cast
 
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
@@ -206,11 +207,11 @@ def create_building(
         id=building_id,
         building_type=building_type,
         position=position,
-        width=preset.get("width", 2),
-        height=preset.get("height", 2),
-        cost=preset.get("cost", BuildingCost()),
-        construction_time=preset.get("construction_time", 10.0),
-        max_hp=preset.get("max_hp", 100),
-        hp=preset.get("max_hp", 100),
+        width=cast(int, preset.get("width", 2)),
+        height=cast(int, preset.get("height", 2)),
+        cost=cast(BuildingCost, preset.get("cost", BuildingCost())),
+        construction_time=cast(float, preset.get("construction_time", 10.0)),
+        max_hp=cast(int, preset.get("max_hp", 100)),
+        hp=cast(int, preset.get("max_hp", 100)),
         owner_faction=owner_faction,
     )

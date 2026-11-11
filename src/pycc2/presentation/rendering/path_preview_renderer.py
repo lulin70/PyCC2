@@ -20,6 +20,8 @@ from typing import TYPE_CHECKING
 
 import pygame
 
+from pycc2.domain.value_objects.vec2 import Vec2
+
 if TYPE_CHECKING:
     from pycc2.presentation.rendering.camera import Camera
 
@@ -93,13 +95,14 @@ class PathPreviewRenderer:
 
                 # 1. 将世界坐标转换为屏幕坐标
                 screen_points = []
+                half_tile = Vec2.TILE_SIZE / 2
                 for world_x, world_y in path:
                     screen_x, screen_y = camera.world_to_screen(
-                        world_x * camera.tile_size, world_y * camera.tile_size
+                        Vec2(world_x * Vec2.TILE_SIZE, world_y * Vec2.TILE_SIZE)
                     )
                     # 中心对齐（tile中心）
-                    screen_x += camera.tile_size // 2
-                    screen_y += camera.tile_size // 2
+                    screen_x += half_tile
+                    screen_y += half_tile
                     screen_points.append((screen_x, screen_y))
 
                 # 2. 绘制路径线到缓存Surface

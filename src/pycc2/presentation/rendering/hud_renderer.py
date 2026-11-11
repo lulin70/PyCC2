@@ -39,9 +39,9 @@ class HUDRenderer:
         self._ui_render_time_ms = 0.0
 
         # 字体（延迟初始化）
-        self._font_small = None
-        self._font_medium = None
-        self._font_large = None
+        self._font_small: pygame.font.Font | None = None
+        self._font_medium: pygame.font.Font | None = None
+        self._font_large: pygame.font.Font | None = None
         self._fonts_initialized = False
 
         # P0-2 Phase 2: Minimap渲染器
@@ -129,6 +129,11 @@ class HUDRenderer:
         current_turn: int,
     ) -> None:
         """渲染Status Bar（顶部40px）"""
+        assert (
+            self._font_small is not None
+            and self._font_medium is not None
+            and self._font_large is not None
+        ), "Fonts must be initialized via _init_fonts() before rendering"
         screen_width = screen.get_width()
 
         # 背景（半透明黑色）
@@ -202,6 +207,7 @@ class HUDRenderer:
         units: list[Unit],
     ) -> None:
         """渲染Minimap（右下角200x200px）"""
+        assert self._font_small is not None, "Fonts must be initialized via _init_fonts()"
         screen_width = screen.get_width()
         screen_height = screen.get_height()
 
@@ -236,6 +242,11 @@ class HUDRenderer:
 
         P0-2 Phase 3: 使用KeyboardShortcutManager动态获取快捷键
         """
+        assert (
+            self._font_small is not None
+            and self._font_medium is not None
+            and self._font_large is not None
+        ), "Fonts must be initialized via _init_fonts() before rendering"
         screen_width = screen.get_width()
         screen_height = screen.get_height()
 

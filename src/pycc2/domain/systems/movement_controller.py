@@ -98,7 +98,11 @@ class MovementController:
         # 应用移动
         from pycc2.domain.value_objects.vec2 import Vec2
 
-        unit.position.pixel_position = Vec2(new_x, new_y)
+        tile_origin = Vec2(
+            unit.position.tile_coord.x * Vec2.TILE_SIZE,
+            unit.position.tile_coord.y * Vec2.TILE_SIZE,
+        )
+        unit.position.set_pixel_offset(Vec2(new_x, new_y) - tile_origin)
 
         return True
 

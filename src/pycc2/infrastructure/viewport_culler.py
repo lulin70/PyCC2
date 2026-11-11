@@ -68,8 +68,8 @@ class ViewportCuller:
             unit
             for unit in all_units
             if (
-                min_x <= unit.position.tile_position.x <= max_x
-                and min_y <= unit.position.tile_position.y <= max_y
+                min_x <= unit.position.tile_coord.x <= max_x
+                and min_y <= unit.position.tile_coord.y <= max_y
             )
         ]
 

@@ -103,6 +103,8 @@ class GameMap:
     tiles_enhanced: dict | None = None
     height_grid: np.ndarray | None = None  # Building height (0-3 floors)
     elevation_grid: np.ndarray | None = None  # Terrain elevation (0-5 levels)
+    amphibious_passable: bool = False
+    weather_state: Any = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.tile_grid, np.ndarray):

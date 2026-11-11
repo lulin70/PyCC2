@@ -43,6 +43,8 @@ class UnitRenderingMixin:
     draw_surface: Surface | None
     _cache_manager: SpriteCacheManager
     _effect_renderer: EffectRenderer
+    _scaled_sprite_cache: dict[tuple[int, int], Surface]
+    _outline_cache: dict[tuple[int, int], Surface]
 
     if TYPE_CHECKING:
         # -- Cross-mixin method stubs (provided by SpriteRendererBase / UnitOverlayRenderingMixin).
@@ -204,12 +206,13 @@ class UnitRenderingMixin:
                 scaled = sprite
             else:
                 key = (id(sprite), sz)
-                scaled = self._scaled_sprite_cache.get(key)
-                if scaled is None:
-                    scaled = transform.scale(sprite, (sz, sz))
+                cached = self._scaled_sprite_cache.get(key)
+                if cached is None:
+                    cached = transform.scale(sprite, (sz, sz))
                     if len(self._scaled_sprite_cache) > 512:
                         self._scaled_sprite_cache.clear()
-                    self._scaled_sprite_cache[key] = scaled
+                    self._scaled_sprite_cache[key] = cached
+                scaled = cached
             offset = sz // 2
 
             animators = self._effect_renderer.unit_animators

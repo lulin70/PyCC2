@@ -80,7 +80,7 @@ class SpatialGrid:
         Args:
             unit: Unit to insert
         """
-        tile_pos = unit.position.tile_position
+        tile_pos = unit.position.tile_coord
         cell_coords = self._get_cell_coords(tile_pos.x, tile_pos.y)
 
         # Remove from old cell if exists
@@ -137,8 +137,8 @@ class SpatialGrid:
             unit
             for unit in units_set
             if (
-                min_x <= unit.position.tile_position.x <= max_x
-                and min_y <= unit.position.tile_position.y <= max_y
+                min_x <= unit.position.tile_coord.x <= max_x
+                and min_y <= unit.position.tile_coord.y <= max_y
             )
         ]
 
@@ -166,7 +166,7 @@ class SpatialGrid:
         result = [
             unit
             for unit in units_in_rect
-            if unit.position.tile_position.octile_distance(center) <= radius
+            if unit.position.tile_coord.octile_distance(center) <= radius
         ]
 
         return result
@@ -185,7 +185,7 @@ class SpatialGrid:
             return []
 
         center_cell = self.unit_cells[unit.id]
-        neighbors = []
+        neighbors: list[Unit] = []
 
         for dy in range(-range_cells, range_cells + 1):
             for dx in range(-range_cells, range_cells + 1):

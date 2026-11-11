@@ -19,6 +19,7 @@ All notable changes to PyCC2 will be documented in this file.
 - 删除后全量回归：7549 passed / 4 skipped / 0 failed。
 - ruff 修复后全量回归（两次独立复跑）：7549 passed / 4 skipped / 0 failed。
 - ruff 门禁：`ruff check .` 0 告警；`ruff format --check .` 737 文件全部合格。
+- mypy 门禁：`MYPYPATH=src mypy -p pycc2` 0 错误（修复 15 文件 67 个类型错误，无 ignore 豁免；全量回归保持 7549 passed）。
 
 ### Known Issues
 - **流程缺陷**: CI 红灯持续 ≥3 天无人察觉（推送后未确认远端结果）。已写入评审报告维度 5 与下一步建议。

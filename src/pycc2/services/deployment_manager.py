@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.unit import Faction, Unit, UnitType
@@ -531,7 +531,7 @@ class DeploymentManager:
             max_hp = self._HP_MAP.get(unit_type_str, 100)
 
             # CC2 parity: tank guns and bazookas can switch between AP and HE.
-            ammo_options = {}
+            ammo_options: dict[str, Any] = {}
             if weapon_id in ("tank_cannon", "bazooka"):
                 from pycc2.domain.value_objects.ammo_type import AmmoType
 
