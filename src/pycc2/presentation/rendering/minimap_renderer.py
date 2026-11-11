@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING
 import pygame
 
 from pycc2.domain.value_objects.tile_coord import TileCoord
+from pycc2.presentation.visual_config import DEFAULT_VISUAL_CONFIG
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
@@ -345,8 +346,8 @@ class MinimapRenderer:
         local_x = click_x - minimap_x
         local_y = click_y - minimap_y
 
-        # 转换为地图tile坐标
-        tile_size = 48  # TODO: 从VisualConfig获取
+        # 转换为地图tile坐标（tile尺寸接权威常量，随VisualConfig主题热加载）
+        tile_size = DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE
         map_world_width = game_map.width * tile_size
         map_world_height = game_map.height * tile_size
 

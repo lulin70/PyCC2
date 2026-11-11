@@ -49,10 +49,10 @@ tile_size = 48  # TODO: 从VisualConfig获取
 
 ## 2. 汇总
 
-| 编号 | 位置 | 判定 | 理由 | 后续动作 |
-|------|------|------|------|---------|
-| T1/T2 | enhanced_renderer.py:471-472 | 留 | 跨层签名变更，需设计 | 登记 TECH_DEBT |
-| T3 | hud_renderer.py:203-240 | 删 | 死代码，无调用点 | 下轮删除 |
-| T4 | minimap_renderer.py:349 | 修 | 一行接权威常量 | 下轮修复 |
+| 编号 | 位置 | 判定 | 理由 | 状态 |
+|------|------|------|------|------|
+| T1/T2 | enhanced_renderer.py:471-472 | 留 | 跨层签名变更，需设计 | 🔵 TD-079 跟踪 |
+| T3 | hud_renderer.py:203-239 | 删 | 死代码，无调用点 | ✅ 已删除（同日清理，连带清理仅该方法使用的 `Camera` 导入；回归 7549 passed 保持不变） |
+| T4 | minimap_renderer.py:349 | 修 | 一行接权威常量 | ✅ 已修复（改用 `DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE`，与 enhanced_renderer V-01 热加载口径一致） |
 
 清空后活跃代码 TODO 归零（T1/T2 转为 TECH_DEBT 条目跟踪）。

@@ -2,6 +2,21 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## Unreleased (2026-11-11) — TODO 判定执行（T3/T4）
+
+**目标**: 执行 [TODO_TRIAGE_20261111.md](docs/TODO_TRIAGE_20261111.md) 中判定为「删」「修」的两项。
+
+### Removed
+- **T3**: 删除 `hud_renderer._render_minimap` 死代码（37 行占位方法，无调用点；真实小地图由 `MinimapRenderer` 提供）。连带清理仅该方法使用的 `Camera` 类型导入。
+
+### Changed
+- **T4**: `minimap_renderer` 点击换算 tile 尺寸由硬编码 48 改为 `DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE`（与 enhanced_renderer V-01 热加载口径一致，行为等价）。
+
+### Verification
+- ruff check / format / mypy 全绿。
+- 全量回归：7549 passed / 4 skipped / 0 failed（与 T3/T4 前完全一致，证明 T3 确为死代码、T4 行为等价）。
+- 活跃代码 TODO 4→2（剩余 T1/T2 按 TD-079 跟踪）。
+
 ## v0.9.2 (2026-11-11) — 项目整理与门禁固化发布
 
 **目标**: 关闭评审遗留项：CI 绿灯写入发布门禁、docs 归档整理、渲染层 TODO 判定、版本号统一 bump。

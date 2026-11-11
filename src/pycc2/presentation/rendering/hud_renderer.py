@@ -200,43 +200,6 @@ class HUDRenderer:
         help_text = self._font_small.render("Press H for help", True, (150, 150, 150))
         screen.blit(help_text, (screen_width - 120, 26))
 
-    def _render_minimap(
-        self,
-        screen: pygame.Surface,
-        camera: Camera,
-        units: list[Unit],
-    ) -> None:
-        """渲染Minimap（右下角200x200px）"""
-        assert self._font_small is not None, "Fonts must be initialized via _init_fonts()"
-        screen_width = screen.get_width()
-        screen_height = screen.get_height()
-
-        minimap_size = 200
-        margin = 10
-        minimap_x = screen_width - minimap_size - margin
-        minimap_y = screen_height - minimap_size - margin
-
-        # 背景（半透明黑色）
-        overlay = pygame.Surface((minimap_size, minimap_size), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 180))
-        screen.blit(overlay, (minimap_x, minimap_y))
-
-        # 边框
-        pygame.draw.rect(
-            screen, (100, 100, 100), (minimap_x, minimap_y, minimap_size, minimap_size), 2
-        )
-
-        # TODO: 实际Minimap渲染（显示地形+单位）
-        # 当前版本：占位符
-        placeholder_text = self._font_small.render("Minimap", True, (150, 150, 150))
-        text_x = minimap_x + minimap_size // 2 - placeholder_text.get_width() // 2
-        text_y = minimap_y + minimap_size // 2 - placeholder_text.get_height() // 2
-        screen.blit(placeholder_text, (text_x, text_y))
-
-        # 显示单位数量
-        unit_count_text = self._font_small.render(f"{len(units)} units", True, (200, 200, 200))
-        screen.blit(unit_count_text, (minimap_x + 5, minimap_y + minimap_size - 20))
-
     def _render_shortcuts_help(self, screen: pygame.Surface) -> None:
         """渲染快捷键帮助（覆盖层，按H显示）
 
