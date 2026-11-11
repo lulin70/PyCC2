@@ -80,7 +80,9 @@ E2E 用户旅程已按规则执行（真实窗口、真实主循环、真实事�
 
 run 42957745409 已验证 ruff lint ✓ / ruff format ✓ / mypy ✓ / bandit ✓ / pip-audit ✓。
 
-**最终结论（2026-11-11）**：radon 与文档一致性修复后，run 42958155525 全绿——lint / unit / integration / e2e / slow / benchmark / docker 全部通过（Visual Regression 为每周定时任务，按设计跳过）。远端 CI 连续红灯问题关闭。
+**最终结论（2026-11-11）**：radon 与文档一致性修复后，run 42958155525 全绿——lint / unit / integration / e2e / slow / benchmark / docker 全部通过（Visual Regression 为每周定时任务，按设计跳过）。
+
+**第五层（阈值边缘抖动）**：docs-only 跟进 run 42959176705 的 benchmark 两次边际失败（不同用例、差幅 0.5–1%）：FPS 基线在开发机采集，CI runner 实测低 25.4–25.8%，恰好压在 25% 阈值线上。`REGRESSION_THRESHOLD` 0.75→0.70（历史 0.85→0.75→0.70 均有据可查），并注明余量耗尽须在 CI 硬件重采基线。该 run 重跑验证亦失败，证明非单次噪声而是结构性问题。
 
 ## 维度 6：目录结构
 

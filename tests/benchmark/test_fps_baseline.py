@@ -2,7 +2,7 @@
 
 Uses RELATIVE baseline (perf_baseline.json) to avoid false positives
 from GitHub Actions runner hardware variance. A test fails only when
-current FPS drops below ``baseline × 0.85`` (i.e. > 15% regression).
+current FPS drops below ``baseline × 0.70`` (i.e. > 30% regression).
 
 Reference: docs/VISUAL_POLISH_PLAN.md V-04 章节 (v2.1, Wave B-rev)
             docs/ROADMAP_v0.9.0.md Wave C4
@@ -38,7 +38,7 @@ from pycc2.domain.value_objects.tile_coord import TileCoord  # noqa: E402
 # ============================================================================
 
 BASELINE_FILE = Path(__file__).parent / "perf_baseline.json"
-REGRESSION_THRESHOLD = 0.75  # 25% drop triggers failure (widened from 0.85 for CI runner variance)
+REGRESSION_THRESHOLD = 0.70  # 30% drop triggers failure (widened from 0.75: CI runners measured 25.4–25.8% below the dev-machine baseline on 2026-11-11, sitting exactly on the old 25% edge)
 FPS_TEST_ROUNDS = 10  # P1-8: 3 → 10 rounds for statistical stability
 FPS_TEST_ITERATIONS = 1  # Single iteration per round (each round = N frames)
 FRAMES_PER_ROUND = 600  # 600 frames per measurement round
@@ -88,7 +88,7 @@ def _make_units(count: int, faction: Faction, prefix: str, x_offset: int) -> lis
 
 
 def _check_regression(key: str, current_value: float) -> None:
-    """Compare against relative baseline; fail only if > 15% regression.
+    """Compare against relative baseline; fail only if > 30% regression.
 
     If no baseline file exists (first run), the test passes silently so
     that initial baseline can be captured via ``scripts/update_perf_baseline.py``.
@@ -209,7 +209,7 @@ class TestFPSBaseline:
     Regression detection:
         - First run (no ``perf_baseline.json``): passes silently,
           baseline captured via ``scripts/update_perf_baseline.py``.
-        - Subsequent runs: fails if FPS < baseline × 0.85 (> 15% drop).
+        - Subsequent runs: fails if FPS < baseline × 0.70 (> 30% drop).
     """
 
     @pytest.mark.benchmark
@@ -284,14 +284,19 @@ class TestBaselineIntegrity:
     """Verify perf_baseline.json integrity and threshold configuration."""
 
     def test_regression_threshold_in_design_limits(self):
-        """REGRESSION_THRESHOLD must be 0.75 (25% regression, widened for CI runner variance).
+        """REGRESSION_THRESHOLD must be 0.70 (30% regression, widened for CI runner variance).
 
-        Originally 0.85 (15% regression, Wave B-rev), but CI runners exhibit
-        ~20% FPS variance vs dev machines, causing false failures. Widened to
-        0.75 (25% regression) in v0.9.0 to avoid false positives while still
-        catching real performance regressions (>25% drop).
+        History: 0.85 (15% regression, Wave B-rev) → 0.75 (25%, v0.9.0, CI
+        runners showed ~20% FPS variance vs dev machines) → 0.70 (30%,
+        2026-11-11). Run 42959176705 produced two marginal failures with
+        different test cases (heavy 47.1 vs 47.6, then normal 76.3 vs 76.7)
+        on a docs-only commit: CI runners measure 25.4–25.8% below the
+        dev-machine baseline (102.3 / 63.5), i.e. exactly on the old 25%
+        edge. 0.70 restores headroom while still catching real regressions
+        (>30% drop). Baseline must be re-captured on CI hardware if the
+        margin is ever exhausted again.
         """
-        assert REGRESSION_THRESHOLD == 0.75
+        assert REGRESSION_THRESHOLD == 0.70
 
     def test_baseline_file_path_is_in_benchmark_dir(self):
         """Baseline file must live in tests/benchmark/ (V-04 design)."""
