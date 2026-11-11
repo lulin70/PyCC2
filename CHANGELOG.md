@@ -2,6 +2,32 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.9.2 (2026-11-11) — 项目整理与门禁固化发布
+
+**目标**: 关闭评审遗留项：CI 绿灯写入发布门禁、docs 归档整理、渲染层 TODO 判定、版本号统一 bump。
+
+**相关文档**: [PROJECT_REVIEW_20261111.md](docs/PROJECT_REVIEW_20261111.md) / [TODO_TRIAGE_20261111.md](docs/TODO_TRIAGE_20261111.md) / [RELEASE_GATE_W5.md](docs/RELEASE_GATE_W5.md)
+
+### Added
+- **TODO 判定文档**: [TODO_TRIAGE_20261111.md](docs/TODO_TRIAGE_20261111.md)。活跃代码实测 4 处 TODO（评审初记 46 处系误计，已勘误）：T1/T2 留（HUD 回合数/暂停状态接线，登记 TD-079）、T3 删（`_render_minimap` 死代码，无调用点）、T4 修（minimap tile_size 接权威常量）。
+- **TD-079**: enhanced_renderer.py 状态栏回合数/暂停状态硬编码登记 [TECH_DEBT.md](docs/TECH_DEBT.md)。
+
+### Changed
+- **版本统一 bump 0.9.0 → 0.9.2**（跳过 CHANGELOG 已占用的 0.9.1）：VERSION、pyproject.toml、`src/pycc2/__init__.py`、README 三语标头。README 标头日期更新为 2026-11-11。
+- **docs/ 归档整理**: 29 个历史交付文档（P0_1/P0_2/PHASE2/SPRINT 系列 + REFACTOR_COMPLETION_REPORT）`git mv` 入 `docs/archive/`，保留 git 历史；`docs/_archive/RTS_REMOVAL_2026_11_07` 并入 `docs/archive/`，空的 `docs/_archive/` 移除。顶层文档 70→43。外部引用（README / PROJECT_DELIVERY_SUMMARY / ARCHITECTURE_REFACTOR_RTS_REMOVAL）链接同步修正。
+- **发布门禁固化**（评审弱项 1 收口）: [RELEASE_GATE_W5.md](docs/RELEASE_GATE_W5.md) §1 代码规范条目改为全仓库 ruff 口径，新增「远端 CI（强制前置）」门禁行；§6 正式发布前置条件加入「远端 CI 全部 job 绿灯（强制）」。规则：**推送 ≠ 完成，推送后必须确认远端 CI 绿灯任务才关闭**。
+
+### Verification
+- 全量回归：7549 passed / 4 skipped / 0 failed（2026-11-11）。
+- 文档一致性：`scripts/check_doc_consistency.sh` SUCCESS（VERSION=0.9.2）。
+- 归档迁移后 `grep` 复核：留下文档中指向旧路径的引用 0 处。
+- TODO 复核：`grep -rn "TODO\|FIXME" src --include="*.py"`（含/不含 `_archive`）均为 4 处。
+- 远端 CI：见本轮推送后 run 记录（tag v0.9.2）。
+
+### Known Issues
+- **PF-04 挂起**: 真实窗口 heavy 最差 54.9 FPS 复测需空闲机器；当前开发机持续高负载，测量不可信。待空闲窗口执行 `scripts/real_window_perf.py` 后关闭或降级。
+- **T1/T2（TD-079）**: HUD 状态栏 `Turn: 0` / 暂停状态失真，待跨层签名设计后排期。
+
 ## Unreleased (2026-11-11) — 项目整理评估与 CI 门禁修复
 
 **目标**: 7 维度项目评审，修复远端 CI 连续红灯，清理技术债与临时文件。

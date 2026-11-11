@@ -1,6 +1,6 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python再実装)
 
-**v0.9.0 | Beta Candidate | 2026年7月21日**
+**v0.9.2 | Beta Candidate | 2026年11月11日**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />

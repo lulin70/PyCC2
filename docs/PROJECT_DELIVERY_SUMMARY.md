@@ -71,7 +71,7 @@
 
 **文件**:
 - `src/pycc2/presentation/rendering/hud_renderer.py` (257行)
-- `docs/P0_2_PHASE1_DELIVERY_FINAL.md`
+- `docs/archive/P0_2_PHASE1_DELIVERY_FINAL.md`
 
 #### Phase 2: Minimap实际渲染
 
@@ -339,7 +339,7 @@ benchmark_performance.py                                        [新建, 140行]
 
 **文档**:
 ```
-docs/P0_2_PHASE1_DELIVERY_FINAL.md                              [新建]
+docs/archive/P0_2_PHASE1_DELIVERY_FINAL.md                              [新建]
 docs/PROJECT_DELIVERY_SUMMARY.md                                [本文档]
 ```
 

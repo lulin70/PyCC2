@@ -12,7 +12,7 @@
 | src 规模 | 408 个 py 文件 / 103,817 行（不含 _archive） | `find src -name "*.py" -not -path "*_archive*"` |
 | tests 规模 | 279 个测试文件 / 111,820 行 | `find tests -name "*.py"` |
 | 超长文件 | 无 >1500 行文件 | `wc -l` 全量扫描 |
-| TODO/FIXME | 46 处，集中在 enhanced_renderer / hud_renderer / minimap_renderer | `grep -rn "TODO\|FIXME" src` |
+| TODO/FIXME | 4 处，集中在 enhanced_renderer / hud_renderer / minimap_renderer（初评误记 46 处，2026-11-11 复核勘误） | `grep -rn "TODO\|FIXME" src --include="*.py"` |
 | 归档死代码 | `_archive/` 11 个文件，已隔离，无活跃 import | `src/pycc2/_archive/__init__.py` |
 
 架构结论：
@@ -38,7 +38,7 @@
 - 1860 个 ruff 告警清零（见维度 5）。
 
 遗留（登记，不在本轮处理）：
-- TODO/FIXME 46 处，集中在渲染层 3 个文件。
+- TODO/FIXME 4 处（初评误记 46 处，已勘误），集中在渲染层 3 个文件。逐条判定见 [TODO_TRIAGE_20261111.md](TODO_TRIAGE_20261111.md)。
 - [movement_controller.py](../src/pycc2/domain/systems/movement_controller.py) L133-135 地形判定为「简化版」注释，属已知简化。
 - PF-04：真实窗口 heavy 最差 54.9 FPS，需空闲机器复测。
 
@@ -107,8 +107,8 @@ run 42957745409 已验证 ruff lint ✓ / ruff format ✓ / mypy ✓ / bandit �
 4. **文档熵（P2）**：70 个顶层文档无生命周期管理。
 
 ### 下一步建议（优先级序）
-1. ~~本轮推送后盯 CI 变绿~~ ✅ 已完成：run 42958155525 全绿。「CI 绿灯」仍需写进 RELEASE_GATE 前置条件（待办）。
-2. 做一次正式发布：bump 0.9.2，回写 VERSION/pyproject/`__init__.py`/README/CHANGELOG，打 tag。
-3. 空闲机器复测 PF-04，关闭或降级该缺陷。
-4. docs/ 归档整理（维度 6 建议）。
-5. 渲染层 46 处 TODO 逐条判定「修/删/留」。
+1. ~~本轮推送后盯 CI 变绿~~ ✅ 已完成：run 42958155525 全绿。「CI 绿灯」已写入 RELEASE_GATE_W5 §1 门禁总表与 §6 正式发布前置条件（2026-11-11）。
+2. 做一次正式发布：bump 0.9.2，回写 VERSION/pyproject/`__init__.py`/README/CHANGELOG，打 tag。（2026-11-11 执行中）
+3. 空闲机器复测 PF-04，关闭或降级该缺陷。⏸️ 挂起：当前开发机持续高负载（见维度 3），复测数据不可信；待空闲机器窗口执行 `scripts/real_window_perf.py`。
+4. ~~docs/ 归档整理（维度 6 建议）~~ ✅ 已完成（2026-11-11）：29 个历史交付文档 `git mv` 入 `docs/archive/`，`docs/_archive/` 并入 `docs/archive/RTS_REMOVAL_2026_11_07/`，外部引用链接已修正。顶层文档 70→43。
+5. ~~渲染层 TODO 逐条判定「修/删/留」~~ ✅ 已完成（2026-11-11）：实测 4 处（初评 46 处系误计，已勘误）。判定：T1/T2 留（登记 TD-079）、T3 删（死代码）、T4 修。见 [TODO_TRIAGE_20261111.md](TODO_TRIAGE_20261111.md)。

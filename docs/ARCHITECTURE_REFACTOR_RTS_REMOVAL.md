@@ -52,12 +52,12 @@ PyCC2项目混合了两种不同的游戏机制：
 
 | 文档 | 内容 | 处理方式 |
 |------|------|----------|
-| `docs/SPRINT2_DAY8_SUMMARY.md` | 资源系统开发 | ⏳ 归档 |
-| `docs/SPRINT3_DAY11_SUMMARY.md` | 建造系统开发 | ⏳ 归档 |
-| `docs/SPRINT3_DAY12_SUMMARY.md` | 建造集成测试 | ⏳ 归档 |
-| `docs/SPRINT4_DAY16_SUMMARY.md` | RTS游戏循环E2E | ⏳ 归档 |
-| `docs/SPRINT2_4_PLAN.md` | Sprint 2-4规划 | ⏳ 归档 |
-| `docs/SPRINT4_SUMMARY.md` | Sprint 4总结 | ⏳ 归档 |
+| `docs/archive/SPRINT2_DAY8_SUMMARY.md` | 资源系统开发 | ⏳ 归档 |
+| `docs/archive/SPRINT3_DAY11_SUMMARY.md` | 建造系统开发 | ⏳ 归档 |
+| `docs/archive/SPRINT3_DAY12_SUMMARY.md` | 建造集成测试 | ⏳ 归档 |
+| `docs/archive/SPRINT4_DAY16_SUMMARY.md` | RTS游戏循环E2E | ⏳ 归档 |
+| `docs/archive/SPRINT2_4_PLAN.md` | Sprint 2-4规划 | ⏳ 归档 |
+| `docs/archive/SPRINT4_SUMMARY.md` | Sprint 4总结 | ⏳ 归档 |
 | `docs/E2E_TESTING_GUIDE.md` | E2E测试指南 | ⏳ 归档 |
 | `docs/PERFORMANCE_REPORT.md` | 性能报告 | ⏳ 归档 |
 

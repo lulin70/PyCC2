@@ -18,7 +18,10 @@
 | UAT | 5 条主路径无阻塞 | `docs/test/UAT_W5_20261108.md`，69 个 e2e 用例通过 | 通过（自动化） |
 | 性能回归 | 不低于基线 75%；目标 FPS ≥ 60 | `tests/benchmark` 42 passed / 6 skipped；`tests/performance` 3 passed；heavy 中位 76.4，最差 63.5 | 通过 |
 | 视觉回归 | 5 个场景不超阈值 | `tests/visual_regression` 7 passed（`urban_terrain` 基线按 PF-08 重建） | 通过 |
-| 代码规范 | Ruff 无告警 | 本批次改动文件 | 通过 |
+| 代码规范 | Ruff 无告警 | 全仓库 `ruff check .` 与 `ruff format --check .` 0 告警（2026-11-11 清零 1860 处后；不再只核对本批次文件） | 通过 |
+| 远端 CI（强制前置） | GitHub Actions 全部 job 绿灯，推送后必须确认 | run 42961393624（`437b9de`）lint / unit / integration / e2e / slow / benchmark / docker 全部通过 | 通过 |
+
+> 流程规则（2026-11-11 评审后固化）：**推送 ≠ 完成**。每次推送后必须确认远端 CI 全部 job 绿灯，任务才算关闭。只核对本地本批次文件不构成门禁证据（历史教训：红灯持续 ≥3 天无人察觉，见 `docs/PROJECT_REVIEW_20261111.md` 维度 5）。
 
 ## 2. W5 机制完成度
 
@@ -218,7 +221,7 @@ PF-02 点击链路 UAT（`scripts/uat_real_window.py`，cocoa 1280×720）：
 | 点击链路 UAT | 通过（14/14，真实窗口） |
 | 地图可玩性 | 放行（0 处出生点越界，0 处不可达场景，9 处 VL 位置不佳可占领） |
 | 发布范围 | 内部里程碑版本；不作为正式对外发布 |
-| 正式发布前置条件 | 人工确认画面与手感；PF-04 复测通过 |
+| 正式发布前置条件 | 远端 CI 全部 job 绿灯（强制，见 §1 门禁总表）；人工确认画面与手感；PF-04 复测通过 |
 
 ## 7. 签署
 

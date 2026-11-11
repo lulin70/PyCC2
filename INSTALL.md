@@ -1,4 +1,4 @@
-# Installation Guide — PyCC2 v0.9.0
+# Installation Guide — PyCC2 v0.9.2
 
 > **This document has been updated to v0.9.0. For earlier version information, see Git history.**
 
@@ -450,4 +450,4 @@ After successful installation:
 
 *Document Version*: 4.0
 *Last Updated*: 2026-07-24
-*Compatible with*: PyCC2 v0.9.0+
+*Compatible with*: PyCC2 v0.9.2+

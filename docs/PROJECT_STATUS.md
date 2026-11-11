@@ -1,20 +1,20 @@
 # PyCC2 项目状态
 
-> **最后更新**: 2026-08-01
-> **版本**: v0.9.1
-> **状态**: Beta Candidate — Tier 1 缺陷已修复 (v0.9.1 紧急修复完成)
+> **最后更新**: 2026-11-11
+> **版本**: v0.9.2
+> **状态**: Beta Candidate — 项目整理与门禁固化发布（CI 红灯五层修复 + 遗留项收口）
 
 ## 核心指标
 
 | 指标 | 数值 | 来源 |
 |------|------|------|
-| 版本号 | 0.9.1 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
-| 源码模块数 | 388 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
-| 测试文件数 | 227 个 `.py` 文件（unit 167 / integration 14 / e2e 42 / benchmark 4 / acceptance 1 / root 2） | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 6894 passed / 3 skipped / 23 deselected (v0.9.1: v0.9.0 6819 passed + E2E 盲区补齐 +75) | `pytest tests/ -m "not slow" --co -q` |
+| 版本号 | 0.9.2 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
+| 源码模块数 | 408 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
+| 测试文件数 | 279 个 `.py` 文件 | `find tests -name "*.py" \| wc -l` |
+| 测试用例数 | 7549 passed / 4 skipped（2026-11-11，含 ruff/mypy 全仓修复后回归；`--ignore=tests/benchmark`） | `pytest -q -p no:randomly --ignore=tests/benchmark` |
 
-> **测试数增长**: v0.9.0 6819 passed → v0.9.1 6894 passed（+75 E2E，12 个新文件补齐音频/战役多天/存档安全/安装启动/战斗特殊命令/AI 高级战术/UI 细节/视觉基础/多地图/长时稳定性/错误恢复/跨场景连续性盲区）。
-| 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=65` (unit tests only) + radon cc E+ baseline=18（v0.7.7 配置化至 pyproject.toml [tool.radon]，v0.7.6 前 23 硬编码在 ci.yml） | `.github/workflows/ci.yml` + `pyproject.toml` |
+> **测试数增长**: v0.9.1 6894 passed → v0.9.2 7549 passed（+655：CC2 机制补齐 / 场景规则 / 单位辨识度 / 部署画面修复 / 真实运行审计修复 / CI 红灯修复期新增用例）。
+| 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=65` (unit tests only) + radon cc E+ baseline=19（v0.7.7 配置化至 pyproject.toml [tool.radon]，2026-11-11 基线 18→19 并禁止无评审上调） | `.github/workflows/ci.yml` + `pyproject.toml` |
 | 实际覆盖率 | 完整测试 72.84% (42876 stmts, 10008 missed，含 branch coverage) / Unit tests only 67.56% | `pytest tests/ -m "not slow" --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |
 | mypy | 0 errors (376 files, _archive excluded) | `MYPYPATH=src mypy -p pycc2` |
