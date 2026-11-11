@@ -25,7 +25,7 @@ All notable changes to PyCC2 will be documented in this file.
 - ruff 门禁：`ruff check .` 0 告警；`ruff format --check .` 737 文件全部合格。
 - mypy 门禁：`MYPYPATH=src mypy -p pycc2` 0 错误（修复 15 文件 67 个类型错误，无 ignore 豁免；全量回归保持 7549 passed）。
 - radon 门禁：本地 `radon cc src/ -n E` 计数 19 = 基线 19；文档一致性检查本地 SUCCESS（run 42957745409 已验证 ruff/mypy/security/pip-audit 四步通过）。
-- **远端 CI 全绿**：run 42958155525（c7404f1）lint / unit / integration / e2e / slow / benchmark / docker 全部通过，Visual Regression 按设计跳过（每周定时）。其后的 docs-only 跟进 run 42959176705 暴露 FPS 门禁边际抖动（见 Fixed 第五层），阈值修复后待验证。
+- **远端 CI 全绿**：run 42958155525（c7404f1）lint / unit / integration / e2e / slow / benchmark / docker 全部通过，Visual Regression 按设计跳过（每周定时）。其后的 docs-only 跟进 run 42959176705 暴露 FPS 门禁边际抖动（见 Fixed 第五层）；阈值修复后 run 42961393624（437b9de）再次全绿（含 Benchmark ✓ 6m24s），CI 门禁恢复稳定绿灯。
 
 ### Known Issues
 - **流程缺陷**: CI 红灯持续 ≥3 天无人察觉（推送后未确认远端结果）。已写入评审报告维度 5 与下一步建议。红灯期间 ruff/mypy 失败遮蔽了 radon 与文档一致性两个后续门禁步骤，导致第 19 个 E+ 函数与 README v0.9.1 版本漂移潜伏多日——本轮修复已全部补齐。
