@@ -82,22 +82,26 @@ def create_comparison_image():
             basic_size = basic_path.stat().st_size
             enhanced_size = enhanced_path.stat().st_size
             size_diff = enhanced_size - basic_size
-            
+
             # 简单判断：增强版应该更大（有更多像素数据）
             if size_diff > 50:
-                comparison_results.append({
-                    "sprite": sprite_name,
-                    "label": label,
-                    "verdict": "ENHANCED",
-                    "size_diff": size_diff,
-                })
+                comparison_results.append(
+                    {
+                        "sprite": sprite_name,
+                        "label": label,
+                        "verdict": "ENHANCED",
+                        "size_diff": size_diff,
+                    }
+                )
             else:
-                comparison_results.append({
-                    "sprite": sprite_name,
-                    "label": label,
-                    "verdict": "NO_DIFF",
-                    "size_diff": size_diff,
-                })
+                comparison_results.append(
+                    {
+                        "sprite": sprite_name,
+                        "label": label,
+                        "verdict": "NO_DIFF",
+                        "size_diff": size_diff,
+                    }
+                )
 
         y_offset += 100
 
@@ -125,17 +129,19 @@ def analyze_comparison_results(results):
     print("\n📊 Individual Sprite Analysis:")
     for r in results:
         status_icon = "✅" if r["verdict"] == "ENHANCED" else "⚠️"
-        print(f"  {status_icon} {r['label']:15s}: {r['verdict']:10s} (size +{r['size_diff']} bytes)")
+        print(
+            f"  {status_icon} {r['label']:15s}: {r['verdict']:10s} (size +{r['size_diff']} bytes)"
+        )
 
     enhanced_count = sum(1 for r in results if r["verdict"] == "ENHANCED")
     total = len(results)
 
-    print(f"\n📈 Summary:")
-    print(f"  • Enhanced: {enhanced_count}/{total} sprites ({enhanced_count*100//total}%)")
+    print("\n📈 Summary:")
+    print(f"  • Enhanced: {enhanced_count}/{total} sprites ({enhanced_count * 100 // total}%)")
     print(f"  • No Change: {total - enhanced_count}/{total} sprites")
 
     # 最终判断
-    print(f"\n🎯 FINAL VERDICT:")
+    print("\n🎯 FINAL VERDICT:")
     if enhanced_count >= total * 0.7:
         print("  ✅ SIGNIFICANT IMPROVEMENT - Enhanced version is better")
         print("  → Recommendation: Replace basic sprites with enhanced version")

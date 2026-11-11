@@ -189,9 +189,7 @@ class DeploymentDragDrop:
 
         # Try to place at current position if over map
         if screen_x >= ui._roster_width:
-            map_pos = ui.screen_to_map(
-                screen_x, screen_y, map_offset_x, map_offset_y, tile_size
-            )
+            map_pos = ui.screen_to_map(screen_x, screen_y, map_offset_x, map_offset_y, tile_size)
 
             if map_pos is not None and self._dragging_unit_index is not None:
                 map_x, map_y = map_pos

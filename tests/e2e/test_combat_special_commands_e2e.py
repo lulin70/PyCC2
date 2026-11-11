@@ -20,7 +20,6 @@ import random
 import numpy as np
 import pygame
 import pytest
-from tests.e2e.conftest import GameLoopFactory
 
 from pycc2.domain.ai.engineer_assault import EngineerAssaultAI
 from pycc2.domain.ai.melee_combat import (
@@ -44,6 +43,7 @@ from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, Unit, UnitState
 from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.value_objects.tile_coord import TileCoord
+from tests.e2e.conftest import GameLoopFactory
 
 
 def _make_unit(

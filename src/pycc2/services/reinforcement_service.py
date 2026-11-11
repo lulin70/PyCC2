@@ -151,28 +151,16 @@ class ReinforcementService:
 
         if direction == "east":
             coords = (
-                (x, y)
-                for x in range(max(0, width - edge_depth), width)
-                for y in range(height)
+                (x, y) for x in range(max(0, width - edge_depth), width) for y in range(height)
             )
         elif direction == "north":
-            coords = (
-                (x, y)
-                for y in range(0, min(edge_depth, height))
-                for x in range(width)
-            )
+            coords = ((x, y) for y in range(0, min(edge_depth, height)) for x in range(width))
         elif direction == "south":
             coords = (
-                (x, y)
-                for y in range(max(0, height - edge_depth), height)
-                for x in range(width)
+                (x, y) for y in range(max(0, height - edge_depth), height) for x in range(width)
             )
         else:  # west
-            coords = (
-                (x, y)
-                for x in range(0, min(edge_depth, width))
-                for y in range(height)
-            )
+            coords = ((x, y) for x in range(0, min(edge_depth, width)) for y in range(height))
 
         for x, y in coords:
             if (x, y) in occupied:

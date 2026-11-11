@@ -9,7 +9,9 @@ from pycc2.services.reinforcement_service import TICKS_PER_TURN, ReinforcementSe
 
 
 class _FakeMap:
-    def __init__(self, width: int = 10, height: int = 10, blocked: set[tuple[int, int]] | None = None):
+    def __init__(
+        self, width: int = 10, height: int = 10, blocked: set[tuple[int, int]] | None = None
+    ):
         self.width = width
         self.height = height
         self._blocked = blocked or set()
@@ -115,9 +117,7 @@ def test_factory_creates_real_unit_via_deployment_manager():
     from pycc2.services.deployment_manager import DeploymentManager
 
     manager = DeploymentManager()
-    unit = manager.create_reinforcement_unit(
-        "us_rifle_squad", Faction.ALLIES, (0, 2), 42
-    )
+    unit = manager.create_reinforcement_unit("us_rifle_squad", Faction.ALLIES, (0, 2), 42)
 
     assert unit is not None
     assert unit.id == "reinforcement_42"

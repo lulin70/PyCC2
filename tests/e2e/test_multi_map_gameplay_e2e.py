@@ -25,10 +25,10 @@ os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
 import pygame
 import pytest
-from tests.e2e.conftest import GameLoopFactory
 
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.systems.day_night_cycle import GameTime, TimeOfDay
+from tests.e2e.conftest import GameLoopFactory
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MAPS_DIR = PROJECT_ROOT / "data" / "maps"

@@ -225,7 +225,9 @@ class GameLoopUpdatingMixin:
                 continue
 
             faction_name = getattr(getattr(unit, "faction", None), "name", "")
-            unit_side = "allies" if faction_name in ("ALLIES", "AMERICAN", "BRITISH", "POLISH") else "axis"
+            unit_side = (
+                "allies" if faction_name in ("ALLIES", "AMERICAN", "BRITISH", "POLISH") else "axis"
+            )
             pos = unit.position.tile_coord
             near = any(
                 sp.get("side") == unit_side

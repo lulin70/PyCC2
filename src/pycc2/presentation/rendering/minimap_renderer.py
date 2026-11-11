@@ -35,20 +35,20 @@ class MinimapRenderer:
 
     # 地形类型颜色映射（CC2风格）
     TERRAIN_COLORS = {
-        "GRASS": (100, 140, 80),      # 深绿色
-        "DIRT": (140, 120, 80),       # 棕色
-        "ROAD": (160, 160, 150),      # 浅灰色
-        "WATER": (60, 100, 180),      # 蓝色
-        "FOREST": (60, 100, 50),      # 深绿色
+        "GRASS": (100, 140, 80),  # 深绿色
+        "DIRT": (140, 120, 80),  # 棕色
+        "ROAD": (160, 160, 150),  # 浅灰色
+        "WATER": (60, 100, 180),  # 蓝色
+        "FOREST": (60, 100, 50),  # 深绿色
         "BUILDING": (120, 120, 120),  # 灰色
-        "WALL": (80, 80, 80),         # 深灰色
-        "UNKNOWN": (50, 50, 50),      # 黑灰色
+        "WALL": (80, 80, 80),  # 深灰色
+        "UNKNOWN": (50, 50, 50),  # 黑灰色
     }
 
     # 单位颜色
-    FRIENDLY_COLOR = (0, 200, 0)    # 绿色
-    ENEMY_COLOR = (200, 0, 0)       # 红色
-    NEUTRAL_COLOR = (200, 200, 0)   # 黄色
+    FRIENDLY_COLOR = (0, 200, 0)  # 绿色
+    ENEMY_COLOR = (200, 0, 0)  # 红色
+    NEUTRAL_COLOR = (200, 200, 0)  # 黄色
 
     def __init__(self, size: int = 200):
         """初始化Minimap渲染器
@@ -87,6 +87,7 @@ class MinimapRenderer:
             position: Minimap位置（默认右下角）
         """
         import time
+
         start_time = time.perf_counter()
 
         try:
@@ -130,9 +131,7 @@ class MinimapRenderer:
 
             # 性能预算检查（2ms）
             if elapsed > 2.0:
-                logger.warning(
-                    f"Minimap rendering exceeded budget: {elapsed:.2f}ms > 2ms"
-                )
+                logger.warning(f"Minimap rendering exceeded budget: {elapsed:.2f}ms > 2ms")
 
     def _get_terrain_surface(self, game_map: GameMap) -> pygame.Surface:
         """获取地形缓存Surface（懒加载+缓存）
@@ -145,16 +144,11 @@ class MinimapRenderer:
         """
         # 缓存检查（基于地图ID）
         map_id = id(game_map)
-        if (
-            self._terrain_cache is not None
-            and self._cached_map_id == map_id
-        ):
+        if self._terrain_cache is not None and self._cached_map_id == map_id:
             return self._terrain_cache
 
         # 重新渲染地形
-        terrain_surface = pygame.Surface(
-            (self.size, self.size), pygame.SRCALPHA
-        )
+        terrain_surface = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
         terrain_surface.fill((0, 0, 0, 180))  # 半透明黑色背景
 
         map_width = game_map.width
@@ -170,9 +164,7 @@ class MinimapRenderer:
                 terrain = game_map.get_terrain(TileCoord(map_x, map_y))
                 terrain_name = terrain.name if terrain else "UNKNOWN"
 
-                color = self.TERRAIN_COLORS.get(
-                    terrain_name, self.TERRAIN_COLORS["UNKNOWN"]
-                )
+                color = self.TERRAIN_COLORS.get(terrain_name, self.TERRAIN_COLORS["UNKNOWN"])
 
                 # 计算minimap上的矩形
                 minimap_x = int(map_x * pixel_per_tile_x)
@@ -295,9 +287,7 @@ class MinimapRenderer:
         # 边界限制
         viewport_minimap_x = max(0, min(viewport_minimap_x, self.size - 1))
         viewport_minimap_y = max(0, min(viewport_minimap_y, self.size - 1))
-        viewport_minimap_width = max(
-            1, min(viewport_minimap_width, self.size - viewport_minimap_x)
-        )
+        viewport_minimap_width = max(1, min(viewport_minimap_width, self.size - viewport_minimap_x))
         viewport_minimap_height = max(
             1, min(viewport_minimap_height, self.size - viewport_minimap_y)
         )
@@ -367,9 +357,6 @@ class MinimapRenderer:
         world_x = max(0, min(world_x, map_world_width - camera.width))
         world_y = max(0, min(world_y, map_world_height - camera.height))
 
-        logger.debug(
-            f"Minimap click: screen({click_x},{click_y}) -> "
-            f"world({world_x},{world_y})"
-        )
+        logger.debug(f"Minimap click: screen({click_x},{click_y}) -> world({world_x},{world_y})")
 
         return (world_x, world_y)

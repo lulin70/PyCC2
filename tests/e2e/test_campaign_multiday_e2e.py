@@ -24,7 +24,6 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
 import pygame
 import pytest
-from tests.e2e.conftest import GameLoopFactory
 
 from pycc2.domain.systems.campaign_persistence import (
     BattleOutcome,
@@ -33,6 +32,7 @@ from pycc2.domain.systems.campaign_persistence import (
     CampaignProgress,
     UnitBattleState,
 )
+from tests.e2e.conftest import GameLoopFactory
 
 # ---------------------------------------------------------------------------
 # Helpers - build real persistence objects (no Mock)

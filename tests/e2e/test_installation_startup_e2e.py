@@ -19,6 +19,7 @@ from pathlib import Path
 
 import pygame
 import pytest
+
 from tests.e2e.conftest import GameLoopFactory
 
 

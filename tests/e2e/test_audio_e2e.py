@@ -40,7 +40,6 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
 import pytest
-from tests.e2e.conftest import GameLoopFactory
 
 from pycc2.domain.value_objects.audio_enums import SoundType
 from pycc2.domain.value_objects.vec2 import Vec2
@@ -65,6 +64,7 @@ from pycc2.infrastructure.audio.weapon_sounds import (
 from pycc2.presentation.audio.combat_sound_events import CombatSoundEvent
 from pycc2.presentation.audio.enhanced_sound_bridge import EnhancedSoundSystem
 from pycc2.presentation.audio.sound_system import SoundSystem
+from tests.e2e.conftest import GameLoopFactory
 
 
 class TestAudioSystemE2E:

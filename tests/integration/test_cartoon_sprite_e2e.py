@@ -35,6 +35,7 @@ def test_cartoon_sprite_e2e():
     # 初始化资产加载器（不需要完整渲染器）
     print("🔧 Initializing asset loader...")
     from pycc2.presentation.rendering.asset_loader import AssetLoader
+
     loader = AssetLoader(project_root / "assets")
 
     # 创建测试单位
@@ -102,7 +103,7 @@ def test_cartoon_sprite_e2e():
                 faction=unit.faction.name.lower(),
                 unit_type=unit.unit_type.name,
                 direction=4,  # 朝南
-                size=128
+                size=128,
             )
 
             if sprite:
@@ -125,7 +126,9 @@ def test_cartoon_sprite_e2e():
         pygame.display.flip()
 
         # 保存截图
-        screenshot_path = project_root / "tests" / "integration" / "cartoon_sprite_test_screenshot.png"
+        screenshot_path = (
+            project_root / "tests" / "integration" / "cartoon_sprite_test_screenshot.png"
+        )
         pygame.image.save(screen, str(screenshot_path))
         print(f"   📸 Screenshot saved: {screenshot_path}")
         print()
@@ -155,6 +158,7 @@ def test_cartoon_sprite_e2e():
     except Exception as e:
         print(f"❌ E2E Test FAILED: {e}")
         import traceback
+
         traceback.print_exc()
         success = False
 
@@ -162,6 +166,7 @@ def test_cartoon_sprite_e2e():
         pygame.quit()
 
     return success
+
 
 if __name__ == "__main__":
     success = test_cartoon_sprite_e2e()

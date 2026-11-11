@@ -192,9 +192,7 @@ def main() -> int:
     # ------------------------------------------------------------------
     from pycc2.presentation.ui.deployment_models import ZoneType
 
-    target_idx = next(
-        (i for i, u in enumerate(ui.state.available_units) if not u.is_placed), None
-    )
+    target_idx = next((i for i, u in enumerate(ui.state.available_units) if not u.is_placed), None)
     check("roster has unplaced units", target_idx is not None)
     if target_idx is None:
         return 1
@@ -265,7 +263,11 @@ def main() -> int:
     frame(30)
     snap("04_battle.png")
     check("deployment closed after START", not dm.is_active)
-    check("units spawned into battle", len(game_loop.state.units) > 0, f"units={len(game_loop.state.units)}")
+    check(
+        "units spawned into battle",
+        len(game_loop.state.units) > 0,
+        f"units={len(game_loop.state.units)}",
+    )
 
     # ------------------------------------------------------------------
     logger.info("=" * 60)

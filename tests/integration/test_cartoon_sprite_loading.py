@@ -61,7 +61,9 @@ def test_sprite_loading():
                     print(f"  ✅ {sprite_name:20s} → {w}x{h} pixels → PASS")
                     success_count += 1
                 else:
-                    print(f"  ⚠️  {sprite_name:20s} → {w}x{h} pixels (expected 32x32) → SIZE_MISMATCH")
+                    print(
+                        f"  ⚠️  {sprite_name:20s} → {w}x{h} pixels (expected 32x32) → SIZE_MISMATCH"
+                    )
                     fail_count += 1
             except Exception as e:
                 print(f"  ❌ {sprite_name:20s} → LOAD_ERROR: {e}")
@@ -89,6 +91,7 @@ def test_sprite_loading():
 
     pygame.quit()
     return fail_count == 0
+
 
 if __name__ == "__main__":
     success = test_sprite_loading()

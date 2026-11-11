@@ -141,7 +141,11 @@ class AssetLoader:
             / "generated_animated"
             / f"{sprite_name}_{dir_char}_{state}.png",
             # 格式0B: 4方向精灵 {unit}_{N|S|E|W}.png (fallback for unsupported state)
-            self.assets_dir / "sprites" / "minimal_test" / "generated_4dir" / f"{sprite_name}_{dir_char}.png",
+            self.assets_dir
+            / "sprites"
+            / "minimal_test"
+            / "generated_4dir"
+            / f"{sprite_name}_{dir_char}.png",
             # 格式0C: Enhanced sprites (static, no direction/state)
             self.assets_dir
             / "sprites"
@@ -179,9 +183,7 @@ class AssetLoader:
                     continue
 
         # 所有路径都不存在，返回None让调用者使用程序化生成
-        logger.debug(
-            "No sprite found: %s/%s/dir=%s/state=%s", faction, unit_type, dir_char, state
-        )
+        logger.debug("No sprite found: %s/%s/dir=%s/state=%s", faction, unit_type, dir_char, state)
         return None
 
     def load_cc2_sprite(

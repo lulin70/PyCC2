@@ -16,7 +16,7 @@ Design:
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, List, Tuple, Optional
+from typing import TYPE_CHECKING
 
 import pygame
 
@@ -34,21 +34,21 @@ class PathPreviewRenderer:
         # 渲染配置
         self.path_line_color = (100, 150, 255, 200)  # 半透明蓝色
         self.path_line_width = 2
-        
+
         self.start_point_color = (0, 255, 0)  # 绿色起点
         self.end_point_color = (255, 0, 0)  # 红色终点
         self.waypoint_color = (100, 150, 255)  # 蓝色中间点
         self.point_radius = 4
-        
+
         # 性能统计
         self._render_time_ms = 0.0
-        
+
         # PERF-01: Surface缓存（避免每帧创建）
-        self._line_surface_cache: Optional[pygame.Surface] = None
-        self._text_cache: Optional[pygame.Surface] = None
-        self._cached_path: Optional[List[Tuple[int, int]]] = None
-        self._screen_size_cache: Optional[Tuple[int, int]] = None
-        
+        self._line_surface_cache: pygame.Surface | None = None
+        self._text_cache: pygame.Surface | None = None
+        self._cached_path: list[tuple[int, int]] | None = None
+        self._screen_size_cache: tuple[int, int] | None = None
+
         # 字体（用于显示路径长度）
         try:
             self._font_small = pygame.font.Font(None, 14)
@@ -60,12 +60,12 @@ class PathPreviewRenderer:
         self,
         screen: pygame.Surface,
         camera: Camera,
-        path: List[Tuple[int, int]],
+        path: list[tuple[int, int]],
         show_waypoints: bool = True,
         show_path_length: bool = False,
     ) -> None:
         """渲染单条路径（PERF-01优化：Surface缓存）
-        
+
         Args:
             screen: 主屏幕Surface
             camera: 相机对象（用于世界坐标→屏幕坐标转换）
@@ -75,21 +75,22 @@ class PathPreviewRenderer:
         """
         if not path or len(path) < 2:
             return
-        
+
         import time
+
         start_time = time.perf_counter()
-        
+
         try:
             # PERF-01: 检查是否需要重绘（脏标记）
             screen_size = screen.get_size()
             path_changed = self._cached_path != path
             screen_size_changed = self._screen_size_cache != screen_size
-            
+
             if path_changed or screen_size_changed:
                 # 路径或屏幕尺寸变化，重建缓存
                 self._cached_path = path
                 self._screen_size_cache = screen_size
-                
+
                 # 1. 将世界坐标转换为屏幕坐标
                 screen_points = []
                 for world_x, world_y in path:
@@ -100,24 +101,27 @@ class PathPreviewRenderer:
                     screen_x += camera.tile_size // 2
                     screen_y += camera.tile_size // 2
                     screen_points.append((screen_x, screen_y))
-                
+
                 # 2. 绘制路径线到缓存Surface
                 if len(screen_points) >= 2:
                     # PERF-01: 复用或创建line_surface
-                    if self._line_surface_cache is None or self._line_surface_cache.get_size() != screen_size:
+                    if (
+                        self._line_surface_cache is None
+                        or self._line_surface_cache.get_size() != screen_size
+                    ):
                         self._line_surface_cache = pygame.Surface(screen_size, pygame.SRCALPHA)
                     else:
                         # 清空缓存Surface
                         self._line_surface_cache.fill((0, 0, 0, 0))
-                    
+
                     pygame.draw.lines(
                         self._line_surface_cache,
                         self.path_line_color,
                         False,  # 不闭合
                         screen_points,
-                        self.path_line_width
+                        self.path_line_width,
                     )
-                    
+
                     # 3. 绘制路径点到缓存Surface（可选）
                     if show_waypoints:
                         for i, (sx, sy) in enumerate(screen_points):
@@ -128,12 +132,23 @@ class PathPreviewRenderer:
                                 color = self.end_point_color
                             else:
                                 color = self.waypoint_color
-                            
+
                             # 绘制圆点
-                            pygame.draw.circle(self._line_surface_cache, color, (int(sx), int(sy)), self.point_radius)
+                            pygame.draw.circle(
+                                self._line_surface_cache,
+                                color,
+                                (int(sx), int(sy)),
+                                self.point_radius,
+                            )
                             # 外边框（黑色）
-                            pygame.draw.circle(self._line_surface_cache, (0, 0, 0), (int(sx), int(sy)), self.point_radius, 1)
-                
+                            pygame.draw.circle(
+                                self._line_surface_cache,
+                                (0, 0, 0),
+                                (int(sx), int(sy)),
+                                self.point_radius,
+                                1,
+                            )
+
                 # 4. 文字缓存（可选）
                 if show_path_length and len(path) > 0:
                     length_text = self._font_small.render(
@@ -141,28 +156,30 @@ class PathPreviewRenderer:
                     )
                     end_x, end_y = screen_points[-1]
                     text_bg_rect = length_text.get_rect(topleft=(end_x + 10, end_y - 10))
-                    
+
                     # 创建文字缓存Surface
-                    self._text_cache = pygame.Surface((text_bg_rect.width + 4, text_bg_rect.height + 2), pygame.SRCALPHA)
+                    self._text_cache = pygame.Surface(
+                        (text_bg_rect.width + 4, text_bg_rect.height + 2), pygame.SRCALPHA
+                    )
                     self._text_cache.fill((0, 0, 0, 180))
                     self._text_cache.blit(length_text, (2, 1))
                     self._text_cache_position = (text_bg_rect.x - 2, text_bg_rect.y - 1)
-            
+
             # PERF-01: 使用缓存绘制（无论是否重建）
             if self._line_surface_cache is not None:
                 screen.blit(self._line_surface_cache, (0, 0))
-            
+
             if show_path_length and self._text_cache is not None:
                 screen.blit(self._text_cache, self._text_cache_position)
-        
+
         except Exception as e:
             logger.error(f"Path rendering failed: {e}", exc_info=True)
-        
+
         finally:
             # 性能统计
             elapsed = (time.perf_counter() - start_time) * 1000
             self._render_time_ms = elapsed
-            
+
             # 性能预算检查（2ms）
             if elapsed > 2.0:
                 logger.warning(
@@ -174,11 +191,11 @@ class PathPreviewRenderer:
         self,
         screen: pygame.Surface,
         camera: Camera,
-        paths: List[List[Tuple[int, int]]],
+        paths: list[list[tuple[int, int]]],
         show_waypoints: bool = True,
     ) -> None:
         """渲染多条路径（批量）
-        
+
         Args:
             screen: 主屏幕Surface
             camera: 相机对象

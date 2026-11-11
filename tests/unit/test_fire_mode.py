@@ -128,6 +128,8 @@ def test_set_fire_mode_command_cycles_without_value():
     director, _ = _director()
     unit = _unit("u1")
 
-    director.handle_player_command({"command": "set_fire_mode", "unit_ids": ["u1"]}, [unit], object())
+    director.handle_player_command(
+        {"command": "set_fire_mode", "unit_ids": ["u1"]}, [unit], object()
+    )
 
     assert unit.fire_mode == "return"

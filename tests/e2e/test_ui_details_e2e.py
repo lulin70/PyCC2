@@ -24,7 +24,6 @@ os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
 import pygame
 import pytest
-from tests.e2e.conftest import GameLoopFactory
 
 from pycc2.domain.components.health_component import HealthComponent
 from pycc2.domain.components.morale_component import MoraleComponent
@@ -41,6 +40,7 @@ from pycc2.presentation.ui.keybindings_overlay import KeybindingsOverlay
 from pycc2.presentation.ui.radial_menu import RadialMenu
 from pycc2.presentation.ui.tooltip import Tooltip
 from pycc2.services.pause_menu_controller import PauseMenuController
+from tests.e2e.conftest import GameLoopFactory
 
 
 def _make_unit(

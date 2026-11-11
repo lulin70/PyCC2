@@ -909,7 +909,10 @@ class TestHandleDeploymentInput:
         dm = FakeDeploymentManager(is_active=True, deployment_ui=ui)
         d, _ = _make_dispatcher(deployment_manager=dm)
         assert d._handle_deployment_input(_user_event()) is False
-        assert d._handle_deployment_input(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE)) is False
+        assert (
+            d._handle_deployment_input(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE))
+            is False
+        )
 
     def test_display_config_none_uses_default_tile_size(self, monkeypatch):
         """Boundary: no display_config → tile_size defaults to 16."""

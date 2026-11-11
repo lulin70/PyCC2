@@ -33,9 +33,7 @@ def _valid_scenario() -> dict:
         "sector": "arnhem",
         "operation_id": "test_operation",
         "forces": {"allies": force, "axis": axis},
-        "victory_locations": [
-            {"id": "vl_test", "position": [1, 1], "value": 10, "type": "bridge"}
-        ],
+        "victory_locations": [{"id": "vl_test", "position": [1, 1], "value": 10, "type": "bridge"}],
         "special_rules": ["night_fighting"],
     }
 

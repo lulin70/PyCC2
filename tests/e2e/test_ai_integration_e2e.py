@@ -22,6 +22,7 @@ os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
 import pygame
 import pytest
+
 from tests.e2e.conftest import GameLoopFactory
 
 # ===========================================================================

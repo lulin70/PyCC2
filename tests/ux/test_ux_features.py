@@ -9,8 +9,6 @@ Test Coverage:
 
 import time
 
-import numpy as np
-import pygame
 import pytest
 
 from pycc2.infrastructure.audio.sound_effect_manager import SoundEffectManager, SoundEffectType
@@ -22,7 +20,6 @@ from pycc2.infrastructure.visual.particle_system import (
 )
 from pycc2.presentation.ui.tutorial_system import TutorialHintSystem, TutorialStep, TutorialSystem
 from pycc2.presentation.ui.ui_response_monitor import UIResponseMonitor, UIResponseOptimizer
-
 
 # =============================================================================
 # Test 1: Sound Effect Manager
@@ -407,7 +404,7 @@ def test_24_tutorial_hint_expiration():
 def test_25_ux_features_summary():
     """Summary test verifying all UX features."""
     # Sound effects: 16 types
-    sound_manager = SoundEffectManager()
+    SoundEffectManager()  # 冒烟验证构造器可用
     assert len(list(SoundEffectType)) == 16
 
     # Particles: 5 types

@@ -101,11 +101,7 @@ class TankPixelRenderer:
         enter the cache: they would be returned for any same-sized tank hull.
         """
         for tank_type in TankType:
-            faction = (
-                Faction.ALLIES
-                if tank_type == TankType.SHERMAN_M4
-                else Faction.AXIS
-            )
+            faction = Faction.ALLIES if tank_type == TankType.SHERMAN_M4 else Faction.AXIS
             for direction in Direction:
                 cls.create_tank_sprite(
                     direction=direction,

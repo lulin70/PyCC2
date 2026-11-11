@@ -20,9 +20,7 @@ class ScenarioRules:
         if isinstance(raw, dict):
             raw = [key for key, value in raw.items() if value]
         normalized = {
-            str(rule).strip().lower()
-            for rule in raw
-            if isinstance(rule, str) and rule.strip()
+            str(rule).strip().lower() for rule in raw if isinstance(rule, str) and rule.strip()
         }
         return cls(rules=frozenset(normalized))
 

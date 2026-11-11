@@ -9,9 +9,9 @@ Provides:
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Callable
 
 import pygame
 
@@ -204,7 +204,9 @@ class TutorialSystem:
             pygame.draw.rect(surface, (255, 255, 0), message.highlight_rect, 3)
 
         # Draw progress indicator
-        progress_text = f"Step {list(TutorialStep).index(self.current_step) + 1} of {len(TutorialStep)}"
+        progress_text = (
+            f"Step {list(TutorialStep).index(self.current_step) + 1} of {len(TutorialStep)}"
+        )
         progress_surf = self._font.render(progress_text, True, (180, 180, 180))
         progress_rect = progress_surf.get_rect(
             centerx=surface.get_width() // 2, bottom=box_y + box_height - 20
@@ -259,7 +261,9 @@ class TutorialHintSystem:
 
         # Draw hint at bottom of screen
         hint_surf = self._font.render(f"💡 Hint: {self._current_hint}", True, (255, 255, 100))
-        hint_rect = hint_surf.get_rect(centerx=surface.get_width() // 2, bottom=surface.get_height() - 20)
+        hint_rect = hint_surf.get_rect(
+            centerx=surface.get_width() // 2, bottom=surface.get_height() - 20
+        )
 
         # Draw background
         bg_rect = hint_rect.inflate(20, 10)

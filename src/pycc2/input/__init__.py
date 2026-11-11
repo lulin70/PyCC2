@@ -5,8 +5,8 @@ Provides keyboard, mouse, and input management.
 
 from pycc2.input.keyboard_shortcut_manager import (
     KeyboardShortcutManager,
-    ShortcutAction,
     KeyModifier,
+    ShortcutAction,
 )
 
 __all__ = [

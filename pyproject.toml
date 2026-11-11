@@ -64,6 +64,8 @@ where = ["src"]
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+# 资源生成脚本与归档代码不属于发布代码，不参与 lint/format 门禁
+extend-exclude = ["assets", "docs", "tmp"]
 
 [tool.ruff.lint]
 select = [

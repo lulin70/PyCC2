@@ -322,9 +322,7 @@ class DeploymentUI:
         """Enable scenario deployment rules such as airborne deployment."""
         from pycc2.domain.value_objects.scenario_rules import ScenarioRules
 
-        self._airdrop_deployment = ScenarioRules.from_map_data(map_data).has(
-            "airdrop_deployment"
-        )
+        self._airdrop_deployment = ScenarioRules.from_map_data(map_data).has("airdrop_deployment")
 
     def start_deployment_with_settings(
         self,

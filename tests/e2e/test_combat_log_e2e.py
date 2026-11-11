@@ -152,6 +152,7 @@ def init_game_with_units():
     from pathlib import Path
 
     import pygame
+
     from tests.e2e.conftest import GameLoopFactory
 
     pygame.init()

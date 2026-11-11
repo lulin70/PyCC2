@@ -77,7 +77,9 @@ def test_scenario_parses_and_has_required_keys(scenario_path: Path):
     assert data["name"].strip(), f"{scenario_path.name}: empty name"
 
     forces = data["forces"]
-    assert set(forces) >= {"allies", "axis"}, f"{scenario_path.name}: forces must define allies and axis"
+    assert set(forces) >= {"allies", "axis"}, (
+        f"{scenario_path.name}: forces must define allies and axis"
+    )
     for side in ("allies", "axis"):
         assert forces[side].get("units"), f"{scenario_path.name}: side '{side}' has no units"
 

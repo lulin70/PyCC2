@@ -629,9 +629,7 @@ class DeploymentManager:
             "position": position,
         }
         type_map = {k: getattr(UnitType, v) for k, v in self._TYPE_MAP.items()}
-        template_type_map = {
-            k: getattr(UnitType, v) for k, v in self._TEMPLATE_TYPE_MAP.items()
-        }
+        template_type_map = {k: getattr(UnitType, v) for k, v in self._TEMPLATE_TYPE_MAP.items()}
         return self._create_unit_from_placement(
             placement=placement,
             faction=faction,

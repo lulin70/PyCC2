@@ -36,7 +36,6 @@ def draw_base(surf, cx, cy, faction, zoom):
 
 def draw_sprite_body(surf, cx, cy, kind, zoom):
     """Rough unit silhouette so the sample looks like the game."""
-    size = int(TILE * zoom)
     color = (200, 200, 200)
     if kind == "infantry":
         pygame.draw.circle(surf, color, (cx, cy), int(10 * zoom))
@@ -47,11 +46,15 @@ def draw_sprite_body(surf, cx, cy, kind, zoom):
         r.center = (cx, cy)
         pygame.draw.rect(surf, color, r, border_radius=4)
         pygame.draw.rect(
-            surf, (140, 140, 140), (cx - int(16 * zoom), cy + int(6 * zoom), int(32 * zoom), int(6 * zoom))
+            surf,
+            (140, 140, 140),
+            (cx - int(16 * zoom), cy + int(6 * zoom), int(32 * zoom), int(6 * zoom)),
         )
     elif kind == "mg":
         pygame.draw.circle(surf, color, (cx, cy), int(9 * zoom))
-        pygame.draw.line(surf, color, (cx - int(10 * zoom), cy), (cx + int(10 * zoom), cy), int(3 * zoom))
+        pygame.draw.line(
+            surf, color, (cx - int(10 * zoom), cy), (cx + int(10 * zoom), cy), int(3 * zoom)
+        )
     elif kind == "gun":
         pygame.draw.circle(surf, color, (cx, cy), int(9 * zoom))
         pygame.draw.line(

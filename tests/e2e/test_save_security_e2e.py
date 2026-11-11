@@ -26,13 +26,13 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
 import pygame
 import pytest
-from tests.e2e.conftest import GameLoopFactory
 
 from pycc2.infrastructure.save_system import (
     SaveMetaData,
     SaveSlotStatus,
     SecureSaveManager,
 )
+from tests.e2e.conftest import GameLoopFactory
 
 # Stable HMAC key so save/load work across separate SecureSaveManager
 # instances (simulates: save -> exit game -> restart -> load). 32+ bytes.

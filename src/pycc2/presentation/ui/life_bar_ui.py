@@ -6,8 +6,9 @@ Shows HP percentage with color gradients (green → yellow → red).
 
 from __future__ import annotations
 
-import pygame
 from typing import TYPE_CHECKING
+
+import pygame
 
 if TYPE_CHECKING:
     from pygame import Surface
@@ -23,17 +24,17 @@ COLOR_HP_BORDER = (0, 0, 0)  # Black border
 
 class LifeBarUI:
     """UI component for rendering unit health bars.
-    
+
     Renders a horizontal bar above each unit showing HP percentage.
     Color changes based on health: green (high) → yellow (medium) → red (low).
-    
+
     Attributes:
         bar_width: Width of health bar (pixels)
         bar_height: Height of health bar (pixels)
         offset_y: Vertical offset above unit center (pixels)
         show_border: Whether to show border around bar
     """
-    
+
     def __init__(
         self,
         bar_width: int = 40,
@@ -42,7 +43,7 @@ class LifeBarUI:
         show_border: bool = True,
     ):
         """Initialize life bar UI.
-        
+
         Args:
             bar_width: Width of health bar (pixels)
             bar_height: Height of health bar (pixels)
@@ -53,13 +54,13 @@ class LifeBarUI:
         self.bar_height = bar_height
         self.offset_y = offset_y
         self.show_border = show_border
-    
+
     def get_hp_color(self, hp_percent: float) -> tuple[int, int, int]:
         """Get color based on HP percentage.
-        
+
         Args:
             hp_percent: HP percentage (0.0 to 1.0)
-        
+
         Returns:
             RGB color tuple
         """
@@ -69,7 +70,7 @@ class LifeBarUI:
             return COLOR_HP_MEDIUM
         else:
             return COLOR_HP_LOW
-    
+
     def render_life_bar(
         self,
         surface: Surface,
@@ -79,7 +80,7 @@ class LifeBarUI:
         max_hp: int,
     ) -> None:
         """Render life bar for a single unit.
-        
+
         Args:
             surface: Pygame surface to render onto
             unit_screen_x: Unit center X in screen coordinates
@@ -89,40 +90,40 @@ class LifeBarUI:
         """
         if max_hp <= 0:
             return
-        
+
         # Calculate HP percentage
         hp_percent = max(0.0, min(1.0, hp / max_hp))
-        
+
         # Don't render if at full health (optional optimization)
         if hp_percent >= 1.0:
             return
-        
+
         # Calculate bar position (centered above unit)
         bar_x = unit_screen_x - self.bar_width // 2
         bar_y = unit_screen_y + self.offset_y
-        
+
         # Render background
         bg_rect = pygame.Rect(bar_x, bar_y, self.bar_width, self.bar_height)
         pygame.draw.rect(surface, COLOR_HP_BG, bg_rect)
-        
+
         # Render HP fill
         if hp_percent > 0.0:
             fill_width = int(self.bar_width * hp_percent)
             hp_rect = pygame.Rect(bar_x, bar_y, fill_width, self.bar_height)
             hp_color = self.get_hp_color(hp_percent)
             pygame.draw.rect(surface, hp_color, hp_rect)
-        
+
         # Render border
         if self.show_border:
             pygame.draw.rect(surface, COLOR_HP_BORDER, bg_rect, 1)
-    
+
     def render_batch(
         self,
         surface: Surface,
         units: list[tuple[int, int, int, int]],
     ) -> None:
         """Render life bars for multiple units (batch).
-        
+
         Args:
             surface: Pygame surface to render onto
             units: List of (screen_x, screen_y, hp, max_hp) tuples
@@ -133,7 +134,7 @@ class LifeBarUI:
 
 class LifeBarUIExtended(LifeBarUI):
     """Extended life bar with optional HP text display."""
-    
+
     def __init__(
         self,
         bar_width: int = 40,
@@ -144,7 +145,7 @@ class LifeBarUIExtended(LifeBarUI):
         font_size: int = 12,
     ):
         """Initialize extended life bar UI.
-        
+
         Args:
             bar_width: Width of health bar (pixels)
             bar_height: Height of health bar (pixels)
@@ -156,7 +157,7 @@ class LifeBarUIExtended(LifeBarUI):
         super().__init__(bar_width, bar_height, offset_y, show_border)
         self.show_text = show_text
         self.font = pygame.font.Font(None, font_size) if show_text else None
-    
+
     def render_life_bar(
         self,
         surface: Surface,
@@ -166,7 +167,7 @@ class LifeBarUIExtended(LifeBarUI):
         max_hp: int,
     ) -> None:
         """Render life bar with optional HP text.
-        
+
         Args:
             surface: Pygame surface to render onto
             unit_screen_x: Unit center X in screen coordinates
@@ -176,7 +177,7 @@ class LifeBarUIExtended(LifeBarUI):
         """
         # Render base life bar
         super().render_life_bar(surface, unit_screen_x, unit_screen_y, hp, max_hp)
-        
+
         # Render HP text if enabled
         if self.show_text and self.font and max_hp > 0:
             hp_text = f"{hp}/{max_hp}"

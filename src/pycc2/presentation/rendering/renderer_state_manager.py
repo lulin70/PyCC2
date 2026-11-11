@@ -95,7 +95,7 @@ class RendererStateManager:
 
     def get_fps(self) -> float:
         """Get current average FPS from recent samples.
-        
+
         Returns:
             Average FPS from rolling window, or 60.0 if insufficient samples.
         """

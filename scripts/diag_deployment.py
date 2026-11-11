@@ -63,8 +63,11 @@ def main() -> int:
     )
     logger.info(
         "Camera pos=(%.0f, %.0f) zoom=%.2f viewport=%dx%d",
-        camera.position.x, camera.position.y, camera.zoom,
-        camera.viewport_width, camera.viewport_height,
+        camera.position.x,
+        camera.position.y,
+        camera.zoom,
+        camera.viewport_width,
+        camera.viewport_height,
     )
 
     event_bus = EventBus()
@@ -177,7 +180,8 @@ def main() -> int:
         logger.info(
             "ui tile_size=%s map_offset=(%s,%s) roster_items=%s",
             getattr(ui, "tile_size", "?"),
-            getattr(ui, "map_offset_x", "?"), getattr(ui, "map_offset_y", "?"),
+            getattr(ui, "map_offset_x", "?"),
+            getattr(ui, "map_offset_y", "?"),
             len(roster) if roster else "?",
         )
         zones = getattr(ui, "_zone_tiles", None)
@@ -190,8 +194,12 @@ def main() -> int:
     logger.info(
         "world extent at 48px/tile: %dx%d px; camera center=(%.0f, %.0f) -> "
         "camera is at %.0f%% x, %.0f%% y of the map",
-        world_w, world_h, camera.position.x, camera.position.y,
-        100.0 * camera.position.x / world_w, 100.0 * camera.position.y / world_h,
+        world_w,
+        world_h,
+        camera.position.x,
+        camera.position.y,
+        100.0 * camera.position.x / world_w,
+        100.0 * camera.position.y / world_h,
     )
 
     # Try the click chain: select first roster unit, place on a friendly tile.
@@ -206,10 +214,14 @@ def main() -> int:
             mox, moy, ts = layout
             origin = camera.world_to_screen(Vec2(0.0, 0.0))
             logger.info(
-                "map_layout=(%d,%d,ts=%d); projected map origin=(%.1f,%.1f) "
-                "expected=(%d,%d)",
-                mox, moy, ts, origin[0], origin[1],
-                ui.roster_width + mox, moy,
+                "map_layout=(%d,%d,ts=%d); projected map origin=(%.1f,%.1f) expected=(%d,%d)",
+                mox,
+                moy,
+                ts,
+                origin[0],
+                origin[1],
+                ui.roster_width + mox,
+                moy,
             )
             assert abs(origin[0] - (ui.roster_width + mox)) <= 1.0
             assert abs(origin[1] - moy) <= 1.0
@@ -267,9 +279,7 @@ def main() -> int:
 
             # 4. Click START through the full click handler.
             bx, by, bw, bh = ui._button_rect
-            res_btn = ui.handle_click_full(
-                bx + bw // 2, by + bh // 2, mox, moy, ts
-            )
+            res_btn = ui.handle_click_full(bx + bw // 2, by + bh // 2, mox, moy, ts)
             logger.info("start-button click -> %s", res_btn)
             assert res_btn == "begin_battle"
 
@@ -280,7 +290,9 @@ def main() -> int:
             assert not dm.is_active, "deployment still active after complete"
             logger.info(
                 "battle camera center=(%.0f,%.0f) zoom=%.2f",
-                camera.position.x, camera.position.y, camera.zoom,
+                camera.position.x,
+                camera.position.y,
+                camera.zoom,
             )
             logger.info("CLICK CHAIN PASS: select -> drag -> place -> START -> battle")
         except Exception:

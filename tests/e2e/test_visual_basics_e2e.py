@@ -28,7 +28,6 @@ os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 import numpy as np
 import pygame
 import pytest
-from tests.e2e.conftest import GameLoopFactory
 
 from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.systems.day_night_cycle import DayNightEffects, GameTime, TimeOfDay
@@ -47,6 +46,7 @@ from pycc2.presentation.rendering.direction_sprite import DirectionSpriteManager
 from pycc2.presentation.rendering.unit_fade_renderer import UnitFadeRenderer
 from pycc2.presentation.rendering.weather_renderer import WeatherRenderer
 from pycc2.presentation.rendering.weather_system import WeatherSystem
+from tests.e2e.conftest import GameLoopFactory
 
 
 @pytest.fixture(autouse=True)

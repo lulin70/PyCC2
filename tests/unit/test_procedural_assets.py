@@ -57,9 +57,7 @@ def procedural_manager(pygame_display, monkeypatch):
     manager._use_pixvoxel_sprites = False
     manager._use_svg_sprites = False
     manager._use_cc2_sprites = False
-    monkeypatch.setattr(
-        manager._asset_loader, "load_unit_sprite", lambda **kwargs: None
-    )
+    monkeypatch.setattr(manager._asset_loader, "load_unit_sprite", lambda **kwargs: None)
     return manager
 
 
@@ -128,9 +126,9 @@ class TestExternalAssetBoundary:
         import pycc2.presentation.rendering as rendering_pkg
 
         assert not hasattr(rendering_pkg, "HUDManager"), "渲染包不应再导出 HUDManager"
-        assert (
-            importlib.util.find_spec("pycc2.presentation.rendering.hud") is None
-        ), "rendering/hud.py 应已删除"
+        assert importlib.util.find_spec("pycc2.presentation.rendering.hud") is None, (
+            "rendering/hud.py 应已删除"
+        )
 
         from pycc2.services.hud_manager import HUDManager
 

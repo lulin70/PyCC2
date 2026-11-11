@@ -2,6 +2,27 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## Unreleased (2026-11-11) — 项目整理评估与 CI 门禁修复
+
+**目标**: 7 维度项目评审，修复远端 CI 连续红灯，清理技术债与临时文件。
+
+**相关文档**: [PROJECT_REVIEW_20261111.md](docs/PROJECT_REVIEW_20261111.md)
+
+### Fixed
+- **CI 红灯（P0）**: 远端 CI 最近 5 次全部失败。根因：`ruff check .` 扫全仓库报 1860 告警，lint 门禁第一步即失败。修复：pyproject 排除 assets/docs/tmp；`ruff --fix` 修复 895 处 + W293/W291 unsafe 修复 187 处 + 手动修复 10 处（F841×7、SIM103×2、B007×1）；`ruff format` 重排 46 个文件。修复后 `ruff check .` 与 `ruff format --check .` 全绿。
+- 手动修复涉及行为等价改写：`combat_system.can_fire`（`return self.cooldown_timer <= 0.0`）、`movement_controller` 地形判定直接返回条件表达式。
+
+### Removed
+- 根目录 21 项未跟踪临时文件（草稿测试 13 个、性能报告 2 份、`tmp/`、误入 tests/ 的截图 2 张、独立脚本 3 个）。pytest 只收集 `tests/`，删除不影响回归。
+
+### Verification
+- 删除后全量回归：7549 passed / 4 skipped / 0 failed。
+- ruff 修复后全量回归（两次独立复跑）：7549 passed / 4 skipped / 0 failed。
+- ruff 门禁：`ruff check .` 0 告警；`ruff format --check .` 737 文件全部合格。
+
+### Known Issues
+- **流程缺陷**: CI 红灯持续 ≥3 天无人察觉（推送后未确认远端结果）。已写入评审报告维度 5 与下一步建议。
+
 ## Unreleased (2026-11-10) — 部署画面修复（PF-14）
 
 **目标**: 修复战役部署画面地图全黑、单位不可选、无法开始战斗的阻断缺陷。

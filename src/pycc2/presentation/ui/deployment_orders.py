@@ -112,9 +112,7 @@ class DeploymentOrders:
             return None
 
         # Right-click on map
-        map_pos = ui.screen_to_map(
-            screen_x, screen_y, map_offset_x, map_offset_y, tile_size
-        )
+        map_pos = ui.screen_to_map(screen_x, screen_y, map_offset_x, map_offset_y, tile_size)
         if map_pos is None:
             return None
 

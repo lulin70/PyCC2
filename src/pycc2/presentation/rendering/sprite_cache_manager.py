@@ -353,9 +353,7 @@ class SpriteCacheManager:
                     faction=fac_enum,
                     state=state,
                     frame=0,
-                    infantry_type=self._UNIT_TYPE_INFANTRY.get(
-                        unit_type, InfantryType.RIFLEMAN
-                    ),
+                    infantry_type=self._UNIT_TYPE_INFANTRY.get(unit_type, InfantryType.RIFLEMAN),
                 )
 
             if cc2_sprite is not None:

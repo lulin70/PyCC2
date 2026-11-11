@@ -25,7 +25,6 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 os.environ.setdefault("SDL_JOYSTICK_DRIVER", "dummy")
 
 import pytest
-from tests.e2e.conftest import GameLoopFactory
 
 from pycc2.domain.ai.blackboard import Blackboard
 from pycc2.domain.ai.difficulty_system import DifficultyLevel, DifficultySystem
@@ -43,6 +42,7 @@ from pycc2.domain.components.vision_component import VisionComponent
 from pycc2.domain.components.weapon_component import WeaponComponent
 from pycc2.domain.entities.unit import Faction, Unit, UnitType
 from pycc2.domain.value_objects.tile_coord import TileCoord
+from tests.e2e.conftest import GameLoopFactory
 
 # ---------------------------------------------------------------------------
 # Unit factory — mirrors test_ai_behaviors_e2e._make_unit

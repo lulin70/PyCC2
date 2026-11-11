@@ -15,7 +15,6 @@ import math
 import random
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import ClassVar
 
 import pygame
 
@@ -107,7 +106,9 @@ class ParticleEffect:
         elif effect_type == ParticleType.RESOURCE_COLLECT:
             self._spawn_sparkles(count=12, color=(255, 215, 0), size=4)
 
-    def _spawn_explosion(self, count: int, speed: float, color: tuple[int, int, int], size: float) -> None:
+    def _spawn_explosion(
+        self, count: int, speed: float, color: tuple[int, int, int], size: float
+    ) -> None:
         """Spawn explosion particles radiating outward."""
         for _ in range(count):
             angle = random.uniform(0, 2 * math.pi)
