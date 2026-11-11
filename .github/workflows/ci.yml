@@ -275,9 +275,11 @@ jobs:
         run: |
           pytest tests/benchmark/test_fps_baseline.py -v --benchmark-only
 
-      # Note: To update perf_baseline.json, run locally:
-      #   python scripts/update_perf_baseline.py --commit
-      # Then push the commit. Do NOT auto-update in CI (prevents baseline drift).
+      # Note: perf_baseline.json is sourced from CI hardware (recollected via
+      # workflow_dispatch `perf-baseline-recollect`, 2026-11-11: dev-machine
+      # baseline measured 31% above CI runners and exhausted the 0.70 margin,
+      # run 43005896487). Do NOT update from a dev machine — it re-opens the
+      # margin gap. Do NOT auto-update in CI (prevents baseline drift).
 
       - name: Upload test results
         if: always()

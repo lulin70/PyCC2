@@ -1,0 +1,57 @@
+# FPS 基线重采（手动触发，V-04 相对回归门禁的配套工具）
+#
+# 背景：perf_baseline.json 历史在开发机采集，CI runner 实测低 25–31%。
+# 2026-11-11 阈值 0.70 的余量耗尽（run 43005896487：normal_load 69.0–70.2 <
+# 阈值 71.6），按 ci.yml 既定规则改为在 CI 硬件重采基线，而非继续放宽阈值。
+#
+# 使用：gh workflow run perf_recollect.yml
+# 之后在本仓库 Actions 页下载 perf-baseline-ci 产物，人工核对后提交
+# tests/benchmark/perf_baseline.json（不自动提交，防基线漂移）。
+#
+# 原理：删掉工作区内的基线文件使 FPS 测试进入「首采静默通过」模式，
+# 再由 scripts/update_perf_baseline.py 跑基准并写出 CI 硬件实测值。
+
+name: perf-baseline-recollect
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recollect:
+    name: Recollect FPS baseline on CI hardware
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install dependencies (pinned via requirements-dev.lock)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.lock
+          pip install -e . --no-deps
+
+      - name: Recollect FPS baseline (CI hardware)
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+        run: |
+          rm tests/benchmark/perf_baseline.json
+          python scripts/update_perf_baseline.py
+
+      - name: Show recollected baseline
+        run: cat tests/benchmark/perf_baseline.json
+
+      - name: Upload recollected baseline
+        uses: actions/upload-artifact@v7
+        with:
+          name: perf-baseline-ci
+          path: tests/benchmark/perf_baseline.json
