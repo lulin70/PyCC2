@@ -11,6 +11,9 @@ All notable changes to PyCC2 will be documented in this file.
 ### Fixed
 - **CI 红灯（P0）**: 远端 CI 最近 5 次全部失败。根因：`ruff check .` 扫全仓库报 1860 告警，lint 门禁第一步即失败。修复：pyproject 排除 assets/docs/tmp；`ruff --fix` 修复 895 处 + W293/W291 unsafe 修复 187 处 + 手动修复 10 处（F841×7、SIM103×2、B007×1）；`ruff format` 重排 46 个文件。修复后 `ruff check .` 与 `ruff format --check .` 全绿。
 - 手动修复涉及行为等价改写：`combat_system.can_fire`（`return self.cooldown_timer <= 0.0`）、`movement_controller` 地形判定直接返回条件表达式。
+- **CI 红灯第二层（mypy）**: ruff 修复后 CI 推进到 mypy 步骤，暴露 67 个类型错误（此前被 ruff 失败遮蔽）。修复 17 文件（+89/−42），零 `type: ignore` 豁免；顺带修复 `movement_controller.set_pixel_offset` 一处潜伏运行时 bug（对只读属性赋值）。
+- **CI 红灯第三层（radon 基线过期）**: mypy 修复后 CI 推进到圈复杂度步骤，报 19 个 E+ 违规 vs 基线 18。审计确认第 19 个 E+ 函数在 CI 红灯期间引入（radon 步骤从未执行到，无人察觉），基线如实更新 18→19 并加注释禁止无评审上调。
+- **CI 红灯第四层（README 版本漂移）**: 文档一致性检查（此前从未执行到）报 README.md 标头 v0.9.1 与 VERSION=0.9.0 不符。README 标头对齐 v0.9.0。
 
 ### Removed
 - 根目录 21 项未跟踪临时文件（草稿测试 13 个、性能报告 2 份、`tmp/`、误入 tests/ 的截图 2 张、独立脚本 3 个）。pytest 只收集 `tests/`，删除不影响回归。
@@ -20,9 +23,10 @@ All notable changes to PyCC2 will be documented in this file.
 - ruff 修复后全量回归（两次独立复跑）：7549 passed / 4 skipped / 0 failed。
 - ruff 门禁：`ruff check .` 0 告警；`ruff format --check .` 737 文件全部合格。
 - mypy 门禁：`MYPYPATH=src mypy -p pycc2` 0 错误（修复 15 文件 67 个类型错误，无 ignore 豁免；全量回归保持 7549 passed）。
+- radon 门禁：本地 `radon cc src/ -n E` 计数 19 = 基线 19；文档一致性检查本地 SUCCESS（run 42957745409 已验证 ruff/mypy/security/pip-audit 四步通过）。
 
 ### Known Issues
-- **流程缺陷**: CI 红灯持续 ≥3 天无人察觉（推送后未确认远端结果）。已写入评审报告维度 5 与下一步建议。
+- **流程缺陷**: CI 红灯持续 ≥3 天无人察觉（推送后未确认远端结果）。已写入评审报告维度 5 与下一步建议。红灯期间 ruff/mypy 失败遮蔽了 radon 与文档一致性两个后续门禁步骤，导致第 19 个 E+ 函数与 README v0.9.1 版本漂移潜伏多日——本轮修复已全部补齐。
 
 ## Unreleased (2026-11-10) — 部署画面修复（PF-14）
 
