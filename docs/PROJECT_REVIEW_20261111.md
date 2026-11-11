@@ -78,7 +78,9 @@ E2E 用户旅程已按规则执行（真实窗口、真实主循环、真实事�
 | 3 | radon 圈复杂度 | run 42957745409 失败 | 19 E+ vs 基线 18；第 19 个 E+ 在红灯期间引入，radon 步骤从未执行到 | 基线如实 18→19，注释禁止无评审上调 |
 | 4 | 文档一致性 | run 42957745409 未执行到（本地预跑发现） | README.md 标头 v0.9.1 vs VERSION=0.9.0 | README 标头对齐 v0.9.0 |
 
-run 42957745409 已验证 ruff lint ✓ / ruff format ✓ / mypy ✓ / bandit ✓ / pip-audit ✓，radon 与文档一致性修复后推送待验证。
+run 42957745409 已验证 ruff lint ✓ / ruff format ✓ / mypy ✓ / bandit ✓ / pip-audit ✓。
+
+**最终结论（2026-11-11）**：radon 与文档一致性修复后，run 42958155525 全绿——lint / unit / integration / e2e / slow / benchmark / docker 全部通过（Visual Regression 为每周定时任务，按设计跳过）。远端 CI 连续红灯问题关闭。
 
 ## 维度 6：目录结构
 
@@ -101,7 +103,7 @@ run 42957745409 已验证 ruff lint ✓ / ruff format ✓ / mypy ✓ / bandit �
 4. **文档熵（P2）**：70 个顶层文档无生命周期管理。
 
 ### 下一步建议（优先级序）
-1. 本轮推送后盯 CI 变绿，把「CI 绿灯」写进 RELEASE_GATE 前置条件。
+1. ~~本轮推送后盯 CI 变绿~~ ✅ 已完成：run 42958155525 全绿。「CI 绿灯」仍需写进 RELEASE_GATE 前置条件（待办）。
 2. 做一次正式发布：bump 0.9.2，回写 VERSION/pyproject/`__init__.py`/README/CHANGELOG，打 tag。
 3. 空闲机器复测 PF-04，关闭或降级该缺陷。
 4. docs/ 归档整理（维度 6 建议）。
