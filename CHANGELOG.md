@@ -22,7 +22,7 @@ All notable changes to PyCC2 will be documented in this file.
 - 文档一致性：`scripts/check_doc_consistency.sh` SUCCESS（VERSION=0.9.2）。
 - 归档迁移后 `grep` 复核：留下文档中指向旧路径的引用 0 处。
 - TODO 复核：`grep -rn "TODO\|FIXME" src --include="*.py"`（含/不含 `_archive`）均为 4 处。
-- 远端 CI：见本轮推送后 run 记录（tag v0.9.2）。
+- 远端 CI：**run 42964965524（b043028，tag v0.9.2）全绿**——lint / unit / integration / e2e / slow / benchmark / docker 全部通过，Visual Regression 按设计跳过（每周定时）。符合 RELEASE_GATE_W5 新增的「远端 CI 强制前置」门禁。
 
 ### Known Issues
 - **PF-04 挂起**: 真实窗口 heavy 最差 54.9 FPS 复测需空闲机器；当前开发机持续高负载，测量不可信。待空闲窗口执行 `scripts/real_window_perf.py` 后关闭或降级。

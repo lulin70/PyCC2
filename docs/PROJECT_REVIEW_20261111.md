@@ -108,7 +108,7 @@ run 42957745409 已验证 ruff lint ✓ / ruff format ✓ / mypy ✓ / bandit �
 
 ### 下一步建议（优先级序）
 1. ~~本轮推送后盯 CI 变绿~~ ✅ 已完成：run 42958155525 全绿。「CI 绿灯」已写入 RELEASE_GATE_W5 §1 门禁总表与 §6 正式发布前置条件（2026-11-11）。
-2. 做一次正式发布：bump 0.9.2，回写 VERSION/pyproject/`__init__.py`/README/CHANGELOG，打 tag。（2026-11-11 执行中）
+2. ~~做一次正式发布：bump 0.9.2，回写 VERSION/pyproject/`__init__.py`/README/CHANGELOG，打 tag~~ ✅ 已完成（2026-11-11）：v0.9.2 已发布，提交 b043028，tag v0.9.2 已推送，CI run 42964965524 全绿（新门禁首次执行即通过）。
 3. 空闲机器复测 PF-04，关闭或降级该缺陷。⏸️ 挂起：当前开发机持续高负载（见维度 3），复测数据不可信；待空闲机器窗口执行 `scripts/real_window_perf.py`。
 4. ~~docs/ 归档整理（维度 6 建议）~~ ✅ 已完成（2026-11-11）：29 个历史交付文档 `git mv` 入 `docs/archive/`，`docs/_archive/` 并入 `docs/archive/RTS_REMOVAL_2026_11_07/`，外部引用链接已修正。顶层文档 70→43。
 5. ~~渲染层 TODO 逐条判定「修/删/留」~~ ✅ 已完成（2026-11-11）：实测 4 处（初评 46 处系误计，已勘误）。判定：T1/T2 留（登记 TD-079）、T3 删（死代码）、T4 修。见 [TODO_TRIAGE_20261111.md](TODO_TRIAGE_20261111.md)。
