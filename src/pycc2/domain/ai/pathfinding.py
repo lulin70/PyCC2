@@ -177,7 +177,9 @@ class AStarPathfinder:
         elif terrain == TerrainType.WOODS:
             return base_cost * 1.5  # 森林缓慢
         elif terrain == TerrainType.WATER:
-            return base_cost * 3.0  # 水域很慢
+            if self._is_walkable(x2, y2, unit):
+                return base_cost * 2.0
+            return 999.0
         else:
             return base_cost
     
@@ -197,7 +199,17 @@ class AStarPathfinder:
         # 简化版：根据TerrainType判断
         # WALL和BUILDING_SOLID不可通行
         from pycc2.domain.value_objects.terrain_type import TerrainType
-        return terrain not in [TerrainType.WALL, TerrainType.BUILDING_SOLID]
+
+        if terrain in (TerrainType.WALL, TerrainType.BUILDING_SOLID):
+            return False
+        if terrain.is_passable:
+            return True
+        return bool(
+            unit is not None
+            and getattr(unit, "is_amphibious", False)
+            and getattr(self.game_map, "amphibious_passable", False)
+            and terrain == TerrainType.WATER
+        )
     
     def _reconstruct_path(self, node: PathNode) -> List[Tuple[int, int]]:
         """重建路径（从终点回溯到起点）"""

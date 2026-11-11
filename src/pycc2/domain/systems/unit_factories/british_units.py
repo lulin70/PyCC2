@@ -413,4 +413,24 @@ def _build_british_units() -> dict[str, CC2UnitTemplate]:
         max_per_battle=3,
         historical_notes="Universal Carrier (Bren Carrier), light tracked transport with Bren gun",
     )
+    units["uk_bedford_ql"] = CC2UnitTemplate(
+        template_id="uk_bedford_ql",
+        display_name="Bedford QL Truck",
+        faction=Faction.BRITISH,
+        role=VehicleType.TRUCK,
+        squad_size=2,
+        weapon_primary_id="uk_bren",
+        vehicle_armor=0,
+        vehicle_speed=64,
+        vehicle_crew=2,
+        experience_level=1,
+        morale_initial=72.0,
+        stealth_rating=0.10,
+        vision_range=5,
+        can_capture=False,
+        can_deploy_in_building=False,
+        deployment_cost=60,
+        max_per_battle=3,
+        historical_notes="British 3-ton supply truck used by XXX Corps on the Arnhem corridor",
+    )
     return units

@@ -52,6 +52,7 @@ if TYPE_CHECKING:
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
 
+from pycc2.domain.value_objects.vec2 import Vec2
 from pycc2.presentation.rendering.atmosphere_controller import AtmosphereController
 from pycc2.presentation.rendering.autotile_system import AutotileCache
 from pycc2.presentation.rendering.building_renderer import BuildingRenderer
@@ -85,6 +86,10 @@ from pycc2.presentation.rendering.unit_renderer import UnitRenderer
 from pycc2.presentation.rendering.world_renderer import WorldRenderer
 from pycc2.presentation.ui.theme import ThemeManager
 from pycc2.presentation.visual_config import DEFAULT_VISUAL_CONFIG
+
+# Backdrop drawn outside the map bounds. It must be darker than any terrain so
+# the play field stands out from the UI background.
+_OUT_OF_MAP_COLOR = (26, 28, 34)
 
 
 class EnhancedRenderer(EnhancedRendererDelegateMixin):
@@ -407,6 +412,23 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
 
         theme_bg = ThemeManager.get_current().colors.background
         offscreen.fill(theme_bg)
+
+        # Darken the area outside the map so the play field reads clearly and
+        # the grey theme background does not look like part of the terrain.
+        if game_map is not None:
+            tile_px = self.TILE_SIZE
+            top_left = camera.world_to_screen(Vec2(0.0, 0.0))
+            bottom_right = camera.world_to_screen(
+                Vec2(game_map.width * tile_px, game_map.height * tile_px)
+            )
+            map_rect = pygame.Rect(
+                int(top_left[0]),
+                int(top_left[1]),
+                max(0, int(bottom_right[0] - top_left[0])),
+                max(0, int(bottom_right[1] - top_left[1])),
+            )
+            offscreen.fill(_OUT_OF_MAP_COLOR)
+            offscreen.fill(theme_bg, map_rect)
 
         if self._world_renderer is not None:
             self._world_renderer.render_terrain(

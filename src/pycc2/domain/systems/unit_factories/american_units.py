@@ -465,4 +465,24 @@ def _build_american_units() -> dict[str, CC2UnitTemplate]:
         max_per_battle=1,
         historical_notes="Sherman with 76mm gun, improved anti-tank performance over 75mm",
     )
+    units["us_gmc_cckw"] = CC2UnitTemplate(
+        template_id="us_gmc_cckw",
+        display_name="GMC CCKW 2½-ton Truck",
+        faction=Faction.AMERICAN,
+        role=VehicleType.TRUCK,
+        squad_size=2,
+        weapon_primary_id="us_m1_carbine",
+        vehicle_armor=0,
+        vehicle_speed=72,
+        vehicle_crew=2,
+        experience_level=1,
+        morale_initial=72.0,
+        stealth_rating=0.10,
+        vision_range=5,
+        can_capture=False,
+        can_deploy_in_building=False,
+        deployment_cost=60,
+        max_per_battle=3,
+        historical_notes="Red Ball Express supply truck, unarmored and unarmed except for crew carbines",
+    )
     return units

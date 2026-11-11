@@ -380,4 +380,24 @@ def _build_german_units() -> dict[str, CC2UnitTemplate]:
             "used at Arnhem and Nijmegen against ground targets"
         ),
     )
+    units["de_opel_blitz"] = CC2UnitTemplate(
+        template_id="de_opel_blitz",
+        display_name="Opel Blitz Truck",
+        faction=Faction.GERMAN,
+        role=VehicleType.TRUCK,
+        squad_size=2,
+        weapon_primary_id="de_kar98k",
+        vehicle_armor=0,
+        vehicle_speed=64,
+        vehicle_crew=2,
+        experience_level=1,
+        morale_initial=72.0,
+        stealth_rating=0.10,
+        vision_range=5,
+        can_capture=False,
+        can_deploy_in_building=False,
+        deployment_cost=50,
+        max_per_battle=3,
+        historical_notes="Wehrmacht 3-ton supply truck, the backbone of German motor transport",
+    )
     return units

@@ -212,6 +212,8 @@ class BallisticEngine:
         dist_penalty = self._calc_distance_penalty(dist, wstats["effective_range"])
         accuracy = base_acc * dist_penalty
         cover_mod = self._calc_cover_modifier(target, game_map)
+        # PF-12: fortified_positions makes defenders harder to hit.
+        cover_mod *= getattr(target, "scenario_cover_mod", 1.0)
         accuracy *= cover_mod
         # R1: Upper floor attacker gets LOS/accuracy bonus (better vantage point)
         attacker_floor = getattr(attacker, "building_floor", 0)
@@ -222,6 +224,8 @@ class BallisticEngine:
         # CC2 parity: fewer effective squad members mean less firepower.
         squad_mod = getattr(attacker, "squad_effectiveness", 1.0)
         accuracy *= max(0.2, squad_mod)
+        # PF-12: combined_arms_bonus raises accuracy when armor supports infantry.
+        accuracy *= max(0.5, getattr(attacker, "scenario_accuracy_mod", 1.0))
         if environment is not None:
             accuracy *= environment.get_accuracy_modifier()
         # R4: Weather accuracy modifier (rain reduces accuracy, fog reduces less)

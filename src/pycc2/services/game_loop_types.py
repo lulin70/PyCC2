@@ -38,6 +38,10 @@ class GameState:
     time_speed: float = 1.0
     current_weather: object | None = None  # WeatherType enum
     in_combat: bool = False  # V-10 Wave E2: combat lock for theme switching
+    # PF-12: active scenario applied to this battle (empty = skirmish).
+    scenario_rules: frozenset[str] = frozenset()
+    # PF-12: "none" / "limited" / "full" air support capability.
+    air_support_level: str = "full"
 
 
 __all__ = [

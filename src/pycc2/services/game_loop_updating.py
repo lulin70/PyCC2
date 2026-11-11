@@ -54,6 +54,17 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+_ARMOR_TYPE_KEYS = ("TANK", "VEHICLE", "HALFTRACK", "ARMORED")
+
+
+def _is_armor_unit(unit: object) -> bool:
+    """Return True for tank/vehicle units (PF-12 combined arms)."""
+    unit_type = getattr(unit, "unit_type", None)
+    name = getattr(unit_type, "name", "").upper()
+    if "ANTI_TANK" in name:
+        return False
+    return any(key in name for key in _ARMOR_TYPE_KEYS)
+
 
 class GameLoopUpdatingMixin:
     """Per-tick update methods for GameLoop. Inherited by the facade."""
@@ -101,6 +112,7 @@ class GameLoopUpdatingMixin:
         self._update_audio_sync(dt)
         self._update_unit_movement(dt)
         self._update_fatigue(dt)
+        self._update_scenario_effects()
         self._update_combat(dt)
         self._update_popups()
         self._update_camera(dt)
@@ -128,6 +140,24 @@ class GameLoopUpdatingMixin:
         if self._day_night_cycle is not None:
             self._day_night_cycle.advance(dt)
 
+    def _matching_vl_ids(self, *needles: str) -> list[str]:
+        """Return ids of objectives whose id/name contains any needle (PF-12)."""
+        if self.state.game_map is None:
+            return []
+        ids: list[str] = []
+        for obj in self.state.game_map.objectives:
+            text = f"{getattr(obj, 'id', '')} {getattr(obj, 'name', '')}".lower()
+            if any(needle in text for needle in needles):
+                ids.append(str(getattr(obj, "id", "")))
+        return ids
+
+    def _vl_owner_map(self) -> dict[str, str | None]:
+        """Return current VL ownership from the victory manager (PF-12)."""
+        manager = getattr(self, "_victory_manager", None)
+        if manager is None or not hasattr(manager, "get_vl_owners"):
+            return {}
+        return manager.get_vl_owners()
+
     def _update_reinforcements(self) -> None:
         """Spawn scenario reinforcements when their arrival turn is reached."""
         service = self._reinforcement_service
@@ -136,12 +166,27 @@ class GameLoopUpdatingMixin:
             return
         if self.state.game_map is None:
             return
+
+        rules = getattr(self, "_scenario_rules", None)
+        allowed_sides: set[str] | None = None
+        max_per_side: int | None = None
+        if rules is not None:
+            if rules.has("lz_must_hold_for_reinforcements"):
+                lz_ids = self._matching_vl_ids("lz", "landing")
+                owners = self._vl_owner_map()
+                if lz_ids and not any(owners.get(vl) == "allies" for vl in lz_ids):
+                    allowed_sides = {"axis"}
+            if rules.has("limited_reinforcements"):
+                max_per_side = 2
+
         try:
             spawned = service.update(
                 tick=self.state.tick,
                 units=self.state.units,
                 game_map=self.state.game_map,
                 factory=manager.create_reinforcement_unit,
+                allowed_sides=allowed_sides,
+                max_per_side=max_per_side,
             )
         except Exception:
             logger.warning("Reinforcement update failed", exc_info=True)
@@ -159,6 +204,17 @@ class GameLoopUpdatingMixin:
         spawn_points = self._scenario_data.get("spawn_points", []) if self._scenario_data else []
         if not spawn_points:
             return
+
+        rules = getattr(self, "_scenario_rules", None)
+        air_level = getattr(self.state, "air_support_level", "full")
+        if rules is not None and rules.has("corridor_must_remain_open"):
+            corridor_ids = self._matching_vl_ids(
+                "corridor", "road", "junction", "highway", "crossroads"
+            )
+            owners = self._vl_owner_map()
+            if corridor_ids and any(owners.get(vl) == "axis" for vl in corridor_ids):
+                logger.debug("Supply blocked: corridor VL lost")
+                return
 
         for unit in self.state.units:
             if not getattr(unit, "is_alive", False):
@@ -182,13 +238,69 @@ class GameLoopUpdatingMixin:
             if not near:
                 continue
 
+            amount = max(1, weapon.max_ammo // 10)
+            if rules is not None and rules.has("supply_dwindling"):
+                amount = int(amount * getattr(self, "_supply_decay", 1.0))
+            if unit_side == "allies":
+                if air_level == "none":
+                    continue
+                if air_level == "limited":
+                    amount //= 2
+            if amount <= 0:
+                continue
+
             cap = weapon.max_ammo * 2
             if weapon.reserve_ammo < cap:
-                weapon.reserve_ammo = min(cap, weapon.reserve_ammo + max(1, weapon.max_ammo // 10))
+                weapon.reserve_ammo = min(cap, weapon.reserve_ammo + amount)
+
+        if rules is not None and rules.has("supply_dwindling"):
+            self._supply_decay = max(0.0, getattr(self, "_supply_decay", 1.0) * 0.85)
+
+    def _update_scenario_effects(self) -> None:
+        """Apply PF-12 rules that act every tick or every second."""
+        rules = getattr(self, "_scenario_rules", None)
+        if rules is None or not rules.rules:
+            return
+        units = self.state.units
+
+        if rules.has("fanatic_defenders"):
+            for unit in units:
+                if unit.is_alive and unit.faction.name == "AXIS" and unit.morale.value < 30:
+                    unit.morale.value = 30
+
+        if not rules.has("combined_arms_bonus"):
+            return
+        self._combined_arms_counter = getattr(self, "_combined_arms_counter", 0) + 1
+        if self._combined_arms_counter % 30 != 0:
+            return
+
+        armor = [unit for unit in units if unit.is_alive and _is_armor_unit(unit)]
+        if not armor:
+            return
+        for unit in units:
+            if not unit.is_alive:
+                continue
+            pos = unit.position.tile_coord
+            supported = any(
+                other.faction == unit.faction
+                and max(
+                    abs(other.position.tile_coord.x - pos.x),
+                    abs(other.position.tile_coord.y - pos.y),
+                )
+                <= 4
+                for other in armor
+            )
+            unit.scenario_accuracy_mod = 1.10 if supported else 1.0
 
     def _update_fog_of_war(self) -> None:
         # Recompute per-faction visibility (5-tick interval handled by service).
         # A fog failure must never break the main loop.
+        # PF-14: skip during deployment — the player has no units placed yet,
+        # so an update would mark the whole map HIDDEN and black out the
+        # deployment screen. Fog starts with the first battle tick.
+        dm = getattr(self, "_deployment_manager", None)
+        if dm is not None and dm.is_active:
+            return
         if self._fog_of_war_service is None:
             return
         try:

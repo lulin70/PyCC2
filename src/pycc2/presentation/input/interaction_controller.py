@@ -568,6 +568,24 @@ class InteractionController:
                     "unit_ids": list(self._selected_ids),
                 }
             )
+        elif action == "build_bridge" or (not action and key == pygame.K_b):
+            # Engineers build a bridge on an adjacent water or broken tile
+            self._event_bus.publish(
+                {
+                    "command": "build_bridge",
+                    "unit_ids": list(self._selected_ids),
+                }
+            )
+        elif action == "air_strike" or (not action and key == pygame.K_k):
+            # Air strike targets the tile under the mouse cursor
+            tile = self.screen_to_tile(pygame.mouse.get_pos())
+            self._event_bus.publish(
+                {
+                    "command": "air_strike",
+                    "unit_ids": [],
+                    "target": (tile.x, tile.y),
+                }
+            )
 
     def register_on_selected(self, callback: Callable[[set[str]], None]) -> None:
         """Register on selected."""

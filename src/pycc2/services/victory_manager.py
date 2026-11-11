@@ -68,6 +68,19 @@ class VictoryManager:
 
         self._event_bus.subscribe(UnitAttacked, self._on_unit_attacked_for_stats)
 
+    def set_require_all_vls(self, enabled: bool) -> None:
+        """PF-12: require every VL at time expiry (must_hold_all_vls)."""
+        evaluator = getattr(self, "_victory_evaluator", None)
+        if evaluator is not None:
+            evaluator.require_all_vls = bool(enabled)
+
+    def get_vl_owners(self) -> dict[str, str | None]:
+        """Return current VL ownership (id -> "allies" / "axis" / None)."""
+        evaluator = getattr(self, "_victory_evaluator", None)
+        if evaluator is None:
+            return {}
+        return dict(getattr(evaluator, "_vl_owner", {}))
+
     def _build_objectives_from_map(self) -> list:
         """Build objective list from the game map's victory locations."""
         from pycc2.domain.systems.victory_conditions import Objective

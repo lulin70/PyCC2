@@ -105,7 +105,7 @@ class PathPreview:
         )
         goal = TileCoord(target_pos[0], target_pos[1])
 
-        raw_path = self.pathfinder.find_path(start, goal, game_map)
+        raw_path = self.pathfinder.find_path(start, goal, game_map, unit=unit)
 
         if not raw_path:
             return PreviewPath(is_valid=False, segments=[], total_distance=0)

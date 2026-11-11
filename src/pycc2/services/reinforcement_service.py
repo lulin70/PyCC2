@@ -82,10 +82,28 @@ class ReinforcementService:
         units: list[Unit],
         game_map: GameMap,
         factory,
+        allowed_sides: set[str] | None = None,
+        max_per_side: int | None = None,
     ) -> list[tuple[Unit, str]]:
-        """Spawn due reinforcements. Returns ``(unit, side)`` pairs."""
+        """Spawn due reinforcements. Returns ``(unit, side)`` pairs.
+
+        Args:
+            allowed_sides: PF-12 gate (``lz_must_hold_for_reinforcements``).
+                ``None`` allows all sides.
+            max_per_side: PF-12 cap (``limited_reinforcements``).
+
+        """
         spawned: list[tuple[Unit, str]] = []
+        per_side: dict[str, int] = {}
+        for side, _index in self._spawned:
+            per_side[side] = per_side.get(side, 0) + 1
+
         for entry in self.due_entries(tick):
+            side = entry["side"]
+            if allowed_sides is not None and side not in allowed_sides:
+                continue
+            if max_per_side is not None and per_side.get(side, 0) >= max_per_side:
+                continue
             direction = entry["from_direction"]
             position = self._find_spawn_position(game_map, units, direction)
             if position is None:
@@ -103,7 +121,8 @@ class ReinforcementService:
                 logger.warning("Failed to create reinforcement %s", entry["template_id"])
                 continue
 
-            self._spawned.add((entry["side"], entry["index"]))
+            self._spawned.add((side, entry["index"]))
+            per_side[side] = per_side.get(side, 0) + 1
             units.append(unit)
             spawned.append((unit, entry["side"]))
             logger.info(

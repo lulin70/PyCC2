@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import math
+import time
 from collections import deque
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
@@ -43,6 +44,8 @@ _CMD_DISPATCH: dict[str, str] = {
     "hide": "_cmd_hide",
     "deploy_smoke": "_cmd_deploy_smoke",
     "demolish": "_cmd_demolish",
+    "build_bridge": "_cmd_build_bridge",
+    "air_strike": "_cmd_air_strike",
     "switch_ammo": "_cmd_switch_ammo",
     "set_fire_mode": "_cmd_set_fire_mode",
 }
@@ -58,6 +61,8 @@ class CombatDirector:
     ballistic_engine: BallisticEngine | None = None
     pathfinder: PathFinder | None = None
     bridge_destructible: bool = True
+    air_support_level: str = "full"
+    _air_strikes_remaining: int = 3
 
     _units: list[Unit] = field(init=False, default_factory=list)
     _game_map: GameMap | None = field(init=False, default=None)
@@ -177,7 +182,9 @@ class CombatDirector:
         for uid in unit_ids:
             unit = unit_map.get(uid)
             if unit and self.pathfinder:
-                path = self.pathfinder.find_path(unit.position.tile_coord, target_tc, game_map)
+                path = self.pathfinder.find_path(
+                    unit.position.tile_coord, target_tc, game_map, unit=unit
+                )
                 if path:
                     self._move_orders[uid] = {"path": deque(list(path)[1:]), "current_idx": 0}
 
@@ -442,6 +449,106 @@ class CombatDirector:
             elif hasattr(unit, "cycle_fire_mode"):
                 unit.cycle_fire_mode()
             logger.info("[FIRE MODE] %s -> %s", unit.name or uid, unit.fire_mode)
+
+    def configure_air_support(self, level: str) -> None:
+        """Set the air support level and the number of strikes for the battle.
+
+        CC2 limits the number of air sorties: none = 0, limited = 1, full = 3.
+        """
+        limits = {"none": 0, "limited": 1, "full": 3}
+        self.air_support_level = level
+        self._air_strikes_remaining = limits.get(level, 3)
+
+    def _cmd_build_bridge(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Let an engineer unit build a bridge on one adjacent water or broken tile."""
+        from pycc2.domain.value_objects.terrain_type import TerrainType
+        from pycc2.domain.value_objects.tile_coord import TileCoord
+
+        for uid in data.get("unit_ids", []):
+            unit = unit_map.get(uid)
+            if unit is None or not getattr(unit, "is_alive", False):
+                continue
+            if not self._is_engineer(unit):
+                logger.warning("[BRIDGE] %s is not an engineer unit", unit.name or uid)
+                continue
+            origin = unit.position.tile_coord
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)):
+                coord = TileCoord(origin.x + dx, origin.y + dy)
+                if not game_map.is_within_bounds(coord):
+                    continue
+                terrain = game_map.get_terrain(coord)
+                if terrain not in (TerrainType.WATER, TerrainType.BRIDGE_DESTROYED):
+                    continue
+                game_map.set_terrain(coord, TerrainType.BRIDGE)
+                logger.info(
+                    "[BRIDGE] %s built a bridge at (%d, %d)",
+                    unit.name or uid,
+                    coord.x,
+                    coord.y,
+                )
+                self.event_bus.publish(
+                    {
+                        "action": "bridge_built",
+                        "unit_id": uid,
+                        "position": (coord.x, coord.y),
+                        "timestamp": time.time(),
+                    }
+                )
+                break
+
+    def _cmd_air_strike(
+        self,
+        data: dict,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> None:
+        """Resolve an air strike on a tile. Damages every unit in the 3x3 area."""
+        from pycc2.domain.value_objects.tile_coord import TileCoord
+
+        if self._air_strikes_remaining <= 0:
+            logger.info("[AIR] No air support left (%s)", self.air_support_level)
+            return
+        target = data.get("target")
+        if target is None:
+            return
+        tx, ty = int(target[0]), int(target[1])
+        if not game_map.is_within_bounds(TileCoord(tx, ty)):
+            return
+
+        self._air_strikes_remaining -= 1
+        hit_ids: list[str] = []
+        for unit in units:
+            if not getattr(unit, "is_alive", False):
+                continue
+            tc = unit.position.tile_coord
+            if max(abs(tc.x - tx), abs(tc.y - ty)) <= 1:
+                unit.take_damage(45)
+                hit_ids.append(unit.id)
+        self.event_bus.publish(
+            {
+                "action": "air_strike",
+                "target": (tx, ty),
+                "hit_unit_ids": tuple(hit_ids),
+                "remaining": self._air_strikes_remaining,
+                "timestamp": time.time(),
+            }
+        )
+        logger.info("[AIR] Strike at (%d, %d) hit %d unit(s)", tx, ty, len(hit_ids))
+
+    @staticmethod
+    def _is_engineer(unit) -> bool:
+        """Return True when the unit can build and demolish bridges."""
+        if getattr(unit, "has_demolitions", False):
+            return True
+        template_id = str(getattr(unit, "template_id", "")).lower()
+        return any(key in template_id for key in ("engineer", "pioneer", "sapper"))
 
     @staticmethod
     def _is_mortar_weapon(unit) -> bool:

@@ -11,6 +11,7 @@ import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 
 if TYPE_CHECKING:
@@ -39,11 +40,15 @@ class PathFinder:
         goal: TileCoord,
         game_map: GameMap,
         max_iterations: int = 10000,
+        unit: object | None = None,
     ) -> list[TileCoord] | None:
-        """Find the lowest-cost tile path from start to goal using A*."""
+        """Find the lowest-cost tile path from start to goal using A*.
+
+        Pass *unit* to make water passable for amphibious units.
+        """
         if not game_map.is_within_bounds(start) or not game_map.is_within_bounds(goal):
             return None
-        if not game_map.is_passable(start) or not game_map.is_passable(goal):
+        if not self._passable(start, game_map, unit) or not self._passable(goal, game_map, unit):
             return None
         if start == goal:
             return [start]
@@ -79,12 +84,12 @@ class PathFinder:
                 n_key = (neighbor.x, neighbor.y)
                 if not game_map.is_within_bounds(neighbor):
                     continue
-                if not game_map.is_passable(neighbor):
+                if not self._passable(neighbor, game_map, unit):
                     continue
                 if n_key in closed_set:
                     continue
 
-                move_cost = self._get_movement_cost(current.coord, neighbor, game_map)
+                move_cost = self._get_movement_cost(current.coord, neighbor, game_map, unit)
                 tentative_g = current.g_score + move_cost
 
                 if n_key not in g_scores or tentative_g < g_scores[n_key]:
@@ -109,10 +114,11 @@ class PathFinder:
         start: TileCoord,
         max_cost: float,
         game_map: GameMap,
+        unit: object | None = None,
     ) -> set[TileCoord]:
         """Return all tiles reachable from start within the given movement cost budget."""
         reachable: set[TileCoord] = set()
-        if not game_map.is_within_bounds(start) or not game_map.is_passable(start):
+        if not game_map.is_within_bounds(start) or not self._passable(start, game_map, unit):
             return reachable
 
         counter = 0
@@ -135,10 +141,10 @@ class PathFinder:
                     continue
                 if not game_map.is_within_bounds(neighbor):
                     continue
-                if not game_map.is_passable(neighbor):
+                if not self._passable(neighbor, game_map, unit):
                     continue
 
-                move_cost = self._get_movement_cost(current, neighbor, game_map)
+                move_cost = self._get_movement_cost(current, neighbor, game_map, unit)
                 new_cost = current_cost + move_cost
 
                 if new_cost <= max_cost and (n_key not in costs or new_cost < costs[n_key]):
@@ -149,14 +155,37 @@ class PathFinder:
         return reachable
 
     def _get_movement_cost(
-        self, from_coord: TileCoord, to_coord: TileCoord, game_map: GameMap
+        self,
+        from_coord: TileCoord,
+        to_coord: TileCoord,
+        game_map: GameMap,
+        unit: object | None = None,
     ) -> float:
         terrain = game_map.get_terrain(to_coord)
         base_cost: float = terrain.movement_cost
         if base_cost == float("inf"):
-            return float("inf")
+            if not self._can_cross_water(to_coord, game_map, unit):
+                return float("inf")
+            base_cost = 2.0
         dx = abs(to_coord.x - from_coord.x)
         dy = abs(to_coord.y - from_coord.y)
         if dx + dy == 2:
             return base_cost * math.sqrt(2)
         return base_cost
+
+    @staticmethod
+    def _passable(coord: TileCoord, game_map: GameMap, unit: object | None) -> bool:
+        """Return True when the unit may enter the tile."""
+        checker = getattr(game_map, "is_passable_for", None)
+        if checker is not None and unit is not None:
+            return bool(checker(coord, unit))
+        return bool(game_map.is_passable(coord))
+
+    @staticmethod
+    def _can_cross_water(coord: TileCoord, game_map: GameMap, unit: object | None) -> bool:
+        """Return True for an amphibious unit on an amphibious-crossing map."""
+        if unit is None or not getattr(unit, "is_amphibious", False):
+            return False
+        if not getattr(game_map, "amphibious_passable", False):
+            return False
+        return game_map.get_terrain(coord) == TerrainType.WATER

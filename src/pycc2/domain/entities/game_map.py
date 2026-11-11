@@ -234,13 +234,24 @@ class GameMap:
         self.tile_grid[y, x] = new_terrain.value
 
     def is_passable(self, coord: TileCoord) -> bool:
-        """Return True if a unit can enter the tile at the given coordinate."""
+        """Return True if the terrain at the coordinate is passable by foot."""
         if not self.is_within_bounds(coord):
             return False
-        terrain = self.get_terrain(coord)
-        if terrain == TerrainType.WATER and getattr(self, "amphibious_passable", False):
+        return self.get_terrain(coord).is_passable
+
+    def is_passable_for(self, coord: TileCoord, unit: object | None = None) -> bool:
+        """Return True when *unit* can enter the tile.
+
+        Amphibious units may cross water when the map allows amphibious
+        crossing. All other units use the terrain passability.
+        """
+        if self.is_passable(coord):
             return True
-        return terrain.is_passable
+        if unit is None or not getattr(self, "amphibious_passable", False):
+            return False
+        if not getattr(unit, "is_amphibious", False):
+            return False
+        return self.is_within_bounds(coord) and self.get_terrain(coord) == TerrainType.WATER
 
     def is_within_bounds(self, coord: TileCoord) -> bool:
         """Return True if the coordinate lies inside the map extents."""

@@ -168,6 +168,8 @@ class VictoryConditionEvaluator:
         self.force_morale_threshold = force_morale_threshold
         # Track current owner of each VL (instant capture, no ticks)
         self._vl_owner: dict[str, str | None] = {}
+        # PF-12: must_hold_all_vls — time expiry needs every VL, not a score lead.
+        self.require_all_vls = False
 
     def evaluate(
         self,
@@ -231,6 +233,16 @@ class VictoryConditionEvaluator:
 
         # --- CC2 Rule 4: Time limit — score VLs by point values ---
         if self.time_limit_ticks > 0 and tick >= self.time_limit_ticks:
+            if self.require_all_vls and self.objectives:
+                total_vls = len(self.objectives)
+                allies_held = sum(1 for o in self._vl_owner.values() if o == "allies")
+                axis_held = sum(1 for o in self._vl_owner.values() if o == "axis")
+                if allies_held == total_vls:
+                    return (GameResult.ALLIES_VICTORY, "Time expired — all VLs held")
+                if axis_held == total_vls:
+                    return (GameResult.AXIS_VICTORY, "Time expired — all VLs held")
+                return (GameResult.DRAW, "Time expired — not all VLs held")
+
             allies_score = 0
             axis_score = 0
             for obj in self.objectives:

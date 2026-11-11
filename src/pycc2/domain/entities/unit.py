@@ -141,6 +141,7 @@ class Unit(
     squad_ref: Squad | None = None  # Direct reference replaces squad_id
     template_id: str = ""  # Scenario template id (engineer/demolition checks)
     has_demolitions: bool = False  # Engineer capability from unit template
+    is_amphibious: bool = False  # Can cross water when the map allows it
     fire_mode: str = "free"  # CC2 fire discipline: "free", "return", "hold"
     _last_attacked_tick: int = field(init=False, default=0)  # Estimated 30 Hz tick of last damage
     state_machine: StateMachine = field(init=False)
@@ -190,6 +191,9 @@ class Unit(
     # P1-7 Fix: Smoke grenade capability
     has_smoke_grenades: bool = False  # Set True for units with smoke capability
     smoke_grenade_count: int = 0  # Remaining smoke grenades (0=unlimited in CC2)
+    # PF-12: scenario rule modifiers applied by the game loop.
+    scenario_accuracy_mod: float = 1.0  # >1 = better accuracy (combined arms)
+    scenario_cover_mod: float = 1.0  # <1 = harder to hit (fortified positions)
     _grenade_count: int = 0  # Internal grenade counter for legacy melee/grenade AI
     _ammo_popup_shown: bool = field(init=False, default=False)
 

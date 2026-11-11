@@ -28,6 +28,75 @@ def _make_custom_map(grid: list[list[int | TerrainType]]) -> GameMap:
     return GameMap(id="test", name="test", width=w, height=h, tile_grid=arr)
 
 
+class TestAmphibiousCrossing:
+    """CC2-01: amphibious units may cross water when the map allows it."""
+
+    def _water_map(self) -> GameMap:
+        game_map = _make_custom_map(
+            [
+                [TerrainType.OPEN, TerrainType.OPEN, TerrainType.OPEN],
+                [TerrainType.WATER, TerrainType.WATER, TerrainType.WATER],
+                [TerrainType.OPEN, TerrainType.OPEN, TerrainType.OPEN],
+            ]
+        )
+        game_map.amphibious_passable = True
+        return game_map
+
+    def test_amphibious_unit_crosses_water(self):
+        class AmphibiousUnit:
+            is_amphibious = True
+
+        game_map = self._water_map()
+        path = PathFinder().find_path(
+            TileCoord(1, 0), TileCoord(1, 2), game_map, unit=AmphibiousUnit()
+        )
+        assert path is not None
+        assert any(game_map.get_terrain(coord) == TerrainType.WATER for coord in path)
+
+    def test_non_amphibious_unit_is_blocked_by_water(self):
+        class FootUnit:
+            is_amphibious = False
+
+        game_map = self._water_map()
+        path = PathFinder().find_path(TileCoord(1, 0), TileCoord(1, 2), game_map, unit=FootUnit())
+        assert path is None
+
+    def test_amphibious_water_cost_is_two(self):
+        class AmphibiousUnit:
+            is_amphibious = True
+
+        game_map = self._water_map()
+        cost = PathFinder()._get_movement_cost(
+            TileCoord(1, 0), TileCoord(1, 1), game_map, AmphibiousUnit()
+        )
+        assert cost == 2.0
+
+    def test_map_without_amphibious_rule_blocks_water(self):
+        class AmphibiousUnit:
+            is_amphibious = True
+
+        game_map = self._water_map()
+        game_map.amphibious_passable = False
+        path = PathFinder().find_path(
+            TileCoord(1, 0), TileCoord(1, 2), game_map, unit=AmphibiousUnit()
+        )
+        assert path is None
+
+    def test_legacy_ai_pathfinder_respects_amphibious_flag(self):
+        from types import SimpleNamespace
+
+        from pycc2.domain.ai.pathfinding import AStarPathfinder
+
+        game_map = self._water_map()
+        finder = AStarPathfinder(game_map)
+
+        foot = SimpleNamespace(is_amphibious=False)
+        amphibious = SimpleNamespace(is_amphibious=True)
+
+        assert finder.find_path(1, 0, 1, 2, foot) == []
+        assert finder.find_path(1, 0, 1, 2, amphibious) != []
+
+
 class TestPfBasic:
     def test_pf_basic_01_straight_line(self):
         game_map = _make_map(10, 10)

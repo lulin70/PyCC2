@@ -7,9 +7,12 @@ and weapon selection logic.
 
 from unittest.mock import MagicMock, Mock
 
+import numpy as np
 import pytest
 
+from pycc2.domain.entities.game_map import GameMap
 from pycc2.domain.entities.unit import Faction, UnitType
+from pycc2.domain.value_objects.terrain_type import TerrainType
 from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.services.combat_director import CombatDirector
 
@@ -385,3 +388,113 @@ class TestTickWeaponReload:
 
         dc.tick_weapon_reload([unit])
         unit.weapon.tick.assert_not_called()
+
+
+def _make_real_map(width: int = 5, height: int = 5) -> GameMap:
+    """Create a real GameMap with grass terrain."""
+    grid = np.full((height, width), TerrainType.GRASS.value, dtype=np.int8)
+    return GameMap(id="cc2_mech", name="CC2 Mech", width=width, height=height, tile_grid=grid)
+
+
+def _make_engineer(unit_id: str, x: int, y: int) -> Mock:
+    """Create an engineer unit mock with demolition capability."""
+    unit = _make_unit(unit_id, Faction.ALLIES, x, y)
+    unit.has_demolitions = True
+    unit.template_id = "us_engineer_squad"
+    return unit
+
+
+@pytest.mark.unit
+class TestBuildBridge:
+    """CC2-02: engineers build bridges on adjacent water or broken tiles."""
+
+    def test_engineer_builds_bridge_on_adjacent_water(self):
+        game_map = _make_real_map()
+        game_map.set_terrain(TileCoord(2, 1), TerrainType.WATER)
+        engineer = _make_engineer("eng1", 1, 1)
+        bus = StubEventBus()
+        dc = CombatDirector(event_bus=bus, display_config=StubDisplayConfig())
+
+        dc.handle_player_command(
+            {"command": "build_bridge", "unit_ids": ["eng1"]}, [engineer], game_map
+        )
+
+        assert game_map.get_terrain(TileCoord(2, 1)) == TerrainType.BRIDGE
+        assert any(event.get("action") == "bridge_built" for event in bus.published)
+
+    def test_non_engineer_cannot_build_bridge(self):
+        game_map = _make_real_map()
+        game_map.set_terrain(TileCoord(2, 1), TerrainType.WATER)
+        rifleman = _make_unit("rifle1", Faction.ALLIES, 1, 1)
+        rifleman.has_demolitions = False
+        rifleman.template_id = "us_rifle_squad"
+        dc = CombatDirector(event_bus=StubEventBus(), display_config=StubDisplayConfig())
+
+        dc.handle_player_command(
+            {"command": "build_bridge", "unit_ids": ["rifle1"]}, [rifleman], game_map
+        )
+
+        assert game_map.get_terrain(TileCoord(2, 1)) == TerrainType.WATER
+        assert not bus_events(dc)
+
+
+def bus_events(director: CombatDirector) -> list:
+    """Return events recorded by a director's stub bus."""
+    return director.event_bus.published
+
+
+@pytest.mark.unit
+class TestAirStrike:
+    """CC2-04: air strikes are limited and damage the 3x3 target area."""
+
+    def test_air_strike_hits_units_in_radius(self):
+        game_map = _make_real_map(width=12, height=12)
+        near = _make_unit("axis_near", Faction.AXIS, 5, 5)
+        edge = _make_unit("axis_edge", Faction.AXIS, 6, 6)
+        far = _make_unit("axis_far", Faction.AXIS, 10, 10)
+        bus = StubEventBus()
+        dc = CombatDirector(event_bus=bus, display_config=StubDisplayConfig())
+
+        dc.handle_player_command(
+            {"command": "air_strike", "unit_ids": [], "target": (5, 5)},
+            [near, edge, far],
+            game_map,
+        )
+
+        near.take_damage.assert_called_once_with(45)
+        edge.take_damage.assert_called_once_with(45)
+        far.take_damage.assert_not_called()
+        assert dc._air_strikes_remaining == 2
+        assert any(event.get("action") == "air_strike" for event in bus.published)
+
+    def test_no_air_support_blocks_strike(self):
+        game_map = _make_real_map(width=12, height=12)
+        enemy = _make_unit("axis1", Faction.AXIS, 5, 5)
+        dc = CombatDirector(event_bus=StubEventBus(), display_config=StubDisplayConfig())
+        dc.configure_air_support("none")
+
+        dc.handle_player_command(
+            {"command": "air_strike", "unit_ids": [], "target": (5, 5)}, [enemy], game_map
+        )
+
+        enemy.take_damage.assert_not_called()
+        assert dc._air_strikes_remaining == 0
+
+    def test_limited_support_allows_one_strike(self):
+        game_map = _make_real_map(width=12, height=12)
+        enemy = _make_unit("axis1", Faction.AXIS, 5, 5)
+        dc = CombatDirector(event_bus=StubEventBus(), display_config=StubDisplayConfig())
+        dc.configure_air_support("limited")
+
+        command = {"command": "air_strike", "unit_ids": [], "target": (5, 5)}
+        dc.handle_player_command(command, [enemy], game_map)
+        dc.handle_player_command(command, [enemy], game_map)
+
+        enemy.take_damage.assert_called_once_with(45)
+        assert dc._air_strikes_remaining == 0
+
+    @pytest.mark.parametrize("level,expected", [("none", 0), ("limited", 1), ("full", 3)])
+    def test_air_support_level_sets_strike_count(self, level, expected):
+        dc = CombatDirector(event_bus=StubEventBus(), display_config=StubDisplayConfig())
+        dc.configure_air_support(level)
+        assert dc._air_strikes_remaining == expected

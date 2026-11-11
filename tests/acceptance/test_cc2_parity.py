@@ -384,7 +384,11 @@ def test_mechanism_amphibious_allows_water():
 
     assert game_map.is_passable(water) is False
     GameLoop._apply_scenario_rules(loop, {"special_rules": ["amphibious"]})
-    assert game_map.is_passable(water) is True
+    amphibious = SimpleNamespace(is_amphibious=True)
+    foot = SimpleNamespace(is_amphibious=False)
+    assert game_map.is_passable(water) is False
+    assert game_map.is_passable_for(water, amphibious) is True
+    assert game_map.is_passable_for(water, foot) is False
 
 
 def test_mechanism_ap_he_changes_damage():

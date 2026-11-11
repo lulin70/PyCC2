@@ -66,7 +66,7 @@ class MovementTacticsMixin:
         to_tile = (intent.target_position.x, intent.target_position.y)
         if intent.path is None and self.pathfinder is not None and self.game_map is not None:
             intent.path = self.pathfinder.find_path(
-                unit.position.tile_coord, intent.target_position, self.game_map
+                unit.position.tile_coord, intent.target_position, self.game_map, unit=unit
             )
         if intent.path and len(intent.path) > 1:
             next_tile = intent.path[1]

@@ -21,6 +21,15 @@ class IDeploymentUI(Protocol):
         """Return the internal deployment state object."""
         ...
 
+    @property
+    def map_layout(self) -> tuple[int, int, int] | None:
+        """PF-14: camera-aligned layout (map_offset_x, map_offset_y, tile_size)."""
+        ...
+
+    def align_camera_to_layout(self, camera: Any, tile_size: int = 48) -> tuple[int, int, int]:
+        """PF-14: align the camera so the map fits the deployment UI layout."""
+        ...
+
     # Lifecycle ------------------------------------------------------------
 
     def start_deployment(self, map_data: dict, faction: str = "ally") -> None:
