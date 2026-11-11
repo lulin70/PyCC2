@@ -2,6 +2,99 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## Unreleased (2026-11-10) — 部署画面修复（PF-14）
+
+**目标**: 修复战役部署画面地图全黑、单位不可选、无法开始战斗的阻断缺陷。
+
+**相关文档**: [RELEASE_GATE_W5.md](docs/RELEASE_GATE_W5.md) / [UAT_W5_20261108.md](docs/test/UAT_W5_20261108.md)
+
+### Fixed
+- **PF-14 根因 1（地图全黑）**: 部署阶段跳过迷雾更新。修复前 `_update_fog_of_war` 在部署期运行，玩家 0 个单位 = 0 个观察者，全图 HIDDEN，渲染层叠加 alpha 235 黑幕盖住整个地图。
+- **PF-14 根因 2（放置错位）**: `DeploymentUI.handle_mouse_up` / `handle_right_click` 现在把 `map_offset` 与 `tile_size` 转发给拖拽与命令子系统。修复前拖拽释放用默认 16 px/格换算格子，地图按 48 px/格渲染，释放位置换算到错误格子。
+- **PF-14 根因 3（双坐标系错位）**: 新增 `DeploymentUI.align_camera_to_layout()`。部署开始时相机对齐到部署 UI 的固定布局：整图适配名册右侧区域（整数像素/格，与地形渲染取整一致），`world(0,0)` 精确投影到地图屏幕原点。渲染与点击检测统一改用 `map_layout`。部署期间跳过每帧 `constrain_to_map`（否则强制填充缩放破坏对齐）；完成部署后相机回中地图中心。
+- **PF-14 根因 4（事件黑洞，单位不可选的真凶）**: 教程浮层（`TutorialOverlay`）默认 `visible=True`，分发器 `_handle_tutorial` 在部署分支之前对可见浮层无条件 `return True` 吞掉全部事件，且只用键盘推进（SPACE/ESC），鼠标点击全部丢失；渲染管线还在部署期绘制其 alpha 180 全屏黑幕。修复：`start_deployment` 隐藏浮层、进入战斗重新显示；分发器部署分支提前到教程之前并只消费鼠标事件（键盘仍可到达教程，F1/SPACE/ESC 不受影响）。
+
+### Verification
+- 真实窗口 e2e `scripts/uat_deploy_e2e.py`（真实地图 `aalsmeer_flank.json` + 真实主循环 + 真实事件分发器 + `pygame.mouse.set_pos`/`event.post` 模拟真实用户）：部署画面可见（地图像素最低亮度 105）→ 名册拖拽启动 → 放置于 (0,0) 扣点成功 → START 生效 → 进入战斗（8 单位）。截图四张存于 `docs/assets/uat_deploy_e2e/`。
+- 探针 `scripts/probe_dispatcher_gates.py` 确认修复前 `_handle_tutorial` 在部署期对 MOUSEBUTTONDOWN 返回 True（吞事件），修复后 False。
+- 部署相关测试 307 项全部通过。
+
+## Unreleased (2026-11-10) — CC2 机制补齐（两栖 / 架桥 / TRUCK / 空袭）
+
+**目标**: 补齐四项 CC2 机制缺口，使机制可被玩家触发、可测试、有真实运行证据。
+
+**相关文档**: [CC2_PARITY_MATRIX.md](docs/CC2_PARITY_MATRIX.md) / [RELEASE_GATE_W5.md](docs/RELEASE_GATE_W5.md) / [UAT_W5_20261108.md](docs/test/UAT_W5_20261108.md)
+
+### Added
+- **CC2-01 两栖通行**: `GameMap.is_passable_for()` 按单位判断水域。`Unit.is_amphibious` 从模板写入。寻路与移动预览接收单位参数；两栖单位跨水成本 2.0。旧 AI 寻路同样按两栖判断。盟军部署池加入 `uk_sherman_dd`。
+- **CC2-02 工兵架桥**: `build_bridge` 命令。工兵把相邻水域或断桥改为 `BRIDGE`，发布 `bridge_built` 事件。玩家按 `B` 触发。
+- **CC2-03 TRUCK 模板**: 新增 `us_gmc_cckw`、`uk_bedford_ql`、`de_opel_blitz`。`VehicleType` 9 种角色全部有模板。
+- **CC2-04 空袭**: `air_strike` 命令。按 `air_support_level` 限次（none=0 / limited=1 / full=3）。命中 3×3 范围，每单位 45 伤害。玩家按 `K` 触发。
+
+### Changed
+- `GameMap.is_passable()` 只按地形判断。两栖放行改由 `is_passable_for()` 处理。
+- `no_air_support` / `limited_air_support` 同时控制弹药补给与空袭次数。
+
+### Verification
+- 全量回归：7535 passed / 4 skipped / 0 failed。
+- 真实窗口 UAT：14/14 通过（含 B 架桥、K 空袭）。
+
+## Unreleased (2026-11-10) — 单位辨识度与场景规则补全
+
+**目标**: 关闭 PF-11 与 PF-12。让单位可按兵种区分，让 11 条场景规则在战斗中生效。
+
+**相关文档**: [UAT_W5_20261108.md](docs/test/UAT_W5_20261108.md) / [CC2_PARITY_MATRIX.md](docs/CC2_PARITY_MATRIX.md)
+
+### Fixed
+- **PF-11 单位辨识度**: 增加阵营色地面底座、深色 1 px 描边、兵种徽章。徽章规则：圆=步兵、双点=机枪、方=装甲、三角=炮、折线=侦察。
+- **PF-11b 中央字母（2026-11-10 复核后新增）**: 缩放 ≥0.5 时在精灵正中画深色圆底加白色兵种字母，替换小徽章；缩放 <0.5 时回退形状徽章。字母映射：I 步兵、G 机枪、T 装甲、A 炮/反坦克、R 侦察、E 工兵、S 狙击、M 迫击、F 喷火、O 军官、U 卡车。样图见 `docs/assets/unit_letter_sample.png`。
+- **PF-12 场景规则**: 11 条 `special_rules` 接入运行时。
+  - 补给：`supply_dwindling`、`corridor_must_remain_open`、`no_air_support`、`limited_air_support`
+  - 增援：`limited_reinforcements`、`lz_must_hold_for_reinforcements`
+  - 单位状态：`fortified_positions`、`fanatic_defenders`、`initial_scatter`
+  - 命中：`combined_arms_bonus`
+  - 胜利：`must_hold_all_vls`
+
+### Notes
+- `no_air_support` / `limited_air_support` 按空中补给实现（影响弹药补给）。空袭指令已在同日补齐（见上一节）。
+- `fortified_positions` 作用于轴心守军：`scenario_cover_mod=0.75`。
+- `fanatic_defenders` 作用于轴心守军：士气下限 30。
+
+### Verification
+- 全量回归 7508 passed / 4 skipped / 0 failed。
+- 新增 17 个规则消费点用例，`tests/integration/test_scenario_rules.py` 全部通过。
+- 新增 11 个单位辨识度用例，`tests/unit/test_sprite_renderer.py` 全部通过。
+- 真实窗口点击链路 UAT 11/11 通过（`scripts/uat_real_window.py`）。
+
+## Unreleased (2026-11-09) — 真实运行审计修复
+
+**目标**: 用真实运行证据核对画面、可玩性与机制，修复审计发现的缺陷。
+
+**相关文档**: [RELEASE_GATE_W5.md](docs/RELEASE_GATE_W5.md) / [UAT_W5_20261108.md](docs/test/UAT_W5_20261108.md) / [CC2_PARITY_MATRIX.md](docs/CC2_PARITY_MATRIX.md)
+
+### Fixed
+- **PF-05**: 场景 `victory_locations` 成为计分依据。加载场景时用场景 VL 覆盖地图 `objectives`。修复前部署界面与战斗计分使用两套坐标，20/20 场景不一致。
+- **PF-06**: 两栖规则同时接受 `amphibious` 与 `amphibious_crossing_available`。修复前规则永不生效。
+- **PF-07**: 多场景共用一张地图时按文件名排序取第一个。修复前加载结果取决于 glob 顺序。
+- **PF-08**: 地图外背景由浅灰 (51,52,55) 改为深色 (26,28,34)。地图边界更清楚。
+- **PF-09**: 部署区覆盖层降低不透明度。中立区 alpha 60→28，敌控区 100→55。
+- **PF-10**: 名册分类标题不再重复单字母图标（此前显示 `S SUPPORT`、`A ARMOR`）。
+- **PF-13**: 相机按 `TILE_SIZE`（48 px）计算地图中心。修复前按 16 px/格计算，战斗首屏只显示地图左上角。
+- **视觉基线**: 重建 `urban_terrain` 基线。差异仅在地图外两侧各 16 px 背景带，属 PF-08 预期变化。
+
+### Known Issues
+- **PF-11**: 单位与建筑外观接近，需放大 4 倍才能区分兵种。
+- **PF-12**: 11 条 `special_rules` 无运行时消费点。
+- **PF-04**: 真实窗口 heavy 最差 54.9 FPS，低于 60。中位 59.4，需空闲机器复测。
+
+### Verification
+- 全量回归 7481 passed / 4 skipped / 0 failed（2026-11-09 修复后）。
+- 视觉回归 7 passed；`urban_terrain` 基线按 PF-08 重建，差异仅在地图外背景带。
+- 真实窗口点击链路 UAT 11/11 通过（`scripts/uat_real_window.py`）。UAT 相机改为按 `TILE_SIZE` 居中，截图与生产路径一致。
+- 真实窗口性能（2026-11-09，系统负载 6.6–8.6）：normal 中位 59.1 / 最差 54.8；heavy 中位 59.4 / 最差 54.9（vsync 上限 60）。
+- 场景 schema 20/20 通过；出生点 0 处越界；场景到地图可达性全部通过。
+- `arnhem`、`nijmegen` 真实加载验证：objectives 与规则值正确。
+
 ## Unreleased (2026-11-08) — W5 CC2 机制复刻缺陷修复
 
 **目标**: 修复运行时机制缺陷，使系统行为更接近 Close Combat 2。

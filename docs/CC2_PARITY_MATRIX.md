@@ -12,11 +12,11 @@
 
 | 阵营 | 模板总数 | 角色分布 |
 | --- | ---: | --- |
-| AMERICAN | 35 | RIFLE 4、MACHINE_GUN 4、TANK_MEDIUM 4、ANTI_TANK 4、TANK_DESTROYER 3、HEAVY_ASSAULT 3、ENGINEER 2、OFFICER 2、HALFTRACK 2、ARMORED_CAR 1、FLAMETHROWER 1、MORTAR 1、SCOUT 1、SNIPER 1、SP_ARTILLERY 1、TANK_LIGHT 1 |
-| BRITISH | 25 | TANK_MEDIUM 5、ANTI_TANK 4、MACHINE_GUN 2、RIFLE 2、ENGINEER 1、FLAMETHROWER 1、FLAME_TANK 1、HALFTRACK 1、HEAVY_ASSAULT 1、MORTAR 1、OFFICER 1、RECON 1、SCOUT 1、SNIPER 1、TANK_HEAVY 1、TANK_LIGHT 1 |
-| GERMAN | 45 | RIFLE 8、ANTI_TANK 6、TANK_DESTROYER 5、MACHINE_GUN 4、TANK_MEDIUM 3、ARMORED_CAR 2、ENGINEER 2、FLAME_TANK 2、HEAVY_ASSAULT 2、OFFICER 2、TANK_HEAVY 2、FLAMETHROWER 1、HALFTRACK 1、MORTAR 1、RECON 1、SNIPER 1、SP_ARTILLERY 1、TANK_LIGHT 1 |
+| AMERICAN | 36 | RIFLE 4、MACHINE_GUN 4、TANK_MEDIUM 4、ANTI_TANK 4、TANK_DESTROYER 3、HEAVY_ASSAULT 3、ENGINEER 2、OFFICER 2、HALFTRACK 2、ARMORED_CAR 1、FLAMETHROWER 1、MORTAR 1、SCOUT 1、SNIPER 1、SP_ARTILLERY 1、TANK_LIGHT 1、TRUCK 1 |
+| BRITISH | 26 | TANK_MEDIUM 5、ANTI_TANK 4、MACHINE_GUN 2、RIFLE 2、ENGINEER 1、FLAMETHROWER 1、FLAME_TANK 1、HALFTRACK 1、HEAVY_ASSAULT 1、MORTAR 1、OFFICER 1、RECON 1、SCOUT 1、SNIPER 1、TANK_HEAVY 1、TANK_LIGHT 1、TRUCK 1 |
+| GERMAN | 46 | RIFLE 8、ANTI_TANK 6、TANK_DESTROYER 5、MACHINE_GUN 4、TANK_MEDIUM 3、ARMORED_CAR 2、ENGINEER 2、FLAME_TANK 2、HEAVY_ASSAULT 2、OFFICER 2、TANK_HEAVY 2、FLAMETHROWER 1、HALFTRACK 1、MORTAR 1、RECON 1、SNIPER 1、SP_ARTILLERY 1、TANK_LIGHT 1、TRUCK 1 |
 | POLISH | 10 | MACHINE_GUN 2、ANTI_TANK 1、ENGINEER 1、HEAVY_ASSAULT 1、MORTAR 1、OFFICER 1、RIFLE 1、SCOUT 1、SNIPER 1 |
-| **合计** | **115** | 覆盖 19 种角色/车种：`InfantryRole` 12 种中已用 11 种（缺 `RESERVE`），`VehicleType` 9 种中已用 8 种（缺 `TRUCK`） |
+| **合计** | **118** | 覆盖 19 种角色/车种：`InfantryRole` 12 种中已用 11 种（缺 `RESERVE`），`VehicleType` 9 种全部有模板 |
 
 本轮新增模板：
 
@@ -27,6 +27,9 @@
 | `uk_para_at_piat` | British Para PIAT Team | BRITISH | ANTI_TANK | 伞兵反坦克组，空降师无师属反坦克炮 |
 | `uk_sherman_v` | Sherman V (Guards Armoured) | BRITISH | TANK_MEDIUM | 近卫装甲师 Sherman V（M4A4），英军库中原无普通 Sherman |
 | `de_flak36_88` | 8.8cm Flak 36 | GERMAN | ANTI_TANK | 阿纳姆/奈梅亨德军 88 高平两用炮，`de_pak40_at_gun` 为 75mm |
+| `us_gmc_cckw` | GMC CCKW 2½-ton Truck | AMERICAN | TRUCK | 红球快车补给卡车（CC2-03） |
+| `uk_bedford_ql` | Bedford QL Truck | BRITISH | TRUCK | 英军 3 吨补给卡车，XXX 军团走廊（CC2-03） |
+| `de_opel_blitz` | Opel Blitz Truck | GERMAN | TRUCK | 德军 3 吨制式运输卡车（CC2-03） |
 
 ---
 
@@ -114,23 +117,58 @@
 
 ---
 
-## 未覆盖项（如实列出）
+## 未覆盖项与已关闭缺口（如实列出）
 
-1. **`special_rules` 大部分未实现。** 代码中只有 `defender_advantage` 被
-   `deployment_manager.py:704` 读取；`bridge_destructible`、`amphibious_crossing_available`、
-   `corridor_must_remain_open`、`airdrop_deployment`、`night_fighting`、`xxx_corps_linkup`
-   等在 `src/` 内无任何消费方，仅为数据字段。
-2. **两栖与架桥无运行时逻辑。** `CC2UnitTemplate.is_amphibious` 只有数据标记
-   （`unit_templates.py:39`、`british_units.py:193`），移动/寻路层未读取。
-3. **场景文件无 schema 校验。** `main.py:316-343` 只做 `json.load`，未按
-   `data/scenarios/_schema.json` 校验；枚举、字段类型靠测试兜底。
+1. **`special_rules` 全部有运行时消费点（2026-11-10 补齐）。** 17 条规则全部生效：
+
+| 规则 | 消费点 | 效果 |
+| --- | --- | --- |
+| `night_fighting` | `game_loop._apply_scenario_rules` | 战斗时钟设为 22:00 |
+| `bridge_destructible` | `CombatDirector` | 工兵可炸桥 |
+| `amphibious_crossing_available` | `_apply_scenario_rules` + `GameMap.is_passable_for` | 两栖单位可通行水面；步行单位仍被阻挡 |
+| `airdrop_deployment` | 部署放置服务 | 中立区可空降 |
+| `defender_advantage` | 部署区计算 | 防守方部署区优势 |
+| `xxx_corps_linkup` | 胜利与增援 | 会师条件 |
+| `supply_dwindling` | `_update_logistics` | 补给量每周期 ×0.85，最终断供 |
+| `limited_reinforcements` | `_update_reinforcements` | 每方增援上限 2 |
+| `fortified_positions` | `_apply_scenario_start_effects` | 轴心守军 `scenario_cover_mod=0.75` |
+| `fanatic_defenders` | `_update_scenario_effects` | 轴心守军士气不低于 30 |
+| `combined_arms_bonus` | `_update_scenario_effects` | 4 格内有友军装甲，命中 ×1.10 |
+| `lz_must_hold_for_reinforcements` | `_update_reinforcements` | 盟军不控 LZ 时不增援 |
+| `corridor_must_remain_open` | `_update_logistics` | 走廊/道路 VL 被敌方占领时断供 |
+| `no_air_support` | `_update_logistics` + `configure_air_support` | 盟军补给停止；空袭次数 0 |
+| `limited_air_support` | `_update_logistics` + `configure_air_support` | 盟军补给减半；空袭次数 1 |
+| `initial_scatter` | `_apply_scenario_start_effects` | 开战时单位随机偏移 1 格 |
+| `must_hold_all_vls` | `victory_conditions` | 时间到须占全部 VL 才算胜 |
+
+说明：`no_air_support` / `limited_air_support` 同时控制空中补给与空袭次数。空袭见第 11 项。
+
+2. **两栖通行已接入寻路与移动层（2026-11-10 补齐）。** `CC2UnitTemplate.is_amphibious`
+   写入 `Unit.is_amphibious`。`GameMap.is_passable_for()` 按单位放行水域。
+   `PathFinder`、`PathPreview`、AI 移动、旧 `AStarPathfinder` 均按单位判断。
+   两栖单位跨水成本 2.0。盟军默认池与盟友池已加入 `uk_sherman_dd`，玩家可实际部署。
+3. **场景 schema 校验已补齐。** `scenario_validation.py` 在加载前校验必需字段、枚举、
+   部署区与胜利点；W5 已接入 `main.py`。
 4. **遗留战役数据仍含旧 ID。** `src/pycc2/domain/systems/nijmegen_campaign_data.py`
    与 `eindhoven_campaign_data.py` 使用 `ger_rifle_squad` / `brit_rifle_squad` / `brit_armor` /
    `us_para_rifle_squad_82nd` 等旧命名，不在 `data/scenarios/` 校验范围内，本轮未改动。
-5. **`de_flak36_88` 复用 `kwk36_88mm` 武器档。** 现有武器库无独立 Flak 36 条目，
-   弹道参数取自 Tiger 的 8.8cm L/56，与真实 Flak 36 的初速/射界存在差异。
+5. **`de_flak36_88` 已用独立武器档。** （W5 修复，`flak36_88mm`）
 6. **波兰伞兵未进入场景阵营。** schema 的 `faction` 枚举仅允许 BRITISH / AMERICAN / GERMAN，
    `pl_para_*` 模板（10 个）无法作为独立阵营参战，`driel_polish_crossing` 仅用英军伞兵表达。
-7. **无卡车（TRUCK）模板。** `VehicleType.TRUCK` 已定义但 115 个模板中无对应单位。
-8. **VL 与地图 `objectives` 未交叉校验。** 场景 VL 坐标与地图自带 `objectives` 字段是两套数据，
-   仅校验了地图宽高范围，未校验两者一致性。
+7. **TRUCK 模板已补齐（2026-11-10）。** 新增 `us_gmc_cckw`、`uk_bedford_ql`、`de_opel_blitz`。
+   模板总数 118，`VehicleType` 9 种角色全部有模板。卡车无装甲、不能占楼、不能占领。
+8. **场景 VL 已成为计分依据（2026-11-09 修复）。** 此前场景 `victory_locations` 只用于部署界面显示，
+   战斗计分读取地图 `objectives`，两套坐标不同。现在加载场景时用场景 VL 覆盖地图 objectives，
+   半径固定 3，落点不可通行时自动扩大半径到 6。
+9. **一图多场景，无选择入口（2026-11-09 登记）。** 3 个场景共用 `nijmegen` 地图。
+   遭遇战只选地图，不选场景。修复后按文件名排序取第一个，结果确定但玩家无法选择。
+10. **单位外观辨识度（2026-11-10 修复并增强）。** 三种视觉编码：阵营色地面底座、深色 1 px 描边、
+    兵种标识。缩放 ≥0.5 时精灵正中显示兵种字母（I/G/T/A/R/E/S/M/F/O/U），
+    缩放 <0.5 时回退形状徽章（圆=步兵、双点=机枪、方=装甲、三角=炮、折线=侦察）。
+    见 `unit_overlay_rendering_mixin.py` 的 `unit_role_letter` / `_draw_unit_role_letter` /
+    `_draw_unit_role_badge`，描边见 `unit_rendering_mixin.py` 的 `_blit_unit_sprite`。
+11. **工兵架桥与空袭已补齐（2026-11-10）。**
+    - 架桥：`CombatDirector._cmd_build_bridge`。工兵把相邻水域或断桥改为 `BRIDGE`，玩家按 `B`。
+    - 空袭：`CombatDirector._cmd_air_strike`。按 `air_support_level` 限次（0/1/3）。
+      命中 3×3 范围，每单位 45 伤害，友军同样受伤。玩家按 `K`，目标为鼠标所在格。
+

@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "version": "0.1.1",
+    "saved_at": "2026-11-11T03:45:09.684501+00:00",
+    "tick": 0,
+    "mission_id": "",
+    "allies_alive": 0,
+    "axis_alive": 0,
+    "game_result": "",
+    "playtime_seconds": 0.0,
+    "notes": ""
+  },
+  "state": {
+    "battle_state": {
+      "turn": 1,
+      "units": [
+        {
+          "id": "uk_1",
+          "name": "1st Section",
+          "faction": "ALLIES",
+          "hp": 88,
+          "max_hp": 100
+        }
+      ]
+    }
+  },
+  "hmac": "980421ad68c5bd4def02fccf4055285caa2e824b5b1624779768331aca15bdfb"
+}

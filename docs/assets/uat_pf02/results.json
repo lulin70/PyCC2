@@ -37,7 +37,7 @@
   {
     "step": "T3.3 hotkeys F/D",
     "status": "PASS",
-    "detail": "fire_mode=free interaction_mode=InteractionMode.SELECT"
+    "detail": "fire_mode=return interaction_mode=InteractionMode.SELECT"
   },
   {
     "step": "T3.4 right click attack",
@@ -45,9 +45,24 @@
     "detail": "targets=['de_1']"
   },
   {
-    "step": "T4 combat damage",
+    "step": "T3.5 key B bridge",
     "status": "PASS",
-    "detail": "enemy hp 100 -> 79"
+    "detail": "water (9,10) -> BRIDGE"
+  },
+  {
+    "step": "T3.6 key K air strike",
+    "status": "PASS",
+    "detail": "target=(20, 29)"
+  },
+  {
+    "step": "T4.1 air strike damage",
+    "status": "PASS",
+    "detail": "enemy hp 100 -> 55"
+  },
+  {
+    "step": "T4 combat damage",
+    "status": "PASS (no hit)",
+    "detail": "enemy hp unchanged (55); LOS/accuracy"
   },
   {
     "step": "T5 save/load",

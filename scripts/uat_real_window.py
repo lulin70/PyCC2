@@ -225,12 +225,18 @@ def uat_battle(screen: pygame.Surface, window_manager) -> None:
     from pycc2.presentation.input.interaction_controller import InteractionController
     from pycc2.presentation.rendering.camera import Camera
     from pycc2.presentation.rendering.enhanced_renderer import EnhancedRenderer
+    from pycc2.presentation.visual_config import DEFAULT_VISUAL_CONFIG
     from pycc2.services.game_loop import GameLoop, GameState
 
     game_map = GameMap(
         id="uat", name="UAT", width=40, height=30, tile_grid=np.zeros((30, 40), dtype=np.int8)
     )
-    camera = Camera(position=Vec2(320, 240), viewport_width=1280, viewport_height=720)
+    tile_px = DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE
+    camera = Camera(
+        position=Vec2(game_map.width * tile_px / 2.0, game_map.height * tile_px / 2.0),
+        viewport_width=1280,
+        viewport_height=720,
+    )
     event_bus = EventBus()
     ic = InteractionController(camera=camera, game_map=game_map, event_bus=event_bus)
     renderer = EnhancedRenderer()
@@ -249,7 +255,10 @@ def uat_battle(screen: pygame.Surface, window_manager) -> None:
         "uk_1", "1st Section", Faction.ALLIES, UnitType.INFANTRY_SQUAD, 8, 10, "lee_enfield"
     )
     enemy = _unit("de_1", "Grenadiers", Faction.AXIS, UnitType.INFANTRY_SQUAD, 18, 10, "kar98k")
+    ally.has_demolitions = True
+    ally.template_id = "uk_engineer_section"
     state.units.extend([ally, enemy])
+    loop._combat_director.set_context(state.units, game_map)
     ic.register_on_selected(lambda ids: setattr(state, "selected_unit_ids", ids))
 
     moves: list[tuple[set[str], object]] = []
@@ -287,6 +296,47 @@ def uat_battle(screen: pygame.Surface, window_manager) -> None:
         record("T3.4 right click attack", "PASS", f"targets={[t for _, t in attacks]}")
     else:
         record("T3.4 right click attack", "FAIL", "no attack callback")
+
+    # T3.5 engineer bridge hotkey B.
+    from pycc2.domain.value_objects.terrain_type import TerrainType
+    from pycc2.domain.value_objects.tile_coord import TileCoord
+
+    bridge_spot = TileCoord(9, 10)
+    game_map.set_terrain(bridge_spot, TerrainType.WATER)
+    ic.handle_shortcut_key(pygame.K_b)
+    if game_map.get_terrain(bridge_spot) == TerrainType.BRIDGE:
+        record("T3.5 key B bridge", "PASS", "water (9,10) -> BRIDGE")
+    else:
+        record(
+            "T3.5 key B bridge",
+            "FAIL",
+            f"terrain={game_map.get_terrain(bridge_spot)}",
+        )
+
+    # T3.6 air-strike hotkey K publishes a PlayerCommand.
+    from pycc2.infrastructure.events.event_protocol import PlayerCommand
+
+    published: list[dict] = []
+    event_bus.subscribe(PlayerCommand, published.append)
+    ic.handle_shortcut_key(pygame.K_k)
+    air_commands = [event for event in published if event.get("command") == "air_strike"]
+    if air_commands:
+        record("T3.6 key K air strike", "PASS", f"target={air_commands[0].get('target')}")
+    else:
+        record("T3.6 key K air strike", "FAIL", "no air_strike command published")
+
+    # T4.1 air strike damage through the production combat director.
+    air_hp_before = enemy.health.hp
+    loop._combat_director.handle_player_command(
+        {"command": "air_strike", "unit_ids": [], "target": (18, 10)},
+        state.units,
+        game_map,
+    )
+    air_hp_after = enemy.health.hp
+    if air_hp_after < air_hp_before:
+        record("T4.1 air strike damage", "PASS", f"enemy hp {air_hp_before} -> {air_hp_after}")
+    else:
+        record("T4.1 air strike damage", "FAIL", f"enemy hp unchanged ({air_hp_before})")
 
     # T4 damage through the production combat director.
     hp_before = enemy.health.hp
