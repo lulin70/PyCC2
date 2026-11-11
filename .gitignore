@@ -187,3 +187,7 @@ src/pycc2/saves/
 
 # OS files
 .DS_Store
+
+# Test-generated sprite screenshots
+tests/integration/cartoon_sprite_test_screenshot.png
+tests/integration/sprite_comparison.png
