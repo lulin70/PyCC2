@@ -153,7 +153,7 @@ class DeploymentRosterRenderingMixin:
             if entry_type == "category":
                 assert isinstance(entry_data, UnitCategory)
                 cat = entry_data
-                label_text, icon = _CATEGORY_INFO[cat]
+                label_text, _icon = _CATEGORY_INFO[cat]
                 cat_rect = pygame.Rect(
                     ui._roster_padding,
                     y_offset,
@@ -162,10 +162,10 @@ class DeploymentRosterRenderingMixin:
                 )
                 pygame.draw.rect(panel_surf, _ROSTER_CATEGORY_BG, cat_rect, border_radius=3)
                 if ui._font_small:
-                    cat_label = ui._font_small.render(
-                        f" {icon} {label_text}", True, _ROSTER_CATEGORY_TEXT
-                    )
-                    panel_surf.blit(cat_label, (cat_rect.x + 2, cat_rect.y + 4))
+                    # The single-letter icon duplicated the category initial
+                    # ("S SUPPORT"), so show the label only.
+                    cat_label = ui._font_small.render(label_text, True, _ROSTER_CATEGORY_TEXT)
+                    panel_surf.blit(cat_label, (cat_rect.x + 6, cat_rect.y + 4))
                 y_offset += ui._roster_category_height + 2
 
             elif entry_type == "unit":

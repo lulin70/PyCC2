@@ -111,12 +111,20 @@ class GameLoopRenderingMixin:
                 # Deployment phase: render deployment UI
                 deployment_ui = dm.deployment_ui
                 dc = self.display_config
-                tile_size = dc.base_tile_size if dc else 16
+                default_ts = dc.base_tile_size if dc else 16
+                # PF-14: use the camera-aligned layout so overlays match the
+                # projected terrain; fall back to the legacy fixed layout
+                # when alignment has not run.
+                layout = getattr(deployment_ui, "map_layout", None)
+                if layout is not None:
+                    map_offset_x, map_offset_y, tile_size = layout
+                else:
+                    map_offset_x, map_offset_y, tile_size = 0, 0, default_ts
                 deployment_ui.render(
                     screen,
                     font=None,
-                    map_offset_x=0,
-                    map_offset_y=0,
+                    map_offset_x=map_offset_x,
+                    map_offset_y=map_offset_y,
                     tile_size=tile_size,
                 )
             else:

@@ -75,6 +75,9 @@ class DeploymentOrders:
         screen_x: int,
         screen_y: int,
         ui,
+        map_offset_x: int = 0,
+        map_offset_y: int = 0,
+        tile_size: int = 16,
     ) -> str | None:
         """Handle a right-click during deployment with order support.
 
@@ -109,7 +112,9 @@ class DeploymentOrders:
             return None
 
         # Right-click on map
-        map_pos = ui.screen_to_map(screen_x, screen_y)
+        map_pos = ui.screen_to_map(
+            screen_x, screen_y, map_offset_x, map_offset_y, tile_size
+        )
         if map_pos is None:
             return None
 

@@ -583,6 +583,7 @@ class DeploymentManager:
         template = get_cc2_units().get(template_id)
         if template is not None:
             unit.has_demolitions = bool(getattr(template, "has_demolitions", False))
+            unit.is_amphibious = bool(getattr(template, "is_amphibious", False))
 
         squad_type = squad_type_map.get(getattr(unit_type, "name", ""))
         if squad_type is None:

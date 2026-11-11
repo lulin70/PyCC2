@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 # Import extracted modules (SRP refactoring v0.3.29)
 from pycc2.domain.entities.game_map import GameMap
+from pycc2.domain.value_objects.vec2 import Vec2
 from pycc2.presentation.rendering.camera import Camera
 
 # Import extracted subsystems (SRP refactoring v0.3.31)
@@ -120,6 +121,11 @@ class DeploymentUI:
         # Overlay surface cache (rebuilt when zones change)
         self._overlay_cache: pygame.Surface | None = None
         self._overlay_tile_size: int = 0
+
+        # PF-14: deployment screen layout (map_offset_x, map_offset_y, tile_size).
+        # Set by align_camera_to_layout(); used by render() and click detection
+        # so overlays and clicks match the camera-projected terrain.
+        self._layout: tuple[int, int, int] | None = None
 
         # Roster layout cache (rebuilt when units change)
         self._roster_layout: list[tuple[str, UnitCategory | int]] = field(default_factory=list)
@@ -235,6 +241,75 @@ class DeploymentUI:
         """Remaining requisition points."""
         return self._state.requisition_points - self._state.requisition_points_spent
 
+    @property
+    def roster_width(self) -> int:
+        """Width of the roster panel on the left side of the screen."""
+        return self._roster_width
+
+    @property
+    def map_layout(self) -> tuple[int, int, int] | None:
+        """PF-14: active deployment layout as (map_offset_x, map_offset_y, tile_size).
+
+        ``None`` until :meth:`align_camera_to_layout` runs. Callers that render
+        the UI or convert screen clicks must pass these values so overlays and
+        click detection match the camera-projected terrain.
+        """
+        return self._layout
+
+    def align_camera_to_layout(self, camera, tile_size: int = 48) -> tuple[int, int, int]:
+        """PF-14: position the camera so the map fits the deployment layout.
+
+        The deployment UI draws the map at a fixed screen position: right of
+        the roster panel, ``tile_size`` pixels per tile. The terrain, however,
+        is rendered through the camera projection. This method computes a
+        zoom that fits the whole map into the area right of the roster panel
+        and positions the camera so world (0, 0) projects exactly onto the
+        map's top-left screen corner. After this call, the fixed-layout
+        overlays and click conversion are pixel-aligned with the terrain.
+
+        Returns the layout tuple (map_offset_x, map_offset_y, tile_size) that
+        callers must forward to ``render()`` / ``screen_to_map()``.
+        """
+        if tile_size <= 0 or self._map_width <= 0 or self._map_height <= 0:
+            self._layout = (0, 0, max(1, tile_size))
+            return self._layout
+
+        vw = int(getattr(camera, "viewport_width", 0)) or 800
+        vh = int(getattr(camera, "viewport_height", 0)) or 600
+        map_px_w = self._map_width * tile_size
+        map_px_h = self._map_height * tile_size
+        avail_w = max(1, vw - self._roster_width)
+        avail_h = max(1, vh)
+
+        # Fit the whole map into the available area; never magnify past 1:1.
+        zoom_fit = min(1.0, avail_w / map_px_w, avail_h / map_px_h)
+        # Integer effective tile size keeps overlay grid and terrain rects
+        # pixel-aligned (the terrain renderer also rounds to whole pixels).
+        eff_ts = max(1, int(tile_size * zoom_fit))
+        zoom = eff_ts / tile_size
+
+        screen_w = self._map_width * eff_ts
+        screen_h = self._map_height * eff_ts
+        origin_x = self._roster_width + max(0, (avail_w - screen_w) // 2)
+        origin_y = max(0, (avail_h - screen_h) // 2)
+
+        try:
+            camera.zoom = zoom
+            # world (0,0) must project to (origin_x, origin_y):
+            # screen = (world - pos) * zoom + viewport / 2
+            camera.position = Vec2(
+                (vw / 2 - origin_x) / zoom,
+                (vh / 2 - origin_y) / zoom,
+            )
+        except (AttributeError, TypeError):
+            # Camera-like object without zoom/position setters — fall back to
+            # the legacy fixed layout.
+            self._layout = (0, 0, eff_ts)
+            return self._layout
+
+        self._layout = (origin_x - self._roster_width, origin_y, eff_ts)
+        return self._layout
+
     def start_deployment(self, map_data: dict, faction: str = "ally") -> None:
         """Initialize deployment phase with map zones and unit roster.
 
@@ -301,7 +376,9 @@ class DeploymentUI:
           - ``"remove_unit:<x>,<y>"`` – placed unit removed (no unit selected)
           - ``None`` – click did nothing
         """
-        return self._orders.handle_right_click(screen_x, screen_y, self)
+        return self._orders.handle_right_click(
+            screen_x, screen_y, self, map_offset_x, map_offset_y, tile_size
+        )
 
     def place_unit(self, unit_index: int, map_x: int, map_y: int) -> bool:
         """Place a unit at the given map tile position.
@@ -646,7 +723,9 @@ class DeploymentUI:
 
         Delegates to DeploymentDragDrop.
         """
-        return self._drag_drop.handle_mouse_up(screen_x, screen_y, self)
+        return self._drag_drop.handle_mouse_up(
+            screen_x, screen_y, self, map_offset_x, map_offset_y, tile_size
+        )
 
     def _clear_drag_state(self) -> None:
         """Clear all drag-and-drop state. Delegates to DeploymentDragDrop."""

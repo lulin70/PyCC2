@@ -34,6 +34,7 @@ def build_default_roster() -> list[DeploymentUnit]:
         # Armor
         DeploymentUnit("us_sherman_m4", "M4 Sherman", "vehicle", 350),
         DeploymentUnit("us_stuart_m5", "M5 Stuart", "vehicle", 220),
+        DeploymentUnit("uk_sherman_dd", "Sherman DD (Amphibious)", "vehicle", 400),
         # Recon
         DeploymentUnit("us_scout_team", "Scout Team", "recon", 110),
         DeploymentUnit("us_sniper_team", "Sniper Team", "recon", 140),
@@ -67,6 +68,7 @@ def build_force_pool_from_settings(
             # Armor
             DeploymentUnit("us_sherman_m4", "M4 Sherman", "vehicle", 350),
             DeploymentUnit("us_stuart_m5", "M5 Stuart", "vehicle", 220),
+            DeploymentUnit("uk_sherman_dd", "Sherman DD (Amphibious)", "vehicle", 400),
             # Recon
             DeploymentUnit("us_scout_team", "Scout Team", "recon", 110),
             DeploymentUnit("us_sniper_team", "Sniper Team", "recon", 140),

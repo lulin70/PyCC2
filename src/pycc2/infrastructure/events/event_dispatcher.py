@@ -84,13 +84,17 @@ class EventDispatcher:
             if self._handle_global_keys(event):
                 continue
 
+            # PF-14 root cause 4: deployment input must run BEFORE the modal
+            # tutorial overlay — otherwise the tutorial swallows every mouse
+            # event and the player cannot select or place units during the
+            # deployment phase.
+            if self._handle_deployment_input(event):
+                continue
+
             if self._handle_tutorial(event):
                 continue
 
             if self._handle_pause_menu(event):
-                continue
-
-            if self._handle_deployment_input(event):
                 continue
 
             self._handle_battle_input(event)
@@ -223,8 +227,28 @@ class EventDispatcher:
         if deployment_ui is None:
             return False
 
+        # PF-14 root cause 4: consume mouse events only. Keyboard events fall
+        # through to the tutorial overlay / other handlers so F1, SPACE, and
+        # ESC keep working during the deployment phase.
+        if event.type not in (
+            pygame.MOUSEBUTTONDOWN,
+            pygame.MOUSEBUTTONUP,
+            pygame.MOUSEMOTION,
+            pygame.MOUSEWHEEL,
+        ):
+            return False
+
         dc = self.display_config
-        tile_size = dc.base_tile_size if dc else 16
+        default_tile_size = dc.base_tile_size if dc else 16
+
+        # PF-14: use the layout computed by align_camera_to_layout() so click
+        # conversion matches the camera-projected terrain. Fall back to the
+        # legacy fixed layout when alignment has not run (e.g. unit tests).
+        layout = getattr(deployment_ui, "map_layout", None)
+        if layout is not None:
+            map_offset_x, map_offset_y, tile_size = layout
+        else:
+            map_offset_x, map_offset_y, tile_size = 0, 0, default_tile_size
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
@@ -232,8 +256,8 @@ class EventDispatcher:
                 drag_result = deployment_ui.handle_mouse_down(
                     mouse_pos[0],
                     mouse_pos[1],
-                    map_offset_x=0,
-                    map_offset_y=0,
+                    map_offset_x=map_offset_x,
+                    map_offset_y=map_offset_y,
                     tile_size=tile_size,
                 )
                 if drag_result and drag_result.startswith("drag_start"):
@@ -242,8 +266,8 @@ class EventDispatcher:
                     result = deployment_ui.handle_click_full(
                         mouse_pos[0],
                         mouse_pos[1],
-                        map_offset_x=0,
-                        map_offset_y=0,
+                        map_offset_x=map_offset_x,
+                        map_offset_y=map_offset_y,
                         tile_size=tile_size,
                     )
                     if result == "begin_battle":
@@ -253,8 +277,8 @@ class EventDispatcher:
                 result = deployment_ui.handle_click_full(
                     mouse_pos[0],
                     mouse_pos[1],
-                    map_offset_x=0,
-                    map_offset_y=0,
+                    map_offset_x=map_offset_x,
+                    map_offset_y=map_offset_y,
                     tile_size=tile_size,
                     right_click=True,
                 )
@@ -274,8 +298,8 @@ class EventDispatcher:
             deployment_ui.handle_mouse_move(
                 mouse_pos[0],
                 mouse_pos[1],
-                map_offset_x=0,
-                map_offset_y=0,
+                map_offset_x=map_offset_x,
+                map_offset_y=map_offset_y,
                 tile_size=tile_size,
             )
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
@@ -283,8 +307,8 @@ class EventDispatcher:
             deployment_ui.handle_mouse_up(
                 mouse_pos[0],
                 mouse_pos[1],
-                map_offset_x=0,
-                map_offset_y=0,
+                map_offset_x=map_offset_x,
+                map_offset_y=map_offset_y,
                 tile_size=tile_size,
             )
 

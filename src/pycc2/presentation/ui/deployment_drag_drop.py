@@ -153,6 +153,9 @@ class DeploymentDragDrop:
         screen_x: int,
         screen_y: int,
         ui,
+        map_offset_x: int = 0,
+        map_offset_y: int = 0,
+        tile_size: int = 16,
     ) -> str | None:
         """Handle mouse button UP - complete drag (place or cancel).
 
@@ -162,6 +165,14 @@ class DeploymentDragDrop:
             Screen coordinates where the mouse was released.
         ui : DeploymentUI
             The parent DeploymentUI instance.
+        map_offset_x, map_offset_y : int
+            Screen offset of the map's top-left corner (relative to the
+            position right of the roster panel).
+        tile_size : int
+            Screen pixel size of one map tile. Must match the value the
+            caller passes to ``ui.render()`` (PF-14: previously defaulted
+            to 16 while the map rendered at 48 px/tile, so drops landed on
+            the wrong tile).
 
         Returns an action string or None:
           - ``"place_unit:<index>"`` – unit placed successfully
@@ -178,7 +189,9 @@ class DeploymentDragDrop:
 
         # Try to place at current position if over map
         if screen_x >= ui._roster_width:
-            map_pos = ui.screen_to_map(screen_x, screen_y)
+            map_pos = ui.screen_to_map(
+                screen_x, screen_y, map_offset_x, map_offset_y, tile_size
+            )
 
             if map_pos is not None and self._dragging_unit_index is not None:
                 map_x, map_y = map_pos

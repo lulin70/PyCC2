@@ -253,13 +253,17 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
 
             alpha = self._accumulator / LOGIC_DT if LOGIC_DT > 0 else 0.0
 
-            # Constrain camera to map bounds every frame
-            tile_size = self.renderer.TILE_SIZE
-            if not isinstance(tile_size, int):
-                tile_size = 32
-            map_w = self.state.game_map.width * tile_size
-            map_h = self.state.game_map.height * tile_size
-            self.state.camera.constrain_to_map(map_w, map_h)
+            # Constrain camera to map bounds every frame.
+            # PF-14: skip during the deployment phase — the deployment camera
+            # is aligned to the UI layout (see start_deployment) and the
+            # constrain logic would force a fill zoom that breaks alignment.
+            if not self.deployment_phase_active:
+                tile_size = self.renderer.TILE_SIZE
+                if not isinstance(tile_size, int):
+                    tile_size = 32
+                map_w = self.state.game_map.width * tile_size
+                map_h = self.state.game_map.height * tile_size
+                self.state.camera.constrain_to_map(map_w, map_h)
 
             # Apply cinematic camera effects (shake, zoom, push-pull)
             camera_offset = self._apply_camera_effects(time_speed)
@@ -356,13 +360,29 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
         from pycc2.domain.value_objects.scenario_rules import ScenarioRules
 
         rules = ScenarioRules.from_map_data(map_data)
+        self._scenario_rules = rules
+        self.state.scenario_rules = rules.rules
+        if rules.has("no_air_support"):
+            self.state.air_support_level = "none"
+        elif rules.has("limited_air_support") or rules.has("limited_air_support_only"):
+            self.state.air_support_level = "limited"
+        else:
+            self.state.air_support_level = "full"
+        victory_manager = getattr(self, "_victory_manager", None)
+        if rules.has("must_hold_all_vls") and victory_manager is not None:
+            victory_manager.set_require_all_vls(True)
         if rules.has("night_fighting") and self._game_time is not None:
             self._game_time.set_time(22.0)
-        if rules.has("amphibious") and self.state.game_map is not None:
+        if (
+            rules.has("amphibious") or rules.has("amphibious_crossing_available")
+        ) and self.state.game_map is not None:
             self.state.game_map.amphibious_passable = True
         director = getattr(self, "_combat_director", None)
         if director is not None:
             director.bridge_destructible = rules.has("bridge_destructible")
+            configure_air = getattr(director, "configure_air_support", None)
+            if callable(configure_air):
+                configure_air(self.state.air_support_level)
 
     def _apply_scenario_weather(self, map_data: dict) -> None:
         """Apply scenario weather to LOS and ballistic mechanics."""
@@ -428,6 +448,34 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
             deployment_ui=deployment_ui,
         )
 
+        # PF-14: align the camera with the deployment UI's fixed layout so
+        # the terrain lands exactly where the overlays and click detection
+        # expect it (right of the roster panel). Without this the map can
+        # render under the roster panel or off-screen, and clicks convert
+        # to wrong tiles. Must run AFTER manager.start() populated the UI
+        # with the map dimensions.
+        try:
+            deployment_ui.align_camera_to_layout(
+                self.state.camera,
+                tile_size=dc.base_tile_size if dc else 16,
+            )
+        except Exception:
+            logger.warning(
+                "Deployment camera alignment failed; using legacy layout",
+                exc_info=True,
+            )
+
+        # PF-14 root cause 4: the tutorial overlay is modal — the event
+        # dispatcher lets it consume ALL input while visible, and the render
+        # pipeline paints its full-screen dark overlay during deployment too.
+        # The tutorial teaches battle controls, so hide it for the pre-battle
+        # deployment phase and re-show it when the battle starts.
+        if self.tutorial_overlay is not None:
+            try:
+                self.tutorial_overlay.hide()
+            except Exception:
+                logger.warning("Failed to hide tutorial overlay for deployment", exc_info=True)
+
     def complete_deployment(self) -> dict | None:
         """Finalize deployment and deactivate the deployment phase.
 
@@ -443,7 +491,74 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
             from pycc2.services.reinforcement_service import ReinforcementService
 
             self._reinforcement_service = ReinforcementService.from_scenario(self._scenario_data)
+            self._apply_scenario_start_effects()
+
+            # PF-14: re-center the camera on the map for the battle phase.
+            # The deployment phase pinned the camera to the UI layout; the
+            # per-frame constrain_to_map() call resumes in battle and will
+            # fix zoom and clamp position from here.
+            try:
+                from pycc2.domain.value_objects.vec2 import Vec2
+
+                ts = self.renderer.TILE_SIZE
+                if not isinstance(ts, int):
+                    ts = 32
+                self.state.camera.position = Vec2(
+                    self.state.game_map.width * ts / 2,
+                    self.state.game_map.height * ts / 2,
+                )
+            except Exception:
+                logger.warning("Battle camera re-center failed", exc_info=True)
+
+            # PF-14 root cause 4: re-show the tutorial (hidden during the
+            # deployment phase) now that the battle has started.
+            if self.tutorial_overlay is not None:
+                try:
+                    self.tutorial_overlay.show()
+                except Exception:
+                    logger.warning("Failed to re-show tutorial overlay", exc_info=True)
         return result
+
+    def _apply_scenario_start_effects(self) -> None:
+        """Apply PF-12 rules that change units once battle starts."""
+        import random
+
+        from pycc2.domain.value_objects.tile_coord import TileCoord
+
+        rules = getattr(self, "_scenario_rules", None)
+        if rules is None or not rules.rules:
+            return
+        game_map = self.state.game_map
+        units = self.state.units
+
+        if rules.has("fortified_positions"):
+            for unit in units:
+                if unit.is_alive and unit.faction.name == "AXIS":
+                    unit.scenario_cover_mod = 0.75
+
+        if rules.has("initial_scatter") and game_map is not None:
+            rng = random.Random(len(units) * 7919)
+            occupied = {
+                (unit.position.tile_coord.x, unit.position.tile_coord.y)
+                for unit in units
+                if unit.is_alive
+            }
+            for unit in units:
+                if not unit.is_alive:
+                    continue
+                dx, dy = rng.choice(((1, 0), (-1, 0), (0, 1), (0, -1)))
+                x = unit.position.tile_coord.x + dx
+                y = unit.position.tile_coord.y + dy
+                if not (0 <= x < game_map.width and 0 <= y < game_map.height):
+                    continue
+                if (x, y) in occupied:
+                    continue
+                terrain = game_map.get_terrain(TileCoord(x, y))
+                if terrain is None or not terrain.is_passable:
+                    continue
+                occupied.discard((unit.position.tile_coord.x, unit.position.tile_coord.y))
+                occupied.add((x, y))
+                unit.position.tile_coord = TileCoord(x, y)
 
     def get_deployment_state(self) -> object | None:
         """Return the current deployment state, or None if not in deployment."""

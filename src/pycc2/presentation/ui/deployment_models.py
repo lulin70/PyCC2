@@ -88,8 +88,8 @@ class DeploymentState:
 # Zone overlay colours (R, G, B, A)
 ZONE_COLORS: dict[ZoneType, tuple[int, int, int, int]] = {
     ZoneType.FRIENDLY: (0, 0, 0, 0),
-    ZoneType.NO_MANS_LAND: (120, 120, 120, 60),
-    ZoneType.ENEMY_CONTROLLED: (60, 60, 60, 100),
+    ZoneType.NO_MANS_LAND: (150, 150, 150, 28),
+    ZoneType.ENEMY_CONTROLLED: (70, 70, 70, 55),
 }
 
 ZONE_BORDER_COLORS: dict[ZoneType, tuple[int, int, int]] = {

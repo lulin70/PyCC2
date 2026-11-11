@@ -188,8 +188,11 @@ def _load_saved_game(slot, screen, wm):
         return None
 
     game_map = GameMap.from_json(map_path)
-    center_x = game_map.width * 16.0
-    center_y = game_map.height * 16.0
+    from pycc2.presentation.visual_config import DEFAULT_VISUAL_CONFIG
+
+    tile_px = DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE
+    center_x = game_map.width * tile_px / 2.0
+    center_y = game_map.height * tile_px / 2.0
     camera = Camera(
         position=Vec2(center_x, center_y),
         viewport_width=1280,
@@ -210,6 +213,62 @@ def _load_saved_game(slot, screen, wm):
 
     logger.info(f"Game loaded from slot {slot}, entering main loop...")
     return game_loop
+
+
+def _apply_scenario_objectives(game_map, scenario_data: dict) -> int:
+    """Make scenario victory locations the objectives used for scoring.
+
+    Battle scoring reads ``game_map.objectives``. Scenario files define their
+    own victory locations with point values, so they must be authoritative.
+    Without this, the deployment screen shows one set of locations and the
+    battle scores another.
+
+    Returns:
+        Number of objectives applied. Zero leaves the map objectives intact.
+
+    """
+    from pycc2.domain.entities.game_map import MapObjective
+    from pycc2.domain.value_objects.tile_coord import TileCoord
+
+    locations = scenario_data.get("victory_locations") or []
+    if not locations:
+        return 0
+
+    def _has_passable_near(x: int, y: int, radius: int) -> bool:
+        for dy in range(-radius, radius + 1):
+            for dx in range(-radius, radius + 1):
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < game_map.width and 0 <= ny < game_map.height:
+                    terrain = game_map.get_terrain(TileCoord(nx, ny))
+                    if terrain is not None and terrain.is_passable:
+                        return True
+        return False
+
+    objectives: list[MapObjective] = []
+    for location in locations:
+        try:
+            x, y = (int(value) for value in location["position"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        radius = int(location.get("radius", 3))
+        while radius < 6 and not _has_passable_near(x, y, radius):
+            radius += 1
+        objectives.append(
+            MapObjective(
+                id=str(location.get("id", f"vl_{x}_{y}")),
+                name=str(location.get("name", location.get("id", "VL"))),
+                position=TileCoord(x, y),
+                radius=radius,
+                required=bool(location.get("required", True)),
+                owner=None,
+                points=int(location.get("value", 10)),
+            )
+        )
+
+    if not objectives:
+        return 0
+    game_map.objectives = objectives
+    return len(objectives)
 
 
 def _start_new_game(menu, menu_action, screen, wm):
@@ -278,9 +337,12 @@ def _start_new_game(menu, menu_action, screen, wm):
         logger.error("Failed to get game settings: %s", e, exc_info=True)
         return None
 
-    # Create camera centered on map
-    center_x = game_map.width * 16.0
-    center_y = game_map.height * 16.0
+    # Create camera centered on map (world units are tiles × TILE_SIZE)
+    from pycc2.presentation.visual_config import DEFAULT_VISUAL_CONFIG
+
+    tile_px = DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE
+    center_x = game_map.width * tile_px / 2.0
+    center_y = game_map.height * tile_px / 2.0
     camera = Camera(
         position=Vec2(center_x, center_y),
         viewport_width=1280,
@@ -315,8 +377,9 @@ def _start_new_game(menu, menu_action, screen, wm):
     scenario_stem = menu.get_selected_map() if hasattr(menu, "get_selected_map") else map_stem
     scenario_path = Path(f"data/scenarios/{scenario_stem}.json")
     if not scenario_path.exists():
-        # Try matching by map_id in scenario files
-        for sp in Path("data/scenarios").glob("*.json"):
+        # Try matching by map_id in scenario files. Several scenarios can share
+        # one map, so iterate in sorted order to keep the choice deterministic.
+        for sp in sorted(Path("data/scenarios").glob("*.json")):
             if sp.stem == "_schema":
                 continue
             try:
@@ -348,7 +411,12 @@ def _start_new_game(menu, menu_action, screen, wm):
                 map_data["forces"] = scenario_data.get("forces", {})
                 map_data["special_rules"] = scenario_data.get("special_rules", [])
                 map_data["scenario_id"] = scenario_data.get("scenario_id", "")
-                logger.info("Loaded scenario data from %s", scenario_path.stem)
+                applied = _apply_scenario_objectives(game_map, scenario_data)
+                logger.info(
+                    "Loaded scenario data from %s (%d victory locations)",
+                    scenario_path.stem,
+                    applied,
+                )
         except (json.JSONDecodeError, OSError, ValueError, KeyError) as e:
             logger.warning("Failed to load scenario data from %s: %s", scenario_path, e)
 

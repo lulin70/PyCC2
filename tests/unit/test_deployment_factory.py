@@ -38,6 +38,26 @@ def test_ai_deployment_ids_exist_in_database() -> None:
         assert missing == set(), f"{faction}: {missing}"
 
 
+def test_allied_pools_include_amphibious_tank() -> None:
+    for pool in (build_default_roster(), build_force_pool_from_settings("allied")):
+        assert "uk_sherman_dd" in {u.unit_template_id for u in pool}
+
+
+def test_attach_squad_sets_amphibious_flag() -> None:
+    from types import SimpleNamespace
+
+    from pycc2.domain.entities.unit import UnitType
+
+    unit = SimpleNamespace(
+        id="dd1",
+        name="Sherman DD",
+        faction=SimpleNamespace(name="BRITISH"),
+        squad_ref=None,
+    )
+    DeploymentManager._attach_squad(unit, "uk_sherman_dd", UnitType.INFANTRY_SQUAD, "allied")
+    assert unit.is_amphibious is True
+
+
 def test_deployment_template_maps_use_database_ids() -> None:
     db_ids = _database_ids()
     assert set(DeploymentManager._TEMPLATE_TYPE_MAP) <= db_ids
