@@ -51,6 +51,7 @@ class UnitRenderingMixin:
         def _draw_selection_outline(self, sprite: Surface, draw_pos: tuple[int, int]) -> None: ...
         def _draw_selection_ring(self, center: tuple[float, float], radius: int) -> None: ...
         def _draw_faction_flag(self, unit: Unit, sp: tuple[float, float], zoom: float) -> None: ...
+        def _draw_unit_identity(self, unit: Unit, sp: tuple[float, float], zoom: float) -> None: ...
         def _draw_unit_label(self, unit: Unit, sp: tuple[float, float], zoom: float) -> None: ...
         def _draw_health_bar(self, unit: Unit, sp: tuple[float, float], zoom: float) -> None: ...
         def _draw_enhanced_morale_indicator(
@@ -195,6 +196,8 @@ class UnitRenderingMixin:
             return
 
         zoom = camera.zoom
+        self._draw_unit_identity(unit, sp, zoom)
+
         sz = int(self.SPRITE_SIZE * zoom)
         if sz > 0:
             if sz == sprite.get_width():
@@ -245,7 +248,7 @@ class UnitRenderingMixin:
                 except (pygame.error, ValueError, TypeError) as e:
                     logging.debug("Wounded overlay failed: %s", e)
 
-            surface.blit(scaled, draw_pos)
+            self._blit_unit_sprite(surface, sprite, scaled, draw_pos, sz)
 
             if "TANK" in utype:
                 self._draw_turret_overlay(unit, sp, zoom, faction)
@@ -265,6 +268,40 @@ class UnitRenderingMixin:
         self._draw_movement_mode_indicator(unit, sp, zoom)
 
         self._effect_renderer.render_hit_flash(unit.id, sp, sz, surface)
+
+    def _blit_unit_sprite(
+        self,
+        surface: Surface,
+        sprite: Surface,
+        scaled: Surface,
+        draw_pos: tuple[int, int],
+        size: int,
+    ) -> None:
+        """Blit a unit sprite with a dark 1 px silhouette outline (PF-11).
+
+        The outline is built from the unscaled sprite and cached per
+        (sprite, size), so the per-frame cost on 200 units stays low.
+        """
+        key = (id(sprite), size)
+        outline = self._outline_cache.get(key)
+        if outline is None:
+            mask = pygame.mask.from_surface(sprite, 24)
+            outline = mask.to_surface(
+                setcolor=(14, 14, 14, 210),
+                unsetcolor=(0, 0, 0, 0),
+            )
+            if outline.get_width() != size:
+                outline = transform.scale(outline, (size, size))
+            if len(self._outline_cache) > 512:
+                self._outline_cache.clear()
+            self._outline_cache[key] = outline
+
+        bx, by = draw_pos
+        surface.blit(outline, (bx - 1, by))
+        surface.blit(outline, (bx + 1, by))
+        surface.blit(outline, (bx, by - 1))
+        surface.blit(outline, (bx, by + 1))
+        surface.blit(scaled, draw_pos)
 
     def _facing_to_direction_index(self, rad: float) -> int:
         """将弧度转为8方向索引 (N=0, 顺时针: NE=1, E=2, SE=3, S=4, SW=5, W=6, NW=7)"""

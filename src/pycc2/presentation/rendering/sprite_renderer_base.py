@@ -70,6 +70,8 @@ class SpriteRendererBase:
         # PF-01: scaled-sprite cache. Scaling every unit every frame cost
         # ~1.2 ms per frame at 200 units.
         self._scaled_sprite_cache: dict[tuple[int, int], Surface] = {}
+        # PF-11: dark silhouette cache so units read against busy terrain.
+        self._outline_cache: dict[tuple[int, int], Surface] = {}
 
     # ====== Backward-compatible property accessors ======
     # These properties preserve the old API so existing tests and callers

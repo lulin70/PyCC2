@@ -31,7 +31,80 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["UnitOverlayRenderingMixin"]
+__all__ = ["UnitOverlayRenderingMixin", "unit_badge_shape", "unit_role_letter"]
+
+# PF-11: role badges make branches distinguishable at 1280×720.
+_BADGE_INFANTRY = "circle"
+_BADGE_ARMOR = "square"
+_BADGE_MG = "double_dot"
+_BADGE_GUN = "triangle"
+_BADGE_RECON = "chevron"
+
+_ARMOR_KEYS = ("TANK", "VEHICLE", "HALFTRACK", "ARMORED", "FLAME_TANK")
+_MG_KEYS = ("MACHINE_GUN", "MG")
+_GUN_KEYS = ("ANTI_TANK", "AT_GUN", "ARTILLERY", "MORTAR", "HOWITZER", "FLAK")
+_RECON_KEYS = ("SNIPER", "SCOUT", "RECON")
+
+# PF-11b: below this zoom the centered letter becomes unreadable and the
+# shape badge takes over as the far-distance cue.
+_LETTER_ZOOM_THRESHOLD = 0.5
+
+_BADGE_COLORS = {
+    _BADGE_INFANTRY: (235, 235, 225),
+    _BADGE_ARMOR: (150, 200, 255),
+    _BADGE_MG: (120, 235, 200),
+    _BADGE_GUN: (255, 190, 120),
+    _BADGE_RECON: (255, 235, 120),
+}
+
+
+def unit_role_letter(unit_type_name: str) -> str:
+    """Return the single-letter role code for a unit type name (PF-11b).
+
+    Specific branches are checked before the broad keyword tables so, for
+    example, anti-tank teams read as guns ("A"), not armor ("T").
+    """
+    name = str(unit_type_name).upper()
+    if "ANTI_TANK" in name or "AT_GUN" in name:
+        return "A"
+    if "MORTAR" in name:
+        return "M"
+    if "FLAME" in name:
+        return "F"
+    if "SNIPER" in name:
+        return "S"
+    if "ENGINEER" in name:
+        return "E"
+    if "OFFICER" in name or "COMMANDER" in name:
+        return "O"
+    if any(key in name for key in _ARMOR_KEYS):
+        return "T"
+    if any(key in name for key in _MG_KEYS):
+        return "G"
+    if any(key in name for key in _GUN_KEYS):
+        return "A"
+    if any(key in name for key in _RECON_KEYS):
+        return "R"
+    if "TRUCK" in name:
+        return "U"
+    return "I"
+
+
+def unit_badge_shape(unit_type_name: str) -> str:
+    """Return the role badge shape for a unit type name (PF-11)."""
+    name = str(unit_type_name).upper()
+    # Anti-tank teams read as guns, not armor, even though the name has TANK.
+    if "ANTI_TANK" in name or "AT_GUN" in name:
+        return _BADGE_GUN
+    if any(key in name for key in _ARMOR_KEYS):
+        return _BADGE_ARMOR
+    if any(key in name for key in _MG_KEYS):
+        return _BADGE_MG
+    if any(key in name for key in _GUN_KEYS):
+        return _BADGE_GUN
+    if any(key in name for key in _RECON_KEYS):
+        return _BADGE_RECON
+    return _BADGE_INFANTRY
 
 
 class UnitOverlayRenderingMixin:
@@ -141,6 +214,130 @@ class UnitOverlayRenderingMixin:
         flag_color = (80, 200, 80) if faction in ("allies", "us", "uk", "polish") else (220, 60, 60)
 
         draw.rect(self.draw_surface, flag_color, (fx, fy, flag_w, flag_h))
+
+    def _draw_unit_base(
+        self,
+        unit: Unit,
+        sp: tuple[float, float],
+        zoom: float,
+    ) -> None:
+        """Draw a faction-tinted ground base so units separate from terrain (PF-11)."""
+        surface = self.draw_surface
+        if surface is None:
+            return
+        faction = unit.faction.name.lower()
+        allied = faction in ("allies", "us", "uk", "polish")
+        color = (45, 70, 110) if allied else (105, 45, 45)
+        w = max(18, int(34 * zoom))
+        h = max(8, int(13 * zoom))
+        base = self._get_pooled_surface(w, h)
+        draw.ellipse(base, (*color, 120), (0, 0, w, h))
+        surface.blit(base, (int(sp[0]) - w // 2, int(sp[1]) - h // 2 + int(16 * zoom)))
+
+    def _draw_unit_role_badge(
+        self,
+        unit: Unit,
+        sp: tuple[float, float],
+        zoom: float,
+    ) -> None:
+        """Draw a shape-coded role badge at the unit's lower-left (PF-11)."""
+        surface = self.draw_surface
+        if surface is None:
+            return
+
+        shape = unit_badge_shape(unit.unit_type.name)
+        color = _BADGE_COLORS[shape]
+        size = max(8, int(10 * zoom))
+        cx = int(sp[0]) - int(15 * zoom)
+        cy = int(sp[1]) + int(8 * zoom)
+        half = size // 2
+
+        plate = self._get_pooled_surface(size + 4, size + 4)
+        draw.circle(plate, (18, 18, 18, 190), (half + 2, half + 2), half + 2)
+        surface.blit(plate, (cx - half - 2, cy - half - 2))
+
+        if shape == _BADGE_ARMOR:
+            draw.rect(surface, color, (cx - half, cy - half, size, size))
+            draw.rect(surface, (20, 20, 20), (cx - half, cy - half, size, size), 1)
+            draw.line(surface, color, (cx + half, cy), (cx + half + half, cy), 2)
+        elif shape == _BADGE_MG:
+            r = max(2, half // 2)
+            draw.circle(surface, color, (cx - r, cy), r)
+            draw.circle(surface, color, (cx + r, cy), r)
+        elif shape == _BADGE_GUN:
+            draw.polygon(
+                surface,
+                color,
+                [(cx, cy - half), (cx + half, cy + half), (cx - half, cy + half)],
+            )
+            draw.polygon(
+                surface,
+                (20, 20, 20),
+                [(cx, cy - half), (cx + half, cy + half), (cx - half, cy + half)],
+                1,
+            )
+        elif shape == _BADGE_RECON:
+            draw.polygon(
+                surface,
+                color,
+                [
+                    (cx - half, cy + half // 2),
+                    (cx, cy - half),
+                    (cx + half, cy + half // 2),
+                    (cx + half // 2, cy + half // 2),
+                    (cx, cy),
+                    (cx - half // 2, cy + half // 2),
+                ],
+            )
+        else:
+            draw.circle(surface, color, (cx, cy), half)
+            draw.circle(surface, (20, 20, 20), (cx, cy), half, 1)
+
+    def _draw_unit_role_letter(
+        self,
+        unit: Unit,
+        sp: tuple[float, float],
+        zoom: float,
+    ) -> None:
+        """Draw a letter-coded role disc at the sprite center (PF-11b)."""
+        surface = self.draw_surface
+        if surface is None:
+            return
+
+        letter = unit_role_letter(unit.unit_type.name)
+        radius = max(9, int(14 * zoom))
+        cx = int(sp[0])
+        cy = int(sp[1])
+
+        plate = self._get_pooled_surface(radius * 2 + 2, radius * 2 + 2)
+        draw.circle(plate, (18, 18, 18, 240), (radius + 1, radius + 1), radius)
+        surface.blit(plate, (cx - radius - 1, cy - radius - 1))
+
+        font_obj = self._effect_renderer.get_font(max(12, int(20 * zoom)))
+        if font_obj is None:
+            return
+        text_surf = font_obj.render(letter, True, (245, 245, 245))
+        surface.blit(text_surf, text_surf.get_rect(center=(cx, cy)))
+
+    def _draw_unit_identity(
+        self,
+        unit: Unit,
+        sp: tuple[float, float],
+        zoom: float,
+    ) -> None:
+        """Draw ground base and role cue (PF-11/PF-11b readability pass).
+
+        Mid and close zoom shows a centered letter; far zoom falls back to
+        the lower-left shape badge because letters stop being readable.
+        """
+        try:
+            self._draw_unit_base(unit, sp, zoom)
+            if zoom >= _LETTER_ZOOM_THRESHOLD:
+                self._draw_unit_role_letter(unit, sp, zoom)
+            else:
+                self._draw_unit_role_badge(unit, sp, zoom)
+        except (pygame.error, ValueError, AttributeError) as e:
+            logger.debug("Unit identity draw failed: %s", e)
 
     def _draw_health_bar(
         self,

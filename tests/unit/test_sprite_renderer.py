@@ -837,3 +837,111 @@ class TestVPNumeralRendering:
         # Both should have gold pixels
         assert gold40 > 0, "points=40 should render gold pixels"
         assert gold100 > 0, "points=100 should render gold pixels"
+
+
+class TestUnitReadabilityPF11:
+    """PF-11: units must be distinguishable at 1280×720."""
+
+    @pytest.mark.parametrize(
+        ("type_name", "expected"),
+        [
+            ("INFANTRY_SQUAD", "circle"),
+            ("MACHINE_GUN_SQUAD", "double_dot"),
+            ("TANK", "square"),
+            ("AT_GUN_TEAM", "triangle"),
+            ("ANTI_TANK_TEAM", "triangle"),
+            ("TANK_DESTROYER", "square"),
+            ("SNIPER_TEAM", "chevron"),
+            ("MORTAR_TEAM", "triangle"),
+            ("COMMANDER", "circle"),
+        ],
+    )
+    def test_role_badge_shape_mapping(self, type_name, expected):
+        from pycc2.presentation.rendering.unit_overlay_rendering_mixin import (
+            unit_badge_shape,
+        )
+
+        assert unit_badge_shape(type_name) == expected
+
+    @pytest.mark.parametrize(
+        ("type_name", "expected"),
+        [
+            ("INFANTRY_SQUAD", "I"),
+            ("MACHINE_GUN_SQUAD", "G"),
+            ("TANK", "T"),
+            ("AT_GUN_TEAM", "A"),
+            ("ANTI_TANK_TEAM", "A"),
+            ("TANK_DESTROYER", "T"),
+            ("SNIPER_TEAM", "S"),
+            ("MORTAR_TEAM", "M"),
+            ("COMMANDER", "O"),
+            ("ENGINEER_SQUAD", "E"),
+            ("FLAME_TANK", "F"),
+            ("TRUCK", "U"),
+            ("SCOUT_TEAM", "R"),
+        ],
+    )
+    def test_role_letter_mapping(self, type_name, expected):
+        from pycc2.presentation.rendering.unit_overlay_rendering_mixin import (
+            unit_role_letter,
+        )
+
+        assert unit_role_letter(type_name) == expected
+
+    def test_letter_at_mid_zoom_badge_at_far_zoom(self):
+        """PF-11b: centered letter at zoom >= 0.5, shape badge fallback below."""
+        import pygame
+
+        from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
+
+        unit = _make_unit(unit_type=UnitType.INFANTRY_SQUAD)
+        renderer = SpriteRenderer()
+
+        near = pygame.Surface((120, 120), pygame.SRCALPHA)
+        near.fill((0, 0, 0, 0))
+        renderer._screen = near
+        renderer._draw_unit_identity(unit, (60.0, 60.0), 1.0)
+        assert near.get_at((60, 60))[3] > 0, "letter plate must sit at the sprite center"
+
+        far = pygame.Surface((120, 120), pygame.SRCALPHA)
+        far.fill((0, 0, 0, 0))
+        renderer._screen = far
+        renderer._draw_unit_identity(unit, (60.0, 60.0), 0.4)
+        assert far.get_at((60, 60))[3] == 0, "far zoom must not draw a center letter"
+        badge_x = 60 - int(15 * 0.4)
+        badge_y = 60 + int(8 * 0.4)
+        assert far.get_at((badge_x, badge_y))[3] > 0, "far zoom must fall back to the badge"
+
+    def test_identity_overlay_draws_pixels(self):
+        import pygame
+
+        from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
+
+        surface = pygame.Surface((120, 120), pygame.SRCALPHA)
+        surface.fill((0, 0, 0, 0))
+        renderer = SpriteRenderer()
+        renderer._screen = surface
+
+        unit = _make_unit(unit_type=UnitType.INFANTRY_SQUAD)
+        renderer._draw_unit_identity(unit, (60.0, 60.0), 1.0)
+
+        drawn = sum(1 for pixel in pygame.surfarray.array_alpha(surface).flatten() if pixel > 0)
+        assert drawn > 0, "unit identity overlay must draw a base and a badge"
+
+    def test_enemy_and_allied_bases_differ(self):
+        import pygame
+
+        from pycc2.presentation.rendering.sprite_renderer import SpriteRenderer
+
+        def _render(faction):
+            surface = pygame.Surface((120, 120), pygame.SRCALPHA)
+            surface.fill((0, 0, 0, 0))
+            renderer = SpriteRenderer()
+            renderer._screen = surface
+            unit = _make_unit(faction=faction)
+            renderer._draw_unit_base(unit, (60.0, 60.0), 1.0)
+            return surface
+
+        allied = _render(Faction.ALLIES)
+        axis = _render(Faction.AXIS)
+        assert pygame.image.tostring(allied, "RGBA") != pygame.image.tostring(axis, "RGBA")
