@@ -385,6 +385,8 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
         alpha: float = 1.0,
         selected_unit_ids: set[str] | None = None,
         debug_mode: bool = False,
+        paused: bool = False,
+        tick: int = 0,
     ) -> None:
         """Main render entry point.
 
@@ -466,10 +468,10 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
                         selected_unit = unit
                         break
 
-            # 获取FPS和回合数
+            # 获取FPS和回合数（回合换算与 RenderPipeline hud_manager 一致：1800 tick = 1 回合）
             fps = self._state_manager.get_fps()
-            current_turn = 0  # TODO: 从GameState获取
-            game_paused = False  # TODO: 从GameState获取
+            current_turn = tick // 1800 + 1
+            game_paused = paused
 
             self._hud.render(
                 screen=screen,  # HUD直接绘制到主屏幕（在post-processing之前）

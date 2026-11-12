@@ -68,6 +68,8 @@ class RenderPipeline:
             alpha=alpha,
             selected_unit_ids=selected_unit_ids,
             debug_mode=debug_mode,
+            paused=paused,
+            tick=tick,
         )
 
         self._render_hud(

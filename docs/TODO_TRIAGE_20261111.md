@@ -51,7 +51,7 @@ tile_size = 48  # TODO: 从VisualConfig获取
 
 | 编号 | 位置 | 判定 | 理由 | 状态 |
 |------|------|------|------|------|
-| T1/T2 | enhanced_renderer.py:471-472 | 留 | 跨层签名变更，需设计 | 🔵 TD-079 跟踪 |
+| T1/T2 | enhanced_renderer.py:471-472 | 留→修 | 跨层签名变更，需设计 | ✅ 已修复（2026-11-12，TD-079 关闭：`paused`/`tick` 经 RenderPipeline 透传，回合换算与 hud_manager 一致；回归 7552 passed） |
 | T3 | hud_renderer.py:203-239 | 删 | 死代码，无调用点 | ✅ 已删除（同日清理，连带清理仅该方法使用的 `Camera` 导入；回归 7549 passed 保持不变） |
 | T4 | minimap_renderer.py:349 | 修 | 一行接权威常量 | ✅ 已修复（改用 `DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE`，与 enhanced_renderer V-01 热加载口径一致） |
 

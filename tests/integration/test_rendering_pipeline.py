@@ -141,6 +141,90 @@ class TestEnhancedRendererWithSpriteRenderer:
 
 
 @pytest.mark.integration
+class TestHudStateWiring:
+    """TD-079 / T1+T2: HUD 状态栏必须显示真实回合数与暂停状态。
+
+    game_loop → RenderPipeline.render(paused, tick) → EnhancedRenderer.render
+      → HUDRenderer.render(game_paused, current_turn)。
+    回合换算与 hud_manager 口径一致：1800 tick = 1 回合。
+    """
+
+    def test_render_pipeline_forwards_paused_and_tick_to_renderer(self, game_map, camera):
+        """RenderPipeline must forward paused/tick into the inner renderer call."""
+        from types import SimpleNamespace
+
+        from pycc2.presentation.rendering.render_pipeline import RenderPipeline
+
+        class RecordingRenderer:
+            def __init__(self) -> None:
+                self.kwargs: dict = {}
+
+            def render(self, game_map, units, camera, **kwargs) -> None:
+                self.kwargs = kwargs
+
+        window_manager = SimpleNamespace(get_screen=lambda: pygame.Surface((800, 600)))
+        pipeline = RenderPipeline(
+            renderer=RecordingRenderer(),
+            window_manager=window_manager,
+            display_config=SimpleNamespace(),
+            use_full_hud=False,
+        )
+        pipeline.render(
+            game_map=game_map,
+            units=[],
+            camera=camera,
+            alpha=1.0,
+            selected_unit_ids=set(),
+            debug_mode=False,
+            paused=True,
+            tick=3600,
+            show_post_battle=False,
+            game_result=None,
+            battle_stats=None,
+        )
+        assert pipeline.renderer.kwargs["paused"] is True
+        assert pipeline.renderer.kwargs["tick"] == 3600
+
+    def test_enhanced_renderer_passes_turn_and_pause_to_hud(
+        self, enhanced_renderer, game_map, camera, ally_unit
+    ):
+        """EnhancedRenderer must derive current_turn/game_paused from render args."""
+        captured: dict = {}
+        original = enhanced_renderer._hud.render
+
+        def spy(**kwargs):
+            captured.update(kwargs)
+            original(**kwargs)
+
+        enhanced_renderer._hud.render = spy
+        enhanced_renderer.render(
+            game_map=game_map,
+            units=[ally_unit],
+            camera=camera,
+            paused=True,
+            tick=3600,
+        )
+        assert captured["game_paused"] is True
+        assert captured["current_turn"] == 3  # 3600 // 1800 + 1
+
+    def test_enhanced_renderer_turn_defaults_when_not_paused(
+        self, enhanced_renderer, game_map, camera, ally_unit
+    ):
+        """Default call (no paused/tick) keeps backward compatibility: turn 1, not paused."""
+        captured: dict = {}
+        original = enhanced_renderer._hud.render
+
+        def spy(**kwargs):
+            captured.update(kwargs)
+            original(**kwargs)
+
+        enhanced_renderer._hud.render = spy
+        enhanced_renderer.render(game_map=game_map, units=[ally_unit], camera=camera)
+        assert captured["game_paused"] is False
+        assert captured["current_turn"] == 1
+
+
+@pytest.mark.integration
 class TestTerrainTextureRendering:
     def test_render_open_terrain(self, enhanced_renderer, game_map, camera):
         """Rendering open terrain (type 0) should not crash."""

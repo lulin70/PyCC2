@@ -890,7 +890,7 @@
 - **影响**: 状态栏信息失真（P3 观感级）。真实窗口 UAT 未阻塞。
 - **清理方案**: 沿 game loop → renderer 调用链改签名传递 GameState（跨层接口变更，需 P3 技术设计）。
 - **来源**: TODO 判定文档 [TODO_TRIAGE_20261111.md](TODO_TRIAGE_20261111.md) T1/T2（判定「留」）。
-- **状态**: 🔴 OPEN (2026-11-11) — 待排期。
+- **状态**: ✅ 已清理 (2026-11-12) — 实际方案比预想轻：game loop 已向 `RenderPipeline.render` 传 `paused`/`tick`，只是管道未透传。修复：`IRenderPipeline` 协议与 `EnhancedRenderer.render` 签名加 `paused`/`tick` 关键字参数（带默认值，向后兼容），`RenderPipeline.render` 透传，HUD 回合换算 `tick // 1800 + 1`（与 hud_manager 口径一致）。新增 3 个接线用例（`tests/integration/test_rendering_pipeline.py::TestHudStateWiring`），全量回归 7552 passed / 0 failed。未走 GameState 传递（避免更重的跨层耦合），如未来状态项继续增多再评估状态对象方案。
 
 ---
 

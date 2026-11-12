@@ -29,6 +29,8 @@ class IRenderer(Protocol):
         alpha: float = 1.0,
         selected_unit_ids: set[str] | None = None,
         debug_mode: bool = False,
+        paused: bool = False,
+        tick: int = 0,
     ) -> None: ...
 
     def initialize(self, screen: Any) -> None: ...

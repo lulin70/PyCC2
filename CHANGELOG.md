@@ -2,6 +2,19 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## Unreleased (2026-11-12) — TODO 判定执行（T1/T2 接线）
+
+**目标**: 关闭 TD-079。HUD 状态栏显示真实回合数与暂停状态。
+
+### Fixed
+- **T1/T2（TD-079）**: HUD 状态栏回合数恒显 `Turn: 0`、暂停状态恒 False。根因：game loop 已向 `RenderPipeline.render` 传 `paused`/`tick`，但管道调用内层渲染器时未透传，`EnhancedRenderer` 只能硬编码。修复：`IRenderer` 协议与 `EnhancedRenderer.render` 签名加 `paused`/`tick` 关键字参数（带默认值，全部现有调用点向后兼容），`RenderPipeline.render` 透传，HUD 回合换算 `tick // 1800 + 1`（与 hud_manager 口径一致）。
+
+### Verification
+- 新增 3 个接线用例（`tests/integration/test_rendering_pipeline.py::TestHudStateWiring`）：管道透传、HUD 收到真实回合/暂停、默认调用向后兼容。
+- 全量回归：7552 passed / 4 skipped / 0 failed（+3 新用例）。
+- ruff check / format / mypy 全绿。
+- 活跃代码 TODO 归零（grep src 非 _archive 无 TODO/FIXME）。
+
 ## Unreleased (2026-11-11) — TODO 判定执行（T3/T4）
 
 **目标**: 执行 [TODO_TRIAGE_20261111.md](docs/TODO_TRIAGE_20261111.md) 中判定为「删」「修」的两项。
