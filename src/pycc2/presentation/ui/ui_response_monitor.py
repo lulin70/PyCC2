@@ -7,6 +7,8 @@ Ensures all UI interactions complete within 50ms target:
 - Building placements
 """
 
+# STATUS: ORPHAN (TD-080, 2026-11-14) — 0 external src references; see docs/TECH_DEBT.md TD-080
+
 from __future__ import annotations
 
 import time

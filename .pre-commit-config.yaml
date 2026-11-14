@@ -1,11 +1,12 @@
 # Pre-commit configuration for PyCC2
 # See https://pre-commit.com for more information
+# Updated 2026-11-14: ruff v0.15.20→v0.15.13 to re-match requirements-dev.lock (TD-070 close-out)
 # Updated 2026-07-13: mypy v1.11.0→v2.1.0 to match requirements-dev.lock (W4-3 CI drift fix)
 # Updated 2026-07-05: ruff v0.5.0→v0.15.20 to match requirements-dev.lock (TD-070 fix)
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.20
+    rev: v0.15.13
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]

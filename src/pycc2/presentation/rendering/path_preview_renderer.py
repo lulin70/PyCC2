@@ -13,6 +13,8 @@ Design:
 - 可选：显示路径长度和移动代价
 """
 
+# STATUS: ORPHAN (TD-080, 2026-11-14) — 0 external src references; superseded by services/path_preview.py (TD-077 INTEGRATE); see docs/TECH_DEBT.md TD-080
+
 from __future__ import annotations
 
 import logging

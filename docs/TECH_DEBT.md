@@ -234,7 +234,7 @@
 
 ## 🆕 四、v0.3.11 DevSquad 审计新增 (TD-057~TD-059)
 
-### 🟢 TD-057: __import__() 动态导入使用
+### ~~🟢 TD-057: __import__() 动态导入使用~~ ✅ 已修复
 
 - **描述**: `pixel_artist_3d.py` 中使用 `__import__('random')` 动态导入 (6处)，应改为静态 import
 - **影响**: 安全风险 + 性能损耗（每次调用都执行导入查找）
@@ -387,21 +387,21 @@
   - TECH_DEBT.md: TD-027/TD-038/TD-052 checklist 同步 + 总览表更新
 - **清理方案**: ~~建立文档-代码同步验证机制，每个Phase结束时实际运行验证~~ 已通过 v0.4.7 4份文档批量同步解决；建议后续每个版本发布前执行文档状态核查
 
-### 🟢 TD-039: 缺少错误恢复机制
+### ~~🟢 TD-039: 缺少错误恢复机制~~ ✅ RESOLVED (v0.4.8, 2026-07-06)
 
 - **描述**: 关键路径缺少错误恢复机制，一个组件崩溃导致整个游戏崩溃
 - **影响**: P0 Bug导致游戏完全不可玩，而非降级运行
 - **状态**: ✅ RESOLVED (v0.4.8, 2026-07-06) — `game_loop_updating.py:_update_ai` 添加 try/except 包裹 `ai_service.tick()` + `execute_intents()`, AI tick 失败降级为单位本 tick 静止 (log warning, 不传播异常)；`game_loop_rendering.py:_render_scene` 添加 try/except 包裹整个渲染管线 (Step 1-3: render_pipeline + weather/lighting + UI overlay), render 失败降级为跳过本帧 (log error, 不传播异常)。测试: `tests/unit/test_error_recovery.py` 8 tests (4 AI + 4 Render) 验证异常不传播 + counter 重置 + execute_intents 异常不传播 + 10 ticks 全链路存活 + render 失败跳过后续步骤 + 10 帧持续失败存活 + pipeline=None 早返回
 - **清理方案**: ✅ 已实施 — 为关键子系统更新包裹 try/except + 显式降级策略（AI tick 失败 → 该单位本 tick 静止；render 失败 → 跳过本帧不崩溃）
 
-### 🟢 TD-040: 缺少运行时健康检查
+### ~~🟢 TD-040: 缺少运行时健康检查~~ ✅ RESOLVED (v0.4.8, 2026-07-06)
 
 - **描述**: 没有运行时健康检查机制，无法在启动时检测关键组件是否正常
 - **影响**: 游戏启动后才发现Bug，而非启动时即报错
 - **状态**: ✅ RESOLVED (v0.4.8, 2026-07-06) — 新建 `src/pycc2/infrastructure/diagnostics/preflight_check.py` 模块, 提供 `run_preflight_check(game_loop) -> PreflightResult` 3 层子系统检查: (1) Critical (constructor-injected): renderer/window_manager/event_bus/state/display_config; (2) Assembler-initialized: _combat_director/_render_pipeline/_event_dispatcher; (3) Optional (headless-safe): ai_service/sound_system/input_handler。`game_loop.py:run()` 启动主循环前调用 preflight, 失败时 logger.critical + return 1 (fail-fast)。测试: `tests/unit/test_preflight_check.py` 19 tests (3 dataclass + 15 parametrized 失败检测 + 1 真实 GameLoop happy-path)
 - **清理方案**: ✅ 已实施 — 添加启动 preflight 检查，断言每个关键子系统 non-None；进入主循环前 fail-fast
 
-### 🟢 TD-041: 缺少变更影响分析流程
+### ~~🟢 TD-041: 缺少变更影响分析流程~~ ✅ RESOLVED (v0.4.9, 2026-07-06)
 
 - **描述**: 修改一个模块时没有分析对其他模块影响的标准流程
 - **影响**: 修改可能无意中破坏其他模块的接口（P0 Bug的根因之一）
@@ -674,7 +674,7 @@
 
 ## 🆕 七、D14 项目整理评估新增 (TD-067~TD-071, 2026-07-05)
 
-### 🟡 TD-067: 5 个 God Class >800L 评估完成 — 1/5 TRUE (P2)
+### ~~🟡 TD-067: 5 个 God Class >800L 评估完成 — 1/5 TRUE (P2)~~ ✅ 闭环 (TRUE 项经 TD-072 解决, 2026-07-05)
 
 - **描述**: D14 发现 5 个 >800L 文件，v0.4.5 已基于"单类多不相干职责"标准（非方法数阈值）逐一评估:
   - ✅ `enhanced_sound_bridge.py` (949L) — TRUE God Class: 音频桥接 + 程序化波形合成 (~500L DSP) 双职责 → 拆分至 TD-072
@@ -709,19 +709,20 @@
   - 附带修复: test_vl_flag_rendering.py tolerance 40→60（暴露的 latent flaky bug，alpha-blend 数学期不足）
 - **状态**: ✅ RESOLVED (v0.4.6, 2026-07-05) — pytest e2e 477 passed / 0 skipped / 3 次连续稳定
 
-### 🟢 TD-069: 12 个零覆盖文件含 main.py P0 (P2)
+### ~~🟢 TD-069: 12 个零覆盖文件含 main.py P0 (P2)~~ ✅ RESOLVED (2026-11-14 收尾)
 
 - **描述**: 12 个源文件无任何测试覆盖，其中 `main.py` 是入口点（P0 优先级）
 - **影响**: 入口点无测试验证启动流程，业务模块无回归保护
 - **清理方案**: 优先 main.py smoke test，其次业务模块补测
-- **状态**: 🟢 记录 (v0.4.4 main.py + v0.5 业务模块)
+- **状态**: ✅ RESOLVED (2026-11-14) — main.py P0 已于 v0.4.4 补 smoke 测试（`tests/unit/test_zero_coverage_smoke.py`，含 font_helper/parsers/unit_panel/cc2_map_parser/cc2_combat_effects）；2026-11-14 复跑 unit 覆盖率再审计：剩余 9 个零覆盖文件中 1 个已接线（`scenario_rules.py`，game_loop/deployment_ui 运行时引用）→ 本轮补 `tests/unit/test_scenario_rules.py` 11 用例；其余 8 个经全仓 grep 确认 0 外部引用 → 登记 TD-080 走 ghost 评估流程，不再盲目补测死代码
+- **验证**: `pytest tests/unit/test_scenario_rules.py` 11 passed；全量回归见本轮 CI
 
-### 🟢 TD-070: pre-commit hooks 版本陈旧 (P2)
+### ~~🟢 TD-070: pre-commit hooks 版本陈旧 (P2)~~ ✅ RESOLVED (2026-11-14 收尾)
 
 - **描述**: `.pre-commit-config.yaml` 中 ruff 版本为 v0.5.0，但 requirements.lock 为 0.15.20，导致本地格式化与 CI 不一致，D14 期间 CI 连续失败
 - **影响**: 开发者本地 commit 不触发正确格式化，CI 才发现漂移
 - **清理方案**: 更新 .pre-commit-config.yaml ruff 版本至与 lock 一致，定期 `pre-commit autoupdate`
-- **状态**: 🟢 记录 (v0.4.4 修复，D14 已手动 ruff format 临时止血)
+- **状态**: ✅ RESOLVED (2026-11-14) — v0.4.4 首次修复 (v0.5.0→v0.15.20) 后 lock 又前移 (现 ruff==0.15.13)，pre-commit rev 反向漂移。本轮将 rev 回调至 v0.15.13 对齐 lock（mypy v2.1.0 已一致）；治理规则：升级 lock 时同步核对 pre-commit rev
 
 ### ✅ TD-071: mypy check_untyped_defs=true 启用完成 (RESOLVED)
 
@@ -779,7 +780,7 @@
 - **验证**: 6178 passed / 0 failed / 21 skipped (not slow, no:randomly)，ruff 0 errors
 - **状态**: 🟢 全部已修复（v0.6.7）
 
-### 🟢 TD-P2-5: 大文件清单更新 (43 文件 >500L)
+### ~~🟢 TD-P2-5: 大文件清单更新 (43 文件 >500L)~~ ✅ 评估完成无需拆分 (与 TD-026 一致)
 
 - **统计**: `find src/pycc2 -name "*.py" -exec wc -l {} + | awk '$1 > 500'` = 43 文件
 - **Top 10 大文件**:
@@ -892,6 +893,30 @@
 - **来源**: TODO 判定文档 [TODO_TRIAGE_20261111.md](TODO_TRIAGE_20261111.md) T1/T2（判定「留」）。
 - **状态**: ✅ 已清理 (2026-11-12) — 实际方案比预想轻：game loop 已向 `RenderPipeline.render` 传 `paused`/`tick`，只是管道未透传。修复：`IRenderPipeline` 协议与 `EnhancedRenderer.render` 签名加 `paused`/`tick` 关键字参数（带默认值，向后兼容），`RenderPipeline.render` 透传，HUD 回合换算 `tick // 1800 + 1`（与 hud_manager 口径一致）。新增 3 个接线用例（`tests/integration/test_rendering_pipeline.py::TestHudStateWiring`），全量回归 7552 passed / 0 failed。未走 GameState 传递（避免更重的跨层耦合），如未来状态项继续增多再评估状态对象方案。
 - **真实 UAT 复核 (2026-11-13)**: `EnhancedRenderer` 顶部 40px HUD 条带当前不在生产渲染路径，原接线仅有接口正确性证据，用户画面无感。生产实际使用 `RenderPipeline` fallback 状态行 + 底部 CC2 面板；已为 fallback 状态行补 `Turn`。同一 UAT 另发现并修复 ESC 无法恢复、暂停菜单打开时 tick 仍推进两项生产缺陷。真实窗口验收 `scripts/uat_hud_state.py` PASS，四张截图存于 `docs/assets/uat_hud_state/`，全量回归 7552 passed / 4 skipped。
+
+---
+
+## 🆕 十、2026-11-14 零覆盖再审计新增 (TD-080)
+
+### 🟢 TD-080: 8 个零覆盖 ORPHAN 模块评估 (P2)
+
+- **来源**: TD-069 收尾时的覆盖率再审计（`pytest tests/unit --cov=pycc2`，2026-11-14）。以下 8 个文件 unit 覆盖率 0% 且经全仓 grep（模块名 + 类名模式）确认 0 外部 src 引用：
+  | 文件 | 行数 | 备注 |
+  |------|------|------|
+  | `domain/entities/building.py` | ~210 | create_building 工厂 0 调用 |
+  | `domain/systems/movement_controller.py` | ~98 | Sprint 2 Day 7 早期实现 |
+  | `infrastructure/batch_unit_update_system.py` | ~46 | 自称 PERF-02，0 调用 |
+  | `infrastructure/spatial_grid.py` | ~83 | 仅被 batch_unit_update_system 引用 |
+  | `infrastructure/viewport_culler.py` | ~27 | 仅被 batch_unit_update_system 引用 |
+  | `presentation/input/unit_selection_manager.py` | ~131 | Sprint 2 Day 6 早期实现 |
+  | `presentation/rendering/path_preview_renderer.py` | ~82 | 已被 services/path_preview.py (TD-077 INTEGRATE) 取代 |
+  | `presentation/ui/ui_response_monitor.py` | ~66 | 性能监控原型 |
+- **影响**: ~640 行未集成代码维持认知成本（与 TD-077 同性质的新一批候选）
+- **清理方案**: 8 个文件已标记 `# STATUS: ORPHAN (TD-080)` 注释（沿用 TD-077 Step 1 最小变更策略）。下一轮 ghost 清理 wave 按五类分组决策 DELETE / ARCHIVE / INTEGRATE：
+  - path_preview_renderer.py — 功能已被 services/path_preview.py 覆盖，倾向 DELETE
+  - building.py / movement_controller.py / unit_selection_manager.py — 若建造/编队玩法未来需要则 INTEGRATE，否则 ARCHIVE
+  - batch trio (batch_unit_update/spatial_grid/viewport_culler) — 性能优化原型，若主循环性能回归再评估启用
+- **状态**: 🟢 ORPHAN 已标记 (2026-11-14)，决策留待下一 ghost wave
 
 ---
 

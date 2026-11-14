@@ -4,6 +4,8 @@ Optimizes unit AI updates by batching operations and using spatial grid + viewpo
 Target: 100 units updated in <5ms using spatial indexing and culling.
 """
 
+# STATUS: ORPHAN (TD-080, 2026-11-14) — 0 external src references; see docs/TECH_DEBT.md TD-080
+
 from __future__ import annotations
 
 import logging
