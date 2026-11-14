@@ -2,6 +2,27 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## v0.9.3 (2026-11-14) — HUD 状态真实化 + 暂停链修复 + 技术债清零
+
+**发布范围**: 2026-11-12 至 2026-11-14 四轮工作（详见下方 Unreleased 分节与本段）。
+
+### Summary
+- **T1/T2 接线（TD-079 关闭）**: `paused`/`tick` 经 `RenderPipeline` 透传至 `EnhancedRenderer`，HUD 回合换算与 hud_manager 口径一致。
+- **真实窗口 UAT 与暂停链修复**: 新增 `scripts/uat_hud_state.py` 验收（PASS，截图留痕）；修复 ESC 无法恢复、暂停菜单背后逻辑仍推进、生产画面无 Turn 显示三个生产缺陷。
+- **依赖审计修复**: soupsieve 2.9.0 → 4.0.0（4 个新公开 CVE）。
+- **技术债清零**: TD-069（零覆盖再审计 + ScenarioRules 补 11 用例）、TD-070（pre-commit ruff rev 对齐 lock）、TD-080（ghost wave：DELETE 1 + ARCHIVE 6 + building.py 判定撤回 scripts-only）全部关闭。活跃技术债 0。
+- **文档勘误**: TECH_DEBT 中 6 条已解决未划线条目补齐划线。
+
+### Verification
+- 全量回归：**7556 passed / 4 skipped / 0 failed**（`--ignore=tests/benchmark`）。
+- 真实窗口 UAT：部署 → START → ESC 暂停/恢复 → Turn 显示，全 PASS。
+- ruff / ruff format / mypy（CI 同口径）/ pip-audit / 文档一致性门禁全绿。
+- 远端 CI：见推送记录（发布 tag 的 run 全绿后回填）。
+
+### Release
+- **版本统一 bump 0.9.2 → 0.9.3**: VERSION、pyproject.toml、`src/pycc2/__init__.py`、README 三语标头、INSTALL 三语、PRD/DESIGN/ROADMAP/TEST_PLAN/TECH_DEBT/PROJECT_STATUS/VISUAL_POLISH_PLAN/ROADMAP_v0.9.0/VISUAL_OPTIMIZATION_UNIFIED。TEST_PLAN 测试数同步 6894 → 7556。
+- 文档一致性：`scripts/check_doc_consistency.sh` SUCCESS（VERSION=0.9.3）。
+
 ## Unreleased (2026-11-13) — 真实窗口 UAT（ESC 暂停链）
 
 **目标**: 验证 T1/T2 修复对真实用户生效，并关闭真实窗口验收发现的暂停缺陷。

@@ -1,6 +1,6 @@
 # PyCC2 — Close Combat 2: A Bridge Too Far (Python Remake)
 
-**v0.9.2 | Beta Candidate | November 11, 2026**
+**v0.9.3 | Beta Candidate | November 14, 2026**
 
 <p align="center">
 <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python" />

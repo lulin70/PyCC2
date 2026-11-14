@@ -1,4 +1,4 @@
-# Installation Guide — PyCC2 v0.9.2
+# Installation Guide — PyCC2 v0.9.3
 
 > **This document has been updated to v0.9.0. For earlier version information, see Git history.**
 

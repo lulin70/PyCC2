@@ -1,19 +1,19 @@
 # PyCC2 项目状态
 
-> **最后更新**: 2026-11-11
-> **版本**: v0.9.2
+> **最后更新**: 2026-11-14
+> **版本**: v0.9.3
 > **状态**: Beta Candidate — 项目整理与门禁固化发布（CI 红灯五层修复 + 遗留项收口）
 
 ## 核心指标
 
 | 指标 | 数值 | 来源 |
 |------|------|------|
-| 版本号 | 0.9.2 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
+| 版本号 | 0.9.3 | `pyproject.toml` / `src/pycc2/__init__.py` / `VERSION` |
 | 源码模块数 | 408 个 `.py` 文件 | `find src/pycc2 -name "*.py" \| wc -l` |
 | 测试文件数 | 279 个 `.py` 文件 | `find tests -name "*.py" \| wc -l` |
-| 测试用例数 | 7549 passed / 4 skipped（2026-11-11，含 ruff/mypy 全仓修复后回归；`--ignore=tests/benchmark`） | `pytest -q -p no:randomly --ignore=tests/benchmark` |
+| 测试用例数 | 7556 passed / 4 skipped（2026-11-14，含 TD-069 补测与 TD-080 死代码用例清理；`--ignore=tests/benchmark`） | `pytest -q -p no:randomly --ignore=tests/benchmark` |
 
-> **测试数增长**: v0.9.1 6894 passed → v0.9.2 7549 passed（+655：CC2 机制补齐 / 场景规则 / 单位辨识度 / 部署画面修复 / 真实运行审计修复 / CI 红灯修复期新增用例）。
+> **测试数增长**: v0.9.1 6894 passed → v0.9.2 7549 passed（+655：CC2 机制补齐 / 场景规则 / 单位辨识度 / 部署画面修复 / 真实运行审计修复 / CI 红灯修复期新增用例）→ v0.9.3 7556 passed（+7：ScenarioRules 补测 11 − ghost 死代码用例 4）。
 | 覆盖率门禁 | pyproject.toml `fail_under=60` + CI `--cov-fail-under=65` (unit tests only) + radon cc E+ baseline=19（v0.7.7 配置化至 pyproject.toml [tool.radon]，2026-11-11 基线 18→19 并禁止无评审上调） | `.github/workflows/ci.yml` + `pyproject.toml` |
 | 实际覆盖率 | 完整测试 72.84% (42876 stmts, 10008 missed，含 branch coverage) / Unit tests only 67.56% | `pytest tests/ -m "not slow" --cov=src/pycc2 --cov-report=term` |
 | ruff | 0 errors | `ruff check .` |

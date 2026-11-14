@@ -1,5 +1,5 @@
 # PyCC2 v0.9.0 视觉打磨详细设计
-> **更新**: v0.9.2 发布时本计划 14 项已全部完成，转为历史设计文档（2026-11-11）。
+> **更新**: v0.9.3 发布时本计划 14 项已全部完成，转为历史设计文档（2026-11-14）。
 
 > **版本**: 2.1 (Wave B-rev 二次共识) | **创建日期**: 2026-07-18 | **最后更新**: 2026-07-20 | **状态**: ✅ Wave B-rev 二次共识达成 (7/7 APPROVE_WITH_CONCERNS)
 > **关联**: [ROADMAP_v0.9.0.md](ROADMAP_v0.9.0.md) | [CONSENSUS_V090_WAVE_B.md](archive/CONSENSUS_V090_WAVE_B.md) | [CONSENSUS_V090_WAVE_B_REV.md](archive/CONSENSUS_V090_WAVE_B_REV.md)
