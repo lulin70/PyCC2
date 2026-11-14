@@ -891,6 +891,7 @@
 - **清理方案**: 沿 game loop → renderer 调用链改签名传递 GameState（跨层接口变更，需 P3 技术设计）。
 - **来源**: TODO 判定文档 [TODO_TRIAGE_20261111.md](TODO_TRIAGE_20261111.md) T1/T2（判定「留」）。
 - **状态**: ✅ 已清理 (2026-11-12) — 实际方案比预想轻：game loop 已向 `RenderPipeline.render` 传 `paused`/`tick`，只是管道未透传。修复：`IRenderPipeline` 协议与 `EnhancedRenderer.render` 签名加 `paused`/`tick` 关键字参数（带默认值，向后兼容），`RenderPipeline.render` 透传，HUD 回合换算 `tick // 1800 + 1`（与 hud_manager 口径一致）。新增 3 个接线用例（`tests/integration/test_rendering_pipeline.py::TestHudStateWiring`），全量回归 7552 passed / 0 failed。未走 GameState 传递（避免更重的跨层耦合），如未来状态项继续增多再评估状态对象方案。
+- **真实 UAT 复核 (2026-11-13)**: `EnhancedRenderer` 顶部 40px HUD 条带当前不在生产渲染路径，原接线仅有接口正确性证据，用户画面无感。生产实际使用 `RenderPipeline` fallback 状态行 + 底部 CC2 面板；已为 fallback 状态行补 `Turn`。同一 UAT 另发现并修复 ESC 无法恢复、暂停菜单打开时 tick 仍推进两项生产缺陷。真实窗口验收 `scripts/uat_hud_state.py` PASS，四张截图存于 `docs/assets/uat_hud_state/`，全量回归 7552 passed / 4 skipped。
 
 ---
 

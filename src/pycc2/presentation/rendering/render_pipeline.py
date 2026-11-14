@@ -144,7 +144,8 @@ class RenderPipeline:
                 self._render_debug_ai(screen)
         else:
             font = pygame.font.Font(None, 20)
-            status = f"FPS:{self._fps:.0f} Tick:{tick} {'[PAUSED]' if paused else ''}"
+            turn = tick // 1800 + 1  # same formula as hud_manager.update_turn
+            status = f"FPS:{self._fps:.0f} Tick:{tick} Turn:{turn} {'[PAUSED]' if paused else ''}"
             text = font.render(status, True, (255, 255, 255))
             screen.blit(text, (10, 10))
 

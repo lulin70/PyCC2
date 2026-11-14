@@ -238,7 +238,11 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
                 self._victory_manager.update()
 
             time_speed = self._get_time_speed()
-            if time_speed <= 0.0:
+            # The ESC pause menu must freeze the simulation too: without this
+            # check the else-branch below reset paused=False every frame and
+            # the battle kept running behind the open pause menu.
+            pause_menu_active = self._pause_menu is not None and self._pause_menu.is_active
+            if time_speed <= 0.0 or pause_menu_active:
                 self.state.paused = True
             else:
                 self.state.paused = False

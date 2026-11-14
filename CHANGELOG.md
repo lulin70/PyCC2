@@ -2,6 +2,20 @@
 
 All notable changes to PyCC2 will be documented in this file.
 
+## Unreleased (2026-11-13) — 真实窗口 UAT（ESC 暂停链）
+
+**目标**: 验证 T1/T2 修复对真实用户生效，并关闭真实窗口验收发现的暂停缺陷。
+
+### Fixed
+- **ESC 第二次按键无法恢复战斗**: `EventDispatcher` 原先只在暂停菜单打开时写入 `paused=True`，关闭菜单时不清除。现改为双向同步 `state.paused = pause_menu.is_active`；对应单元测试由固化旧错误行为改为验证恢复。
+- **暂停菜单打开后战斗仍在后台推进**: `GameLoop.run()` 原先仅按 `time_speed` 决定暂停，其 else 分支每帧重置 `paused=False`。现将暂停菜单激活纳入冻结条件，菜单打开时 tick 不推进。
+- **生产画面无回合显示**: 真实窗口 UAT 确认 `EnhancedRenderer` 顶部 40px HUD 条带不在当前生产渲染路径；实际画面使用 `RenderPipeline` fallback 状态行和底部 CC2 面板。为 fallback 状态行补充 `Turn`（`tick // 1800 + 1`），使 T1/T2 的状态接线在生产画面可见。
+
+### Verification
+- 新增真实窗口验收脚本 `scripts/uat_hud_state.py`：1280×720 窗口、真实地图、生产事件分发与渲染路径，经名册拖拽和 START 用户流进入战斗，再用 ESC 验收暂停/恢复。结果 **PASS**：tick=66 暂停冻结，恢复后推进至 71；菜单标题真实可见并在恢复后消失；状态行显示 `Turn:3`。截图存于 `docs/assets/uat_hud_state/`。
+- 全量非基准回归：**7552 passed / 4 skipped / 0 failed**。
+- ruff check / format、CI 同口径 mypy 全部通过。
+
 ## Unreleased (2026-11-12) — TODO 判定执行（T1/T2 接线）
 
 **目标**: 关闭 TD-079。HUD 状态栏显示真实回合数与暂停状态。

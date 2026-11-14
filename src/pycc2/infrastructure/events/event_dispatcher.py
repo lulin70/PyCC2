@@ -172,10 +172,10 @@ class EventDispatcher:
             if self.settings_menu and self.settings_menu.visible:
                 self.settings_menu.toggle()
                 return True
-            # Toggle pause menu
+            # Toggle pause menu — sync paused in BOTH directions, otherwise
+            # the second ESC closes the menu but paused stays True forever.
             self.pause_menu.toggle()
-            if self.pause_menu.is_active:
-                self.state.paused = True
+            self.state.paused = self.pause_menu.is_active
             return True
 
         return False

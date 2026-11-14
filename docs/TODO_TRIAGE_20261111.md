@@ -56,3 +56,7 @@ tile_size = 48  # TODO: 从VisualConfig获取
 | T4 | minimap_renderer.py:349 | 修 | 一行接权威常量 | ✅ 已修复（改用 `DEFAULT_VISUAL_CONFIG.dimensions.TILE_SIZE`，与 enhanced_renderer V-01 热加载口径一致） |
 
 清空后活跃代码 TODO 归零（T1/T2 转为 TECH_DEBT 条目跟踪）。
+
+## 3. 真实用户验收补充（2026-11-13）
+
+真实窗口 UAT 证明：T1/T2 的 `EnhancedRenderer` 顶部条带不在当前生产渲染路径，仅完成跨层接线不足以让用户看到回合数。已在生产实际使用的 `RenderPipeline` fallback 状态行补充 `Turn`，并修复同一流程发现的 ESC 无法恢复、暂停菜单打开时逻辑仍推进两项缺陷。`scripts/uat_hud_state.py` 验收 PASS，截图存于 `docs/assets/uat_hud_state/`，全量回归 7552 passed / 4 skipped。

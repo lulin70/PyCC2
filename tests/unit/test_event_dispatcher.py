@@ -662,15 +662,15 @@ class TestHandleGlobalKeys:
         d._handle_global_keys(_key_event(pygame.K_ESCAPE))
         assert state.paused is True
 
-    def test_escape_does_not_set_paused_when_pause_menu_inactive(self):
-        """Verify: ESC when pause menu ends up inactive leaves paused unchanged."""
+    def test_escape_clears_paused_when_pause_menu_deactivates(self):
+        """Verify: ESC closing the pause menu resumes the simulation."""
         # toggle() flips True→False, so is_active ends False
         pause = FakePauseMenu(is_active=True)
         state = FakeGameState()
         d, _ = _make_dispatcher(state=state, pause_menu=pause)
         state.paused = True
         d._handle_global_keys(_key_event(pygame.K_ESCAPE))
-        assert state.paused is True  # unchanged because pause_menu.is_active is now False
+        assert state.paused is False
         assert pause.is_active is False
 
     def test_unmapped_key_returns_false(self):
