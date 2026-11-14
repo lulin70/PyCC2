@@ -4,8 +4,6 @@ Filters units to only update those visible on screen.
 Reduces CPU overhead for off-screen units (no AI, movement, or animation updates).
 """
 
-# STATUS: ORPHAN (TD-080, 2026-11-14) — only referenced by batch_unit_update_system (also ORPHAN); see docs/TECH_DEBT.md TD-080
-
 from __future__ import annotations
 
 import logging

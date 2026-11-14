@@ -21,6 +21,14 @@ Modules in this archive:
 - hud_input.py (110L): cc2_hud dependency (closed death code group)
 - hud_renderer.py (886L): cc2_hud dependency (closed death code group)
 
-Decision: ARCHIVE (v0.7.1, 2026-07-17)
-See: docs/ROADMAP_v0.7.1.md for full evaluation matrix.
+TD-080 additions (2026-11-14, zero-coverage re-audit):
+- movement_controller.py (98L): Sprint 2 movement prototype, superseded by services/AI movement
+- unit_selection_manager.py (131L): Sprint 2 selection prototype, superseded by interaction_controller
+- batch_unit_update_system.py (46L): PERF-02 prototype, kept for future perf regression reference
+- spatial_grid.py (83L): batch_unit_update_system dependency (closed group)
+- viewport_culler.py (27L): batch_unit_update_system dependency (closed group)
+- ui_response_monitor.py (66L): UI latency monitor prototype, tests removed with module
+
+Decision: ARCHIVE (v0.7.1, 2026-07-17) + TD-080 wave (2026-11-14)
+See: docs/ROADMAP_v0.7.1.md and docs/TECH_DEBT.md TD-080 for full evaluation matrix.
 """

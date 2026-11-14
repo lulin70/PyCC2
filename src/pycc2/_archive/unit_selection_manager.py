@@ -5,8 +5,6 @@ Sprint 2 Day 6实现：
 - FUNC-03实现：多单位矩形选择与编队系统
 """
 
-# STATUS: ORPHAN (TD-080, 2026-11-14) — 0 external src references; see docs/TECH_DEBT.md TD-080
-
 from __future__ import annotations
 
 import logging

@@ -4,8 +4,6 @@ Accelerates collision detection and spatial queries by partitioning units into g
 Reduces O(n²) naive collision checks to O(n + k) where k = units in nearby cells.
 """
 
-# STATUS: ORPHAN (TD-080, 2026-11-14) — only referenced by batch_unit_update_system (also ORPHAN); see docs/TECH_DEBT.md TD-080
-
 from __future__ import annotations
 
 import logging

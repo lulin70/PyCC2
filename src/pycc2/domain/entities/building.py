@@ -4,8 +4,6 @@ Represents buildings (barracks, power plants, defense towers) with construction 
 Supports construction progress tracking and resource consumption validation.
 """
 
-# STATUS: ORPHAN (TD-080, 2026-11-14) — 0 external src references (create_building factory unused); see docs/TECH_DEBT.md TD-080
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field

@@ -898,7 +898,7 @@
 
 ## 🆕 十、2026-11-14 零覆盖再审计新增 (TD-080)
 
-### 🟢 TD-080: 8 个零覆盖 ORPHAN 模块评估 (P2)
+### ~~🟢 TD-080: 8 个零覆盖 ORPHAN 模块评估 (P2)~~ ✅ 决策执行完成 (2026-11-14)
 
 - **来源**: TD-069 收尾时的覆盖率再审计（`pytest tests/unit --cov=pycc2`，2026-11-14）。以下 8 个文件 unit 覆盖率 0% 且经全仓 grep（模块名 + 类名模式）确认 0 外部 src 引用：
   | 文件 | 行数 | 备注 |
@@ -912,11 +912,14 @@
   | `presentation/rendering/path_preview_renderer.py` | ~82 | 已被 services/path_preview.py (TD-077 INTEGRATE) 取代 |
   | `presentation/ui/ui_response_monitor.py` | ~66 | 性能监控原型 |
 - **影响**: ~640 行未集成代码维持认知成本（与 TD-077 同性质的新一批候选）
-- **清理方案**: 8 个文件已标记 `# STATUS: ORPHAN (TD-080)` 注释（沿用 TD-077 Step 1 最小变更策略）。下一轮 ghost 清理 wave 按五类分组决策 DELETE / ARCHIVE / INTEGRATE：
-  - path_preview_renderer.py — 功能已被 services/path_preview.py 覆盖，倾向 DELETE
-  - building.py / movement_controller.py / unit_selection_manager.py — 若建造/编队玩法未来需要则 INTEGRATE，否则 ARCHIVE
-  - batch trio (batch_unit_update/spatial_grid/viewport_culler) — 性能优化原型，若主循环性能回归再评估启用
-- **状态**: 🟢 ORPHAN 已标记 (2026-11-14)，决策留待下一 ghost wave
+- **7-Role 共识决策** (2026-11-14 wave 执行):
+  - **building.py → 判定撤回（scripts-only）**: 决策执行时发现 `scripts/profile_performance.py:18` 运行时 import Building——沿用 pixvoxel_loader "scripts-only 不拆" 先例，保留在 src，ORPHAN 标记撤回
+  - **path_preview_renderer.py → DELETE** — 功能已被 `services/path_preview.py` (TD-077 INTEGRATE) 取代；0 src/测试/scripts 引用；源文件已删除
+  - **movement_controller.py / unit_selection_manager.py → ARCHIVE** — Sprint 2 早期原型，选择/移动职责已由 interaction_controller 与 services 层实现；git mv 至 `src/pycc2/_archive/`
+  - **batch trio (batch_unit_update_system + spatial_grid + viewport_culler) → ARCHIVE** — PERF-02 性能原型自成闭环组，若主循环性能回归可从 _archive 取回评估；git mv 至 `src/pycc2/_archive/`
+  - **ui_response_monitor.py → ARCHIVE** — 监控原型；连带删除 `tests/ux/test_ux_features.py` 的 Test 3 段（test_11~test_17 共 7 用例 + import + test_25 摘要断言），Test 1/2/4（sound/particle/tutorial，全部活跃模块）保留
+- **验证**: 全量回归 7563+ passed（详见本轮 CI），ruff/mypy 0 errors，coverage omit 已含 `src/pycc2/_archive/*`（pyproject L159）
+- **状态**: ✅ RESOLVED (2026-11-14) — 净效果：src 活跃代码 -346 行（DELETE 82 + ARCHIVE 264），测试 -7 死代码用例；认知成本清零且全部可从 _archive 取回
 
 ---
 

@@ -6,8 +6,6 @@ Sprint 2 Day 7实现：
 - 次优路径回退：当A*找不到路径时尝试接近目标
 """
 
-# STATUS: ORPHAN (TD-080, 2026-11-14) — 0 external src references; see docs/TECH_DEBT.md TD-080
-
 from __future__ import annotations
 
 import logging

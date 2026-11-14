@@ -1,13 +1,12 @@
-"""UX Feature Tests - Test sound effects, particles, UI response, and tutorial system.
+"""UX Feature Tests - Test sound effects, particles, and tutorial system.
 
 Test Coverage:
 1. Sound Effect Manager (16 effect types)
 2. Particle System (5 effect types)
-3. UI Response Monitor (performance tracking)
-4. Tutorial System (12 steps)
-"""
+3. Tutorial System (10 steps)
 
-import time
+Note: UI Response Monitor tests were removed with the module (TD-080 archive, 2026-11-14).
+"""
 
 import pytest
 
@@ -19,7 +18,6 @@ from pycc2.infrastructure.visual.particle_system import (
     ParticleType,
 )
 from pycc2.presentation.ui.tutorial_system import TutorialHintSystem, TutorialStep, TutorialSystem
-from pycc2.presentation.ui.ui_response_monitor import UIResponseMonitor, UIResponseOptimizer
 
 # =============================================================================
 # Test 1: Sound Effect Manager
@@ -188,125 +186,6 @@ def test_10_all_particle_types():
 
 
 # =============================================================================
-# Test 3: UI Response Monitor
-# =============================================================================
-
-
-def test_11_ui_response_monitor_initialization():
-    """Test UI response monitor initialization."""
-    monitor = UIResponseMonitor()
-
-    assert monitor._current_interaction is None
-    assert len(monitor._metrics) == 0
-    assert monitor.get_average_response_time() == 0.0
-
-
-def test_12_ui_response_timing():
-    """Test UI response time measurement."""
-    monitor = UIResponseMonitor()
-
-    # Start interaction
-    monitor.start_interaction("button_click")
-    time.sleep(0.02)  # 20ms
-
-    # End interaction
-    duration = monitor.end_interaction()
-
-    assert duration >= 20.0  # Should be at least 20ms
-    assert duration < 50.0  # Should be under target
-    assert len(monitor._metrics) == 1
-
-
-def test_13_ui_response_performance_warning():
-    """Test performance warning for slow interactions (capture stdout)."""
-    monitor = UIResponseMonitor()
-
-    # Simulate slow interaction
-    monitor.start_interaction("slow_operation")
-    time.sleep(0.06)  # 60ms (exceeds 50ms target)
-
-    duration = monitor.end_interaction()
-
-    assert duration > monitor.TARGET_MS  # Should exceed target
-
-
-def test_14_ui_response_average():
-    """Test average response time calculation."""
-    monitor = UIResponseMonitor()
-
-    # Record multiple interactions
-    for i in range(5):
-        monitor.start_interaction(f"test_{i}")
-        time.sleep(0.01)  # 10ms
-        monitor.end_interaction()
-
-    avg = monitor.get_average_response_time()
-    assert avg >= 10.0  # Should be at least 10ms
-    assert avg < 50.0  # Should be under target
-
-
-def test_15_ui_response_compliance_rate():
-    """Test compliance rate calculation."""
-    monitor = UIResponseMonitor()
-
-    # 3 fast interactions
-    for i in range(3):
-        monitor.start_interaction(f"fast_{i}")
-        time.sleep(0.01)  # 10ms
-        monitor.end_interaction()
-
-    # 1 slow interaction
-    monitor.start_interaction("slow")
-    time.sleep(0.06)  # 60ms
-    monitor.end_interaction()
-
-    compliance = monitor.get_compliance_rate()
-    assert compliance == 75.0  # 3/4 = 75%
-
-
-def test_16_ui_optimizer_debounce():
-    """Test debounce decorator."""
-    call_count = [0]
-
-    @UIResponseOptimizer.debounce
-    def test_func():
-        call_count[0] += 1
-
-    # Call multiple times rapidly
-    test_func()
-    test_func()
-    test_func()
-
-    # Only first call should execute
-    assert call_count[0] == 1
-
-    # Wait for debounce delay
-    time.sleep(0.15)
-    test_func()
-
-    # Second call should execute
-    assert call_count[0] == 2
-
-
-def test_17_ui_optimizer_throttle():
-    """Test throttle decorator."""
-    call_count = [0]
-
-    @UIResponseOptimizer.throttle
-    def test_func():
-        call_count[0] += 1
-
-    # Call multiple times rapidly
-    for _ in range(10):
-        test_func()
-        time.sleep(0.005)  # 5ms between calls
-
-    # Should throttle to ~60fps (16.67ms interval)
-    # In 50ms, should allow ~3 calls
-    assert call_count[0] <= 5
-
-
-# =============================================================================
 # Test 4: Tutorial System
 # =============================================================================
 
@@ -413,14 +292,10 @@ def test_25_ux_features_summary():
     # Tutorial: 10 steps (CC2-only; RTS steps removed)
     assert len(list(TutorialStep)) == 10
 
-    # UI Response: 50ms target
-    assert UIResponseMonitor.TARGET_MS == 50.0
-
     print("\n" + "=" * 70)
     print("UX Features Test Summary")
     print("=" * 70)
     print(f"✅ Sound Effect Types: {len(list(SoundEffectType))}")
     print(f"✅ Particle Effect Types: {len(list(ParticleType))}")
     print(f"✅ Tutorial Steps: {len(list(TutorialStep))}")
-    print(f"✅ UI Response Target: {UIResponseMonitor.TARGET_MS}ms")
     print("=" * 70)
