@@ -17,7 +17,7 @@ All notable changes to PyCC2 will be documented in this file.
 - 全量回归：**7556 passed / 4 skipped / 0 failed**（`--ignore=tests/benchmark`）。
 - 真实窗口 UAT：部署 → START → ESC 暂停/恢复 → Turn 显示，全 PASS。
 - ruff / ruff format / mypy（CI 同口径）/ pip-audit / 文档一致性门禁全绿。
-- 远端 CI：见推送记录（发布 tag 的 run 全绿后回填）。
+- 远端 CI：**run 43605031270（9d02063，tag v0.9.3）全绿**——lint / unit / integration / e2e / slow / benchmark / docker 全部通过，Visual Regression 按设计跳过（每周定时）。符合 RELEASE_GATE_W5「远端 CI 强制前置」门禁。
 
 ### Release
 - **版本统一 bump 0.9.2 → 0.9.3**: VERSION、pyproject.toml、`src/pycc2/__init__.py`、README 三语标头、INSTALL 三语、PRD/DESIGN/ROADMAP/TEST_PLAN/TECH_DEBT/PROJECT_STATUS/VISUAL_POLISH_PLAN/ROADMAP_v0.9.0/VISUAL_OPTIMIZATION_UNIFIED。TEST_PLAN 测试数同步 6894 → 7556。
