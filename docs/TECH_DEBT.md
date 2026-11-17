@@ -923,6 +923,19 @@
 
 ---
 
+## 🆕 十一、2026-11-17 视觉回归 linux 基线缺口 (TD-081)
+
+### 🟡 TD-081: 视觉回归缺 linux 基线，定时 CI 红灯 (P2)
+
+- **现象**: 每周定时 run 43895279874（2026-11-16）Visual Regression job 失败。`test_baseline_coverage` 在 linux 上硬失败：仓库仅有 `baselines/macos/` 5 张基线，`baselines/linux/` 从未生成。lint / unit / integration 全绿——基础设施缺口，非代码回归。
+- **根因**: 视觉回归此前在 CI 上按设计跳过（周一定时），定时任务首次真正执行后缺口才暴露；基线从未在 ubuntu runner（SDL dummy）上生成并提交。
+- **临时降级（已执行 2026-11-17）**: `test_baseline_coverage` 在平台基线目录不存在时改为 `pytest.skip`（平台无基线 → 跳过比对）；目录存在但缺场景仍硬失败（防部分覆盖被掩盖）。macOS 行为不变（目录存在、5 张齐全，门禁照常生效）。
+- **永久方案**: 在 ubuntu runner 上执行 `python tests/visual_regression/generate_baselines.py`，产物提交为 `baselines/linux/`，随后移除本条降级 skip。可用手动 workflow_dispatch 完成一次采集。
+- **风险**: 降级期间 linux 视觉回归无门禁（与 macOS 基线不可跨平台比较）。macOS 本地基线门禁不受影响。
+- **状态**: 🟡 临时降级已生效，待 linux 基线采集后永久关闭。
+
+---
+
 **维护规则**:
 1. 每次发现新问题立即添加到此文档
 2. 清理完成后标记[已清理]并注明日期

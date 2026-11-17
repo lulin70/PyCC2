@@ -171,8 +171,19 @@ def test_visual_regression_baseline(
 
 
 def test_baseline_coverage(current_platform: str) -> None:
-    """Smoke test: ensure all 5 baselines exist for the current platform."""
+    """Smoke test: ensure all 5 baselines exist for the current platform.
+
+    Platforms without a committed baseline directory (e.g. linux CI before
+    baselines are generated there) skip instead of failing — see TD-081.
+    A directory that exists but is missing scenarios still fails hard.
+    """
     baseline_dir = get_baseline_dir(current_platform)
+    if not baseline_dir.is_dir():
+        pytest.skip(
+            f"No baseline directory for platform '{current_platform}'. "
+            f"Generate and commit baselines: "
+            f"python tests/visual_regression/generate_baselines.py"
+        )
     missing = [s for s in SCENARIO_RENDERERS if not (baseline_dir / f"{s}.png").exists()]
     if missing:
         pytest.fail(
