@@ -11,6 +11,10 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# MC2-06: default campaign save id used by the game-loop persistence wiring
+# and the refit service when no explicit campaign context is provided.
+DEFAULT_CAMPAIGN_ID: str = "market_garden"
+
 
 class BattleOutcome(Enum):
     """Possible outcomes of a battle."""

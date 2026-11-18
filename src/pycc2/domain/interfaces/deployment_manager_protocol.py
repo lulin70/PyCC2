@@ -38,8 +38,13 @@ class IDeploymentManager(Protocol):
         game_settings: Any,
         display_config: Any,
         deployment_ui: Any,
+        campaign_rp: int | None = None,
     ) -> None:
-        """Start the deployment phase with the given parameters."""
+        """Start the deployment phase with the given parameters.
+
+        ``campaign_rp`` (MC2-06): requisition points drawn from CampaignProgress
+        for campaign battles; None keeps the skirmish base values.
+        """
         ...
 
     def complete(self, ai_service: Any, state: Any) -> dict | None:

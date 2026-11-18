@@ -24,12 +24,16 @@ if TYPE_CHECKING:
     from pycc2.domain.systems.los_system import LOSSystem
     from pycc2.domain.systems.pathfinder import PathFinder
     from pycc2.domain.systems.victory_conditions import BattleStats
+    from pycc2.domain.value_objects.tile_coord import TileCoord
     from pycc2.infrastructure.events.event_bus import EventBus
     from pycc2.presentation.rendering.camera import Camera
 
 logger = logging.getLogger(__name__)
 
 RELOAD_TICKS: int = 90  # 3 seconds at 30 Hz
+# MC2-05: yield negotiation escape valve — a unit blocked at a tile entry for
+# more than 3 seconds (30 Hz) forces its way through to prevent deadlock.
+YIELD_TIMEOUT_TICKS: int = 90
 
 # Dispatch table mapping player command names to CombatDirector handler methods.
 # Each handler has the uniform signature (data, unit_map, units, game_map) so it
@@ -233,7 +237,13 @@ class CombatDirector:
                     unit.position.tile_coord, target_tc, game_map, unit=unit
                 )
                 if path:
-                    self._move_orders[uid] = {"path": deque(list(path)[1:]), "current_idx": 0}
+                    origin = unit.position.tile_coord
+                    self._move_orders[uid] = {
+                        "path": deque(list(path)[1:]),
+                        "current_idx": 0,
+                        # MC2-05: tile this segment starts from (swap detection).
+                        "from_tile": (origin.x, origin.y),
+                    }
 
     def _cmd_take_cover(
         self,
@@ -924,6 +934,28 @@ class CombatDirector:
         from pycc2.domain.value_objects.tile_coord import TileCoord
         from pycc2.domain.value_objects.vec2 import Vec2
 
+        # MC2-05: per-frame occupancy snapshot rebuilt from state (O(n), no
+        # global occupancy table). Units currently executing a move order may
+        # pass through each other (CC2 crossing semantics); every other alive
+        # unit's tile is a hard block at tile entry. Movers are additionally
+        # indexed by their segment origin tile for head-on swap detection.
+        moving_tiles: dict[tuple[int, int], str] = {}
+        static_tiles: dict[tuple[int, int], str] = {}
+        segment_origins: dict[tuple[int, int], tuple[str, tuple[int, int]]] = {}
+        for other in units:
+            if not other.is_alive:
+                continue
+            tile = (other.position.tile_coord.x, other.position.tile_coord.y)
+            other_order = self._move_orders.get(other.id)
+            if other_order is not None and other_order.get("path"):
+                moving_tiles[tile] = other.id
+                origin = self._segment_origin(other, other_order)
+                other_next = self._next_path_tile(other_order)
+                if origin is not None and other_next is not None:
+                    segment_origins[origin] = (other.id, other_next)
+            else:
+                static_tiles[tile] = other.id
+
         for unit in units:
             move_order = self._move_orders.get(unit.id)
             if move_order is None:
@@ -950,6 +982,16 @@ class CombatDirector:
             move_pixels = moved * ts
 
             if dist <= move_pixels:
+                # MC2-05: yield negotiation only at the instant of entering a
+                # new tile. Yielding pauses tile advance without recomputing
+                # the path; the timeout valve forces passage past a deadlock.
+                if self._movement_blocked(
+                    unit, target_tc, moving_tiles, static_tiles, segment_origins
+                ):
+                    move_order["yield_ticks"] = int(move_order.get("yield_ticks", 0)) + 1
+                    unit.position.set_facing_toward(target_tc)
+                    continue
+                move_order["yield_ticks"] = 0
                 unit.position.tile_coord = target_tc
                 unit.update_garrison_status(game_map)
                 path.popleft()
@@ -966,7 +1008,9 @@ class CombatDirector:
                 if not path:
                     del self._move_orders[unit.id]
                 else:
-                    self._move_orders[unit.id]["path"] = path
+                    move_order["path"] = path
+                    # MC2-05: the tile just committed is the next segment's origin.
+                    move_order["from_tile"] = (target_tc.x, target_tc.y)
             else:
                 ratio = move_pixels / dist
                 new_x = current_vec.x + diff_x * ratio
@@ -977,6 +1021,69 @@ class CombatDirector:
                 unit.update_garrison_status(game_map)
                 unit.position.set_pixel_offset(Vec2(new_x - tile_x * ts, new_y - tile_y * ts))
                 unit.position.set_facing_toward(target_tc)
+
+    @staticmethod
+    def _next_path_tile(move_order: dict | None) -> tuple[int, int] | None:
+        """Return the (x, y) key of a move order's next tile, or None."""
+        if move_order is None:
+            return None
+        path = move_order.get("path")
+        if not path:
+            return None
+        head = path[0]
+        return (head.x, head.y)
+
+    def _segment_origin(self, unit: Unit, move_order: dict) -> tuple[int, int] | None:
+        """MC2-05: return the tile the unit's current path segment starts from."""
+        origin = move_order.get("from_tile")
+        if origin is not None:
+            return (origin[0], origin[1])
+        # Fallback for orders created without the key: during the far phase
+        # (interpolated tile still behind the boundary) the current tile is
+        # the segment origin.
+        tile = unit.position.tile_coord
+        tile_key = (tile.x, tile.y)
+        nxt = self._next_path_tile(move_order)
+        if nxt is not None and tile_key != nxt:
+            return tile_key
+        return None
+
+    def _movement_blocked(
+        self,
+        unit: Unit,
+        target_tc: TileCoord,
+        moving_tiles: dict[tuple[int, int], str],
+        static_tiles: dict[tuple[int, int], str],
+        segment_origins: dict[tuple[int, int], tuple[str, tuple[int, int]]],
+    ) -> bool:
+        """MC2-05: decide whether the unit must yield before entering target_tc.
+
+        Hard blocks (CC2 crossing semantics kept, anti-deadlock valve last):
+        - target tile held by a non-moving (static) alive unit → yield
+        - head-on swap: the two movers claim each other's segment origin tile
+          as their next tile → both yield
+        Two moving units that are not swapping never block each other.
+        ``yield_ticks`` beyond ``YIELD_TIMEOUT_TICKS`` forces passage through.
+        """
+        order = self._move_orders.get(unit.id)
+        if order is not None and int(order.get("yield_ticks", 0)) > YIELD_TIMEOUT_TICKS:
+            return False  # deadlock escape valve: force through
+
+        target_key = (target_tc.x, target_tc.y)
+
+        if target_key in static_tiles:
+            return True
+
+        # Head-on swap: another mover departs from the tile we want while
+        # heading for the tile we came from. Two movers that are not swapping
+        # never block each other (CC2 pass-through kept).
+        own_origin = self._segment_origin(unit, order) if order is not None else None
+        if own_origin is not None:
+            entry = segment_origins.get(target_key)
+            if entry is not None and entry[0] != unit.id and entry[1] == own_origin:
+                return True
+
+        return False
 
     def tick_weapon_reload(self, units: list[Unit]) -> None:
         """Advance weapon reload progress for all currently reloading units."""

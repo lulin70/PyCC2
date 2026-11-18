@@ -41,6 +41,12 @@ from pycc2.domain.interfaces import (
     IWeatherState,
     IWeatherSystem,
 )
+from pycc2.domain.systems.campaign_persistence import (
+    BattleOutcome,
+    BattleResult,
+    CampaignProgress,
+    UnitBattleState,
+)
 from pycc2.services.game_loop_types import LOGIC_DT, GameState
 from pycc2.services.trigger_system import Trigger, TriggerSystem
 
@@ -67,6 +73,100 @@ def _is_armor_unit(unit: object) -> bool:
     if "ANTI_TANK" in name:
         return False
     return any(key in name for key in _ARMOR_TYPE_KEYS)
+
+
+# ---------------------------------------------------------------------------
+# MC2-06: campaign persistence helpers — side normalization, UnitBattleState
+# construction, and replay onto freshly deployed units.
+# ---------------------------------------------------------------------------
+
+_ALLIED_FACTION_NAMES = frozenset({"ALLIES", "AMERICAN", "BRITISH", "POLISH"})
+_AXIS_FACTION_NAMES = frozenset({"AXIS", "GERMAN", "GERMANY"})
+
+# GameResult.name → campaign BattleOutcome mapping.
+_GAME_RESULT_TO_BATTLE_OUTCOME: dict[str, BattleOutcome] = {
+    "ALLIES_VICTORY": BattleOutcome.ALLIED_VICTORY,
+    "AXIS_VICTORY": BattleOutcome.AXIS_VICTORY,
+    "DRAW": BattleOutcome.DRAW,
+    "TIME_OUT": BattleOutcome.DRAW,
+    "ONGOING": BattleOutcome.DRAW,
+}
+
+
+def _faction_side_name(faction: str) -> str:
+    """Normalize a faction string ("ally"/"axis"/"german"/...) to "allies"/"axis"."""
+    name = str(faction).strip().lower()
+    if name in ("axis", "german", "germany"):
+        return "axis"
+    return "allies"
+
+
+def _unit_side(unit: Any) -> str:
+    """Return "allies"/"axis" for a Unit entity (same convention as resupply)."""
+    faction_name = getattr(getattr(unit, "faction", None), "name", "")
+    if faction_name in _ALLIED_FACTION_NAMES:
+        return "allies"
+    if faction_name in _AXIS_FACTION_NAMES:
+        return "axis"
+    return "axis" if "AXIS" in str(faction_name).upper() else "allies"
+
+
+def _build_unit_battle_state(unit: Any) -> UnitBattleState:
+    """Build a UnitBattleState snapshot from a Unit entity (MC2-06).
+
+    Field sources (verified against Unit components):
+    - hp/max_hp: unit.health; morale: unit.morale.value
+    - experience/kills: unit.veterancy; ammo: unit.weapon magazine + reserve
+    """
+    health = getattr(unit, "health", None)
+    morale = getattr(unit, "morale", None)
+    veterancy = getattr(unit, "veterancy", None)
+    weapon = getattr(unit, "weapon", None)
+    template_id = getattr(unit, "template_id", "") or getattr(unit, "id", "")
+    alive = bool(getattr(unit, "is_alive", False))
+
+    ammo: dict[str, int] = {}
+    if weapon is not None:
+        ammo["ammo_remaining"] = int(getattr(weapon, "ammo_remaining", 0) or 0)
+        ammo["reserve_ammo"] = int(getattr(weapon, "reserve_ammo", 0) or 0)
+
+    return UnitBattleState(
+        unit_id=str(getattr(unit, "id", "")),
+        unit_template_id=str(template_id),
+        faction=_unit_side(unit),
+        is_alive=alive,
+        current_hp=float(getattr(health, "hp", 0) or 0),
+        max_hp=float(getattr(health, "max_hp", 100) or 100),
+        morale=float(getattr(morale, "value", 100) or 0),
+        experience=int(getattr(veterancy, "xp", 0) or 0),
+        ammo_remaining=ammo,
+        kills=int(getattr(veterancy, "kills", 0) or 0),
+        status="active" if alive else "dead",
+    )
+
+
+def _replay_unit_state(unit: Any, state: UnitBattleState) -> None:
+    """Replay a persisted UnitBattleState onto a freshly deployed unit (MC2-06)."""
+    health = getattr(unit, "health", None)
+    if health is not None:
+        # Keep the unit alive even if the record was damaged at save time.
+        health.hp = max(1, min(int(state.current_hp), int(health.max_hp)))
+        health._update_state()
+
+    morale = getattr(unit, "morale", None)
+    if morale is not None:
+        morale.apply_delta(int(state.morale) - int(morale.value))
+
+    veterancy = getattr(unit, "veterancy", None)
+    if veterancy is not None:
+        veterancy.kills = int(state.kills)
+        veterancy.add_xp(int(state.experience))
+
+    weapon = getattr(unit, "weapon", None)
+    if weapon is not None and state.ammo_remaining:
+        for slot, amount in state.ammo_remaining.items():
+            if hasattr(weapon, slot):
+                setattr(weapon, slot, int(amount))
 
 
 # ---------------------------------------------------------------------------
@@ -364,6 +464,8 @@ class GameLoopUpdatingMixin:
     _trigger_system: TriggerSystem | None
     # MC2-02: per-pass flag raised by the corridor_supply_block trigger
     _supply_blocked: bool
+    # MC2-06: campaign context (set by the campaign flow; None = skirmish)
+    _campaign_id: str | None
 
     # -- Cross-mixin method provided by GameLoopCombatMixin --
     def _process_combat_popups(self) -> None:
@@ -741,6 +843,96 @@ class GameLoopUpdatingMixin:
                     self.sound_system.play(SoundType.UI_COMMAND)
                 else:
                     self.sound_system.play(SoundType.UI_CANCEL)
+
+            # MC2-06: persist the battle outcome for campaign play. Skirmish
+            # loops (no campaign persistence or campaign context) skip. The
+            # whole block is best-effort — never break the victory flow.
+            persistence = getattr(self, "_campaign_persistence", None)
+            campaign_id = getattr(self, "_campaign_id", None)
+            if persistence is not None and campaign_id:
+                try:
+                    self._persist_campaign_battle(result)
+                except Exception:
+                    logger.warning("Campaign persistence after victory failed", exc_info=True)
+
+    def _persist_campaign_battle(self, result: Any) -> None:
+        """MC2-06: build a BattleResult from the end-of-battle state and save it.
+
+        Best-effort: casualties/VP fall back to unit-roster counts or 0 when
+        the sources are unavailable. Caller guards with try/except so a
+        persistence failure never breaks the victory flow.
+        """
+        persistence = getattr(self, "_campaign_persistence", None)
+        campaign_id = getattr(self, "_campaign_id", None)
+        if persistence is None or not campaign_id:
+            return
+
+        progress = persistence.load_campaign_progress(campaign_id)
+        if progress is None:
+            progress = CampaignProgress(campaign_id=campaign_id, current_operation_id="unknown")
+
+        scenario = getattr(self, "_scenario_data", None) or {}
+        outcome = _GAME_RESULT_TO_BATTLE_OUTCOME.get(result.name, BattleOutcome.DRAW)
+        battle_stats = self._victory_manager.battle_stats if self._victory_manager else None
+        allied_vp, axis_vp = self._victory_points()
+
+        allied_units = [u for u in self.state.units if _unit_side(u) == "allies"]
+        axis_units = [u for u in self.state.units if _unit_side(u) == "axis"]
+        allied_end = sum(1 for u in allied_units if u.is_alive)
+        axis_end = sum(1 for u in axis_units if u.is_alive)
+        if battle_stats is not None:
+            allied_casualties = int(getattr(battle_stats, "allies_units_lost", 0))
+            axis_casualties = int(getattr(battle_stats, "axis_units_lost", 0))
+        else:
+            logger.info("BattleStats unavailable — deriving casualties from unit roster")
+            allied_casualties = max(0, len(allied_units) - allied_end)
+            axis_casualties = max(0, len(axis_units) - axis_end)
+
+        try:
+            day = int(scenario.get("day", 1) or 1)
+        except (TypeError, ValueError):
+            day = 1
+
+        battle_result = BattleResult(
+            battle_id=f"{campaign_id}_battle_{progress.total_battles_completed + 1}",
+            operation_id=str(scenario.get("operation_id") or "unknown"),
+            sector=str(scenario.get("sector") or "unknown"),
+            day=day,
+            outcome=outcome,
+            duration_ticks=self.state.tick,
+            allied_units_start=len(allied_units),
+            allied_units_end=allied_end,
+            axis_units_start=len(axis_units),
+            axis_units_end=axis_end,
+            allied_casualties=allied_casualties,
+            axis_casualties=axis_casualties,
+            allied_vp_earned=allied_vp,
+            axis_vp_earned=axis_vp,
+            unit_states=[_build_unit_battle_state(u) for u in self.state.units],
+        )
+        progress.add_battle_result(battle_result)
+        if not persistence.save_campaign_progress(campaign_id, progress):
+            logger.warning("Campaign progress save failed for %s", campaign_id)
+
+    def _victory_points(self) -> tuple[int, int]:
+        """Best-effort VL score by current ownership; returns (allied, axis)."""
+        manager = getattr(self, "_victory_manager", None)
+        evaluator = getattr(manager, "_victory_evaluator", None)
+        if evaluator is None:
+            return 0, 0
+        allied = 0
+        axis = 0
+        for obj in getattr(evaluator, "objectives", None) or []:
+            owner = getattr(obj, "owner", None)
+            try:
+                points = int(getattr(obj, "points", 0) or 0)
+            except (TypeError, ValueError):
+                points = 0
+            if owner == "allies":
+                allied += points
+            elif owner == "axis":
+                axis += points
+        return allied, axis
 
 
 __all__ = ["GameLoopUpdatingMixin"]

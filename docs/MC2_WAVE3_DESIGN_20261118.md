@@ -57,3 +57,24 @@
 
 ## 5. 验收门禁
 同 Wave 2：全量 0 failed + lint/mypy 绿 + 远端 CI 全绿 + 设计回写。
+
+## 6. 实现记录（2026-11-18，Coder 交付后回写）
+
+### 交付数字
+- 全量回归：**7720 passed / 4 skipped / 0 failed**（Wave 2 基线 7672 + 新增 54 用例）
+- ruff/format/mypy（407 文件）全绿；48 新用例主会话独立复验通过
+
+### 关键实现落点
+- MC2-05：`combat_director.py` process_movements 占位快照 + `_next_path_tile`/`_segment_origin`/`_movement_blocked`（:925-1085）；`YIELD_TIMEOUT_TICKS=90`
+- MC2-06：victory 接线 `_persist_campaign_battle`（game_loop_updating.py:847-935）；回放 `_replay_campaign_unit_states`（game_loop.py:555-625）；`services/refit_service.py`（新建）；部署 RP 连通 deployment_manager.py:217-221
+
+### 偏离设计决策（4 项）
+1. campaign 门控改为 `_campaign_persistence 非 None 且 _campaign_id 已设`——assembler 对遭遇战 loop 也注入 manager，按设计字面实现会违反「遭遇战零变化」硬约束；`_campaign_id` 由战役流程设置，接 CampaignUI 时赋值
+2. **互换判定改用段起终点匹配**（from_tile ↔ path[0]）：本项目移动为像素插值，tile_coord 半程越界，设计原文「目标 tile 被 moving 占用者持有」在此几何下永远失效；段起终点匹配与相位无关，对冲/跟随/汇聚均可区分
+3. 补员前调 `squad.remove_dead()`（Squad.reinforce 只追加不清尸）
+4. 已知 flaky（test_phase3_los_blocked_by_terrain）首轮失败单跑通过，与改动无关
+
+### 后续项（登记）
+- CampaignUI 整备屏（refit_service 已就绪，缺 UI 消费）
+- `_campaign_id` 赋值与战役任务链选择
+- sectors_controlled 消费（战役地图推进）

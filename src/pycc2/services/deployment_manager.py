@@ -160,6 +160,7 @@ class DeploymentManager:
         game_settings: GameSettings | None = None,
         display_config: DisplayConfig | None = None,
         deployment_ui: IDeploymentUI | None = None,
+        campaign_rp: int | None = None,
     ) -> None:
         """Activate the deployment phase.
 
@@ -177,6 +178,9 @@ class DeploymentManager:
             Pre-created DeploymentUI instance (injected by caller to avoid
             service→presentation coupling). Required — the service layer
             no longer creates presentation objects directly.
+        campaign_rp : int | None
+            MC2-06: requisition points drawn from CampaignProgress for
+            campaign battles. None (skirmish) keeps the faction base values.
 
         """
         try:
@@ -211,6 +215,10 @@ class DeploymentManager:
                 and self.attacker_faction == "axis"
             )
             base_rp = self.ATTACKER_BASE_RP if is_attacker else self.DEFENDER_BASE_RP
+            # MC2-06: campaign battles draw their RP pool from CampaignProgress
+            # (the refit economy) instead of the skirmish base values.
+            if campaign_rp is not None:
+                base_rp = int(campaign_rp)
 
             requisition_points = base_rp
             max_infantry = 15  # Increased for better gameplay

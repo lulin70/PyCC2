@@ -58,7 +58,12 @@ from pycc2.services.game_loop_types import (
     TARGET_FPS,
     GameState,
 )
-from pycc2.services.game_loop_updating import GameLoopUpdatingMixin
+from pycc2.services.game_loop_updating import (
+    GameLoopUpdatingMixin,
+    _faction_side_name,
+    _replay_unit_state,
+    _unit_side,
+)
 
 if TYPE_CHECKING:
     from pycc2.domain.interfaces.campaign_ui_protocol import ICampaignUI
@@ -126,6 +131,9 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
     _save_controller: ISaveController | None = field(init=False, default=None)
     # TD-076d (v0.7.0): Campaign persistence for cross-battle state inheritance
     _campaign_persistence: CampaignPersistenceManager | None = field(init=False, default=None)
+    # MC2-06: campaign save id — set by the campaign flow for campaign battles;
+    # None means skirmish (all campaign wiring stays bypassed).
+    _campaign_id: str | None = field(init=False, default=None)
     _ai_update_interval: int = field(init=False, default=3)
     _ai_tick_counter: int = field(init=False, default=0)
     _pause_menu: IPauseMenu | None = field(init=False, default=None)
@@ -454,12 +462,17 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
                 "to avoid service→presentation coupling."
             )
 
+        # MC2-06: campaign battles draw their RP pool from CampaignProgress.
+        # getattr keeps stub/fake loops without the hook working (skirmish: None).
+        start_rp_hook = getattr(self, "_campaign_start_rp", None)
+        campaign_rp = start_rp_hook(faction) if callable(start_rp_hook) else None
         self._deployment_manager.start(
             map_data=map_data,
             faction=faction,
             game_settings=game_settings,
             display_config=self.display_config,
             deployment_ui=deployment_ui,
+            campaign_rp=campaign_rp,
         )
 
         # PF-14: align the camera with the deployment UI's fixed layout so
@@ -502,6 +515,15 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
             state=self.state,
         )
         if result is not None:
+            # MC2-06: replay surviving-unit states from the previous battle and
+            # drop fallen units from the deployment roster (campaign only).
+            try:
+                self._replay_campaign_unit_states()
+            except Exception:
+                logger.warning(
+                    "Campaign state replay failed; using fresh deployment", exc_info=True
+                )
+
             from pycc2.services.reinforcement_service import ReinforcementService
 
             self._reinforcement_service = ReinforcementService.from_scenario(self._scenario_data)
@@ -532,6 +554,78 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
                 except Exception:
                     logger.warning("Failed to re-show tutorial overlay", exc_info=True)
         return result
+
+    def _campaign_start_rp(self, faction: str) -> int | None:
+        """MC2-06: requisition points from the campaign pool for this battle.
+
+        Returns None for skirmish loops (no campaign persistence or campaign
+        context) so DeploymentManager keeps its skirmish base values.
+        """
+        persistence = getattr(self, "_campaign_persistence", None)
+        campaign_id = getattr(self, "_campaign_id", None)
+        if persistence is None or not campaign_id:
+            return None
+        progress = persistence.load_campaign_progress(campaign_id)
+        if progress is None:
+            return None
+        side = _faction_side_name(faction)
+        if side == "allies":
+            return int(progress.requisition_points_allies)
+        return int(progress.requisition_points_axis)
+
+    def _replay_campaign_unit_states(self) -> None:
+        """MC2-06: apply previous-battle unit states to the deployed roster.
+
+        Matches deployed units by (unit_template_id, side) against the alive
+        survivors of the last saved battle and replays hp/morale/xp/kills/ammo.
+        Units recorded as fallen are removed from state.units (deployment
+        roster filter) and unregistered from the AI service. Fresh units with
+        no matching record are left untouched (new-task rosters keep working).
+        """
+        persistence = getattr(self, "_campaign_persistence", None)
+        campaign_id = getattr(self, "_campaign_id", None)
+        if persistence is None or not campaign_id:
+            return
+        progress = persistence.load_campaign_progress(campaign_id)
+        if progress is None:
+            return
+
+        survivors: dict[tuple[str, str], Any] = {}
+        for side in ("allies", "axis"):
+            for unit_state in progress.get_surviving_units(side):
+                survivors[(unit_state.unit_template_id, side)] = unit_state
+        fallen_keys = {
+            (unit_state.unit_template_id, unit_state.faction)
+            for unit_state in progress.current_unit_states
+            if not unit_state.is_alive
+        }
+
+        replayed = 0
+        fallen: list[Any] = []
+        for unit in self.state.units:
+            key = (unit.template_id, _unit_side(unit))
+            if key in fallen_keys:
+                fallen.append(unit)
+                continue
+            unit_state = survivors.get(key)
+            if unit_state is None:
+                continue
+            _replay_unit_state(unit, unit_state)
+            replayed += 1
+
+        for unit in fallen:
+            if unit in self.state.units:
+                self.state.units.remove(unit)
+            ai_service = getattr(self, "ai_service", None)
+            if ai_service is not None and hasattr(ai_service, "unregister_ai_unit"):
+                ai_service.unregister_ai_unit(unit.id)
+
+        if replayed or fallen:
+            logger.info(
+                "Campaign replay: %d units restored, %d fallen removed",
+                replayed,
+                len(fallen),
+            )
 
     def _apply_scenario_start_effects(self) -> None:
         """Apply PF-12 rules that change units once battle starts."""
