@@ -33,6 +33,7 @@ from pycc2.domain.ai.tactical_ai import (
 from pycc2.domain.ai.tick_scheduler import AITickScheduler
 from pycc2.domain.ai.weapon_jam import WeaponJamSystem
 from pycc2.domain.entities.unit import Unit
+from pycc2.domain.value_objects.tactical_order import OrderOrigin, TacticalOrder
 from pycc2.infrastructure.events.event_bus import EventBus
 
 if TYPE_CHECKING:
@@ -40,8 +41,10 @@ if TYPE_CHECKING:
     from pycc2.domain.ai.commander_ai import CommanderAI
     from pycc2.domain.ai.difficulty_system import DifficultyLevel, DifficultySystem
     from pycc2.domain.ai.squad_coordinator import SquadCoordinator
+    from pycc2.domain.entities.game_map import GameMap
     from pycc2.domain.systems.ballistic import BallisticEngine
     from pycc2.domain.systems.pathfinder import PathFinder
+    from pycc2.services.combat_director import CombatDirector
 
 
 class AIService:
@@ -71,6 +74,11 @@ class AIService:
         self._unit_trees: dict[str, BTNode] = {}
         self._blackboards: dict[str, Blackboard] = {}
         self._unit_entities: dict[str, Unit] = {}
+        # MC2-01: commander orders route through CombatDirector.issue_order when injected.
+        self._combat_director: CombatDirector | None = None
+        # MC2-01: battlefield context captured by tick() for issue_order dispatch.
+        self._last_all_units: list[Unit] | None = None
+        self._last_game_map: GameMap | None = None
         self._executor = TacticExecutor(
             event_bus=event_bus,
             pathfinder=pathfinder,
@@ -143,6 +151,10 @@ class AIService:
         """Check if a commander AI is set."""
         return self._commander is not None
 
+    def set_combat_director(self, director: CombatDirector | None) -> None:
+        """Inject the CombatDirector so commander orders route via issue_order (MC2-01)."""
+        self._combat_director = director
+
     @property
     def weapon_jam_system(self) -> WeaponJamSystem:
         """Expose WeaponJamSystem for combat director integration (TD-076c, v0.7.0)."""
@@ -207,6 +219,11 @@ class AIService:
 
         """
         intents: list[TacticIntent] = []
+
+        # MC2-01: capture the battlefield context so execute_intents can route
+        # commander-mappable intents through CombatDirector.issue_order.
+        self._last_all_units = all_units
+        self._last_game_map = game_map
 
         for unit_id, tree in self._unit_trees.items():
             blackboard = self._blackboards.get(unit_id)
@@ -403,6 +420,11 @@ class AIService:
     def execute_intents(self, intents: list[TacticIntent]) -> dict[str, bool]:
         """Execute a list of tactic intents.
 
+        MC2-01: intents that map 1:1 onto a _CMD_DISPATCH command (currently
+        ATTACK) are routed through CombatDirector.issue_order as
+        TacticalOrder(origin=COMMANDER); all other intents keep the original
+        TacticExecutor path.
+
         Args:
             intents: List of intents to execute
 
@@ -412,13 +434,59 @@ class AIService:
         """
         results = {}
         for intent in intents:
-            success = self._executor.execute(intent)
+            success = self._execute_single_intent(intent)
             results[intent.unit_id] = success
             if not success:
                 self._logger.warning(
                     f"Failed to execute intent for {intent.unit_id}: {intent.tactic_type.value}"
                 )
         return results
+
+    def _execute_single_intent(self, intent: TacticIntent) -> bool:
+        """Execute one intent via issue_order when mappable, else TacticExecutor."""
+        director = self._combat_director
+        if director is not None and intent.tactic_type == TacticType.ATTACK:
+            routed = self._issue_commander_attack(intent, director)
+            if routed is not None:
+                return routed
+        return self._executor.execute(intent)
+
+    def _issue_commander_attack(
+        self,
+        intent: TacticIntent,
+        director: CombatDirector,
+    ) -> bool | None:
+        """Map an ATTACK intent to TacticalOrder(origin=COMMANDER) via issue_order.
+
+        Returns None when the intent cannot be routed (missing battlefield
+        context or unknown unit/target); the caller then falls back to the
+        original TacticExecutor path, reproducing its exact result.
+        """
+        units = self._last_all_units
+        game_map = self._last_game_map
+        if units is None or game_map is None:
+            return None
+
+        unit = self._unit_entities.get(intent.unit_id)
+        target = self._unit_entities.get(intent.target_unit_id) if intent.target_unit_id else None
+        if unit is None or target is None:
+            return None
+
+        # Preserve the CC2 morale gating that TacticExecutor.execute applies
+        # before dispatch (routing/broken units must still refuse orders).
+        morale_check = self._executor._check_morale_preconditions(unit, intent)
+        if not morale_check["can_execute"]:
+            return False
+
+        order = TacticalOrder(
+            command="attack",
+            unit_ids=(intent.unit_id,),
+            origin=OrderOrigin.COMMANDER,
+            params={"target_id": intent.target_unit_id},
+            issued_tick=self._current_tick,
+        )
+        unit_map = {u.id: u for u in units}
+        return director.issue_order(order, unit_map=unit_map, units=units, game_map=game_map)
 
     def get_blackboard(self, unit_id: str) -> Blackboard | None:
         """Get the blackboard for a specific unit."""

@@ -77,6 +77,7 @@ if TYPE_CHECKING:
     from pycc2.presentation.audio.sound_system import SoundSystem
     from pycc2.presentation.ui.time_control import TimeControlUI
     from pycc2.services.ai_service import AIService
+    from pycc2.services.trigger_system import TriggerSystem
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +133,8 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
     _scenario_data: dict = field(init=False, default_factory=dict)
     _reinforcement_service: Any = field(init=False, default=None)
     _logistics_counter: int = field(init=False, default=0)
+    # MC2-02: frame-sequence trigger table (corridor/supply/fanatic/combined-arms/reinforcement)
+    _trigger_system: TriggerSystem | None = field(init=False, default=None)
     _deployment_ui_factory: Callable[[int, int], Any] | None = None
     _event_dispatcher: EventDispatcher | None = field(init=False, default=None)
     _campaign_ui: ICampaignUI | None = field(init=False, default=None)

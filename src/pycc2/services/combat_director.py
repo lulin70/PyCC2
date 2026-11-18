@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from pycc2.domain.interfaces import ISoundSystem
+from pycc2.domain.value_objects.tactical_order import OrderOrigin, TacticalOrder
 
 if TYPE_CHECKING:
     from pycc2.domain.entities.game_map import GameMap
@@ -73,6 +74,8 @@ class CombatDirector:
         init=False, default=None
     )  # R10: Camera position for sound falloff
     _pinned_recovery_counter: int = field(init=False, default=0)
+    # MC2-01: ring buffer of issued TacticalOrders (replay/record basis).
+    _order_log: deque[TacticalOrder] = field(init=False, default_factory=lambda: deque(maxlen=1000))
 
     def set_los_system(self, los_system: LOSSystem | None) -> None:
         """Inject the LOS system used to gate shots on line of sight."""
@@ -133,17 +136,61 @@ class CombatDirector:
     def _on_unit_attacked_event(self, data: dict) -> None:
         self.on_unit_attacked(data)
 
+    def issue_order(
+        self,
+        order: TacticalOrder,
+        *,
+        unit_map: dict[str, Unit],
+        units: list[Unit],
+        game_map: GameMap,
+    ) -> bool:
+        """Unified command entry point (MC2-01).
+
+        Records the order in the ring ``_order_log``, then dispatches through
+        the existing ``_CMD_DISPATCH`` table. Returns True when the command
+        matched a handler and was executed.
+        """
+        handler_name = _CMD_DISPATCH.get(order.command) if isinstance(order.command, str) else None
+        if handler_name is None:
+            return False
+
+        self._order_log.append(order)
+        getattr(self, handler_name)(order.to_command_data(), unit_map, units, game_map)
+        return True
+
     def handle_player_command(self, data: dict, units: list[Unit], game_map: GameMap) -> None:
         """Dispatch a player command (attack, move, defend, smoke, etc.) to units."""
         cmd = data.get("command")
+        if not isinstance(cmd, str):
+            return
+
+        # MC2-01: normalize the event into a TacticalOrder so player and AI
+        # commander orders share the identical issue_order dispatch path.
+        # PlayerCommand.origin is NotRequired; absent/invalid means player.
+        origin_raw = data.get("origin", OrderOrigin.PLAYER.value)
+        try:
+            origin = OrderOrigin(origin_raw)
+        except ValueError:
+            origin = OrderOrigin.PLAYER
+        raw_timestamp = data.get("timestamp", 0.0)
+        timestamp = float(raw_timestamp) if isinstance(raw_timestamp, (int, float)) else 0.0
+        params = {
+            key: value
+            for key, value in data.items()
+            if key not in ("command", "unit_ids", "origin", "timestamp")
+        }
+        order = TacticalOrder(
+            command=cmd,
+            unit_ids=tuple(data.get("unit_ids", [])),
+            origin=origin,
+            params=params,
+            timestamp=timestamp,
+        )
 
         # Pre-build unit lookup for O(1) access instead of O(n) linear scan
         unit_map = {u.id: u for u in units}
 
-        handler_name = _CMD_DISPATCH.get(cmd) if isinstance(cmd, str) else None
-        if handler_name is None:
-            return
-        getattr(self, handler_name)(data, unit_map, units, game_map)
+        self.issue_order(order, unit_map=unit_map, units=units, game_map=game_map)
 
     def _cmd_attack(
         self,

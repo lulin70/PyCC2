@@ -9,3 +9,5 @@ class PlayerCommand(TypedDict, total=False):
     target_id: NotRequired[str]
     target: NotRequired[tuple[int, int]]
     timestamp: float
+    # MC2-01: issuing side ("player" / "commander" / "self"); absent = player.
+    origin: NotRequired[str]

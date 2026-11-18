@@ -50,6 +50,7 @@ class GameLoopAssembler:
         """Full initialization: sound, combat, rendering, input, UI, events, FX."""
         self._init_sound()
         self._init_core_services()
+        self._init_trigger_system()
         self._init_weather()
         self._init_combat_render_input()
         self._init_fog_of_war()
@@ -114,6 +115,13 @@ class GameLoopAssembler:
 
         self._loop._pause_menu = PauseMenuController()
 
+    def _init_trigger_system(self) -> None:
+        """MC2-02: build the frame-sequence trigger table for the update mixins."""
+        from pycc2.services.game_loop_updating import build_scenario_triggers
+
+        self._loop._trigger_system = build_scenario_triggers()
+        logger.info("TriggerSystem initialized and wired into GameLoop (MC2-02)")
+
     def _init_weather(self) -> None:
         """Create the mechanical weather state and effect tables."""
         from pycc2.domain.systems.weather_effects import WeatherEffects, WeatherState
@@ -129,12 +137,22 @@ class GameLoopAssembler:
         dc = self._loop.display_config
         assert dc is not None, "display_config must be initialized before combat/render/input"
 
-        self._loop._combat_director = CombatDirector(
+        combat_director = CombatDirector(
             event_bus=self._loop.event_bus,
             display_config=dc,
             sound_system=self._loop.sound_system,
         )
-        self._loop._combat_director.initialize()
+        self._loop._combat_director = combat_director
+        combat_director.initialize()
+
+        # MC2-01: let the AI service route commander orders through
+        # CombatDirector.issue_order. getattr guard keeps FakeAIService-style
+        # test doubles (no set_combat_director) working.
+        ai_service = self._loop.ai_service
+        if ai_service is not None:
+            setter = getattr(ai_service, "set_combat_director", None)
+            if callable(setter):
+                setter(combat_director)
 
         from pycc2.domain.systems.los_system import LOSSystem
 

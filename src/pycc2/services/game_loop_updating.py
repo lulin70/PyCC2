@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pycc2.domain.entities.unit import UnitState
 from pycc2.domain.interfaces import (
@@ -42,6 +42,7 @@ from pycc2.domain.interfaces import (
     IWeatherSystem,
 )
 from pycc2.services.game_loop_types import LOGIC_DT, GameState
+from pycc2.services.trigger_system import Trigger, TriggerSystem
 
 if TYPE_CHECKING:
     from pycc2.domain.interfaces.interaction_controller_protocol import (
@@ -66,6 +67,269 @@ def _is_armor_unit(unit: object) -> bool:
     if "ANTI_TANK" in name:
         return False
     return any(key in name for key in _ARMOR_TYPE_KEYS)
+
+
+# ---------------------------------------------------------------------------
+# MC2-02 trigger conditions/actions — state passed as the loop facade so the
+# trigger table is the single frame-sequence authority for these rule effects.
+# Bodies are verbatim copies of the pre-migration inline blocks.
+# ---------------------------------------------------------------------------
+
+
+def _logistics_spawn_points_present(loop: Any) -> bool:
+    data = getattr(loop, "_scenario_data", None)
+    spawn_points = data.get("spawn_points", []) if data else []
+    return bool(spawn_points)
+
+
+def _logistics_corridor_lost(loop: Any) -> bool:
+    """Corridor VL captured by the axis side (PF-12 corridor_must_remain_open)."""
+    rules = getattr(loop, "_scenario_rules", None)
+    if rules is None or not rules.has("corridor_must_remain_open"):
+        return False
+    corridor_ids = GameLoopUpdatingMixin._matching_vl_ids(
+        loop, "corridor", "road", "junction", "highway", "crossroads"
+    )
+    owners = GameLoopUpdatingMixin._vl_owner_map(loop)
+    return bool(corridor_ids) and any(owners.get(vl) == "axis" for vl in corridor_ids)
+
+
+def _corridor_block_due(loop: Any) -> bool:
+    return _logistics_spawn_points_present(loop) and _logistics_corridor_lost(loop)
+
+
+def _block_supply_this_pass(loop: Any) -> None:
+    logger.debug("Supply blocked: corridor VL lost")
+    loop._supply_blocked = True
+
+
+def _resupply_due(loop: Any) -> bool:
+    return _logistics_spawn_points_present(loop) and not getattr(loop, "_supply_blocked", False)
+
+
+def _resupply_units(loop: Any) -> None:
+    """Resupply units near friendly spawn points (base logistics pass)."""
+    spawn_points = loop._scenario_data.get("spawn_points", []) if loop._scenario_data else []
+    rules = getattr(loop, "_scenario_rules", None)
+    air_level = getattr(loop.state, "air_support_level", "full")
+    for unit in loop.state.units:
+        if not getattr(unit, "is_alive", False):
+            continue
+        weapon = getattr(unit, "weapon", None)
+        reserve = getattr(weapon, "reserve_ammo", -2)
+        if weapon is None or reserve < 0:
+            continue
+
+        faction_name = getattr(getattr(unit, "faction", None), "name", "")
+        unit_side = (
+            "allies" if faction_name in ("ALLIES", "AMERICAN", "BRITISH", "POLISH") else "axis"
+        )
+        pos = unit.position.tile_coord
+        near = any(
+            sp.get("side") == unit_side
+            and abs(int(sp.get("position", [0, 0])[0]) - pos.x)
+            + abs(int(sp.get("position", [0, 0])[1]) - pos.y)
+            <= 3
+            for sp in spawn_points
+            if isinstance(sp, dict)
+        )
+        if not near:
+            continue
+
+        amount = max(1, weapon.max_ammo // 10)
+        if rules is not None and rules.has("supply_dwindling"):
+            amount = int(amount * getattr(loop, "_supply_decay", 1.0))
+        if unit_side == "allies":
+            if air_level == "none":
+                continue
+            if air_level == "limited":
+                amount //= 2
+        if amount <= 0:
+            continue
+
+        cap = weapon.max_ammo * 2
+        if weapon.reserve_ammo < cap:
+            weapon.reserve_ammo = min(cap, weapon.reserve_ammo + amount)
+
+
+def _supply_dwindling_due(loop: Any) -> bool:
+    rules = getattr(loop, "_scenario_rules", None)
+    return (
+        _logistics_spawn_points_present(loop)
+        and not getattr(loop, "_supply_blocked", False)
+        and rules is not None
+        and rules.has("supply_dwindling")
+    )
+
+
+def _decay_supply_factor(loop: Any) -> None:
+    loop._supply_decay = max(0.0, getattr(loop, "_supply_decay", 1.0) * 0.85)
+
+
+def _fanatic_defenders_due(loop: Any) -> bool:
+    rules = getattr(loop, "_scenario_rules", None)
+    return rules is not None and rules.has("fanatic_defenders")
+
+
+def _clamp_fanatic_morale(loop: Any) -> None:
+    for unit in loop.state.units:
+        if unit.is_alive and unit.faction.name == "AXIS" and unit.morale.value < 30:
+            unit.morale.value = 30
+
+
+def _combined_arms_due(loop: Any) -> bool:
+    """Every 30th call while the rule is active (counter bookkeeping kept on loop)."""
+    rules = getattr(loop, "_scenario_rules", None)
+    if rules is None or not rules.has("combined_arms_bonus"):
+        return False
+    loop._combined_arms_counter = getattr(loop, "_combined_arms_counter", 0) + 1
+    return loop._combined_arms_counter % 30 == 0
+
+
+def _apply_combined_arms(loop: Any) -> None:
+    units = loop.state.units
+    armor = [unit for unit in units if unit.is_alive and _is_armor_unit(unit)]
+    if not armor:
+        return
+    for unit in units:
+        if not unit.is_alive:
+            continue
+        pos = unit.position.tile_coord
+        supported = any(
+            other.faction == unit.faction
+            and max(
+                abs(other.position.tile_coord.x - pos.x),
+                abs(other.position.tile_coord.y - pos.y),
+            )
+            <= 4
+            for other in armor
+        )
+        unit.scenario_accuracy_mod = 1.10 if supported else 1.0
+
+
+def _reinforcement_due(loop: Any) -> bool:
+    """Reinforcement service present and (when exposed) with due entries pending."""
+    service = getattr(loop, "_reinforcement_service", None)
+    manager = getattr(loop, "_deployment_manager", None)
+    if service is None or manager is None:
+        return False
+    if loop.state.game_map is None:
+        return False
+    due = getattr(service, "due_entries", None)
+    if callable(due):
+        return bool(due(loop.state.tick))
+    return True  # duck-typed service without due_entries: delegate every tick
+
+
+def _spawn_due_reinforcements(loop: Any) -> None:
+    """Spawn scenario reinforcements when their arrival turn is reached."""
+    service = loop._reinforcement_service
+    manager = getattr(loop, "_deployment_manager", None)
+    if service is None or manager is None:
+        return
+    if loop.state.game_map is None:
+        return
+
+    rules = getattr(loop, "_scenario_rules", None)
+    allowed_sides: set[str] | None = None
+    max_per_side: int | None = None
+    if rules is not None:
+        if rules.has("lz_must_hold_for_reinforcements"):
+            lz_ids = GameLoopUpdatingMixin._matching_vl_ids(loop, "lz", "landing")
+            owners = GameLoopUpdatingMixin._vl_owner_map(loop)
+            if lz_ids and not any(owners.get(vl) == "allies" for vl in lz_ids):
+                allowed_sides = {"axis"}
+        if rules.has("limited_reinforcements"):
+            max_per_side = 2
+
+    try:
+        spawned = service.update(
+            tick=loop.state.tick,
+            units=loop.state.units,
+            game_map=loop.state.game_map,
+            factory=manager.create_reinforcement_unit,
+            allowed_sides=allowed_sides,
+            max_per_side=max_per_side,
+        )
+    except Exception:
+        logger.warning("Reinforcement update failed", exc_info=True)
+        return
+    for unit, side in spawned:
+        logger.info("Reinforcement joined battle: %s (%s)", unit.id, side)
+
+
+def build_scenario_triggers() -> TriggerSystem:
+    """Build the MC2-02 frame-sequence trigger table used by the update mixins.
+
+    Registration order is execution order per group tick:
+      logistics:    corridor_supply_block → supply_resupply_pass → supply_dwindling_decay
+      scenario:     fanatic_defenders_floor → combined_arms_bonus
+      reinforcement: reinforcement_due (delegates to ReinforcementService.update)
+    """
+    system = TriggerSystem()
+    system.register(
+        Trigger(
+            trigger_id="corridor_supply_block",
+            group="logistics",
+            condition=_corridor_block_due,
+            action=_block_supply_this_pass,
+        )
+    )
+    system.register(
+        Trigger(
+            trigger_id="supply_resupply_pass",
+            group="logistics",
+            condition=_resupply_due,
+            action=_resupply_units,
+        )
+    )
+    system.register(
+        Trigger(
+            trigger_id="supply_dwindling_decay",
+            group="logistics",
+            condition=_supply_dwindling_due,
+            action=_decay_supply_factor,
+        )
+    )
+    system.register(
+        Trigger(
+            trigger_id="fanatic_defenders_floor",
+            group="scenario",
+            condition=_fanatic_defenders_due,
+            action=_clamp_fanatic_morale,
+        )
+    )
+    system.register(
+        Trigger(
+            trigger_id="combined_arms_bonus",
+            group="scenario",
+            condition=_combined_arms_due,
+            action=_apply_combined_arms,
+        )
+    )
+    system.register(
+        Trigger(
+            trigger_id="reinforcement_due",
+            group="reinforcement",
+            condition=_reinforcement_due,
+            action=_spawn_due_reinforcements,
+        )
+    )
+    return system
+
+
+def _ensure_trigger_system(loop: Any) -> TriggerSystem:
+    """Return the loop's trigger table, building it lazily when absent (MC2-02).
+
+    ``GameLoopAssembler`` pre-builds the system for real loops; stub/fake
+    loops used by tests get one on first use so the thin delegates below keep
+    working standalone (module-level helper — no method required on the loop).
+    """
+    system = getattr(loop, "_trigger_system", None)
+    if system is None:
+        system = build_scenario_triggers()
+        loop._trigger_system = system
+    return system
 
 
 class GameLoopUpdatingMixin:
@@ -96,6 +360,10 @@ class GameLoopUpdatingMixin:
     _logistics_counter: int
     _ai_tick_counter: int
     _ai_update_interval: int
+    # MC2-02: frame-sequence trigger table (built by assembler or lazily on first tick)
+    _trigger_system: TriggerSystem | None
+    # MC2-02: per-pass flag raised by the corridor_supply_block trigger
+    _supply_blocked: bool
 
     # -- Cross-mixin method provided by GameLoopCombatMixin --
     def _process_combat_popups(self) -> None:
@@ -164,140 +432,42 @@ class GameLoopUpdatingMixin:
         return manager.get_vl_owners()
 
     def _update_reinforcements(self) -> None:
-        """Spawn scenario reinforcements when their arrival turn is reached."""
-        service = self._reinforcement_service
-        manager = getattr(self, "_deployment_manager", None)
-        if service is None or manager is None:
-            return
-        if self.state.game_map is None:
-            return
+        """Spawn scenario reinforcements when their arrival turn is reached.
 
-        rules = getattr(self, "_scenario_rules", None)
-        allowed_sides: set[str] | None = None
-        max_per_side: int | None = None
-        if rules is not None:
-            if rules.has("lz_must_hold_for_reinforcements"):
-                lz_ids = self._matching_vl_ids("lz", "landing")
-                owners = self._vl_owner_map()
-                if lz_ids and not any(owners.get(vl) == "allies" for vl in lz_ids):
-                    allowed_sides = {"axis"}
-            if rules.has("limited_reinforcements"):
-                max_per_side = 2
-
-        try:
-            spawned = service.update(
-                tick=self.state.tick,
-                units=self.state.units,
-                game_map=self.state.game_map,
-                factory=manager.create_reinforcement_unit,
-                allowed_sides=allowed_sides,
-                max_per_side=max_per_side,
-            )
-        except Exception:
-            logger.warning("Reinforcement update failed", exc_info=True)
-            return
-        for unit, side in spawned:
-            logger.info("Reinforcement joined battle: %s (%s)", unit.id, side)
+        Thin delegate (MC2-02): the spawn logic lives in the ``reinforcement_due``
+        trigger of the frame-sequence trigger table.
+        """
+        system = _ensure_trigger_system(self)
+        system.tick(self, group="reinforcement")
 
     def _update_logistics(self) -> None:
-        """Resupply nearby friendly units from their rear spawn area every ~2 s."""
+        """Resupply nearby friendly units from their rear spawn area every ~2 s.
+
+        Thin delegate (MC2-02): the corridor block, resupply pass, and supply
+        decay live in the ``logistics`` group of the trigger table, evaluated
+        in registration order behind the original 60-tick gate.
+        """
         self._logistics_counter += 1
         if self._logistics_counter < 60:
             return
         self._logistics_counter = 0
 
-        spawn_points = self._scenario_data.get("spawn_points", []) if self._scenario_data else []
-        if not spawn_points:
-            return
-
-        rules = getattr(self, "_scenario_rules", None)
-        air_level = getattr(self.state, "air_support_level", "full")
-        if rules is not None and rules.has("corridor_must_remain_open"):
-            corridor_ids = self._matching_vl_ids(
-                "corridor", "road", "junction", "highway", "crossroads"
-            )
-            owners = self._vl_owner_map()
-            if corridor_ids and any(owners.get(vl) == "axis" for vl in corridor_ids):
-                logger.debug("Supply blocked: corridor VL lost")
-                return
-
-        for unit in self.state.units:
-            if not getattr(unit, "is_alive", False):
-                continue
-            weapon = getattr(unit, "weapon", None)
-            reserve = getattr(weapon, "reserve_ammo", -2)
-            if weapon is None or reserve < 0:
-                continue
-
-            faction_name = getattr(getattr(unit, "faction", None), "name", "")
-            unit_side = (
-                "allies" if faction_name in ("ALLIES", "AMERICAN", "BRITISH", "POLISH") else "axis"
-            )
-            pos = unit.position.tile_coord
-            near = any(
-                sp.get("side") == unit_side
-                and abs(int(sp.get("position", [0, 0])[0]) - pos.x)
-                + abs(int(sp.get("position", [0, 0])[1]) - pos.y)
-                <= 3
-                for sp in spawn_points
-                if isinstance(sp, dict)
-            )
-            if not near:
-                continue
-
-            amount = max(1, weapon.max_ammo // 10)
-            if rules is not None and rules.has("supply_dwindling"):
-                amount = int(amount * getattr(self, "_supply_decay", 1.0))
-            if unit_side == "allies":
-                if air_level == "none":
-                    continue
-                if air_level == "limited":
-                    amount //= 2
-            if amount <= 0:
-                continue
-
-            cap = weapon.max_ammo * 2
-            if weapon.reserve_ammo < cap:
-                weapon.reserve_ammo = min(cap, weapon.reserve_ammo + amount)
-
-        if rules is not None and rules.has("supply_dwindling"):
-            self._supply_decay = max(0.0, getattr(self, "_supply_decay", 1.0) * 0.85)
+        self._supply_blocked = False
+        system = _ensure_trigger_system(self)
+        system.tick(self, group="logistics")
 
     def _update_scenario_effects(self) -> None:
-        """Apply PF-12 rules that act every tick or every second."""
+        """Apply PF-12 rules that act every tick or every second.
+
+        Thin delegate (MC2-02): the fanatic-defenders morale floor and the
+        combined-arms accuracy bonus live in the ``scenario`` group of the
+        trigger table.
+        """
         rules = getattr(self, "_scenario_rules", None)
         if rules is None or not rules.rules:
             return
-        units = self.state.units
-
-        if rules.has("fanatic_defenders"):
-            for unit in units:
-                if unit.is_alive and unit.faction.name == "AXIS" and unit.morale.value < 30:
-                    unit.morale.value = 30
-
-        if not rules.has("combined_arms_bonus"):
-            return
-        self._combined_arms_counter = getattr(self, "_combined_arms_counter", 0) + 1
-        if self._combined_arms_counter % 30 != 0:
-            return
-
-        armor = [unit for unit in units if unit.is_alive and _is_armor_unit(unit)]
-        if not armor:
-            return
-        for unit in units:
-            if not unit.is_alive:
-                continue
-            pos = unit.position.tile_coord
-            supported = any(
-                other.faction == unit.faction
-                and max(
-                    abs(other.position.tile_coord.x - pos.x),
-                    abs(other.position.tile_coord.y - pos.y),
-                )
-                <= 4
-                for other in armor
-            )
-            unit.scenario_accuracy_mod = 1.10 if supported else 1.0
+        system = _ensure_trigger_system(self)
+        system.tick(self, group="scenario")
 
     def _update_fog_of_war(self) -> None:
         # Recompute per-faction visibility (5-tick interval handled by service).
