@@ -74,10 +74,16 @@ class SaveWeaponData(BaseModel):
 
 
 class SavePositionData(BaseModel):
-    """Validation model for unit position data in save files."""
+    """Validation model for unit position data in save files.
+
+    ``pixel_offset`` is float: continuous movement interpolation
+    (CombatDirector.process_movements) writes sub-tile float offsets for
+    players and AI movers alike, and both save writers (save_system /
+    save_controller) emit floats.
+    """
 
     tile_coord: dict[str, int] = Field(default_factory=lambda: {"x": 0, "y": 0})
-    pixel_offset: dict[str, int] = Field(default_factory=lambda: {"x": 0, "y": 0})
+    pixel_offset: dict[str, float] = Field(default_factory=lambda: {"x": 0.0, "y": 0.0})
     facing_rad: float = Field(default=0.0, ge=-6.2832, le=6.2832)
 
 

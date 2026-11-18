@@ -34,6 +34,7 @@ from pycc2.domain.ai.tick_scheduler import AITickScheduler
 from pycc2.domain.ai.weapon_jam import WeaponJamSystem
 from pycc2.domain.entities.unit import Unit
 from pycc2.domain.value_objects.tactical_order import OrderOrigin, TacticalOrder
+from pycc2.domain.value_objects.tile_coord import TileCoord
 from pycc2.infrastructure.events.event_bus import EventBus
 
 if TYPE_CHECKING:
@@ -45,6 +46,29 @@ if TYPE_CHECKING:
     from pycc2.domain.systems.ballistic import BallisticEngine
     from pycc2.domain.systems.pathfinder import PathFinder
     from pycc2.services.combat_director import CombatDirector
+
+
+# MC2 Wave 4: intents whose execution is purely "reach a tile" (verified against
+# the full TacticExecutor dispatch table). They route through
+# CombatDirector.issue_order(command="move", origin=COMMANDER) so AI movement
+# shares the player pathfinder pipeline and Wave 3 yield negotiation.
+# RETREAT keeps its (x-3, y-3) safe-position decision logic; FLANKING carries
+# no facing semantics (combat_mixin._execute_flanking is a pure move
+# delegation), so no move+facing split is needed. Mixed-semantics intents with
+# an inner move leg (TAKE_COVER / DEFEND_VL / CLEAR_BUILDING / ASSAULT_FORTIFIED
+# / SCAVENGE_AMMO / LAY_MINE / HEAL_WOUNDED / RALLY_NCO / MOUNT_TANK) stay on
+# the executor path.
+_COMMANDER_MOVE_INTENTS: frozenset[TacticType] = frozenset(
+    {
+        TacticType.MOVE_TO,
+        TacticType.PATROL,
+        TacticType.RETREAT,
+        TacticType.REGROUP,
+        TacticType.FLANKING,
+        TacticType.COORDINATED_ADVANCE,
+        TacticType.CAPTURE_VL,
+    }
+)
 
 
 class AIService:
@@ -420,10 +444,12 @@ class AIService:
     def execute_intents(self, intents: list[TacticIntent]) -> dict[str, bool]:
         """Execute a list of tactic intents.
 
-        MC2-01: intents that map 1:1 onto a _CMD_DISPATCH command (currently
-        ATTACK) are routed through CombatDirector.issue_order as
-        TacticalOrder(origin=COMMANDER); all other intents keep the original
-        TacticExecutor path.
+        MC2-01: intents that map 1:1 onto a _CMD_DISPATCH command are routed
+        through CombatDirector.issue_order as TacticalOrder(origin=COMMANDER);
+        all other intents keep the original TacticExecutor path. MC2 Wave 4
+        extends the mapped set from ATTACK to the move-family intents
+        (_COMMANDER_MOVE_INTENTS), so AI movement joins the player
+        pathfinder pipeline.
 
         Args:
             intents: List of intents to execute
@@ -445,11 +471,96 @@ class AIService:
     def _execute_single_intent(self, intent: TacticIntent) -> bool:
         """Execute one intent via issue_order when mappable, else TacticExecutor."""
         director = self._combat_director
-        if director is not None and intent.tactic_type == TacticType.ATTACK:
-            routed = self._issue_commander_attack(intent, director)
-            if routed is not None:
-                return routed
+        if director is not None:
+            if intent.tactic_type == TacticType.ATTACK:
+                routed = self._issue_commander_attack(intent, director)
+                if routed is not None:
+                    return routed
+            elif intent.tactic_type in _COMMANDER_MOVE_INTENTS:
+                routed = self._issue_commander_move(intent, director)
+                if routed is not None:
+                    return routed
         return self._executor.execute(intent)
+
+    def _issue_commander_move(
+        self,
+        intent: TacticIntent,
+        director: CombatDirector,
+    ) -> bool | None:
+        """Map a move-family intent to TacticalOrder(origin=COMMANDER) via issue_order.
+
+        MC2 Wave 4: the destination is resolved with each executor handler's
+        decision logic (RETREAT falls back to its (x-3, y-3) safe position),
+        reachability is probed on the director's pathfinder, and the morale
+        gate is applied to the ORIGINAL intent so the movement-command refusal
+        subsets stay identical to the executor's. The issued "move" order is
+        executed by ``_cmd_move`` (pathfinder path) and advanced by
+        ``process_movements`` (continuous movement + yield negotiation).
+
+        Returns None when the intent cannot be routed (missing battlefield
+        context, unknown unit, no destination, or unreachable target); the
+        caller then falls back to the original TacticExecutor path,
+        reproducing its exact result. Returns False only for morale-gate
+        refusals, the same result the executor would produce.
+        """
+        units = self._last_all_units
+        game_map = self._last_game_map
+        if units is None or game_map is None:
+            return None
+
+        unit = self._unit_entities.get(intent.unit_id)
+        if unit is None:
+            return None
+
+        unit_map = {u.id: u for u in units}
+        if intent.unit_id not in unit_map:
+            return None
+
+        target_tile = self._resolve_move_target(intent, unit)
+        if target_tile is None:
+            return None
+
+        # Reachability pre-check: _cmd_move silently drops unreachable goals,
+        # so probe the same pathfinder first and fall back to the executor's
+        # one-step move when no path exists. Runs before the morale gate so a
+        # fallback never double-rolls the BROKEN refusal chance.
+        pathfinder = director.pathfinder
+        if pathfinder is None:
+            return None
+        path = pathfinder.find_path(unit.position.tile_coord, target_tile, game_map, unit=unit)
+        if path is None:
+            return None
+
+        # Preserve the CC2 morale gating that TacticExecutor.execute applies
+        # before dispatch (routing/pinned/broken units must still refuse move
+        # orders per the executor's refusal subsets).
+        morale_check = self._executor._check_morale_preconditions(unit, intent)
+        if not morale_check["can_execute"]:
+            return False
+
+        order = TacticalOrder(
+            command="move",
+            unit_ids=(intent.unit_id,),
+            origin=OrderOrigin.COMMANDER,
+            params={"target": (target_tile.x, target_tile.y)},
+            issued_tick=self._current_tick,
+        )
+        return director.issue_order(order, unit_map=unit_map, units=units, game_map=game_map)
+
+    def _resolve_move_target(self, intent: TacticIntent, unit: Unit) -> TileCoord | None:
+        """Resolve the destination tile for a move-family intent.
+
+        Reproduces the executor handlers' destination decision logic: an
+        explicit ``target_position`` wins; RETREAT without one computes the
+        (x-3, y-3) safe position exactly like ``_execute_retreat``; every
+        other move-family intent has no destination and stays unrouted.
+        """
+        if intent.target_position is not None:
+            return intent.target_position
+        if intent.tactic_type == TacticType.RETREAT:
+            current = unit.position.tile_coord
+            return TileCoord(current.x - 3, current.y - 3)
+        return None
 
     def _issue_commander_attack(
         self,
