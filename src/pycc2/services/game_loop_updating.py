@@ -481,9 +481,29 @@ class GameLoopUpdatingMixin:
         if self._fog_of_war_service is None:
             return
         try:
-            self._fog_of_war_service.update(self.state.units, self.state.game_map, self.state.tick)
+            updated = self._fog_of_war_service.update(
+                self.state.units, self.state.game_map, self.state.tick
+            )
         except Exception:
             logger.warning("Fog-of-war update failed, keeping last grid", exc_info=True)
+            return
+        if not updated:
+            return
+        # MC2-04: pin/drop last-known-position contacts on the fog update rhythm.
+        # Same exception policy as fog — a contact failure never breaks the loop.
+        # getattr guard keeps stub/fake loops without contact memory working.
+        contact_memory = getattr(self, "_contact_memory", None)
+        if contact_memory is None:
+            return
+        try:
+            contact_memory.observe(
+                self.state.units,
+                self._fog_of_war_service.fog,
+                self.state.tick,
+                self._fog_of_war_service.faction,
+            )
+        except Exception:
+            logger.warning("Contact memory observe failed, keeping last ghosts", exc_info=True)
 
     def _update_audio_sync(self, dt: float) -> None:
         # Process audio event queue

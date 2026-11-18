@@ -168,6 +168,8 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
     _los_system: Any = field(init=False, default=None)
     # W1: Fog-of-war service recomputing per-faction tile visibility
     _fog_of_war_service: Any = field(init=False, default=None)
+    # MC2-04: per-faction last-known-position contacts (ghosts) for the renderer
+    _contact_memory: Any = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         from pycc2.services.game_loop_assembler import GameLoopAssembler
@@ -435,6 +437,11 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
         self._apply_scenario_weather(map_data)
         self._apply_scenario_rules(map_data)
 
+        # MC2-04: a new mission starts with an empty last-known-position table.
+        contact_memory = getattr(self, "_contact_memory", None)
+        if contact_memory is not None:
+            contact_memory.clear()
+
         dc = self.display_config
         width = dc.window_width if dc else 800
         height = dc.window_height if dc else 600
@@ -620,8 +627,13 @@ class GameLoop(GameLoopRenderingMixin, GameLoopUpdatingMixin, GameLoopCombatMixi
         if self._save_controller is None:
             return False
         result = self._save_controller.quick_load(slot, self)
-        if result and self._victory_manager is not None:
-            self._victory_manager.reset()
+        if result:
+            if self._victory_manager is not None:
+                self._victory_manager.reset()
+            # MC2-04: a loaded battle starts without stale ghost contacts.
+            contact_memory = getattr(self, "_contact_memory", None)
+            if contact_memory is not None:
+                contact_memory.clear()
         return result
 
     def list_saves(self) -> list:

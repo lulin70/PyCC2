@@ -180,6 +180,7 @@ class GameLoopAssembler:
 
     def _init_fog_of_war(self) -> None:
         """Create the fog-of-war service and hand its grid to the renderer."""
+        from pycc2.services.contact_memory import ContactMemory
         from pycc2.services.fog_of_war_service import FogOfWarService
 
         game_map = self._loop.state.game_map
@@ -188,6 +189,13 @@ class GameLoopAssembler:
         if hasattr(self._loop.renderer, "set_fog_of_war"):
             self._loop.renderer.set_fog_of_war(service.fog)
         logger.info("FogOfWarService initialized and wired into GameLoop")
+
+        # MC2-04: last-known-position ghosts, observed from the fog faction.
+        contact_memory = ContactMemory()
+        self._loop._contact_memory = contact_memory
+        if hasattr(self._loop.renderer, "set_contact_memory"):
+            self._loop.renderer.set_contact_memory(contact_memory, service.faction)
+        logger.info("ContactMemory initialized and wired into GameLoop (MC2-04)")
 
     def _init_squad_groups(self) -> None:
         """v0.7.5 INTEGRATE: Wire SquadGroupManager into GameLoop + InputRouter.

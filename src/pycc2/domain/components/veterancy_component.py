@@ -31,6 +31,22 @@ RANK_BONUSES = {
     VeteranRank.ELITE: {"accuracy": 1.22, "morale_resist": 1.35, "panic_chance": 0.65},
 }
 
+# MC2-03: skill names tracked with use/success double counting ("gunnery" first).
+DEFAULT_SKILL = "gunnery"
+
+
+@dataclass(slots=True)
+class VeteranSkillStats:
+    """MC2-03: per-skill use/success double counting (MC2 numSkillUses pattern)."""
+
+    uses: int = 0
+    successes: int = 0
+
+
+def _default_skill_stats() -> dict[str, VeteranSkillStats]:
+    """Return the initial skill table ("gunnery" starts at zero use/success)."""
+    return {DEFAULT_SKILL: VeteranSkillStats()}
+
 
 @dataclass(slots=True)
 class VeterancyComponent:
@@ -42,6 +58,8 @@ class VeterancyComponent:
     shots_fired: int = 0
     shots_hit: int = 0
     total_damage_dealt: float = 0.0
+    # MC2-03: skill growth table; derived stats (hit_rate/skill_rank) read from it.
+    skill_stats: dict[str, VeteranSkillStats] = field(default_factory=_default_skill_stats)
 
     _rank: VeteranRank = field(init=False)
 
@@ -78,9 +96,12 @@ class VeterancyComponent:
     def record_shot(self, hit: bool, damage: float = 0.0) -> None:
         """Record a fired shot, optionally marking a hit and damage dealt."""
         self.shots_fired += 1
+        stats = self.skill_stats.setdefault(DEFAULT_SKILL, VeteranSkillStats())
+        stats.uses += 1
         if hit:
             self.shots_hit += 1
             self.total_damage_dealt += damage
+            stats.successes += 1
 
     @property
     def accuracy(self) -> float:
@@ -88,6 +109,23 @@ class VeterancyComponent:
         if self.shots_fired == 0:
             return 0.0
         return self.shots_hit / self.shots_fired
+
+    @property
+    def hit_rate(self) -> float:
+        """MC2-03: gunnery success ratio (successes / max(uses, 1))."""
+        stats = self.skill_stats.get(DEFAULT_SKILL)
+        if stats is None:
+            return 0.0
+        return stats.successes / max(stats.uses, 1)
+
+    @property
+    def skill_rank(self) -> float:
+        """MC2-03: derived 0.0-5.0 skill rank from kills and gunnery hit rate.
+
+        Purely derived (no extra mutable state), grows slowly and caps at 5.0.
+        Not wired into ballistics this wave — consumption is deferred.
+        """
+        return min(5.0, self.kills * 0.25 + self.hit_rate * 2.0)
 
     @property
     def accuracy_bonus(self) -> float:
@@ -147,6 +185,10 @@ class VeterancyComponent:
             "shots_hit": self.shots_hit,
             "total_damage_dealt": round(self.total_damage_dealt, 2),
             "rank": self._rank.name,
+            "skill_stats": {
+                name: {"uses": stats.uses, "successes": stats.successes}
+                for name, stats in self.skill_stats.items()
+            },
         }
 
     @classmethod
@@ -160,4 +202,12 @@ class VeterancyComponent:
             shots_hit=data.get("shots_hit", 0),
             total_damage_dealt=data.get("total_damage_dealt", 0.0),
         )
+        saved_skills = data.get("skill_stats", {})
+        if isinstance(saved_skills, dict):
+            for name, stats in saved_skills.items():
+                if isinstance(stats, dict):
+                    comp.skill_stats[name] = VeteranSkillStats(
+                        uses=int(stats.get("uses", 0)),
+                        successes=int(stats.get("successes", 0)),
+                    )
         return comp

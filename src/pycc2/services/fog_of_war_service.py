@@ -36,6 +36,11 @@ class FogOfWarService:
         self.enabled = enabled
         self._last_update_tick = -1
 
+    @property
+    def faction(self) -> Faction:
+        """Return the observing faction (MC2-04: contact memory observer)."""
+        return self._faction
+
     def update(self, units: list[Unit], game_map: GameMap, current_tick: int) -> bool:
         """Recompute visibility if enabled and this tick is an update tick.
 

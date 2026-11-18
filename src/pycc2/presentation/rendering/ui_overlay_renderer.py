@@ -511,6 +511,64 @@ class UIOverlayRenderer:
         surface.blit(overlay, (0, 0))
 
     # ------------------------------------------------------------------ #
+    #  Contact Memory Ghosts (MC2-04)
+    # ------------------------------------------------------------------ #
+
+    # MC2-04: ghost outline alpha (design: alpha 90, half-transparent).
+    GHOST_ALPHA = 90
+
+    # Faction outline colors — same convention as unit_renderer._compute_faction_color.
+    _GHOST_FACTION_COLORS: dict[str, tuple[int, int, int]] = {
+        "ALLIES": (100, 149, 237),
+        "AXIS": (220, 60, 60),
+    }
+    _GHOST_DEFAULT_COLOR = (200, 200, 200)
+
+    def draw_contact_ghosts(
+        self,
+        surface: pygame.Surface,
+        ghosts,
+        camera: Camera,
+        tile_size: int | None = None,
+    ) -> None:
+        """Draw half-transparent faction-colored outlines for contact ghosts.
+
+        ``ghosts`` is the read-only :meth:`ContactMemory.ghosts` query result —
+        expired entries are filtered there, so nothing is drawn for them. One
+        SRCALPHA layer accumulates all outlines for a single blit.
+        """
+        if not ghosts or surface is None:
+            return
+        if tile_size is None:
+            tile_size = self._ctx.tile_size
+
+        zoom = camera.zoom
+        half_w = camera.viewport_width / (2 * zoom)
+        half_h = camera.viewport_height / (2 * zoom)
+        origin_x = -camera.position.x * zoom + camera.viewport_width / 2
+        origin_y = -camera.position.y * zoom + camera.viewport_height / 2
+        screen_tile = tile_size * zoom
+        size = max(1, int(math.ceil(screen_tile)))
+        start_x = int((camera.position.x - half_w) // tile_size)
+        end_x = int((camera.position.x + half_w) // tile_size)
+        start_y = int((camera.position.y - half_h) // tile_size)
+        end_y = int((camera.position.y + half_h) // tile_size)
+
+        overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+        for ghost in ghosts:
+            gx, gy = ghost.last_seen_tile
+            if not (start_x <= gx <= end_x and start_y <= gy <= end_y):
+                continue
+            color = self._GHOST_FACTION_COLORS.get(
+                str(ghost.faction).upper(), self._GHOST_DEFAULT_COLOR
+            )
+            sx = int(gx * screen_tile + origin_x)
+            sy = int(gy * screen_tile + origin_y)
+            pygame.draw.rect(overlay, (*color, self.GHOST_ALPHA), (sx, sy, size, size), width=2)
+
+        surface.blit(overlay, (0, 0))
+
+    # ------------------------------------------------------------------ #
     #  Internal Utilities
     # ------------------------------------------------------------------ #
 

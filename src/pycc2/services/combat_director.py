@@ -817,12 +817,15 @@ class CombatDirector:
             battle_stats.record_shot(faction, hit=(damage > 0))
             if damage > 0:
                 battle_stats.record_damage(faction, damage)
+            # MC2-03: every shot feeds the shooter's gunnery skill (use/success).
+            attacker_veterancy = attacker.veterancy
+            if attacker_veterancy is not None:
+                attacker_veterancy.record_shot(damage > 0)
             if killed and target:
                 battle_stats.record_kill(faction)
                 target_faction = "axis" if target.faction.name == "AXIS" else "allies"
                 battle_stats.record_unit_lost(target_faction)
                 # CC2 parity: the killer earns experience.
-                attacker_veterancy = attacker.veterancy
                 if attacker_veterancy is not None:
                     attacker_veterancy.record_kill()
 

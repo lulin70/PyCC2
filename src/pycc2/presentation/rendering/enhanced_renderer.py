@@ -188,6 +188,9 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
         # 世界层覆盖：VL 旗帜/网格/攻击线/命令线/LOS（屏幕层 HUD 由 HUDRenderer 负责）
         self._ui_overlay = UIOverlayRenderer(self._render_ctx)
         self._fog_of_war = None
+        # MC2-04: contact memory (last-known-position ghosts) + observer faction.
+        self._contact_memory = None
+        self._contact_observer_faction = "ALLIES"
 
         self._enable_cc2_color_grading: bool = True
 
@@ -289,6 +292,11 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
     def set_fog_of_war(self, fog) -> None:
         """Set the fog-of-war grid rendered as a darkness overlay."""
         self._fog_of_war = fog
+
+    def set_contact_memory(self, memory, observer_faction: str = "ALLIES") -> None:
+        """Set the contact memory queried for ghost outlines (MC2-04, read-only)."""
+        self._contact_memory = memory
+        self._contact_observer_faction = observer_faction
 
     def set_time_of_day(self, tod: str) -> None:
         """Set time of day for color grading."""
@@ -448,6 +456,16 @@ class EnhancedRenderer(EnhancedRendererDelegateMixin):
 
         if self._fog_of_war is not None:
             self._ui_overlay.draw_fog_of_war(offscreen, self._fog_of_war, camera)
+
+        # MC2-04: last-known-position ghost outlines above the fog layer — a
+        # ghost marks a tile the player can no longer see into, so it must not
+        # be darkened away. ghosts() already excludes expired contacts.
+        if self._contact_memory is not None:
+            self._ui_overlay.draw_contact_ghosts(
+                offscreen,
+                self._contact_memory.ghosts(self._contact_observer_faction),
+                camera,
+            )
 
         self._environment.render_weather_and_lighting(
             offscreen,
