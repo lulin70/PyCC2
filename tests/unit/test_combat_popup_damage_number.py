@@ -16,6 +16,7 @@ Tests cover 6 dimensions (Happy/Error/Boundary/Performance/Config/Integration):
 from __future__ import annotations
 
 import os
+import statistics
 import time
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
@@ -599,22 +600,34 @@ class TestPerformance:
     """
 
     def test_1000_add_calls_under_100ms(self):
-        """1000 add_damage_number calls should complete under 100ms."""
+        """1000 add_damage_number calls: median of 7 runs under 100ms.
+
+        TD-082 structural fix (2026-11-18): single wall-clock samples on
+        shared CI runners fail ~1x/week on noise (563.5ms and 371.7ms vs
+        100-200ms thresholds across two consecutive days). Median-of-7 is
+        robust to one noisy sample while still catching genuine multi-x
+        regressions.
+        """
         mgr = CombatPopupManager(max_popups=1000)
         damage = Damage(amount=25.0, damage_type=DamageType.KINETIC)
 
-        start = time.perf_counter()
-        for i in range(1000):
-            mgr.add_damage_number((100.0, 200.0), damage, unit_id=f"unit_{i}")
-        elapsed_ms = (time.perf_counter() - start) * 1000.0
-        assert elapsed_ms < 100.0, f"1000 calls took {elapsed_ms:.1f}ms"
+        samples_ms = []
+        for _ in range(7):
+            start = time.perf_counter()
+            for i in range(1000):
+                mgr.add_damage_number((100.0, 200.0), damage, unit_id=f"unit_{i}")
+            samples_ms.append((time.perf_counter() - start) * 1000.0)
+        median_ms = statistics.median(samples_ms)
+        assert median_ms < 100.0, f"Median of 7 runs: {median_ms:.1f}ms (samples {samples_ms})"
 
     def test_render_with_50_popups_under_200ms(self, kinetic_damage):
-        """render() with 50 damage popups should complete under 200ms.
+        """render() with 50 damage popups: median of 7 runs under 200ms.
 
-        Threshold set to 200ms (4x margin) to accommodate CI runner performance
-        fluctuation. GitHub Actions hosted runners are 5-10x slower than local.
-        Local baseline: ~10-20ms. See project_memory lesson on CI performance.
+        Threshold 200ms (local baseline ~10-20ms). TD-082 structural fix
+        (2026-11-18): single-run wall-clock assertions failed twice on CI
+        runner noise (563.5ms / 371.7ms) with no related code change; the
+        median of 7 consecutive runs absorbs one noisy sample while a real
+        regression (steady 2x+ slowdown) still fails the gate.
         """
         mgr = CombatPopupManager(max_popups=50)
         for i in range(50):
@@ -627,7 +640,10 @@ class TestPerformance:
 
         surface = pygame.Surface((800, 600))
 
-        start = time.perf_counter()
-        mgr.render(surface, FakeCamera())
-        elapsed_ms = (time.perf_counter() - start) * 1000.0
-        assert elapsed_ms < 200.0, f"Render took {elapsed_ms:.1f}ms"
+        samples_ms = []
+        for _ in range(7):
+            start = time.perf_counter()
+            mgr.render(surface, FakeCamera())
+            samples_ms.append((time.perf_counter() - start) * 1000.0)
+        median_ms = statistics.median(samples_ms)
+        assert median_ms < 200.0, f"Median of 7 runs: {median_ms:.1f}ms (samples {samples_ms})"
